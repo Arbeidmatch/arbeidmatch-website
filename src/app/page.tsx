@@ -1,65 +1,221 @@
-import Image from "next/image";
+import Link from "next/link";
+import {
+  Building2,
+  Check,
+  CheckCircle2,
+  Factory,
+  Forklift,
+  HardHat,
+  HeartPulse,
+  Hotel,
+  Sparkles,
+  User,
+} from "lucide-react";
+import HowItWorks from "@/components/HowItWorks";
+import Testimonials from "@/components/Testimonials";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <>
+      <section className="flex min-h-screen items-center bg-white py-20">
+        <div className="mx-auto grid w-full max-w-content gap-10 px-4 md:grid-cols-5 md:px-6">
+          <div className="md:col-span-3">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gold">
+              EU/EEA Workforce Solutions · Norway
+            </p>
+            <h1 className="mb-6 text-4xl font-bold leading-tight text-navy md:text-5xl">
+              Qualified workers,
+              <br />
+              delivered to your
+              <br />
+              Norwegian business.
+            </h1>
+            <p className="mb-8 max-w-lg text-lg text-text-secondary">
+              We source, screen and deliver pre-qualified EU/EEA workers for construction,
+              logistics and industry. Fast, legal, and fully compliant.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="/request"
+                className="rounded-md bg-gold px-6 py-3 font-medium text-white hover:bg-gold-hover"
+              >
+                Request candidates
+              </Link>
+              <Link
+                href="/#how-it-works"
+                className="rounded-md border border-navy px-6 py-3 font-medium text-navy hover:bg-surface"
+              >
+                How it works
+              </Link>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-6 text-sm text-text-secondary">
+              <p>✓ 500+ placements</p>
+              <p>✓ 50+ Norwegian clients</p>
+              <p>✓ 2-week delivery</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-6 rounded-xl bg-navy p-10 md:col-span-2">
+            {[
+              ["500+", "Placements"],
+              ["50+", "Active clients"],
+              ["10+", "EU countries"],
+              ["2 wks", "Avg. delivery"],
+            ].map(([number, label]) => (
+              <div key={label}>
+                <p className="text-4xl font-bold text-gold">{number}</p>
+                <p className="text-sm text-white">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-surface py-24">
+        <div className="mx-auto w-full max-w-content px-4 md:px-6">
+          <h2 className="text-center text-4xl font-bold text-navy">Who are you?</h2>
+          <p className="mb-12 mt-4 text-center text-text-secondary">
+            Two simple paths — choose yours.
           </p>
+          <div className="grid gap-6 md:grid-cols-2">
+            <article className="rounded-xl border border-border bg-white p-10 transition hover:shadow-lg">
+              <Building2 className="text-gold" size={32} />
+              <h3 className="mt-4 text-2xl font-semibold text-navy">I&apos;m an employer</h3>
+              <p className="mt-2 text-text-secondary">
+                Norwegian company looking for qualified workers
+              </p>
+              <ul className="mt-6 space-y-2">
+                {[
+                  "Fast candidate delivery",
+                  "Pre-screened workers only",
+                  "Legal and compliant staffing",
+                  "Dedicated recruiter support",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-navy">
+                    <Check size={16} className="text-gold" /> {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/request"
+                className="mt-7 inline-block rounded-md bg-gold px-5 py-2.5 font-medium text-white"
+              >
+                Request candidates →
+              </Link>
+            </article>
+            <article className="rounded-xl border border-border bg-white p-10 transition hover:shadow-lg">
+              <User className="text-gold" size={32} />
+              <h3 className="mt-4 text-2xl font-semibold text-navy">I&apos;m a candidate</h3>
+              <p className="mt-2 text-text-secondary">Looking for legal work in Norway</p>
+              <ul className="mt-6 space-y-2">
+                {[
+                  "Legal employment contracts",
+                  "Clear salary expectations",
+                  "Support before and after arrival",
+                  "Direct access to active jobs",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-navy">
+                    <Check size={16} className="text-gold" /> {item}
+                  </li>
+                ))}
+              </ul>
+              <a
+                href="https://jobs.arbeidmatch.no"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-7 inline-block rounded-md bg-navy px-5 py-2.5 font-medium text-white"
+              >
+                Browse jobs →
+              </a>
+            </article>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <HowItWorks />
+
+      <section className="bg-surface py-24">
+        <div className="mx-auto w-full max-w-content px-4 md:px-6">
+          <h2 className="text-center text-4xl font-bold text-navy">Industries we serve</h2>
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              [HardHat, "Construction & Renovation", "Skilled trades and building teams."],
+              [Forklift, "Logistics & Warehouse", "Warehouse, forklift and terminal roles."],
+              [Factory, "Industry & Production", "Production lines and factory operations."],
+              [Sparkles, "Cleaning & Facility", "Professional cleaning and facility support."],
+              [Hotel, "Hotel, Restaurant & Café", "Kitchen, service and housekeeping staff."],
+              [HeartPulse, "Care & Health", "Support workers for care-driven services."],
+            ].map(([Icon, title, text]) => (
+              <article
+                key={title as string}
+                className="rounded-xl border border-border bg-white p-6 transition hover:border-gold"
+              >
+                <Icon className="text-gold" size={28} />
+                <h3 className="mt-4 text-lg font-semibold text-navy">{title as string}</h3>
+                <p className="mt-2 text-sm text-text-secondary">{text as string}</p>
+                <a
+                  href="https://jobs.arbeidmatch.no"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-block text-sm text-gold"
+                >
+                  View roles →
+                </a>
+              </article>
+            ))}
+          </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="bg-white py-24">
+        <div className="mx-auto grid w-full max-w-content gap-8 px-4 md:grid-cols-2 md:px-6">
+          <div className="rounded-xl bg-navy p-12">
+            <h2 className="mb-8 text-3xl font-bold text-white">Why Norwegian companies choose us</h2>
+            <ul className="space-y-4">
+              {[
+                "Pre-screened, fully documented candidates",
+                "Workers delivered within 2 weeks",
+                "Full Norwegian labor law compliance",
+                "Dedicated recruiter per client",
+                "Follow-up after every placement",
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-3 text-white">
+                  <CheckCircle2 className="text-gold" size={20} /> {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              ["500+", "Placements completed"],
+              ["50+", "Active Norwegian clients"],
+              ["10+", "EU source countries"],
+              ["98%", "Client satisfaction rate"],
+            ].map(([number, label]) => (
+              <article key={label} className="rounded-xl border border-border p-8 text-center">
+                <p className="text-5xl font-bold text-gold">{number}</p>
+                <p className="mt-3 text-text-secondary">{label}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Testimonials />
+
+      <section className="bg-navy py-24 text-center">
+        <div className="mx-auto w-full max-w-content px-4 md:px-6">
+          <h2 className="mb-4 text-4xl font-bold text-white">Ready to find your next workers?</h2>
+          <p className="mb-8 text-lg text-white/70">
+            Contact us today and receive pre-qualified candidates within 2 weeks.
+          </p>
+          <Link
+            href="/request"
+            className="inline-block rounded-md bg-gold px-8 py-4 text-lg font-medium text-white hover:bg-gold-hover"
+          >
+            Request candidates now
+          </Link>
+        </div>
+      </section>
+    </>
   );
 }
