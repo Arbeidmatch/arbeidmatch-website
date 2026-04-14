@@ -10,6 +10,7 @@ type TokenData = {
   company: string;
   email: string;
   job_summary: string;
+  org_number?: string;
 };
 
 type RequestForm = {
@@ -256,6 +257,7 @@ export default function DetailedRequestPage() {
       ...formData,
       token,
       company: tokenData?.company ?? "",
+      orgNumber: tokenData?.org_number ?? "",
       email: tokenData?.email ?? "",
       job_summary: tokenData?.job_summary ?? "",
     };

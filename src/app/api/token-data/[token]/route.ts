@@ -25,7 +25,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("request_tokens")
-    .select("company, email, job_summary")
+    .select("company, email, job_summary, org_number")
     .eq("token", token)
     .single();
 

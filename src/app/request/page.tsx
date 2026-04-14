@@ -1,12 +1,22 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 const inputClass =
   "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
 
+type CompanyResult = {
+  name: string;
+  orgNumber: string;
+};
+
 export default function RequestPage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [companyQuery, setCompanyQuery] = useState("");
+  const [orgNumber, setOrgNumber] = useState("");
+  const [companyResults, setCompanyResults] = useState<CompanyResult[]>([]);
+  const [isSearchingCompanies, setIsSearchingCompanies] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -37,6 +47,48 @@ export default function RequestPage() {
     }
   };
 
+  useEffect(() => {
+    if (companyQuery.trim().length < 2) {
+      setCompanyResults([]);
+      setHasSearched(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearchingCompanies(true);
+        const response = await fetch(
+          `https://data.brreg.no/enhetsregisteret/api/enheter?navn=${encodeURIComponent(
+            companyQuery,
+          )}&size=10`,
+        );
+        const data = (await response.json()) as {
+          _embedded?: { enheter?: Array<{ navn?: string; organisasjonsnummer?: string }> };
+        };
+        const results =
+          data._embedded?.enheter?.map((item) => ({
+            name: item.navn ?? "",
+            orgNumber: item.organisasjonsnummer ?? "",
+          })) ?? [];
+        setCompanyResults(results);
+      } catch {
+        setCompanyResults([]);
+      } finally {
+        setHasSearched(true);
+        setIsSearchingCompanies(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [companyQuery]);
+
+  const onCompanyPick = (item: CompanyResult) => {
+    setCompanyQuery(item.name);
+    setOrgNumber(item.orgNumber);
+    setCompanyResults([]);
+    setHasSearched(false);
+  };
+
   return (
     <section className="bg-surface py-10">
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
@@ -53,9 +105,45 @@ export default function RequestPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="mx-auto mt-4 max-w-md space-y-4 rounded-xl border border-border bg-white p-6">
-          <label className="block">
+          <label className="relative block">
             <span className="mb-1 block text-sm font-medium text-navy">Company name*</span>
-            <input required name="company" className={inputClass} placeholder="Hansen AS" />
+            <input
+              required
+              name="company"
+              className={inputClass}
+              placeholder="Hansen AS"
+              value={companyQuery}
+              onChange={(event) => {
+                setCompanyQuery(event.target.value);
+                setOrgNumber("");
+              }}
+              autoComplete="off"
+            />
+            <input type="hidden" name="orgNumber" value={orgNumber} />
+            {(isSearchingCompanies || companyResults.length > 0 || (hasSearched && companyQuery.trim().length >= 2)) && (
+              <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-border bg-white shadow-[0_8px_24px_rgba(13,27,42,0.12)]">
+                {isSearchingCompanies && (
+                  <p className="px-3 py-2 text-sm text-text-secondary">Searching...</p>
+                )}
+                {!isSearchingCompanies &&
+                  companyResults.map((item) => (
+                    <button
+                      key={`${item.orgNumber}-${item.name}`}
+                      type="button"
+                      onClick={() => onCompanyPick(item)}
+                      className="block w-full border-b border-border px-3 py-2 text-left last:border-b-0 hover:bg-surface"
+                    >
+                      <span className="block text-sm font-medium text-navy">{item.name}</span>
+                      <span className="block text-xs text-gold">Org.nr. {item.orgNumber}</span>
+                    </button>
+                  ))}
+                {!isSearchingCompanies && hasSearched && companyResults.length === 0 && (
+                  <p className="px-3 py-2 text-sm text-text-secondary">
+                    No results — type your company name manually
+                  </p>
+                )}
+              </div>
+            )}
           </label>
 
           <label className="block">

@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase.from("employer_requests").insert({
       token_id: payload.token,
       company: payload.company,
+      org_number: payload.orgNumber,
       email: payload.email,
       full_name: payload.full_name,
       phone: payload.phone,

@@ -33,13 +33,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { full_name, company, email, phone, job_summary, howDidYouHear } = body as {
+    const { full_name, company, email, phone, job_summary, howDidYouHear, orgNumber } = body as {
       full_name?: string;
       company?: string;
       email?: string;
       phone?: string;
       job_summary?: string;
       howDidYouHear?: string;
+      orgNumber?: string;
     };
 
     if (!company || !email || !job_summary) {
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
       company,
       email,
       phone,
+      org_number: orgNumber,
       job_summary,
       how_did_you_hear: howDidYouHear,
       expires_at: expiresAt,
