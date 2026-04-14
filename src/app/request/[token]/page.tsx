@@ -64,7 +64,7 @@ type RequestForm = {
 
 const inputClass =
   "w-full rounded-md border border-border px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold";
-const optionClass = "rounded-md border border-border p-3 text-sm text-navy";
+const optionClass = "flex w-full items-center rounded-md border border-border p-3 text-sm text-navy";
 const cardClass =
   "mx-auto w-full max-w-2xl rounded-xl bg-white p-4 shadow-[0_10px_30px_rgba(13,27,42,0.08)] md:p-5";
 const headingBtn = "w-full rounded-md border border-border px-3 py-2 text-left text-sm font-medium text-navy";
@@ -527,13 +527,15 @@ export default function DetailedRequestPage() {
             {step === 1 && (
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[#0D1B2A]">Type of engagement</h2>
-                {[
-                  "Sourcing — We find the right candidates from our network",
-                  "Recruitment — Full recruitment process",
-                  "Staffing — Innleie/bemanning",
-                ].map((v, i) => (
-                  <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.hiringType === v} onChange={() => updateField("hiringType", v)} ref={(e) => { if (i === 0) setRef("hiringType", e); }} />{v}</label>
-                ))}
+                <div className="space-y-2">
+                  {[
+                    "Sourcing — We find the right candidates from our network",
+                    "Recruitment — Full recruitment process",
+                    "Staffing — Innleie/bemanning",
+                  ].map((v, i) => (
+                    <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.hiringType === v} onChange={() => updateField("hiringType", v)} ref={(e) => { if (i === 0) setRef("hiringType", e); }} />{v}</label>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -561,9 +563,11 @@ export default function DetailedRequestPage() {
                 <h2 className="text-lg font-semibold text-[#0D1B2A]">Qualification</h2>
                 <input type="number" className={`${inputClass} ${invalid("numberOfPositions")}`} placeholder="Number of candidates*" value={formData.numberOfPositions} onChange={(e) => updateField("numberOfPositions", e.target.value)} ref={(e) => setRef("numberOfPositions", e)} />
                 <input type="number" className={`${inputClass} ${invalid("experience")}`} placeholder="Minimum years of experience*" value={formData.experience} onChange={(e) => updateField("experience", e.target.value)} ref={(e) => setRef("experience", e)} />
-                {["No experience needed", "Some experience", "Certified", "Fully certified"].map((v, i) => (
-                  <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.qualification === v} onChange={() => updateField("qualification", v)} ref={(e) => { if (i === 0) setRef("qualification", e); }} />{v}</label>
-                ))}
+                <div className="space-y-2">
+                  {["No experience needed", "Some experience", "Certified", "Fully certified"].map((v, i) => (
+                    <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.qualification === v} onChange={() => updateField("qualification", v)} ref={(e) => { if (i === 0) setRef("qualification", e); }} />{v}</label>
+                  ))}
+                </div>
 
                 {formData.qualification && formData.qualification !== "No experience needed" && (
                   <div className="space-y-2">
@@ -590,13 +594,13 @@ export default function DetailedRequestPage() {
               <div className="space-y-3">
                 <h2 className="text-lg font-semibold text-[#0D1B2A]">Language requirements</h2>
                 <button type="button" className={headingBtn} onClick={() => toggleExpand("norwegian")}>Norwegian {expanded.norwegian ? "▲" : "▼"}</button>
-                {expanded.norwegian && ["Not required", "Basic", "Working level", "Fluent"].map((v, i) => (
+                {expanded.norwegian && <div className="space-y-2">{["Not required", "Basic", "Working level", "Fluent"].map((v, i) => (
                   <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.norwegianLevel === v} onChange={() => updateField("norwegianLevel", v)} ref={(e) => { if (i === 0) setRef("norwegianLevel", e); }} />{v}</label>
-                ))}
+                ))}</div>}
                 <button type="button" className={headingBtn} onClick={() => toggleExpand("english")}>English {expanded.english ? "▲" : "▼"}</button>
-                {expanded.english && ["Not required", "Basic", "Working level", "Fluent"].map((v, i) => (
+                {expanded.english && <div className="space-y-2">{["Not required", "Basic", "Working level", "Fluent"].map((v, i) => (
                   <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.englishLevel === v} onChange={() => updateField("englishLevel", v)} ref={(e) => { if (i === 0) setRef("englishLevel", e); }} />{v}</label>
-                ))}
+                ))}</div>}
               </div>
             )}
 
@@ -604,13 +608,13 @@ export default function DetailedRequestPage() {
               <div className="space-y-3">
                 <h2 className="text-lg font-semibold text-[#0D1B2A]">Requirements</h2>
                 <button type="button" className={headingBtn} onClick={() => toggleExpand("driver")}>Driver's license {expanded.driver ? "▲" : "▼"}</button>
-                {expanded.driver && ["None", "B", "B+", "C", "C1", "CE", "D", "T", "Other"].map((v, i) => (
+                {expanded.driver && <div className="space-y-2">{["None", "B", "B+", "C", "C1", "CE", "D", "T", "Other"].map((v, i) => (
                   <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.driverLicense === v} onChange={() => updateField("driverLicense", v)} ref={(e) => { if (i === 0) setRef("driverLicense", e); }} />{v}{v === "Other" && formData.driverLicense === "Other" && <input className={`${inputClass} ${invalid("driverLicenseOther")} ml-2 inline-block w-56`} placeholder="Specify*" value={formData.driverLicenseOther} onChange={(e) => updateField("driverLicenseOther", e.target.value)} ref={(e) => setRef("driverLicenseOther", e)} />}</label>
-                ))}
+                ))}</div>}
                 <button type="button" className={headingBtn} onClick={() => toggleExpand("dnumber")}>D-number {expanded.dnumber ? "▲" : "▼"}</button>
-                {expanded.dnumber && ["Not required", "Required before start", "Other"].map((v, i) => (
+                {expanded.dnumber && <div className="space-y-2">{["Not required", "Required before start", "Other"].map((v, i) => (
                   <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.dNumber === v} onChange={() => updateField("dNumber", v)} ref={(e) => { if (i === 0) setRef("dNumber", e); }} />{v}{v === "Other" && formData.dNumber === "Other" && <input className={`${inputClass} ${invalid("dNumberOther")} ml-2 inline-block w-56`} placeholder="Specify*" value={formData.dNumberOther} onChange={(e) => updateField("dNumberOther", e.target.value)} ref={(e) => setRef("dNumberOther", e)} />}</label>
-                ))}
+                ))}</div>}
                 <textarea rows={3} className={inputClass} placeholder="Deal breakers (optional)" value={formData.requirements} onChange={(e) => updateField("requirements", e.target.value)} />
               </div>
             )}
@@ -669,31 +673,31 @@ export default function DetailedRequestPage() {
                     {["Yes", "No"].map((v, i) => (
                       <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.internationalTravel === v} onChange={() => updateField("internationalTravel", v)} ref={(e) => { if (i === 0) setRef("internationalTravel", e); }} />{v}</label>
                     ))}
-                    {formData.internationalTravel === "Yes" && ["Fully covered", "Partially covered", "Not covered"].map((v, i) => (
+                    {formData.internationalTravel === "Yes" && <div className="space-y-2">{["Fully covered", "Partially covered", "Not covered"].map((v, i) => (
                       <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.internationalTravelCoverage === v} onChange={() => updateField("internationalTravelCoverage", v)} ref={(e) => { if (i === 0) setRef("internationalTravelCoverage", e); }} />{v}</label>
-                    ))}
+                    ))}</div>}
                   </div>
                 )}
 
                 <button type="button" className={headingBtn} onClick={() => toggleExpand("localTravel")}>Local travel {expanded.localTravel ? "▲" : "▼"}</button>
-                {expanded.localTravel && ["Company car", "Company card for public transport", "Own transport (reimbursed)", "Own transport (not reimbursed)", "Other"].map((v, i) => (
+                {expanded.localTravel && <div className="space-y-2">{["Company car", "Company card for public transport", "Own transport (reimbursed)", "Own transport (not reimbursed)", "Other"].map((v, i) => (
                   <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.localTravel === v} onChange={() => updateField("localTravel", v)} ref={(e) => { if (i === 0) setRef("localTravel", e); }} />{v}{v === "Other" && formData.localTravel === "Other" && <input className={`${inputClass} ${invalid("localTravelOther")} ml-2 inline-block w-56`} placeholder="Specify*" value={formData.localTravelOther} onChange={(e) => updateField("localTravelOther", e.target.value)} ref={(e) => setRef("localTravelOther", e)} />}</label>
-                ))}
+                ))}</div>}
 
                 <button type="button" className={headingBtn} onClick={() => toggleExpand("accommodation")}>Accommodation {expanded.accommodation ? "▲" : "▼"}</button>
-                {expanded.accommodation && ["Free accommodation provided", "Not included", "We help find it", "Other"].map((v, i) => (
+                {expanded.accommodation && <div className="space-y-2">{["Free accommodation provided", "Not included", "We help find it", "Other"].map((v, i) => (
                   <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.accommodation === v} onChange={() => updateField("accommodation", v)} ref={(e) => { if (i === 0) setRef("accommodation", e); }} />{v}{v === "Other" && formData.accommodation === "Other" && <input className={`${inputClass} ${invalid("accommodationOther")} ml-2 inline-block w-56`} placeholder="Specify*" value={formData.accommodationOther} onChange={(e) => updateField("accommodationOther", e.target.value)} ref={(e) => setRef("accommodationOther", e)} />}</label>
-                ))}
+                ))}</div>}
 
                 <button type="button" className={headingBtn} onClick={() => toggleExpand("equipment")}>Work clothing & footwear {expanded.equipment ? "▲" : "▼"}</button>
-                {expanded.equipment && ["Yes — provided by employer", "No — worker provides own", "Partially — PPE only provided", "Other"].map((v, i) => (
+                {expanded.equipment && <div className="space-y-2">{["Yes — provided by employer", "No — worker provides own", "Partially — PPE only provided", "Other"].map((v, i) => (
                   <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.equipment === v} onChange={() => updateField("equipment", v)} ref={(e) => { if (i === 0) setRef("equipment", e); }} />{v}{v === "Other" && formData.equipment === "Other" && <input className={`${inputClass} ${invalid("equipmentOther")} ml-2 inline-block w-56`} placeholder="Specify*" value={formData.equipmentOther} onChange={(e) => updateField("equipmentOther", e.target.value)} ref={(e) => setRef("equipmentOther", e)} />}</label>
-                ))}
+                ))}</div>}
 
                 <button type="button" className={headingBtn} onClick={() => toggleExpand("tools")}>Tools {expanded.tools ? "▲" : "▼"}</button>
-                {expanded.tools && ["Yes — provided", "No — worker brings own", "Not required", "Other"].map((v, i) => (
+                {expanded.tools && <div className="space-y-2">{["Yes — provided", "No — worker brings own", "Not required", "Other"].map((v, i) => (
                   <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.tools === v} onChange={() => updateField("tools", v)} ref={(e) => { if (i === 0) setRef("tools", e); }} />{v}{v === "Other" && formData.tools === "Other" && <input className={`${inputClass} ${invalid("toolsOther")} ml-2 inline-block w-56`} placeholder="Specify*" value={formData.toolsOther} onChange={(e) => updateField("toolsOther", e.target.value)} ref={(e) => setRef("toolsOther", e)} />}</label>
-                ))}
+                ))}</div>}
               </div>
             )}
 
@@ -703,9 +707,9 @@ export default function DetailedRequestPage() {
                 <input className={`${inputClass} ${invalid("city")}`} placeholder="Work location / city*" value={formData.city} onChange={(e) => updateField("city", e.target.value)} ref={(e) => setRef("city", e)} />
 
                 <button type="button" className={headingBtn} onClick={() => toggleExpand("startDate")}>Preferred start date {expanded.startDate ? "▲" : "▼"}</button>
-                {expanded.startDate && ["ASAP", "1-2 weeks", "Within 1 month", "Flexible", "Other"].map((v, i) => (
+                {expanded.startDate && <div className="space-y-2">{["ASAP", "1-2 weeks", "Within 1 month", "Flexible", "Other"].map((v, i) => (
                   <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.startDate === v} onChange={() => updateField("startDate", v)} ref={(e) => { if (i === 0) setRef("startDate", e); }} />{v}{v === "Other" && formData.startDate === "Other" && <input type="date" className={`${inputClass} ${invalid("startDateOther")} ml-2 inline-block w-56`} value={formData.startDateOther} onChange={(e) => updateField("startDateOther", e.target.value)} ref={(e) => setRef("startDateOther", e)} />}</label>
-                ))}
+                ))}</div>}
 
                 <button type="button" className={headingBtn} onClick={() => toggleExpand("hear")}>How did you hear about us? {expanded.hear ? "▲" : "▼"}</button>
                 {expanded.hear && (
