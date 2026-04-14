@@ -23,7 +23,13 @@ export async function POST(request: NextRequest) {
     const supabase = getSupabaseClient();
 
     if (!supabase) {
-      throw new Error("Supabase configuration missing");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Supabase configuration missing - URL: " + process.env.NEXT_PUBLIC_SUPABASE_URL,
+        },
+        { status: 500 },
+      );
     }
 
     const body = await request.json();
@@ -59,8 +65,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, token });
   } catch (error) {
-    console.error("simple-request POST failed:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("simple-request POST failed:", JSON.stringify(error));
+    const message = error instanceof Error ? error.message : JSON.stringify(error);
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
