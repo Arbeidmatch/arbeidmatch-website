@@ -27,9 +27,10 @@ type RequestForm = {
   dNumberOther: string;
   requirements: string;
   contractType: string;
-  paslagPercent: string;
-  salary: string;
-  fullTime: string;
+  salaryMode: "Fixed" | "Range";
+  salaryFixedAmount: string;
+  salaryRangeFrom: string;
+  salaryRangeTo: string;
   hoursUnit: "Per day" | "Per week" | "Per month";
   hoursAmount: string;
   overtime: string;
@@ -37,12 +38,11 @@ type RequestForm = {
   hasRotation: string;
   rotationWeeksOn: string;
   rotationWeeksOff: string;
-  accommodationCost: string;
   internationalTravel: string;
-  internationalTravelCoverage: string;
   localTravel: string;
   localTravelOther: string;
   accommodation: string;
+  accommodationCost: string;
   accommodationOther: string;
   equipment: string;
   equipmentOther: string;
@@ -64,45 +64,15 @@ type RequestForm = {
 
 const inputClass =
   "w-full rounded-md border border-border px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold";
-const optionClass =
-  "flex items-center gap-2 rounded-md border border-border p-3 text-sm text-navy w-full cursor-pointer [&>input]:mr-0 [&>input]:shrink-0";
-const cardClass =
-  "mx-auto w-full max-w-2xl rounded-xl bg-white p-4 shadow-[0_10px_30px_rgba(13,27,42,0.08)] md:p-5";
-const headingBtn = "w-full rounded-md border border-border px-3 py-2 text-left text-sm font-medium text-navy";
-const errorClass = "border-red-500";
+const radioClass =
+  "flex items-center gap-2 rounded-md border border-border p-3 text-sm text-navy w-full cursor-pointer";
+const titleClass = "text-lg font-bold text-[#0D1B2A]";
+const labelClass = "mb-1 block text-sm font-medium text-navy";
 
 const rolesByCategory: Record<string, string[]> = {
-  Construction: [
-    "Carpenter",
-    "Bricklayer",
-    "Tile layer",
-    "Painter",
-    "Plasterer",
-    "Roofer",
-    "Concrete worker",
-    "Steel fixer",
-    "Scaffolder",
-    "Insulation worker",
-    "Floor layer",
-    "Window installer",
-    "Demolition worker",
-  ],
-  "Civil Engineering (Anlegg)": [
-    "Excavator operator",
-    "Pipeline layer",
-    "Road worker",
-    "Asphalt worker",
-    "Crane operator",
-    "Survey technician",
-  ],
-  "Industry & Logistics": [
-    "Forklift operator",
-    "Warehouse worker",
-    "Machine operator",
-    "Welder",
-    "CNC operator",
-    "Driver",
-  ],
+  Construction: ["Carpenter", "Bricklayer", "Tile layer", "Painter", "Plasterer", "Roofer", "Concrete worker", "Steel fixer", "Scaffolder", "Insulation worker", "Floor layer", "Window installer", "Demolition worker"],
+  "Civil Engineering (Anlegg)": ["Excavator operator", "Pipeline layer", "Road worker", "Asphalt worker", "Crane operator", "Survey technician"],
+  "Industry & Logistics": ["Forklift operator", "Warehouse worker", "Machine operator", "Welder", "CNC operator", "Driver"],
   "Cleaning & Facility": ["Cleaner", "Janitor", "Facility technician", "Window cleaner"],
   "Electrical & Mechanical": ["Electrician", "Plumber", "HVAC technician", "Mechanic", "Refrigeration technician"],
 };
@@ -164,9 +134,10 @@ const initialData: RequestForm = {
   dNumberOther: "",
   requirements: "",
   contractType: "",
-  paslagPercent: "",
-  salary: "",
-  fullTime: "",
+  salaryMode: "Fixed",
+  salaryFixedAmount: "",
+  salaryRangeFrom: "",
+  salaryRangeTo: "",
   hoursUnit: "Per week",
   hoursAmount: "",
   overtime: "",
@@ -174,12 +145,11 @@ const initialData: RequestForm = {
   hasRotation: "",
   rotationWeeksOn: "",
   rotationWeeksOff: "",
-  accommodationCost: "",
   internationalTravel: "",
-  internationalTravelCoverage: "",
   localTravel: "",
   localTravelOther: "",
   accommodation: "",
+  accommodationCost: "",
   accommodationOther: "",
   equipment: "",
   equipmentOther: "",
@@ -221,21 +191,24 @@ export default function DetailedRequestPage() {
 
   const stepCount = 9;
   const progress = ((step + 1) / stepCount) * 100;
-  const roles = useMemo(() => (formData.category ? [...(rolesByCategory[formData.category] ?? []), "Other"] : []), [formData.category]);
+  const roles = useMemo(
+    () => (formData.category ? [...(rolesByCategory[formData.category] ?? []), "Other"] : []),
+    [formData.category],
+  );
   const roleKey = formData.position === "Other" ? formData.positionOther : formData.position;
   const certOptions = useMemo(() => certsByRole[roleKey] ?? ["Other"], [roleKey]);
-  const needsPaslag = formData.contractType.includes("bemanningsbyrå") || formData.contractType.includes("Innleie");
 
   const setRef = (name: string, el: HTMLElement | null) => {
     fieldRefs.current[name] = el;
   };
-  const updateField = (key: keyof RequestForm, value: string) => setFormData((prev) => ({ ...prev, [key]: value }));
-  const toggleExpand = (name: string) => setExpanded((prev) => ({ ...prev, [name]: !prev[name] }));
+  const updateField = (key: keyof RequestForm, value: string) =>
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  const toggleExpand = (key: string) => setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   const toggleCert = (value: string) =>
     setFormData((prev) => ({
       ...prev,
       certifications: prev.certifications.includes(value)
-        ? prev.certifications.filter((x) => x !== value)
+        ? prev.certifications.filter((item) => item !== value)
         : [...prev.certifications, value],
     }));
 
@@ -243,14 +216,14 @@ export default function DetailedRequestPage() {
     const el = fieldRefs.current[name];
     if (!el) return;
     el.scrollIntoView({ behavior: "smooth", block: "center" });
-    setTimeout(() => el.focus(), 80);
+    setTimeout(() => el.focus(), 60);
   };
 
   useEffect(() => {
-    const verifyAndLoad = async () => {
+    const verify = async () => {
       try {
-        const verify = await fetch(`/api/verify-token?token=${token}`).then((r) => r.json());
-        if (!verify.valid) return setTokenStatus("invalid");
+        const verifyRes = await fetch(`/api/verify-token?token=${token}`).then((r) => r.json());
+        if (!verifyRes.valid) return setTokenStatus("invalid");
         const dataRes = await fetch(`/api/token-data/${token}`).then((r) => r.json());
         if (!dataRes.success || !dataRes.data) return setTokenStatus("invalid");
         setTokenData(dataRes.data);
@@ -259,7 +232,7 @@ export default function DetailedRequestPage() {
         setTokenStatus("invalid");
       }
     };
-    if (token) void verifyAndLoad();
+    if (token) void verify();
     else setTokenStatus("invalid");
   }, [token]);
 
@@ -287,29 +260,29 @@ export default function DetailedRequestPage() {
       } catch {
         setReferralResults([]);
       } finally {
-        setIsSearchingReferral(false);
         setHasSearchedReferral(true);
+        setIsSearchingReferral(false);
       }
     }, 300);
     return () => clearTimeout(timer);
   }, [formData.howDidYouHear, formData.referralCompanyName]);
 
-  const validateStep = (current: Step): string | null => {
+  const validateStep = (s: Step): string | null => {
     const phone = formData.phone.replace(/\s+/g, "");
-    if (current === 0) {
+    if (s === 0) {
       if (!formData.full_name.trim()) return "full_name";
       if (!/^\+47\d{8}$/.test(phone) && !/^\d{8}$/.test(phone)) return "phone";
     }
-    if (current === 1 && !formData.hiringType) return "hiringType";
-    if (current === 2) {
+    if (s === 1 && !formData.hiringType) return "hiringType";
+    if (s === 2) {
       if (!formData.category) return "category";
       if (!formData.position) return "position";
       if (formData.position === "Other" && !formData.positionOther.trim()) return "positionOther";
-    }
-    if (current === 3) {
       if (!formData.numberOfPositions) return "numberOfPositions";
+    }
+    if (s === 3) {
       if (!formData.qualification) return "qualification";
-      if (!formData.experience) return "experience";
+      if (formData.qualification !== "No experience needed" && !formData.experience) return "experience";
       if (
         formData.qualification !== "No experience needed" &&
         formData.certifications.includes("Other") &&
@@ -318,21 +291,21 @@ export default function DetailedRequestPage() {
         return "certificationsOther";
       }
     }
-    if (current === 4) {
+    if (s === 4) {
       if (!formData.norwegianLevel) return "norwegianLevel";
       if (!formData.englishLevel) return "englishLevel";
     }
-    if (current === 5) {
+    if (s === 5) {
       if (!formData.driverLicense) return "driverLicense";
       if (formData.driverLicense === "Other" && !formData.driverLicenseOther.trim()) return "driverLicenseOther";
       if (!formData.dNumber) return "dNumber";
       if (formData.dNumber === "Other" && !formData.dNumberOther.trim()) return "dNumberOther";
     }
-    if (current === 6) {
+    if (s === 6) {
       if (!formData.contractType) return "contractType";
-      if (needsPaslag && !formData.paslagPercent) return "paslagPercent";
-      if (!formData.salary) return "salary";
-      if (!formData.fullTime) return "fullTime";
+      if (formData.salaryMode === "Fixed" && !formData.salaryFixedAmount) return "salaryFixedAmount";
+      if (formData.salaryMode === "Range" && !formData.salaryRangeFrom) return "salaryRangeFrom";
+      if (formData.salaryMode === "Range" && !formData.salaryRangeTo) return "salaryRangeTo";
       if (!formData.hoursAmount) return "hoursAmount";
       if (!formData.overtime) return "overtime";
       if ((formData.overtime === "Yes" || formData.overtime === "Occasionally") && !formData.maxOvertimeHours)
@@ -340,33 +313,31 @@ export default function DetailedRequestPage() {
       if (!formData.hasRotation) return "hasRotation";
       if (formData.hasRotation === "Yes" && !formData.rotationWeeksOn) return "rotationWeeksOn";
       if (formData.hasRotation === "Yes" && !formData.rotationWeeksOff) return "rotationWeeksOff";
-      if (!formData.accommodationCost) return "accommodationCost";
     }
-    if (current === 7) {
+    if (s === 7) {
       if (!formData.internationalTravel) return "internationalTravel";
-      if (formData.internationalTravel === "Yes" && !formData.internationalTravelCoverage)
-        return "internationalTravelCoverage";
       if (!formData.localTravel) return "localTravel";
       if (formData.localTravel === "Other" && !formData.localTravelOther.trim()) return "localTravelOther";
       if (!formData.accommodation) return "accommodation";
+      if (formData.accommodation === "We help find it" && !formData.accommodationCost) return "accommodationCost";
       if (formData.accommodation === "Other" && !formData.accommodationOther.trim()) return "accommodationOther";
       if (!formData.equipment) return "equipment";
       if (formData.equipment === "Other" && !formData.equipmentOther.trim()) return "equipmentOther";
       if (!formData.tools) return "tools";
       if (formData.tools === "Other" && !formData.toolsOther.trim()) return "toolsOther";
     }
-    if (current === 8) {
+    if (s === 8) {
       if (!formData.city.trim()) return "city";
       if (!formData.startDate) return "startDate";
       if (formData.startDate === "Other" && !formData.startDateOther) return "startDateOther";
       if (!formData.howDidYouHear) return "howDidYouHear";
-      if (formData.howDidYouHear === "Social media" && !formData.socialMediaPlatform) return "socialMediaPlatform";
       if (
         formData.howDidYouHear === "Social media" &&
         formData.socialMediaPlatform === "Other" &&
         !formData.socialMediaOther.trim()
-      )
+      ) {
         return "socialMediaOther";
+      }
       if (formData.howDidYouHear === "Other" && !formData.howDidYouHearOther.trim()) return "howDidYouHearOther";
       if (formData.howDidYouHear === "Referral from another company" && !formData.referralCompanyName.trim())
         return "referralCompanyName";
@@ -382,6 +353,7 @@ export default function DetailedRequestPage() {
       setVisible(true);
     }, 300);
   };
+
   const next = () => {
     const invalid = validateStep(step);
     if (invalid) {
@@ -410,9 +382,15 @@ export default function DetailedRequestPage() {
       focusField(invalid);
       return;
     }
-    setIsSubmitting(true);
-    setSubmitStatus("idle");
+
     setSubmitError("");
+    setSubmitStatus("idle");
+    setIsSubmitting(true);
+
+    const salary =
+      formData.salaryMode === "Fixed"
+        ? `Fixed: ${formData.salaryFixedAmount} NOK (${formData.hoursUnit})`
+        : `Range: ${formData.salaryRangeFrom}-${formData.salaryRangeTo} NOK (${formData.hoursUnit})`;
 
     const payload = {
       ...formData,
@@ -423,8 +401,8 @@ export default function DetailedRequestPage() {
       email: tokenData?.email ?? "",
       job_summary: tokenData?.job_summary ?? "",
       certifications: formData.qualification === "No experience needed" ? "" : formData.certifications.join(", "),
-      travel: `International: ${formData.internationalTravel}${formData.internationalTravel === "Yes" ? ` (${formData.internationalTravelCoverage})` : ""}; Local: ${formData.localTravel}`,
-      travelOther: formData.localTravelOther,
+      salary,
+      hoursAmount: formData.hoursAmount,
     };
 
     try {
@@ -436,26 +414,23 @@ export default function DetailedRequestPage() {
       if (!emailRes.ok) throw new Error("send-request-email");
 
       try {
-        const saveRes = await fetch("/api/save-employer-request", {
+        await fetch("/api/save-employer-request", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        if (!saveRes.ok) throw new Error("save-employer-request");
       } catch (error) {
         console.error("save-employer-request failed", error);
       }
 
       try {
-        const invalidateRes = await fetch(`/api/verify-token?token=${token}`, { method: "DELETE" });
-        if (!invalidateRes.ok) throw new Error("verify-token delete");
+        await fetch(`/api/verify-token?token=${token}`, { method: "DELETE" });
       } catch (error) {
-        console.error("verify-token DELETE failed", error);
+        console.error("verify-token delete failed", error);
       }
 
       setSubmitStatus("success");
-    } catch (error) {
-      console.error("send-request-email failed", error);
+    } catch {
       setSubmitStatus("error");
       setSubmitError("Failed to send email notifications.");
     } finally {
@@ -463,43 +438,33 @@ export default function DetailedRequestPage() {
     }
   };
 
-  const invalid = (field: string) => (invalidField === field ? errorClass : "");
+  const invalid = (name: string) => (invalidField === name ? "border-red-500" : "");
 
-  if (tokenStatus === "checking") return <section className="bg-surface py-8"><div className="mx-auto max-w-2xl px-4 text-center">Verifying your access...</div></section>;
-  if (tokenStatus === "invalid") return <section className="bg-surface py-8"><div className="mx-auto max-w-2xl px-4 text-center"><h1 className="text-2xl font-bold text-navy">Link expired or invalid</h1><p className="mt-2 text-sm text-text-secondary">Please start a new request.</p></div></section>;
+  if (tokenStatus === "checking") {
+    return <section className="bg-surface py-8"><div className="mx-auto max-w-2xl px-4 text-center">Verifying your access...</div></section>;
+  }
+  if (tokenStatus === "invalid") {
+    return <section className="bg-surface py-8"><div className="mx-auto max-w-2xl px-4 text-center"><h1 className="text-2xl font-bold text-navy">Link expired or invalid</h1><p className="mt-2 text-sm text-text-secondary">Please start a new request.</p></div></section>;
+  }
   if (submitStatus === "success") {
     const selectedPosition = formData.position === "Other" ? formData.positionOther : formData.position;
     const selectedStartDate = formData.startDate === "Other" ? formData.startDateOther : formData.startDate;
     return (
       <section className="bg-surface py-10">
         <div className="mx-auto w-full max-w-2xl px-3">
-          <div className={`${cardClass} text-center`}>
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-white shadow-[0_8px_20px_rgba(201,168,76,0.35)]">
-              ✓
-            </div>
+          <div className="rounded-xl bg-white p-5 text-center shadow-[0_10px_30px_rgba(13,27,42,0.08)]">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-white">✓</div>
             <h1 className="mt-4 text-3xl font-bold text-navy">Request submitted successfully!</h1>
-            <p className="mx-auto mt-2 max-w-xl text-sm text-text-secondary">
-              Thank you, {tokenData?.company || "your team"}. We have received your candidate request and
-              will get back to you within 24 hours.
+            <p className="mt-2 text-sm text-text-secondary">
+              Thank you, {tokenData?.company || "your team"}. We have received your candidate request and will get back to you within 24 hours.
             </p>
-
-            <div className="mx-auto mt-5 w-full max-w-lg rounded-xl border border-navy/20 bg-navy/[0.03] p-4 text-left">
-              <p className="mb-2 text-sm font-semibold text-navy">Request summary</p>
-              <div className="space-y-1 text-sm text-navy">
-                <p><span className="font-medium">Position:</span> {selectedPosition || "-"}</p>
-                <p><span className="font-medium">Number of candidates:</span> {formData.numberOfPositions || "-"}</p>
-                <p><span className="font-medium">Location:</span> {formData.city || "-"}</p>
-                <p><span className="font-medium">Start date:</span> {selectedStartDate || "-"}</p>
-              </div>
+            <div className="mx-auto mt-4 max-w-lg rounded-xl border-l-4 border-navy bg-navy/[0.03] p-4 text-left text-sm text-navy">
+              <p><strong>Position:</strong> {selectedPosition || "-"}</p>
+              <p><strong>Number of candidates:</strong> {formData.numberOfPositions || "-"}</p>
+              <p><strong>Location:</strong> {formData.city || "-"}</p>
+              <p><strong>Start date:</strong> {selectedStartDate || "-"}</p>
             </div>
-
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="mt-6 rounded-md bg-[#C9A84C] px-6 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
-            >
-              Back to home
-            </button>
+            <button type="button" onClick={() => router.push("/")} className="mt-5 rounded-md bg-[#C9A84C] px-6 py-2.5 text-sm font-medium text-white hover:bg-gold-hover">Back to home</button>
           </div>
         </div>
       </section>
@@ -516,32 +481,28 @@ export default function DetailedRequestPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-3 space-y-3">
-          <div className={`${cardClass} ${visible ? "opacity-100" : "opacity-0"} transition-opacity duration-300`}>
+          <div className={`mx-auto w-full max-w-2xl rounded-xl bg-white p-4 shadow-[0_10px_30px_rgba(13,27,42,0.08)] transition-opacity duration-300 md:p-5 ${visible ? "opacity-100" : "opacity-0"}`}>
             {step === 0 && (
-              <div className="mx-auto max-w-md space-y-3">
-                <h2 className="text-lg font-semibold text-[#0D1B2A]">Who should we contact?</h2>
+              <div className="space-y-3">
+                <h2 className={titleClass}>Who should we contact?</h2>
+                <label className={labelClass}>Full name</label>
                 <input className={`${inputClass} ${invalid("full_name")}`} placeholder="Full name*" value={formData.full_name} onChange={(e) => updateField("full_name", e.target.value)} ref={(e) => setRef("full_name", e)} />
+                <label className={labelClass}>Phone</label>
                 <input className={`${inputClass} ${invalid("phone")}`} placeholder="Phone*" value={formData.phone} onChange={(e) => updateField("phone", e.target.value)} ref={(e) => setRef("phone", e)} />
               </div>
             )}
 
             {step === 1 && (
               <div className="space-y-3">
-                <h2 className="text-lg font-semibold text-[#0D1B2A]">Type of engagement</h2>
-                <div className="space-y-2">
+                <h2 className={titleClass}>Type of engagement</h2>
+                <div className="flex flex-col gap-2">
                   {[
                     "Sourcing — We find the right candidates from our network",
                     "Recruitment — Full recruitment process",
                     "Staffing — Innleie/bemanning",
                   ].map((v, i) => (
-                    <label key={v} className="flex items-center gap-2 rounded-md border border-border p-3 text-sm text-navy w-full cursor-pointer">
-                      <input
-                        type="radio"
-                        className="shrink-0"
-                        checked={formData.hiringType === v}
-                        onChange={() => updateField("hiringType", v)}
-                        ref={(e) => { if (i === 0) setRef("hiringType", e); }}
-                      />
+                    <label key={v} className={radioClass}>
+                      <input type="radio" className="shrink-0" checked={formData.hiringType === v} onChange={() => updateField("hiringType", v)} ref={(e) => { if (i === 0) setRef("hiringType", e); }} />
                       {v}
                     </label>
                   ))}
@@ -551,87 +512,96 @@ export default function DetailedRequestPage() {
 
             {step === 2 && (
               <div className="space-y-3">
-                <h2 className="text-lg font-semibold text-[#0D1B2A]">Sector & Role</h2>
+                <h2 className={titleClass}>Sector & Role</h2>
+                <label className={labelClass}>Category</label>
                 <select className={`${inputClass} ${invalid("category")}`} value={formData.category} onChange={(e) => { updateField("category", e.target.value); updateField("position", ""); updateField("positionOther", ""); }} ref={(e) => setRef("category", e)}>
                   <option value="">Select category*</option>
                   {Object.keys(rolesByCategory).map((x) => <option key={x}>{x}</option>)}
                 </select>
                 {formData.category && (
-                  <select className={`${inputClass} ${invalid("position")}`} value={formData.position} onChange={(e) => updateField("position", e.target.value)} ref={(e) => setRef("position", e)}>
-                    <option value="">Select role*</option>
-                    {roles.map((x) => <option key={x}>{x}</option>)}
-                  </select>
+                  <>
+                    <label className={labelClass}>Position</label>
+                    <select className={`${inputClass} ${invalid("position")}`} value={formData.position} onChange={(e) => updateField("position", e.target.value)} ref={(e) => setRef("position", e)}>
+                      <option value="">Select role*</option>
+                      {roles.map((x) => <option key={x}>{x}</option>)}
+                    </select>
+                  </>
                 )}
                 {formData.position === "Other" && (
-                  <input className={`${inputClass} ${invalid("positionOther")}`} placeholder="Specify role*" value={formData.positionOther} onChange={(e) => updateField("positionOther", e.target.value)} ref={(e) => setRef("positionOther", e)} />
+                  <>
+                    <label className={labelClass}>Specify role</label>
+                    <input className={`${inputClass} ${invalid("positionOther")}`} placeholder="Specify role*" value={formData.positionOther} onChange={(e) => updateField("positionOther", e.target.value)} ref={(e) => setRef("positionOther", e)} />
+                  </>
                 )}
+                <label className={labelClass}>Number of candidates</label>
+                <input type="number" className={`${inputClass} ${invalid("numberOfPositions")}`} placeholder="Number of candidates*" value={formData.numberOfPositions} onChange={(e) => updateField("numberOfPositions", e.target.value)} ref={(e) => setRef("numberOfPositions", e)} />
               </div>
             )}
 
             {step === 3 && (
               <div className="space-y-3">
-                <h2 className="text-lg font-semibold text-[#0D1B2A]">Qualification</h2>
-                <input type="number" className={`${inputClass} ${invalid("numberOfPositions")}`} placeholder="Number of candidates*" value={formData.numberOfPositions} onChange={(e) => updateField("numberOfPositions", e.target.value)} ref={(e) => setRef("numberOfPositions", e)} />
-                <input type="number" className={`${inputClass} ${invalid("experience")}`} placeholder="Minimum years of experience*" value={formData.experience} onChange={(e) => updateField("experience", e.target.value)} ref={(e) => setRef("experience", e)} />
+                <h2 className={titleClass}>Qualification</h2>
                 <div className="space-y-2">
                   {["No experience needed", "Some experience", "Certified", "Fully certified"].map((v, i) => (
-                    <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.qualification === v} onChange={() => updateField("qualification", v)} ref={(e) => { if (i === 0) setRef("qualification", e); }} />{v}</label>
+                    <div key={v} className="space-y-2">
+                      <label className={radioClass}>
+                        <input type="radio" className="shrink-0" checked={formData.qualification === v} onChange={() => updateField("qualification", v)} ref={(e) => { if (i === 0) setRef("qualification", e); }} />
+                        {v}
+                      </label>
+                      {formData.qualification === v && v !== "No experience needed" && (
+                        <div className="space-y-2 rounded-md border border-border/60 bg-surface p-3">
+                          <p className="text-sm font-semibold text-navy">Required certifications</p>
+                          <div className="space-y-2">
+                            {certOptions.map((cert) => (
+                              <label key={cert} className={radioClass}>
+                                <input type="checkbox" className="shrink-0" checked={formData.certifications.includes(cert)} onChange={() => toggleCert(cert)} />
+                                {cert}
+                                {cert === "Other" && formData.certifications.includes("Other") && (
+                                  <input className={`${inputClass} ${invalid("certificationsOther")} ml-2 max-w-[220px]`} placeholder="Specify other*" value={formData.certificationsOther} onChange={(e) => updateField("certificationsOther", e.target.value)} ref={(e) => setRef("certificationsOther", e)} />
+                                )}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
-
-                {formData.qualification && formData.qualification !== "No experience needed" && (
-                  <div className="space-y-2">
-                    <button type="button" onClick={() => toggleExpand("certs")} className={headingBtn}>Certifications for this role {expanded.certs ? "▲" : "▼"}</button>
-                    {expanded.certs && (
-                      <div className="space-y-2">
-                        {certOptions.map((c) => (
-                          <label key={c} className={optionClass}>
-                            <input type="checkbox" className="mr-2" checked={formData.certifications.includes(c)} onChange={() => toggleCert(c)} />
-                            {c}
-                            {c === "Other" && formData.certifications.includes("Other") && (
-                              <input className={`${inputClass} ${invalid("certificationsOther")} ml-2 inline-block w-64 align-middle`} placeholder="Specify other*" value={formData.certificationsOther} onChange={(e) => updateField("certificationsOther", e.target.value)} ref={(e) => setRef("certificationsOther", e)} />
-                            )}
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                {formData.qualification !== "No experience needed" && (
+                  <>
+                    <label className={labelClass}>Minimum years of experience</label>
+                    <input type="number" className={`${inputClass} ${invalid("experience")}`} placeholder="Minimum years of experience*" value={formData.experience} onChange={(e) => updateField("experience", e.target.value)} ref={(e) => setRef("experience", e)} />
+                  </>
                 )}
               </div>
             )}
 
             {step === 4 && (
               <div className="space-y-3">
-                <h2 className="text-lg font-semibold text-[#0D1B2A]">Language requirements</h2>
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("norwegian")}>Norwegian {expanded.norwegian ? "▲" : "▼"}</button>
-                {expanded.norwegian && <div className="space-y-2">{["Not required", "Basic", "Working level", "Fluent"].map((v, i) => (
-                  <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.norwegianLevel === v} onChange={() => updateField("norwegianLevel", v)} ref={(e) => { if (i === 0) setRef("norwegianLevel", e); }} />{v}</label>
-                ))}</div>}
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("english")}>English {expanded.english ? "▲" : "▼"}</button>
-                {expanded.english && <div className="space-y-2">{["Not required", "Basic", "Working level", "Fluent"].map((v, i) => (
-                  <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.englishLevel === v} onChange={() => updateField("englishLevel", v)} ref={(e) => { if (i === 0) setRef("englishLevel", e); }} />{v}</label>
-                ))}</div>}
+                <h2 className={titleClass}>Language requirements</h2>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("norwegian")}>Norwegian {expanded.norwegian ? "▲" : "▼"}</button>
+                {expanded.norwegian && <div className="space-y-2">{["Not required", "Basic", "Working level", "Fluent"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0" checked={formData.norwegianLevel === v} onChange={() => updateField("norwegianLevel", v)} ref={(e) => { if (i === 0) setRef("norwegianLevel", e); }} />{v}</label>)}</div>}
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("english")}>English {expanded.english ? "▲" : "▼"}</button>
+                {expanded.english && <div className="space-y-2">{["Not required", "Basic", "Working level", "Fluent"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0" checked={formData.englishLevel === v} onChange={() => updateField("englishLevel", v)} ref={(e) => { if (i === 0) setRef("englishLevel", e); }} />{v}</label>)}</div>}
               </div>
             )}
 
             {step === 5 && (
               <div className="space-y-3">
-                <h2 className="text-lg font-semibold text-[#0D1B2A]">Requirements</h2>
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("driver")}>Driver's license {expanded.driver ? "▲" : "▼"}</button>
-                {expanded.driver && <div className="space-y-2">{["None", "B", "B+", "C", "C1", "CE", "D", "T", "Other"].map((v, i) => (
-                  <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.driverLicense === v} onChange={() => updateField("driverLicense", v)} ref={(e) => { if (i === 0) setRef("driverLicense", e); }} />{v}{v === "Other" && formData.driverLicense === "Other" && <input className={`${inputClass} ${invalid("driverLicenseOther")} ml-2 inline-block w-56`} placeholder="Specify*" value={formData.driverLicenseOther} onChange={(e) => updateField("driverLicenseOther", e.target.value)} ref={(e) => setRef("driverLicenseOther", e)} />}</label>
-                ))}</div>}
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("dnumber")}>D-number {expanded.dnumber ? "▲" : "▼"}</button>
-                {expanded.dnumber && <div className="space-y-2">{["Not required", "Required before start", "Other"].map((v, i) => (
-                  <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.dNumber === v} onChange={() => updateField("dNumber", v)} ref={(e) => { if (i === 0) setRef("dNumber", e); }} />{v}{v === "Other" && formData.dNumber === "Other" && <input className={`${inputClass} ${invalid("dNumberOther")} ml-2 inline-block w-56`} placeholder="Specify*" value={formData.dNumberOther} onChange={(e) => updateField("dNumberOther", e.target.value)} ref={(e) => setRef("dNumberOther", e)} />}</label>
-                ))}</div>}
+                <h2 className={titleClass}>Requirements</h2>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("driver")}>Driver's license {expanded.driver ? "▲" : "▼"}</button>
+                {expanded.driver && <div className="space-y-2">{["None", "B", "B+", "C", "C1", "CE", "D", "T", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0" checked={formData.driverLicense === v} onChange={() => updateField("driverLicense", v)} ref={(e) => { if (i === 0) setRef("driverLicense", e); }} />{v}{v === "Other" && formData.driverLicense === "Other" && <input className={`${inputClass} ${invalid("driverLicenseOther")} ml-2 max-w-[220px]`} placeholder="Specify*" value={formData.driverLicenseOther} onChange={(e) => updateField("driverLicenseOther", e.target.value)} ref={(e) => setRef("driverLicenseOther", e)} />}</label>)}</div>}
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("dnumber")}>D-number {expanded.dnumber ? "▲" : "▼"}</button>
+                {expanded.dnumber && <div className="space-y-2">{["Not required", "Required before start", "We can handle the D-number procedure for the candidate", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0" checked={formData.dNumber === v} onChange={() => updateField("dNumber", v)} ref={(e) => { if (i === 0) setRef("dNumber", e); }} />{v}{v === "Other" && formData.dNumber === "Other" && <input className={`${inputClass} ${invalid("dNumberOther")} ml-2 max-w-[220px]`} placeholder="Specify*" value={formData.dNumberOther} onChange={(e) => updateField("dNumberOther", e.target.value)} ref={(e) => setRef("dNumberOther", e)} />}</label>)}</div>}
+                <label className={labelClass}>Deal breakers</label>
                 <textarea rows={3} className={inputClass} placeholder="Deal breakers (optional)" value={formData.requirements} onChange={(e) => updateField("requirements", e.target.value)} />
               </div>
             )}
 
             {step === 6 && (
               <div className="space-y-3">
-                <h2 className="text-lg font-semibold text-[#0D1B2A]">Contract & Pay</h2>
+                <h2 className={titleClass}>Contract & Pay</h2>
+                <label className={labelClass}>Contract type</label>
                 <select className={`${inputClass} ${invalid("contractType")}`} value={formData.contractType} onChange={(e) => updateField("contractType", e.target.value)} ref={(e) => setRef("contractType", e)}>
                   <option value="">Contract type*</option>
                   <option>Fast ansettelse - direkte hos klient</option>
@@ -642,108 +612,143 @@ export default function DetailedRequestPage() {
                   <option>Selvstendig oppdragstaker</option>
                   <option>Sesongarbeid</option>
                 </select>
-                {needsPaslag && <input type="number" className={`${inputClass} ${invalid("paslagPercent")}`} placeholder="Agency margin/påslag %*" value={formData.paslagPercent} onChange={(e) => updateField("paslagPercent", e.target.value)} ref={(e) => setRef("paslagPercent", e)} />}
-                <input className={`${inputClass} ${invalid("salary")}`} placeholder="Starting salary (NOK/hour)*" value={formData.salary} onChange={(e) => updateField("salary", e.target.value)} ref={(e) => setRef("salary", e)} />
-                <input className={`${inputClass} ${invalid("fullTime")}`} placeholder="Position % (100 = full-time)*" value={formData.fullTime} onChange={(e) => updateField("fullTime", e.target.value)} ref={(e) => setRef("fullTime", e)} />
 
-                <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold text-navy">Salary</p>
+                <div className="space-y-2">
+                  <label className={radioClass}><input type="radio" className="shrink-0" checked={formData.salaryMode === "Fixed"} onChange={() => updateField("salaryMode", "Fixed")} />Fixed</label>
+                  <label className={radioClass}><input type="radio" className="shrink-0" checked={formData.salaryMode === "Range"} onChange={() => updateField("salaryMode", "Range")} />Range</label>
+                </div>
+                <div className="flex flex-wrap gap-2">
                   {(["Per day", "Per week", "Per month"] as const).map((unit) => (
                     <button key={unit} type="button" className={`rounded-md border px-3 py-2 text-sm ${formData.hoursUnit === unit ? "border-gold bg-gold/10 text-navy" : "border-border text-navy"}`} onClick={() => updateField("hoursUnit", unit)}>{unit}</button>
                   ))}
-                  <input type="number" className={`${inputClass} ${invalid("hoursAmount")} max-w-[180px]`} placeholder="Hours*" value={formData.hoursAmount} onChange={(e) => updateField("hoursAmount", e.target.value)} ref={(e) => setRef("hoursAmount", e)} />
                 </div>
-
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("overtime")}>Overtime {expanded.overtime ? "▲" : "▼"}</button>
-                {expanded.overtime && (
-                  <div className="space-y-2">
-                    {["Yes", "Occasionally", "No"].map((v, i) => (
-                      <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.overtime === v} onChange={() => updateField("overtime", v)} ref={(e) => { if (i === 0) setRef("overtime", e); }} />{v}{(v === "Yes" || v === "Occasionally") && formData.overtime === v && <input type="number" className={`${inputClass} ${invalid("maxOvertimeHours")} ml-2 inline-block w-56`} placeholder="Max overtime hours/week*" value={formData.maxOvertimeHours} onChange={(e) => updateField("maxOvertimeHours", e.target.value)} ref={(e) => setRef("maxOvertimeHours", e)} />}</label>
-                    ))}
+                {formData.salaryMode === "Fixed" ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className={labelClass}>Fixed amount (NOK)</label>
+                      <input className={`${inputClass} ${invalid("salaryFixedAmount")}`} placeholder="Fixed amount*" value={formData.salaryFixedAmount} onChange={(e) => updateField("salaryFixedAmount", e.target.value)} ref={(e) => setRef("salaryFixedAmount", e)} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Hours amount</label>
+                      <input className={`${inputClass} ${invalid("hoursAmount")}`} placeholder="Hours*" value={formData.hoursAmount} onChange={(e) => updateField("hoursAmount", e.target.value)} ref={(e) => setRef("hoursAmount", e)} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div>
+                      <label className={labelClass}>From (NOK)</label>
+                      <input className={`${inputClass} ${invalid("salaryRangeFrom")}`} placeholder="From*" value={formData.salaryRangeFrom} onChange={(e) => updateField("salaryRangeFrom", e.target.value)} ref={(e) => setRef("salaryRangeFrom", e)} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>To (NOK)</label>
+                      <input className={`${inputClass} ${invalid("salaryRangeTo")}`} placeholder="To*" value={formData.salaryRangeTo} onChange={(e) => updateField("salaryRangeTo", e.target.value)} ref={(e) => setRef("salaryRangeTo", e)} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Hours amount</label>
+                      <input className={`${inputClass} ${invalid("hoursAmount")}`} placeholder="Hours*" value={formData.hoursAmount} onChange={(e) => updateField("hoursAmount", e.target.value)} ref={(e) => setRef("hoursAmount", e)} />
+                    </div>
                   </div>
                 )}
 
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("rotation")}>Rotation {expanded.rotation ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("overtime")}>Overtime {expanded.overtime ? "▲" : "▼"}</button>
+                {expanded.overtime && <div className="space-y-2">{["Yes", "Occasionally", "No"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0" checked={formData.overtime === v} onChange={() => updateField("overtime", v)} ref={(e) => { if (i === 0) setRef("overtime", e); }} />{v}{(v === "Yes" || v === "Occasionally") && formData.overtime === v && <span className="ml-2 inline-flex items-center gap-2"><span className="text-xs text-text-secondary">Max hours/week</span><input type="number" className={`${inputClass} ${invalid("maxOvertimeHours")} w-28`} placeholder="Max*" value={formData.maxOvertimeHours} onChange={(e) => updateField("maxOvertimeHours", e.target.value)} ref={(e) => setRef("maxOvertimeHours", e)} /></span>}</label>)}</div>}
+
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("rotation")}>Rotation {expanded.rotation ? "▲" : "▼"}</button>
                 {expanded.rotation && (
                   <div className="space-y-2">
                     {["Yes", "No"].map((v, i) => (
-                      <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.hasRotation === v} onChange={() => updateField("hasRotation", v)} ref={(e) => { if (i === 0) setRef("hasRotation", e); }} />{v}{v === "Yes" && formData.hasRotation === "Yes" && <span className="ml-2 inline-flex gap-2 align-middle"><input type="number" className={`${inputClass} ${invalid("rotationWeeksOn")} w-24`} placeholder="On*" value={formData.rotationWeeksOn} onChange={(e) => updateField("rotationWeeksOn", e.target.value)} ref={(e) => setRef("rotationWeeksOn", e)} /><input type="number" className={`${inputClass} ${invalid("rotationWeeksOff")} w-24`} placeholder="Off*" value={formData.rotationWeeksOff} onChange={(e) => updateField("rotationWeeksOff", e.target.value)} ref={(e) => setRef("rotationWeeksOff", e)} /></span>}</label>
+                      <label key={v} className={radioClass}>
+                        <input type="radio" className="shrink-0" checked={formData.hasRotation === v} onChange={() => updateField("hasRotation", v)} ref={(e) => { if (i === 0) setRef("hasRotation", e); }} />
+                        {v}
+                        {v === "Yes" && formData.hasRotation === "Yes" && (
+                          <span className="ml-2 inline-flex gap-2">
+                            <select className={`${inputClass} ${invalid("rotationWeeksOn")} w-28`} value={formData.rotationWeeksOn} onChange={(e) => updateField("rotationWeeksOn", e.target.value)} ref={(e) => setRef("rotationWeeksOn", e)}>
+                              <option value="">On*</option>
+                              {["1 week", "2 weeks", "3 weeks", "4 weeks", "6 weeks", "8 weeks"].map((x) => <option key={x}>{x}</option>)}
+                            </select>
+                            <select className={`${inputClass} ${invalid("rotationWeeksOff")} w-28`} value={formData.rotationWeeksOff} onChange={(e) => updateField("rotationWeeksOff", e.target.value)} ref={(e) => setRef("rotationWeeksOff", e)}>
+                              <option value="">Off*</option>
+                              {["1 week", "2 weeks", "3 weeks", "4 weeks", "6 weeks", "8 weeks"].map((x) => <option key={x}>{x}</option>)}
+                            </select>
+                          </span>
+                        )}
+                      </label>
                     ))}
                   </div>
                 )}
-                <input className={`${inputClass} ${invalid("accommodationCost")}`} placeholder="Accommodation cost NOK/month (0 if free)*" value={formData.accommodationCost} onChange={(e) => updateField("accommodationCost", e.target.value)} ref={(e) => setRef("accommodationCost", e)} />
               </div>
             )}
 
             {step === 7 && (
               <div className="space-y-3">
-                <h2 className="text-lg font-semibold text-[#0D1B2A]">Working conditions</h2>
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("intlTravel")}>International travel {expanded.intlTravel ? "▲" : "▼"}</button>
-                {expanded.intlTravel && (
-                  <div className="space-y-2">
-                    {["Yes", "No"].map((v, i) => (
-                      <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.internationalTravel === v} onChange={() => updateField("internationalTravel", v)} ref={(e) => { if (i === 0) setRef("internationalTravel", e); }} />{v}</label>
-                    ))}
-                    {formData.internationalTravel === "Yes" && <div className="space-y-2">{["Fully covered", "Partially covered", "Not covered"].map((v, i) => (
-                      <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.internationalTravelCoverage === v} onChange={() => updateField("internationalTravelCoverage", v)} ref={(e) => { if (i === 0) setRef("internationalTravelCoverage", e); }} />{v}</label>
-                    ))}</div>}
-                  </div>
-                )}
+                <h2 className={titleClass}>Working conditions</h2>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("intlTravel")}>International travel {expanded.intlTravel ? "▲" : "▼"}</button>
+                {expanded.intlTravel && <div className="space-y-2">{["Covered by the company (flights, transport)", "Candidate's own responsibility"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0" checked={formData.internationalTravel === v} onChange={() => updateField("internationalTravel", v)} ref={(e) => { if (i === 0) setRef("internationalTravel", e); }} />{v}</label>)}</div>}
 
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("localTravel")}>Local travel {expanded.localTravel ? "▲" : "▼"}</button>
-                {expanded.localTravel && <div className="space-y-2">{["Company car", "Company card for public transport", "Own transport (reimbursed)", "Own transport (not reimbursed)", "Other"].map((v, i) => (
-                  <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.localTravel === v} onChange={() => updateField("localTravel", v)} ref={(e) => { if (i === 0) setRef("localTravel", e); }} />{v}{v === "Other" && formData.localTravel === "Other" && <input className={`${inputClass} ${invalid("localTravelOther")} ml-2 inline-block w-56`} placeholder="Specify*" value={formData.localTravelOther} onChange={(e) => updateField("localTravelOther", e.target.value)} ref={(e) => setRef("localTravelOther", e)} />}</label>
-                ))}</div>}
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("localTravel")}>Local travel {expanded.localTravel ? "▲" : "▼"}</button>
+                {expanded.localTravel && <div className="space-y-2">{["Company car", "Company card for public transport", "Own transport (reimbursed)", "Own transport (not reimbursed)", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0" checked={formData.localTravel === v} onChange={() => updateField("localTravel", v)} ref={(e) => { if (i === 0) setRef("localTravel", e); }} />{v}{v === "Other" && formData.localTravel === "Other" && <input className={`${inputClass} ${invalid("localTravelOther")} ml-2 max-w-[220px]`} placeholder="Specify*" value={formData.localTravelOther} onChange={(e) => updateField("localTravelOther", e.target.value)} ref={(e) => setRef("localTravelOther", e)} />}</label>)}</div>}
 
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("accommodation")}>Accommodation {expanded.accommodation ? "▲" : "▼"}</button>
-                {expanded.accommodation && <div className="space-y-2">{["Free accommodation provided", "Not included", "We help find it", "Other"].map((v, i) => (
-                  <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.accommodation === v} onChange={() => updateField("accommodation", v)} ref={(e) => { if (i === 0) setRef("accommodation", e); }} />{v}{v === "Other" && formData.accommodation === "Other" && <input className={`${inputClass} ${invalid("accommodationOther")} ml-2 inline-block w-56`} placeholder="Specify*" value={formData.accommodationOther} onChange={(e) => updateField("accommodationOther", e.target.value)} ref={(e) => setRef("accommodationOther", e)} />}</label>
-                ))}</div>}
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("accommodation")}>Accommodation {expanded.accommodation ? "▲" : "▼"}</button>
+                {expanded.accommodation && <div className="space-y-2">{["Free accommodation provided", "Not included", "We help find it", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0" checked={formData.accommodation === v} onChange={() => updateField("accommodation", v)} ref={(e) => { if (i === 0) setRef("accommodation", e); }} />{v}{v === "We help find it" && formData.accommodation === "We help find it" && <input className={`${inputClass} ${invalid("accommodationCost")} ml-2 max-w-[220px]`} placeholder="Accommodation cost (NOK/month)*" value={formData.accommodationCost} onChange={(e) => updateField("accommodationCost", e.target.value)} ref={(e) => setRef("accommodationCost", e)} />}{v === "Other" && formData.accommodation === "Other" && <input className={`${inputClass} ${invalid("accommodationOther")} ml-2 max-w-[220px]`} placeholder="Specify*" value={formData.accommodationOther} onChange={(e) => updateField("accommodationOther", e.target.value)} ref={(e) => setRef("accommodationOther", e)} />}</label>)}</div>}
 
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("equipment")}>Work clothing & footwear {expanded.equipment ? "▲" : "▼"}</button>
-                {expanded.equipment && <div className="space-y-2">{["Yes — provided by employer", "No — worker provides own", "Partially — PPE only provided", "Other"].map((v, i) => (
-                  <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.equipment === v} onChange={() => updateField("equipment", v)} ref={(e) => { if (i === 0) setRef("equipment", e); }} />{v}{v === "Other" && formData.equipment === "Other" && <input className={`${inputClass} ${invalid("equipmentOther")} ml-2 inline-block w-56`} placeholder="Specify*" value={formData.equipmentOther} onChange={(e) => updateField("equipmentOther", e.target.value)} ref={(e) => setRef("equipmentOther", e)} />}</label>
-                ))}</div>}
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("equipment")}>Work clothing & footwear {expanded.equipment ? "▲" : "▼"}</button>
+                {expanded.equipment && <div className="space-y-2">{["Yes — provided by employer", "No — worker provides own", "Partially — PPE only provided", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0" checked={formData.equipment === v} onChange={() => updateField("equipment", v)} ref={(e) => { if (i === 0) setRef("equipment", e); }} />{v}{v === "Other" && formData.equipment === "Other" && <input className={`${inputClass} ${invalid("equipmentOther")} ml-2 max-w-[220px]`} placeholder="Specify*" value={formData.equipmentOther} onChange={(e) => updateField("equipmentOther", e.target.value)} ref={(e) => setRef("equipmentOther", e)} />}</label>)}</div>}
 
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("tools")}>Tools {expanded.tools ? "▲" : "▼"}</button>
-                {expanded.tools && <div className="space-y-2">{["Yes — provided", "No — worker brings own", "Not required", "Other"].map((v, i) => (
-                  <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.tools === v} onChange={() => updateField("tools", v)} ref={(e) => { if (i === 0) setRef("tools", e); }} />{v}{v === "Other" && formData.tools === "Other" && <input className={`${inputClass} ${invalid("toolsOther")} ml-2 inline-block w-56`} placeholder="Specify*" value={formData.toolsOther} onChange={(e) => updateField("toolsOther", e.target.value)} ref={(e) => setRef("toolsOther", e)} />}</label>
-                ))}</div>}
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("tools")}>Tools {expanded.tools ? "▲" : "▼"}</button>
+                {expanded.tools && <div className="space-y-2">{["Yes — provided", "No — worker brings own", "Not required", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0" checked={formData.tools === v} onChange={() => updateField("tools", v)} ref={(e) => { if (i === 0) setRef("tools", e); }} />{v}{v === "Other" && formData.tools === "Other" && <input className={`${inputClass} ${invalid("toolsOther")} ml-2 max-w-[220px]`} placeholder="Specify*" value={formData.toolsOther} onChange={(e) => updateField("toolsOther", e.target.value)} ref={(e) => setRef("toolsOther", e)} />}</label>)}</div>}
               </div>
             )}
 
             {step === 8 && (
               <div className="space-y-3">
-                <h2 className="text-lg font-semibold text-[#0D1B2A]">Final details</h2>
+                <h2 className={titleClass}>Final details</h2>
+                <label className={labelClass}>Work location / city</label>
                 <input className={`${inputClass} ${invalid("city")}`} placeholder="Work location / city*" value={formData.city} onChange={(e) => updateField("city", e.target.value)} ref={(e) => setRef("city", e)} />
 
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("startDate")}>Preferred start date {expanded.startDate ? "▲" : "▼"}</button>
-                {expanded.startDate && <div className="space-y-2">{["ASAP", "1-2 weeks", "Within 1 month", "Flexible", "Other"].map((v, i) => (
-                  <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.startDate === v} onChange={() => updateField("startDate", v)} ref={(e) => { if (i === 0) setRef("startDate", e); }} />{v}{v === "Other" && formData.startDate === "Other" && <input type="date" className={`${inputClass} ${invalid("startDateOther")} ml-2 inline-block w-56`} value={formData.startDateOther} onChange={(e) => updateField("startDateOther", e.target.value)} ref={(e) => setRef("startDateOther", e)} />}</label>
-                ))}</div>}
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("startDate")}>Preferred start date {expanded.startDate ? "▲" : "▼"}</button>
+                {expanded.startDate && <div className="space-y-2">{["ASAP", "1-2 weeks", "Within 1 month", "Flexible", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0" checked={formData.startDate === v} onChange={() => updateField("startDate", v)} ref={(e) => { if (i === 0) setRef("startDate", e); }} />{v}{v === "Other" && formData.startDate === "Other" && <input type="date" className={`${inputClass} ${invalid("startDateOther")} ml-2 max-w-[220px]`} value={formData.startDateOther} onChange={(e) => updateField("startDateOther", e.target.value)} ref={(e) => setRef("startDateOther", e)} />}</label>)}</div>}
 
-                <button type="button" className={headingBtn} onClick={() => toggleExpand("hear")}>How did you hear about us? {expanded.hear ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("hear")}>How did you hear about us? {expanded.hear ? "▲" : "▼"}</button>
                 {expanded.hear && (
                   <div className="space-y-2">
                     {["Google search", "Referral from another company", "Referral from a friend", "Social media", "Other"].map((v, i) => (
-                      <label key={v} className={optionClass}>
-                        <input type="radio" className="mr-2" checked={formData.howDidYouHear === v} onChange={() => { updateField("howDidYouHear", v); updateField("socialMediaOther", ""); updateField("howDidYouHearOther", ""); if (v !== "Referral from another company") { updateField("referralCompanyName", ""); updateField("referralOrgNumber", ""); updateField("referralEmail", ""); } }} ref={(e) => { if (i === 0) setRef("howDidYouHear", e); }} />
+                      <label key={v} className={radioClass}>
+                        <input
+                          type="radio"
+                          className="shrink-0"
+                          checked={formData.howDidYouHear === v}
+                          onChange={() => {
+                            updateField("howDidYouHear", v);
+                            updateField("socialMediaOther", "");
+                            updateField("howDidYouHearOther", "");
+                            if (v !== "Referral from another company") {
+                              updateField("referralCompanyName", "");
+                              updateField("referralOrgNumber", "");
+                              updateField("referralEmail", "");
+                            }
+                          }}
+                          ref={(e) => {
+                            if (i === 0) setRef("howDidYouHear", e);
+                          }}
+                        />
                         {v}
                       </label>
                     ))}
                     {formData.howDidYouHear === "Social media" && (
-                      <label className={optionClass}>
-                        Platform:
-                        <select className="ml-2 inline-block w-56 rounded-md border border-border px-2 py-1 text-sm" value={formData.socialMediaPlatform} onChange={(e) => { updateField("socialMediaPlatform", e.target.value); updateField("socialMediaOther", ""); }}>
+                      <div className="space-y-2 rounded-md border border-border p-3">
+                        <label className={labelClass}>Platform</label>
+                        <select className={inputClass} value={formData.socialMediaPlatform} onChange={(e) => { updateField("socialMediaPlatform", e.target.value); updateField("socialMediaOther", ""); }}>
                           {["Facebook", "Instagram", "LinkedIn", "TikTok", "YouTube", "Twitter/X", "Snapchat", "Pinterest", "Reddit", "WhatsApp", "Other"].map((p) => <option key={p}>{p}</option>)}
                         </select>
-                        {formData.socialMediaPlatform === "Other" && <input className={`${inputClass} ${invalid("socialMediaOther")} mt-2`} placeholder="Specify social media*" value={formData.socialMediaOther} onChange={(e) => updateField("socialMediaOther", e.target.value)} ref={(e) => setRef("socialMediaOther", e)} />}
-                      </label>
+                        {formData.socialMediaPlatform === "Other" && <input className={`${inputClass} ${invalid("socialMediaOther")}`} placeholder="Specify social media*" value={formData.socialMediaOther} onChange={(e) => updateField("socialMediaOther", e.target.value)} ref={(e) => setRef("socialMediaOther", e)} />}
+                      </div>
                     )}
                     {formData.howDidYouHear === "Other" && <input className={`${inputClass} ${invalid("howDidYouHearOther")}`} placeholder="Please specify*" value={formData.howDidYouHearOther} onChange={(e) => updateField("howDidYouHearOther", e.target.value)} ref={(e) => setRef("howDidYouHearOther", e)} />}
                     {formData.howDidYouHear === "Referral from another company" && (
                       <div className="relative">
                         <input className={`${inputClass} ${invalid("referralCompanyName")}`} placeholder="Referring company*" value={formData.referralCompanyName} onChange={(e) => { updateField("referralCompanyName", e.target.value); updateField("referralOrgNumber", ""); }} ref={(e) => setRef("referralCompanyName", e)} />
-                        {isSearchingReferral && <div className="mt-1 text-xs text-text-secondary">Searching...</div>}
+                        {isSearchingReferral && <p className="mt-1 text-xs text-text-secondary">Searching...</p>}
                         {!isSearchingReferral && (referralResults.length > 0 || hasSearchedReferral) && (
                           <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-border bg-white shadow-md">
                             {referralResults.map((item) => (
@@ -763,16 +768,13 @@ export default function DetailedRequestPage() {
 
                 <div className="space-y-2">
                   {["Yes - send me candidate updates", "No thanks"].map((v, i) => (
-                    <label key={v} className={optionClass}>
+                    <label key={v} className={radioClass}>
                       <input
                         type="radio"
-                        className="mr-2"
+                        className="shrink-0"
                         checked={formData.subscribe === v}
                         onChange={() => {
-                          if (v === "No thanks") {
-                            setConfirmNoSubscribe(true);
-                            return;
-                          }
+                          if (v === "No thanks") return setConfirmNoSubscribe(true);
                           updateField("subscribe", v);
                         }}
                         ref={(e) => {
@@ -783,23 +785,18 @@ export default function DetailedRequestPage() {
                     </label>
                   ))}
                 </div>
+                <label className={labelClass}>Additional notes</label>
                 <textarea rows={3} className={inputClass} placeholder="Additional notes (optional)" value={formData.notes} onChange={(e) => updateField("notes", e.target.value)} />
                 <button type="submit" disabled={isSubmitting} className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#C9A84C] py-2 text-sm font-medium text-white hover:bg-gold-hover disabled:opacity-70">
-                  {isSubmitting ? (
-                    <>
-                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      Submitting...
-                    </>
-                  ) : (
-                    "Submit request"
-                  )}
+                  {isSubmitting ? <><span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Submitting...</> : "Submit request"}
                 </button>
               </div>
             )}
           </div>
 
           {stepError && <p className="text-sm text-red-600">{stepError}</p>}
-          {submitStatus === "error" && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{submitError || "Something went wrong. Please email post@arbeidmatch.no"}</div>}
+          {submitStatus === "error" && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{submitError || "Something went wrong."}</div>}
+
           <div className="mx-auto flex w-full max-w-2xl items-center justify-between">
             <button type="button" onClick={back} disabled={step === 0} className="rounded-md border border-[#0D1B2A] px-4 py-2 text-sm text-[#0D1B2A] disabled:opacity-40">Back</button>
             {step < 8 && <button type="button" onClick={next} className="rounded-md bg-[#C9A84C] px-4 py-2 text-sm font-medium text-white hover:bg-gold-hover">Next</button>}
