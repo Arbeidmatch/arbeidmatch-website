@@ -18,6 +18,12 @@ export default function RequestPage() {
   const [socialMediaPlatform, setSocialMediaPlatform] = useState("Facebook");
   const [socialMediaOther, setSocialMediaOther] = useState("");
   const [howDidYouHearOther, setHowDidYouHearOther] = useState("");
+  const [referralCompanyName, setReferralCompanyName] = useState("");
+  const [referralOrgNumber, setReferralOrgNumber] = useState("");
+  const [referralEmail, setReferralEmail] = useState("");
+  const [referralCompanyResults, setReferralCompanyResults] = useState<CompanyResult[]>([]);
+  const [isSearchingReferralCompanies, setIsSearchingReferralCompanies] = useState(false);
+  const [hasSearchedReferral, setHasSearchedReferral] = useState(false);
   const [companyResults, setCompanyResults] = useState<CompanyResult[]>([]);
   const [isSearchingCompanies, setIsSearchingCompanies] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -91,6 +97,54 @@ export default function RequestPage() {
     setOrgNumber(item.orgNumber);
     setCompanyResults([]);
     setHasSearched(false);
+  };
+
+  useEffect(() => {
+    if (howDidYouHear !== "Referral from another company") {
+      setReferralCompanyResults([]);
+      setHasSearchedReferral(false);
+      return;
+    }
+
+    if (referralCompanyName.trim().length < 2) {
+      setReferralCompanyResults([]);
+      setHasSearchedReferral(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearchingReferralCompanies(true);
+        const response = await fetch(
+          `https://data.brreg.no/enhetsregisteret/api/enheter?navn=${encodeURIComponent(
+            referralCompanyName,
+          )}&size=10`,
+        );
+        const data = (await response.json()) as {
+          _embedded?: { enheter?: Array<{ navn?: string; organisasjonsnummer?: string }> };
+        };
+        const results =
+          data._embedded?.enheter?.map((item) => ({
+            name: item.navn ?? "",
+            orgNumber: item.organisasjonsnummer ?? "",
+          })) ?? [];
+        setReferralCompanyResults(results);
+      } catch {
+        setReferralCompanyResults([]);
+      } finally {
+        setHasSearchedReferral(true);
+        setIsSearchingReferralCompanies(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [howDidYouHear, referralCompanyName]);
+
+  const onReferralCompanyPick = (item: CompanyResult) => {
+    setReferralCompanyName(item.name);
+    setReferralOrgNumber(item.orgNumber);
+    setReferralCompanyResults([]);
+    setHasSearchedReferral(false);
   };
 
   return (
@@ -184,6 +238,11 @@ export default function RequestPage() {
                 setHowDidYouHear(event.target.value);
                 setSocialMediaOther("");
                 setHowDidYouHearOther("");
+                if (event.target.value !== "Referral from another company") {
+                  setReferralCompanyName("");
+                  setReferralOrgNumber("");
+                  setReferralEmail("");
+                }
               }}
             >
               {[
@@ -257,6 +316,67 @@ export default function RequestPage() {
                 required
               />
             </label>
+          )}
+
+          {howDidYouHear === "Referral from another company" && (
+            <>
+              <label className="relative block">
+                <span className="mb-1 block text-sm font-medium text-navy">Referring company</span>
+                <input
+                  name="referralCompanyName"
+                  className={inputClass}
+                  value={referralCompanyName}
+                  onChange={(event) => {
+                    setReferralCompanyName(event.target.value);
+                    setReferralOrgNumber("");
+                  }}
+                  autoComplete="off"
+                  required
+                />
+                <input type="hidden" name="referralOrgNumber" value={referralOrgNumber} />
+                {(isSearchingReferralCompanies ||
+                  referralCompanyResults.length > 0 ||
+                  (hasSearchedReferral && referralCompanyName.trim().length >= 2)) && (
+                  <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-border bg-white shadow-[0_8px_24px_rgba(13,27,42,0.12)]">
+                    {isSearchingReferralCompanies && (
+                      <p className="px-3 py-2 text-sm text-text-secondary">Searching...</p>
+                    )}
+                    {!isSearchingReferralCompanies &&
+                      referralCompanyResults.map((item) => (
+                        <button
+                          key={`${item.orgNumber}-${item.name}-referral`}
+                          type="button"
+                          onClick={() => onReferralCompanyPick(item)}
+                          className="block w-full border-b border-border px-3 py-2 text-left last:border-b-0 hover:bg-gold/10"
+                        >
+                          <span className="block text-sm font-medium text-navy">{item.name}</span>
+                          <span className="block text-xs text-gold">Org.nr. {item.orgNumber}</span>
+                        </button>
+                      ))}
+                    {!isSearchingReferralCompanies &&
+                      hasSearchedReferral &&
+                      referralCompanyResults.length === 0 && (
+                        <p className="px-3 py-2 text-sm text-text-secondary">
+                          No company found — you can still continue
+                        </p>
+                      )}
+                  </div>
+                )}
+              </label>
+
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-navy">
+                  Contact email at referring company (optional)
+                </span>
+                <input
+                  name="referralEmail"
+                  type="email"
+                  className={inputClass}
+                  value={referralEmail}
+                  onChange={(event) => setReferralEmail(event.target.value)}
+                />
+              </label>
+            </>
           )}
 
           <button

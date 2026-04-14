@@ -58,6 +58,9 @@ export async function POST(request: NextRequest) {
               ["Social media platform", data.socialMediaPlatform],
               ["Social media other", data.socialMediaOther],
               ["How did you hear about us (other)", data.howDidYouHearOther],
+              ["Referral company", data.referralCompanyName],
+              ["Referral company org.nr", data.referralOrgNumber],
+              ["Referral contact email", data.referralEmail],
             ])}
           </div>
           <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
@@ -105,6 +108,39 @@ export async function POST(request: NextRequest) {
         to: data.email,
         subject: `Thank you for your request — ${data.company ?? "ArbeidMatch"}`,
         html: employerHtml,
+      });
+    }
+
+    if (data.referralEmail) {
+      const referralHtml = `
+        <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
+          <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
+            <div style="background:#0D1B2A;color:#fff;padding:20px 22px;">
+              <h2 style="margin:0;">Tusen takk for at du anbefalte oss!</h2>
+              <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
+            </div>
+            <div style="padding:20px;color:#0D1B2A;line-height:1.6;">
+              <p>Vi har mottatt en forespørsel fra <strong>${data.company || "-"}</strong> som nevnte at dere anbefalte ArbeidMatch.</p>
+              <p>Vi setter stor pris på tilliten og anbefalingen. Hvis vi kan hjelpe dere med rekruttering i fremtiden, ta gjerne kontakt.</p>
+              <a
+                href="https://arbeidmatch.no/contact"
+                style="display:inline-block;margin-top:12px;background:#C9A84C;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;"
+              >
+                Kontakt oss
+              </a>
+            </div>
+            <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
+              ArbeidMatch Norge AS · post@arbeidmatch.no
+            </div>
+          </div>
+        </div>
+      `;
+
+      await transporter.sendMail({
+        from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+        to: data.referralEmail,
+        subject: "Takk for anbefalingen! — ArbeidMatch Norge",
+        html: referralHtml,
       });
     }
 

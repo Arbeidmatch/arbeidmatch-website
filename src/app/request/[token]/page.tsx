@@ -13,6 +13,11 @@ type TokenData = {
   org_number?: string;
 };
 
+type CompanyResult = {
+  name: string;
+  orgNumber: string;
+};
+
 type RequestForm = {
   full_name: string;
   phone: string;
@@ -46,6 +51,9 @@ type RequestForm = {
   socialMediaPlatform: string;
   socialMediaOther: string;
   howDidYouHearOther: string;
+  referralCompanyName: string;
+  referralOrgNumber: string;
+  referralEmail: string;
   subscribe: string;
   notes: string;
 };
@@ -107,6 +115,9 @@ export default function DetailedRequestPage() {
   const [visible, setVisible] = useState(true);
   const [stepError, setStepError] = useState("");
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
+  const [referralCompanyResults, setReferralCompanyResults] = useState<CompanyResult[]>([]);
+  const [isSearchingReferralCompanies, setIsSearchingReferralCompanies] = useState(false);
+  const [hasSearchedReferral, setHasSearchedReferral] = useState(false);
   const [formData, setFormData] = useState<RequestForm>({
     full_name: "",
     phone: "",
@@ -140,6 +151,9 @@ export default function DetailedRequestPage() {
     socialMediaPlatform: "Facebook",
     socialMediaOther: "",
     howDidYouHearOther: "",
+    referralCompanyName: "",
+    referralOrgNumber: "",
+    referralEmail: "",
     subscribe: "",
     notes: "",
   });
@@ -176,6 +190,57 @@ export default function DetailedRequestPage() {
 
   const updateField = (name: keyof RequestForm, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  useEffect(() => {
+    if (formData.howDidYouHear !== "Referral from another company") {
+      setReferralCompanyResults([]);
+      setHasSearchedReferral(false);
+      return;
+    }
+
+    if (formData.referralCompanyName.trim().length < 2) {
+      setReferralCompanyResults([]);
+      setHasSearchedReferral(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearchingReferralCompanies(true);
+        const response = await fetch(
+          `https://data.brreg.no/enhetsregisteret/api/enheter?navn=${encodeURIComponent(
+            formData.referralCompanyName,
+          )}&size=10`,
+        );
+        const data = (await response.json()) as {
+          _embedded?: { enheter?: Array<{ navn?: string; organisasjonsnummer?: string }> };
+        };
+        const results =
+          data._embedded?.enheter?.map((item) => ({
+            name: item.navn ?? "",
+            orgNumber: item.organisasjonsnummer ?? "",
+          })) ?? [];
+        setReferralCompanyResults(results);
+      } catch {
+        setReferralCompanyResults([]);
+      } finally {
+        setHasSearchedReferral(true);
+        setIsSearchingReferralCompanies(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [formData.howDidYouHear, formData.referralCompanyName]);
+
+  const onReferralCompanyPick = (item: CompanyResult) => {
+    setFormData((prev) => ({
+      ...prev,
+      referralCompanyName: item.name,
+      referralOrgNumber: item.orgNumber,
+    }));
+    setReferralCompanyResults([]);
+    setHasSearchedReferral(false);
   };
 
   const stepCount = 8;
@@ -231,6 +296,8 @@ export default function DetailedRequestPage() {
     )
       return false;
     if (currentStep === 7 && formData.howDidYouHear === "Other" && !formData.howDidYouHearOther)
+      return false;
+    if (currentStep === 7 && formData.howDidYouHear === "Referral from another company" && !formData.referralCompanyName)
       return false;
     return true;
   };
@@ -613,6 +680,11 @@ export default function DetailedRequestPage() {
                       updateField("howDidYouHear", e.target.value);
                       updateField("socialMediaOther", "");
                       updateField("howDidYouHearOther", "");
+                      if (e.target.value !== "Referral from another company") {
+                        updateField("referralCompanyName", "");
+                        updateField("referralOrgNumber", "");
+                        updateField("referralEmail", "");
+                      }
                     }}
                   >
                     {[
@@ -676,6 +748,60 @@ export default function DetailedRequestPage() {
                       onChange={(e) => updateField("howDidYouHearOther", e.target.value)}
                     />
                   </label>
+                )}
+                {formData.howDidYouHear === "Referral from another company" && (
+                  <>
+                    <label className="relative block">
+                      Referring company
+                      <input
+                        className={inputClass}
+                        value={formData.referralCompanyName}
+                        onChange={(e) => {
+                          updateField("referralCompanyName", e.target.value);
+                          updateField("referralOrgNumber", "");
+                        }}
+                        autoComplete="off"
+                      />
+                      <input type="hidden" value={formData.referralOrgNumber} />
+                      {(isSearchingReferralCompanies ||
+                        referralCompanyResults.length > 0 ||
+                        (hasSearchedReferral && formData.referralCompanyName.trim().length >= 2)) && (
+                        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-border bg-white shadow-[0_8px_24px_rgba(13,27,42,0.12)]">
+                          {isSearchingReferralCompanies && (
+                            <p className="px-3 py-2 text-sm text-text-secondary">Searching...</p>
+                          )}
+                          {!isSearchingReferralCompanies &&
+                            referralCompanyResults.map((item) => (
+                              <button
+                                key={`${item.orgNumber}-${item.name}-card8`}
+                                type="button"
+                                onClick={() => onReferralCompanyPick(item)}
+                                className="block w-full border-b border-border px-3 py-2 text-left last:border-b-0 hover:bg-gold/10"
+                              >
+                                <span className="block text-sm font-medium text-navy">{item.name}</span>
+                                <span className="block text-xs text-gold">Org.nr. {item.orgNumber}</span>
+                              </button>
+                            ))}
+                          {!isSearchingReferralCompanies &&
+                            hasSearchedReferral &&
+                            referralCompanyResults.length === 0 && (
+                              <p className="px-3 py-2 text-sm text-text-secondary">
+                                No company found — you can still continue
+                              </p>
+                            )}
+                        </div>
+                      )}
+                    </label>
+                    <label>
+                      Contact email at referring company (optional)
+                      <input
+                        type="email"
+                        className={inputClass}
+                        value={formData.referralEmail}
+                        onChange={(e) => updateField("referralEmail", e.target.value)}
+                      />
+                    </label>
+                  </>
                 )}
                 <div className="grid gap-3">
                   {["Yes — keep me updated on available candidates", "No thanks"].map((v)=>(

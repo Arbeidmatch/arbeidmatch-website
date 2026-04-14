@@ -43,6 +43,9 @@ export async function POST(request: NextRequest) {
       socialMediaPlatform,
       socialMediaOther,
       howDidYouHearOther,
+      referralCompanyName,
+      referralOrgNumber,
+      referralEmail,
       orgNumber,
     } = body as {
       full_name?: string;
@@ -54,6 +57,9 @@ export async function POST(request: NextRequest) {
       socialMediaPlatform?: string;
       socialMediaOther?: string;
       howDidYouHearOther?: string;
+      referralCompanyName?: string;
+      referralOrgNumber?: string;
+      referralEmail?: string;
       orgNumber?: string;
     };
 
@@ -75,6 +81,9 @@ export async function POST(request: NextRequest) {
       how_did_you_hear: howDidYouHear,
       social_media_platform: socialMediaPlatform,
       how_did_you_hear_other: howDidYouHearOther || socialMediaOther,
+      referral_company_name: referralCompanyName,
+      referral_org_number: referralOrgNumber,
+      referral_email: referralEmail,
       expires_at: expiresAt,
       used: false,
     });

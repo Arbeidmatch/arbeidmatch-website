@@ -56,6 +56,9 @@ export async function POST(request: NextRequest) {
       how_did_you_hear: payload.howDidYouHear,
       social_media_platform: payload.socialMediaPlatform,
       how_did_you_hear_other: payload.howDidYouHearOther || payload.socialMediaOther,
+      referral_company_name: payload.referralCompanyName,
+      referral_org_number: payload.referralOrgNumber,
+      referral_email: payload.referralEmail,
       subscribe: payload.subscribe,
       notes: payload.notes,
     });
