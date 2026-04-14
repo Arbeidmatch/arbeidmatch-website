@@ -43,6 +43,9 @@ type RequestForm = {
   city: string;
   startDate: string;
   howDidYouHear: string;
+  socialMediaPlatform: string;
+  socialMediaOther: string;
+  howDidYouHearOther: string;
   subscribe: string;
   notes: string;
 };
@@ -134,6 +137,9 @@ export default function DetailedRequestPage() {
     city: "",
     startDate: "",
     howDidYouHear: "Google search",
+    socialMediaPlatform: "Facebook",
+    socialMediaOther: "",
+    howDidYouHearOther: "",
     subscribe: "",
     notes: "",
   });
@@ -214,6 +220,17 @@ export default function DetailedRequestPage() {
     if (currentStep === 5 && needsPaslag && !formData.paslagPercent) return false;
     if (currentStep === 6 && (!formData.overtime || !formData.travel || !formData.accommodation || !formData.equipment || !formData.tools)) return false;
     if (currentStep === 7 && (!formData.city || !formData.startDate || !formData.subscribe))
+      return false;
+    if (currentStep === 7 && formData.howDidYouHear === "Social media" && !formData.socialMediaPlatform)
+      return false;
+    if (
+      currentStep === 7 &&
+      formData.howDidYouHear === "Social media" &&
+      formData.socialMediaPlatform === "Other" &&
+      !formData.socialMediaOther
+    )
+      return false;
+    if (currentStep === 7 && formData.howDidYouHear === "Other" && !formData.howDidYouHearOther)
       return false;
     return true;
   };
@@ -589,12 +606,77 @@ export default function DetailedRequestPage() {
                 </div>
                 <label>
                   How did you hear about us?
-                  <select className={inputClass} value={formData.howDidYouHear} onChange={(e)=>updateField("howDidYouHear", e.target.value)}>
-                    {["Google search", "LinkedIn", "Referral from someone", "Facebook/Instagram", "Other"].map((v)=>(
+                  <select
+                    className={inputClass}
+                    value={formData.howDidYouHear}
+                    onChange={(e) => {
+                      updateField("howDidYouHear", e.target.value);
+                      updateField("socialMediaOther", "");
+                      updateField("howDidYouHearOther", "");
+                    }}
+                  >
+                    {[
+                      "Google search",
+                      "Referral from another company",
+                      "Referral from a friend",
+                      "Social media",
+                      "Other",
+                    ].map((v)=>(
                       <option key={v} value={v}>{v}</option>
                     ))}
                   </select>
                 </label>
+                {formData.howDidYouHear === "Social media" && (
+                  <label>
+                    Social media platform
+                    <select
+                      className={inputClass}
+                      value={formData.socialMediaPlatform}
+                      onChange={(e) => {
+                        updateField("socialMediaPlatform", e.target.value);
+                        updateField("socialMediaOther", "");
+                      }}
+                    >
+                      {[
+                        "Facebook",
+                        "Instagram",
+                        "LinkedIn",
+                        "TikTok",
+                        "YouTube",
+                        "Twitter/X",
+                        "Snapchat",
+                        "Pinterest",
+                        "Reddit",
+                        "WhatsApp",
+                        "Other",
+                      ].map((platform) => (
+                        <option key={platform} value={platform}>
+                          {platform}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                {formData.howDidYouHear === "Social media" && formData.socialMediaPlatform === "Other" && (
+                  <label>
+                    Other social media platform
+                    <input
+                      className={inputClass}
+                      value={formData.socialMediaOther}
+                      onChange={(e) => updateField("socialMediaOther", e.target.value)}
+                    />
+                  </label>
+                )}
+                {formData.howDidYouHear === "Other" && (
+                  <label>
+                    Please specify
+                    <input
+                      className={inputClass}
+                      value={formData.howDidYouHearOther}
+                      onChange={(e) => updateField("howDidYouHearOther", e.target.value)}
+                    />
+                  </label>
+                )}
                 <div className="grid gap-3">
                   {["Yes — keep me updated on available candidates", "No thanks"].map((v)=>(
                     <label key={v} className="rounded-md border border-border p-3">

@@ -33,13 +33,27 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { full_name, company, email, phone, job_summary, howDidYouHear, orgNumber } = body as {
+    const {
+      full_name,
+      company,
+      email,
+      phone,
+      job_summary,
+      howDidYouHear,
+      socialMediaPlatform,
+      socialMediaOther,
+      howDidYouHearOther,
+      orgNumber,
+    } = body as {
       full_name?: string;
       company?: string;
       email?: string;
       phone?: string;
       job_summary?: string;
       howDidYouHear?: string;
+      socialMediaPlatform?: string;
+      socialMediaOther?: string;
+      howDidYouHearOther?: string;
       orgNumber?: string;
     };
 
@@ -59,6 +73,8 @@ export async function POST(request: NextRequest) {
       org_number: orgNumber,
       job_summary,
       how_did_you_hear: howDidYouHear,
+      social_media_platform: socialMediaPlatform,
+      how_did_you_hear_other: howDidYouHearOther || socialMediaOther,
       expires_at: expiresAt,
       used: false,
     });

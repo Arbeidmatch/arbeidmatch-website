@@ -14,6 +14,10 @@ export default function RequestPage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [companyQuery, setCompanyQuery] = useState("");
   const [orgNumber, setOrgNumber] = useState("");
+  const [howDidYouHear, setHowDidYouHear] = useState("Google search");
+  const [socialMediaPlatform, setSocialMediaPlatform] = useState("Facebook");
+  const [socialMediaOther, setSocialMediaOther] = useState("");
+  const [howDidYouHearOther, setHowDidYouHearOther] = useState("");
   const [companyResults, setCompanyResults] = useState<CompanyResult[]>([]);
   const [isSearchingCompanies, setIsSearchingCompanies] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -172,12 +176,21 @@ export default function RequestPage() {
 
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-navy">How did you hear about us?</span>
-            <select name="howDidYouHear" className={inputClass}>
+            <select
+              name="howDidYouHear"
+              className={inputClass}
+              value={howDidYouHear}
+              onChange={(event) => {
+                setHowDidYouHear(event.target.value);
+                setSocialMediaOther("");
+                setHowDidYouHearOther("");
+              }}
+            >
               {[
                 "Google search",
-                "LinkedIn",
-                "Referral from someone",
-                "Facebook/Instagram",
+                "Referral from another company",
+                "Referral from a friend",
+                "Social media",
                 "Other",
               ].map((item) => (
                 <option key={item} value={item}>
@@ -186,6 +199,65 @@ export default function RequestPage() {
               ))}
             </select>
           </label>
+
+          {howDidYouHear === "Social media" && (
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-navy">Social media platform</span>
+              <select
+                name="socialMediaPlatform"
+                className={inputClass}
+                value={socialMediaPlatform}
+                onChange={(event) => {
+                  setSocialMediaPlatform(event.target.value);
+                  setSocialMediaOther("");
+                }}
+              >
+                {[
+                  "Facebook",
+                  "Instagram",
+                  "LinkedIn",
+                  "TikTok",
+                  "YouTube",
+                  "Twitter/X",
+                  "Snapchat",
+                  "Pinterest",
+                  "Reddit",
+                  "WhatsApp",
+                  "Other",
+                ].map((platform) => (
+                  <option key={platform} value={platform}>
+                    {platform}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {howDidYouHear === "Social media" && socialMediaPlatform === "Other" && (
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-navy">Other social media platform</span>
+              <input
+                name="socialMediaOther"
+                className={inputClass}
+                value={socialMediaOther}
+                onChange={(event) => setSocialMediaOther(event.target.value)}
+                required
+              />
+            </label>
+          )}
+
+          {howDidYouHear === "Other" && (
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-navy">Please specify</span>
+              <input
+                name="howDidYouHearOther"
+                className={inputClass}
+                value={howDidYouHearOther}
+                onChange={(event) => setHowDidYouHearOther(event.target.value)}
+                required
+              />
+            </label>
+          )}
 
           <button
             type="submit"

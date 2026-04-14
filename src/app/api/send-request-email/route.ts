@@ -53,6 +53,12 @@ export async function POST(request: NextRequest) {
             ${section("Contract & Pay", [["Contract type", data.contractType], ["Påslag %", data.paslagPercent], ["Salary", data.salary], ["Full time %", data.fullTime], ["Hours", data.hours], ["Accommodation cost", data.accommodationCost], ["Rotation", data.rotation]])}
             ${section("Working Conditions", [["Overtime", data.overtime], ["Travel", data.travel], ["Accommodation", data.accommodation], ["Equipment", data.equipment], ["Tools", data.tools]])}
             ${section("Final Details", [["City", data.city], ["Start date", data.startDate], ["How did you hear about us", data.howDidYouHear], ["Subscribe", data.subscribe], ["Notes", data.notes]])}
+            ${section("Lead Source Details", [
+              ["How did you hear about us", data.howDidYouHear],
+              ["Social media platform", data.socialMediaPlatform],
+              ["Social media other", data.socialMediaOther],
+              ["How did you hear about us (other)", data.howDidYouHearOther],
+            ])}
           </div>
           <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
             ArbeidMatch Norge AS · Org.nr. 935 667 089 · post@arbeidmatch.no
