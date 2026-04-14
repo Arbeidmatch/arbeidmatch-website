@@ -1,6 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
+
+export const metadata: Metadata = {
+  title: "For Employers — Find EU/EEA Workers",
+  description:
+    "Request pre-screened EU/EEA candidates for your Norwegian company. Construction, offshore, transport, automotive and more.",
+};
 
 export default function ForEmployersPage() {
   return (

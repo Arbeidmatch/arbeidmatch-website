@@ -1,5 +1,12 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { CheckCircle2, ShieldCheck, Users } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "About ArbeidMatch",
+  description:
+    "Learn about ArbeidMatch Norge AS — specialists in EU/EEA recruitment for Norwegian employers since 2024.",
+};
 
 export default function AboutPage() {
   return (

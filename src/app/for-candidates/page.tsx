@@ -1,4 +1,11 @@
 import { CheckCircle2, DollarSign, Factory, HardHat, Home, Hotel, Sparkles, Users } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "For Candidates — Jobs in Norway",
+  description:
+    "Find skilled jobs in Norway through ArbeidMatch. EU/EEA workers welcome. Construction, offshore, transport and more.",
+};
 
 export default function ForCandidatesPage() {
   return (

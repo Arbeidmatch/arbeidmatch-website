@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
   Building2,
   Check,
@@ -13,6 +14,12 @@ import {
 } from "lucide-react";
 import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
+
+export const metadata: Metadata = {
+  title: "EU/EEA Recruitment for Norwegian Employers",
+  description:
+    "ArbeidMatch connects Norwegian employers with qualified EU/EEA workers. Fast matching, full compliance, blue-collar specialists.",
+};
 
 export default function Home() {
   return (
