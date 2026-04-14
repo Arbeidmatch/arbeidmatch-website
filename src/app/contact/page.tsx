@@ -76,6 +76,24 @@ export default function ContactPage() {
             </div>
           </form>
         </div>
+
+        <div className="mt-10">
+          <h2 className="text-2xl font-bold text-navy">Find us / Finn oss</h2>
+          <div className="mt-4 overflow-hidden rounded-xl border border-border bg-white shadow-[0_8px_24px_rgba(13,27,42,0.08)]">
+            <iframe
+              src="https://www.openstreetmap.org/export/embed.html?bbox=10.4983,63.4485,10.5183,63.4585&layer=mapnik&marker=63.4535,10.5083"
+              width="100%"
+              height="400"
+              style={{ border: "none", borderRadius: "12px" }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="ArbeidMatch office location"
+            />
+          </div>
+          <p className="mt-4 text-base text-navy">
+            Sverre Svendsens veg 38, 7056 Ranheim, Norway
+          </p>
+        </div>
       </div>
     </section>
   );

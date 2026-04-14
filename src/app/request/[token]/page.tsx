@@ -495,7 +495,11 @@ export default function DetailedRequestPage() {
             {step === 1 && (
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-[#0D1B2A]">Type of engagement</h2>
-                {["Candidate delivery", "Recruitment", "Staffing"].map((v, i) => (
+                {[
+                  "Sourcing — We find the right candidates from our network",
+                  "Recruitment — Full recruitment process",
+                  "Staffing — Innleie/bemanning",
+                ].map((v, i) => (
                   <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.hiringType === v} onChange={() => updateField("hiringType", v)} ref={(e) => { if (i === 0) setRef("hiringType", e); }} />{v}</label>
                 ))}
               </div>
