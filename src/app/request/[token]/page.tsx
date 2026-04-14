@@ -426,17 +426,12 @@ export default function DetailedRequestPage() {
     };
 
     try {
-      try {
-        const emailRes = await fetch("/api/send-request-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!emailRes.ok) throw new Error("send-request-email");
-      } catch (error) {
-        console.error("send-request-email failed", error);
-        throw new Error("Failed to send email notifications.");
-      }
+      const emailRes = await fetch("/api/send-request-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!emailRes.ok) throw new Error("send-request-email");
 
       try {
         const saveRes = await fetch("/api/save-employer-request", {
@@ -447,7 +442,6 @@ export default function DetailedRequestPage() {
         if (!saveRes.ok) throw new Error("save-employer-request");
       } catch (error) {
         console.error("save-employer-request failed", error);
-        throw new Error("Failed to save request data.");
       }
 
       try {
@@ -455,13 +449,13 @@ export default function DetailedRequestPage() {
         if (!invalidateRes.ok) throw new Error("verify-token delete");
       } catch (error) {
         console.error("verify-token DELETE failed", error);
-        throw new Error("Request saved but token invalidation failed.");
       }
 
       setSubmitStatus("success");
     } catch (error) {
+      console.error("send-request-email failed", error);
       setSubmitStatus("error");
-      setSubmitError(error instanceof Error ? error.message : "Unexpected submit error.");
+      setSubmitError("Failed to send email notifications.");
     } finally {
       setIsSubmitting(false);
     }
