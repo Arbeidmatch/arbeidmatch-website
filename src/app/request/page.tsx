@@ -17,14 +17,11 @@ export default function RequestPage() {
     const payload = Object.fromEntries(formData.entries());
 
     try {
-      const response = await fetch(
-        "https://hook.eu2.make.com/bbmwmdyizpu5yocou7uuel1dz5a26lxz",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        },
-      );
+      const response = await fetch("/api/simple-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       if (!response.ok) throw new Error("Request failed");
 
