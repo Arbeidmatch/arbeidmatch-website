@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       job_summary?: string;
     };
 
-    if (!full_name || !company || !email || !phone || !job_summary) {
+    if (!company || !email || !job_summary) {
       throw new Error("Missing required fields");
     }
 

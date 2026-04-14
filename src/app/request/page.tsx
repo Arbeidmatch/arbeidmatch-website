@@ -56,36 +56,21 @@ export default function RequestPage() {
           onSubmit={handleSubmit}
           className="space-y-6 rounded-xl border border-border bg-white p-8"
         >
-          <div className="grid gap-5 md:grid-cols-2">
-            <label className="block">
-              <span className="mb-1 block text-sm font-medium text-navy">Full name*</span>
-              <input required name="full_name" className={inputClass} placeholder="John Hansen" />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-sm font-medium text-navy">Company name*</span>
-              <input required name="company" className={inputClass} placeholder="Hansen AS" />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-sm font-medium text-navy">Phone*</span>
-              <input
-                required
-                name="phone"
-                type="tel"
-                className={inputClass}
-                placeholder="+47 000 00 000"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-sm font-medium text-navy">Company email*</span>
-              <input
-                required
-                name="email"
-                type="email"
-                className={inputClass}
-                placeholder="post@company.no"
-              />
-            </label>
-          </div>
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-navy">Company name*</span>
+            <input required name="company" className={inputClass} placeholder="Hansen AS" />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-navy">Company email*</span>
+            <input
+              required
+              name="email"
+              type="email"
+              className={inputClass}
+              placeholder="post@company.no"
+            />
+          </label>
 
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-navy">
