@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 type TokenData = { company: string; email: string; job_summary: string; org_number?: string };
 type CompanyResult = { name: string; orgNumber: string };
@@ -200,6 +200,7 @@ const initialData: RequestForm = {
 
 export default function DetailedRequestPage() {
   const { token } = useParams<{ token: string }>();
+  const router = useRouter();
   const [tokenStatus, setTokenStatus] = useState<"checking" | "valid" | "invalid">("checking");
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [submitError, setSubmitError] = useState("");
@@ -465,7 +466,44 @@ export default function DetailedRequestPage() {
 
   if (tokenStatus === "checking") return <section className="bg-surface py-8"><div className="mx-auto max-w-2xl px-4 text-center">Verifying your access...</div></section>;
   if (tokenStatus === "invalid") return <section className="bg-surface py-8"><div className="mx-auto max-w-2xl px-4 text-center"><h1 className="text-2xl font-bold text-navy">Link expired or invalid</h1><p className="mt-2 text-sm text-text-secondary">Please start a new request.</p></div></section>;
-  if (submitStatus === "success") return <section className="bg-surface py-8"><div className={`${cardClass} text-center`}><h1 className="text-2xl font-bold text-navy">Request sent successfully</h1><p className="mt-2 text-sm text-text-secondary">We will contact you within 24 hours.</p></div></section>;
+  if (submitStatus === "success") {
+    const selectedPosition = formData.position === "Other" ? formData.positionOther : formData.position;
+    const selectedStartDate = formData.startDate === "Other" ? formData.startDateOther : formData.startDate;
+    return (
+      <section className="bg-surface py-10">
+        <div className="mx-auto w-full max-w-2xl px-3">
+          <div className={`${cardClass} text-center`}>
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-white shadow-[0_8px_20px_rgba(201,168,76,0.35)]">
+              ✓
+            </div>
+            <h1 className="mt-4 text-3xl font-bold text-navy">Request submitted successfully!</h1>
+            <p className="mx-auto mt-2 max-w-xl text-sm text-text-secondary">
+              Thank you, {tokenData?.company || "your team"}. We have received your candidate request and
+              will get back to you within 24 hours.
+            </p>
+
+            <div className="mx-auto mt-5 w-full max-w-lg rounded-xl border border-navy/20 bg-navy/[0.03] p-4 text-left">
+              <p className="mb-2 text-sm font-semibold text-navy">Request summary</p>
+              <div className="space-y-1 text-sm text-navy">
+                <p><span className="font-medium">Position:</span> {selectedPosition || "-"}</p>
+                <p><span className="font-medium">Number of candidates:</span> {formData.numberOfPositions || "-"}</p>
+                <p><span className="font-medium">Location:</span> {formData.city || "-"}</p>
+                <p><span className="font-medium">Start date:</span> {selectedStartDate || "-"}</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="mt-6 rounded-md bg-[#C9A84C] px-6 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
+            >
+              Back to home
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-surface py-6">
@@ -732,7 +770,16 @@ export default function DetailedRequestPage() {
                   ))}
                 </div>
                 <textarea rows={3} className={inputClass} placeholder="Additional notes (optional)" value={formData.notes} onChange={(e) => updateField("notes", e.target.value)} />
-                <button type="submit" disabled={isSubmitting} className="w-full rounded-md bg-[#C9A84C] py-2 text-sm font-medium text-white hover:bg-gold-hover disabled:opacity-70">{isSubmitting ? "Sending..." : "Submit request"}</button>
+                <button type="submit" disabled={isSubmitting} className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#C9A84C] py-2 text-sm font-medium text-white hover:bg-gold-hover disabled:opacity-70">
+                  {isSubmitting ? (
+                    <>
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit request"
+                  )}
+                </button>
               </div>
             )}
           </div>
