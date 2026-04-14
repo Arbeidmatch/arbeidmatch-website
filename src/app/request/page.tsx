@@ -131,7 +131,7 @@ export default function RequestPage() {
                       key={`${item.orgNumber}-${item.name}`}
                       type="button"
                       onClick={() => onCompanyPick(item)}
-                      className="block w-full border-b border-border px-3 py-2 text-left last:border-b-0 hover:bg-surface"
+                      className="block w-full border-b border-border px-3 py-2 text-left last:border-b-0 hover:bg-gold/10"
                     >
                       <span className="block text-sm font-medium text-navy">{item.name}</span>
                       <span className="block text-xs text-gold">Org.nr. {item.orgNumber}</span>
@@ -139,7 +139,7 @@ export default function RequestPage() {
                   ))}
                 {!isSearchingCompanies && hasSearched && companyResults.length === 0 && (
                   <p className="px-3 py-2 text-sm text-text-secondary">
-                    No results — type your company name manually
+                    No company found — you can still continue
                   </p>
                 )}
               </div>

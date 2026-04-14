@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
           <div style="padding:20px;">
             ${section("Contact Info", [
               ["Company", data.company],
+              ["Org.nr.", data.orgNumber],
               ["Email", data.email],
               ["Full name", data.full_name],
               ["Phone", data.phone],
