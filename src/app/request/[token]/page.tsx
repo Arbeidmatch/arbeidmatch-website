@@ -12,19 +12,23 @@ type TokenData = {
   job_summary: string;
 };
 
-type FormDataState = {
+type RequestForm = {
   full_name: string;
   phone: string;
   hiringType: string;
+  category: string;
   position: string;
-  qualification: string;
+  positionOther: string;
   numberOfPositions: string;
+  qualification: string;
   experience: string;
+  norwegianLevel: string;
   driverLicense: string;
-  englishLevel: string;
   dNumber: string;
+  englishLevel: string;
   requirements: string;
   contractType: string;
+  paslagPercent: string;
   salary: string;
   fullTime: string;
   hours: string;
@@ -37,8 +41,55 @@ type FormDataState = {
   tools: string;
   city: string;
   startDate: string;
+  howDidYouHear: string;
   subscribe: string;
   notes: string;
+};
+
+const rolesByCategory: Record<string, string[]> = {
+  Construction: [
+    "Carpenter",
+    "Bricklayer",
+    "Tile layer",
+    "Painter",
+    "Plasterer",
+    "Roofer",
+    "Concrete worker",
+    "Steel fixer",
+    "Scaffolder",
+    "Insulation worker",
+    "Floor layer",
+    "Window installer",
+    "Demolition worker",
+  ],
+  "Anlegg (Civil Engineering)": [
+    "Excavator operator",
+    "Pipelayer",
+    "Road worker",
+    "Asphalt worker",
+    "Crane operator",
+    "Survey technician",
+  ],
+  "Industry & Logistics": [
+    "Forklift operator",
+    "Warehouse worker",
+    "Machine operator",
+    "Welder",
+    "CNC operator",
+    "Quality inspector",
+    "Packer",
+    "Driver",
+    "Production worker",
+  ],
+  "Cleaning & Facility": ["Cleaner", "Janitor", "Facility technician", "Window cleaner"],
+  "Electrical & Mechanical": [
+    "Electrician",
+    "Plumber",
+    "HVAC technician",
+    "Mechanic",
+    "Refrigeration technician",
+  ],
+  Other: [],
 };
 
 export default function DetailedRequestPage() {
@@ -52,19 +103,23 @@ export default function DetailedRequestPage() {
   const [visible, setVisible] = useState(true);
   const [stepError, setStepError] = useState("");
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
-  const [formData, setFormData] = useState<FormDataState>({
+  const [formData, setFormData] = useState<RequestForm>({
     full_name: "",
     phone: "",
     hiringType: "",
-    position: "Carpenter",
-    qualification: "",
+    category: "",
+    position: "",
+    positionOther: "",
     numberOfPositions: "",
+    qualification: "",
     experience: "",
+    norwegianLevel: "",
     driverLicense: "",
-    englishLevel: "",
     dNumber: "",
+    englishLevel: "",
     requirements: "",
     contractType: "",
+    paslagPercent: "",
     salary: "",
     fullTime: "",
     hours: "",
@@ -77,6 +132,7 @@ export default function DetailedRequestPage() {
     tools: "",
     city: "",
     startDate: "",
+    howDidYouHear: "Google search",
     subscribe: "",
     notes: "",
   });
@@ -111,30 +167,35 @@ export default function DetailedRequestPage() {
     else setTokenStatus("invalid");
   }, [token]);
 
-  const updateField = (name: keyof FormDataState, value: string) => {
+  const updateField = (name: keyof RequestForm, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const stepCount = 6;
+  const stepCount = 8;
   const progress = ((step + 1) / stepCount) * 100;
+  const currentRoles = rolesByCategory[formData.category] ?? [];
+  const needsPaslag =
+    formData.contractType.includes("bemanningsbyrå") || formData.contractType.includes("Innleie");
 
   const validateStep = (currentStep: number) => {
     if (currentStep === 0 && (!formData.full_name || !formData.phone)) return false;
     if (currentStep === 1 && !formData.hiringType) return false;
+    if (currentStep === 2 && (!formData.category || (!formData.position && !formData.positionOther)))
+      return false;
     if (
-      currentStep === 2 &&
-      (!formData.position ||
+      currentStep === 3 &&
+      (!formData.numberOfPositions ||
         !formData.qualification ||
-        !formData.numberOfPositions ||
-        !formData.experience)
+        !formData.experience ||
+        !formData.norwegianLevel)
     ) {
       return false;
     }
-    if (currentStep === 3 && (!formData.driverLicense || !formData.englishLevel || !formData.dNumber)) {
+    if (currentStep === 4 && (!formData.driverLicense || !formData.dNumber || !formData.englishLevel)) {
       return false;
     }
     if (
-      currentStep === 4 &&
+      currentStep === 5 &&
       (!formData.contractType ||
         !formData.salary ||
         !formData.fullTime ||
@@ -149,7 +210,10 @@ export default function DetailedRequestPage() {
     ) {
       return false;
     }
-    if (currentStep === 5 && (!formData.city || !formData.startDate || !formData.subscribe)) return false;
+    if (currentStep === 5 && needsPaslag && !formData.paslagPercent) return false;
+    if (currentStep === 6 && (!formData.overtime || !formData.travel || !formData.accommodation || !formData.equipment || !formData.tools)) return false;
+    if (currentStep === 7 && (!formData.city || !formData.startDate || !formData.subscribe))
+      return false;
     return true;
   };
 
@@ -167,7 +231,10 @@ export default function DetailedRequestPage() {
       return;
     }
     setStepError("");
-    if (step < stepCount - 1) goToStep(step + 1);
+    if (step < stepCount - 1) {
+      window.scrollTo({ top: 0, behavior: "auto" });
+      goToStep(step + 1);
+    }
   };
 
   const prevStep = () => {
@@ -194,16 +261,22 @@ export default function DetailedRequestPage() {
     };
 
     try {
-      const response = await fetch("/api/send-request-email", {
+      const emailResponse = await fetch("/api/send-request-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      if (!emailResponse.ok) throw new Error("Email send failed");
 
-      if (!response.ok) throw new Error("Send request failed");
+      const saveResponse = await fetch("/api/save-employer-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!saveResponse.ok) throw new Error("Save request failed");
 
-      setStatus("success");
       await fetch(`/api/verify-token?token=${token}`, { method: "DELETE" });
+      setStatus("success");
     } catch {
       setStatus("error");
     } finally {
@@ -260,9 +333,7 @@ export default function DetailedRequestPage() {
     <section className="bg-surface py-16">
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
         <h1 className="text-4xl font-bold text-[#0D1B2A]">Candidate Request — Details</h1>
-        <p className="mt-3 text-text-secondary">
-          Complete all steps to submit your candidate request.
-        </p>
+        <p className="mt-3 text-text-secondary">Complete all steps to submit your candidate request.</p>
 
         <div className="mt-8 h-2 w-full overflow-hidden rounded-full bg-white">
           <div className="h-full bg-[#C9A84C] transition-all duration-300" style={{ width: `${progress}%` }} />
@@ -294,9 +365,10 @@ export default function DetailedRequestPage() {
 
             {step === 1 && (
               <div className="space-y-5">
-                <h2 className="text-2xl font-semibold text-[#0D1B2A]">Type of hire</h2>
+                <h2 className="text-2xl font-semibold text-[#0D1B2A]">Type of engagement</h2>
+                <p className="text-text-secondary">What kind of working arrangement are you looking for?</p>
                 <div className="grid gap-3">
-                  {["Candidate delivery", "Recruitment", "Staffing", "Job posting"].map((v) => (
+                  {["Candidate delivery", "Recruitment", "Staffing"].map((v) => (
                     <label key={v} className="rounded-md border border-border p-3">
                       <input
                         type="radio"
@@ -313,87 +385,185 @@ export default function DetailedRequestPage() {
 
             {step === 2 && (
               <div className="space-y-5">
-                <h2 className="text-2xl font-semibold text-[#0D1B2A]">Position details</h2>
+                <h2 className="text-2xl font-semibold text-[#0D1B2A]">Sector & Role</h2>
+                <p className="text-text-secondary">Select the sector and the specific role you need</p>
                 <label className="block">
-                  Position
+                  Category
                   <select
                     className={inputClass}
-                    value={formData.position}
-                    onChange={(e) => updateField("position", e.target.value)}
+                    value={formData.category}
+                    onChange={(e) => {
+                      updateField("category", e.target.value);
+                      updateField("position", "");
+                      updateField("positionOther", "");
+                    }}
                   >
-                    {["Carpenter","Tile layer","Painter","Concrete worker","Cleaner","Electrician","Mechanic","Forklift operator","Warehouse worker","Other"].map((v)=><option key={v}>{v}</option>)}
+                    <option value="">Select category</option>
+                    {Object.keys(rolesByCategory).map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
                   </select>
                 </label>
+                {formData.category && formData.category !== "Other" && (
+                  <label className="block">
+                    Role
+                    <select
+                      className={inputClass}
+                      value={formData.position}
+                      onChange={(e) => updateField("position", e.target.value)}
+                    >
+                      <option value="">Select role</option>
+                      {currentRoles.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                {formData.category === "Other" && (
+                  <label className="block">
+                    Position (other)
+                    <input
+                      className={inputClass}
+                      value={formData.positionOther}
+                      onChange={(e) => updateField("positionOther", e.target.value)}
+                    />
+                  </label>
+                )}
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-5">
+                <h2 className="text-2xl font-semibold text-[#0D1B2A]">Qualification level</h2>
+                <p className="text-text-secondary">
+                  This helps us match the right candidate — from entry level to fully certified
+                </p>
+                <div className="grid gap-5 md:grid-cols-2">
+                  <label>
+                    Number of candidates needed
+                    <input type="number" min={1} max={99} className={inputClass} value={formData.numberOfPositions} onChange={(e)=>updateField("numberOfPositions", e.target.value)} />
+                  </label>
+                  <label>
+                    Minimum years of experience
+                    <input type="number" min={0} max={40} className={inputClass} value={formData.experience} onChange={(e)=>updateField("experience", e.target.value)} />
+                  </label>
+                </div>
                 <div className="grid gap-3">
-                  {["General workers","Experienced no certificate","Qualified with foreign certificate","With DSB approval"].map((v)=>(
+                  {[
+                    "No experience needed — General workers, entry level",
+                    "Some experience — Experienced but no formal certificate",
+                    "Certified (foreign) — Qualified with foreign trade certificate",
+                    "Fully certified (Norway) — Norwegian or DSB-approved certificate",
+                  ].map((v) => (
                     <label key={v} className="rounded-md border border-border p-3">
                       <input type="radio" className="mr-2" checked={formData.qualification===v} onChange={()=>updateField("qualification", v)} />
                       {v}
                     </label>
                   ))}
                 </div>
-                <div className="grid gap-5 md:grid-cols-2">
-                  <label>Number of positions <input className={inputClass} value={formData.numberOfPositions} onChange={(e)=>updateField("numberOfPositions", e.target.value)} /></label>
-                  <label>Experience <input className={inputClass} value={formData.experience} onChange={(e)=>updateField("experience", e.target.value)} /></label>
+                <div className="grid gap-3">
+                  {["Not required", "Basic", "Working level"].map((v) => (
+                    <label key={v} className="rounded-md border border-border p-3">
+                      <input type="radio" className="mr-2" checked={formData.norwegianLevel===v} onChange={()=>updateField("norwegianLevel", v)} />
+                      {v}
+                    </label>
+                  ))}
                 </div>
-              </div>
-            )}
-
-            {step === 3 && (
-              <div className="space-y-5">
-                <h2 className="text-2xl font-semibold text-[#0D1B2A]">Requirements</h2>
-                {[
-                  ["driverLicense", ["No", "B", "B+", "E", "C", "Other"]],
-                  ["englishLevel", ["Basic", "Working level", "Fluent"]],
-                  ["dNumber", ["No - company can help", "Yes", "Other"]],
-                ].map(([name, options]) => (
-                  <div key={name as string} className="grid gap-3">
-                    {(options as string[]).map((v) => (
-                      <label key={v} className="rounded-md border border-border p-3">
-                        <input
-                          type="radio"
-                          className="mr-2"
-                          checked={formData[name as keyof FormDataState] === v}
-                          onChange={() => updateField(name as keyof FormDataState, v)}
-                        />
-                        {v}
-                      </label>
-                    ))}
-                  </div>
-                ))}
-                <label>Requirements (optional)<textarea className={inputClass} rows={3} value={formData.requirements} onChange={(e)=>updateField("requirements", e.target.value)} /></label>
               </div>
             )}
 
             {step === 4 && (
               <div className="space-y-5">
-                <h2 className="text-2xl font-semibold text-[#0D1B2A]">Contract & Conditions</h2>
+                <h2 className="text-2xl font-semibold text-[#0D1B2A]">Requirements</h2>
+                <p className="text-text-secondary">Your non-negotiable criteria</p>
+                {[
+                  ["driverLicense", ["No", "B", "B+", "C", "E", "Other"]],
+                  ["dNumber", ["Not required — we can help arrange", "Yes — required before start", "Other"]],
+                  ["englishLevel", ["Basic", "Working level", "Fluent"]],
+                ].map(([name, values]) => (
+                  <div key={name as string} className="grid gap-3">
+                    {(values as string[]).map((v) => (
+                      <label key={v} className="rounded-md border border-border p-3">
+                        <input type="radio" className="mr-2" checked={formData[name as keyof RequestForm]===v} onChange={()=>updateField(name as keyof RequestForm, v)} />
+                        {v}
+                      </label>
+                    ))}
+                  </div>
+                ))}
+                <label>
+                  Deal breakers (optional)
+                  <textarea rows={3} className={inputClass} value={formData.requirements} onChange={(e)=>updateField("requirements", e.target.value)} />
+                </label>
+              </div>
+            )}
+
+            {step === 5 && (
+              <div className="space-y-5">
+                <h2 className="text-2xl font-semibold text-[#0D1B2A]">Contract & Pay</h2>
+                <p className="text-text-secondary">Norwegian legal contract types — select what applies</p>
                 <div className="grid gap-3">
-                  {["Permanent", "Staffing", "Self-employed", "Other"].map((v)=>(
+                  {[
+                    "Fast ansettelse — direkte hos klient",
+                    "Fast ansettelse — via bemanningsbyrå",
+                    "Midlertidig ansettelse — direkte hos klient",
+                    "Midlertidig ansettelse — via bemanningsbyrå",
+                    "Innleie fra bemanningsbyrå",
+                    "Selvstendig oppdragstaker",
+                    "Sesongarbeid",
+                  ].map((v) => (
                     <label key={v} className="rounded-md border border-border p-3">
-                      <input type="radio" className="mr-2" checked={formData.contractType===v} onChange={()=>updateField("contractType", v)} />
+                      <input
+                        type="radio"
+                        className="mr-2"
+                        checked={formData.contractType === v}
+                        onChange={() => updateField("contractType", v)}
+                      />
                       {v}
                     </label>
                   ))}
                 </div>
+                {needsPaslag && (
+                  <label>
+                    Margin/påslag bemanningsbyrå %
+                    <input type="number" className={inputClass} value={formData.paslagPercent} onChange={(e)=>updateField("paslagPercent", e.target.value)} />
+                  </label>
+                )}
                 <div className="grid gap-5 md:grid-cols-2">
-                  <label>Salary (NOK/hour)<input className={inputClass} value={formData.salary} onChange={(e)=>updateField("salary", e.target.value)} /></label>
-                  <label>Full-time %<input className={inputClass} value={formData.fullTime} onChange={(e)=>updateField("fullTime", e.target.value)} /></label>
-                  <label>Hours<input className={inputClass} value={formData.hours} onChange={(e)=>updateField("hours", e.target.value)} /></label>
-                  <label>Accommodation cost (0 if free)<input className={inputClass} value={formData.accommodationCost} onChange={(e)=>updateField("accommodationCost", e.target.value)} /></label>
+                  <label>Starting salary (NOK/hour)<input className={inputClass} value={formData.salary} onChange={(e)=>updateField("salary", e.target.value)} /></label>
+                  <label>Position % (100 = full time)<input className={inputClass} value={formData.fullTime} onChange={(e)=>updateField("fullTime", e.target.value)} /></label>
+                  <label>Hours per day/week<input className={inputClass} value={formData.hours} onChange={(e)=>updateField("hours", e.target.value)} /></label>
+                  <label>Accommodation cost NOK/month (0 if free)<input className={inputClass} value={formData.accommodationCost} onChange={(e)=>updateField("accommodationCost", e.target.value)} /></label>
                 </div>
+                <div className="grid gap-3">
+                  {["None", "4 weeks on / 2 off", "6 weeks on / 2 off", "Other"].map((v)=>(
+                    <label key={v} className="rounded-md border border-border p-3">
+                      <input type="radio" className="mr-2" checked={formData.rotation===v} onChange={()=>updateField("rotation", v)} />
+                      {v}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {step === 6 && (
+              <div className="space-y-5">
+                <h2 className="text-2xl font-semibold text-[#0D1B2A]">Working conditions</h2>
+                <p className="text-text-secondary">What does the working environment look like?</p>
                 {[
-                  ["rotation", ["None", "4 weeks on 2 off", "6 weeks on 2 off", "Other"]],
-                  ["overtime", ["Yes", "No", "Other"]],
-                  ["travel", ["Yes", "No", "Other"]],
-                  ["accommodation", ["Free", "Not included", "We help find", "Other"]],
-                  ["equipment", ["Yes", "No"]],
-                  ["tools", ["Yes", "No", "Not required"]],
-                ].map(([name, options]) => (
+                  ["overtime", ["Yes — regular", "Occasionally", "No"]],
+                  ["travel", ["Yes — fully covered", "Partially covered", "Not covered"]],
+                  ["accommodation", ["Free accommodation provided", "Not included", "We help find it", "Other"]],
+                  ["equipment", ["Yes — provided", "No — worker must bring own"]],
+                  ["tools", ["Yes — provided", "No — worker must bring own", "Not required"]],
+                ].map(([name, values]) => (
                   <div key={name as string} className="grid gap-3">
-                    {(options as string[]).map((v) => (
+                    {(values as string[]).map((v)=>(
                       <label key={v} className="rounded-md border border-border p-3">
-                        <input type="radio" className="mr-2" checked={formData[name as keyof FormDataState]===v} onChange={()=>updateField(name as keyof FormDataState, v)} />
+                        <input type="radio" className="mr-2" checked={formData[name as keyof RequestForm]===v} onChange={()=>updateField(name as keyof RequestForm, v)} />
                         {v}
                       </label>
                     ))}
@@ -402,20 +572,29 @@ export default function DetailedRequestPage() {
               </div>
             )}
 
-            {step === 5 && (
+            {step === 7 && (
               <div className="space-y-5">
-                <h2 className="text-2xl font-semibold text-[#0D1B2A]">Almost done!</h2>
-                <label>City*<input className={inputClass} value={formData.city} onChange={(e)=>updateField("city", e.target.value)} /></label>
+                <h2 className="text-2xl font-semibold text-[#0D1B2A]">Final details</h2>
+                <p className="text-text-secondary">Almost there</p>
+                <label>Work location / city*<input className={inputClass} value={formData.city} onChange={(e)=>updateField("city", e.target.value)} /></label>
                 <div className="grid gap-3">
-                  {["ASAP", "1-2 weeks", "1 month", "Flexible", "Other"].map((v)=>(
+                  {["ASAP", "1–2 weeks", "Within 1 month", "Flexible"].map((v)=>(
                     <label key={v} className="rounded-md border border-border p-3">
                       <input type="radio" className="mr-2" checked={formData.startDate===v} onChange={()=>updateField("startDate", v)} />
                       {v}
                     </label>
                   ))}
                 </div>
+                <label>
+                  How did you hear about us?
+                  <select className={inputClass} value={formData.howDidYouHear} onChange={(e)=>updateField("howDidYouHear", e.target.value)}>
+                    {["Google search", "LinkedIn", "Referral from someone", "Facebook/Instagram", "Other"].map((v)=>(
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                </label>
                 <div className="grid gap-3">
-                  {["Yes", "No"].map((v)=>(
+                  {["Yes — keep me updated on available candidates", "No thanks"].map((v)=>(
                     <label key={v} className="rounded-md border border-border p-3">
                       <input type="radio" className="mr-2" checked={formData.subscribe===v} onChange={()=>updateField("subscribe", v)} />
                       {v}

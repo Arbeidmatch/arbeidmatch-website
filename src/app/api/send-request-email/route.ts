@@ -15,25 +15,72 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const html = `
-      <div style="font-family: Inter, Arial, sans-serif; color: #0D1B2A;">
-        <div style="background:#0D1B2A;color:#fff;padding:16px 20px;border-radius:8px 8px 0 0;">
-          <h2 style="margin:0;">New Candidate Request</h2>
+    const section = (title: string, rows: Array<[string, string | undefined]>) => `
+      <div style="border:1px solid #E2E5EA;border-radius:10px;padding:14px 16px;margin-top:14px;">
+        <div style="border-left:4px solid #C9A84C;padding-left:10px;font-weight:700;color:#0D1B2A;margin-bottom:10px;">
+          ${title}
         </div>
-        <div style="border:1px solid #E2E5EA;border-top:0;padding:20px;border-radius:0 0 8px 8px;">
-          <h3>Company Info</h3>
-          <p><strong>Company:</strong> ${data.company ?? ""}</p>
-          <p><strong>Email:</strong> ${data.email ?? ""}</p>
-          <p><strong>Initial request:</strong> ${data.job_summary ?? ""}</p>
-          <hr />
-          <h3>Contact</h3>
-          <p><strong>Full name:</strong> ${data.full_name ?? ""}</p>
-          <p><strong>Phone:</strong> ${data.phone ?? ""}</p>
-          <hr />
-          <h3>Details</h3>
-          ${Object.entries(data)
-            .map(([k, v]) => `<p><strong>${k}:</strong> ${v ?? ""}</p>`)
-            .join("")}
+        ${rows
+          .map(
+            ([label, value]) =>
+              `<div style="margin:6px 0;color:#0D1B2A;"><span style="font-weight:600;">${label}:</span> ${value || "-"}</div>`,
+          )
+          .join("")}
+      </div>
+    `;
+
+    const adminHtml = `
+      <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
+        <div style="max-width:760px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
+          <div style="background:#0D1B2A;color:#fff;padding:18px 22px;">
+            <div style="font-size:24px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
+            <div style="margin-top:8px;color:#DDE3ED;">New candidate request received via arbeidmatch.no</div>
+            <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
+            <div style="margin-top:10px;font-size:13px;color:#C7D1DF;">${new Date().toLocaleString("en-GB")}</div>
+          </div>
+          <div style="padding:20px;">
+            ${section("Contact Info", [
+              ["Company", data.company],
+              ["Email", data.email],
+              ["Full name", data.full_name],
+              ["Phone", data.phone],
+            ])}
+            ${section("Engagement Type", [["Type", data.hiringType]])}
+            ${section("Position", [["Category", data.category], ["Position", data.position], ["Position (other)", data.positionOther], ["Initial summary", data.job_summary]])}
+            ${section("Qualification", [["Qualification", data.qualification], ["Candidates needed", data.numberOfPositions], ["Experience", data.experience], ["Norwegian level", data.norwegianLevel]])}
+            ${section("Requirements", [["Driver license", data.driverLicense], ["D-number", data.dNumber], ["Deal breakers", data.requirements]])}
+            ${section("Contract & Pay", [["Contract type", data.contractType], ["Påslag %", data.paslagPercent], ["Salary", data.salary], ["Full time %", data.fullTime], ["Hours", data.hours], ["Accommodation cost", data.accommodationCost], ["Rotation", data.rotation]])}
+            ${section("Working Conditions", [["Overtime", data.overtime], ["Travel", data.travel], ["Accommodation", data.accommodation], ["Equipment", data.equipment], ["Tools", data.tools]])}
+            ${section("Final Details", [["City", data.city], ["Start date", data.startDate], ["How did you hear about us", data.howDidYouHear], ["Subscribe", data.subscribe], ["Notes", data.notes]])}
+          </div>
+          <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
+            ArbeidMatch Norge AS · Org.nr. 935 667 089 · post@arbeidmatch.no
+          </div>
+        </div>
+      </div>
+    `;
+
+    const employerHtml = `
+      <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
+        <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
+          <div style="background:#0D1B2A;color:#fff;padding:20px 22px;">
+            <h2 style="margin:0;">Thank you for your request, ${data.company || "team"}!</h2>
+            <p style="margin:8px 0 0;color:#E7EDF8;">We have received your candidate request and will get back to you within 24 hours.</p>
+            <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
+          </div>
+          <div style="padding:20px;color:#0D1B2A;">
+            <h3 style="margin:0 0 8px;">Request summary</h3>
+            <p><strong>Position:</strong> ${data.position || "-"}</p>
+            <p><strong>Number of candidates:</strong> ${data.numberOfPositions || "-"}</p>
+            <p><strong>Location:</strong> ${data.city || "-"}</p>
+            <p><strong>Preferred start:</strong> ${data.startDate || "-"}</p>
+            <h3 style="margin:18px 0 8px;">What happens next</h3>
+            <p>1. We review your request</p>
+            <p>2. We match suitable candidates</p>
+            <p>3. We contact you within 24h</p>
+            <p style="margin-top:18px;"><strong>Contact:</strong> post@arbeidmatch.no · +47 967 34 730</p>
+          </div>
+          <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">ArbeidMatch Norge AS</div>
         </div>
       </div>
     `;
@@ -42,8 +89,17 @@ export async function POST(request: NextRequest) {
       from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
       to: "post@arbeidmatch.no",
       subject: `New Candidate Request — ${data.company ?? "Unknown company"}`,
-      html,
+      html: adminHtml,
     });
+
+    if (data.email) {
+      await transporter.sendMail({
+        from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+        to: data.email,
+        subject: `Thank you for your request — ${data.company ?? "ArbeidMatch"}`,
+        html: employerHtml,
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

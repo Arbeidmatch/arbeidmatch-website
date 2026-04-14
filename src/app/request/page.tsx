@@ -82,6 +82,23 @@ export default function RequestPage() {
             />
           </label>
 
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-navy">How did you hear about us?</span>
+            <select name="howDidYouHear" className={inputClass}>
+              {[
+                "Google search",
+                "LinkedIn",
+                "Referral from someone",
+                "Facebook/Instagram",
+                "Other",
+              ].map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <button
             type="submit"
             disabled={status === "submitting"}
