@@ -13,42 +13,48 @@ function getSupabaseClient() {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = getSupabaseClient();
+  try {
+    const supabase = getSupabaseClient();
 
-  if (!supabase) {
-    return NextResponse.json({ success: false }, { status: 500 });
+    if (!supabase) {
+      throw new Error("Supabase configuration missing");
+    }
+
+    const body = await request.json();
+    const { full_name, company, email, phone, job_summary } = body as {
+      full_name?: string;
+      company?: string;
+      email?: string;
+      phone?: string;
+      job_summary?: string;
+    };
+
+    if (!full_name || !company || !email || !phone || !job_summary) {
+      throw new Error("Missing required fields");
+    }
+
+    const token = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+    const { error } = await supabase.from("request_tokens").insert({
+      token,
+      full_name,
+      company,
+      email,
+      phone,
+      job_summary,
+      expires_at: expiresAt,
+      used: false,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return NextResponse.json({ success: true, token });
+  } catch (error) {
+    console.error("simple-request POST failed:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
-
-  const body = await request.json();
-  const { full_name, company, email, phone, job_summary } = body as {
-    full_name?: string;
-    company?: string;
-    email?: string;
-    phone?: string;
-    job_summary?: string;
-  };
-
-  if (!full_name || !company || !email || !phone || !job_summary) {
-    return NextResponse.json({ success: false }, { status: 400 });
-  }
-
-  const token = crypto.randomUUID();
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-
-  const { error } = await supabase.from("request_tokens").insert({
-    token,
-    full_name,
-    company,
-    email,
-    phone,
-    job_summary,
-    expires_at: expiresAt,
-    used: false,
-  });
-
-  if (error) {
-    return NextResponse.json({ success: false }, { status: 500 });
-  }
-
-  return NextResponse.json({ success: true, token });
 }
