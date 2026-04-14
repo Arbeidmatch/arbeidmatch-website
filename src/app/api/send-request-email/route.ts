@@ -15,19 +15,24 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const section = (title: string, rows: Array<[string, string | undefined]>) => `
-      <div style="border:1px solid #E2E5EA;border-radius:10px;padding:14px 16px;margin-top:14px;">
-        <div style="border-left:4px solid #C9A84C;padding-left:10px;font-weight:700;color:#0D1B2A;margin-bottom:10px;">
-          ${title}
+    const hasValue = (value?: string) => value !== undefined && value !== null && String(value).trim() !== "";
+    const section = (title: string, rows: Array<[string, string | undefined]>) => {
+      const filtered = rows.filter(([, value]) => hasValue(value));
+      if (!filtered.length) return "";
+      return `
+        <div style="border:1px solid #E2E5EA;border-radius:10px;padding:14px 16px;margin-top:14px;">
+          <div style="border-left:4px solid #C9A84C;padding-left:10px;font-weight:700;color:#0D1B2A;margin-bottom:10px;">
+            ${title}
+          </div>
+          ${filtered
+            .map(
+              ([label, value]) =>
+                `<div style="margin:6px 0;color:#0D1B2A;"><span style="font-weight:600;">${label}:</span> ${value}</div>`,
+            )
+            .join("")}
         </div>
-        ${rows
-          .map(
-            ([label, value]) =>
-              `<div style="margin:6px 0;color:#0D1B2A;"><span style="font-weight:600;">${label}:</span> ${value || "-"}</div>`,
-          )
-          .join("")}
-      </div>
-    `;
+      `;
+    };
 
     const adminHtml = `
       <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
@@ -57,7 +62,6 @@ export async function POST(request: NextRequest) {
               ["How did you hear about us", data.howDidYouHear],
               ["Social media platform", data.socialMediaPlatform],
               ["Social media other", data.socialMediaOther],
-              ["Social media other", data.socialMediaOther],
               ["How did you hear about us (other)", data.howDidYouHearOther],
               ["Referral company", data.referralCompanyName],
               ["Referral company org.nr", data.referralOrgNumber],
@@ -71,6 +75,14 @@ export async function POST(request: NextRequest) {
       </div>
     `;
 
+    const employerRows = [
+      ["Position", data.position],
+      ["Number of candidates", data.numberOfPositions],
+      ["Location", data.city],
+      ["Preferred start", data.startDate === "Other" ? data.startDateOther : data.startDate],
+    ].filter(([, value]) => hasValue(value));
+    const employerSummaryHtml = employerRows.map(([label, value]) => `<p><strong>${label}:</strong> ${value}</p>`).join("");
+
     const employerHtml = `
       <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
         <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
@@ -80,11 +92,7 @@ export async function POST(request: NextRequest) {
             <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
           </div>
           <div style="padding:20px;color:#0D1B2A;">
-            <h3 style="margin:0 0 8px;">Request summary</h3>
-            <p><strong>Position:</strong> ${data.position || "-"}</p>
-            <p><strong>Number of candidates:</strong> ${data.numberOfPositions || "-"}</p>
-            <p><strong>Location:</strong> ${data.city || "-"}</p>
-            <p><strong>Preferred start:</strong> ${data.startDate === "Other" ? data.startDateOther || "-" : data.startDate || "-"}</p>
+            ${employerRows.length ? `<h3 style="margin:0 0 8px;">Request summary</h3>${employerSummaryHtml}` : ""}
             <h3 style="margin:18px 0 8px;">What happens next</h3>
             <p>1. We review your request</p>
             <p>2. We match suitable candidates</p>
