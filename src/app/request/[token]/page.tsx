@@ -64,7 +64,8 @@ type RequestForm = {
 
 const inputClass =
   "w-full rounded-md border border-border px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold";
-const optionClass = "flex w-full items-center rounded-md border border-border p-3 text-sm text-navy";
+const optionClass =
+  "flex items-center gap-2 rounded-md border border-border p-3 text-sm text-navy w-full cursor-pointer [&>input]:mr-0 [&>input]:shrink-0";
 const cardClass =
   "mx-auto w-full max-w-2xl rounded-xl bg-white p-4 shadow-[0_10px_30px_rgba(13,27,42,0.08)] md:p-5";
 const headingBtn = "w-full rounded-md border border-border px-3 py-2 text-left text-sm font-medium text-navy";
@@ -525,7 +526,7 @@ export default function DetailedRequestPage() {
             )}
 
             {step === 1 && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <h2 className="text-lg font-semibold text-[#0D1B2A]">Type of engagement</h2>
                 <div className="space-y-2">
                   {[
@@ -533,7 +534,16 @@ export default function DetailedRequestPage() {
                     "Recruitment — Full recruitment process",
                     "Staffing — Innleie/bemanning",
                   ].map((v, i) => (
-                    <label key={v} className={optionClass}><input type="radio" className="mr-2" checked={formData.hiringType === v} onChange={() => updateField("hiringType", v)} ref={(e) => { if (i === 0) setRef("hiringType", e); }} />{v}</label>
+                    <label key={v} className="flex items-center gap-2 rounded-md border border-border p-3 text-sm text-navy w-full cursor-pointer">
+                      <input
+                        type="radio"
+                        className="shrink-0"
+                        checked={formData.hiringType === v}
+                        onChange={() => updateField("hiringType", v)}
+                        ref={(e) => { if (i === 0) setRef("hiringType", e); }}
+                      />
+                      {v}
+                    </label>
                   ))}
                 </div>
               </div>
