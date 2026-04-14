@@ -13,6 +13,9 @@ function getSupabaseClient() {
 }
 
 export async function POST(request: NextRequest) {
+  console.log("SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log("SERVICE_KEY exists:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+
   try {
     const supabase = getSupabaseClient();
 
