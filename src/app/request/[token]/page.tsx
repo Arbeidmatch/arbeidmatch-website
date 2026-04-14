@@ -42,14 +42,11 @@ export default function DetailedRequestPage() {
     };
 
     try {
-      const response = await fetch(
-        "https://hook.eu2.make.com/3xpojllsw3bwdq7xvt91glgh7f2fmp2k",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        },
-      );
+      const response = await fetch("/api/simple-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       if (!response.ok) throw new Error("Webhook request failed");
 
