@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 
 const inputClass =
-  "w-full rounded-md border border-border px-4 py-3 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
+  "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
 
 export default function RequestPage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
@@ -38,24 +38,21 @@ export default function RequestPage() {
   };
 
   return (
-    <section className="bg-surface py-16">
+    <section className="bg-surface py-10">
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
         <h1 className="text-4xl font-bold text-navy">Request Candidates</h1>
         <p className="mt-3 text-text-secondary">
           For Norwegian employers only. Fill in your details and we&apos;ll get you started.
         </p>
 
-        <div className="mb-8 mt-8 rounded-r-md border-l-4 border-gold bg-gold/10 p-4 text-navy">
+        <div className="mx-auto mt-8 max-w-md rounded-r-md border-l-4 border-gold bg-gold/10 p-3 text-sm text-navy">
           Looking for a job?{" "}
           <a href="https://jobs.arbeidmatch.no" className="font-semibold text-gold">
             Visit jobs.arbeidmatch.no →
           </a>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 rounded-xl border border-border bg-white p-8"
-        >
+        <form onSubmit={handleSubmit} className="mx-auto mt-4 max-w-md space-y-4 rounded-xl border border-border bg-white p-6">
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-navy">Company name*</span>
             <input required name="company" className={inputClass} placeholder="Hansen AS" />
@@ -79,7 +76,7 @@ export default function RequestPage() {
             <textarea
               required
               name="job_summary"
-              rows={3}
+              rows={2}
               className={inputClass}
               placeholder="E.g. 2 experienced carpenters for a construction project in Oslo, starting ASAP"
             />
