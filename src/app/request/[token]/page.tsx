@@ -566,12 +566,13 @@ export default function DetailedRequestPage() {
 
             {step === 1 && (
               <div className="space-y-3">
-                <h2 className={titleClass}>Type of engagement</h2>
+                <h2 className={titleClass}>Type of engagement with us</h2>
                 <div className={`flex flex-col gap-2 rounded-md ${invalidField === "hiringType" ? "border border-red-500 ring-1 ring-red-500 p-2" : ""}`}>
                   {[
-                    "Sourcing — We find the right candidates from our network",
-                    "Recruitment — Full recruitment process",
-                    "Staffing — Innleie/bemanning",
+                    "Candidate presentations (sourcing) — for bemanning companies",
+                    "Recruitment of personnel — for companies",
+                    "Personnel leasing — bemanning",
+                    "Advertising in our network — candidates from our marketing apply directly to your company",
                   ].map((v, i) => (
                     <label key={v} className={radioClass}>
                       <input type="radio" className="shrink-0" checked={formData.hiringType === v} onChange={() => updateField("hiringType", v)} ref={(e) => { if (i === 0) setRef("hiringType", e); }} />
