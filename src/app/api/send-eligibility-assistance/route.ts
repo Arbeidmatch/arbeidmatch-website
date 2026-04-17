@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
               Help us improve your experience:
               <a href="https://arbeidmatch.no/feedback" style="color:#C9A84C;font-weight:600;text-decoration:none;"> Share feedback</a>
             </p>
-            <p style="margin-top:18px;"><strong>Contact:</strong> post@arbeidmatch.no · +47 967 34 730</p>
+            <p style="margin-top:18px;"><strong>Contact:</strong> support@arbeidmatch.no</p>
           </div>
           <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">ArbeidMatch Norge AS</div>
         </div>

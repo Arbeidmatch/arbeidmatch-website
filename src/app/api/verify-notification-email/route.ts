@@ -200,6 +200,7 @@ export async function GET(request: NextRequest) {
               </div>
               <div style="padding:20px;color:#0D1B2A;">
                 <p>We will contact you by email when the updated guide is available.</p>
+                <p style="margin-top:18px;"><strong>Contact:</strong> support@arbeidmatch.no</p>
               </div>
             </div>
           </div>
