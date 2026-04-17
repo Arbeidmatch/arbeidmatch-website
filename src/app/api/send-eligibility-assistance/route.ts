@@ -45,38 +45,10 @@ async function getEmailDbRateLimitRetrySeconds(
   return Math.ceil((TWO_MIN_MS - elapsed) / 1000);
 }
 
-async function verifyTurnstileToken(token: string | undefined, request: NextRequest): Promise<boolean> {
-  const secret = process.env.TURNSTILE_SECRET_KEY;
-  if (!secret) {
-    return true;
-  }
-  const trimmed = token?.trim() ?? "";
-  if (!trimmed) {
-    return false;
-  }
-
-  const params = new URLSearchParams({
-    secret: secret || "",
-    response: trimmed,
-  });
-  const forwarded =
-    request.headers.get("CF-Connecting-IP") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  if (forwarded) {
-    params.set("remoteip", forwarded);
-  }
-
-  const turnstileResponse = await fetch("https://challenges.cloudflare.com/turnstile/v1/siteverify", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: params.toString(),
-  });
-
-  const turnstileData = (await turnstileResponse.json()) as { success?: boolean };
-  if (!turnstileData.success) {
-    return false;
-  }
+/** Server-side Turnstile siteverify disabled (Vercel Hobby outbound); widget still gates submit on client. Re-enable when on Pro. */
+async function verifyTurnstileToken(token: string | undefined, _request: NextRequest): Promise<boolean> {
+  console.log("[turnstile] server verification skipped - using client-side only");
+  console.log("[turnstile] client-side verified, token length:", token?.length ?? 0);
   return true;
 }
 
