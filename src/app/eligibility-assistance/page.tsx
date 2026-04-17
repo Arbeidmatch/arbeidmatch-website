@@ -6,11 +6,10 @@ import { FormEvent, useState } from "react";
 const inputClass =
   "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
 const selectedOptionBadge = (
-  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-    <span role="img" aria-label="Vazut">
+  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700">
+    <span role="img" aria-label="Selected">
       ✓
     </span>
-    Vazut
   </span>
 );
 

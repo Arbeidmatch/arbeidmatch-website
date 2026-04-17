@@ -63,11 +63,10 @@ export default function RequestPage() {
     city.toLowerCase().includes(citySearch.trim().toLowerCase()),
   );
   const selectedOptionBadge = (
-    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-      <span role="img" aria-label="Vazut">
+    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700">
+      <span role="img" aria-label="Selected">
         ✓
       </span>
-      Vazut
     </span>
   );
   const optionButtonClass = (isSelected: boolean) =>
