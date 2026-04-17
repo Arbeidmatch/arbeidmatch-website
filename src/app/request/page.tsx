@@ -17,7 +17,7 @@ export default function RequestPage() {
   const [partnershipStatus, setPartnershipStatus] = useState<"existing" | "new" | "">("");
   const [engagementModel, setEngagementModel] = useState("Occasional candidate requests");
   const [engagementDetails, setEngagementDetails] = useState("");
-  const [howDidYouHear, setHowDidYouHear] = useState("Google search");
+  const [howDidYouHear, setHowDidYouHear] = useState("Referral from another company");
   const [socialMediaPlatform, setSocialMediaPlatform] = useState("Facebook");
   const [socialMediaOther, setSocialMediaOther] = useState("");
   const [howDidYouHearOther, setHowDidYouHearOther] = useState("");
@@ -201,7 +201,7 @@ export default function RequestPage() {
         <form onSubmit={handleSubmit} className="mx-auto mt-4 max-w-md space-y-4 rounded-xl border border-border bg-white p-6">
           <fieldset className="space-y-2 rounded-md border border-border p-3">
             <legend className="px-1 text-sm font-medium text-navy">
-              Eligibility check: Is your company already in partnership with ArbeidMatch?
+              Quick question: Are you already partnering with ArbeidMatch?
             </legend>
             <label className="flex items-center gap-2 text-sm text-navy">
               <input
@@ -227,7 +227,7 @@ export default function RequestPage() {
 
           {!partnershipStatus && (
             <div className="rounded-md border border-border bg-surface p-3 text-sm text-text-secondary">
-              Please choose partnership status first to continue.
+              Please choose your partnership status to continue.
             </div>
           )}
 
@@ -358,9 +358,9 @@ export default function RequestPage() {
               }}
             >
               {[
-                "Google search",
                 "Referral from another company",
                 "Referral from a friend",
+                "Google search",
                 "Social media",
                 "Other",
               ].map((item) => (

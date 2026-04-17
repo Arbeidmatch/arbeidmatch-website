@@ -89,9 +89,9 @@ const defaultExpandedSections = {
   hear: true,
 } as const;
 const howDidYouHearOptions = [
-  "Google search",
   "Referral from another company",
   "Referral from a friend",
+  "Google search",
   "Social media",
   "Other",
 ] as const;
