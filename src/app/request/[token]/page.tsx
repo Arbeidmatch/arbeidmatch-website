@@ -76,6 +76,8 @@ const defaultExpandedSections = {
   hiringType: true,
   qualification: true,
   roleOptions: true,
+  workingHours: true,
+  salary: true,
   norwegian: true,
   english: true,
   driver: true,
@@ -763,51 +765,74 @@ export default function DetailedRequestPage() {
                   <option>Independent contractor assignment</option>
                 </select>
 
-                <p className="text-sm font-semibold text-navy">Working Hours</p>
-                <div className="flex flex-wrap gap-2">
-                  {(["Per day", "Per week", "Per month"] as const).map((unit) => (
-                    <button key={unit} type="button" className={`rounded-md border px-3 py-2 text-sm ${formData.hoursUnit === unit ? "border-gold bg-gold/10 text-navy" : "border-border text-navy"}`} onClick={() => updateField("hoursUnit", unit)}>{unit}</button>
-                  ))}
-                </div>
-                {formData.hoursUnit && (
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("workingHours")}>{withSelection("Working Hours", formData.hoursUnit)} {expanded.workingHours ? "▲" : "▼"}</button>
+                {expanded.workingHours && (
                   <>
-                    <label className={labelClass}>{`Hours amount (${formData.hoursUnit.toLowerCase()})`}</label>
-                    <input
-                      type="number"
-                      min="1"
-                      step="1"
-                      className={`${inputClass} ${invalid("hoursAmount")}`}
-                      placeholder="Hours*"
-                      value={formData.hoursAmount}
-                      onChange={(e) => updateField("hoursAmount", e.target.value)}
-                      ref={(e) => setRef("hoursAmount", e)}
-                    />
+                    <div className="flex flex-wrap gap-2">
+                      {(["Per day", "Per week", "Per month"] as const).map((unit) => (
+                        <button
+                          key={unit}
+                          type="button"
+                          className={`rounded-md border px-3 py-2 text-sm ${formData.hoursUnit === unit ? "border-gold bg-gold/10 text-navy" : "border-border text-navy"}`}
+                          onClick={() => updateField("hoursUnit", unit)}
+                        >
+                          {unit}
+                        </button>
+                      ))}
+                    </div>
+                    {formData.hoursUnit && (
+                      <>
+                        <label className={labelClass}>{`Hours amount (${formData.hoursUnit.toLowerCase()})`}</label>
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          className={`${inputClass} ${invalid("hoursAmount")}`}
+                          placeholder="Hours*"
+                          value={formData.hoursAmount}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            updateField("hoursAmount", value);
+                            if (value.trim()) setExpanded((prev) => ({ ...prev, workingHours: false }));
+                          }}
+                          ref={(e) => setRef("hoursAmount", e)}
+                        />
+                      </>
+                    )}
                   </>
                 )}
 
-                <p className="text-sm font-semibold text-navy">Salary</p>
-                <div className={groupBaseClass}>
-                  {(["Per hour", "Per month"] as const).map((v) => (
-                    <label key={v} className={radioClass}>
-                      <input type="radio" className="shrink-0 accent-gold" checked={formData.salaryPeriod === v} onChange={() => updateField("salaryPeriod", v)} />
-                      {v}
-                    </label>
-                  ))}
-                </div>
-                {formData.salaryPeriod && (
-                  <div>
-                    <label className={labelClass}>{`Amount in NOK (${formData.salaryPeriod.toLowerCase()})`}</label>
-                    <input
-                      type="number"
-                      min="1"
-                      step="1"
-                      className={`${inputClass} ${invalid("salaryAmount")}`}
-                      placeholder="Amount*"
-                      value={formData.salaryAmount}
-                      onChange={(e) => updateField("salaryAmount", e.target.value)}
-                      ref={(e) => setRef("salaryAmount", e)}
-                    />
-                  </div>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("salary")}>{withSelection("Salary", formData.salaryPeriod)} {expanded.salary ? "▲" : "▼"}</button>
+                {expanded.salary && (
+                  <>
+                    <div className={groupBaseClass}>
+                      {(["Per hour", "Per month"] as const).map((v) => (
+                        <label key={v} className={radioClass}>
+                          <input type="radio" className="shrink-0 accent-gold" checked={formData.salaryPeriod === v} onChange={() => updateField("salaryPeriod", v)} />
+                          {v}
+                        </label>
+                      ))}
+                    </div>
+                    {formData.salaryPeriod && (
+                      <div>
+                        <label className={labelClass}>{`Amount in NOK (${formData.salaryPeriod.toLowerCase()})`}</label>
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          className={`${inputClass} ${invalid("salaryAmount")}`}
+                          placeholder="Amount*"
+                          value={formData.salaryAmount}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            updateField("salaryAmount", value);
+                            if (value.trim()) setExpanded((prev) => ({ ...prev, salary: false }));
+                          }}
+                          ref={(e) => setRef("salaryAmount", e)}
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("overtime")}>{withSelection("Overtime", formData.overtime)} {expanded.overtime ? "▲" : "▼"}</button>
