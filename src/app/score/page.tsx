@@ -98,7 +98,7 @@ export default function ScorePage() {
               </>
             ) : result === "good" ? (
               <>
-                <h2 className="text-2xl font-bold text-navy">Great — you likely qualify!</h2>
+                <h2 className="text-2xl font-bold text-navy">Great, you likely qualify!</h2>
                 <p className="mt-3 text-text-secondary">
                   Your profile matches common requirements for employers in Norway.
                 </p>

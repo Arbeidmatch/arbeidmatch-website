@@ -81,7 +81,7 @@ export default function Home() {
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <h2 className="text-center text-4xl font-bold text-navy">Who are you?</h2>
           <p className="mb-12 mt-4 text-center text-text-secondary">
-            Two simple paths — choose yours.
+            Two simple paths. Choose yours.
           </p>
           <div className="grid gap-6 md:grid-cols-2">
             <article className="rounded-xl border border-border bg-white p-10 transition hover:shadow-lg">
@@ -126,9 +126,7 @@ export default function Home() {
                 ))}
               </ul>
               <a
-                href="https://jobs.arbeidmatch.no"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/score"
                 className="mt-7 inline-block rounded-md bg-navy px-5 py-2.5 font-medium text-white"
               >
                 Browse jobs →
@@ -160,9 +158,7 @@ export default function Home() {
                 <h3 className="mt-4 text-lg font-semibold text-navy">{title as string}</h3>
                 <p className="mt-2 text-sm text-text-secondary">{text as string}</p>
                 <a
-                  href="https://jobs.arbeidmatch.no"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/score"
                   className="mt-4 inline-block text-sm text-gold"
                 >
                   View roles →

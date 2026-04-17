@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
     await transporter.sendMail({
       from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
       to: "post@arbeidmatch.no",
-      subject: `New Candidate Request — ${data.company ?? "Unknown company"}`,
+      subject: `New Candidate Request | ${data.company ?? "Unknown company"}`,
       html: adminHtml,
     });
 
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       await transporter.sendMail({
         from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
         to: data.email,
-        subject: `Thank you for your request — ${data.company ?? "ArbeidMatch"}`,
+        subject: `Thank you for your request | ${data.company ?? "ArbeidMatch"}`,
         html: employerHtml,
       });
     }

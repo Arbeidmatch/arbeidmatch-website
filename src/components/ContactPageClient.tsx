@@ -19,8 +19,8 @@ export default function ContactPageClient() {
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
         <div className="mb-8 rounded-r-md border-l-4 border-gold bg-gold/10 p-4 text-navy">
           Looking for a job?{" "}
-          <a href="https://jobs.arbeidmatch.no" className="font-semibold text-gold">
-            Visit jobs.arbeidmatch.no →
+          <a href="/score" className="font-semibold text-gold">
+            Start with eligibility check →
           </a>
         </div>
         <div className="grid gap-8 md:grid-cols-2 md:gap-10">
@@ -30,7 +30,7 @@ export default function ContactPageClient() {
               Let&apos;s find your next <em className="not-italic text-[#C9A84C]">great hire.</em>
             </h1>
             <p className="mt-4 max-w-xl text-sm text-white/75 md:text-base">
-              Tell us what you need. We&apos;ll respond with qualified EU/EEA candidates — matched to your
+              Tell us what you need. We&apos;ll respond with qualified EU/EEA candidates matched to your
               role, culture, and timeline.
             </p>
 
@@ -82,7 +82,7 @@ export default function ContactPageClient() {
           <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-7 md:p-10">
             <h2 className="text-2xl font-bold text-navy">Send us a message</h2>
             <p className="mt-2 text-sm text-text-secondary">
-              Employers and partners only. Job seekers → jobs.arbeidmatch.no
+              Employers and partners only. Job seekers, please complete the eligibility check first.
             </p>
             <div className="mt-6 space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">

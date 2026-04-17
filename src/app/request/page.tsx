@@ -34,7 +34,12 @@ export default function RequestPage() {
 
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const payload = Object.fromEntries(formData.entries());
+    const payload = Object.fromEntries(formData.entries()) as Record<string, string>;
+    const requestedLocation = payload.requested_location?.trim();
+
+    if (requestedLocation) {
+      payload.job_summary = `${payload.job_summary?.trim()}\nLocation needed: ${requestedLocation}`;
+    }
 
     try {
       const response = await fetch("/api/simple-request", {
@@ -157,8 +162,8 @@ export default function RequestPage() {
 
         <div className="mx-auto mt-8 max-w-md rounded-r-md border-l-4 border-gold bg-gold/10 p-3 text-sm text-navy">
           Looking for a job?{" "}
-          <a href="https://jobs.arbeidmatch.no" className="font-semibold text-gold">
-            Visit jobs.arbeidmatch.no →
+          <a href="/score" className="font-semibold text-gold">
+            Start with eligibility check →
           </a>
         </div>
 
@@ -197,7 +202,7 @@ export default function RequestPage() {
                   ))}
                 {!isSearchingCompanies && hasSearched && companyResults.length === 0 && (
                   <p className="px-3 py-2 text-sm text-text-secondary">
-                    No company found — you can still continue
+                    No company found. You can still continue.
                   </p>
                 )}
               </div>
@@ -225,6 +230,16 @@ export default function RequestPage() {
               rows={2}
               className={inputClass}
               placeholder="E.g. 2 experienced carpenters for a construction project in Oslo, starting ASAP"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-navy">Where do you need candidates?*</span>
+            <input
+              required
+              name="requested_location"
+              className={inputClass}
+              placeholder="E.g. Oslo, Trondheim, Stavanger"
             />
           </label>
 
@@ -357,7 +372,7 @@ export default function RequestPage() {
                       hasSearchedReferral &&
                       referralCompanyResults.length === 0 && (
                         <p className="px-3 py-2 text-sm text-text-secondary">
-                          No company found — you can still continue
+                          No company found. You can still continue.
                         </p>
                       )}
                   </div>

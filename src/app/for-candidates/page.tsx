@@ -2,7 +2,7 @@ import { CheckCircle2, DollarSign, Factory, HardHat, Home, Hotel, Sparkles, User
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "For Candidates — Jobs in Norway",
+  title: "For Candidates - Jobs in Norway",
   description:
     "Find skilled jobs in Norway through ArbeidMatch. EU/EEA workers welcome. Construction, offshore, transport and more.",
 };
@@ -18,9 +18,7 @@ export default function ForCandidatesPage() {
             conditions, and full support.
           </p>
           <a
-            href="https://jobs.arbeidmatch.no"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/score"
             className="mt-8 inline-block rounded-md bg-gold px-8 py-4 text-lg font-medium text-white hover:bg-gold-hover"
           >
             Browse open positions
@@ -61,9 +59,7 @@ export default function ForCandidatesPage() {
                 <Icon className="text-gold" size={26} />
                 <h3 className="mt-4 font-semibold text-navy">{title as string}</h3>
                 <a
-                  href="https://jobs.arbeidmatch.no"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/score"
                   className="mt-3 inline-block text-sm text-gold"
                 >
                   View jobs →
@@ -79,8 +75,8 @@ export default function ForCandidatesPage() {
           <h2 className="text-center text-4xl font-bold text-navy">How to apply</h2>
           <div className="mx-auto mt-10 grid max-w-3xl gap-4">
             {[
-              "Browse jobs at jobs.arbeidmatch.no",
-              "Apply with your CV — takes 2 minutes",
+              "Complete the eligibility check",
+              "Apply with your CV in about 2 minutes",
               "Our team contacts you within 5 business days",
             ].map((step, i) => (
               <p key={step} className="rounded-xl border border-border bg-white p-6 text-lg text-navy">
@@ -107,9 +103,7 @@ export default function ForCandidatesPage() {
 
       <section className="bg-white py-20 text-center">
         <a
-          href="https://jobs.arbeidmatch.no"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/score"
           className="inline-block rounded-md bg-gold px-10 py-4 text-lg font-medium text-white hover:bg-gold-hover"
         >
           Browse all open positions

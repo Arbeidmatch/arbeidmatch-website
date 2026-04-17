@@ -5,7 +5,7 @@ import { CheckCircle2, ShieldCheck, Users } from "lucide-react";
 export const metadata: Metadata = {
   title: "About ArbeidMatch",
   description:
-    "Learn about ArbeidMatch Norge AS — specialists in EU/EEA recruitment for Norwegian employers since 2024.",
+    "Learn about ArbeidMatch Norge AS, specialists in EU/EEA recruitment for Norwegian employers since 2024.",
 };
 
 export default function AboutPage() {
@@ -18,7 +18,7 @@ export default function AboutPage() {
           <p className="font-semibold text-navy">ARBEIDMATCH NORGE AS</p>
           <p className="mt-2 text-text-secondary">Org.nr. 935 667 089 (MVA-registrert)</p>
           <p className="text-text-secondary">Founded: 08.05.2025</p>
-          <p className="text-text-secondary">Industry: 78.200 — Utleie av arbeidskraft</p>
+          <p className="text-text-secondary">Industry: 78.200, Utleie av arbeidskraft</p>
           <p className="text-text-secondary">
             Address: Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway
           </p>
@@ -35,10 +35,10 @@ export default function AboutPage() {
 
         <div className="mx-auto mt-12 max-w-2xl space-y-4">
           {[
-            "2025 — Company founded in Trondheim, Norway",
-            "2025 — Registered in Brønnøysundregistrene (Org.nr. 935 667 089)",
-            "2025 — VAT registered (MVA)",
-            "2025 — 500+ successful placements across Norway",
+            "2025: Company founded in Trondheim, Norway",
+            "2025: Registered in Brønnøysundregistrene (Org.nr. 935 667 089)",
+            "2025: VAT registered (MVA)",
+            "2025: 500+ successful placements across Norway",
           ].map((item) => (
             <p key={item} className="flex items-center gap-3 text-navy">
               <span className="h-2.5 w-2.5 rounded-full bg-gold" />

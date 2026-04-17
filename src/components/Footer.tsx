@@ -32,9 +32,7 @@ export default function Footer() {
         <div className="space-y-3">
           <p className="text-sm text-white/80">Looking for jobs?</p>
           <a
-            href="https://jobs.arbeidmatch.no"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/score"
             className="block text-xl font-semibold text-gold"
           >
             Browse open positions →

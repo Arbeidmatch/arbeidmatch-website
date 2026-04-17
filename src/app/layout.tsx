@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 export const metadata: Metadata = {
   metadataBase: new URL("https://arbeidmatch.no"),
   title: {
-    default: "ArbeidMatch — EU/EEA Recruitment for Norwegian Employers",
+    default: "ArbeidMatch | EU/EEA Recruitment for Norwegian Employers",
     template: "%s | ArbeidMatch",
   },
   description:
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     locale: "en_NO",
     url: "https://arbeidmatch.no",
     siteName: "ArbeidMatch",
-    title: "ArbeidMatch — EU/EEA Recruitment for Norwegian Employers",
+    title: "ArbeidMatch | EU/EEA Recruitment for Norwegian Employers",
     description:
       "Pre-screened EU/EEA workers for Norwegian companies. Construction, offshore, transport, automotive and more.",
     images: [
@@ -35,13 +35,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "ArbeidMatch — EU/EEA Recruitment Norway",
+        alt: "ArbeidMatch | EU/EEA Recruitment Norway",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "ArbeidMatch — EU/EEA Recruitment for Norwegian Employers",
+    title: "ArbeidMatch | EU/EEA Recruitment for Norwegian Employers",
     description: "Pre-screened EU/EEA workers for Norwegian companies.",
     images: ["/og-image.png"],
   },
