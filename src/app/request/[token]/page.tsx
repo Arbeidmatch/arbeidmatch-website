@@ -263,6 +263,8 @@ export default function DetailedRequestPage() {
   const certOptions = useMemo(() => certsByRole[roleKey] ?? ["Other"], [roleKey]);
   const withSelection = (title: string, value?: string) =>
     value && value.trim().length > 0 ? `${title}: ${value}` : title;
+  const selectedPositionLabel =
+    formData.position === "Other" ? formData.positionOther || "Other" : formData.position;
   const selectedStartDateLabel =
     formData.startDate === "Other" ? formData.startDateOther || "Other" : formData.startDate;
   const selectedHearLabel =
@@ -632,13 +634,13 @@ export default function DetailedRequestPage() {
                 </select>
                 {formData.category && (
                   <>
-                    <label className={labelClass}>Position</label>
                     <button
                       type="button"
                       className={`${blockBtnClass} ${invalid("position")}`}
                       onClick={() => toggleExpand("roleOptions")}
                     >
-                      {formData.position || "Select role*"} {expanded.roleOptions ? "▲" : "▼"}
+                      {withSelection("Position", selectedPositionLabel) || "Position: Select role*"}{" "}
+                      {expanded.roleOptions ? "▲" : "▼"}
                     </button>
                     {expanded.roleOptions && (
                       <div className="space-y-2">
