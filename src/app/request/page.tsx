@@ -38,6 +38,9 @@ export default function RequestPage() {
   const [companyEmail, setCompanyEmail] = useState("");
   const [jobSummary, setJobSummary] = useState("");
   const [requestedLocation, setRequestedLocation] = useState("");
+  const [citySearch, setCitySearch] = useState("");
+  const [isCustomCity, setIsCustomCity] = useState(false);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   const [engagementModel, setEngagementModel] = useState("Occasional candidate requests");
   const [howDidYouHear, setHowDidYouHear] = useState("Referral from another company");
   const [socialMediaPlatform, setSocialMediaPlatform] = useState("Facebook");
@@ -56,6 +59,9 @@ export default function RequestPage() {
   const maxCard = partnershipStatus === "new" ? 3 : 1;
   const progress = ((currentCard + 1) / (maxCard + 1)) * 100;
   const isAutoAdvanceCard = currentCard === 0 || (partnershipStatus === "new" && currentCard === 2);
+  const filteredCities = norwayCities.filter((city) =>
+    city.toLowerCase().includes(citySearch.trim().toLowerCase()),
+  );
   const optionButtonClass = (isSelected: boolean) =>
     `block w-full rounded-md border px-4 py-3 text-left text-navy ${
       isSelected ? "border-gold bg-gold/10" : "border-border hover:border-gold"
@@ -170,6 +176,12 @@ export default function RequestPage() {
   };
 
   useEffect(() => {
+    if (orgNumber.trim()) {
+      setCompanyResults([]);
+      setHasSearched(false);
+      return;
+    }
+
     if (companyQuery.trim().length < 2) {
       setCompanyResults([]);
       setHasSearched(false);
@@ -202,7 +214,7 @@ export default function RequestPage() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [companyQuery]);
+  }, [companyQuery, orgNumber]);
 
   const onCompanyPick = (item: CompanyResult) => {
     setCompanyQuery(item.name);
@@ -212,6 +224,12 @@ export default function RequestPage() {
   };
 
   useEffect(() => {
+    if (referralOrgNumber.trim()) {
+      setReferralCompanyResults([]);
+      setHasSearchedReferral(false);
+      return;
+    }
+
     if (howDidYouHear !== "Referral from another company") {
       setReferralCompanyResults([]);
       setHasSearchedReferral(false);
@@ -250,7 +268,7 @@ export default function RequestPage() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [howDidYouHear, referralCompanyName]);
+  }, [howDidYouHear, referralCompanyName, referralOrgNumber]);
 
   const onReferralCompanyPick = (item: CompanyResult) => {
     setReferralCompanyName(item.name);
@@ -378,20 +396,79 @@ export default function RequestPage() {
 
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-navy">Where do you need candidates?*</span>
-            <select
-              required
-              name="requested_location"
-              className={inputClass}
-              value={requestedLocation}
-              onChange={(event) => setRequestedLocation(event.target.value)}
-            >
-              <option value="">Select city</option>
-              {norwayCities.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
+            {!isCustomCity ? (
+              <div className="relative">
+                <input
+                  required
+                  name="requested_location"
+                  className={inputClass}
+                  placeholder="Type city name..."
+                  value={citySearch}
+                  onFocus={() => setShowCitySuggestions(true)}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setCitySearch(value);
+                    setRequestedLocation(value);
+                    setShowCitySuggestions(true);
+                  }}
+                />
+                {showCitySuggestions && citySearch.trim().length > 0 && (
+                  <div className="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-border bg-white shadow-[0_8px_24px_rgba(13,27,42,0.12)]">
+                    {filteredCities.map((city) => (
+                      <button
+                        key={city}
+                        type="button"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => {
+                          setCitySearch(city);
+                          setRequestedLocation(city);
+                          setShowCitySuggestions(false);
+                        }}
+                        className="block w-full border-b border-border px-3 py-2 text-left text-sm text-navy last:border-b-0 hover:bg-gold/10"
+                      >
+                        {city}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => {
+                        setIsCustomCity(true);
+                        setRequestedLocation("");
+                        setCitySearch("");
+                        setShowCitySuggestions(false);
+                      }}
+                      className="block w-full px-3 py-2 text-left text-sm font-medium text-navy hover:bg-gold/10"
+                    >
+                      Other (type manually)
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <input
+                  required
+                  name="requested_location"
+                  className={inputClass}
+                  placeholder="Enter city manually..."
+                  value={requestedLocation}
+                  onChange={(event) => setRequestedLocation(event.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCustomCity(false);
+                    setRequestedLocation("");
+                    setCitySearch("");
+                    setShowCitySuggestions(false);
+                  }}
+                  className="text-sm font-medium text-gold hover:text-gold-hover"
+                >
+                  Pick from list instead
+                </button>
+              </div>
+            )}
           </label>
               </div>
             )}
