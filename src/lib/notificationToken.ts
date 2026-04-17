@@ -1,4 +1,4 @@
-import { createHmac } from "crypto";
+import { createHmac, randomBytes } from "crypto";
 
 export type EligibilityVerificationPayload = {
   source: "eligibility-assistance";
@@ -7,6 +7,7 @@ export type EligibilityVerificationPayload = {
   targetRegion?: string;
   targetCountry?: string;
   marketingConsent?: string;
+  jti: string;
   iat: number;
   exp: number;
 };
@@ -66,7 +67,7 @@ function getVerificationSecrets(): string[] {
 }
 
 export function createEligibilityVerificationToken(
-  payload: Omit<EligibilityVerificationPayload, "iat" | "exp">,
+  payload: Omit<EligibilityVerificationPayload, "iat" | "exp" | "jti">,
   expiresInSeconds = 24 * 60 * 60,
 ): string {
   console.log(
@@ -86,6 +87,7 @@ export function createEligibilityVerificationToken(
   console.log("[createToken] now(sec):", now);
   const fullPayload: EligibilityVerificationPayload = {
     ...payload,
+    jti: randomBytes(16).toString("hex"),
     iat: now,
     exp: now + expiresInSeconds,
   };
