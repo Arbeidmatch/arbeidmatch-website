@@ -603,7 +603,13 @@ export default function DetailedRequestPage() {
                           type="radio"
                           className="shrink-0 accent-gold"
                           checked={formData.hiringType === v}
-                          onChange={() => selectAndCollapse("hiringType", "hiringType", v)}
+                          onChange={() => {
+                            selectAndCollapse("hiringType", "hiringType", v);
+                            setInvalidField("");
+                            setStepError("");
+                            window.scrollTo({ top: 0, behavior: "auto" });
+                            goStep(2);
+                          }}
                           ref={(e) => {
                             if (i === 0) setRef("hiringType", e);
                           }}
