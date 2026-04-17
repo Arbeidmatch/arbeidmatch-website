@@ -1,23 +1,14 @@
 import type { CandidateActivityStats } from "@/lib/candidateActivityStats";
-
-function formatNum(n: number): string {
-  return n.toLocaleString();
-}
+import CandidateActivityMetrics from "@/components/CandidateActivityMetrics";
 
 type Props = {
   stats: CandidateActivityStats;
 };
 
 /**
- * Server-rendered candidate activity strip for the home page (SEO-friendly).
+ * Candidate activity strip for the home page. Metrics use client count-up when in view.
  */
 export default function CandidateActivityBanner({ stats }: Props) {
-  const items: { label: string; value: number }[] = [
-    { label: "Candidates registered", value: stats.registeredCount },
-    { label: "Active on site now", value: stats.activeOnSiteNow },
-    { label: "Avg. daily visitors", value: stats.avgDailyVisitors },
-  ];
-
   return (
     <section className="border-y border-[#f59e0b]/30 bg-[#0f172a] py-10">
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
@@ -32,23 +23,7 @@ export default function CandidateActivityBanner({ stats }: Props) {
             </span>
           </div>
 
-          <dl className="mt-6 grid grid-cols-1 md:grid-cols-3 md:gap-0">
-            {items.map((item, i) => (
-              <div
-                key={item.label}
-                className={`flex flex-col gap-2 ${
-                  i > 0 ? "mt-6 border-t border-white/10 pt-6 md:mt-0 md:border-l md:border-t-0 md:pl-10 md:pt-0" : ""
-                }`}
-              >
-                <dt className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
-                  {item.label}
-                </dt>
-                <dd className="text-3xl font-bold tabular-nums tracking-tight text-[#f59e0b] md:text-4xl">
-                  {formatNum(item.value)}
-                </dd>
-              </div>
-            ))}
-          </dl>
+          <CandidateActivityMetrics stats={stats} />
         </div>
       </div>
     </section>

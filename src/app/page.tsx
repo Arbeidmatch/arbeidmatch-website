@@ -15,6 +15,7 @@ import {
 import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
 import CandidateActivityBanner from "@/components/CandidateActivityBanner";
+import HeroStatsPanel from "@/components/HeroStatsPanel";
 import TikTokLiveBanner from "@/components/TikTokLiveBanner";
 import { getCandidateActivityStats } from "@/lib/candidateActivityStats";
 
@@ -71,19 +72,7 @@ export default async function Home() {
               <p>✓ 2-week delivery</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-6 rounded-xl bg-navy p-10 md:col-span-2">
-            {[
-              ["500+", "Placements"],
-              ["50+", "Active clients"],
-              ["10+", "EU countries"],
-              ["2 wks", "Avg. delivery"],
-            ].map(([number, label]) => (
-              <div key={label}>
-                <p className="text-4xl font-bold text-gold">{number}</p>
-                <p className="text-sm text-white">{label}</p>
-              </div>
-            ))}
-          </div>
+          <HeroStatsPanel registeredCount={candidateActivity.registeredCount} />
         </div>
       </section>
 
