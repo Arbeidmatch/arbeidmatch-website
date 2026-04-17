@@ -731,6 +731,8 @@ export default function DetailedRequestPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           source: "request-details",
+          purpose: "Employer feedback after detailed request submission",
+          pageUrl: `/request/${token}`,
           score: feedbackScore,
           note: feedbackNote.trim(),
           email: tokenData?.email ?? "",

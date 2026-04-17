@@ -127,6 +127,8 @@ function EligibilityAssistanceContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           source: "eligibility-assistance",
+          purpose: "Candidate feedback after eligibility assistance form",
+          pageUrl: "/eligibility-assistance",
           score: feedbackScore,
           note: feedbackNote.trim(),
           email: notifyEmail,

@@ -68,6 +68,8 @@ export default function ScorePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           source: "candidate-eligibility-check",
+          purpose: "Candidate feedback on the Work Readiness Check",
+          pageUrl: "/score",
           score: feedbackScore,
           note: feedbackNote.trim(),
           website: "",
