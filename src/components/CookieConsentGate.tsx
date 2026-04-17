@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const COOKIE_NAME = "site_cookie_consent";
-const STORAGE_KEY = "site_cookie_consent";
 
 function readConsentCookie(): "accepted" | "declined" | null {
   if (typeof document === "undefined") return null;
@@ -21,37 +20,12 @@ function readConsentCookie(): "accepted" | "declined" | null {
   return null;
 }
 
-function readConsentValue(): "accepted" | "declined" | null {
-  const cookieValue = readConsentCookie();
-  if (cookieValue) return cookieValue;
-  if (typeof window === "undefined") return null;
-  try {
-    const storageValue = window.localStorage.getItem(STORAGE_KEY);
-    if (storageValue === "accepted" || storageValue === "declined") return storageValue;
-  } catch {
-    return null;
-  }
-  return null;
-}
-
-function storeConsent(value: "accepted" | "declined") {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, value);
-  } catch {
-    // Ignore storage write issues in hardened browser settings.
-  }
-}
-
 export default function CookieConsentGate() {
   const pathname = usePathname();
-  const consent = readConsentValue();
+  const consent = readConsentCookie();
   const redirectPath = pathname || "/";
   if (consent) return null;
   if (pathname === "/cookie-required") return null;
-
-  const acceptHref = `/api/cookie-consent?action=accepted&redirect=${encodeURIComponent(redirectPath)}`;
-  const declineHref = "/api/cookie-consent?action=declined";
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-navy/70 p-4">
@@ -73,20 +47,25 @@ export default function CookieConsentGate() {
           .
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <a
-            href={acceptHref}
-            onClick={() => storeConsent("accepted")}
-            className="inline-flex items-center justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
-          >
-            Accept policies
-          </a>
-          <a
-            href={declineHref}
-            onClick={() => storeConsent("declined")}
-            className="inline-flex items-center justify-center rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface"
-          >
-            Decline for now
-          </a>
+          <form method="post" action="/api/cookie-consent">
+            <input type="hidden" name="action" value="accepted" />
+            <input type="hidden" name="redirect" value={redirectPath} />
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
+            >
+              Accept policies
+            </button>
+          </form>
+          <form method="post" action="/api/cookie-consent">
+            <input type="hidden" name="action" value="declined" />
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface"
+            >
+              Decline for now
+            </button>
+          </form>
         </div>
       </div>
     </div>
