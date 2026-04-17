@@ -67,23 +67,6 @@ export default function EligibilityAssistancePage() {
     );
   };
 
-  const nextStep = () => {
-    if (pausedByChoice) {
-      return;
-    }
-    if (!validateStep()) {
-      setStepError("Please complete the required fields before continuing.");
-      return;
-    }
-    setStepError("");
-    if (currentStep < totalSteps - 1) setCurrentStep((prev) => prev + 1);
-  };
-
-  const prevStep = () => {
-    setStepError("");
-    if (currentStep > 0) setCurrentStep((prev) => prev - 1);
-  };
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!validateStep()) {
@@ -147,6 +130,7 @@ export default function EligibilityAssistancePage() {
                     setWantsAssistance(nextValue);
                     setStepError("");
                     setPausedByChoice(nextValue === "no");
+                    if (nextValue === "yes") setCurrentStep(1);
                   }}
                   className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
                     wantsAssistance === value ? "border-gold bg-gold/10" : "border-border hover:border-gold"
@@ -171,6 +155,7 @@ export default function EligibilityAssistancePage() {
                   setPausedByChoice(false);
                   setWantsAssistance("");
                   setStepError("");
+                  setCurrentStep(0);
                 }}
                 className="mt-4 rounded-md border border-navy px-4 py-2 text-sm font-medium text-navy hover:bg-white"
               >
@@ -248,18 +233,11 @@ export default function EligibilityAssistancePage() {
           {currentStep === 1 && !pausedByChoice && (
             <div className="space-y-4">
               <div className="rounded-md border border-border bg-surface p-4">
-                <p className="text-sm font-medium text-navy">Get the legal procedure guide</p>
+                <p className="text-sm font-medium text-navy">Future legal procedure guide</p>
                 <p className="mt-1 text-sm text-text-secondary">
-                  We currently direct candidates to the guide for the latest visa and documentation steps.
+                  We will prepare a precise guide in the near future with the legal steps and
+                  required documentation to help you apply correctly.
                 </p>
-                <a
-                  href="https://arbeidmatch.no/guide"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-block rounded-md bg-gold px-4 py-2 text-sm font-medium text-white hover:bg-gold-hover"
-                >
-                  Buy guide
-                </a>
               </div>
 
               <label className="block">
@@ -286,25 +264,8 @@ export default function EligibilityAssistancePage() {
           )}
 
           {!pausedByChoice && (
-            <div className="flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={prevStep}
-                disabled={currentStep === 0 || status === "submitting"}
-                className="w-full rounded-md border border-navy px-4 py-3 text-sm font-medium text-navy disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Back
-              </button>
-              {currentStep < totalSteps - 1 ? (
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  disabled={status === "submitting"}
-                  className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  Next
-                </button>
-              ) : (
+            <div className="flex items-center gap-3">
+              {currentStep === 1 && (
                 <button
                   type="submit"
                   disabled={status === "submitting"}
