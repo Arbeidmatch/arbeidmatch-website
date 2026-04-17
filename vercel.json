@@ -3,6 +3,10 @@
     {
       "path": "/api/weekly-guide-interest-report",
       "schedule": "0 7 * * 1"
+    },
+    {
+      "path": "/api/weekly-candidate-feedback-report",
+      "schedule": "0 7 * * 1"
     }
   ]
 }
