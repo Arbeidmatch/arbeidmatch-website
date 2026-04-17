@@ -514,8 +514,6 @@ export default function DetailedRequestPage() {
     return <section className="bg-surface py-8"><div className="mx-auto max-w-2xl px-4 text-center"><h1 className="text-2xl font-bold text-navy">Link expired or invalid</h1><p className="mt-2 text-sm text-text-secondary">Please start a new request.</p></div></section>;
   }
   if (submitStatus === "success") {
-    const selectedPosition = formData.position === "Other" ? formData.positionOther : formData.position;
-    const selectedStartDate = formData.startDate === "Other" ? formData.startDateOther : formData.startDate;
     return (
       <section className="bg-surface py-10">
         <div className="mx-auto w-full max-w-2xl px-3">
@@ -525,12 +523,6 @@ export default function DetailedRequestPage() {
             <p className="mt-2 text-sm text-text-secondary">
               Thank you, {formData.full_name || "there"}. We will review your request and be in touch with you soon.
             </p>
-            <div className="mx-auto mt-4 max-w-lg rounded-xl border-l-4 border-navy bg-navy/[0.03] p-4 text-left text-sm text-navy">
-              <p><strong>Position:</strong> {selectedPosition || "-"}</p>
-              <p><strong>Number of candidates:</strong> {formData.numberOfPositions || "-"}</p>
-              <p><strong>Location:</strong> {formData.city || "-"}</p>
-              <p><strong>Start date:</strong> {selectedStartDate || "-"}</p>
-            </div>
             <button type="button" onClick={() => router.push("/")} className="mt-5 rounded-md bg-[#C9A84C] px-6 py-2.5 text-sm font-medium text-white hover:bg-gold-hover">Back to home</button>
           </div>
         </div>

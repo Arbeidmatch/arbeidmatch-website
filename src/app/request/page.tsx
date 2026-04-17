@@ -148,19 +148,22 @@ export default function RequestPage() {
     payload.partnershipStatus = partnershipStatus;
 
     try {
-      const response = await fetch("/api/send-partnership-request", {
+      const response = await fetch("/api/simple-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...payload,
-          engagementModel:
-            partnershipStatus === "new" ? engagementModel : "Existing partner request",
           requestedLocation: requestedLocation.trim(),
         }),
       });
 
       if (!response.ok) throw new Error("Request failed");
-      setStatus("success");
+      const data = (await response.json()) as { success?: boolean; token?: string };
+      if (data.success && data.token) {
+        window.location.href = `/request/${data.token}`;
+        return;
+      }
+      throw new Error("No token received");
     } catch {
       setStatus("error");
     }
@@ -255,40 +258,6 @@ export default function RequestPage() {
     setReferralCompanyResults([]);
     setHasSearchedReferral(false);
   };
-
-  if (status === "success") {
-    return (
-      <section className="bg-surface py-16">
-        <div className="mx-auto w-full max-w-2xl rounded-xl border border-border bg-white p-8 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-white">
-            ✓
-          </div>
-          <h1 className="mt-4 text-3xl font-bold text-navy">Request submitted successfully</h1>
-          <p className="mt-3 text-text-secondary">
-            Thank you. We received your request and will follow up with the next steps shortly.
-          </p>
-          <div className="mx-auto mt-5 max-w-lg rounded-md border border-border bg-surface p-4 text-left text-sm text-navy">
-            <p>
-              <span className="font-semibold">Company:</span> {companyQuery || "-"}
-            </p>
-            <p>
-              <span className="font-semibold">Location:</span> {requestedLocation || "-"}
-            </p>
-            <p>
-              <span className="font-semibold">Request type:</span>{" "}
-              {partnershipStatus === "new" ? engagementModel : "Existing partner request"}
-            </p>
-          </div>
-          <a
-            href="/"
-            className="mt-6 inline-flex items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-medium text-white hover:bg-gold-hover"
-          >
-            Back to home
-          </a>
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section className="bg-surface py-16">
