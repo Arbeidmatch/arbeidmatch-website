@@ -752,13 +752,10 @@ export default function DetailedRequestPage() {
                 <label className={labelClass}>Contract type</label>
                 <select className={`${inputClass} ${invalid("contractType")}`} value={formData.contractType} onChange={(e) => updateField("contractType", e.target.value)} ref={(e) => setRef("contractType", e)}>
                   <option value="">Contract type*</option>
-                  <option>Permanent employment - directly with client</option>
-                  <option>Permanent employment - via staffing agency</option>
-                  <option>Temporary employment - directly with client</option>
-                  <option>Temporary employment - via staffing agency</option>
+                  <option>Permanent employment</option>
+                  <option>Temporary employment</option>
                   <option>Hiring from staffing agency</option>
-                  <option>Independent contractor</option>
-                  <option>Seasonal work</option>
+                  <option>Independent contractor assignment</option>
                 </select>
 
                 <p className="text-sm font-semibold text-navy">Working Hours</p>
