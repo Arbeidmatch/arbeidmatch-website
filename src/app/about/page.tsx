@@ -28,7 +28,7 @@ export default function AboutPage() {
         <p className="mx-auto max-w-2xl text-lg leading-relaxed text-text-secondary">
           ArbeidMatch was established in Trondheim in 2025 with one clear mission: to make it
           easier for Norwegian businesses to find qualified workers from the EU/EEA, and to give
-          European workers access to legal, well-paid opportunities in Norway. We combine direct
+          European workers access to legal, high-quality opportunities in Norway. We combine direct
           sourcing, structured screening and a people-first approach to deliver reliable workforce
           solutions.
         </p>

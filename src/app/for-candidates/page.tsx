@@ -12,10 +12,10 @@ export default function ForCandidatesPage() {
     <>
       <section className="bg-white py-24">
         <div className="mx-auto w-full max-w-content px-4 text-center md:px-6">
-          <h1 className="text-4xl font-bold text-navy md:text-5xl">Find legal, well-paid work in Norway</h1>
+          <h1 className="text-4xl font-bold text-navy md:text-5xl">Find legal, quality jobs in Norway</h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-text-secondary">
-            We connect qualified EU/EEA workers with Norwegian employers. Legal contracts, good pay,
-            full support.
+            We connect qualified EU/EEA workers with Norwegian employers. Legal contracts, competitive
+            conditions, and full support.
           </p>
           <a
             href="https://jobs.arbeidmatch.no"
