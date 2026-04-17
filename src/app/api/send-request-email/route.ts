@@ -16,6 +16,19 @@ export async function POST(request: NextRequest) {
           : data.howDidYouHear === "Other"
             ? data.howDidYouHearOther || "Other"
             : data.howDidYouHear;
+    const socialMediaPlatformValue =
+      data.howDidYouHear === "Social media" ? data.socialMediaPlatform : "";
+    const socialMediaOtherValue =
+      data.howDidYouHear === "Social media" && data.socialMediaPlatform === "Other"
+        ? data.socialMediaOther
+        : "";
+    const howDidYouHearOtherValue = data.howDidYouHear === "Other" ? data.howDidYouHearOther : "";
+    const referralCompanyValue =
+      data.howDidYouHear === "Referral from another company" ? data.referralCompanyName : "";
+    const referralOrgNumberValue =
+      data.howDidYouHear === "Referral from another company" ? data.referralOrgNumber : "";
+    const referralEmailValue =
+      data.howDidYouHear === "Referral from another company" ? data.referralEmail : "";
 
     const transporter = nodemailer.createTransport({
       host: "send.one.com",
@@ -76,12 +89,12 @@ export async function POST(request: NextRequest) {
             ${section("Final Details", [["City", data.city], ["Start date", selectedStartDate], ["How did you hear about us", leadSource], ["Subscribe", data.subscribe], ["Notes", data.notes]])}
             ${section("Lead Source Details", [
               ["How did you hear about us", data.howDidYouHear],
-              ["Social media platform", data.socialMediaPlatform],
-              ["Social media other", data.socialMediaOther],
-              ["How did you hear about us (other)", data.howDidYouHearOther],
-              ["Referral company", data.referralCompanyName],
-              ["Referral company org.nr", data.referralOrgNumber],
-              ["Referral contact email", data.referralEmail],
+              ["Social media platform", socialMediaPlatformValue],
+              ["Social media other", socialMediaOtherValue],
+              ["How did you hear about us (other)", howDidYouHearOtherValue],
+              ["Referral company", referralCompanyValue],
+              ["Referral company org.nr", referralOrgNumberValue],
+              ["Referral contact email", referralEmailValue],
             ])}
           </div>
           <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
