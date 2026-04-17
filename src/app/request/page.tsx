@@ -37,6 +37,11 @@ export default function RequestPage() {
 
   const maxCard = partnershipStatus === "new" ? 3 : 2;
   const progress = ((currentCard + 1) / (maxCard + 1)) * 100;
+  const isAutoAdvanceCard = currentCard === 0 || (partnershipStatus === "new" && currentCard === 2);
+  const optionButtonClass = (isSelected: boolean) =>
+    `block w-full rounded-md border px-4 py-3 text-left text-navy ${
+      isSelected ? "border-gold bg-gold/10" : "border-border hover:border-gold"
+    }`;
 
   const validateLeadSource = () => {
     if (howDidYouHear === "Social media" && socialMediaPlatform === "Other" && !socialMediaOther.trim()) {
@@ -271,11 +276,7 @@ export default function RequestPage() {
                       setPartnershipStatus(value as "existing" | "new");
                       goToNextCard();
                     }}
-                    className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
-                      partnershipStatus === value
-                        ? "border-gold bg-gold/10"
-                        : "border-border hover:border-gold"
-                    }`}
+                    className={optionButtonClass(partnershipStatus === value)}
                   >
                     {label}
                   </button>
@@ -385,11 +386,7 @@ export default function RequestPage() {
                     setEngagementModel(option);
                     goToNextCard();
                   }}
-                  className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
-                    engagementModel === option
-                      ? "border-gold bg-gold/10"
-                      : "border-border hover:border-gold"
-                  }`}
+                  className={optionButtonClass(engagementModel === option)}
                 >
                   {option}
                 </button>
@@ -561,34 +558,36 @@ export default function RequestPage() {
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={prevCard}
-              disabled={currentCard === 0 || status === "submitting"}
-              className="w-full rounded-md border border-navy px-4 py-3 text-sm font-medium text-navy disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Back
-            </button>
-            {currentCard < maxCard ? (
+          {!isAutoAdvanceCard && (
+            <div className="flex items-center justify-between gap-3">
               <button
                 type="button"
-                onClick={nextCard}
-                disabled={status === "submitting"}
-                className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+                onClick={prevCard}
+                disabled={currentCard === 0 || status === "submitting"}
+                className="w-full rounded-md border border-navy px-4 py-3 text-sm font-medium text-navy disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Next
+                Back
               </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={status === "submitting"}
-                className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {status === "submitting" ? "Please wait..." : "Send request"}
-              </button>
-            )}
-          </div>
+              {currentCard < maxCard ? (
+                <button
+                  type="button"
+                  onClick={nextCard}
+                  disabled={status === "submitting"}
+                  className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={status === "submitting"}
+                  className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {status === "submitting" ? "Please wait..." : "Send request"}
+                </button>
+              )}
+            </div>
+          )}
 
           {status === "success" && partnershipStatus === "new" && (
             <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800">
