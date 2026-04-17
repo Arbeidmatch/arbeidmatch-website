@@ -41,6 +41,30 @@ function getSecret(): string {
   return secret;
 }
 
+function getVerificationSecrets(): string[] {
+  const seen = new Set<string>();
+  const secrets = [
+    process.env.EMAIL_VERIFICATION_SECRET || "",
+    process.env.CRON_SECRET || "",
+    "",
+  ].filter((candidate) => {
+    if (seen.has(candidate)) return false;
+    seen.add(candidate);
+    return true;
+  });
+
+  console.log(
+    "[notificationToken] verification secret sources order:",
+    secrets.map((value) => {
+      if (value === process.env.EMAIL_VERIFICATION_SECRET && value !== "") return "EMAIL_VERIFICATION_SECRET";
+      if (value === process.env.CRON_SECRET && value !== "") return "CRON_SECRET";
+      return "EMPTY";
+    }),
+  );
+
+  return secrets;
+}
+
 export function createEligibilityVerificationToken(
   payload: Omit<EligibilityVerificationPayload, "iat" | "exp">,
   expiresInSeconds = 24 * 60 * 60,
@@ -69,8 +93,12 @@ export function verifyEligibilityVerificationToken(token: string): EligibilityVe
   const [encodedPayload, signature] = token.split(".");
   if (!encodedPayload || !signature) return null;
 
-  const expectedSignature = createHmac("sha256", getSecret()).update(encodedPayload).digest("hex");
-  if (expectedSignature !== signature) return null;
+  const verificationSecrets = getVerificationSecrets();
+  const hasValidSignature = verificationSecrets.some((secret) => {
+    const expectedSignature = createHmac("sha256", secret).update(encodedPayload).digest("hex");
+    return expectedSignature === signature;
+  });
+  if (!hasValidSignature) return null;
 
   try {
     const parsed = JSON.parse(base64UrlDecode(encodedPayload)) as EligibilityVerificationPayload;
