@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
+import { escapeHtml } from "@/lib/htmlSanitizer";
 
 type FeedbackPayload = {
   source?: string;
@@ -24,9 +25,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Score must be between 1 and 10." }, { status: 400 });
     }
 
-    const source = (body.source || "unknown").trim();
-    const note = (body.note || "").trim();
-    const email = (body.email || "").trim();
+    const source = escapeHtml((body.source || "unknown").trim());
+    const note = escapeHtml((body.note || "").trim());
+    const email = escapeHtml((body.email || "").trim());
     const submittedAt = new Date().toLocaleString("en-GB");
 
     const transporter = nodemailer.createTransport({

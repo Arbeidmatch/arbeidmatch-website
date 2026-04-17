@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
+import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 
 function getSupabaseClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -12,13 +13,14 @@ function getSupabaseClient() {
 
 export async function POST(request: NextRequest) {
   try {
-    const data = (await request.json()) as Record<string, string>;
-    if (hasHoneypotValue(data as Record<string, unknown>)) {
+    const rawData = (await request.json()) as Record<string, unknown>;
+    if (hasHoneypotValue(rawData)) {
       return NextResponse.json({ success: true });
     }
     if (isRateLimited(request, "send-eligibility-assistance", 8, 10 * 60 * 1000)) {
       return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
     }
+    const data = sanitizeStringRecord(rawData);
 
     const supabase = getSupabaseClient();
 

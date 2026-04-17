@@ -10,8 +10,12 @@ export default function FeedbackPage() {
   const [rating, setRating] = useState(0);
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
+  const [siteRelated, setSiteRelated] = useState<"Yes" | "No" | "">("");
+  const [issueCategory, setIssueCategory] = useState("");
+  const [issueDetails, setIssueDetails] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const needsFollowupQuestions = rating > 0 && rating <= 4;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -21,6 +25,14 @@ export default function FeedbackPage() {
     }
     if (!email.trim() || !email.includes("@")) {
       setErrorMessage("Please enter a valid email address.");
+      return;
+    }
+    if (needsFollowupQuestions && !siteRelated) {
+      setErrorMessage("Please tell us if your feedback is related to the website.");
+      return;
+    }
+    if (needsFollowupQuestions && !issueCategory) {
+      setErrorMessage("Please select what your feedback is mainly about.");
       return;
     }
 
@@ -35,6 +47,9 @@ export default function FeedbackPage() {
           rating,
           email: email.trim(),
           note: note.trim(),
+          siteRelated,
+          issueCategory,
+          issueDetails: issueDetails.trim(),
           source: "site-feedback-page",
           website: "",
         }),
@@ -131,6 +146,62 @@ export default function FeedbackPage() {
                 onChange={(event) => setNote(event.target.value)}
               />
             </label>
+
+            {needsFollowupQuestions && (
+              <div className="space-y-3 rounded-md border border-border bg-surface p-4">
+                <p className="text-sm font-semibold text-navy">
+                  We are sorry this experience was not great. Help us understand better:
+                </p>
+
+                <div>
+                  <p className="text-sm font-medium text-navy">Is this related to the website?*</p>
+                  <div className="mt-2 flex gap-2">
+                    {(["Yes", "No"] as const).map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setSiteRelated(value)}
+                        className={`rounded-md border px-3 py-2 text-sm font-medium ${
+                          siteRelated === value
+                            ? "border-green-500 bg-green-50 text-green-700"
+                            : "border-border text-navy hover:border-green-400"
+                        }`}
+                      >
+                        {value}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <label className="block text-sm text-navy">
+                  What is this mainly about?*
+                  <select
+                    className={inputClass}
+                    value={issueCategory}
+                    onChange={(event) => setIssueCategory(event.target.value)}
+                  >
+                    <option value="">Select a category</option>
+                    <option>Website usability</option>
+                    <option>Technical issue</option>
+                    <option>Form or submission flow</option>
+                    <option>Job information</option>
+                    <option>Communication and support</option>
+                    <option>Other</option>
+                  </select>
+                </label>
+
+                <label className="block text-sm text-navy">
+                  Tell us what happened (optional)
+                  <textarea
+                    rows={3}
+                    className={`${inputClass} min-h-[90px]`}
+                    placeholder="Add details so we can investigate and improve faster..."
+                    value={issueDetails}
+                    onChange={(event) => setIssueDetails(event.target.value)}
+                  />
+                </label>
+              </div>
+            )}
 
             {errorMessage && (
               <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">

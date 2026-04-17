@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
+import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 
 export async function POST(request: NextRequest) {
   try {
-    const data = (await request.json()) as Record<string, string>;
-    if (hasHoneypotValue(data as Record<string, unknown>)) {
+    const rawData = (await request.json()) as Record<string, unknown>;
+    if (hasHoneypotValue(rawData)) {
       return NextResponse.json({ success: true });
     }
     if (isRateLimited(request, "send-request-email", 6, 10 * 60 * 1000)) {
       return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
     }
+    const data = sanitizeStringRecord(rawData);
 
     const selectedPosition =
       data.position === "Other" ? data.positionOther || "Other" : data.position;

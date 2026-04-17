@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
+import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 
 type ContactPayload = {
   name?: string;
@@ -12,13 +13,14 @@ type ContactPayload = {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as ContactPayload;
-    if (hasHoneypotValue(body as Record<string, unknown>)) {
+    const rawBody = (await request.json()) as Record<string, unknown>;
+    if (hasHoneypotValue(rawBody)) {
       return NextResponse.json({ success: true });
     }
     if (isRateLimited(request, "contact-form", 8, 10 * 60 * 1000)) {
       return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
     }
+    const body = sanitizeStringRecord(rawBody) as ContactPayload;
 
     const name = (body.name || "").trim();
     const company = (body.company || "").trim();

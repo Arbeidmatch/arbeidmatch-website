@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
+import { escapeHtml } from "@/lib/htmlSanitizer";
 
 type SiteFeedbackPayload = {
   rating?: number;
   email?: string;
   note?: string;
+  siteRelated?: string;
+  issueCategory?: string;
+  issueDetails?: string;
   source?: string;
 };
 
@@ -20,9 +24,12 @@ export async function POST(request: NextRequest) {
     }
 
     const rating = Number(body.rating);
-    const email = (body.email || "").trim();
-    const note = (body.note || "").trim();
-    const source = (body.source || "site-feedback").trim();
+    const email = escapeHtml((body.email || "").trim());
+    const note = escapeHtml((body.note || "").trim());
+    const siteRelated = escapeHtml((body.siteRelated || "").trim());
+    const issueCategory = escapeHtml((body.issueCategory || "").trim());
+    const issueDetails = escapeHtml((body.issueDetails || "").trim());
+    const source = escapeHtml((body.source || "site-feedback").trim());
 
     if (!Number.isFinite(rating) || rating < 1 || rating > 10) {
       return NextResponse.json({ success: false, error: "Rating must be between 1 and 10." }, { status: 400 });
@@ -59,9 +66,15 @@ export async function POST(request: NextRequest) {
               <p style="margin:0 0 10px;"><strong>Email:</strong> ${email}</p>
               <p style="margin:0 0 10px;"><strong>Source:</strong> ${source}</p>
               <p style="margin:0 0 10px;"><strong>Submitted:</strong> ${submittedAt}</p>
+              <p style="margin:0 0 10px;"><strong>Related to website:</strong> ${siteRelated || "-"}</p>
+              <p style="margin:0 0 10px;"><strong>Category:</strong> ${issueCategory || "-"}</p>
               <p style="margin:14px 0 6px;"><strong>Improvement note:</strong></p>
               <div style="border:1px solid #E2E5EA;border-radius:8px;padding:10px;background:#FAFBFD;">
                 ${note || "No additional note provided."}
+              </div>
+              <p style="margin:14px 0 6px;"><strong>Issue details:</strong></p>
+              <div style="border:1px solid #E2E5EA;border-radius:8px;padding:10px;background:#FAFBFD;">
+                ${issueDetails || "No issue details provided."}
               </div>
             </div>
           </div>
