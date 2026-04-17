@@ -111,14 +111,16 @@ export default function ScorePage() {
                 </p>
               </>
             )}
-            <a
-              href="https://jobs.arbeidmatch.no"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-block rounded-md bg-gold px-6 py-3 font-medium text-white hover:bg-gold-hover"
-            >
-              {result === "good" ? "Browse open positions" : "Browse jobs anyway"}
-            </a>
+            {!disqualified && (
+              <a
+                href="https://jobs.arbeidmatch.no"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-block rounded-md bg-gold px-6 py-3 font-medium text-white hover:bg-gold-hover"
+              >
+                {result === "good" ? "Browse open positions" : "Browse jobs anyway"}
+              </a>
+            )}
           </div>
         )}
       </div>
