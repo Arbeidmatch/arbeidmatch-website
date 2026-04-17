@@ -14,6 +14,11 @@ import {
 } from "lucide-react";
 import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
+import CandidateActivityBanner from "@/components/CandidateActivityBanner";
+import { getCandidateActivityStats } from "@/lib/candidateActivityStats";
+
+/** Refresh candidate activity strip periodically (server-rendered, cached). */
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "EU/EEA Recruitment for Norwegian Employers",
@@ -21,7 +26,9 @@ export const metadata: Metadata = {
     "ArbeidMatch connects Norwegian employers with qualified EU/EEA workers. Fast matching, full compliance, blue-collar specialists.",
 };
 
-export default function Home() {
+export default async function Home() {
+  const candidateActivity = await getCandidateActivityStats();
+
   return (
     <>
       <section className="flex min-h-screen items-center bg-white py-20">
@@ -76,6 +83,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <CandidateActivityBanner stats={candidateActivity} />
 
       <section className="bg-surface py-24">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">

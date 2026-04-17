@@ -5,7 +5,6 @@ import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getWorkGuidePageMetadata } from "@/lib/eligibilityGuidePageTitle";
-import CandidateActivityCard from "@/components/CandidateActivityCard";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 const needsTurnstile = Boolean(TURNSTILE_SITE_KEY);
@@ -474,8 +473,6 @@ export function EligibilityAssistanceClient() {
           If you currently do not have work rights in Norway or the EU/EEA, we can guide you through
           the procedures needed to become eligible.
         </p>
-
-        <CandidateActivityCard />
 
         <form
           onSubmit={handleSubmit}
