@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 
 type ContactPayload = {
   name?: string;
@@ -12,6 +13,13 @@ type ContactPayload = {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as ContactPayload;
+    if (hasHoneypotValue(body as Record<string, unknown>)) {
+      return NextResponse.json({ success: true });
+    }
+    if (isRateLimited(request, "contact-form", 8, 10 * 60 * 1000)) {
+      return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
+    }
+
     const name = (body.name || "").trim();
     const company = (body.company || "").trim();
     const email = (body.email || "").trim();
@@ -23,7 +31,8 @@ export async function POST(request: NextRequest) {
     }
 
     const isSupportRequest = need === "Support";
-    const recipient = isSupportRequest ? "support@arbeidmatcgh.no" : "post@arbeidmatch.no";
+    const supportRecipient = process.env.SUPPORT_EMAIL || "support@arbeidmatcgh.no";
+    const recipient = isSupportRequest ? supportRecipient : "post@arbeidmatch.no";
     const submittedAt = new Date().toLocaleString("en-GB");
 
     const transporter = nodemailer.createTransport({

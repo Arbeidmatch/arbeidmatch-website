@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 
 type FeedbackPayload = {
   source?: string;
@@ -11,6 +12,13 @@ type FeedbackPayload = {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as FeedbackPayload;
+    if (hasHoneypotValue(body as Record<string, unknown>)) {
+      return NextResponse.json({ success: true });
+    }
+    if (isRateLimited(request, "confirmation-feedback", 15, 10 * 60 * 1000)) {
+      return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
+    }
+
     const score = Number(body.score);
     if (!Number.isFinite(score) || score < 1 || score > 10) {
       return NextResponse.json({ success: false, error: "Score must be between 1 and 10." }, { status: 400 });

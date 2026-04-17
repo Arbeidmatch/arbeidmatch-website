@@ -121,6 +121,7 @@ export default function EligibilityAssistancePage() {
           score: feedbackScore,
           note: feedbackNote.trim(),
           email: notifyEmail,
+          website: "",
         }),
       });
       if (!response.ok) throw new Error("Failed");

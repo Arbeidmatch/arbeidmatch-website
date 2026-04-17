@@ -70,6 +70,7 @@ export default function ScorePage() {
           source: "candidate-eligibility-check",
           score: feedbackScore,
           note: feedbackNote.trim(),
+          website: "",
         }),
       });
       if (!response.ok) throw new Error("Failed");
@@ -137,66 +138,74 @@ export default function ScorePage() {
               </>
             )}
             {!disqualified && (
-              <a
-                href="https://jobs.arbeidmatch.no"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 inline-block rounded-md bg-gold px-6 py-3 font-medium text-white hover:bg-gold-hover"
-              >
-                {result === "good" ? "Browse open positions" : "Browse jobs anyway"}
-              </a>
-            )}
-            <div className="mt-6 rounded-lg border border-border bg-white p-4 text-left">
-              <p className="text-sm font-semibold text-navy">How was your candidate experience?</p>
-              <p className="mt-1 text-xs text-text-secondary">Rate 1 to 10 and tell us what we can improve.</p>
-              <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-10">
-                {Array.from({ length: 10 }, (_, index) => index + 1).map((score) => (
-                  <button
-                    key={score}
-                    type="button"
-                    onClick={() => {
-                      setFeedbackScore(score);
+              <>
+                <div className="mt-6 rounded-lg border border-border bg-white p-4 text-left">
+                  <p className="text-sm font-semibold text-navy">How was your candidate experience?</p>
+                  <p className="mt-1 text-xs text-text-secondary">Rate 1 to 10 and tell us what we can improve.</p>
+                  <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-10">
+                    {Array.from({ length: 10 }, (_, index) => index + 1).map((score) => (
+                      <button
+                        key={score}
+                        type="button"
+                        onClick={() => {
+                          setFeedbackScore(score);
+                          if (feedbackStatus !== "idle") setFeedbackStatus("idle");
+                        }}
+                        className={`rounded-md border px-2 py-2 text-sm font-medium ${
+                          feedbackScore === score
+                            ? "border-green-500 bg-green-50 text-green-700"
+                            : "border-border text-navy hover:border-green-400"
+                        }`}
+                      >
+                        {score}
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    rows={3}
+                    className="mt-3 w-full rounded-md border border-border px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold"
+                    placeholder="Your improvement suggestion (optional)"
+                    value={feedbackNote}
+                    onChange={(event) => {
+                      setFeedbackNote(event.target.value);
                       if (feedbackStatus !== "idle") setFeedbackStatus("idle");
                     }}
-                    className={`rounded-md border px-2 py-2 text-sm font-medium ${
-                      feedbackScore === score
-                        ? "border-green-500 bg-green-50 text-green-700"
-                        : "border-border text-navy hover:border-green-400"
-                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void submitFeedback()}
+                    disabled={feedbackScore === null || feedbackStatus === "sending" || feedbackStatus === "sent"}
+                    className="mt-3 rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#122845] disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {score}
+                    {feedbackStatus === "sending"
+                      ? "Sending feedback..."
+                      : feedbackStatus === "sent"
+                        ? "Feedback sent"
+                        : "Send feedback"}
                   </button>
-                ))}
-              </div>
-              <textarea
-                rows={3}
-                className="mt-3 w-full rounded-md border border-border px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold"
-                placeholder="Your improvement suggestion (optional)"
-                value={feedbackNote}
-                onChange={(event) => {
-                  setFeedbackNote(event.target.value);
-                  if (feedbackStatus !== "idle") setFeedbackStatus("idle");
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => void submitFeedback()}
-                disabled={feedbackScore === null || feedbackStatus === "sending" || feedbackStatus === "sent"}
-                className="mt-3 rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#122845] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {feedbackStatus === "sending"
-                  ? "Sending feedback..."
-                  : feedbackStatus === "sent"
-                    ? "Feedback sent"
-                    : "Send feedback"}
-              </button>
-              {feedbackStatus === "error" && (
-                <p className="mt-2 text-xs text-red-600">Could not send feedback. Please try again.</p>
-              )}
-              {feedbackStatus === "sent" && (
-                <p className="mt-2 text-xs text-green-700">Thank you! Your feedback was received.</p>
-              )}
-            </div>
+                  {feedbackStatus === "error" && (
+                    <p className="mt-2 text-xs text-red-600">Could not send feedback. Please try again.</p>
+                  )}
+                  {feedbackStatus === "sent" && (
+                    <p className="mt-2 text-xs text-green-700">Thank you! Your feedback was received.</p>
+                  )}
+                </div>
+                {feedbackStatus === "sent" ? (
+                  <a
+                    href="https://jobs.arbeidmatch.no"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-6 inline-block rounded-md bg-gold px-6 py-3 font-medium text-white hover:bg-gold-hover"
+                  >
+                    {result === "good" ? "Browse open positions" : "Browse jobs anyway"}
+                  </a>
+                ) : (
+                  <p className="mt-4 text-sm text-text-secondary">
+                    Please send your feedback first to continue to job listings.
+                  </p>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>

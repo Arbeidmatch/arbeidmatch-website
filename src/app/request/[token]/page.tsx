@@ -734,6 +734,7 @@ export default function DetailedRequestPage() {
           score: feedbackScore,
           note: feedbackNote.trim(),
           email: tokenData?.email ?? "",
+          website: "",
         }),
       });
       if (!response.ok) throw new Error("Failed");

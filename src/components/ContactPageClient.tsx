@@ -21,6 +21,7 @@ export default function ContactPageClient() {
       email: String(formData.get("email") || ""),
       need: String(formData.get("need") || ""),
       message: String(formData.get("message") || ""),
+      website: String(formData.get("website") || ""),
     };
 
     setStatus("submitting");
@@ -119,6 +120,14 @@ export default function ContactPageClient() {
               Employers and partners only. Job seekers, please complete the eligibility check first.
             </p>
             <div className="mt-6 space-y-4">
+              <input
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                className="hidden"
+                aria-hidden="true"
+              />
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="text-sm text-navy">
                   Your name

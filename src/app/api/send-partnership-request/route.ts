@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 
 export async function POST(request: NextRequest) {
   try {
     const data = (await request.json()) as Record<string, string>;
+    if (hasHoneypotValue(data as Record<string, unknown>)) {
+      return NextResponse.json({ success: true });
+    }
+    if (isRateLimited(request, "send-partnership-request", 8, 10 * 60 * 1000)) {
+      return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
+    }
+
     const referenceId = `REQ-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
     const partnershipLabel =
       data.partnershipStatus === "new" ? "No, we are not a partner yet" : "Yes, we are already a partner";

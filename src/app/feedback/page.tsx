@@ -1,14 +1,13 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Star } from "lucide-react";
+import Link from "next/link";
 
 const inputClass =
   "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
 
 export default function FeedbackPage() {
   const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -16,8 +15,8 @@ export default function FeedbackPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (rating < 1 || rating > 5) {
-      setErrorMessage("Please choose a star rating.");
+    if (rating < 1 || rating > 10) {
+      setErrorMessage("Please choose a rating between 1 and 10.");
       return;
     }
     if (!email.trim() || !email.includes("@")) {
@@ -37,6 +36,7 @@ export default function FeedbackPage() {
           email: email.trim(),
           note: note.trim(),
           source: "site-feedback-page",
+          website: "",
         }),
       });
       if (!response.ok) throw new Error("Failed to send feedback");
@@ -58,12 +58,12 @@ export default function FeedbackPage() {
             <p className="mt-2 text-sm text-text-secondary">
               Thank you for your feedback. We also sent a confirmation email to you.
             </p>
-            <a
+            <Link
               href="/"
               className="mt-5 inline-flex rounded-md bg-[#C9A84C] px-6 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
             >
               Back to home
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -80,28 +80,32 @@ export default function FeedbackPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              className="hidden"
+              aria-hidden="true"
+            />
             <div>
               <p className="text-sm font-medium text-navy">How would you rate your experience?*</p>
-              <div className="mt-2 flex gap-2">
-                {Array.from({ length: 5 }, (_, index) => index + 1).map((starValue) => {
-                  const active = (hoverRating || rating) >= starValue;
-                  return (
-                    <button
-                      key={starValue}
-                      type="button"
-                      onMouseEnter={() => setHoverRating(starValue)}
-                      onMouseLeave={() => setHoverRating(0)}
-                      onClick={() => setRating(starValue)}
-                      className="rounded-md p-1"
-                      aria-label={`${starValue} star${starValue > 1 ? "s" : ""}`}
-                    >
-                      <Star
-                        className={active ? "fill-gold text-gold" : "text-border"}
-                        size={28}
-                      />
-                    </button>
-                  );
-                })}
+              <div className="mt-2 grid grid-cols-5 gap-2 sm:grid-cols-10">
+                {Array.from({ length: 10 }, (_, index) => index + 1).map((score) => (
+                  <button
+                    key={score}
+                    type="button"
+                    onClick={() => setRating(score)}
+                    className={`rounded-md border px-2 py-2 text-sm font-medium ${
+                      rating === score
+                        ? "border-green-500 bg-green-50 text-green-700"
+                        : "border-border text-navy hover:border-green-400"
+                    }`}
+                    aria-label={`Rate ${score} out of 10`}
+                  >
+                    {score}
+                  </button>
+                ))}
               </div>
             </div>
 

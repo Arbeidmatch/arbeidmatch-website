@@ -16,9 +16,6 @@ function getSupabaseClient() {
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
-  console.log("SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-  console.log("SERVICE_KEY exists:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-
   try {
     const supabase = getSupabaseClient();
 
@@ -26,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Supabase configuration missing - URL: " + process.env.NEXT_PUBLIC_SUPABASE_URL,
+          error: "Supabase configuration missing.",
         },
         { status: 500 },
       );
