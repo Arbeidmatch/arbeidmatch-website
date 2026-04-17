@@ -3,6 +3,30 @@
 import { FormEvent, useState } from "react";
 import { Building2, Mail, MapPin } from "lucide-react";
 
+function IconFacebook({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+  );
+}
+
+function IconYoutube({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    </svg>
+  );
+}
+
+function IconTikTok({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 1 1-5.2-1.74 2.89 2.89 0 0 1 2.31-4.08 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+    </svg>
+  );
+}
+
 const inputClass =
   "w-full rounded-md border border-[#E8E8E5] bg-[#F7F7F5] px-4 py-3 text-navy focus:border-[#C9A84C] focus:outline-none focus:ring-0";
 
@@ -180,6 +204,63 @@ export default function ContactPageClient() {
               )}
             </div>
           </form>
+        </div>
+
+        <div className="mt-14 border-t border-white/[0.07] pt-12">
+          <h2 className="text-center text-2xl font-bold text-white md:text-3xl">Join Our Community</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-white/70 md:text-base">
+            Follow us for job tips, updates and live sessions
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <a
+              href="https://www.facebook.com/arbeidmatch"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col rounded-xl border border-[#1877F2]/40 bg-[#1877F2]/10 p-5 transition hover:border-[#1877F2] hover:bg-[#1877F2]/15"
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1877F2] text-white">
+                  <IconFacebook className="h-6 w-6" />
+                </span>
+                <span className="text-lg font-semibold text-white">Facebook</span>
+              </div>
+              <span className="mt-5 inline-flex w-fit rounded-md bg-[#1877F2] px-4 py-2 text-sm font-medium text-white transition group-hover:bg-[#1666d4]">
+                Follow
+              </span>
+            </a>
+            <a
+              href="https://www.tiktok.com/@arbeidmatch"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col rounded-xl border border-red-500/45 bg-black/60 p-5 transition hover:border-red-500 hover:bg-black/80"
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white">
+                  <IconTikTok className="h-6 w-6" />
+                </span>
+                <span className="text-lg font-semibold text-white">TikTok</span>
+              </div>
+              <span className="mt-5 inline-flex w-fit rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition group-hover:bg-red-700">
+                Join
+              </span>
+            </a>
+            <a
+              href="https://www.youtube.com/@arbeidmatch"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col rounded-xl border border-[#FF0000]/45 bg-[#FF0000]/10 p-5 transition hover:border-[#FF0000] hover:bg-[#FF0000]/15"
+            >
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FF0000] text-white">
+                  <IconYoutube className="h-6 w-6" />
+                </span>
+                <span className="text-lg font-semibold text-white">YouTube</span>
+              </div>
+              <span className="mt-5 inline-flex w-fit rounded-md bg-[#FF0000] px-4 py-2 text-sm font-medium text-white transition group-hover:bg-[#e60000]">
+                Subscribe
+              </span>
+            </a>
+          </div>
         </div>
 
         <div className="mt-12 border-t border-white/[0.07] pt-6">
