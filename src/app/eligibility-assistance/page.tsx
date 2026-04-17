@@ -8,15 +8,58 @@ const inputClass =
 
 export default function EligibilityAssistancePage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [wantsAssistance, setWantsAssistance] = useState<"yes" | "no">("yes");
-  const [targetRegion, setTargetRegion] = useState("Norway");
+  const [currentStep, setCurrentStep] = useState(0);
+  const [stepError, setStepError] = useState("");
+  const [wantsAssistance, setWantsAssistance] = useState<"yes" | "no" | "">("");
+  const [targetRegion, setTargetRegion] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [currentCountry, setCurrentCountry] = useState("");
+  const [details, setDetails] = useState("");
+
+  const totalSteps = 3;
+  const progress = ((currentStep + 1) / totalSteps) * 100;
+
+  const validateStep = () => {
+    if (currentStep === 0) return Boolean(wantsAssistance);
+    if (currentStep === 1) return Boolean(targetRegion);
+    return fullName.trim().length > 1 && email.includes("@") && currentCountry.trim().length > 1;
+  };
+
+  const nextStep = () => {
+    if (!validateStep()) {
+      setStepError("Please complete the required fields before continuing.");
+      return;
+    }
+    setStepError("");
+    if (currentStep < totalSteps - 1) setCurrentStep((prev) => prev + 1);
+  };
+
+  const prevStep = () => {
+    setStepError("");
+    if (currentStep > 0) setCurrentStep((prev) => prev - 1);
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!validateStep()) {
+      setStepError("Please complete the required fields before sending.");
+      return;
+    }
+
+    setStepError("");
     setStatus("submitting");
 
-    const formData = new FormData(event.currentTarget);
-    const payload = Object.fromEntries(formData.entries());
+    const payload = {
+      wantsAssistance,
+      targetRegion,
+      fullName,
+      email,
+      phone,
+      currentCountry,
+      details,
+    };
 
     try {
       const response = await fetch("/api/send-eligibility-assistance", {
@@ -45,89 +88,147 @@ export default function EligibilityAssistancePage() {
           onSubmit={handleSubmit}
           className="mt-6 space-y-4 rounded-xl border border-border bg-white p-6 shadow-[0_10px_30px_rgba(13,27,42,0.08)]"
         >
-          <fieldset className="space-y-2">
-            <legend className="mb-1 text-sm font-medium text-navy">
-              Do you want assistance with the required procedures?
-            </legend>
-            <label className="flex items-center gap-2 text-sm text-navy">
-              <input
-                type="radio"
-                name="wantsAssistance"
-                value="yes"
-                checked={wantsAssistance === "yes"}
-                onChange={() => setWantsAssistance("yes")}
-                required
-              />
-              Yes, I want assistance
-            </label>
-            <label className="flex items-center gap-2 text-sm text-navy">
-              <input
-                type="radio"
-                name="wantsAssistance"
-                value="no"
-                checked={wantsAssistance === "no"}
-                onChange={() => setWantsAssistance("no")}
-              />
-              No, not at the moment
-            </label>
-          </fieldset>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-surface">
+            <div className="h-full bg-gold transition-all duration-300" style={{ width: `${Math.min(progress, 100)}%` }} />
+          </div>
 
-          <fieldset className="space-y-2">
-            <legend className="mb-1 text-sm font-medium text-navy">
-              Where do you want to work after completing procedures?
-            </legend>
-            {["Norway", "EU/EEA countries", "Both Norway and EU/EEA countries"].map((option) => (
-              <label key={option} className="flex items-center gap-2 text-sm text-navy">
+          {currentStep === 0 && (
+            <div className="space-y-3">
+              <p className="text-lg font-medium text-navy">Do you want assistance with the required procedures?</p>
+              {[
+                ["yes", "Yes, I want assistance"],
+                ["no", "No, not at the moment"],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setWantsAssistance(value as "yes" | "no")}
+                  className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
+                    wantsAssistance === value ? "border-gold bg-gold/10" : "border-border hover:border-gold"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {currentStep === 1 && (
+            <div className="space-y-3">
+              <p className="text-lg font-medium text-navy">Where do you want to work after completing procedures?</p>
+              {["Scandinavia", "Europe (EU/EEA)", "Both Scandinavia and Europe (EU/EEA)"].map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setTargetRegion(option)}
+                  className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
+                    targetRegion === option ? "border-gold bg-gold/10" : "border-border hover:border-gold"
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div className="space-y-4">
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-navy">Full name*</span>
                 <input
-                  type="radio"
-                  name="targetRegion"
-                  value={option}
-                  checked={targetRegion === option}
-                  onChange={() => setTargetRegion(option)}
                   required
+                  name="fullName"
+                  className={inputClass}
+                  placeholder="John Doe"
+                  value={fullName}
+                  onChange={(event) => setFullName(event.target.value)}
                 />
-                {option}
               </label>
-            ))}
-          </fieldset>
 
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy">Full name*</span>
-            <input required name="fullName" className={inputClass} placeholder="John Doe" />
-          </label>
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-navy">Email*</span>
+                <input
+                  required
+                  name="email"
+                  type="email"
+                  className={inputClass}
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </label>
 
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy">Email*</span>
-            <input required name="email" type="email" className={inputClass} placeholder="you@example.com" />
-          </label>
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-navy">Phone number</span>
+                <input
+                  name="phone"
+                  className={inputClass}
+                  placeholder="+47 900 00 000"
+                  value={phone}
+                  onChange={(event) => setPhone(event.target.value)}
+                />
+              </label>
 
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy">Phone number</span>
-            <input name="phone" className={inputClass} placeholder="+47 900 00 000" />
-          </label>
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-navy">Current country*</span>
+                <input
+                  required
+                  name="currentCountry"
+                  className={inputClass}
+                  placeholder="Country of residence"
+                  value={currentCountry}
+                  onChange={(event) => setCurrentCountry(event.target.value)}
+                />
+              </label>
 
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy">Current country*</span>
-            <input required name="currentCountry" className={inputClass} placeholder="Country of residence" />
-          </label>
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-navy">Additional details</span>
+                <textarea
+                  name="details"
+                  rows={4}
+                  className={inputClass}
+                  placeholder="Tell us your current situation and what support you need"
+                  value={details}
+                  onChange={(event) => setDetails(event.target.value)}
+                />
+              </label>
+            </div>
+          )}
 
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy">Additional details</span>
-            <textarea
-              name="details"
-              rows={4}
-              className={inputClass}
-              placeholder="Tell us your current situation and what support you need"
-            />
-          </label>
+          {stepError && (
+            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {stepError}
+            </div>
+          )}
 
-          <button
-            type="submit"
-            disabled={status === "submitting"}
-            className="w-full rounded-md bg-gold py-3 text-lg font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {status === "submitting" ? "Sending..." : "Send assistance request"}
-          </button>
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={prevStep}
+              disabled={currentStep === 0 || status === "submitting"}
+              className="w-full rounded-md border border-navy px-4 py-3 text-sm font-medium text-navy disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Back
+            </button>
+            {currentStep < totalSteps - 1 ? (
+              <button
+                type="button"
+                onClick={nextStep}
+                disabled={status === "submitting"}
+                className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={status === "submitting"}
+                className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {status === "submitting" ? "Sending..." : "Send assistance request"}
+              </button>
+            )}
+          </div>
 
           {status === "success" && (
             <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800">

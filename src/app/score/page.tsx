@@ -78,6 +78,14 @@ export default function ScorePage() {
                 </button>
               ))}
             </div>
+            <button
+              type="button"
+              onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
+              disabled={currentStep === 0}
+              className="mt-5 rounded-md border border-navy px-4 py-2 text-sm font-medium text-navy disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Back
+            </button>
           </div>
         ) : (
           <div className="mt-8 rounded-xl bg-surface p-6">
@@ -91,9 +99,9 @@ export default function ScorePage() {
               </>
             ) : result === "good" ? (
               <>
-                <h2 className="text-2xl font-bold text-navy">Great, you likely qualify!</h2>
+                <h2 className="text-2xl font-bold text-navy">Great, you can continue to the next step</h2>
                 <p className="mt-3 text-text-secondary">
-                  Your profile matches common requirements for employers in Norway.
+                  Based on your answers, you can move forward and explore available opportunities.
                 </p>
               </>
             ) : (
