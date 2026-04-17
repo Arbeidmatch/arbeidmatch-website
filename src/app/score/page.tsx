@@ -43,7 +43,7 @@ export default function ScorePage() {
     setAnswers(updated);
 
     if (currentStep === 0 && value === "No") {
-      router.push("/eligibility-assistance");
+      router.push("/outside-eu-eea");
       return;
     }
 

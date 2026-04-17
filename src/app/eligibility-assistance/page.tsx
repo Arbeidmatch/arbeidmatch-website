@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 const inputClass =
   "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
@@ -14,16 +15,21 @@ const selectedOptionBadge = (
 );
 
 export default function EligibilityAssistancePage() {
+  const searchParams = useSearchParams();
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [currentStep, setCurrentStep] = useState(0);
   const [stepError, setStepError] = useState("");
   const [pausedByChoice, setPausedByChoice] = useState(false);
   const [wantsAssistance, setWantsAssistance] = useState<"yes" | "no" | "">("");
-  const [targetRegion, setTargetRegion] = useState<"Scandinavia" | "Europe" | "">("");
+  const initialRegion = searchParams.get("region");
+  const initialEmail = searchParams.get("email");
+  const [targetRegion, setTargetRegion] = useState<"Scandinavia" | "Europe" | "">(
+    initialRegion === "Scandinavia" || initialRegion === "Europe" ? initialRegion : "",
+  );
   const [targetCountry, setTargetCountry] = useState("");
   const [countrySearch, setCountrySearch] = useState("");
   const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(true);
-  const [notifyEmail, setNotifyEmail] = useState("");
+  const [notifyEmail, setNotifyEmail] = useState(initialEmail ?? "");
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
   const [feedbackNote, setFeedbackNote] = useState("");
