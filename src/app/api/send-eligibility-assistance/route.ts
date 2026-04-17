@@ -50,25 +50,34 @@ async function verifyTurnstileToken(token: string | undefined, request: NextRequ
   if (!secret) {
     return true;
   }
-  if (!token?.trim()) {
+  const trimmed = token?.trim() ?? "";
+  if (!trimmed) {
     return false;
   }
-  const body = new URLSearchParams();
-  body.set("secret", secret);
-  body.set("response", token.trim());
+
+  const params = new URLSearchParams({
+    secret: secret || "",
+    response: trimmed,
+  });
   const forwarded =
     request.headers.get("CF-Connecting-IP") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   if (forwarded) {
-    body.set("remoteip", forwarded);
+    params.set("remoteip", forwarded);
   }
 
-  const res = await fetch("https://challenges.cloudflare.com/turnstile/v1/siteverify", {
+  const turnstileResponse = await fetch("https://challenges.cloudflare.com/turnstile/v1/siteverify", {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params.toString(),
   });
-  const json = (await res.json()) as { success?: boolean };
-  return json.success === true;
+
+  const turnstileData = (await turnstileResponse.json()) as { success?: boolean };
+  if (!turnstileData.success) {
+    return false;
+  }
+  return true;
 }
 
 export async function POST(request: NextRequest) {
