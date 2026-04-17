@@ -21,7 +21,6 @@ export default function RequestPage() {
   const [jobSummary, setJobSummary] = useState("");
   const [requestedLocation, setRequestedLocation] = useState("");
   const [engagementModel, setEngagementModel] = useState("Occasional candidate requests");
-  const [engagementDetails, setEngagementDetails] = useState("");
   const [howDidYouHear, setHowDidYouHear] = useState("Referral from another company");
   const [socialMediaPlatform, setSocialMediaPlatform] = useState("Facebook");
   const [socialMediaOther, setSocialMediaOther] = useState("");
@@ -66,7 +65,7 @@ export default function RequestPage() {
       );
     }
     if (partnershipStatus === "new" && currentCard === 2) {
-      return Boolean(engagementModel) && engagementDetails.trim().length > 3;
+      return Boolean(engagementModel);
     }
     return validateLeadSource();
   };
@@ -83,6 +82,10 @@ export default function RequestPage() {
   const prevCard = () => {
     setCardError("");
     if (currentCard > 0) setCurrentCard((prev) => prev - 1);
+  };
+  const goToNextCard = () => {
+    setCardError("");
+    if (currentCard < maxCard) setCurrentCard((prev) => prev + 1);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -122,43 +125,20 @@ export default function RequestPage() {
       payload.job_summary = `${payload.job_summary.trim()}\nLocation needed: ${requestedLocation.trim()}`;
     }
 
-    if (partnershipStatus === "new") {
-      try {
-        const response = await fetch("/api/send-partnership-request", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...payload,
-            engagementModel,
-            engagementDetails,
-            requestedLocation: requestedLocation.trim(),
-          }),
-        });
-
-        if (!response.ok) throw new Error("Partnership request failed");
-        setStatus("success");
-      } catch {
-        setStatus("error");
-      }
-      return;
-    }
-
     try {
-      const response = await fetch("/api/simple-request", {
+      const response = await fetch("/api/send-partnership-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...payload,
+          engagementModel:
+            partnershipStatus === "new" ? engagementModel : "Existing partner request",
+          requestedLocation: requestedLocation.trim(),
+        }),
       });
 
       if (!response.ok) throw new Error("Request failed");
-
-      const data = await response.json();
-
-      if (data.success && data.token) {
-        window.location.href = `/request/${data.token}`;
-      } else {
-        throw new Error("No token received");
-      }
+      setStatus("success");
     } catch {
       setStatus("error");
     }
@@ -287,7 +267,10 @@ export default function RequestPage() {
                   <button
                     key={value}
                     type="button"
-                    onClick={() => setPartnershipStatus(value as "existing" | "new")}
+                    onClick={() => {
+                      setPartnershipStatus(value as "existing" | "new");
+                      goToNextCard();
+                    }}
                     className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
                       partnershipStatus === value
                         ? "border-gold bg-gold/10"
@@ -395,27 +378,22 @@ export default function RequestPage() {
                 "Volume-based engagement",
                 "Quality-focused engagement",
               ].map((option) => (
-                <label key={option} className="flex items-center gap-2 text-sm text-navy">
-                  <input
-                    type="radio"
-                    name="engagementModel"
-                    checked={engagementModel === option}
-                    onChange={() => setEngagementModel(option)}
-                  />
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    setEngagementModel(option);
+                    goToNextCard();
+                  }}
+                  className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
+                    engagementModel === option
+                      ? "border-gold bg-gold/10"
+                      : "border-border hover:border-gold"
+                  }`}
+                >
                   {option}
-                </label>
+                </button>
               ))}
-              <label className="block text-sm text-navy">
-                Tell us what you need
-                <textarea
-                  name="engagementDetails"
-                  rows={3}
-                  className={`${inputClass} mt-1`}
-                  value={engagementDetails}
-                  onChange={(event) => setEngagementDetails(event.target.value)}
-                  placeholder="Describe your hiring needs, timeline, and expected collaboration format"
-                />
-              </label>
               </div>
             )}
 
@@ -424,7 +402,7 @@ export default function RequestPage() {
               <div className="space-y-4">
                 <h2 className="text-sm font-semibold text-navy">How did you hear about us?</h2>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy">How did you hear about us?</span>
+            <span className="sr-only">How did you hear about us?</span>
             <select
               name="howDidYouHear"
               className={inputClass}
@@ -615,6 +593,11 @@ export default function RequestPage() {
           {status === "success" && partnershipStatus === "new" && (
             <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800">
               Request sent successfully. You will receive an offer for your request as soon as possible.
+            </div>
+          )}
+          {status === "success" && partnershipStatus === "existing" && (
+            <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800">
+              Request submitted successfully. Thank you, we will follow up with the next steps shortly.
             </div>
           )}
 
