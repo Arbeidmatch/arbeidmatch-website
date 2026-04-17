@@ -258,6 +258,18 @@ export default function DetailedRequestPage() {
   );
   const roleKey = formData.position === "Other" ? formData.positionOther : formData.position;
   const certOptions = useMemo(() => certsByRole[roleKey] ?? ["Other"], [roleKey]);
+  const withSelection = (title: string, value?: string) =>
+    value && value.trim().length > 0 ? `${title}: ${value}` : title;
+  const selectedStartDateLabel =
+    formData.startDate === "Other" ? formData.startDateOther || "Other" : formData.startDate;
+  const selectedHearLabel =
+    formData.howDidYouHear === "Social media"
+      ? formData.socialMediaPlatform === "Other"
+        ? formData.socialMediaOther || "Social media"
+        : `Social media (${formData.socialMediaPlatform})`
+      : formData.howDidYouHear === "Other"
+        ? formData.howDidYouHearOther || "Other"
+        : formData.howDidYouHear;
 
   const setRef = (name: string, el: HTMLElement | null) => {
     fieldRefs.current[name] = el;
@@ -678,9 +690,9 @@ export default function DetailedRequestPage() {
             {step === 4 && (
               <div className="space-y-3">
                 <h2 className={titleClass}>Language requirements</h2>
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("norwegian")}>Norwegian {expanded.norwegian ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("norwegian")}>{withSelection("Norwegian", formData.norwegianLevel)} {expanded.norwegian ? "▲" : "▼"}</button>
                 {expanded.norwegian && <div className={groupErrorClass("norwegianLevel")}>{["Not required", "Basic", "Working level", "Fluent"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.norwegianLevel === v} onChange={() => selectAndCollapse("norwegian", "norwegianLevel", v)} ref={(e) => { if (i === 0) setRef("norwegianLevel", e); }} />{v}</label>)}</div>}
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("english")}>English {expanded.english ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("english")}>{withSelection("English", formData.englishLevel)} {expanded.english ? "▲" : "▼"}</button>
                 {expanded.english && <div className={groupErrorClass("englishLevel")}>{["Not required", "Basic", "Working level", "Fluent"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.englishLevel === v} onChange={() => selectAndCollapse("english", "englishLevel", v)} ref={(e) => { if (i === 0) setRef("englishLevel", e); }} />{v}</label>)}</div>}
               </div>
             )}
@@ -688,9 +700,9 @@ export default function DetailedRequestPage() {
             {step === 5 && (
               <div className="space-y-3">
                 <h2 className={titleClass}>Requirements</h2>
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("driver")}>Driver's license {expanded.driver ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("driver")}>{withSelection("Driver's license", formData.driverLicense)} {expanded.driver ? "▲" : "▼"}</button>
                 {expanded.driver && <div className={groupErrorClass("driverLicense")}>{["None", "AM", "A1", "A2", "A", "B", "B+E", "C1", "C1+E", "C", "C+E", "D1", "D1+E", "D", "D+E", "T", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.driverLicense === v} onChange={() => selectAndCollapse("driver", "driverLicense", v)} ref={(e) => { if (i === 0) setRef("driverLicense", e); }} />{v}{v === "Other" && formData.driverLicense === "Other" && <input className={`${inputClass} ${invalid("driverLicenseOther")} ml-2 max-w-[220px]`} placeholder="Specify*" value={formData.driverLicenseOther} onChange={(e) => updateField("driverLicenseOther", e.target.value)} ref={(e) => setRef("driverLicenseOther", e)} />}</label>)}</div>}
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("dnumber")}>D-number {expanded.dnumber ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("dnumber")}>{withSelection("D-number", formData.dNumber)} {expanded.dnumber ? "▲" : "▼"}</button>
                 {expanded.dnumber && <div className={groupErrorClass("dNumber")}>{["Already has a D-number", "We can handle the D-number procedure for the candidate"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.dNumber === v} onChange={() => selectAndCollapse("dnumber", "dNumber", v)} ref={(e) => { if (i === 0) setRef("dNumber", e); }} />{v}</label>)}</div>}
                 <label className={labelClass}>Deal breakers</label>
                 <textarea rows={3} className={inputClass} placeholder="Deal breakers (optional)" value={formData.requirements} onChange={(e) => updateField("requirements", e.target.value)} />
@@ -752,10 +764,10 @@ export default function DetailedRequestPage() {
                   </div>
                 )}
 
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("overtime")}>Overtime {expanded.overtime ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("overtime")}>{withSelection("Overtime", formData.overtime)} {expanded.overtime ? "▲" : "▼"}</button>
                 {expanded.overtime && <div className={groupErrorClass("overtime")}>{["Yes", "Occasionally", "No"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.overtime === v} onChange={() => selectAndCollapse("overtime", "overtime", v)} ref={(e) => { if (i === 0) setRef("overtime", e); }} />{v}{(v === "Yes" || v === "Occasionally") && formData.overtime === v && <span className="ml-2 inline-flex items-center gap-2"><span className="text-xs text-text-secondary">Max hours/week</span><input type="number" className={`${inputClass} ${invalid("maxOvertimeHours")} w-28`} placeholder="Max*" value={formData.maxOvertimeHours} onChange={(e) => updateField("maxOvertimeHours", e.target.value)} ref={(e) => setRef("maxOvertimeHours", e)} /></span>}</label>)}</div>}
 
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("rotation")}>Rotation {expanded.rotation ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("rotation")}>{withSelection("Rotation", formData.hasRotation)} {expanded.rotation ? "▲" : "▼"}</button>
                 {expanded.rotation && (
                   <div className={groupErrorClass("hasRotation")}>
                     {["Yes", "No"].map((v, i) => (
@@ -784,19 +796,19 @@ export default function DetailedRequestPage() {
             {step === 7 && (
               <div className="space-y-3">
                 <h2 className={titleClass}>Working conditions</h2>
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("intlTravel")}>International travel {expanded.intlTravel ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("intlTravel")}>{withSelection("International travel", formData.internationalTravel)} {expanded.intlTravel ? "▲" : "▼"}</button>
                 {expanded.intlTravel && <div className={groupErrorClass("internationalTravel")}>{["Covered by the company (flights, transport)", "Candidate's own responsibility"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.internationalTravel === v} onChange={() => selectAndCollapse("intlTravel", "internationalTravel", v)} ref={(e) => { if (i === 0) setRef("internationalTravel", e); }} />{v}</label>)}</div>}
 
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("localTravel")}>Local travel {expanded.localTravel ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("localTravel")}>{withSelection("Local travel", formData.localTravel)} {expanded.localTravel ? "▲" : "▼"}</button>
                 {expanded.localTravel && <div className={groupErrorClass("localTravel")}>{["Company car", "Company card for public transport", "Own transport (reimbursed)", "Own transport (not reimbursed)", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.localTravel === v} onChange={() => selectAndCollapse("localTravel", "localTravel", v)} ref={(e) => { if (i === 0) setRef("localTravel", e); }} />{v}{v === "Other" && formData.localTravel === "Other" && <input className={`${inputClass} ${invalid("localTravelOther")} ml-2 max-w-[220px]`} placeholder="Specify*" value={formData.localTravelOther} onChange={(e) => updateField("localTravelOther", e.target.value)} ref={(e) => setRef("localTravelOther", e)} />}</label>)}</div>}
 
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("accommodation")}>Accommodation {expanded.accommodation ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("accommodation")}>{withSelection("Accommodation", formData.accommodation)} {expanded.accommodation ? "▲" : "▼"}</button>
                 {expanded.accommodation && <div className={groupErrorClass("accommodation")}>{["Free accommodation provided", "Not included", "We help find it", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.accommodation === v} onChange={() => selectAndCollapse("accommodation", "accommodation", v)} ref={(e) => { if (i === 0) setRef("accommodation", e); }} />{v}{v === "We help find it" && formData.accommodation === "We help find it" && <input className={`${inputClass} ${invalid("accommodationCost")} ml-2 max-w-[220px]`} placeholder="Accommodation cost (NOK/month)*" value={formData.accommodationCost} onChange={(e) => updateField("accommodationCost", e.target.value)} ref={(e) => setRef("accommodationCost", e)} />}{v === "Other" && formData.accommodation === "Other" && <input className={`${inputClass} ${invalid("accommodationOther")} ml-2 max-w-[220px]`} placeholder="Specify*" value={formData.accommodationOther} onChange={(e) => updateField("accommodationOther", e.target.value)} ref={(e) => setRef("accommodationOther", e)} />}</label>)}</div>}
 
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("equipment")}>Work clothing & footwear {expanded.equipment ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("equipment")}>{withSelection("Work clothing & footwear", formData.equipment)} {expanded.equipment ? "▲" : "▼"}</button>
                 {expanded.equipment && <div className={groupErrorClass("equipment")}>{["Yes, provided by employer", "No, worker provides own", "Partially, only PPE is provided", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.equipment === v} onChange={() => selectAndCollapse("equipment", "equipment", v)} ref={(e) => { if (i === 0) setRef("equipment", e); }} />{v}{v === "Other" && formData.equipment === "Other" && <input className={`${inputClass} ${invalid("equipmentOther")} ml-2 max-w-[220px]`} placeholder="Specify*" value={formData.equipmentOther} onChange={(e) => updateField("equipmentOther", e.target.value)} ref={(e) => setRef("equipmentOther", e)} />}</label>)}</div>}
 
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("tools")}>Tools {expanded.tools ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("tools")}>{withSelection("Tools", formData.tools)} {expanded.tools ? "▲" : "▼"}</button>
                 {expanded.tools && <div className={groupErrorClass("tools")}>{["Yes, provided", "No, worker brings own", "Not required", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.tools === v} onChange={() => selectAndCollapse("tools", "tools", v)} ref={(e) => { if (i === 0) setRef("tools", e); }} />{v}{v === "Other" && formData.tools === "Other" && <input className={`${inputClass} ${invalid("toolsOther")} ml-2 max-w-[220px]`} placeholder="Specify*" value={formData.toolsOther} onChange={(e) => updateField("toolsOther", e.target.value)} ref={(e) => setRef("toolsOther", e)} />}</label>)}</div>}
               </div>
             )}
@@ -807,10 +819,10 @@ export default function DetailedRequestPage() {
                 <label className={labelClass}>Work location / city</label>
                 <input className={`${inputClass} ${invalid("city")}`} placeholder="Work location / city*" value={formData.city} onChange={(e) => updateField("city", e.target.value)} ref={(e) => setRef("city", e)} />
 
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("startDate")}>Preferred start date {expanded.startDate ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("startDate")}>{withSelection("Preferred start date", selectedStartDateLabel)} {expanded.startDate ? "▲" : "▼"}</button>
                 {expanded.startDate && <div className="space-y-2">{["ASAP", "1-2 weeks", "Within 1 month", "Flexible", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.startDate === v} onChange={() => selectAndCollapse("startDate", "startDate", v)} ref={(e) => { if (i === 0) setRef("startDate", e); }} />{v}{v === "Other" && formData.startDate === "Other" && <input type="date" className={`${inputClass} ${invalid("startDateOther")} ml-2 max-w-[220px]`} value={formData.startDateOther} onChange={(e) => updateField("startDateOther", e.target.value)} ref={(e) => setRef("startDateOther", e)} />}</label>)}</div>}
 
-                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("hear")}>How did you hear about us? {expanded.hear ? "▲" : "▼"}</button>
+                <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("hear")}>{withSelection("How did you hear about us?", selectedHearLabel)} {expanded.hear ? "▲" : "▼"}</button>
                 {expanded.hear && (
                   <div className="space-y-2">
                     {howDidYouHearOptions.map((v, i) => (
