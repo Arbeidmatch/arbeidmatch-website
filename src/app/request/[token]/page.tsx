@@ -540,8 +540,8 @@ export default function DetailedRequestPage() {
             {step === 0 && (
               <div className="space-y-3">
                 <h2 className={titleClass}>Who should we contact?</h2>
-                <label className={labelClass}>Full name</label>
-                <input className={`${inputClass} ${invalid("full_name")}`} placeholder="Full name*" value={formData.full_name} onChange={(e) => updateField("full_name", e.target.value)} ref={(e) => setRef("full_name", e)} />
+                <label className={labelClass}>First name last name</label>
+                <input className={`${inputClass} ${invalid("full_name")}`} placeholder="First name last name*" value={formData.full_name} onChange={(e) => updateField("full_name", e.target.value)} ref={(e) => setRef("full_name", e)} />
                 <label className={labelClass}>Phone</label>
                 <div className="grid grid-cols-[130px_1fr] gap-2">
                   <select
