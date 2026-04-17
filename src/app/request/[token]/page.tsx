@@ -843,24 +843,59 @@ export default function DetailedRequestPage() {
                 <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("rotation")}>{withSelection("Rotation", formData.hasRotation)} {expanded.rotation ? "▲" : "▼"}</button>
                 {expanded.rotation && (
                   <div className={groupErrorClass("hasRotation")}>
-                    {["Yes", "No"].map((v, i) => (
+                    {["Yes", "No"]
+                      .filter((v) => !formData.hasRotation || formData.hasRotation === v)
+                      .map((v, i) => (
                       <label key={v} className={radioClass}>
-                        <input type="radio" className="shrink-0 accent-gold" checked={formData.hasRotation === v} onChange={() => selectAndCollapse("rotation", "hasRotation", v)} ref={(e) => { if (i === 0) setRef("hasRotation", e); }} />
+                        <input
+                          type="radio"
+                          className="shrink-0 accent-gold"
+                          checked={formData.hasRotation === v}
+                          onChange={() => {
+                            updateField("hasRotation", v);
+                            if (v === "No") {
+                              updateField("rotationWeeksOn", "");
+                              updateField("rotationWeeksOff", "");
+                              setExpanded((prev) => ({ ...prev, rotation: false }));
+                            } else {
+                              setExpanded((prev) => ({ ...prev, rotation: true }));
+                            }
+                          }}
+                          ref={(e) => {
+                            if (i === 0) setRef("hasRotation", e);
+                          }}
+                        />
                         {v}
                         {v === "Yes" && formData.hasRotation === "Yes" && (
                           <span className="ml-2 inline-flex gap-2">
-                            <select className={`${inputClass} ${invalid("rotationWeeksOn")} w-28`} value={formData.rotationWeeksOn} onChange={(e) => updateField("rotationWeeksOn", e.target.value)} ref={(e) => setRef("rotationWeeksOn", e)}>
+                            <select
+                              className={`${inputClass} ${invalid("rotationWeeksOn")} w-28`}
+                              value={formData.rotationWeeksOn}
+                              onChange={(e) => updateField("rotationWeeksOn", e.target.value)}
+                              ref={(e) => setRef("rotationWeeksOn", e)}
+                            >
                               <option value="">On*</option>
                               {["1 week", "2 weeks", "3 weeks", "4 weeks", "6 weeks", "8 weeks"].map((x) => <option key={x}>{x}</option>)}
                             </select>
-                            <select className={`${inputClass} ${invalid("rotationWeeksOff")} w-28`} value={formData.rotationWeeksOff} onChange={(e) => updateField("rotationWeeksOff", e.target.value)} ref={(e) => setRef("rotationWeeksOff", e)}>
+                            <select
+                              className={`${inputClass} ${invalid("rotationWeeksOff")} w-28`}
+                              value={formData.rotationWeeksOff}
+                              onChange={(e) => {
+                                const nextOff = e.target.value;
+                                updateField("rotationWeeksOff", nextOff);
+                                if (formData.rotationWeeksOn && nextOff) {
+                                  setExpanded((prev) => ({ ...prev, rotation: false }));
+                                }
+                              }}
+                              ref={(e) => setRef("rotationWeeksOff", e)}
+                            >
                               <option value="">Off*</option>
                               {["1 week", "2 weeks", "3 weeks", "4 weeks", "6 weeks", "8 weeks"].map((x) => <option key={x}>{x}</option>)}
                             </select>
                           </span>
                         )}
                       </label>
-                    ))}
+                      ))}
                   </div>
                 )}
               </div>
