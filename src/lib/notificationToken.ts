@@ -78,7 +78,12 @@ export function createEligibilityVerificationToken(
         : "EMPTY",
   );
   console.log("[createToken] iat:", Date.now());
+  console.log(
+    "[createToken] input:",
+    JSON.stringify({ notifyEmail: payload.notifyEmail, source: payload.source }),
+  );
   const now = Math.floor(Date.now() / 1000);
+  console.log("[createToken] now(sec):", now);
   const fullPayload: EligibilityVerificationPayload = {
     ...payload,
     iat: now,
@@ -86,7 +91,9 @@ export function createEligibilityVerificationToken(
   };
   const encodedPayload = base64UrlEncode(JSON.stringify(fullPayload));
   const signature = createHmac("sha256", getSecret()).update(encodedPayload).digest("hex");
-  return `${encodedPayload}.${signature}`;
+  const token = `${encodedPayload}.${signature}`;
+  console.log("[createToken] output token prefix:", token.substring(0, 30));
+  return token;
 }
 
 export function verifyEligibilityVerificationToken(token: string): EligibilityVerificationPayload | null {
