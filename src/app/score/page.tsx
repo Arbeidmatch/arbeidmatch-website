@@ -109,14 +109,6 @@ export default function ScorePage() {
                 </button>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
-              disabled={currentStep === 0}
-              className="mt-5 rounded-md border border-navy px-4 py-2 text-sm font-medium text-navy disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Back
-            </button>
           </div>
         ) : (
           <div className="mt-8 rounded-xl bg-surface p-6">
