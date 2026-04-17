@@ -286,7 +286,18 @@ export default function DetailedRequestPage() {
   const toggleExpand = (key: string) => setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   const selectAndCollapse = (section: string, key: keyof RequestForm, value: string) => {
     updateField(key, value);
-    setExpanded((prev) => ({ ...prev, [section]: false }));
+    const keepOpen =
+      (key === "position" && value === "Other") ||
+      (key === "qualification" && value !== "No experience needed") ||
+      (key === "driverLicense" && value === "Other") ||
+      (key === "localTravel" && value === "Other") ||
+      (key === "accommodation" && (value === "We help find it" || value === "Other")) ||
+      (key === "equipment" && value === "Other") ||
+      (key === "tools" && value === "Other") ||
+      (key === "startDate" && value === "Other") ||
+      (key === "howDidYouHear" &&
+        (value === "Social media" || value === "Other" || value === "Referral from another company"));
+    setExpanded((prev) => ({ ...prev, [section]: keepOpen ? true : false }));
   };
   const toggleCert = (value: string) =>
     setFormData((prev) => ({
@@ -352,6 +363,74 @@ export default function DetailedRequestPage() {
     }, 300);
     return () => clearTimeout(timer);
   }, [formData.howDidYouHear, formData.referralCompanyName]);
+
+  useEffect(() => {
+    if (expanded.roleOptions && formData.position === "Other" && formData.positionOther.trim()) {
+      setExpanded((prev) => ({ ...prev, roleOptions: false }));
+    }
+    if (expanded.driver && formData.driverLicense === "Other" && formData.driverLicenseOther.trim()) {
+      setExpanded((prev) => ({ ...prev, driver: false }));
+    }
+    if (expanded.localTravel && formData.localTravel === "Other" && formData.localTravelOther.trim()) {
+      setExpanded((prev) => ({ ...prev, localTravel: false }));
+    }
+    if (
+      expanded.accommodation &&
+      ((formData.accommodation === "We help find it" && formData.accommodationCost.trim()) ||
+        (formData.accommodation === "Other" && formData.accommodationOther.trim()))
+    ) {
+      setExpanded((prev) => ({ ...prev, accommodation: false }));
+    }
+    if (expanded.equipment && formData.equipment === "Other" && formData.equipmentOther.trim()) {
+      setExpanded((prev) => ({ ...prev, equipment: false }));
+    }
+    if (expanded.tools && formData.tools === "Other" && formData.toolsOther.trim()) {
+      setExpanded((prev) => ({ ...prev, tools: false }));
+    }
+    if (expanded.startDate && formData.startDate === "Other" && formData.startDateOther) {
+      setExpanded((prev) => ({ ...prev, startDate: false }));
+    }
+    if (expanded.hear && formData.howDidYouHear === "Other" && formData.howDidYouHearOther.trim()) {
+      setExpanded((prev) => ({ ...prev, hear: false }));
+    }
+    if (
+      expanded.hear &&
+      formData.howDidYouHear === "Social media" &&
+      formData.socialMediaPlatform === "Other" &&
+      formData.socialMediaOther.trim()
+    ) {
+      setExpanded((prev) => ({ ...prev, hear: false }));
+    }
+    if (
+      expanded.hear &&
+      formData.howDidYouHear === "Referral from another company" &&
+      formData.referralCompanyName.trim()
+    ) {
+      setExpanded((prev) => ({ ...prev, hear: false }));
+    }
+  }, [
+    expanded,
+    formData.position,
+    formData.positionOther,
+    formData.driverLicense,
+    formData.driverLicenseOther,
+    formData.localTravel,
+    formData.localTravelOther,
+    formData.accommodation,
+    formData.accommodationCost,
+    formData.accommodationOther,
+    formData.equipment,
+    formData.equipmentOther,
+    formData.tools,
+    formData.toolsOther,
+    formData.startDate,
+    formData.startDateOther,
+    formData.howDidYouHear,
+    formData.howDidYouHearOther,
+    formData.socialMediaPlatform,
+    formData.socialMediaOther,
+    formData.referralCompanyName,
+  ]);
 
   const validateStep = (s: Step): string | null => {
     const phoneDigits = formData.phoneNumber.replace(/\D/g, "");
