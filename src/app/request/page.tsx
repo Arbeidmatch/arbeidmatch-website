@@ -11,9 +11,12 @@ type CompanyResult = {
 };
 
 export default function RequestPage() {
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [companyQuery, setCompanyQuery] = useState("");
   const [orgNumber, setOrgNumber] = useState("");
+  const [partnershipStatus, setPartnershipStatus] = useState<"existing" | "new">("existing");
+  const [engagementModel, setEngagementModel] = useState("Occasional candidate requests");
+  const [engagementDetails, setEngagementDetails] = useState("");
   const [howDidYouHear, setHowDidYouHear] = useState("Google search");
   const [socialMediaPlatform, setSocialMediaPlatform] = useState("Facebook");
   const [socialMediaOther, setSocialMediaOther] = useState("");
@@ -36,9 +39,31 @@ export default function RequestPage() {
     const formData = new FormData(form);
     const payload = Object.fromEntries(formData.entries()) as Record<string, string>;
     const requestedLocation = payload.requested_location?.trim();
+    payload.partnershipStatus = partnershipStatus;
 
     if (requestedLocation) {
       payload.job_summary = `${payload.job_summary?.trim()}\nLocation needed: ${requestedLocation}`;
+    }
+
+    if (partnershipStatus === "new") {
+      try {
+        const response = await fetch("/api/send-partnership-request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...payload,
+            engagementModel,
+            engagementDetails,
+            requestedLocation,
+          }),
+        });
+
+        if (!response.ok) throw new Error("Partnership request failed");
+        setStatus("success");
+      } catch {
+        setStatus("error");
+      }
+      return;
     }
 
     try {
@@ -243,6 +268,62 @@ export default function RequestPage() {
             />
           </label>
 
+          <fieldset className="space-y-2 rounded-md border border-border p-3">
+            <legend className="px-1 text-sm font-medium text-navy">
+              Eligibility check: Is your company already in partnership with ArbeidMatch?
+            </legend>
+            <label className="flex items-center gap-2 text-sm text-navy">
+              <input
+                type="radio"
+                name="partnershipStatus"
+                checked={partnershipStatus === "existing"}
+                onChange={() => setPartnershipStatus("existing")}
+              />
+              Yes, we are already a partner
+            </label>
+            <label className="flex items-center gap-2 text-sm text-navy">
+              <input
+                type="radio"
+                name="partnershipStatus"
+                checked={partnershipStatus === "new"}
+                onChange={() => setPartnershipStatus("new")}
+              />
+              No, we are a new company
+            </label>
+          </fieldset>
+
+          {partnershipStatus === "new" && (
+            <div className="space-y-3 rounded-md border border-border bg-surface p-3">
+              <p className="text-sm font-medium text-navy">What type of collaboration are you looking for?</p>
+              {[
+                "Occasional candidate requests",
+                "Volume-based engagement",
+                "Quality-focused engagement",
+              ].map((option) => (
+                <label key={option} className="flex items-center gap-2 text-sm text-navy">
+                  <input
+                    type="radio"
+                    name="engagementModel"
+                    checked={engagementModel === option}
+                    onChange={() => setEngagementModel(option)}
+                  />
+                  {option}
+                </label>
+              ))}
+              <label className="block text-sm text-navy">
+                Tell us what you need
+                <textarea
+                  name="engagementDetails"
+                  rows={3}
+                  className={`${inputClass} mt-1`}
+                  value={engagementDetails}
+                  onChange={(event) => setEngagementDetails(event.target.value)}
+                  placeholder="Describe your hiring needs, timeline, and expected collaboration format"
+                />
+              </label>
+            </div>
+          )}
+
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-navy">How did you hear about us?</span>
             <select
@@ -399,8 +480,18 @@ export default function RequestPage() {
             disabled={status === "submitting"}
             className="w-full rounded-md bg-gold py-4 text-lg font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {status === "submitting" ? "Please wait..." : "Continue →"}
+            {status === "submitting"
+              ? "Please wait..."
+              : partnershipStatus === "new"
+                ? "Send request →"
+                : "Continue →"}
           </button>
+
+          {status === "success" && partnershipStatus === "new" && (
+            <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800">
+              Request sent successfully. You will receive an offer for your request as soon as possible.
+            </div>
+          )}
 
           {status === "error" && (
             <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-700">
