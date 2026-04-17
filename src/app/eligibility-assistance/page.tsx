@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, Suspense, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 const inputClass =
@@ -35,6 +35,10 @@ function EligibilityAssistanceContent() {
   const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
 
   const totalSteps = 2;
   const progress = pausedByChoice ? 100 : ((currentStep + 1) / totalSteps) * 100;
