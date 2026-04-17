@@ -8,6 +8,13 @@ function normalizeRedirect(value: string | null): string {
   return value;
 }
 
+function getCookieDomain(hostname: string): string | undefined {
+  if (hostname === "arbeidmatch.no" || hostname === "www.arbeidmatch.no") {
+    return ".arbeidmatch.no";
+  }
+  return undefined;
+}
+
 function buildConsentResponse(request: NextRequest, action: string | null, redirectRaw: string | null) {
   const redirect = normalizeRedirect(redirectRaw);
 
@@ -24,9 +31,11 @@ function buildConsentResponse(request: NextRequest, action: string | null, redir
   // Use 303 so form POST never triggers browser resubmission warnings.
   const response = NextResponse.redirect(new URL(destination, request.url), { status: 303 });
   response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+  const cookieDomain = getCookieDomain(request.nextUrl.hostname);
   response.cookies.set({
     name: COOKIE_NAME,
     value: isAccepted ? "accepted" : "declined",
+    ...(cookieDomain ? { domain: cookieDomain } : {}),
     path: "/",
     maxAge: ONE_YEAR_SECONDS,
     sameSite: "lax",

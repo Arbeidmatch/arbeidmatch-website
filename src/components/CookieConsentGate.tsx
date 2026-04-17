@@ -34,6 +34,15 @@ function readConsentValue(): "accepted" | "declined" | null {
   return null;
 }
 
+function storeConsent(value: "accepted" | "declined") {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, value);
+  } catch {
+    // Ignore storage write issues in hardened browser settings.
+  }
+}
+
 export default function CookieConsentGate() {
   const pathname = usePathname();
   const consent = readConsentValue();
@@ -66,12 +75,14 @@ export default function CookieConsentGate() {
         <div className="mt-5 flex flex-wrap gap-3">
           <a
             href={acceptHref}
+            onClick={() => storeConsent("accepted")}
             className="inline-flex items-center justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
           >
             Accept policies
           </a>
           <a
             href={declineHref}
+            onClick={() => storeConsent("declined")}
             className="inline-flex items-center justify-center rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface"
           >
             Decline for now
