@@ -8,24 +8,12 @@ const steps = [
     options: ["Yes", "No"],
   },
   {
-    question: "What is your main trade or skill?",
-    options: ["Carpenter", "Painter", "Tile layer", "Concrete worker", "Electrician", "Mechanic", "Logistics", "Cleaner", "Other"],
-  },
-  {
-    question: "How many years of experience do you have?",
-    options: ["Less than 1", "1-3 years", "3-5 years", "5+ years"],
+    question: "Do you have more than 2 years of experience in your field?",
+    options: ["Yes, more than 2 years", "No, 2 years or less"],
   },
   {
     question: "What is your English level?",
-    options: ["Basic", "Conversational", "Fluent"],
-  },
-  {
-    question: "When can you start?",
-    options: ["Immediately", "Within 1 month", "1-3 months", "3+ months"],
-  },
-  {
-    question: "Do you have a valid driver's license?",
-    options: ["Yes (B or higher)", "No"],
+    options: ["I do not speak English", "Work-related", "Conversational", "Fluent"],
   },
 ];
 
@@ -39,9 +27,8 @@ export default function ScorePage() {
     if (answers.length < steps.length) return null;
     const strongProfile =
       answers[0] === "Yes" &&
-      answers[2] !== "Less than 1" &&
-      answers[3] !== "Basic" &&
-      answers[5] === "Yes (B or higher)";
+      answers[1] === "Yes, more than 2 years" &&
+      answers[2] !== "I do not speak English";
     return strongProfile ? "good" : "weak";
   }, [answers]);
 
@@ -62,7 +49,10 @@ export default function ScorePage() {
     }
   };
 
-  const disqualified = answers[0] === "No";
+  const disqualified =
+    answers[0] === "No" ||
+    answers[1] === "No, 2 years or less" ||
+    answers[2] === "I do not speak English";
 
   return (
     <section className="bg-surface py-16">
@@ -107,7 +97,8 @@ export default function ScorePage() {
               <>
                 <h2 className="text-2xl font-bold text-navy">You may not qualify yet</h2>
                 <p className="mt-3 text-text-secondary">
-                  You can still apply to open roles and our team will review your profile.
+                  Eligibility requires EU/EEA work rights, more than 2 years of relevant experience,
+                  and at least work-related English.
                 </p>
               </>
             )}
