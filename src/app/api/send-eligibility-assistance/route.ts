@@ -4,6 +4,8 @@ import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { createEligibilityVerificationToken } from "@/lib/notificationToken";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     const rawData = (await request.json()) as Record<string, unknown>;
@@ -14,6 +16,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
     }
     const data = sanitizeStringRecord(rawData);
+    console.log("[send-eligibility] called at:", Date.now());
+    console.log("[send-eligibility] email:", data.notifyEmail);
     if (!data.notifyEmail || !data.notifyEmail.includes("@")) {
       return NextResponse.json({ success: false, error: "Valid email is required." }, { status: 400 });
     }
