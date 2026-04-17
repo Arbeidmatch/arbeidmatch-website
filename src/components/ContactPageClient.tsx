@@ -213,7 +213,7 @@ export default function ContactPageClient() {
           </p>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             <a
-              href="https://www.facebook.com/arbeidmatch"
+              href="https://www.facebook.com/arbeidmatchNO"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex flex-col rounded-xl border border-[#1877F2]/40 bg-[#1877F2]/10 p-5 transition hover:border-[#1877F2] hover:bg-[#1877F2]/15"
