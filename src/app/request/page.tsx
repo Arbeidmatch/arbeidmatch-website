@@ -10,6 +10,24 @@ type CompanyResult = {
   orgNumber: string;
 };
 
+const norwayCities = [
+  "Oslo",
+  "Bergen",
+  "Trondheim",
+  "Stavanger",
+  "Drammen",
+  "Kristiansand",
+  "Fredrikstad",
+  "Tromso",
+  "Sandnes",
+  "Asker",
+  "Skien",
+  "Alesund",
+  "Bodo",
+  "Tonsberg",
+  "Moss",
+];
+
 export default function RequestPage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [cardError, setCardError] = useState("");
@@ -358,14 +376,20 @@ export default function RequestPage() {
 
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-navy">Where do you need candidates?*</span>
-            <input
+            <select
               required
               name="requested_location"
               className={inputClass}
-              placeholder="E.g. Oslo, Trondheim, Stavanger"
               value={requestedLocation}
               onChange={(event) => setRequestedLocation(event.target.value)}
-            />
+            >
+              <option value="">Select city</option>
+              {norwayCities.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
           </label>
               </div>
             )}
