@@ -41,19 +41,26 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseClient();
     if (supabase) {
-      const existingVerified = await supabase
+      const { data: existing, error: existingError } = await supabase
         .from("guide_interest_signups")
-        .select("id")
+        .select("id, email_verified")
         .eq("notify_email", emailTrimmed)
         .eq("target_country", countryTrimmed)
-        .eq("email_verified", true)
-        .limit(1);
-      if (existingVerified.error) {
-        console.error("[send-eligibility-assistance] Supabase lookup failed:", existingVerified.error.message);
-        return NextResponse.json({ success: false, error: "Could not verify registration status. Please try again." }, { status: 500 });
+        .single();
+
+      if (existingError && existingError.code !== "PGRST116") {
+        console.error("[send-eligibility-assistance] Supabase lookup failed:", existingError.message);
+        return NextResponse.json(
+          { success: false, error: "Could not verify registration status. Please try again." },
+          { status: 500 },
+        );
       }
-      if (existingVerified.data && existingVerified.data.length > 0) {
-        return NextResponse.json({ success: true, alreadyRegistered: true });
+
+      if (existing?.email_verified === true) {
+        return NextResponse.json({
+          success: true,
+          alreadyRegistered: true,
+        });
       }
     }
 
