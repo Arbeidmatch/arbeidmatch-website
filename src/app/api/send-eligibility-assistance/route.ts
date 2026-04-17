@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
             ])}
             ${section("Assistance Request", [
               ["Wants assistance", data.wantsAssistance],
+              ["Target region", data.targetRegion],
               ["Target country", data.targetCountry],
               ["Additional details", data.details],
             ])}
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
             <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
           </div>
           <div style="padding:20px;color:#0D1B2A;">
+            <p><strong>Target region:</strong> ${data.targetRegion || "-"}</p>
             <p><strong>Target country:</strong> ${data.targetCountry || "-"}</p>
             <p><strong>Support requested:</strong> ${data.wantsAssistance || "-"}</p>
             <p style="margin-top:18px;"><strong>Contact:</strong> post@arbeidmatch.no · +47 967 34 730</p>

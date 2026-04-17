@@ -12,7 +12,9 @@ export default function EligibilityAssistancePage() {
   const [stepError, setStepError] = useState("");
   const [pausedByChoice, setPausedByChoice] = useState(false);
   const [wantsAssistance, setWantsAssistance] = useState<"yes" | "no" | "">("");
+  const [targetRegion, setTargetRegion] = useState<"Scandinavia" | "Europe" | "">("");
   const [targetCountry, setTargetCountry] = useState("");
+  const [countrySearch, setCountrySearch] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -21,10 +23,47 @@ export default function EligibilityAssistancePage() {
 
   const totalSteps = 3;
   const progress = pausedByChoice ? 100 : ((currentStep + 1) / totalSteps) * 100;
+  const regionCountries: Record<"Scandinavia" | "Europe", string[]> = {
+    Scandinavia: ["Norway", "Sweden", "Denmark", "Finland", "Iceland"],
+    Europe: [
+      "Austria",
+      "Belgium",
+      "Bulgaria",
+      "Croatia",
+      "Cyprus",
+      "Czech Republic",
+      "Estonia",
+      "France",
+      "Germany",
+      "Greece",
+      "Hungary",
+      "Ireland",
+      "Italy",
+      "Latvia",
+      "Lithuania",
+      "Luxembourg",
+      "Malta",
+      "Netherlands",
+      "Poland",
+      "Portugal",
+      "Romania",
+      "Slovakia",
+      "Slovenia",
+      "Spain",
+      "Switzerland",
+      "United Kingdom",
+    ],
+  };
+  const filteredCountries =
+    targetRegion === ""
+      ? []
+      : regionCountries[targetRegion].filter((country) =>
+          country.toLowerCase().includes(countrySearch.trim().toLowerCase()),
+        );
 
   const validateStep = () => {
     if (currentStep === 0) return Boolean(wantsAssistance);
-    if (currentStep === 1) return targetCountry.trim().length > 1;
+    if (currentStep === 1) return Boolean(targetRegion) && targetCountry.trim().length > 1;
     return fullName.trim().length > 1 && email.includes("@") && currentCountry.trim().length > 1;
   };
 
@@ -57,6 +96,7 @@ export default function EligibilityAssistancePage() {
 
     const payload = {
       wantsAssistance,
+      targetRegion,
       targetCountry,
       fullName,
       email,
@@ -145,20 +185,64 @@ export default function EligibilityAssistancePage() {
 
           {currentStep === 1 && !pausedByChoice && (
             <div className="space-y-3">
-              <p className="text-lg font-medium text-navy">
-                Which country do you want to move to for work?
-              </p>
-              <label className="block">
-                <span className="mb-1 block text-sm font-medium text-navy">Target country*</span>
-                <input
-                  required
-                  name="targetCountry"
-                  className={inputClass}
-                  placeholder="E.g. Norway, Sweden, Denmark, Germany"
-                  value={targetCountry}
-                  onChange={(event) => setTargetCountry(event.target.value)}
-                />
-              </label>
+              <p className="text-lg font-medium text-navy">Where do you want to work?</p>
+              <div className="space-y-2">
+                {(["Scandinavia", "Europe"] as const).map((region) => (
+                  <button
+                    key={region}
+                    type="button"
+                    onClick={() => {
+                      setTargetRegion(region);
+                      setTargetCountry("");
+                      setCountrySearch("");
+                    }}
+                    className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
+                      targetRegion === region ? "border-gold bg-gold/10" : "border-border hover:border-gold"
+                    }`}
+                  >
+                    {region}
+                  </button>
+                ))}
+              </div>
+
+              {targetRegion && (
+                <div className="space-y-2 rounded-md border border-border bg-white p-3">
+                  <p className="text-sm font-medium text-navy">
+                    Select country in {targetRegion}*
+                  </p>
+                  <input
+                    className={inputClass}
+                    placeholder="Search country..."
+                    value={countrySearch}
+                    onChange={(event) => setCountrySearch(event.target.value)}
+                  />
+                  <div className="max-h-44 overflow-y-auto rounded-md border border-border">
+                    {filteredCountries.length > 0 ? (
+                      filteredCountries.map((country) => (
+                        <button
+                          key={country}
+                          type="button"
+                          onClick={() => setTargetCountry(country)}
+                          className={`block w-full border-b border-border px-3 py-2 text-left text-sm last:border-b-0 ${
+                            targetCountry === country
+                              ? "bg-gold/10 font-medium text-navy"
+                              : "text-navy hover:bg-surface"
+                          }`}
+                        >
+                          {country}
+                        </button>
+                      ))
+                    ) : (
+                      <p className="px-3 py-2 text-sm text-text-secondary">No countries found</p>
+                    )}
+                  </div>
+                  {targetCountry && (
+                    <p className="text-sm text-navy">
+                      Selected country: <span className="font-medium">{targetCountry}</span>
+                    </p>
+                  )}
+                </div>
+              )}
               <p className="text-xs text-text-secondary">
                 This is important because visa and legal documentation depend on the specific country.
               </p>
