@@ -806,12 +806,14 @@ export default function DetailedRequestPage() {
                 {expanded.salary && (
                   <>
                     <div className={groupBaseClass}>
-                      {(["Per hour", "Per month"] as const).map((v) => (
+                      {(["Per hour", "Per month"] as const)
+                        .filter((v) => !formData.salaryPeriod || formData.salaryPeriod === v)
+                        .map((v) => (
                         <label key={v} className={radioClass}>
                           <input type="radio" className="shrink-0 accent-gold" checked={formData.salaryPeriod === v} onChange={() => updateField("salaryPeriod", v)} />
                           {v}
                         </label>
-                      ))}
+                        ))}
                     </div>
                     {formData.salaryPeriod && (
                       <div>
