@@ -4,6 +4,8 @@ import nodemailer from "nodemailer";
 export async function POST(request: NextRequest) {
   try {
     const data = (await request.json()) as Record<string, string>;
+    const partnershipLabel =
+      data.partnershipStatus === "new" ? "No, we are not a partner yet" : "Yes, we are already a partner";
 
     const transporter = nodemailer.createTransport({
       host: "send.one.com",
@@ -51,10 +53,9 @@ export async function POST(request: NextRequest) {
               ["Requested location", data.requestedLocation],
             ])}
             ${section("Request Overview", [
-              ["Partnership status", data.partnershipStatus === "new" ? "New company (not yet a partner)" : "Existing partner"],
+              ["Partnership status", partnershipLabel],
               ["Initial summary", data.job_summary],
               ["Engagement model", data.engagementModel],
-              ["Engagement details", data.engagementDetails],
             ])}
             ${section("Lead Source Details", [
               ["How did you hear about us", data.howDidYouHear],

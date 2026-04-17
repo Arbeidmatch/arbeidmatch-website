@@ -144,10 +144,6 @@ export default function RequestPage() {
 
     payload.partnershipStatus = partnershipStatus;
 
-    if (requestedLocation.trim()) {
-      payload.job_summary = `${payload.job_summary.trim()}\nLocation needed: ${requestedLocation.trim()}`;
-    }
-
     try {
       const response = await fetch("/api/send-partnership-request", {
         method: "POST",
