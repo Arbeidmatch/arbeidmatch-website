@@ -21,7 +21,8 @@ function buildConsentResponse(request: NextRequest, action: string | null, redir
   }
 
   const destination = isAccepted ? redirect : "/cookie-required";
-  const response = NextResponse.redirect(new URL(destination, request.url));
+  // Use 303 so form POST never triggers browser resubmission warnings.
+  const response = NextResponse.redirect(new URL(destination, request.url), { status: 303 });
   response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
   response.cookies.set({
     name: COOKIE_NAME,
