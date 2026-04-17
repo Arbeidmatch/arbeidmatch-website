@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const steps = [
   {
@@ -18,6 +19,7 @@ const steps = [
 ];
 
 export default function ScorePage() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
 
@@ -38,7 +40,7 @@ export default function ScorePage() {
     setAnswers(updated);
 
     if (currentStep === 0 && value === "No") {
-      setCurrentStep(steps.length);
+      router.push("/eligibility-assistance");
       return;
     }
 

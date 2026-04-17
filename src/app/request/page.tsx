@@ -14,7 +14,7 @@ export default function RequestPage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [companyQuery, setCompanyQuery] = useState("");
   const [orgNumber, setOrgNumber] = useState("");
-  const [partnershipStatus, setPartnershipStatus] = useState<"existing" | "new">("existing");
+  const [partnershipStatus, setPartnershipStatus] = useState<"existing" | "new" | "">("");
   const [engagementModel, setEngagementModel] = useState("Occasional candidate requests");
   const [engagementDetails, setEngagementDetails] = useState("");
   const [howDidYouHear, setHowDidYouHear] = useState("Google search");
@@ -39,6 +39,12 @@ export default function RequestPage() {
     const formData = new FormData(form);
     const payload = Object.fromEntries(formData.entries()) as Record<string, string>;
     const requestedLocation = payload.requested_location?.trim();
+
+    if (!partnershipStatus) {
+      setStatus("error");
+      return;
+    }
+
     payload.partnershipStatus = partnershipStatus;
 
     if (requestedLocation) {
@@ -193,6 +199,40 @@ export default function RequestPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="mx-auto mt-4 max-w-md space-y-4 rounded-xl border border-border bg-white p-6">
+          <fieldset className="space-y-2 rounded-md border border-border p-3">
+            <legend className="px-1 text-sm font-medium text-navy">
+              Eligibility check: Is your company already in partnership with ArbeidMatch?
+            </legend>
+            <label className="flex items-center gap-2 text-sm text-navy">
+              <input
+                type="radio"
+                name="partnershipStatus"
+                checked={partnershipStatus === "existing"}
+                onChange={() => setPartnershipStatus("existing")}
+                required
+              />
+              Yes, we are already a partner
+            </label>
+            <label className="flex items-center gap-2 text-sm text-navy">
+              <input
+                type="radio"
+                name="partnershipStatus"
+                checked={partnershipStatus === "new"}
+                onChange={() => setPartnershipStatus("new")}
+                required
+              />
+              No, we are a new company
+            </label>
+          </fieldset>
+
+          {!partnershipStatus && (
+            <div className="rounded-md border border-border bg-surface p-3 text-sm text-text-secondary">
+              Please choose partnership status first to continue.
+            </div>
+          )}
+
+          {partnershipStatus && (
+            <>
           <label className="relative block">
             <span className="mb-1 block text-sm font-medium text-navy">Company name*</span>
             <input
@@ -267,30 +307,6 @@ export default function RequestPage() {
               placeholder="E.g. Oslo, Trondheim, Stavanger"
             />
           </label>
-
-          <fieldset className="space-y-2 rounded-md border border-border p-3">
-            <legend className="px-1 text-sm font-medium text-navy">
-              Eligibility check: Is your company already in partnership with ArbeidMatch?
-            </legend>
-            <label className="flex items-center gap-2 text-sm text-navy">
-              <input
-                type="radio"
-                name="partnershipStatus"
-                checked={partnershipStatus === "existing"}
-                onChange={() => setPartnershipStatus("existing")}
-              />
-              Yes, we are already a partner
-            </label>
-            <label className="flex items-center gap-2 text-sm text-navy">
-              <input
-                type="radio"
-                name="partnershipStatus"
-                checked={partnershipStatus === "new"}
-                onChange={() => setPartnershipStatus("new")}
-              />
-              No, we are a new company
-            </label>
-          </fieldset>
 
           {partnershipStatus === "new" && (
             <div className="space-y-3 rounded-md border border-border bg-surface p-3">
@@ -497,6 +513,8 @@ export default function RequestPage() {
             <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-700">
               Something went wrong. Please email post@arbeidmatch.no
             </div>
+          )}
+            </>
           )}
         </form>
       </div>
