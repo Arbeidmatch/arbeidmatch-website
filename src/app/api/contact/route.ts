@@ -87,6 +87,10 @@ export async function POST(request: NextRequest) {
               <p>Hi ${name},</p>
               <p>Thank you for contacting us. We received your message and will respond shortly.</p>
               <p><strong>Request type:</strong> ${need}</p>
+              <p style="margin-top:14px;">
+                Help us improve your experience:
+                <a href="https://arbeidmatch.no/feedback" style="color:#C9A84C;font-weight:600;text-decoration:none;"> Share feedback</a>
+              </p>
               <p style="margin-top:16px;">Best regards,<br />ArbeidMatch Team</p>
             </div>
           </div>
