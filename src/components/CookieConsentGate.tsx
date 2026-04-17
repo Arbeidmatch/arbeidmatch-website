@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 
 const COOKIE_NAME = "site_cookie_consent";
 const STORAGE_KEY = "site_cookie_consent";
@@ -37,10 +36,13 @@ function readConsentValue(): "accepted" | "declined" | null {
 
 export default function CookieConsentGate() {
   const pathname = usePathname();
-  const [consent, setConsent] = useState<"accepted" | "declined" | null>(() => readConsentValue());
+  const consent = readConsentValue();
   const redirectPath = pathname || "/";
   if (consent) return null;
   if (pathname === "/cookie-required") return null;
+
+  const acceptHref = `/api/cookie-consent?action=accepted&redirect=${encodeURIComponent(redirectPath)}`;
+  const declineHref = "/api/cookie-consent?action=declined";
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-navy/70 p-4">
@@ -62,27 +64,18 @@ export default function CookieConsentGate() {
           .
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <form method="post" action="/api/cookie-consent">
-            <input type="hidden" name="action" value="accepted" />
-            <input type="hidden" name="redirect" value={redirectPath} />
-            <button
-              type="submit"
-              onClick={() => setConsent("accepted")}
-              className="rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
-            >
-              Accept policies
-            </button>
-          </form>
-          <form method="post" action="/api/cookie-consent">
-            <input type="hidden" name="action" value="declined" />
-            <button
-              type="submit"
-              onClick={() => setConsent("declined")}
-              className="rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface"
-            >
-              Decline for now
-            </button>
-          </form>
+          <a
+            href={acceptHref}
+            className="inline-flex items-center justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
+          >
+            Accept policies
+          </a>
+          <a
+            href={declineHref}
+            className="inline-flex items-center justify-center rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface"
+          >
+            Decline for now
+          </a>
         </div>
       </div>
     </div>
