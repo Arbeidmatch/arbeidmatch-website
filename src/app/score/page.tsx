@@ -23,7 +23,6 @@ export default function ScorePage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
-  const [feedbackEmail, setFeedbackEmail] = useState("");
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
@@ -62,10 +61,6 @@ export default function ScorePage() {
 
   const submitFeedback = async () => {
     if (feedbackScore === null || feedbackStatus === "sending") return;
-    if (!feedbackEmail.trim() || !feedbackEmail.includes("@")) {
-      setFeedbackStatus("error");
-      return;
-    }
     setFeedbackStatus("sending");
     try {
       const response = await fetch("/api/confirmation-feedback", {
@@ -75,7 +70,6 @@ export default function ScorePage() {
           source: "candidate-eligibility-check",
           score: feedbackScore,
           note: feedbackNote.trim(),
-          email: feedbackEmail.trim(),
           website: "",
         }),
       });
@@ -148,7 +142,7 @@ export default function ScorePage() {
                 <div className="mt-6 rounded-lg border border-border bg-white p-4 text-left">
                   <p className="text-sm font-semibold text-navy">How was your experience with this check?</p>
                   <p className="mt-1 text-xs text-text-secondary">
-                    Please rate it from 1 to 10 and share what we can improve.
+                    Please rate it from 1 to 10 and share what we can improve. This feedback is anonymous.
                   </p>
                   <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-10">
                     {Array.from({ length: 10 }, (_, index) => index + 1).map((score) => (
@@ -179,23 +173,11 @@ export default function ScorePage() {
                       if (feedbackStatus !== "idle") setFeedbackStatus("idle");
                     }}
                   />
-                  <input
-                    type="email"
-                    className="mt-3 w-full rounded-md border border-border px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold"
-                    placeholder="Email for confirmation (required)"
-                    value={feedbackEmail}
-                    onChange={(event) => {
-                      setFeedbackEmail(event.target.value);
-                      if (feedbackStatus !== "idle") setFeedbackStatus("idle");
-                    }}
-                  />
                   <button
                     type="button"
                     onClick={() => void submitFeedback()}
                     disabled={
                       feedbackScore === null ||
-                      !feedbackEmail.trim() ||
-                      !feedbackEmail.includes("@") ||
                       feedbackStatus === "sending" ||
                       feedbackStatus === "sent"
                     }
@@ -209,7 +191,7 @@ export default function ScorePage() {
                   </button>
                   {feedbackStatus === "error" && (
                     <p className="mt-2 text-xs text-red-600">
-                      We could not send your feedback. Please check your email address and try again.
+                      We could not send your feedback right now. Please try again.
                     </p>
                   )}
                   {feedbackStatus === "sent" && (
