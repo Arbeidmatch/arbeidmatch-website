@@ -1,4 +1,5 @@
 import Link from "next/link";
+import TrafficSignals from "@/components/TrafficSignals";
 
 export default function Footer() {
   return (
@@ -41,6 +42,7 @@ export default function Footer() {
           <a href="mailto:post@arbeidmatch.no" className="text-sm text-white/80 hover:text-gold">
             post@arbeidmatch.no
           </a>
+          <TrafficSignals className="mt-3" />
         </div>
       </div>
       <div className="border-t border-white/15">

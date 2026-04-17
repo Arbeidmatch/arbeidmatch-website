@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const inputClass =
@@ -11,33 +11,6 @@ export default function OutsideEuEeaPage() {
   const [targetRegion, setTargetRegion] = useState<"Scandinavia" | "Europe" | "">("");
   const [contactEmail, setContactEmail] = useState("");
   const [error, setError] = useState("");
-  const today = useMemo(() => new Date(), []);
-  const dayIndex = useMemo(() => {
-    const start = new Date(2026, 0, 1);
-    return Math.max(0, Math.floor((today.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)));
-  }, [today]);
-  const totalInterestedCounter = useMemo(() => {
-    const dailyGrowth = 70 + ((dayIndex * 13 + today.getFullYear()) % 41);
-    return 100000 + dayIndex * dailyGrowth;
-  }, [dayIndex, today]);
-  const dailyOnlineBase = useMemo(() => {
-    const dayOfYear = Math.floor(
-      (today.getTime() - new Date(today.getFullYear(), 0, 1).getTime()) / (24 * 60 * 60 * 1000),
-    );
-    const weekIndex = Math.floor(dayOfYear / 7);
-    const weekday = today.getDay();
-    const weeklySeed = (weekIndex * 17 + today.getFullYear()) % 6;
-    return 20 + weeklySeed * 6 + weekday * 2;
-  }, [today]);
-  const [onlineNow, setOnlineNow] = useState(dailyOnlineBase);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const delta = Math.floor(Math.random() * 7) - 3;
-      setOnlineNow((prev) => Math.max(20, dailyOnlineBase + delta + (prev % 2 === 0 ? 1 : 0)));
-    }, 12000);
-    return () => clearInterval(timer);
-  }, [dailyOnlineBase]);
 
   const handleContinue = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -58,24 +31,6 @@ export default function OutsideEuEeaPage() {
       <div className="mx-auto w-full max-w-2xl px-4 md:px-6">
         <div className="rounded-xl border border-border bg-white p-6 shadow-[0_10px_30px_rgba(13,27,42,0.08)]">
           <h1 className="text-3xl font-bold text-navy">Support for candidates outside EU/EEA</h1>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-lg border border-border bg-surface p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                Candidates interested so far
-              </p>
-              <p className="mt-1 text-2xl font-bold text-navy">{totalInterestedCounter.toLocaleString()}</p>
-              <p className="mt-1 text-xs text-text-secondary">You are definitely not alone.</p>
-            </div>
-            <div className="rounded-lg border border-border bg-surface p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                Candidates on this page now
-              </p>
-              <p className="mt-1 text-2xl font-bold text-navy">{onlineNow.toLocaleString()}</p>
-              <p className="mt-1 text-xs text-text-secondary">
-                Daily live range changes and always stays above 20.
-              </p>
-            </div>
-          </div>
           <p className="mt-3 text-text-secondary">
             We understand your situation, your motivation, and your wish to work in Europe or
             Scandinavia. We are preparing practical support to help you better understand legal
