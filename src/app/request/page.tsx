@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 
 const inputClass =
-  "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
+  "w-full rounded-md border border-border px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold";
 
 type CompanyResult = {
   name: string;
@@ -258,26 +258,26 @@ export default function RequestPage() {
   };
 
   return (
-    <section className="bg-surface py-10">
-      <div className="mx-auto w-full max-w-content px-4 md:px-6">
-        <h1 className="text-4xl font-bold text-navy">Request Candidates</h1>
+    <section className="bg-surface py-16">
+      <div className="mx-auto w-full max-w-2xl rounded-xl border border-border bg-white p-8">
+        <h1 className="text-3xl font-bold text-navy">Request Candidates</h1>
         <p className="mt-3 text-text-secondary">
           For Norwegian employers only. Fill in your details and we&apos;ll get you started.
         </p>
 
-        <div className="mx-auto mt-8 max-w-md rounded-r-md border-l-4 border-gold bg-gold/10 p-3 text-sm text-navy">
+        <div className="mt-6 rounded-r-md border-l-4 border-gold bg-gold/10 p-3 text-sm text-navy">
           Looking for a job?{" "}
           <a href="/score" className="font-semibold text-gold">
             Start here →
           </a>
         </div>
 
-        <form onSubmit={handleSubmit} className="mx-auto mt-4 max-w-md space-y-4 rounded-xl border border-border bg-white p-6">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="h-2 w-full overflow-hidden rounded-full bg-surface">
             <div className="h-full bg-gold transition-all duration-300" style={{ width: `${Math.min(progress, 100)}%` }} />
           </div>
 
-          <div className="rounded-md border border-border bg-surface p-4">
+          <div className="mt-8">
             {currentCard === 0 && (
               <fieldset className="space-y-2">
                 <legend className="px-1 text-sm font-medium text-navy">
