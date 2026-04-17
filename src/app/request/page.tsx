@@ -134,12 +134,15 @@ export default function RequestPage() {
       requested_location: requestedLocation,
       partnershipStatus,
       howDidYouHear,
-      socialMediaPlatform,
-      socialMediaOther,
-      howDidYouHearOther,
-      referralCompanyName,
-      referralOrgNumber,
-      referralEmail,
+      socialMediaPlatform: howDidYouHear === "Social media" ? socialMediaPlatform : "",
+      socialMediaOther:
+        howDidYouHear === "Social media" && socialMediaPlatform === "Other" ? socialMediaOther : "",
+      howDidYouHearOther: howDidYouHear === "Other" ? howDidYouHearOther : "",
+      referralCompanyName:
+        howDidYouHear === "Referral from another company" ? referralCompanyName : "",
+      referralOrgNumber:
+        howDidYouHear === "Referral from another company" ? referralOrgNumber : "",
+      referralEmail: howDidYouHear === "Referral from another company" ? referralEmail : "",
     };
 
     payload.partnershipStatus = partnershipStatus;

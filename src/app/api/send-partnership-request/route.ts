@@ -4,8 +4,17 @@ import nodemailer from "nodemailer";
 export async function POST(request: NextRequest) {
   try {
     const data = (await request.json()) as Record<string, string>;
+    const referenceId = `REQ-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
     const partnershipLabel =
       data.partnershipStatus === "new" ? "No, we are not a partner yet" : "Yes, we are already a partner";
+    const leadSource =
+      data.howDidYouHear === "Social media" && data.socialMediaPlatform === "Other"
+        ? `Social media (${data.socialMediaOther || "Other"})`
+        : data.howDidYouHear === "Social media"
+          ? `Social media (${data.socialMediaPlatform || "-"})`
+          : data.howDidYouHear === "Other"
+            ? data.howDidYouHearOther || "Other"
+            : data.howDidYouHear;
 
     const transporter = nodemailer.createTransport({
       host: "send.one.com",
@@ -57,11 +66,13 @@ export async function POST(request: NextRequest) {
               ["Initial summary", data.job_summary],
               ["Engagement model", data.engagementModel],
             ])}
+            ${section("Submission Metadata", [
+              ["Source channel", "Website form: https://www.arbeidmatch.no/request"],
+              ["Purpose", "Employer candidate request"],
+              ["Reference ID", referenceId],
+            ])}
             ${section("Lead Source Details", [
-              ["How did you hear about us", data.howDidYouHear],
-              ["Social media platform", data.socialMediaPlatform],
-              ["Social media other", data.socialMediaOther],
-              ["How did you hear about us (other)", data.howDidYouHearOther],
+              ["How did you hear about us", leadSource],
               ["Referral company", data.referralCompanyName],
               ["Referral company org.nr", data.referralOrgNumber],
               ["Referral contact email", data.referralEmail],
@@ -88,7 +99,9 @@ export async function POST(request: NextRequest) {
             <h3 style="margin:0 0 8px;">Request summary</h3>
             <p><strong>Engagement model:</strong> ${data.engagementModel || "-"}</p>
             <p><strong>Location:</strong> ${data.requestedLocation || "-"}</p>
-            <p><strong>Needs:</strong> ${data.engagementDetails || data.job_summary || "-"}</p>
+            <p><strong>Needs:</strong> ${data.job_summary || "-"}</p>
+            <p><strong>Reference ID:</strong> ${referenceId}</p>
+            <p><strong>Source channel:</strong> Website form (arbeidmatch.no/request)</p>
             <p style="margin-top:18px;"><strong>Contact:</strong> post@arbeidmatch.no · +47 967 34 730</p>
           </div>
           <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">ArbeidMatch Norge AS</div>
@@ -99,7 +112,7 @@ export async function POST(request: NextRequest) {
     await transporter.sendMail({
       from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
       to: "post@arbeidmatch.no",
-      subject: `New Partnership Request | ${data.company ?? "Unknown company"}`,
+      subject: `New Partnership Request | ${data.company ?? "Unknown company"} | ${referenceId}`,
       html: adminHtml,
     });
 
