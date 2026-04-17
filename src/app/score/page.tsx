@@ -88,7 +88,9 @@ export default function ScorePage() {
   return (
     <section className="bg-surface py-16">
       <div className="mx-auto w-full max-w-2xl rounded-xl border border-border bg-white p-8">
-        <h1 className="text-3xl font-bold text-navy">Work Readiness Check</h1>
+        <h1 className="text-3xl font-bold text-navy">
+          Check if you are a good fit to work with our clients in Scandinavia
+        </h1>
         <div className="mt-6 h-2 w-full overflow-hidden rounded-full bg-surface">
           <div className="h-full bg-gold transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
         </div>
@@ -192,7 +194,7 @@ export default function ScorePage() {
                       ? "Sending feedback..."
                       : feedbackStatus === "sent"
                         ? "Feedback sent"
-                        : "Send feedback"}
+                        : "Continue"}
                   </button>
                   {feedbackStatus === "error" && (
                     <p className="mt-2 text-xs text-red-600">
