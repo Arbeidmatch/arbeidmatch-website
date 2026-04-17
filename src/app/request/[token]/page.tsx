@@ -100,6 +100,117 @@ const howDidYouHearOptions = [
   "Social media",
   "Other",
 ] as const;
+const norwayCities = [
+  "Oslo",
+  "Bergen",
+  "Trondheim",
+  "Stavanger",
+  "Drammen",
+  "Kristiansand",
+  "Fredrikstad",
+  "Tromso",
+  "Sandnes",
+  "Asker",
+  "Skien",
+  "Alesund",
+  "Bodo",
+  "Tonsberg",
+  "Moss",
+  "Sarpsborg",
+  "Arendal",
+  "Hamar",
+  "Halden",
+  "Lillehammer",
+  "Harstad",
+  "Molde",
+  "Larvik",
+  "Kongsberg",
+  "Haugesund",
+  "Gjovik",
+  "Elverum",
+  "Jessheim",
+  "Porsgrunn",
+  "Alta",
+  "Narvik",
+  "Steinkjer",
+  "Ski",
+  "Lillestrom",
+  "Egersund",
+  "Forde",
+  "Notodden",
+  "Stord",
+  "Floro",
+  "Roros",
+  "Brumunddal",
+  "Namsos",
+  "Orkanger",
+  "Mo i Rana",
+  "Svolvaer",
+  "Voss",
+  "Mandal",
+  "Farsund",
+  "Kirkenes",
+  "Vardo",
+  "Hammerfest",
+  "Leknes",
+  "Sortland",
+  "Finnsnes",
+  "Vadsø",
+  "Rjukan",
+  "Odda",
+  "Sauda",
+  "Bryne",
+  "Jorpeland",
+  "Kleppe",
+  "Sandvika",
+  "Honefoss",
+  "Stavern",
+  "Brevik",
+  "Kragero",
+  "Risor",
+  "Tvedestrand",
+  "Grimstad",
+  "Langesund",
+  "Flekkefjord",
+  "Sogndal",
+  "Leikanger",
+  "Sandane",
+  "Ulsteinvik",
+  "Fosnavag",
+  "Stryn",
+  "Nordfjordeid",
+  "Loen",
+  "Geiranger",
+  "Sunndalsora",
+  "Kristiansund",
+  "Orsta",
+  "Volda",
+  "Levanger",
+  "Verdal",
+  "Rorvik",
+  "Stjordal",
+  "Malvik",
+  "Oppdal",
+  "Aure",
+  "Kolvereid",
+  "Brekstad",
+  "Batsfjord",
+  "Honningsvag",
+  "Andenes",
+  "Fauske",
+  "Mosjoen",
+  "Bronnoysund",
+  "Nesbyen",
+  "Gol",
+  "Aal",
+  "Otta",
+  "Kvam",
+  "Ringebu",
+  "Trysil",
+  "Tynset",
+  "Kautokeino",
+  "Karasjok",
+];
 
 const rolesByCategory: Record<string, string[]> = {
   Construction: ["Carpenter", "Bricklayer", "Tile layer", "Painter", "Plasterer", "Roofer", "Concrete worker", "Steel fixer", "Scaffolder", "Insulation worker", "Floor layer", "Window installer", "Demolition worker"],
@@ -253,6 +364,9 @@ export default function DetailedRequestPage() {
   const [isSearchingReferral, setIsSearchingReferral] = useState(false);
   const [hasSearchedReferral, setHasSearchedReferral] = useState(false);
   const [confirmNoSubscribe, setConfirmNoSubscribe] = useState(false);
+  const [citySearch, setCitySearch] = useState("");
+  const [isCustomCity, setIsCustomCity] = useState(false);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const stepCount = 9;
@@ -263,6 +377,10 @@ export default function DetailedRequestPage() {
   );
   const roleKey = formData.position === "Other" ? formData.positionOther : formData.position;
   const certOptions = useMemo(() => certsByRole[roleKey] ?? ["Other"], [roleKey]);
+  const filteredCities = useMemo(
+    () => norwayCities.filter((city) => city.toLowerCase().includes(citySearch.trim().toLowerCase())),
+    [citySearch],
+  );
   const withSelection = (title: string, value?: string) =>
     value && value.trim().length > 0 ? `${title}: ${value}` : title;
   const selectedPositionLabel =
@@ -1050,7 +1168,83 @@ export default function DetailedRequestPage() {
               <div className="space-y-3">
                 <h2 className={titleClass}>Final details</h2>
                 <label className={labelClass}>Work location / city</label>
-                <input className={`${inputClass} ${invalid("city")}`} placeholder="Work location / city*" value={formData.city} onChange={(e) => updateField("city", e.target.value)} ref={(e) => setRef("city", e)} />
+                {!isCustomCity ? (
+                  <div className="relative">
+                    <input
+                      className={`${inputClass} ${invalid("city")}`}
+                      placeholder="Type city name..."
+                      value={citySearch}
+                      onFocus={() => setShowCitySuggestions(true)}
+                      onChange={(e) => {
+                        setCitySearch(e.target.value);
+                        updateField("city", "");
+                        setShowCitySuggestions(true);
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => setShowCitySuggestions(false), 120);
+                      }}
+                      ref={(e) => {
+                        setRef("city", e);
+                      }}
+                    />
+                    {showCitySuggestions && citySearch.trim().length > 0 && (
+                      <div className="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-border bg-white shadow-[0_8px_24px_rgba(13,27,42,0.12)]">
+                        {filteredCities.map((city) => (
+                          <button
+                            key={city}
+                            type="button"
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => {
+                              setCitySearch(city);
+                              updateField("city", city);
+                              setShowCitySuggestions(false);
+                            }}
+                            className="block w-full border-b border-border px-3 py-2 text-left text-sm text-navy last:border-b-0 hover:bg-gold/10"
+                          >
+                            {city}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => {
+                            setIsCustomCity(true);
+                            setCitySearch("");
+                            updateField("city", "");
+                            setShowCitySuggestions(false);
+                          }}
+                          className="block w-full px-3 py-2 text-left text-sm font-medium text-navy hover:bg-gold/10"
+                        >
+                          Other (type manually)
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <input
+                      className={`${inputClass} ${invalid("city")}`}
+                      placeholder="Enter city manually..."
+                      value={formData.city}
+                      onChange={(e) => updateField("city", e.target.value)}
+                      ref={(e) => {
+                        setRef("city", e);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomCity(false);
+                        setCitySearch("");
+                        updateField("city", "");
+                        setShowCitySuggestions(false);
+                      }}
+                      className="text-sm font-medium text-gold hover:text-gold-hover"
+                    >
+                      Pick from list instead
+                    </button>
+                  </div>
+                )}
 
                 <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("startDate")}>{withSelection("Preferred start date", selectedStartDateLabel)} {expanded.startDate ? "▲" : "▼"}</button>
                 {expanded.startDate && <div className="space-y-2">{["ASAP", "1-2 weeks", "Within 1 month", "Flexible", "Other"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.startDate === v} onChange={() => selectAndCollapse("startDate", "startDate", v)} ref={(e) => { if (i === 0) setRef("startDate", e); }} />{v}{v === "Other" && formData.startDate === "Other" && <input type="date" className={`${inputClass} ${invalid("startDateOther")} ml-2 max-w-[220px]`} value={formData.startDateOther} onChange={(e) => updateField("startDateOther", e.target.value)} ref={(e) => setRef("startDateOther", e)} />}</label>)}</div>}
