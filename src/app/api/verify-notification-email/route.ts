@@ -187,8 +187,8 @@ export async function GET(request: NextRequest) {
     }
 
     const successUrl = request.nextUrl.clone();
-    successUrl.pathname = "/eligibility-assistance";
-    successUrl.searchParams.set("verification", "success");
+    successUrl.pathname = "/verified";
+    successUrl.search = "";
     return NextResponse.redirect(successUrl);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
