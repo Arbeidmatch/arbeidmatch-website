@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import { Apple, QrCode, Smartphone } from "lucide-react";
-import { QRCodeCanvas } from "qrcode.react";
 
 export default function DownloadPage() {
   return (
@@ -28,16 +26,16 @@ export default function DownloadPage() {
           </div>
           <h2 className="text-xl font-semibold text-[#0D1B2A]">Android</h2>
           <p className="mt-2 text-sm text-slate-600">
-            Version 1.0.0, requires Android 8.0+
+            Coming soon for Android devices
           </p>
-          <Link
-            href="/downloads/arbeidmatch.apk"
-            className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-[#C9A84C] px-4 py-2.5 text-sm font-semibold text-[#0D1B2A] transition hover:brightness-95"
+          <button
+            disabled
+            className="mt-4 inline-flex w-full cursor-not-allowed items-center justify-center rounded-md border border-slate-300 bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-400"
           >
-            Download APK
-          </Link>
+            Android App (Coming Soon)
+          </button>
           <p className="mt-4 text-xs text-slate-500">
-            Enable &quot;Install from unknown sources&quot; in settings
+            We&apos;ll announce availability soon
           </p>
         </article>
 
@@ -75,13 +73,10 @@ export default function DownloadPage() {
           <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#0D1B2A]/5 text-[#0D1B2A]">
             <QrCode size={20} />
           </div>
-          <h3 className="text-lg font-semibold text-[#0D1B2A]">Scan QR code</h3>
-          <p className="mt-1 text-sm text-slate-600">Open download page directly on your mobile device</p>
-          <div className="mt-4 flex justify-center">
-            <div className="rounded-lg border border-slate-200 p-3">
-              <QRCodeCanvas value="https://arbeidmatch.no/download" size={170} bgColor="#ffffff" fgColor="#0D1B2A" />
-            </div>
-          </div>
+          <h3 className="text-lg font-semibold text-[#0D1B2A]">QR code coming soon</h3>
+          <p className="mt-1 text-sm text-slate-600">
+            QR access will be enabled when the app release is live.
+          </p>
         </div>
       </section>
 
