@@ -53,7 +53,7 @@ export default function RequestPage() {
   const [isSearchingCompanies, setIsSearchingCompanies] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const maxCard = partnershipStatus === "new" ? 3 : 2;
+  const maxCard = partnershipStatus === "new" ? 3 : 1;
   const progress = ((currentCard + 1) / (maxCard + 1)) * 100;
   const isAutoAdvanceCard = currentCard === 0 || (partnershipStatus === "new" && currentCard === 2);
   const optionButtonClass = (isSelected: boolean) =>
@@ -609,7 +609,11 @@ export default function RequestPage() {
                   disabled={status === "submitting"}
                   className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {status === "submitting" ? "Please wait..." : "Send request"}
+                  {status === "submitting"
+                    ? "Please wait..."
+                    : partnershipStatus === "existing"
+                      ? "Continue to candidate details"
+                      : "Send request"}
                 </button>
               )}
             </div>
