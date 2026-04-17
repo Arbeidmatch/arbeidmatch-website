@@ -838,7 +838,53 @@ export default function DetailedRequestPage() {
                 )}
 
                 <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("overtime")}>{withSelection("Overtime", formData.overtime)} {expanded.overtime ? "▲" : "▼"}</button>
-                {expanded.overtime && <div className={groupErrorClass("overtime")}>{["Yes", "Occasionally", "No"].map((v, i) => <label key={v} className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.overtime === v} onChange={() => selectAndCollapse("overtime", "overtime", v)} ref={(e) => { if (i === 0) setRef("overtime", e); }} />{v}{(v === "Yes" || v === "Occasionally") && formData.overtime === v && <span className="ml-2 inline-flex items-center gap-2"><span className="text-xs text-text-secondary">Max hours/week</span><input type="number" className={`${inputClass} ${invalid("maxOvertimeHours")} w-28`} placeholder="Max*" value={formData.maxOvertimeHours} onChange={(e) => updateField("maxOvertimeHours", e.target.value)} ref={(e) => setRef("maxOvertimeHours", e)} /></span>}</label>)}</div>}
+                {expanded.overtime && (
+                  <div className={groupErrorClass("overtime")}>
+                    {["Yes", "Occasionally", "No"]
+                      .filter((v) => !formData.overtime || formData.overtime === v)
+                      .map((v, i) => (
+                        <label key={v} className={radioClass}>
+                          <input
+                            type="radio"
+                            className="shrink-0 accent-gold"
+                            checked={formData.overtime === v}
+                            onChange={() => {
+                              updateField("overtime", v);
+                              if (v === "No") {
+                                updateField("maxOvertimeHours", "");
+                                setExpanded((prev) => ({ ...prev, overtime: false }));
+                              } else {
+                                setExpanded((prev) => ({ ...prev, overtime: true }));
+                              }
+                            }}
+                            ref={(e) => {
+                              if (i === 0) setRef("overtime", e);
+                            }}
+                          />
+                          {v}
+                          {(v === "Yes" || v === "Occasionally") && formData.overtime === v && (
+                            <span className="ml-2 inline-flex items-center gap-2">
+                              <span className="text-xs text-text-secondary">Max hours/week</span>
+                              <input
+                                type="number"
+                                className={`${inputClass} ${invalid("maxOvertimeHours")} w-28`}
+                                placeholder="Max*"
+                                value={formData.maxOvertimeHours}
+                                onChange={(e) => {
+                                  const nextMax = e.target.value;
+                                  updateField("maxOvertimeHours", nextMax);
+                                  if (nextMax.trim()) {
+                                    setExpanded((prev) => ({ ...prev, overtime: false }));
+                                  }
+                                }}
+                                ref={(e) => setRef("maxOvertimeHours", e)}
+                              />
+                            </span>
+                          )}
+                        </label>
+                      ))}
+                  </div>
+                )}
 
                 <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("rotation")}>{withSelection("Rotation", formData.hasRotation)} {expanded.rotation ? "▲" : "▼"}</button>
                 {expanded.rotation && (
