@@ -42,7 +42,7 @@ export function EligibilityAssistanceClient() {
   const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
-  const [registrationKind, setRegistrationKind] = useState<"verify" | "already">("verify");
+  const [registrationKind, setRegistrationKind] = useState<"verify" | "already" | "direct">("verify");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileKey, setTurnstileKey] = useState(0);
   const [rateLimitSecondsLeft, setRateLimitSecondsLeft] = useState(0);
@@ -161,6 +161,7 @@ export function EligibilityAssistanceClient() {
       const result = (await response.json()) as {
         success?: boolean;
         alreadyRegistered?: boolean;
+        directlyRegistered?: boolean;
         rateLimited?: boolean;
         retryAfter?: number;
         error?: string;
@@ -195,7 +196,13 @@ export function EligibilityAssistanceClient() {
         return;
       }
 
-      setRegistrationKind(result.alreadyRegistered ? "already" : "verify");
+      if (result.directlyRegistered) {
+        setRegistrationKind("direct");
+      } else if (result.alreadyRegistered) {
+        setRegistrationKind("already");
+      } else {
+        setRegistrationKind("verify");
+      }
       setStatus("success");
     } catch {
       setStatus("error");
@@ -262,7 +269,7 @@ export function EligibilityAssistanceClient() {
               please wait a moment.
             </p>
             <p className="mt-8 font-mono text-5xl font-bold tabular-nums text-[#C9A84C]" aria-live="polite">
-              {rateLimitSecondsLeft}s
+              {Math.floor(rateLimitSecondsLeft / 60)}:{String(rateLimitSecondsLeft % 60).padStart(2, "0")}
             </p>
             <button
               type="button"
@@ -270,8 +277,34 @@ export function EligibilityAssistanceClient() {
               onClick={resetForAnotherCountry}
               className="mt-8 inline-flex rounded-md bg-[#C9A84C] px-6 py-3 text-sm font-semibold text-[#0D1B2A] transition-colors hover:bg-[#d4b456] disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Apply for another country
+              Continue
             </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (status === "success" && registrationKind === "direct") {
+    return (
+      <section className="bg-surface py-10">
+        <div className="mx-auto w-full max-w-2xl px-4">
+          <div className="rounded-xl bg-white p-8 text-center shadow-[0_10px_30px_rgba(13,27,42,0.08)]">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-white">
+              ✓
+            </div>
+            <h1 className="mt-4 text-3xl font-bold text-navy">
+              You&apos;re now registered for {targetCountry} notifications!
+            </h1>
+            <p className="mt-3 text-sm text-text-secondary">
+              We&apos;ll notify you when opportunities match your profile.
+            </p>
+            <Link
+              href="/"
+              className="mt-6 inline-flex rounded-md bg-[#0D1B2A] px-6 py-3 text-sm font-medium text-white hover:bg-[#122845]"
+            >
+              Back to home
+            </Link>
           </div>
         </div>
       </section>

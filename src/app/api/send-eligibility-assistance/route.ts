@@ -112,10 +112,10 @@ export async function POST(request: NextRequest) {
         .select("id, email_verified")
         .eq("notify_email", emailTrimmed)
         .eq("target_country", countryTrimmed)
-        .single();
+        .maybeSingle();
 
-      if (existingError && existingError.code !== "PGRST116") {
-        console.error("[send-eligibility-assistance] Supabase lookup failed:", existingError.message);
+      if (existingError) {
+        console.error("[send-eligibility-assistance] Supabase lookup email+country failed:", existingError.message);
         const body = { success: false, error: "Could not verify registration status. Please try again." };
         console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 500, ...body }));
         return NextResponse.json(body, { status: 500 });
@@ -125,6 +125,44 @@ export async function POST(request: NextRequest) {
         const body = { success: true, alreadyRegistered: true };
         console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 200, ...body }));
         return NextResponse.json(body);
+      }
+
+      if (!existing) {
+        const { data: anyVerifiedRow, error: anyVerifiedError } = await supabase
+          .from("guide_interest_signups")
+          .select("id")
+          .eq("notify_email", emailTrimmed)
+          .eq("email_verified", true)
+          .limit(1)
+          .maybeSingle();
+
+        if (anyVerifiedError) {
+          console.error("[send-eligibility-assistance] Supabase lookup any-verified failed:", anyVerifiedError.message);
+          const body = { success: false, error: "Could not verify registration status. Please try again." };
+          console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 500, ...body }));
+          return NextResponse.json(body, { status: 500 });
+        }
+
+        if (anyVerifiedRow) {
+          const verifiedAt = new Date().toISOString();
+          const { error: insertError } = await supabase.from("guide_interest_signups").insert({
+            notify_email: emailTrimmed,
+            wants_assistance: data.wantsAssistance || null,
+            target_region: data.targetRegion || null,
+            target_country: countryTrimmed,
+            email_verified: true,
+            verified_at: verifiedAt,
+          });
+          if (insertError) {
+            console.error("[send-eligibility-assistance] Direct insert failed:", insertError.message);
+            const body = { success: false, error: "Could not save registration. Please try again." };
+            console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 500, ...body }));
+            return NextResponse.json(body, { status: 500 });
+          }
+          const body = { success: true, directlyRegistered: true };
+          console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 200, ...body }));
+          return NextResponse.json(body);
+        }
       }
     }
 
