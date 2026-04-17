@@ -280,26 +280,23 @@ export default function RequestPage() {
                 <legend className="px-1 text-sm font-medium text-navy">
                   Quick question: Are you already partnering with ArbeidMatch?
                 </legend>
-                <label className="flex items-center gap-2 text-sm text-navy">
-                  <input
-                    type="radio"
-                    name="partnershipStatus"
-                    checked={partnershipStatus === "existing"}
-                    onChange={() => setPartnershipStatus("existing")}
-                    required
-                  />
-                  Yes, we are already a partner
-                </label>
-                <label className="flex items-center gap-2 text-sm text-navy">
-                  <input
-                    type="radio"
-                    name="partnershipStatus"
-                    checked={partnershipStatus === "new"}
-                    onChange={() => setPartnershipStatus("new")}
-                    required
-                  />
-                  No, we are a new company
-                </label>
+                {[
+                  ["existing", "Yes, we are already a partner"],
+                  ["new", "No, we are a new company"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setPartnershipStatus(value as "existing" | "new")}
+                    className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
+                      partnershipStatus === value
+                        ? "border-gold bg-gold/10"
+                        : "border-border hover:border-gold"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
               </fieldset>
             )}
 
