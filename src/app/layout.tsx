@@ -3,7 +3,6 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import CookieConsentGate from "@/components/CookieConsentGate";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://arbeidmatch.no"),
@@ -67,7 +66,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body className="flex min-h-full flex-col">
-        <CookieConsentGate />
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

@@ -45,12 +45,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: 'https://arbeidmatch.no/cookie-required',
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.3,
-    },
-    {
       url: 'https://arbeidmatch.no/dsb-assistance',
       lastModified: new Date(),
       changeFrequency: 'weekly',
