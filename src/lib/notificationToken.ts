@@ -26,6 +26,14 @@ function base64UrlDecode(value: string): string {
 }
 
 function getSecret(): string {
+  console.log(
+    "[notificationToken] secret source:",
+    process.env.EMAIL_VERIFICATION_SECRET
+      ? "EMAIL_VERIFICATION_SECRET"
+      : process.env.CRON_SECRET
+        ? "CRON_SECRET"
+        : "EMPTY - NO SECRET FOUND",
+  );
   const secret = process.env.EMAIL_VERIFICATION_SECRET || process.env.CRON_SECRET || "";
   if (!secret) {
     console.error("[notificationToken] Missing EMAIL_VERIFICATION_SECRET (and CRON_SECRET fallback).");

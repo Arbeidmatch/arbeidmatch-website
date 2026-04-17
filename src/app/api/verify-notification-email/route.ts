@@ -77,10 +77,13 @@ async function sendErrorReport(
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token") || "";
+  console.log("[verify] token prefix:", token?.substring(0, 20));
   if (!token) {
     console.error("[verify-notification-email] Missing token query parameter.");
   }
-  const payload = verifyEligibilityVerificationToken(token);
+  const result = verifyEligibilityVerificationToken(token);
+  console.log("[verify] result:", result ? "valid" : "null/invalid");
+  const payload = result;
 
   if (!payload) {
     console.error("[verify-notification-email] Token verification failed (invalid signature, payload, or expired token).");
