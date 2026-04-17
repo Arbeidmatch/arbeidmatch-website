@@ -67,7 +67,7 @@ type RequestForm = {
 const inputClass =
   "w-full rounded-md border border-border px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold";
 const radioClass =
-  "flex w-full cursor-pointer items-center gap-2 rounded-md border border-border p-3 text-sm text-navy hover:border-gold has-[:checked]:border-gold has-[:checked]:bg-gold/10";
+  "option-card flex w-full cursor-pointer items-center gap-2 rounded-md border border-border p-3 text-sm text-navy hover:border-green-400 has-[:checked]:border-green-500 has-[:checked]:bg-green-50";
 const groupBaseClass = "space-y-2 rounded-md";
 const blockBtnClass = "w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy";
 const titleClass = "text-lg font-bold text-[#0D1B2A]";

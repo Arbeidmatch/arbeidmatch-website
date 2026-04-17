@@ -5,6 +5,14 @@ import { FormEvent, useState } from "react";
 
 const inputClass =
   "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
+const selectedOptionBadge = (
+  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+    <span role="img" aria-label="Vazut">
+      ✓
+    </span>
+    Vazut
+  </span>
+);
 
 export default function EligibilityAssistancePage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -134,10 +142,15 @@ export default function EligibilityAssistancePage() {
                     if (nextValue === "yes") setCurrentStep(1);
                   }}
                   className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
-                    wantsAssistance === value ? "border-gold bg-gold/10" : "border-border hover:border-gold"
+                    wantsAssistance === value
+                      ? "border-green-500 bg-green-50"
+                      : "border-border hover:border-green-400"
                   }`}
                 >
-                  {label}
+                  <span className="flex items-center justify-between gap-3">
+                    <span>{label}</span>
+                    {wantsAssistance === value && selectedOptionBadge}
+                  </span>
                 </button>
               ))}
             </div>
@@ -180,10 +193,15 @@ export default function EligibilityAssistancePage() {
                       setIsCountryPickerOpen(true);
                     }}
                     className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
-                      targetRegion === region ? "border-gold bg-gold/10" : "border-border hover:border-gold"
+                      targetRegion === region
+                        ? "border-green-500 bg-green-50"
+                        : "border-border hover:border-green-400"
                     }`}
                   >
-                    {region}
+                    <span className="flex items-center justify-between gap-3">
+                      <span>{region}</span>
+                      {targetRegion === region && selectedOptionBadge}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -234,7 +252,10 @@ export default function EligibilityAssistancePage() {
                       }}
                       className="block w-full rounded-md border border-gold bg-gold/10 px-4 py-3 text-left text-sm font-medium text-navy hover:border-gold-hover"
                     >
-                      Selected country: {targetCountry} (click to change)
+                      <span className="flex items-center justify-between gap-3">
+                        <span>Selected country: {targetCountry} (click to change)</span>
+                        {selectedOptionBadge}
+                      </span>
                     </button>
                   )}
                 </div>

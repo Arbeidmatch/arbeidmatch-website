@@ -62,9 +62,17 @@ export default function RequestPage() {
   const filteredCities = norwayCities.filter((city) =>
     city.toLowerCase().includes(citySearch.trim().toLowerCase()),
   );
+  const selectedOptionBadge = (
+    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+      <span role="img" aria-label="Vazut">
+        ✓
+      </span>
+      Vazut
+    </span>
+  );
   const optionButtonClass = (isSelected: boolean) =>
     `block w-full rounded-md border px-4 py-3 text-left text-navy ${
-      isSelected ? "border-gold bg-gold/10" : "border-border hover:border-gold"
+      isSelected ? "border-green-500 bg-green-50" : "border-border hover:border-green-400"
     }`;
 
   const validateLeadSource = () => {
@@ -316,7 +324,10 @@ export default function RequestPage() {
                     }}
                     className={optionButtonClass(partnershipStatus === value)}
                   >
-                    {label}
+                    <span className="flex items-center justify-between gap-3">
+                      <span>{label}</span>
+                      {partnershipStatus === value && selectedOptionBadge}
+                    </span>
                   </button>
                 ))}
               </fieldset>
@@ -491,7 +502,10 @@ export default function RequestPage() {
                   }}
                   className={optionButtonClass(engagementModel === option)}
                 >
-                  {option}
+                  <span className="flex items-center justify-between gap-3">
+                    <span>{option}</span>
+                    {engagementModel === option && selectedOptionBadge}
+                  </span>
                 </button>
               ))}
               </div>
