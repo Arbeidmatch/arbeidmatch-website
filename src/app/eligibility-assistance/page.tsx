@@ -23,6 +23,7 @@ function EligibilityAssistanceContent() {
   const [wantsAssistance, setWantsAssistance] = useState<"yes" | "no" | "">("");
   const initialRegion = searchParams.get("region");
   const initialEmail = searchParams.get("email");
+  const verificationStatus = searchParams.get("verification");
   const [targetRegion, setTargetRegion] = useState<"Scandinavia" | "Europe" | "">(
     initialRegion === "Scandinavia" || initialRegion === "Europe" ? initialRegion : "",
   );
@@ -150,9 +151,9 @@ function EligibilityAssistanceContent() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-white">
               ✓
             </div>
-            <h1 className="mt-4 text-3xl font-bold text-navy">Request submitted successfully!</h1>
+            <h1 className="mt-4 text-3xl font-bold text-navy">One more step: verify your email</h1>
             <p className="mt-2 text-sm text-text-secondary">
-              Thank you. You are on the notification list and will receive an email as soon as the guide is available.
+              We sent a verification link to your email. Please click it to activate notifications.
             </p>
             <div className="mx-auto mt-6 max-w-xl rounded-lg border border-border bg-surface p-4 text-left">
               <p className="text-sm font-semibold text-navy">How was your form experience?</p>
@@ -223,6 +224,21 @@ function EligibilityAssistanceContent() {
   return (
     <section className="bg-surface py-12">
       <div className="mx-auto w-full max-w-2xl px-4 md:px-6">
+        {verificationStatus === "success" && (
+          <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+            Your email is verified. You are now registered for notifications.
+          </div>
+        )}
+        {verificationStatus === "invalid" && (
+          <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            This verification link is invalid or expired. Please submit your email again.
+          </div>
+        )}
+        {verificationStatus === "error" && (
+          <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            We could not verify this request right now. Please try again.
+          </div>
+        )}
         <h1 className="text-3xl font-bold text-navy">Work Eligibility Assistance</h1>
         <p className="mt-3 text-text-secondary">
           If you currently do not have work rights in Norway or the EU/EEA, we can guide you through
