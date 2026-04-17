@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
-import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
+import { hasHoneypotValue } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { createEligibilityVerificationToken } from "@/lib/notificationToken";
 
 export const dynamic = "force-dynamic";
+
+const TWO_MIN_MS = 2 * 60 * 1000;
 
 function getSupabaseClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -14,15 +16,74 @@ function getSupabaseClient() {
   return createClient(url, key);
 }
 
+/** Returns seconds remaining until allowed, or 0 if OK. `null` = query error. */
+async function getEmailDbRateLimitRetrySeconds(
+  supabase: SupabaseClient,
+  notifyEmail: string,
+): Promise<number | null> {
+  const { data: lastRow, error } = await supabase
+    .from("guide_interest_signups")
+    .select("created_at")
+    .eq("notify_email", notifyEmail)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[send-eligibility-assistance] DB rate-limit lookup failed:", error.message);
+    return null;
+  }
+  if (!lastRow?.created_at) {
+    return 0;
+  }
+
+  const created = new Date(lastRow.created_at as string).getTime();
+  const elapsed = Date.now() - created;
+  if (elapsed >= TWO_MIN_MS) {
+    return 0;
+  }
+  return Math.ceil((TWO_MIN_MS - elapsed) / 1000);
+}
+
+async function verifyTurnstileToken(token: string | undefined, request: NextRequest): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) {
+    return true;
+  }
+  if (!token?.trim()) {
+    return false;
+  }
+  const body = new URLSearchParams();
+  body.set("secret", secret);
+  body.set("response", token.trim());
+  const forwarded =
+    request.headers.get("CF-Connecting-IP") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  if (forwarded) {
+    body.set("remoteip", forwarded);
+  }
+
+  const res = await fetch("https://challenges.cloudflare.com/turnstile/v1/siteverify", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+  });
+  const json = (await res.json()) as { success?: boolean };
+  return json.success === true;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const rawData = (await request.json()) as Record<string, unknown>;
     if (hasHoneypotValue(rawData)) {
       return NextResponse.json({ success: true });
     }
-    if (isRateLimited(request, "send-eligibility-assistance", 8, 10 * 60 * 1000)) {
-      return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
+
+    const turnstileToken = typeof rawData.turnstileToken === "string" ? rawData.turnstileToken : "";
+    const turnstileOk = await verifyTurnstileToken(turnstileToken, request);
+    if (!turnstileOk) {
+      return NextResponse.json({ success: false, error: "Bot detected" }, { status: 400 });
     }
+
     const data = sanitizeStringRecord(rawData);
     console.log("[send-eligibility] called at:", Date.now());
     console.log("[send-eligibility] email:", data.notifyEmail);
@@ -41,6 +102,20 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseClient();
     if (supabase) {
+      const retryAfter = await getEmailDbRateLimitRetrySeconds(supabase, emailTrimmed);
+      if (retryAfter === null) {
+        return NextResponse.json(
+          { success: false, error: "Could not verify request timing. Please try again." },
+          { status: 500 },
+        );
+      }
+      if (retryAfter > 0) {
+        return NextResponse.json(
+          { success: false, rateLimited: true, retryAfter },
+          { status: 429 },
+        );
+      }
+
       const { data: existing, error: existingError } = await supabase
         .from("guide_interest_signups")
         .select("id, email_verified")

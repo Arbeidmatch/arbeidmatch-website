@@ -50,6 +50,8 @@ Required environment variables:
 - `SMTP_PASS`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `TURNSTILE_SECRET_KEY` (server-side Turnstile verification; omit in local dev to skip checks)
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (Turnstile widget on eligibility assistance; omit to disable widget and skip client token)
 
 ### Required Supabase tables
 

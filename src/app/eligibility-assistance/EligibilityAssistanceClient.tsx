@@ -1,9 +1,13 @@
 "use client";
 
+import { Turnstile } from "@marsidev/react-turnstile";
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getWorkGuidePageMetadata } from "@/lib/eligibilityGuidePageTitle";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
+const needsTurnstile = Boolean(TURNSTILE_SITE_KEY);
 
 const inputClass =
   "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
@@ -17,7 +21,7 @@ const selectedOptionBadge = (
 
 export function EligibilityAssistanceClient() {
   const searchParams = useSearchParams();
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error" | "rate-limited">("idle");
   const [currentStep, setCurrentStep] = useState(0);
   const [stepError, setStepError] = useState("");
   const [pausedByChoice, setPausedByChoice] = useState(false);
@@ -39,6 +43,9 @@ export function EligibilityAssistanceClient() {
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [registrationKind, setRegistrationKind] = useState<"verify" | "already">("verify");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileKey, setTurnstileKey] = useState(0);
+  const [rateLimitSecondsLeft, setRateLimitSecondsLeft] = useState(0);
 
   const pageMetadata = useMemo(
     () =>
@@ -62,6 +69,18 @@ export function EligibilityAssistanceClient() {
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [status, verificationStatus]);
+
+  useEffect(() => {
+    if (status !== "rate-limited") return;
+    const id = window.setInterval(() => {
+      setRateLimitSecondsLeft((s) => Math.max(0, s - 1));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [status]);
+
+  const onTurnstileSuccess = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
 
   const totalSteps = 2;
   const progress = pausedByChoice ? 100 : ((currentStep + 1) / totalSteps) * 100;
@@ -130,6 +149,7 @@ export function EligibilityAssistanceClient() {
       targetCountry,
       notifyEmail,
       marketingConsent: marketingConsent ? "Yes" : "No",
+      turnstileToken: turnstileToken ?? "",
     };
 
     try {
@@ -141,8 +161,36 @@ export function EligibilityAssistanceClient() {
       const result = (await response.json()) as {
         success?: boolean;
         alreadyRegistered?: boolean;
+        rateLimited?: boolean;
+        retryAfter?: number;
+        error?: string;
       };
-      if (!response.ok || !result.success) throw new Error("Failed to send assistance request");
+
+      if (result.rateLimited === true && typeof result.retryAfter === "number") {
+        setRateLimitSecondsLeft(result.retryAfter);
+        setStatus("rate-limited");
+        setTurnstileToken(null);
+        setTurnstileKey((k) => k + 1);
+        return;
+      }
+
+      if (!response.ok) {
+        if (response.status === 400 && result.error === "Bot detected") {
+          setStepError("Security check failed. Please complete the verification and try again.");
+          setTurnstileToken(null);
+          setTurnstileKey((k) => k + 1);
+          setStatus("idle");
+          return;
+        }
+        setStatus("error");
+        return;
+      }
+
+      if (!result.success) {
+        setStatus("error");
+        return;
+      }
+
       setRegistrationKind(result.alreadyRegistered ? "already" : "verify");
       setStatus("success");
     } catch {
@@ -164,6 +212,8 @@ export function EligibilityAssistanceClient() {
     setTargetCountry("");
     setCountrySearch("");
     setIsCountryPickerOpen(true);
+    setTurnstileToken(null);
+    setTurnstileKey((k) => k + 1);
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   };
 
@@ -190,6 +240,39 @@ export function EligibilityAssistanceClient() {
       setFeedbackStatus("error");
     }
   };
+
+  if (status === "rate-limited") {
+    return (
+      <section className="bg-surface py-10">
+        <div className="mx-auto w-full max-w-2xl px-4">
+          <div className="overflow-hidden rounded-xl border border-[#C9A84C]/35 bg-[#0D1B2A] p-8 text-center shadow-[0_10px_30px_rgba(13,27,42,0.12)]">
+            <div className="mx-auto mb-3 h-1 w-24 rounded-full bg-[#C9A84C]" aria-hidden />
+            <h1 className="text-2xl font-bold text-white md:text-3xl">
+              We love your enthusiasm!{" "}
+              <span aria-hidden className="inline-block">
+                🌍
+              </span>
+            </h1>
+            <p className="mt-4 text-sm leading-relaxed text-[#C7D1DF]">
+              We understand you have big ambitions. To receive notifications for another country,
+              please wait a moment.
+            </p>
+            <p className="mt-8 font-mono text-5xl font-bold tabular-nums text-[#C9A84C]" aria-live="polite">
+              {rateLimitSecondsLeft}s
+            </p>
+            <button
+              type="button"
+              disabled={rateLimitSecondsLeft > 0}
+              onClick={resetForAnotherCountry}
+              className="mt-8 inline-flex rounded-md bg-[#C9A84C] px-6 py-3 text-sm font-semibold text-[#0D1B2A] transition-colors hover:bg-[#d4b456] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Apply for another country
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (status === "success" && registrationKind === "already") {
     return (
@@ -540,6 +623,19 @@ export function EligibilityAssistanceClient() {
                   and relevant opportunities.*
                 </span>
               </label>
+
+              {needsTurnstile ? (
+                <div className="flex flex-col items-center justify-center gap-2 pt-2">
+                  <Turnstile
+                    key={turnstileKey}
+                    siteKey={TURNSTILE_SITE_KEY}
+                    onSuccess={onTurnstileSuccess}
+                    onExpire={() => setTurnstileToken(null)}
+                    onError={() => setTurnstileToken(null)}
+                    options={{ theme: "light" }}
+                  />
+                </div>
+              ) : null}
             </div>
           )}
 
@@ -554,7 +650,9 @@ export function EligibilityAssistanceClient() {
               {currentStep === 1 && (
                 <button
                   type="submit"
-                  disabled={status === "submitting"}
+                  disabled={
+                    status === "submitting" || (needsTurnstile && !turnstileToken)
+                  }
                   className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {status === "submitting" ? "Sending..." : "Notify me"}
