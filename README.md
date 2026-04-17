@@ -62,9 +62,13 @@ create table if not exists public.guide_interest_signups (
   wants_assistance text,
   target_region text,
   target_country text,
+  email_verified boolean not null default false,
+  verified_at timestamptz,
   created_at timestamptz not null default now()
 );
 ```
+
+If the table already exists, add verification columns (see `supabase/guide_interest_signups.sql`).
 
 `candidate_feedback_submissions`:
 

@@ -105,28 +105,52 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const verifiedAt = new Date().toISOString();
+
     const existing = await supabase
       .from("guide_interest_signups")
-      .select("id")
+      .select("id, email_verified")
       .eq("notify_email", payload.notifyEmail)
       .eq("target_region", payload.targetRegion || null)
       .eq("target_country", payload.targetCountry || null)
       .limit(1);
+
     if (existing.error) {
       console.error("[verify-notification-email] Lookup in guide_interest_signups failed:", existing.error.message);
       throw new Error(existing.error.message);
     }
 
-    if (!existing.data || existing.data.length === 0) {
-      const { error } = await supabase.from("guide_interest_signups").insert({
+    const row = existing.data?.[0];
+
+    if (row?.email_verified === true) {
+      const alreadyUrl = request.nextUrl.clone();
+      alreadyUrl.pathname = "/verified";
+      alreadyUrl.search = "";
+      alreadyUrl.searchParams.set("status", "already-verified");
+      return NextResponse.redirect(alreadyUrl);
+    }
+
+    if (row) {
+      const { error: updateError } = await supabase
+        .from("guide_interest_signups")
+        .update({ email_verified: true, verified_at: verifiedAt })
+        .eq("id", row.id);
+      if (updateError) {
+        console.error("[verify-notification-email] Update guide_interest_signups failed:", updateError.message);
+        throw new Error(updateError.message);
+      }
+    } else {
+      const { error: insertError } = await supabase.from("guide_interest_signups").insert({
         notify_email: payload.notifyEmail,
         wants_assistance: payload.wantsAssistance || null,
         target_region: payload.targetRegion || null,
         target_country: payload.targetCountry || null,
+        email_verified: true,
+        verified_at: verifiedAt,
       });
-      if (error) {
-        console.error("[verify-notification-email] Insert into guide_interest_signups failed:", error.message);
-        throw new Error(error.message);
+      if (insertError) {
+        console.error("[verify-notification-email] Insert into guide_interest_signups failed:", insertError.message);
+        throw new Error(insertError.message);
       }
     }
 
