@@ -24,6 +24,7 @@ export default function EligibilityAssistancePage() {
   const [countrySearch, setCountrySearch] = useState("");
   const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState("");
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -74,7 +75,8 @@ export default function EligibilityAssistancePage() {
       Boolean(targetRegion) &&
       targetCountry.trim().length > 1 &&
       notifyEmail.trim().length > 3 &&
-      notifyEmail.includes("@")
+      notifyEmail.includes("@") &&
+      marketingConsent
     );
   };
 
@@ -93,6 +95,7 @@ export default function EligibilityAssistancePage() {
       targetRegion,
       targetCountry,
       notifyEmail,
+      marketingConsent: marketingConsent ? "Yes" : "No",
     };
 
     try {
@@ -391,6 +394,18 @@ export default function EligibilityAssistancePage() {
                   value={notifyEmail}
                   onChange={(event) => setNotifyEmail(event.target.value)}
                 />
+              </label>
+              <label className="flex items-start gap-2 rounded-md border border-border bg-white p-3 text-sm text-navy">
+                <input
+                  type="checkbox"
+                  checked={marketingConsent}
+                  onChange={(event) => setMarketingConsent(event.target.checked)}
+                  className="mt-0.5 accent-gold"
+                />
+                <span>
+                  I confirm that I agree to receive emails from ArbeidMatch about updates, marketing,
+                  and relevant opportunities.*
+                </span>
               </label>
             </div>
           )}

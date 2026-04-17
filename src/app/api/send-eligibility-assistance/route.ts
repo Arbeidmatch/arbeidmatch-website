@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
               ["Target region", data.targetRegion],
               ["Target country", data.targetCountry],
               ["Notification email", data.notifyEmail],
+              ["Marketing consent", data.marketingConsent],
             ])}
           </div>
           <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
             <p><strong>Target region:</strong> ${data.targetRegion || "-"}</p>
             <p><strong>Target country:</strong> ${data.targetCountry || "-"}</p>
             <p><strong>Notification email:</strong> ${data.notifyEmail || "-"}</p>
+            <p><strong>Marketing consent:</strong> ${data.marketingConsent || "No"}</p>
             <p style="margin-top:18px;">
               Help us improve your experience:
               <a href="https://arbeidmatch.no/feedback" style="color:#C9A84C;font-weight:600;text-decoration:none;"> Share feedback</a>
