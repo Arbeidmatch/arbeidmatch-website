@@ -73,6 +73,8 @@ const blockBtnClass = "w-full rounded-md border border-border px-3 py-2 text-lef
 const titleClass = "text-lg font-bold text-[#0D1B2A]";
 const labelClass = "mb-1 block text-sm font-medium text-navy";
 const defaultExpandedSections = {
+  hiringType: true,
+  qualification: true,
   roleOptions: true,
   norwegian: true,
   english: true,
@@ -87,6 +89,7 @@ const defaultExpandedSections = {
   tools: true,
   startDate: true,
   hear: true,
+  subscribe: true,
 } as const;
 const howDidYouHearOptions = [
   "Referral from another company",
@@ -583,19 +586,36 @@ export default function DetailedRequestPage() {
             {step === 1 && (
               <div className="space-y-3">
                 <h2 className={titleClass}>Type of engagement with us</h2>
-                <div className={`flex flex-col gap-2 rounded-md ${invalidField === "hiringType" ? "border border-red-500 ring-1 ring-red-500 p-2" : ""}`}>
-                  {[
-                    "Candidate presentations (sourcing) for bemanning companies",
-                    "Recruitment of personnel for companies",
-                    "Personnel leasing and bemanning support",
-                    "Advertising in our network so candidates from our marketing apply directly to your company",
-                  ].map((v, i) => (
-                    <label key={v} className={radioClass}>
-                      <input type="radio" className="shrink-0 accent-gold" checked={formData.hiringType === v} onChange={() => updateField("hiringType", v)} ref={(e) => { if (i === 0) setRef("hiringType", e); }} />
-                      {v}
-                    </label>
-                  ))}
-                </div>
+                <button
+                  type="button"
+                  className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy"
+                  onClick={() => toggleExpand("hiringType")}
+                >
+                  {withSelection("Type of engagement", formData.hiringType)} {expanded.hiringType ? "▲" : "▼"}
+                </button>
+                {expanded.hiringType && (
+                  <div className={`flex flex-col gap-2 rounded-md ${invalidField === "hiringType" ? "border border-red-500 ring-1 ring-red-500 p-2" : ""}`}>
+                    {[
+                      "Candidate presentations (sourcing) for bemanning companies",
+                      "Recruitment of personnel for companies",
+                      "Personnel leasing and bemanning support",
+                      "Advertising in our network so candidates from our marketing apply directly to your company",
+                    ].map((v, i) => (
+                      <label key={v} className={radioClass}>
+                        <input
+                          type="radio"
+                          className="shrink-0 accent-gold"
+                          checked={formData.hiringType === v}
+                          onChange={() => selectAndCollapse("hiringType", "hiringType", v)}
+                          ref={(e) => {
+                            if (i === 0) setRef("hiringType", e);
+                          }}
+                        />
+                        {v}
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -652,32 +672,49 @@ export default function DetailedRequestPage() {
             {step === 3 && (
               <div className="space-y-3">
                 <h2 className={titleClass}>Qualification</h2>
-                <div className={`${groupBaseClass} ${invalidField === "qualification" ? "border border-red-500 ring-1 ring-red-500 p-2" : ""}`}>
-                  {["No experience needed", "Some experience", "Certified", "Fully certified"].map((v, i) => (
-                    <div key={v} className="space-y-2">
-                      <label className={radioClass}>
-                        <input type="radio" className="shrink-0 accent-gold" checked={formData.qualification === v} onChange={() => updateField("qualification", v)} ref={(e) => { if (i === 0) setRef("qualification", e); }} />
-                        {v}
-                      </label>
-                      {formData.qualification === v && v !== "No experience needed" && (
-                        <div className="space-y-2 rounded-md border border-border/60 bg-surface p-3">
-                          <p className="text-sm font-semibold text-navy">Required certifications</p>
-                          <div className="space-y-2">
-                            {certOptions.map((cert) => (
-                              <label key={cert} className={radioClass}>
-                                <input type="checkbox" className="shrink-0 accent-gold" checked={formData.certifications.includes(cert)} onChange={() => toggleCert(cert)} />
-                                {cert}
-                                {cert === "Other" && formData.certifications.includes("Other") && (
-                                  <input className={`${inputClass} ${invalid("certificationsOther")} ml-2 max-w-[220px]`} placeholder="Specify other*" value={formData.certificationsOther} onChange={(e) => updateField("certificationsOther", e.target.value)} ref={(e) => setRef("certificationsOther", e)} />
-                                )}
-                              </label>
-                            ))}
+                <button
+                  type="button"
+                  className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy"
+                  onClick={() => toggleExpand("qualification")}
+                >
+                  {withSelection("Qualification", formData.qualification)} {expanded.qualification ? "▲" : "▼"}
+                </button>
+                {expanded.qualification && (
+                  <div className={`${groupBaseClass} ${invalidField === "qualification" ? "border border-red-500 ring-1 ring-red-500 p-2" : ""}`}>
+                    {["No experience needed", "Some experience", "Certified", "Fully certified"].map((v, i) => (
+                      <div key={v} className="space-y-2">
+                        <label className={radioClass}>
+                          <input
+                            type="radio"
+                            className="shrink-0 accent-gold"
+                            checked={formData.qualification === v}
+                            onChange={() => selectAndCollapse("qualification", "qualification", v)}
+                            ref={(e) => {
+                              if (i === 0) setRef("qualification", e);
+                            }}
+                          />
+                          {v}
+                        </label>
+                        {formData.qualification === v && v !== "No experience needed" && (
+                          <div className="space-y-2 rounded-md border border-border/60 bg-surface p-3">
+                            <p className="text-sm font-semibold text-navy">Required certifications</p>
+                            <div className="space-y-2">
+                              {certOptions.map((cert) => (
+                                <label key={cert} className={radioClass}>
+                                  <input type="checkbox" className="shrink-0 accent-gold" checked={formData.certifications.includes(cert)} onChange={() => toggleCert(cert)} />
+                                  {cert}
+                                  {cert === "Other" && formData.certifications.includes("Other") && (
+                                    <input className={`${inputClass} ${invalid("certificationsOther")} ml-2 max-w-[220px]`} placeholder="Specify other*" value={formData.certificationsOther} onChange={(e) => updateField("certificationsOther", e.target.value)} ref={(e) => setRef("certificationsOther", e)} />
+                                  )}
+                                </label>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {formData.qualification !== "No experience needed" && (
                   <>
                     <label className={labelClass}>Minimum years of experience</label>
@@ -882,25 +919,34 @@ export default function DetailedRequestPage() {
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  {["Yes - send me candidate updates", "No thanks"].map((v, i) => (
-                    <label key={v} className={radioClass}>
-                      <input
-                        type="radio"
-                        className="shrink-0 accent-gold"
-                        checked={formData.subscribe === v}
-                        onChange={() => {
-                          if (v === "No thanks") return setConfirmNoSubscribe(true);
-                          updateField("subscribe", v);
-                        }}
-                        ref={(e) => {
-                          if (i === 0) setRef("subscribe", e);
-                        }}
-                      />
-                      {v}
-                    </label>
-                  ))}
-                </div>
+                <button
+                  type="button"
+                  className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy"
+                  onClick={() => toggleExpand("subscribe")}
+                >
+                  {withSelection("Candidate updates by email", formData.subscribe)} {expanded.subscribe ? "▲" : "▼"}
+                </button>
+                {expanded.subscribe && (
+                  <div className="space-y-2">
+                    {["Yes - send me candidate updates", "No thanks"].map((v, i) => (
+                      <label key={v} className={radioClass}>
+                        <input
+                          type="radio"
+                          className="shrink-0 accent-gold"
+                          checked={formData.subscribe === v}
+                          onChange={() => {
+                            if (v === "No thanks") return setConfirmNoSubscribe(true);
+                            selectAndCollapse("subscribe", "subscribe", v);
+                          }}
+                          ref={(e) => {
+                            if (i === 0) setRef("subscribe", e);
+                          }}
+                        />
+                        {v}
+                      </label>
+                    ))}
+                  </div>
+                )}
                 <label className={labelClass}>Additional notes</label>
                 <textarea rows={3} className={inputClass} placeholder="Additional notes (optional)" value={formData.notes} onChange={(e) => updateField("notes", e.target.value)} />
                 <button type="submit" disabled={isSubmitting} className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#C9A84C] py-2 text-sm font-medium text-white hover:bg-gold-hover disabled:opacity-70">
@@ -928,7 +974,7 @@ export default function DetailedRequestPage() {
             <p className="text-sm text-navy">Without email subscription we cannot send you candidate presentations. Are you sure?</p>
             <div className="mt-3 flex justify-end gap-2">
               <button type="button" className="rounded-md border border-border px-3 py-2 text-sm" onClick={() => setConfirmNoSubscribe(false)}>Go back and subscribe</button>
-              <button type="button" className="rounded-md bg-[#C9A84C] px-3 py-2 text-sm text-white" onClick={() => { updateField("subscribe", "No thanks"); setConfirmNoSubscribe(false); }}>Yes, I understand</button>
+              <button type="button" className="rounded-md bg-[#C9A84C] px-3 py-2 text-sm text-white" onClick={() => { updateField("subscribe", "No thanks"); setExpanded((prev) => ({ ...prev, subscribe: false })); setConfirmNoSubscribe(false); }}>Yes, I understand</button>
             </div>
           </div>
         </div>
