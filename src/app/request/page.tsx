@@ -10,24 +10,6 @@ type CompanyResult = {
   orgNumber: string;
 };
 
-const norwayCities = [
-  "Oslo",
-  "Bergen",
-  "Trondheim",
-  "Stavanger",
-  "Drammen",
-  "Kristiansand",
-  "Fredrikstad",
-  "Tromso",
-  "Sandnes",
-  "Asker",
-  "Skien",
-  "Alesund",
-  "Bodo",
-  "Tonsberg",
-  "Moss",
-];
-
 export default function RequestPage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [cardError, setCardError] = useState("");
@@ -35,12 +17,10 @@ export default function RequestPage() {
   const [companyQuery, setCompanyQuery] = useState("");
   const [orgNumber, setOrgNumber] = useState("");
   const [partnershipStatus, setPartnershipStatus] = useState<"existing" | "new" | "">("");
+  const [contactName, setContactName] = useState("");
+  const [contactRole, setContactRole] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
   const [companyEmail, setCompanyEmail] = useState("");
-  const [jobSummary, setJobSummary] = useState("");
-  const [requestedLocation, setRequestedLocation] = useState("");
-  const [citySearch, setCitySearch] = useState("");
-  const [isCustomCity, setIsCustomCity] = useState(false);
-  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   const [engagementModel, setEngagementModel] = useState("Occasional candidate requests");
   const [howDidYouHear, setHowDidYouHear] = useState("Referral from another company");
   const [socialMediaPlatform, setSocialMediaPlatform] = useState("Facebook");
@@ -59,9 +39,6 @@ export default function RequestPage() {
   const maxCard = partnershipStatus === "new" ? 3 : 1;
   const progress = ((currentCard + 1) / (maxCard + 1)) * 100;
   const isAutoAdvanceCard = currentCard === 0 || (partnershipStatus === "new" && currentCard === 2);
-  const filteredCities = norwayCities.filter((city) =>
-    city.toLowerCase().includes(citySearch.trim().toLowerCase()),
-  );
   const selectedOptionBadge = (
     <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700">
       <span role="img" aria-label="Selected">
@@ -96,8 +73,9 @@ export default function RequestPage() {
         companyQuery.trim().length > 1 &&
         companyEmail.trim().length > 3 &&
         companyEmail.includes("@") &&
-        jobSummary.trim().length > 3 &&
-        requestedLocation.trim().length > 1
+        contactName.trim().length > 2 &&
+        contactRole.trim().length > 1 &&
+        contactPhone.trim().length > 5
       );
     }
     if (partnershipStatus === "new" && currentCard === 2) {
@@ -143,8 +121,11 @@ export default function RequestPage() {
       company: companyQuery,
       orgNumber,
       email: companyEmail,
-      job_summary: jobSummary,
-      requested_location: requestedLocation,
+      full_name: contactName,
+      contactRole,
+      phone: contactPhone,
+      job_summary: "",
+      requested_location: "",
       partnershipStatus,
       howDidYouHear,
       socialMediaPlatform: howDidYouHear === "Social media" ? socialMediaPlatform : "",
@@ -166,7 +147,7 @@ export default function RequestPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...payload,
-          requestedLocation: requestedLocation.trim(),
+          requestedLocation: "",
         }),
       });
 
@@ -334,7 +315,7 @@ export default function RequestPage() {
 
             {currentCard === 1 && (
               <div className="space-y-4">
-                <h2 className="text-sm font-semibold text-navy">Company and Request Details</h2>
+                <h2 className="text-sm font-semibold text-navy">Company and Contact Details</h2>
           <label className="relative block">
             <span className="mb-1 block text-sm font-medium text-navy">Company name*</span>
             <input
@@ -377,7 +358,7 @@ export default function RequestPage() {
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy">Company email*</span>
+            <span className="mb-1 block text-sm font-medium text-navy">Contact person email*</span>
             <input
               required
               name="email"
@@ -390,95 +371,39 @@ export default function RequestPage() {
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy">
-              What kind of candidate are you looking for?*
-            </span>
-            <textarea
+            <span className="mb-1 block text-sm font-medium text-navy">Contact person name*</span>
+            <input
               required
-              name="job_summary"
-              rows={2}
+              name="full_name"
               className={inputClass}
-              placeholder="E.g. 2 experienced carpenters for a construction project in Oslo, starting ASAP"
-              value={jobSummary}
-              onChange={(event) => setJobSummary(event.target.value)}
+              placeholder="First name last name"
+              value={contactName}
+              onChange={(event) => setContactName(event.target.value)}
             />
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy">Where do you need candidates?*</span>
-            {!isCustomCity ? (
-              <div className="relative">
-                <input
-                  required
-                  name="requested_location"
-                  className={inputClass}
-                  placeholder="Type city name..."
-                  value={citySearch}
-                  onFocus={() => setShowCitySuggestions(true)}
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    setCitySearch(value);
-                    setRequestedLocation(value);
-                    setShowCitySuggestions(true);
-                  }}
-                />
-                {showCitySuggestions && citySearch.trim().length > 0 && (
-                  <div className="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-border bg-white shadow-[0_8px_24px_rgba(13,27,42,0.12)]">
-                    {filteredCities.map((city) => (
-                      <button
-                        key={city}
-                        type="button"
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => {
-                          setCitySearch(city);
-                          setRequestedLocation(city);
-                          setShowCitySuggestions(false);
-                        }}
-                        className="block w-full border-b border-border px-3 py-2 text-left text-sm text-navy last:border-b-0 hover:bg-gold/10"
-                      >
-                        {city}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => {
-                        setIsCustomCity(true);
-                        setRequestedLocation("");
-                        setCitySearch("");
-                        setShowCitySuggestions(false);
-                      }}
-                      className="block w-full px-3 py-2 text-left text-sm font-medium text-navy hover:bg-gold/10"
-                    >
-                      Other (type manually)
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <input
-                  required
-                  name="requested_location"
-                  className={inputClass}
-                  placeholder="Enter city manually..."
-                  value={requestedLocation}
-                  onChange={(event) => setRequestedLocation(event.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCustomCity(false);
-                    setRequestedLocation("");
-                    setCitySearch("");
-                    setShowCitySuggestions(false);
-                  }}
-                  className="text-sm font-medium text-gold hover:text-gold-hover"
-                >
-                  Pick from list instead
-                </button>
-              </div>
-            )}
+            <span className="mb-1 block text-sm font-medium text-navy">Contact person role/title*</span>
+            <input
+              required
+              name="contact_role"
+              className={inputClass}
+              placeholder="E.g. HR Manager, Site Manager"
+              value={contactRole}
+              onChange={(event) => setContactRole(event.target.value)}
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-navy">Contact phone number*</span>
+            <input
+              required
+              name="phone"
+              className={inputClass}
+              placeholder="+47 900 00 000"
+              value={contactPhone}
+              onChange={(event) => setContactPhone(event.target.value)}
+            />
           </label>
               </div>
             )}
