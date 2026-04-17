@@ -26,7 +26,11 @@ function base64UrlDecode(value: string): string {
 }
 
 function getSecret(): string {
-  return process.env.EMAIL_VERIFICATION_SECRET || process.env.CRON_SECRET || "change-this-secret";
+  const secret = process.env.EMAIL_VERIFICATION_SECRET || process.env.CRON_SECRET || "";
+  if (!secret) {
+    console.error("[notificationToken] Missing EMAIL_VERIFICATION_SECRET (and CRON_SECRET fallback).");
+  }
+  return secret;
 }
 
 export function createEligibilityVerificationToken(
