@@ -66,6 +66,30 @@ export async function POST(request: NextRequest) {
       `,
     });
 
+    if (email && email.includes("@")) {
+      await transporter.sendMail({
+        from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+        to: email,
+        subject: "Thank you for your feedback - ArbeidMatch",
+        html: `
+          <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
+            <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #E2E5EA;overflow:hidden;">
+              <div style="background:#0D1B2A;color:#fff;padding:16px 20px;">
+                <div style="font-size:22px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
+                <div style="margin-top:6px;color:#DDE3ED;">Feedback confirmation</div>
+              </div>
+              <div style="padding:20px;color:#0D1B2A;">
+                <p style="margin:0;">Thank you for sharing your feedback.</p>
+                <p style="margin:10px 0 0;">We received your score: <strong>${score}/10</strong>.</p>
+                <p style="margin:10px 0 0;">Source: <strong>${source}</strong></p>
+                <p style="margin:16px 0 0;">Best regards,<br />ArbeidMatch Team</p>
+              </div>
+            </div>
+          </div>
+        `,
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("confirmation-feedback error", error);

@@ -23,6 +23,7 @@ export default function ScorePage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
+  const [feedbackEmail, setFeedbackEmail] = useState("");
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
@@ -61,6 +62,10 @@ export default function ScorePage() {
 
   const submitFeedback = async () => {
     if (feedbackScore === null || feedbackStatus === "sending") return;
+    if (!feedbackEmail.trim() || !feedbackEmail.includes("@")) {
+      setFeedbackStatus("error");
+      return;
+    }
     setFeedbackStatus("sending");
     try {
       const response = await fetch("/api/confirmation-feedback", {
@@ -70,6 +75,7 @@ export default function ScorePage() {
           source: "candidate-eligibility-check",
           score: feedbackScore,
           note: feedbackNote.trim(),
+          email: feedbackEmail.trim(),
           website: "",
         }),
       });
@@ -171,10 +177,26 @@ export default function ScorePage() {
                       if (feedbackStatus !== "idle") setFeedbackStatus("idle");
                     }}
                   />
+                  <input
+                    type="email"
+                    className="mt-3 w-full rounded-md border border-border px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold"
+                    placeholder="Your email (required for confirmation)"
+                    value={feedbackEmail}
+                    onChange={(event) => {
+                      setFeedbackEmail(event.target.value);
+                      if (feedbackStatus !== "idle") setFeedbackStatus("idle");
+                    }}
+                  />
                   <button
                     type="button"
                     onClick={() => void submitFeedback()}
-                    disabled={feedbackScore === null || feedbackStatus === "sending" || feedbackStatus === "sent"}
+                    disabled={
+                      feedbackScore === null ||
+                      !feedbackEmail.trim() ||
+                      !feedbackEmail.includes("@") ||
+                      feedbackStatus === "sending" ||
+                      feedbackStatus === "sent"
+                    }
                     className="mt-3 rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#122845] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {feedbackStatus === "sending"
@@ -184,7 +206,9 @@ export default function ScorePage() {
                         : "Send feedback"}
                   </button>
                   {feedbackStatus === "error" && (
-                    <p className="mt-2 text-xs text-red-600">Could not send feedback. Please try again.</p>
+                    <p className="mt-2 text-xs text-red-600">
+                      Could not send feedback. Please check your email and try again.
+                    </p>
                   )}
                   {feedbackStatus === "sent" && (
                     <p className="mt-2 text-xs text-green-700">Thank you! Your feedback was received.</p>
