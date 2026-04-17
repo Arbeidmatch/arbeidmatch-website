@@ -10,6 +10,7 @@ export default function EligibilityAssistancePage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [currentStep, setCurrentStep] = useState(0);
   const [stepError, setStepError] = useState("");
+  const [pausedByChoice, setPausedByChoice] = useState(false);
   const [wantsAssistance, setWantsAssistance] = useState<"yes" | "no" | "">("");
   const [targetRegion, setTargetRegion] = useState("");
   const [fullName, setFullName] = useState("");
@@ -19,7 +20,7 @@ export default function EligibilityAssistancePage() {
   const [details, setDetails] = useState("");
 
   const totalSteps = 3;
-  const progress = ((currentStep + 1) / totalSteps) * 100;
+  const progress = pausedByChoice ? 100 : ((currentStep + 1) / totalSteps) * 100;
 
   const validateStep = () => {
     if (currentStep === 0) return Boolean(wantsAssistance);
@@ -28,6 +29,9 @@ export default function EligibilityAssistancePage() {
   };
 
   const nextStep = () => {
+    if (pausedByChoice) {
+      return;
+    }
     if (!validateStep()) {
       setStepError("Please complete the required fields before continuing.");
       return;
@@ -102,7 +106,12 @@ export default function EligibilityAssistancePage() {
                 <button
                   key={value}
                   type="button"
-                  onClick={() => setWantsAssistance(value as "yes" | "no")}
+                  onClick={() => {
+                    const nextValue = value as "yes" | "no";
+                    setWantsAssistance(nextValue);
+                    setStepError("");
+                    setPausedByChoice(nextValue === "no");
+                  }}
                   className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
                     wantsAssistance === value ? "border-gold bg-gold/10" : "border-border hover:border-gold"
                   }`}
@@ -113,7 +122,28 @@ export default function EligibilityAssistancePage() {
             </div>
           )}
 
-          {currentStep === 1 && (
+          {pausedByChoice && (
+            <div className="rounded-md border border-border bg-surface p-4 text-navy">
+              <h2 className="text-lg font-semibold">Thank you for checking in</h2>
+              <p className="mt-2 text-sm text-text-secondary">
+                No worries at all. If you need support with procedures later, you are always welcome
+                to come back and continue.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setPausedByChoice(false);
+                  setWantsAssistance("");
+                  setStepError("");
+                }}
+                className="mt-4 rounded-md border border-navy px-4 py-2 text-sm font-medium text-navy hover:bg-white"
+              >
+                Change answer
+              </button>
+            </div>
+          )}
+
+          {currentStep === 1 && !pausedByChoice && (
             <div className="space-y-3">
               <p className="text-lg font-medium text-navy">Where do you want to work after completing procedures?</p>
               {["Scandinavia", "Europe (EU/EEA)", "Both Scandinavia and Europe (EU/EEA)"].map((option) => (
@@ -131,7 +161,7 @@ export default function EligibilityAssistancePage() {
             </div>
           )}
 
-          {currentStep === 2 && (
+          {currentStep === 2 && !pausedByChoice && (
             <div className="space-y-4">
               <label className="block">
                 <span className="mb-1 block text-sm font-medium text-navy">Full name*</span>
@@ -201,34 +231,36 @@ export default function EligibilityAssistancePage() {
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={prevStep}
-              disabled={currentStep === 0 || status === "submitting"}
-              className="w-full rounded-md border border-navy px-4 py-3 text-sm font-medium text-navy disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Back
-            </button>
-            {currentStep < totalSteps - 1 ? (
+          {!pausedByChoice && (
+            <div className="flex items-center justify-between gap-3">
               <button
                 type="button"
-                onClick={nextStep}
-                disabled={status === "submitting"}
-                className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+                onClick={prevStep}
+                disabled={currentStep === 0 || status === "submitting"}
+                className="w-full rounded-md border border-navy px-4 py-3 text-sm font-medium text-navy disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Next
+                Back
               </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={status === "submitting"}
-                className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {status === "submitting" ? "Sending..." : "Send assistance request"}
-              </button>
-            )}
-          </div>
+              {currentStep < totalSteps - 1 ? (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  disabled={status === "submitting"}
+                  className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={status === "submitting"}
+                  className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {status === "submitting" ? "Sending..." : "Send assistance request"}
+                </button>
+              )}
+            </div>
+          )}
 
           {status === "success" && (
             <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800">
