@@ -98,7 +98,7 @@ const howDidYouHearOptions = [
 
 const rolesByCategory: Record<string, string[]> = {
   Construction: ["Carpenter", "Bricklayer", "Tile layer", "Painter", "Plasterer", "Roofer", "Concrete worker", "Steel fixer", "Scaffolder", "Insulation worker", "Floor layer", "Window installer", "Demolition worker"],
-  "Civil Engineering (Anlegg)": ["Excavator operator", "Pipeline layer", "Road worker", "Asphalt worker", "Crane operator", "Survey technician"],
+  "Civil Engineering": ["Excavator operator", "Pipeline layer", "Road worker", "Asphalt worker", "Crane operator", "Survey technician"],
   "Electrical & Mechanical": ["Electrician", "Plumber", "HVAC technician", "Mechanic", "Refrigeration technician"],
   "Industry & Logistics": ["Forklift operator", "Warehouse worker", "Machine operator", "Welder", "CNC operator", "Driver"],
   "Cleaning & Facility": ["Cleaner", "Janitor", "Facility technician", "Window cleaner"],
@@ -127,50 +127,50 @@ const rolesByCategory: Record<string, string[]> = {
 };
 
 const certsByRole: Record<string, string[]> = {
-  Carpenter: ["Fagbrev tømrer", "Arbeid i høyden sertifikat", "Stillassertifikat (bruker)", "Fallsikringskurs", "Truck/løfteutstyr", "Other"],
-  Bricklayer: ["Fagbrev murer", "Arbeid i høyden", "Stillassertifikat bruker", "Other"],
-  "Tile layer": ["Fagbrev flislegger", "Arbeid i høyden", "Other"],
-  Painter: ["Fagbrev maler", "Arbeid i høyden", "Farlig gods/kjemikalier", "Other"],
-  Plasterer: ["Fagbrev", "Arbeid i høyden", "Other"],
-  Roofer: ["Fagbrev taktekkjer", "Arbeid i høyden", "Fallsikring", "Other"],
-  "Concrete worker": ["Fagbrev betongfaget", "Arbeid i høyden", "Stillassertifikat", "Other"],
-  "Steel fixer": ["Fagbrev", "Arbeid i høyden", "Other"],
-  Scaffolder: ["Stillassertifikat nivå 3", "Stillassertifikat nivå 2", "Stillassertifikat nivå 1", "Arbeid i høyden", "Other"],
-  "Insulation worker": ["Fagbrev", "Arbeid i høyden", "Asbestsertifikat", "Other"],
-  "Floor layer": ["Fagbrev gullegger", "Other"],
-  "Window installer": ["Fagbrev", "Arbeid i høyden", "Other"],
-  "Demolition worker": ["Rivearbeider sertifikat", "Asbestkartlegging", "Arbeid i høyden", "Other"],
-  "Excavator operator": ["Maskinførerbevis", "Anleggsmaskinførerbevis", "Other"],
-  "Pipeline layer": ["Fagbrev", "VA-kompetanse", "Other"],
-  "Road worker": ["Veg- og anleggsfaget", "HMS anlegg", "Other"],
-  "Asphalt worker": ["Asfaltfaget fagbrev", "Other"],
-  "Crane operator": ["G4 (mobilkran)", "G8 (tårnkran)", "G11 (traverskran)", "G1", "G2", "G3", "Løftesertifikat", "Other"],
-  "Survey technician": ["Landmålerkompetanse", "Other"],
+  Carpenter: ["Trade certificate - carpenter", "Working at heights certificate", "Scaffolding certificate (user)", "Fall protection course", "Truck/lifting equipment", "Other"],
+  Bricklayer: ["Trade certificate - bricklayer", "Working at heights", "Scaffolding certificate (user)", "Other"],
+  "Tile layer": ["Trade certificate - tiler", "Working at heights", "Other"],
+  Painter: ["Trade certificate - painter", "Working at heights", "Hazardous materials/chemicals", "Other"],
+  Plasterer: ["Trade certificate", "Working at heights", "Other"],
+  Roofer: ["Trade certificate - roofer", "Working at heights", "Fall protection", "Other"],
+  "Concrete worker": ["Trade certificate - concrete work", "Working at heights", "Scaffolding certificate", "Other"],
+  "Steel fixer": ["Trade certificate", "Working at heights", "Other"],
+  Scaffolder: ["Scaffolding certificate level 3", "Scaffolding certificate level 2", "Scaffolding certificate level 1", "Working at heights", "Other"],
+  "Insulation worker": ["Trade certificate", "Working at heights", "Asbestos certificate", "Other"],
+  "Floor layer": ["Trade certificate - floor layer", "Other"],
+  "Window installer": ["Trade certificate", "Working at heights", "Other"],
+  "Demolition worker": ["Demolition worker certificate", "Asbestos assessment", "Working at heights", "Other"],
+  "Excavator operator": ["Machine operator license", "Construction machinery license", "Other"],
+  "Pipeline layer": ["Trade certificate", "Water and sewage competence", "Other"],
+  "Road worker": ["Road and construction trade certificate", "Construction HSE", "Other"],
+  "Asphalt worker": ["Asphalt trade certificate", "Other"],
+  "Crane operator": ["G4 (mobile crane)", "G8 (tower crane)", "G11 (overhead crane)", "G1", "G2", "G3", "Lifting certificate", "Other"],
+  "Survey technician": ["Land surveying competence", "Other"],
   "Forklift operator": ["T4", "T1", "T2", "T3", "T5", "T6", "T7", "T8", "Other"],
-  "Warehouse worker": ["Truck T1/T2", "HMS lager", "Other"],
-  "Machine operator": ["Maskinførerbevis", "Other"],
-  Welder: ["ISO 9606-1 (stål)", "ISO 9606-2 (aluminium)", "NS-EN ISO 15614", "Offshore sveisesertifikat", "Other"],
-  "CNC operator": ["CNC kompetansebevis", "Other"],
-  Driver: ["Førerkort CE", "Førerkort C", "Førerkort C1E", "ADR sertifikat", "Yrkessjåførkompetansebevis", "Other"],
-  Cleaner: ["HMS renhold", "Kjemikaliekurs", "Other"],
-  Janitor: ["Vaktmesterkompetanse", "Driftspersonellsertifikat", "Other"],
-  "Facility technician": ["Driftstekniker kompetanse", "Other"],
-  "Window cleaner": ["Arbeid i høyden", "Repelaufteknikk", "Other"],
+  "Warehouse worker": ["Truck T1/T2", "Warehouse HSE", "Other"],
+  "Machine operator": ["Machine operator license", "Other"],
+  Welder: ["ISO 9606-1 (steel)", "ISO 9606-2 (aluminium)", "NS-EN ISO 15614", "Offshore welding certificate", "Other"],
+  "CNC operator": ["CNC competence certificate", "Other"],
+  Driver: ["Driver license CE", "Driver license C", "Driver license C1E", "ADR certificate", "Professional driver competence certificate", "Other"],
+  Cleaner: ["Cleaning HSE", "Chemicals course", "Other"],
+  Janitor: ["Janitor competence certificate", "Facilities operations certificate", "Other"],
+  "Facility technician": ["Facility technician competence", "Other"],
+  "Window cleaner": ["Working at heights", "Rope access technique", "Other"],
   Electrician: [
-    "Fagbrev elektriker",
-    "DSB autorisasjon lavspenning",
-    "DSB autorisasjon høyspenning",
-    "ATEX/EX sertifikat",
-    "FSE kurs",
+    "Trade certificate - electrician",
+    "DSB authorization low voltage",
+    "DSB authorization high voltage",
+    "ATEX/EX certificate",
+    "FSE course",
     "Data center experience",
     "Shipyard experience",
     "Private sector project experience",
     "Other",
   ],
-  Plumber: ["Fagbrev rørlegger", "Våtromssertifikat", "Other"],
-  "HVAC technician": ["Ventilasjonsmontør fagbrev", "Other"],
-  Mechanic: ["Fagbrev industrimekanikar", "Fagbrev bilfaget", "Other"],
-  "Refrigeration technician": ["Kuldesertifikat klasse I", "Kuldesertifikat klasse II", "F-gass sertifikat", "Other"],
+  Plumber: ["Trade certificate - plumber", "Wet room certificate", "Other"],
+  "HVAC technician": ["Trade certificate - ventilation installer", "Other"],
+  Mechanic: ["Trade certificate - industrial mechanic", "Trade certificate - automotive mechanic", "Other"],
+  "Refrigeration technician": ["Refrigeration certificate class I", "Refrigeration certificate class II", "F-gas certificate", "Other"],
 };
 
 const initialData: RequestForm = {
@@ -703,13 +703,13 @@ export default function DetailedRequestPage() {
                 <label className={labelClass}>Contract type</label>
                 <select className={`${inputClass} ${invalid("contractType")}`} value={formData.contractType} onChange={(e) => updateField("contractType", e.target.value)} ref={(e) => setRef("contractType", e)}>
                   <option value="">Contract type*</option>
-                  <option>Fast ansettelse - direkte hos klient</option>
-                  <option>Fast ansettelse - via bemanningsbyrå</option>
-                  <option>Midlertidig ansettelse - direkte hos klient</option>
-                  <option>Midlertidig ansettelse - via bemanningsbyrå</option>
-                  <option>Innleie fra bemanningsbyrå</option>
-                  <option>Selvstendig oppdragstaker</option>
-                  <option>Sesongarbeid</option>
+                  <option>Permanent employment - directly with client</option>
+                  <option>Permanent employment - via staffing agency</option>
+                  <option>Temporary employment - directly with client</option>
+                  <option>Temporary employment - via staffing agency</option>
+                  <option>Hiring from staffing agency</option>
+                  <option>Independent contractor</option>
+                  <option>Seasonal work</option>
                 </select>
 
                 <p className="text-sm font-semibold text-navy">Working Hours</p>

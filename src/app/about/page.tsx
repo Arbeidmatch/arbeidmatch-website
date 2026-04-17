@@ -18,7 +18,7 @@ export default function AboutPage() {
           <p className="font-semibold text-navy">ARBEIDMATCH NORGE AS</p>
           <p className="mt-2 text-text-secondary">Org.nr. 935 667 089 (MVA-registrert)</p>
           <p className="text-text-secondary">Founded: 08.05.2025</p>
-          <p className="text-text-secondary">Industry: 78.200, Utleie av arbeidskraft</p>
+          <p className="text-text-secondary">Industry: 78.200, Temporary employment agency activities</p>
           <p className="text-text-secondary">
             Address: Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway
           </p>

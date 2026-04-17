@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     "bemanning norge",
     "rekruttering",
     "blue collar workers norway",
-    "arbeidskraft EU",
+    "EU workforce",
   ],
   authors: [{ name: "ArbeidMatch Norge AS" }],
   creator: "ArbeidMatch Norge AS",
