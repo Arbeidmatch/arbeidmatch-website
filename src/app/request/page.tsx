@@ -12,9 +12,14 @@ type CompanyResult = {
 
 export default function RequestPage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [cardError, setCardError] = useState("");
+  const [currentCard, setCurrentCard] = useState(0);
   const [companyQuery, setCompanyQuery] = useState("");
   const [orgNumber, setOrgNumber] = useState("");
   const [partnershipStatus, setPartnershipStatus] = useState<"existing" | "new" | "">("");
+  const [companyEmail, setCompanyEmail] = useState("");
+  const [jobSummary, setJobSummary] = useState("");
+  const [requestedLocation, setRequestedLocation] = useState("");
   const [engagementModel, setEngagementModel] = useState("Occasional candidate requests");
   const [engagementDetails, setEngagementDetails] = useState("");
   const [howDidYouHear, setHowDidYouHear] = useState("Referral from another company");
@@ -31,24 +36,90 @@ export default function RequestPage() {
   const [isSearchingCompanies, setIsSearchingCompanies] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
+  const maxCard = partnershipStatus === "new" ? 3 : 2;
+  const progress = ((currentCard + 1) / (maxCard + 1)) * 100;
+
+  const validateLeadSource = () => {
+    if (howDidYouHear === "Social media" && socialMediaPlatform === "Other" && !socialMediaOther.trim()) {
+      return false;
+    }
+    if (howDidYouHear === "Other" && !howDidYouHearOther.trim()) {
+      return false;
+    }
+    if (howDidYouHear === "Referral from another company" && !referralCompanyName.trim()) {
+      return false;
+    }
+    return true;
+  };
+
+  const validateCurrentCard = () => {
+    if (currentCard === 0) {
+      return Boolean(partnershipStatus);
+    }
+    if (currentCard === 1) {
+      return (
+        companyQuery.trim().length > 1 &&
+        companyEmail.trim().length > 3 &&
+        companyEmail.includes("@") &&
+        jobSummary.trim().length > 3 &&
+        requestedLocation.trim().length > 1
+      );
+    }
+    if (partnershipStatus === "new" && currentCard === 2) {
+      return Boolean(engagementModel) && engagementDetails.trim().length > 3;
+    }
+    return validateLeadSource();
+  };
+
+  const nextCard = () => {
+    if (!validateCurrentCard()) {
+      setCardError("Please complete the required fields in this card before continuing.");
+      return;
+    }
+    setCardError("");
+    if (currentCard < maxCard) setCurrentCard((prev) => prev + 1);
+  };
+
+  const prevCard = () => {
+    setCardError("");
+    if (currentCard > 0) setCurrentCard((prev) => prev - 1);
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setStatus("submitting");
+    if (!validateCurrentCard()) {
+      setCardError("Please complete the required fields in this card before sending.");
+      return;
+    }
 
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    const payload = Object.fromEntries(formData.entries()) as Record<string, string>;
-    const requestedLocation = payload.requested_location?.trim();
+    setCardError("");
+    setStatus("submitting");
 
     if (!partnershipStatus) {
       setStatus("error");
       return;
     }
 
+    const payload: Record<string, string> = {
+      company: companyQuery,
+      orgNumber,
+      email: companyEmail,
+      job_summary: jobSummary,
+      requested_location: requestedLocation,
+      partnershipStatus,
+      howDidYouHear,
+      socialMediaPlatform,
+      socialMediaOther,
+      howDidYouHearOther,
+      referralCompanyName,
+      referralOrgNumber,
+      referralEmail,
+    };
+
     payload.partnershipStatus = partnershipStatus;
 
-    if (requestedLocation) {
-      payload.job_summary = `${payload.job_summary?.trim()}\nLocation needed: ${requestedLocation}`;
+    if (requestedLocation.trim()) {
+      payload.job_summary = `${payload.job_summary.trim()}\nLocation needed: ${requestedLocation.trim()}`;
     }
 
     if (partnershipStatus === "new") {
@@ -60,7 +131,7 @@ export default function RequestPage() {
             ...payload,
             engagementModel,
             engagementDetails,
-            requestedLocation,
+            requestedLocation: requestedLocation.trim(),
           }),
         });
 
@@ -199,40 +270,42 @@ export default function RequestPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="mx-auto mt-4 max-w-md space-y-4 rounded-xl border border-border bg-white p-6">
-          <fieldset className="space-y-2 rounded-md border border-border p-3">
-            <legend className="px-1 text-sm font-medium text-navy">
-              Quick question: Are you already partnering with ArbeidMatch?
-            </legend>
-            <label className="flex items-center gap-2 text-sm text-navy">
-              <input
-                type="radio"
-                name="partnershipStatus"
-                checked={partnershipStatus === "existing"}
-                onChange={() => setPartnershipStatus("existing")}
-                required
-              />
-              Yes, we are already a partner
-            </label>
-            <label className="flex items-center gap-2 text-sm text-navy">
-              <input
-                type="radio"
-                name="partnershipStatus"
-                checked={partnershipStatus === "new"}
-                onChange={() => setPartnershipStatus("new")}
-                required
-              />
-              No, we are a new company
-            </label>
-          </fieldset>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-surface">
+            <div className="h-full bg-gold transition-all duration-300" style={{ width: `${Math.min(progress, 100)}%` }} />
+          </div>
 
-          {!partnershipStatus && (
-            <div className="rounded-md border border-border bg-surface p-3 text-sm text-text-secondary">
-              Please choose your partnership status to continue.
-            </div>
-          )}
+          <div className="rounded-md border border-border bg-surface p-4">
+            {currentCard === 0 && (
+              <fieldset className="space-y-2">
+                <legend className="px-1 text-sm font-medium text-navy">
+                  Quick question: Are you already partnering with ArbeidMatch?
+                </legend>
+                <label className="flex items-center gap-2 text-sm text-navy">
+                  <input
+                    type="radio"
+                    name="partnershipStatus"
+                    checked={partnershipStatus === "existing"}
+                    onChange={() => setPartnershipStatus("existing")}
+                    required
+                  />
+                  Yes, we are already a partner
+                </label>
+                <label className="flex items-center gap-2 text-sm text-navy">
+                  <input
+                    type="radio"
+                    name="partnershipStatus"
+                    checked={partnershipStatus === "new"}
+                    onChange={() => setPartnershipStatus("new")}
+                    required
+                  />
+                  No, we are a new company
+                </label>
+              </fieldset>
+            )}
 
-          {partnershipStatus && (
-            <>
+            {currentCard === 1 && (
+              <div className="space-y-4">
+                <h2 className="text-sm font-semibold text-navy">Company and Request Details</h2>
           <label className="relative block">
             <span className="mb-1 block text-sm font-medium text-navy">Company name*</span>
             <input
@@ -282,6 +355,8 @@ export default function RequestPage() {
               type="email"
               className={inputClass}
               placeholder="post@company.no"
+              value={companyEmail}
+              onChange={(event) => setCompanyEmail(event.target.value)}
             />
           </label>
 
@@ -295,6 +370,8 @@ export default function RequestPage() {
               rows={2}
               className={inputClass}
               placeholder="E.g. 2 experienced carpenters for a construction project in Oslo, starting ASAP"
+              value={jobSummary}
+              onChange={(event) => setJobSummary(event.target.value)}
             />
           </label>
 
@@ -305,11 +382,16 @@ export default function RequestPage() {
               name="requested_location"
               className={inputClass}
               placeholder="E.g. Oslo, Trondheim, Stavanger"
+              value={requestedLocation}
+              onChange={(event) => setRequestedLocation(event.target.value)}
             />
           </label>
+              </div>
+            )}
 
-          {partnershipStatus === "new" && (
-            <div className="space-y-3 rounded-md border border-border bg-surface p-3">
+            {partnershipStatus === "new" && currentCard === 2 && (
+              <div className="space-y-3">
+                <h2 className="text-sm font-semibold text-navy">Collaboration Type</h2>
               <p className="text-sm font-medium text-navy">What type of collaboration are you looking for?</p>
               {[
                 "Occasional candidate requests",
@@ -337,9 +419,13 @@ export default function RequestPage() {
                   placeholder="Describe your hiring needs, timeline, and expected collaboration format"
                 />
               </label>
-            </div>
-          )}
+              </div>
+            )}
 
+            {(partnershipStatus === "existing" && currentCard === 2) ||
+            (partnershipStatus === "new" && currentCard === 3) ? (
+              <div className="space-y-4">
+                <h2 className="text-sm font-semibold text-navy">How did you hear about us?</h2>
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-navy">How did you hear about us?</span>
             <select
@@ -490,18 +576,44 @@ export default function RequestPage() {
               </label>
             </>
           )}
+              </div>
+            ) : null}
+          </div>
 
-          <button
-            type="submit"
-            disabled={status === "submitting"}
-            className="w-full rounded-md bg-gold py-4 text-lg font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {status === "submitting"
-              ? "Please wait..."
-              : partnershipStatus === "new"
-                ? "Send request →"
-                : "Continue →"}
-          </button>
+          {cardError && (
+            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {cardError}
+            </div>
+          )}
+
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={prevCard}
+              disabled={currentCard === 0 || status === "submitting"}
+              className="w-full rounded-md border border-navy px-4 py-3 text-sm font-medium text-navy disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Back
+            </button>
+            {currentCard < maxCard ? (
+              <button
+                type="button"
+                onClick={nextCard}
+                disabled={status === "submitting"}
+                className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={status === "submitting"}
+                className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {status === "submitting" ? "Please wait..." : "Send request"}
+              </button>
+            )}
+          </div>
 
           {status === "success" && partnershipStatus === "new" && (
             <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800">
@@ -513,8 +625,6 @@ export default function RequestPage() {
             <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-700">
               Something went wrong. Please email post@arbeidmatch.no
             </div>
-          )}
-            </>
           )}
         </form>
       </div>
