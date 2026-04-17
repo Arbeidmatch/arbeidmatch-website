@@ -143,20 +143,20 @@ export function EligibilityAssistanceClient() {
     setStepError("");
     setStatus("submitting");
 
-    const payload = {
-      wantsAssistance,
-      targetRegion,
-      targetCountry,
-      notifyEmail,
-      marketingConsent: marketingConsent ? "Yes" : "No",
-      turnstileToken: turnstileToken ?? "",
-    };
-
     try {
       const response = await fetch("/api/send-eligibility-assistance", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          notifyEmail,
+          targetCountry,
+          targetRegion,
+          marketingConsent: marketingConsent ? "Yes" : "No",
+          turnstileToken: turnstileToken ?? "",
+          wantsAssistance,
+        }),
       });
       const result = (await response.json()) as {
         success?: boolean;
