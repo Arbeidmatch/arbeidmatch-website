@@ -85,7 +85,8 @@ export default function ScorePage() {
               <>
                 <h2 className="text-2xl font-bold text-navy">You may not qualify yet</h2>
                 <p className="mt-3 text-text-secondary">
-                  Right now, legal eligibility is required for our EU/EEA hiring pathways.
+                  At the moment, your profile may not be the right match yet. You are welcome to
+                  try again after improving your situation.
                 </p>
               </>
             ) : result === "good" ? (
@@ -99,8 +100,8 @@ export default function ScorePage() {
               <>
                 <h2 className="text-2xl font-bold text-navy">You may not qualify yet</h2>
                 <p className="mt-3 text-text-secondary">
-                  Eligibility requires EU/EEA work rights, more than 2 years of relevant experience,
-                  and at least work-related English.
+                  You are not quite there yet, but you can come back and try again once your
+                  situation improves.
                 </p>
               </>
             )}
