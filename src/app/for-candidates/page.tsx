@@ -114,6 +114,11 @@ export default function ForCandidatesPage() {
               Share feedback about your candidate experience
             </a>
           </div>
+          <div>
+            <a href="/dsb-assistance" className="text-sm font-medium text-gold hover:text-gold-hover">
+              Need DSB support info for electricians?
+            </a>
+          </div>
         </div>
       </section>
     </>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const COOKIE_NAME = "site_cookie_consent";
@@ -50,10 +50,9 @@ function writeConsentCookie(value: "accepted" | "declined") {
 }
 
 export default function CookieConsentGate() {
-  const router = useRouter();
   const pathname = usePathname();
   const [consent, setConsent] = useState<"accepted" | "declined" | null>(() => readConsentValue());
-  const [processingAction, setProcessingAction] = useState<"accepted" | "declined" | null>(null);
+  const redirectPath = pathname || "/";
   if (consent) return null;
   if (pathname === "/cookie-required") return null;
 
@@ -77,34 +76,28 @@ export default function CookieConsentGate() {
           .
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <button
-            type="button"
+          <a
+            href={`/api/cookie-consent?action=accepted&redirect=${encodeURIComponent(redirectPath)}`}
             onClick={() => {
-              if (processingAction) return;
-              setProcessingAction("accepted");
+              // Keep instant UI feedback while server sets cookie and redirects.
               writeConsentCookie("accepted");
               setConsent("accepted");
-              router.refresh();
             }}
-            disabled={processingAction !== null}
             className="rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             Accept policies
-          </button>
-          <button
-            type="button"
+          </a>
+          <a
+            href="/api/cookie-consent?action=declined"
             onClick={() => {
-              if (processingAction) return;
-              setProcessingAction("declined");
+              // Keep instant UI feedback while server sets cookie and redirects.
               writeConsentCookie("declined");
               setConsent("declined");
-              router.replace("/cookie-required");
             }}
-            disabled={processingAction !== null}
             className="rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
           >
             Decline for now
-          </button>
+          </a>
         </div>
       </div>
     </div>

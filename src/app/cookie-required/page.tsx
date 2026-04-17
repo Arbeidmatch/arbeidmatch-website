@@ -1,27 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-
-const COOKIE_NAME = "site_cookie_consent";
-
-function acceptPolicies() {
-  try {
-    const secure = window.location.protocol === "https:" ? "; Secure" : "";
-    document.cookie = `${COOKIE_NAME}=accepted; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
-  } catch {
-    // Ignore storage errors from restricted browser policies.
-  }
-  try {
-    window.localStorage.setItem(COOKIE_NAME, "accepted");
-  } catch {
-    // Ignore storage errors from restricted browser policies.
-  }
-}
 
 export default function CookieRequiredPage() {
-  const router = useRouter();
-
   return (
     <section className="bg-surface py-16">
       <div className="mx-auto w-full max-w-2xl px-4">
@@ -42,16 +23,12 @@ export default function CookieRequiredPage() {
             </Link>
             .
           </p>
-          <button
-            type="button"
-            onClick={() => {
-              acceptPolicies();
-              router.push("/");
-            }}
+          <a
+            href="/api/cookie-consent?action=accepted&redirect=/"
             className="mt-6 rounded-md bg-gold px-6 py-3 text-sm font-medium text-white hover:bg-gold-hover"
           >
             Accept and return to site
-          </button>
+          </a>
         </div>
       </div>
     </section>
