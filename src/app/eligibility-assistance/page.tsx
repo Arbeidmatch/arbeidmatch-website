@@ -15,6 +15,7 @@ export default function EligibilityAssistancePage() {
   const [targetRegion, setTargetRegion] = useState<"Scandinavia" | "Europe" | "">("");
   const [targetCountry, setTargetCountry] = useState("");
   const [countrySearch, setCountrySearch] = useState("");
+  const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState("");
 
   const totalSteps = 2;
@@ -176,6 +177,7 @@ export default function EligibilityAssistancePage() {
                       setTargetRegion(region);
                       setTargetCountry("");
                       setCountrySearch("");
+                      setIsCountryPickerOpen(true);
                     }}
                     className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
                       targetRegion === region ? "border-gold bg-gold/10" : "border-border hover:border-gold"
@@ -191,36 +193,49 @@ export default function EligibilityAssistancePage() {
                   <p className="text-sm font-medium text-navy">
                     Select country in {targetRegion}*
                   </p>
-                  <input
-                    className={inputClass}
-                    placeholder="Search country..."
-                    value={countrySearch}
-                    onChange={(event) => setCountrySearch(event.target.value)}
-                  />
-                  <div className="max-h-44 overflow-y-auto rounded-md border border-border">
-                    {filteredCountries.length > 0 ? (
-                      filteredCountries.map((country) => (
-                        <button
-                          key={country}
-                          type="button"
-                          onClick={() => setTargetCountry(country)}
-                          className={`block w-full border-b border-border px-3 py-2 text-left text-sm last:border-b-0 ${
-                            targetCountry === country
-                              ? "bg-gold/10 font-medium text-navy"
-                              : "text-navy hover:bg-surface"
-                          }`}
-                        >
-                          {country}
-                        </button>
-                      ))
-                    ) : (
-                      <p className="px-3 py-2 text-sm text-text-secondary">No countries found</p>
-                    )}
-                  </div>
-                  {targetCountry && (
-                    <p className="text-sm text-navy">
-                      Selected country: <span className="font-medium">{targetCountry}</span>
-                    </p>
+                  {isCountryPickerOpen ? (
+                    <>
+                      <input
+                        className={inputClass}
+                        placeholder="Search country..."
+                        value={countrySearch}
+                        onChange={(event) => setCountrySearch(event.target.value)}
+                      />
+                      <div className="max-h-44 overflow-y-auto rounded-md border border-border">
+                        {filteredCountries.length > 0 ? (
+                          filteredCountries.map((country) => (
+                            <button
+                              key={country}
+                              type="button"
+                              onClick={() => {
+                                setTargetCountry(country);
+                                setIsCountryPickerOpen(false);
+                              }}
+                              className={`block w-full border-b border-border px-3 py-2 text-left text-sm last:border-b-0 ${
+                                targetCountry === country
+                                  ? "bg-gold/10 font-medium text-navy"
+                                  : "text-navy hover:bg-surface"
+                              }`}
+                            >
+                              {country}
+                            </button>
+                          ))
+                        ) : (
+                          <p className="px-3 py-2 text-sm text-text-secondary">No countries found</p>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCountrySearch("");
+                        setIsCountryPickerOpen(true);
+                      }}
+                      className="block w-full rounded-md border border-gold bg-gold/10 px-4 py-3 text-left text-sm font-medium text-navy hover:border-gold-hover"
+                    >
+                      Selected country: {targetCountry} (click to change)
+                    </button>
                   )}
                 </div>
               )}
