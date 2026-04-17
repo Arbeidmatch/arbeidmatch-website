@@ -28,12 +28,12 @@ type RequestForm = {
   dNumberOther: string;
   requirements: string;
   contractType: string;
-  salaryPeriod: "Per hour" | "Per month";
+  salaryPeriod: "" | "Per hour" | "Per month";
   salaryMode: "Fixed amount" | "Range";
   salaryAmount: string;
   salaryFrom: string;
   salaryTo: string;
-  hoursUnit: "Per day" | "Per week" | "Per month";
+  hoursUnit: "" | "Per day" | "Per week" | "Per month";
   hoursAmount: string;
   overtime: string;
   maxOvertimeHours: string;
@@ -197,12 +197,12 @@ const initialData: RequestForm = {
   dNumberOther: "",
   requirements: "",
   contractType: "",
-  salaryPeriod: "Per hour",
+  salaryPeriod: "",
   salaryMode: "Fixed amount",
   salaryAmount: "",
   salaryFrom: "",
   salaryTo: "",
-  hoursUnit: "Per week",
+  hoursUnit: "",
   hoursAmount: "",
   overtime: "",
   maxOvertimeHours: "",
@@ -384,9 +384,9 @@ export default function DetailedRequestPage() {
     }
     if (s === 6) {
       if (!formData.contractType) return "contractType";
-      if (formData.salaryMode === "Fixed amount" && !formData.salaryAmount) return "salaryAmount";
-      if (formData.salaryMode === "Range" && !formData.salaryFrom) return "salaryFrom";
-      if (formData.salaryMode === "Range" && !formData.salaryTo) return "salaryTo";
+      if (!formData.salaryPeriod) return "salaryPeriod";
+      if (!formData.salaryAmount) return "salaryAmount";
+      if (!formData.hoursUnit) return "hoursUnit";
       if (!formData.hoursAmount) return "hoursAmount";
       if (!formData.overtime) return "overtime";
       if ((formData.overtime === "Yes" || formData.overtime === "Occasionally") && !formData.maxOvertimeHours)
@@ -468,10 +468,7 @@ export default function DetailedRequestPage() {
     setSubmitStatus("idle");
     setIsSubmitting(true);
 
-    const salary =
-      formData.salaryMode === "Fixed amount"
-        ? `${formData.salaryPeriod}: ${formData.salaryAmount} NOK`
-        : `${formData.salaryPeriod}: ${formData.salaryFrom}-${formData.salaryTo} NOK`;
+    const salary = `${formData.salaryPeriod}: ${formData.salaryAmount} NOK`;
 
     const payload = {
       ...formData,
@@ -764,8 +761,21 @@ export default function DetailedRequestPage() {
                     <button key={unit} type="button" className={`rounded-md border px-3 py-2 text-sm ${formData.hoursUnit === unit ? "border-gold bg-gold/10 text-navy" : "border-border text-navy"}`} onClick={() => updateField("hoursUnit", unit)}>{unit}</button>
                   ))}
                 </div>
-                <label className={labelClass}>Hours amount</label>
-                <input className={`${inputClass} ${invalid("hoursAmount")}`} placeholder="Hours*" value={formData.hoursAmount} onChange={(e) => updateField("hoursAmount", e.target.value)} ref={(e) => setRef("hoursAmount", e)} />
+                {formData.hoursUnit && (
+                  <>
+                    <label className={labelClass}>{`Hours amount (${formData.hoursUnit.toLowerCase()})`}</label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      className={`${inputClass} ${invalid("hoursAmount")}`}
+                      placeholder="Hours*"
+                      value={formData.hoursAmount}
+                      onChange={(e) => updateField("hoursAmount", e.target.value)}
+                      ref={(e) => setRef("hoursAmount", e)}
+                    />
+                  </>
+                )}
 
                 <p className="text-sm font-semibold text-navy">Salary</p>
                 <div className={groupBaseClass}>
@@ -776,25 +786,19 @@ export default function DetailedRequestPage() {
                     </label>
                   ))}
                 </div>
-                <div className="space-y-2">
-                  <label className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.salaryMode === "Fixed amount"} onChange={() => updateField("salaryMode", "Fixed amount")} />Fixed amount</label>
-                  <label className={radioClass}><input type="radio" className="shrink-0 accent-gold" checked={formData.salaryMode === "Range"} onChange={() => updateField("salaryMode", "Range")} />Range</label>
-                </div>
-                {formData.salaryMode === "Fixed amount" ? (
+                {formData.salaryPeriod && (
                   <div>
-                    <label className={labelClass}>Amount (NOK)</label>
-                    <input className={`${inputClass} ${invalid("salaryAmount")}`} placeholder="Amount*" value={formData.salaryAmount} onChange={(e) => updateField("salaryAmount", e.target.value)} ref={(e) => setRef("salaryAmount", e)} />
-                  </div>
-                ) : (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className={labelClass}>From (NOK)</label>
-                      <input className={`${inputClass} ${invalid("salaryFrom")}`} placeholder="From*" value={formData.salaryFrom} onChange={(e) => updateField("salaryFrom", e.target.value)} ref={(e) => setRef("salaryFrom", e)} />
-                    </div>
-                    <div>
-                      <label className={labelClass}>To (NOK)</label>
-                      <input className={`${inputClass} ${invalid("salaryTo")}`} placeholder="To*" value={formData.salaryTo} onChange={(e) => updateField("salaryTo", e.target.value)} ref={(e) => setRef("salaryTo", e)} />
-                    </div>
+                    <label className={labelClass}>{`Amount in NOK (${formData.salaryPeriod.toLowerCase()})`}</label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      className={`${inputClass} ${invalid("salaryAmount")}`}
+                      placeholder="Amount*"
+                      value={formData.salaryAmount}
+                      onChange={(e) => updateField("salaryAmount", e.target.value)}
+                      ref={(e) => setRef("salaryAmount", e)}
+                    />
                   </div>
                 )}
 
