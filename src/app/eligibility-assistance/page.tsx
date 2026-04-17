@@ -40,6 +40,10 @@ function EligibilityAssistanceContent() {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, []);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [status, verificationStatus]);
+
   const totalSteps = 2;
   const progress = pausedByChoice ? 100 : ((currentStep + 1) / totalSteps) * 100;
   const regionCountries: Record<"Scandinavia" | "Europe", string[]> = {
