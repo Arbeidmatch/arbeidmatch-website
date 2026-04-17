@@ -45,6 +45,15 @@ export function createEligibilityVerificationToken(
   payload: Omit<EligibilityVerificationPayload, "iat" | "exp">,
   expiresInSeconds = 24 * 60 * 60,
 ): string {
+  console.log(
+    "[createToken] secret source:",
+    process.env.EMAIL_VERIFICATION_SECRET
+      ? "EMAIL_VERIFICATION_SECRET"
+      : process.env.CRON_SECRET
+        ? "CRON_SECRET"
+        : "EMPTY",
+  );
+  console.log("[createToken] iat:", Date.now());
   const now = Math.floor(Date.now() / 1000);
   const fullPayload: EligibilityVerificationPayload = {
     ...payload,
