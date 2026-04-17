@@ -230,13 +230,47 @@ function EligibilityAssistanceContent() {
           </div>
         )}
         {verificationStatus === "invalid" && (
-          <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            This verification link is invalid or expired. Please submit your email again.
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">
+            <h2 className="text-lg font-semibold text-red-800">Verification Failed</h2>
+            <p className="mt-2 text-sm">
+              We could not verify your email. This link may have expired or already been used.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <a
+                href="mailto:post@arbeidmatch.no"
+                className="inline-flex rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+              >
+                Contact Support
+              </a>
+              <Link
+                href="/eligibility-assistance"
+                className="inline-flex rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#122845]"
+              >
+                Try Again
+              </Link>
+            </div>
           </div>
         )}
         {verificationStatus === "error" && (
-          <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            We could not verify this request right now. Please try again.
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">
+            <h2 className="text-lg font-semibold text-red-800">Verification Failed</h2>
+            <p className="mt-2 text-sm">
+              We could not verify your email. This link may have expired or already been used.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <a
+                href="mailto:post@arbeidmatch.no"
+                className="inline-flex rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+              >
+                Contact Support
+              </a>
+              <Link
+                href="/eligibility-assistance"
+                className="inline-flex rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#122845]"
+              >
+                Try Again
+              </Link>
+            </div>
           </div>
         )}
         <h1 className="text-3xl font-bold text-navy">Work Eligibility Assistance</h1>

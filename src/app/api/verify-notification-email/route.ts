@@ -10,6 +10,71 @@ function getSupabaseClient() {
   return createClient(url, key);
 }
 
+function getClientIp(request: NextRequest): string {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  if (forwardedFor) return forwardedFor.split(",")[0]?.trim() || "unknown";
+  return request.headers.get("x-real-ip") || "unknown";
+}
+
+function classifyVerificationError(error: unknown): string {
+  const message = error instanceof Error ? error.message.toLowerCase() : "";
+  if (message.includes("supabase")) return "supabase error";
+  if (message.includes("smtp") || message.includes("mail")) return "smtp error";
+  if (message.includes("token")) return "token invalid";
+  return "verification flow error";
+}
+
+async function sendErrorReport(
+  request: NextRequest,
+  token: string,
+  errorType: string,
+  errorMessage: string,
+) {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: "send.one.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: "no-replay@arbeidmatch.no",
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    const tokenPreview = token ? `${token.slice(0, 20)}...` : "(missing token)";
+    const userAgent = request.headers.get("user-agent") || "unknown";
+    const clientIp = getClientIp(request);
+    const timestamp = new Date().toISOString();
+
+    await transporter.sendMail({
+      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      to: "post@arbeidmatch.no",
+      subject: "Verification Error Report",
+      html: `
+        <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
+          <div style="max-width:760px;margin:0 auto;background:#fff;border-radius:14px;border:1px solid #E2E5EA;">
+            <div style="background:#0D1B2A;color:#fff;padding:18px 22px;">
+              <div style="font-size:24px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
+              <div style="margin-top:8px;color:#DDE3ED;">Verification Error Report</div>
+            </div>
+            <div style="padding:20px;color:#0D1B2A;">
+              <p><strong>Timestamp:</strong> ${timestamp}</p>
+              <p><strong>Error type:</strong> ${errorType}</p>
+              <p><strong>Error message:</strong> ${errorMessage || "-"}</p>
+              <p><strong>Token preview:</strong> ${tokenPreview}</p>
+              <p><strong>User agent:</strong> ${userAgent}</p>
+              <p><strong>Client IP:</strong> ${clientIp}</p>
+            </div>
+          </div>
+        </div>
+      `,
+    });
+  } catch (reportError) {
+    const message = reportError instanceof Error ? reportError.message : "Unknown report error";
+    console.error("[verify-notification-email] Failed to send support error report:", message);
+  }
+}
+
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token") || "";
   if (!token) {
@@ -28,6 +93,7 @@ export async function GET(request: NextRequest) {
   const supabase = getSupabaseClient();
   if (!supabase) {
     console.error("[verify-notification-email] Missing Supabase configuration.");
+    void sendErrorReport(request, token, "supabase error", "Missing Supabase configuration");
     const failedUrl = request.nextUrl.clone();
     failedUrl.pathname = "/eligibility-assistance";
     failedUrl.searchParams.set("verification", "error");
@@ -124,6 +190,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("[verify-notification-email] Verification flow failed:", message);
+    void sendErrorReport(request, token, classifyVerificationError(error), message);
     const failedUrl = request.nextUrl.clone();
     failedUrl.pathname = "/eligibility-assistance";
     failedUrl.searchParams.set("verification", "error");
