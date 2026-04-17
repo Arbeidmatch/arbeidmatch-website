@@ -15,6 +15,7 @@ import {
 import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
 import CandidateActivityBanner from "@/components/CandidateActivityBanner";
+import TikTokLiveBanner from "@/components/TikTokLiveBanner";
 import { getCandidateActivityStats } from "@/lib/candidateActivityStats";
 
 /** Refresh candidate activity strip periodically (server-rendered, cached). */
@@ -31,6 +32,8 @@ export default async function Home() {
 
   return (
     <>
+      <TikTokLiveBanner />
+
       <section className="flex min-h-screen items-center bg-white py-20">
         <div className="mx-auto grid w-full max-w-content gap-10 px-4 md:grid-cols-5 md:px-6">
           <div className="md:col-span-3">

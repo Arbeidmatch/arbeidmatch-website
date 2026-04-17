@@ -56,3 +56,21 @@ body {
   font-size: 10px;
   font-weight: 700;
 }
+
+@keyframes tiktok-live-border {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(239, 68, 68, 0.35),
+      0 0 14px rgba(239, 68, 68, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(239, 68, 68, 0.55),
+      0 0 22px rgba(239, 68, 68, 0.22);
+  }
+}
+
+.animate-tiktok-live-border {
+  animation: tiktok-live-border 2.2s ease-in-out infinite;
+}
