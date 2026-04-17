@@ -54,7 +54,7 @@ export default function ContactPageClient() {
         <div className="mb-8 rounded-r-md border-l-4 border-gold bg-gold/10 p-4 text-navy">
           Looking for a job?{" "}
           <a href="/score" className="font-semibold text-gold">
-            Start with eligibility check →
+            Let us guide you in 2 minutes →
           </a>
         </div>
         <div className="grid gap-8 md:grid-cols-2 md:gap-10">
