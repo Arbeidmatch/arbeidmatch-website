@@ -72,6 +72,29 @@ const groupBaseClass = "space-y-2 rounded-md";
 const blockBtnClass = "w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy";
 const titleClass = "text-lg font-bold text-[#0D1B2A]";
 const labelClass = "mb-1 block text-sm font-medium text-navy";
+const alwaysOpenSections = {
+  roleOptions: true,
+  norwegian: true,
+  english: true,
+  driver: true,
+  dnumber: true,
+  overtime: true,
+  rotation: true,
+  intlTravel: true,
+  localTravel: true,
+  accommodation: true,
+  equipment: true,
+  tools: true,
+  startDate: true,
+  hear: true,
+} as const;
+const howDidYouHearOptions = [
+  "Google search",
+  "Referral from another company",
+  "Referral from a friend",
+  "Social media",
+  "Other",
+] as const;
 
 const rolesByCategory: Record<string, string[]> = {
   Construction: ["Carpenter", "Bricklayer", "Tile layer", "Painter", "Plasterer", "Roofer", "Concrete worker", "Steel fixer", "Scaffolder", "Insulation worker", "Floor layer", "Window installer", "Demolition worker"],
@@ -210,7 +233,7 @@ export default function DetailedRequestPage() {
   const [invalidField, setInvalidField] = useState("");
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [formData, setFormData] = useState<RequestForm>(initialData);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [expanded] = useState<Record<string, boolean>>(alwaysOpenSections as Record<string, boolean>);
   const [referralResults, setReferralResults] = useState<CompanyResult[]>([]);
   const [isSearchingReferral, setIsSearchingReferral] = useState(false);
   const [hasSearchedReferral, setHasSearchedReferral] = useState(false);
@@ -231,7 +254,9 @@ export default function DetailedRequestPage() {
   };
   const updateField = (key: keyof RequestForm, value: string) =>
     setFormData((prev) => ({ ...prev, [key]: value }));
-  const toggleExpand = (key: string) => setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleExpand = (_key: string) => {
+    // Question groups must stay open at all times.
+  };
   const toggleCert = (value: string) =>
     setFormData((prev) => ({
       ...prev,
@@ -586,7 +611,6 @@ export default function DetailedRequestPage() {
                               onChange={() => {
                                 updateField("position", x);
                                 if (x !== "Other") updateField("positionOther", "");
-                                setExpanded((prev) => ({ ...prev, roleOptions: false }));
                               }}
                               ref={(e) => setRef("position", e)}
                             />
@@ -784,7 +808,7 @@ export default function DetailedRequestPage() {
                 <button type="button" className="w-full rounded-md border border-border px-3 py-2 text-left text-sm font-semibold text-navy" onClick={() => toggleExpand("hear")}>How did you hear about us? {expanded.hear ? "▲" : "▼"}</button>
                 {expanded.hear && (
                   <div className="space-y-2">
-                    {["Referral from another company", "Referral from a friend", "Google search", "Social media", "Other"].map((v, i) => (
+                    {howDidYouHearOptions.map((v, i) => (
                       <div key={v} className="space-y-2">
                         <label className={radioClass}>
                           <input
