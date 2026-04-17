@@ -10,6 +10,7 @@ const links = [
   { href: "/download", label: "Download App" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
+  { href: "/feedback", label: "Feedback" },
 ];
 
 export default function Navbar() {

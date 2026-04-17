@@ -22,6 +22,9 @@ export default function ScorePage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
+  const [feedbackNote, setFeedbackNote] = useState("");
+  const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
   const progress = ((currentStep + 1) / steps.length) * 100;
 
@@ -55,6 +58,26 @@ export default function ScorePage() {
     answers[0] === "No" ||
     answers[1] === "No, 2 years or less" ||
     answers[2] === "I do not speak English";
+
+  const submitFeedback = async () => {
+    if (feedbackScore === null || feedbackStatus === "sending") return;
+    setFeedbackStatus("sending");
+    try {
+      const response = await fetch("/api/confirmation-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "candidate-eligibility-check",
+          score: feedbackScore,
+          note: feedbackNote.trim(),
+        }),
+      });
+      if (!response.ok) throw new Error("Failed");
+      setFeedbackStatus("sent");
+    } catch {
+      setFeedbackStatus("error");
+    }
+  };
 
   return (
     <section className="bg-surface py-16">
@@ -123,6 +146,57 @@ export default function ScorePage() {
                 {result === "good" ? "Browse open positions" : "Browse jobs anyway"}
               </a>
             )}
+            <div className="mt-6 rounded-lg border border-border bg-white p-4 text-left">
+              <p className="text-sm font-semibold text-navy">How was your candidate experience?</p>
+              <p className="mt-1 text-xs text-text-secondary">Rate 1 to 10 and tell us what we can improve.</p>
+              <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-10">
+                {Array.from({ length: 10 }, (_, index) => index + 1).map((score) => (
+                  <button
+                    key={score}
+                    type="button"
+                    onClick={() => {
+                      setFeedbackScore(score);
+                      if (feedbackStatus !== "idle") setFeedbackStatus("idle");
+                    }}
+                    className={`rounded-md border px-2 py-2 text-sm font-medium ${
+                      feedbackScore === score
+                        ? "border-green-500 bg-green-50 text-green-700"
+                        : "border-border text-navy hover:border-green-400"
+                    }`}
+                  >
+                    {score}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                rows={3}
+                className="mt-3 w-full rounded-md border border-border px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold"
+                placeholder="Your improvement suggestion (optional)"
+                value={feedbackNote}
+                onChange={(event) => {
+                  setFeedbackNote(event.target.value);
+                  if (feedbackStatus !== "idle") setFeedbackStatus("idle");
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => void submitFeedback()}
+                disabled={feedbackScore === null || feedbackStatus === "sending" || feedbackStatus === "sent"}
+                className="mt-3 rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#122845] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {feedbackStatus === "sending"
+                  ? "Sending feedback..."
+                  : feedbackStatus === "sent"
+                    ? "Feedback sent"
+                    : "Send feedback"}
+              </button>
+              {feedbackStatus === "error" && (
+                <p className="mt-2 text-xs text-red-600">Could not send feedback. Please try again.</p>
+              )}
+              {feedbackStatus === "sent" && (
+                <p className="mt-2 text-xs text-green-700">Thank you! Your feedback was received.</p>
+              )}
+            </div>
           </div>
         )}
       </div>

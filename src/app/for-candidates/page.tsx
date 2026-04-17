@@ -102,12 +102,19 @@ export default function ForCandidatesPage() {
       </section>
 
       <section className="bg-white py-20 text-center">
-        <a
-          href="/score"
-          className="inline-block rounded-md bg-gold px-10 py-4 text-lg font-medium text-white hover:bg-gold-hover"
-        >
-          Browse all open positions
-        </a>
+        <div className="space-y-4">
+          <a
+            href="/score"
+            className="inline-block rounded-md bg-gold px-10 py-4 text-lg font-medium text-white hover:bg-gold-hover"
+          >
+            Browse all open positions
+          </a>
+          <div>
+            <a href="/feedback" className="text-sm font-medium text-gold hover:text-gold-hover">
+              Share feedback about your candidate experience
+            </a>
+          </div>
+        </div>
       </section>
     </>
   );

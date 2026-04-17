@@ -20,6 +20,7 @@ export default function Footer() {
             ["For Candidates", "/for-candidates"],
             ["About", "/about"],
             ["Contact", "/contact"],
+            ["Feedback", "/feedback"],
             ["Privacy", "/privacy"],
             ["Terms", "/terms"],
           ].map(([label, href]) => (

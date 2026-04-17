@@ -8,10 +8,44 @@ const inputClass =
 
 export default function ContactPageClient() {
   const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitted(true);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const payload = {
+      name: String(formData.get("name") || ""),
+      company: String(formData.get("company") || ""),
+      email: String(formData.get("email") || ""),
+      need: String(formData.get("need") || ""),
+      message: String(formData.get("message") || ""),
+    };
+
+    setStatus("submitting");
+    setErrorMessage("");
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string };
+        throw new Error(data.error || "Failed");
+      }
+      setSubmitted(true);
+      form.reset();
+    } catch (error) {
+      setSubmitted(false);
+      setStatus("error");
+      setErrorMessage(error instanceof Error ? error.message : "Something went wrong. Please try again.");
+      return;
+    }
+
+    setStatus("idle");
   };
 
   return (
@@ -107,6 +141,7 @@ export default function ContactPageClient() {
                   <option>Engineers & Technical</option>
                   <option>Healthcare staff</option>
                   <option>Construction workers</option>
+                  <option>Support</option>
                   <option>Other</option>
                 </select>
               </label>
@@ -116,9 +151,10 @@ export default function ContactPageClient() {
               </label>
               <button
                 type="submit"
+                disabled={status === "submitting"}
                 className="w-full rounded-md bg-[#0D1B2A] py-3 font-medium text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0D1B2A]"
               >
-                Send message →
+                {status === "submitting" ? "Sending..." : "Send message →"}
               </button>
               <p className="text-xs text-text-secondary">
                 By sending, you agree to our Privacy Policy. No spam, ever.
@@ -126,6 +162,11 @@ export default function ContactPageClient() {
               {submitted && (
                 <div className="rounded-md border border-gold/40 bg-gold/10 p-4 text-navy">
                   Thank you! We&apos;ll be in touch within 24 hours.
+                </div>
+              )}
+              {status === "error" && (
+                <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-700">
+                  {errorMessage}
                 </div>
               )}
             </div>
