@@ -146,8 +146,10 @@ export default function ScorePage() {
             {!disqualified && (
               <>
                 <div className="mt-6 rounded-lg border border-border bg-white p-4 text-left">
-                  <p className="text-sm font-semibold text-navy">How was your candidate experience?</p>
-                  <p className="mt-1 text-xs text-text-secondary">Rate 1 to 10 and tell us what we can improve.</p>
+                  <p className="text-sm font-semibold text-navy">How was your experience with this check?</p>
+                  <p className="mt-1 text-xs text-text-secondary">
+                    Please rate it from 1 to 10 and share what we can improve.
+                  </p>
                   <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-10">
                     {Array.from({ length: 10 }, (_, index) => index + 1).map((score) => (
                       <button
@@ -170,7 +172,7 @@ export default function ScorePage() {
                   <textarea
                     rows={3}
                     className="mt-3 w-full rounded-md border border-border px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold"
-                    placeholder="Your improvement suggestion (optional)"
+                    placeholder="What could we improve? (optional)"
                     value={feedbackNote}
                     onChange={(event) => {
                       setFeedbackNote(event.target.value);
@@ -180,7 +182,7 @@ export default function ScorePage() {
                   <input
                     type="email"
                     className="mt-3 w-full rounded-md border border-border px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-gold"
-                    placeholder="Your email (required for confirmation)"
+                    placeholder="Email for confirmation (required)"
                     value={feedbackEmail}
                     onChange={(event) => {
                       setFeedbackEmail(event.target.value);
@@ -207,7 +209,7 @@ export default function ScorePage() {
                   </button>
                   {feedbackStatus === "error" && (
                     <p className="mt-2 text-xs text-red-600">
-                      Could not send feedback. Please check your email and try again.
+                      We could not send your feedback. Please check your email address and try again.
                     </p>
                   )}
                   {feedbackStatus === "sent" && (
@@ -225,7 +227,7 @@ export default function ScorePage() {
                   </a>
                 ) : (
                   <p className="mt-4 text-sm text-text-secondary">
-                    Please send your feedback first to continue to job listings.
+                    Send your feedback to continue to available job listings.
                   </p>
                 )}
               </>
