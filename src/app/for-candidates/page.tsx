@@ -32,7 +32,7 @@ export default function ForCandidatesPage() {
         <div className="mx-auto grid w-full max-w-content gap-6 px-4 md:grid-cols-2 md:px-6">
           {[
             [CheckCircle2, "Legal employment", "Permanent contract under Norwegian labor law"],
-            [DollarSign, "Good salary", "250–270 NOK/hour depending on trade and experience"],
+            [DollarSign, "Competitive pay", "Salary based on role, experience, and employer terms"],
             [Home, "Accommodation support", "Help finding housing when you arrive in Norway"],
             [Users, "Full support", "Dedicated support throughout your entire process"],
           ].map(([Icon, title, text]) => (
