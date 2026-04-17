@@ -24,6 +24,9 @@ export default function EligibilityAssistancePage() {
   const [countrySearch, setCountrySearch] = useState("");
   const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState("");
+  const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
+  const [feedbackNote, setFeedbackNote] = useState("");
+  const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
   const totalSteps = 2;
   const progress = pausedByChoice ? 100 : ((currentStep + 1) / totalSteps) * 100;
@@ -105,6 +108,105 @@ export default function EligibilityAssistancePage() {
       setStatus("error");
     }
   };
+
+  const submitFeedback = async () => {
+    if (feedbackScore === null || feedbackStatus === "sending") return;
+    setFeedbackStatus("sending");
+    try {
+      const response = await fetch("/api/confirmation-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "eligibility-assistance",
+          score: feedbackScore,
+          note: feedbackNote.trim(),
+          email: notifyEmail,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed");
+      setFeedbackStatus("sent");
+    } catch {
+      setFeedbackStatus("error");
+    }
+  };
+
+  if (status === "success") {
+    return (
+      <section className="bg-surface py-10">
+        <div className="mx-auto w-full max-w-2xl px-4">
+          <div className="rounded-xl bg-white p-5 text-center shadow-[0_10px_30px_rgba(13,27,42,0.08)]">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-white">
+              ✓
+            </div>
+            <h1 className="mt-4 text-3xl font-bold text-navy">Request submitted successfully!</h1>
+            <p className="mt-2 text-sm text-text-secondary">
+              Thank you. You are on the notification list and will receive an email as soon as the guide is available.
+            </p>
+            <div className="mx-auto mt-6 max-w-xl rounded-lg border border-border bg-surface p-4 text-left">
+              <p className="text-sm font-semibold text-navy">How was your form experience?</p>
+              <p className="mt-1 text-xs text-text-secondary">
+                Rate from 1 to 10 so we can improve your experience.
+              </p>
+              <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-10">
+                {Array.from({ length: 10 }, (_, index) => index + 1).map((score) => (
+                  <button
+                    key={score}
+                    type="button"
+                    onClick={() => {
+                      setFeedbackScore(score);
+                      if (feedbackStatus !== "idle") setFeedbackStatus("idle");
+                    }}
+                    className={`rounded-md border px-2 py-2 text-sm font-medium transition ${
+                      feedbackScore === score
+                        ? "border-green-500 bg-green-50 text-green-700"
+                        : "border-border text-navy hover:border-green-400"
+                    }`}
+                  >
+                    {score}
+                  </button>
+                ))}
+              </div>
+              <label className="mt-3 block text-xs font-medium text-navy">What can we improve? (optional)</label>
+              <textarea
+                rows={3}
+                className={`${inputClass} mt-1`}
+                placeholder="Tell us what to change for a smoother experience..."
+                value={feedbackNote}
+                onChange={(event) => {
+                  setFeedbackNote(event.target.value);
+                  if (feedbackStatus !== "idle") setFeedbackStatus("idle");
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => void submitFeedback()}
+                disabled={feedbackScore === null || feedbackStatus === "sending" || feedbackStatus === "sent"}
+                className="mt-3 rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#122845] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {feedbackStatus === "sending"
+                  ? "Sending feedback..."
+                  : feedbackStatus === "sent"
+                    ? "Feedback sent"
+                    : "Send feedback"}
+              </button>
+              {feedbackStatus === "error" && (
+                <p className="mt-2 text-xs text-red-600">Could not send feedback. Please try again.</p>
+              )}
+              {feedbackStatus === "sent" && (
+                <p className="mt-2 text-xs text-green-700">Thank you! Your feedback was received.</p>
+              )}
+            </div>
+            <Link
+              href="/"
+              className="mt-5 inline-flex rounded-md bg-[#C9A84C] px-6 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
+            >
+              Back to home
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-surface py-12">
@@ -309,13 +411,6 @@ export default function EligibilityAssistancePage() {
                   {status === "submitting" ? "Sending..." : "Notify me"}
                 </button>
               )}
-            </div>
-          )}
-
-          {status === "success" && (
-            <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800">
-              Thank you. You are on the notification list and will receive an email as soon as the
-              guide is available.
             </div>
           )}
 

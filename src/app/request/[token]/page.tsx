@@ -364,6 +364,9 @@ export default function DetailedRequestPage() {
   const [isSearchingReferral, setIsSearchingReferral] = useState(false);
   const [hasSearchedReferral, setHasSearchedReferral] = useState(false);
   const [confirmNoSubscribe, setConfirmNoSubscribe] = useState(false);
+  const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
+  const [feedbackNote, setFeedbackNote] = useState("");
+  const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [citySearch, setCitySearch] = useState("");
   const [isCustomCity, setIsCustomCity] = useState(false);
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
@@ -719,6 +722,26 @@ export default function DetailedRequestPage() {
 
   const invalid = (name: string) =>
     invalidField === name ? "border-red-500 ring-1 ring-red-500" : "";
+  const submitFeedback = async () => {
+    if (feedbackScore === null || feedbackStatus === "sending") return;
+    setFeedbackStatus("sending");
+    try {
+      const response = await fetch("/api/confirmation-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "request-details",
+          score: feedbackScore,
+          note: feedbackNote.trim(),
+          email: tokenData?.email ?? "",
+        }),
+      });
+      if (!response.ok) throw new Error("Failed");
+      setFeedbackStatus("sent");
+    } catch {
+      setFeedbackStatus("error");
+    }
+  };
 
   if (tokenStatus === "checking") {
     return <section className="bg-surface py-8"><div className="mx-auto max-w-2xl px-4 text-center">Verifying your access...</div></section>;
@@ -736,6 +759,60 @@ export default function DetailedRequestPage() {
             <p className="mt-2 text-sm text-text-secondary">
               Thank you, {formData.full_name || "there"}. We will review your request and be in touch with you soon.
             </p>
+            <div className="mx-auto mt-6 max-w-xl rounded-lg border border-border bg-surface p-4 text-left">
+              <p className="text-sm font-semibold text-navy">How was your form experience?</p>
+              <p className="mt-1 text-xs text-text-secondary">
+                Rate from 1 to 10 so we can improve your experience.
+              </p>
+              <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-10">
+                {Array.from({ length: 10 }, (_, index) => index + 1).map((score) => (
+                  <button
+                    key={score}
+                    type="button"
+                    onClick={() => {
+                      setFeedbackScore(score);
+                      if (feedbackStatus !== "idle") setFeedbackStatus("idle");
+                    }}
+                    className={`rounded-md border px-2 py-2 text-sm font-medium transition ${
+                      feedbackScore === score
+                        ? "border-green-500 bg-green-50 text-green-700"
+                        : "border-border text-navy hover:border-green-400"
+                    }`}
+                  >
+                    {score}
+                  </button>
+                ))}
+              </div>
+              <label className="mt-3 block text-xs font-medium text-navy">What can we improve? (optional)</label>
+              <textarea
+                rows={3}
+                className={`${inputClass} mt-1`}
+                placeholder="Tell us what to change for a smoother experience..."
+                value={feedbackNote}
+                onChange={(e) => {
+                  setFeedbackNote(e.target.value);
+                  if (feedbackStatus !== "idle") setFeedbackStatus("idle");
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => void submitFeedback()}
+                disabled={feedbackScore === null || feedbackStatus === "sending" || feedbackStatus === "sent"}
+                className="mt-3 rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#122845] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {feedbackStatus === "sending"
+                  ? "Sending feedback..."
+                  : feedbackStatus === "sent"
+                    ? "Feedback sent"
+                    : "Send feedback"}
+              </button>
+              {feedbackStatus === "error" && (
+                <p className="mt-2 text-xs text-red-600">Could not send feedback. Please try again.</p>
+              )}
+              {feedbackStatus === "sent" && (
+                <p className="mt-2 text-xs text-green-700">Thank you! Your feedback was received.</p>
+              )}
+            </div>
             <button type="button" onClick={() => router.push("/")} className="mt-5 rounded-md bg-[#C9A84C] px-6 py-2.5 text-sm font-medium text-white hover:bg-gold-hover">Back to home</button>
           </div>
         </div>
