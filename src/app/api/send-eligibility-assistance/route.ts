@@ -80,40 +80,50 @@ export async function POST(request: NextRequest) {
 
     const turnstileToken = typeof rawData.turnstileToken === "string" ? rawData.turnstileToken : "";
     const turnstileOk = await verifyTurnstileToken(turnstileToken, request);
+    console.log("[send-eligibility-assistance] turnstile:", { ok: turnstileOk, tokenLength: turnstileToken.length });
     if (!turnstileOk) {
-      return NextResponse.json({ success: false, error: "Bot detected" }, { status: 400 });
+      const body = { success: false, error: "Bot detected" };
+      console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 400, ...body }));
+      return NextResponse.json(body, { status: 400 });
     }
 
     const data = sanitizeStringRecord(rawData);
     console.log("[send-eligibility] called at:", Date.now());
     console.log("[send-eligibility] email:", data.notifyEmail);
     if (!data.notifyEmail || !data.notifyEmail.includes("@")) {
-      return NextResponse.json({ success: false, error: "Valid email is required." }, { status: 400 });
+      const body = { success: false, error: "Valid email is required." };
+      console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 400, ...body }));
+      return NextResponse.json(body, { status: 400 });
     }
     if (data.marketingConsent !== "Yes") {
-      return NextResponse.json({ success: false, error: "Marketing consent confirmation is required." }, { status: 400 });
+      const body = { success: false, error: "Marketing consent confirmation is required." };
+      console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 400, ...body }));
+      return NextResponse.json(body, { status: 400 });
     }
 
     const emailTrimmed = data.notifyEmail.trim();
     const countryTrimmed = data.targetCountry?.trim() ?? "";
     if (!countryTrimmed) {
-      return NextResponse.json({ success: false, error: "Target country is required." }, { status: 400 });
+      const body = { success: false, error: "Target country is required." };
+      console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 400, ...body }));
+      return NextResponse.json(body, { status: 400 });
     }
+
+    console.log("[send-eligibility-assistance] request:", { emailTrimmed, countryTrimmed });
 
     const supabase = getSupabaseClient();
     if (supabase) {
       const retryAfter = await getEmailDbRateLimitRetrySeconds(supabase, emailTrimmed);
+      console.log("[send-eligibility-assistance] db rate-limit (seconds to wait, 0=ok):", retryAfter);
       if (retryAfter === null) {
-        return NextResponse.json(
-          { success: false, error: "Could not verify request timing. Please try again." },
-          { status: 500 },
-        );
+        const body = { success: false, error: "Could not verify request timing. Please try again." };
+        console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 500, ...body }));
+        return NextResponse.json(body, { status: 500 });
       }
       if (retryAfter > 0) {
-        return NextResponse.json(
-          { success: false, rateLimited: true, retryAfter },
-          { status: 429 },
-        );
+        const body = { success: false, rateLimited: true, retryAfter };
+        console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 429, ...body }));
+        return NextResponse.json(body, { status: 429 });
       }
 
       const { data: existing, error: existingError } = await supabase
@@ -125,17 +135,15 @@ export async function POST(request: NextRequest) {
 
       if (existingError && existingError.code !== "PGRST116") {
         console.error("[send-eligibility-assistance] Supabase lookup failed:", existingError.message);
-        return NextResponse.json(
-          { success: false, error: "Could not verify registration status. Please try again." },
-          { status: 500 },
-        );
+        const body = { success: false, error: "Could not verify registration status. Please try again." };
+        console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 500, ...body }));
+        return NextResponse.json(body, { status: 500 });
       }
 
       if (existing?.email_verified === true) {
-        return NextResponse.json({
-          success: true,
-          alreadyRegistered: true,
-        });
+        const body = { success: true, alreadyRegistered: true };
+        console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 200, ...body }));
+        return NextResponse.json(body);
       }
     }
 
@@ -205,9 +213,14 @@ export async function POST(request: NextRequest) {
       html: candidateHtml,
     });
 
-    return NextResponse.json({ success: true, requiresVerification: true });
+    const okBody = { success: true, requiresVerification: true };
+    console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 200, ...okBody }));
+    return NextResponse.json(okBody);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    console.error("[send-eligibility-assistance] catch:", message);
+    const body = { success: false, error: message };
+    console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 500, ...body }));
+    return NextResponse.json(body, { status: 500 });
   }
 }

@@ -166,8 +166,12 @@ export function EligibilityAssistanceClient() {
         error?: string;
       };
 
-      if (result.rateLimited === true && typeof result.retryAfter === "number") {
-        setRateLimitSecondsLeft(result.retryAfter);
+      const retryAfterSec = result.retryAfter;
+      const isRateLimited =
+        typeof retryAfterSec === "number" &&
+        (result.rateLimited === true || response.status === 429);
+      if (isRateLimited) {
+        setRateLimitSecondsLeft(retryAfterSec);
         setStatus("rate-limited");
         setTurnstileToken(null);
         setTurnstileKey((k) => k + 1);
@@ -663,7 +667,7 @@ export function EligibilityAssistanceClient() {
 
           {status === "error" && (
             <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-700">
-              Something went wrong. Please try again or email post@arbeidmatch.no.
+              Something went wrong. Please try again or email support@arbeidmatch.no.
             </div>
           )}
         </form>
