@@ -75,7 +75,7 @@ export default function ForCandidatesPage() {
           <h2 className="text-center text-4xl font-bold text-navy">How to apply</h2>
           <div className="mx-auto mt-10 grid max-w-3xl gap-4">
             {[
-              "Complete the eligibility check",
+              "Complete the work readiness check",
               "Apply with your CV in about 2 minutes",
               "Our team contacts you within 5 business days",
             ].map((step, i) => (
@@ -91,12 +91,12 @@ export default function ForCandidatesPage() {
       <section className="bg-navy py-16 text-center">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <h2 className="text-3xl font-bold text-white">Not sure if you qualify?</h2>
-          <p className="mt-3 text-white/70">Take our 2-minute eligibility check.</p>
+          <p className="mt-3 text-white/70">Take our 2-minute work readiness check.</p>
           <a
             href="/score"
             className="mt-6 inline-block rounded-md border border-white px-6 py-3 text-white hover:bg-white/10"
           >
-            Check eligibility
+            Start readiness check
           </a>
         </div>
       </section>

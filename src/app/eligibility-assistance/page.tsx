@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 const inputClass =
@@ -14,7 +14,7 @@ const selectedOptionBadge = (
   </span>
 );
 
-export default function EligibilityAssistancePage() {
+function EligibilityAssistanceContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [currentStep, setCurrentStep] = useState(0);
@@ -446,11 +446,19 @@ export default function EligibilityAssistancePage() {
         <p className="mt-4 text-sm text-text-secondary">
           Already eligible to work? Return to{" "}
           <Link href="/score" className="font-medium text-gold">
-            Eligibility Check
+            Work Readiness Check
           </Link>
           .
         </p>
       </div>
     </section>
+  );
+}
+
+export default function EligibilityAssistancePage() {
+  return (
+    <Suspense fallback={<section className="bg-surface py-12"><div className="mx-auto w-full max-w-2xl px-4 text-sm text-text-secondary">Loading...</div></section>}>
+      <EligibilityAssistanceContent />
+    </Suspense>
   );
 }

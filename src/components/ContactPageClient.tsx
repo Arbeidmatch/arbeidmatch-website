@@ -117,7 +117,7 @@ export default function ContactPageClient() {
           <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-7 md:p-10">
             <h2 className="text-2xl font-bold text-navy">Send us a message</h2>
             <p className="mt-2 text-sm text-text-secondary">
-              Employers and partners only. Job seekers, please complete the eligibility check first.
+              Employers and partners only. Job seekers, please complete the work readiness check first.
             </p>
             <div className="mt-6 space-y-4">
               <input

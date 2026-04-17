@@ -83,7 +83,7 @@ export default function ScorePage() {
   return (
     <section className="bg-surface py-16">
       <div className="mx-auto w-full max-w-2xl rounded-xl border border-border bg-white p-8">
-        <h1 className="text-3xl font-bold text-navy">Eligibility Check</h1>
+        <h1 className="text-3xl font-bold text-navy">Work Readiness Check</h1>
         <div className="mt-6 h-2 w-full overflow-hidden rounded-full bg-surface">
           <div className="h-full bg-gold transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
         </div>
