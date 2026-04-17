@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
           : data.howDidYouHear === "Other"
             ? data.howDidYouHearOther || "Other"
             : data.howDidYouHear;
-    const travelSummary = [data.internationalTravel, data.localTravel].filter(Boolean).join(" | ");
 
     const transporter = nodemailer.createTransport({
       host: "send.one.com",
@@ -73,7 +72,7 @@ export async function POST(request: NextRequest) {
             ${section("Qualification", [["Qualification", data.qualification], ["Candidates needed", data.numberOfPositions], ["Experience", data.experience], ["Norwegian level", data.norwegianLevel], ["English level", data.englishLevel], ["Certifications", data.certifications], ["Certifications (other)", data.certificationsOther]])}
             ${section("Requirements", [["Driver license", data.driverLicense], ["Driver license (other)", data.driverLicenseOther], ["D-number", data.dNumber], ["D-number (other)", data.dNumberOther], ["Deal breakers", data.requirements]])}
             ${section("Contract & Pay", [["Contract type", data.contractType], ["Salary", data.salary], ["Hours unit", data.hoursUnit], ["Hours amount", data.hoursAmount], ["Overtime", data.overtime], ["Max overtime/week", data.maxOvertimeHours], ["Has rotation", data.hasRotation], ["Rotation weeks on", data.rotationWeeksOn], ["Rotation weeks off", data.rotationWeeksOff]])}
-            ${section("Working Conditions", [["Travel", travelSummary], ["Local travel (other)", data.localTravelOther], ["Accommodation", data.accommodation], ["Accommodation cost", data.accommodationCost], ["Accommodation (other)", data.accommodationOther], ["Equipment", data.equipment], ["Equipment (other)", data.equipmentOther], ["Tools", data.tools], ["Tools (other)", data.toolsOther]])}
+            ${section("Working Conditions", [["International travel", data.internationalTravel], ["Local travel", data.localTravel], ["Local travel (other)", data.localTravelOther], ["Accommodation", data.accommodation], ["Accommodation cost", data.accommodationCost], ["Accommodation (other)", data.accommodationOther], ["Equipment", data.equipment], ["Equipment (other)", data.equipmentOther], ["Tools", data.tools], ["Tools (other)", data.toolsOther]])}
             ${section("Final Details", [["City", data.city], ["Start date", selectedStartDate], ["How did you hear about us", leadSource], ["Subscribe", data.subscribe], ["Notes", data.notes]])}
             ${section("Lead Source Details", [
               ["How did you hear about us", data.howDidYouHear],
