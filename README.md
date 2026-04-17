@@ -35,21 +35,25 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## Guide Interest Weekly Report
+## Weekly Reports (Monday 07:00)
 
-This project sends a weekly report email every Monday at 07:00 via Vercel Cron:
+This project sends two weekly report emails every Monday at 07:00 via Vercel Cron:
 
-- Endpoint: `/api/weekly-guide-interest-report`
-- Schedule: defined in `vercel.json`
+- `/api/weekly-guide-interest-report`
+- `/api/weekly-candidate-feedback-report`
+
+Both schedules are configured in `vercel.json`.
 
 Required environment variables:
 
-- `CRON_SECRET` (used to protect the weekly report endpoint)
+- `CRON_SECRET` (protects cron endpoints)
 - `SMTP_PASS`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
-Required Supabase table:
+### Required Supabase tables
+
+`guide_interest_signups`:
 
 ```sql
 create table if not exists public.guide_interest_signups (
@@ -61,3 +65,30 @@ create table if not exists public.guide_interest_signups (
   created_at timestamptz not null default now()
 );
 ```
+
+`candidate_feedback_submissions`:
+
+```sql
+create table if not exists public.candidate_feedback_submissions (
+  id bigint generated always as identity primary key,
+  source text not null,
+  purpose text not null,
+  page_url text not null,
+  score integer not null check (score between 1 and 10),
+  note text,
+  email text,
+  is_anonymous boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists candidate_feedback_submissions_created_at_idx
+  on public.candidate_feedback_submissions (created_at desc);
+
+create index if not exists candidate_feedback_submissions_anonymous_created_at_idx
+  on public.candidate_feedback_submissions (is_anonymous, created_at desc);
+
+create index if not exists candidate_feedback_submissions_page_url_idx
+  on public.candidate_feedback_submissions (page_url);
+```
+
+You can also run the same SQL from `supabase/candidate_feedback_submissions.sql`.
