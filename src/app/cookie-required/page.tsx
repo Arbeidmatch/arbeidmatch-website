@@ -23,12 +23,16 @@ export default function CookieRequiredPage() {
             </Link>
             .
           </p>
-          <a
-            href="/api/cookie-consent?action=accepted&redirect=/"
-            className="mt-6 rounded-md bg-gold px-6 py-3 text-sm font-medium text-white hover:bg-gold-hover"
-          >
-            Accept and return to site
-          </a>
+          <form method="post" action="/api/cookie-consent" className="mt-6">
+            <input type="hidden" name="action" value="accepted" />
+            <input type="hidden" name="redirect" value="/" />
+            <button
+              type="submit"
+              className="rounded-md bg-gold px-6 py-3 text-sm font-medium text-white hover:bg-gold-hover"
+            >
+              Accept and return to site
+            </button>
+          </form>
         </div>
       </div>
     </section>

@@ -35,20 +35,6 @@ function readConsentValue(): "accepted" | "declined" | null {
   return null;
 }
 
-function writeConsentCookie(value: "accepted" | "declined") {
-  try {
-    const secure = window.location.protocol === "https:" ? "; Secure" : "";
-    document.cookie = `${COOKIE_NAME}=${value}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
-  } catch {
-    // If cookies are blocked, keep UX functional in-memory.
-  }
-  try {
-    window.localStorage.setItem(STORAGE_KEY, value);
-  } catch {
-    // Ignore storage errors in hardened browser settings.
-  }
-}
-
 export default function CookieConsentGate() {
   const pathname = usePathname();
   const [consent, setConsent] = useState<"accepted" | "declined" | null>(() => readConsentValue());
@@ -76,28 +62,27 @@ export default function CookieConsentGate() {
           .
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <a
-            href={`/api/cookie-consent?action=accepted&redirect=${encodeURIComponent(redirectPath)}`}
-            onClick={() => {
-              // Keep instant UI feedback while server sets cookie and redirects.
-              writeConsentCookie("accepted");
-              setConsent("accepted");
-            }}
-            className="rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Accept policies
-          </a>
-          <a
-            href="/api/cookie-consent?action=declined"
-            onClick={() => {
-              // Keep instant UI feedback while server sets cookie and redirects.
-              writeConsentCookie("declined");
-              setConsent("declined");
-            }}
-            className="rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Decline for now
-          </a>
+          <form method="post" action="/api/cookie-consent">
+            <input type="hidden" name="action" value="accepted" />
+            <input type="hidden" name="redirect" value={redirectPath} />
+            <button
+              type="submit"
+              onClick={() => setConsent("accepted")}
+              className="rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
+            >
+              Accept policies
+            </button>
+          </form>
+          <form method="post" action="/api/cookie-consent">
+            <input type="hidden" name="action" value="declined" />
+            <button
+              type="submit"
+              onClick={() => setConsent("declined")}
+              className="rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface"
+            >
+              Decline for now
+            </button>
+          </form>
         </div>
       </div>
     </div>
