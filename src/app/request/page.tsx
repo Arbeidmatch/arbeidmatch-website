@@ -265,7 +265,7 @@ export default function RequestPage() {
         <div className="mx-auto mt-8 max-w-md rounded-r-md border-l-4 border-gold bg-gold/10 p-3 text-sm text-navy">
           Looking for a job?{" "}
           <a href="/score" className="font-semibold text-gold">
-            Start with eligibility check →
+            Start here →
           </a>
         </div>
 
@@ -278,11 +278,11 @@ export default function RequestPage() {
             {currentCard === 0 && (
               <fieldset className="space-y-2">
                 <legend className="px-1 text-sm font-medium text-navy">
-                  Quick question: Are you already partnering with ArbeidMatch?
+                  Quick question: Is your company already a partner with ArbeidMatch?
                 </legend>
                 {[
+                  ["new", "No, we are not a partner yet"],
                   ["existing", "Yes, we are already a partner"],
-                  ["new", "No, we are a new company"],
                 ].map(([value, label]) => (
                   <button
                     key={value}

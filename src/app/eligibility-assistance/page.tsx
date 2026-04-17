@@ -12,7 +12,7 @@ export default function EligibilityAssistancePage() {
   const [stepError, setStepError] = useState("");
   const [pausedByChoice, setPausedByChoice] = useState(false);
   const [wantsAssistance, setWantsAssistance] = useState<"yes" | "no" | "">("");
-  const [targetRegion, setTargetRegion] = useState("");
+  const [targetCountry, setTargetCountry] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -24,7 +24,7 @@ export default function EligibilityAssistancePage() {
 
   const validateStep = () => {
     if (currentStep === 0) return Boolean(wantsAssistance);
-    if (currentStep === 1) return Boolean(targetRegion);
+    if (currentStep === 1) return targetCountry.trim().length > 1;
     return fullName.trim().length > 1 && email.includes("@") && currentCountry.trim().length > 1;
   };
 
@@ -57,7 +57,7 @@ export default function EligibilityAssistancePage() {
 
     const payload = {
       wantsAssistance,
-      targetRegion,
+      targetCountry,
       fullName,
       email,
       phone,
@@ -145,19 +145,23 @@ export default function EligibilityAssistancePage() {
 
           {currentStep === 1 && !pausedByChoice && (
             <div className="space-y-3">
-              <p className="text-lg font-medium text-navy">Where do you want to work after completing procedures?</p>
-              {["Scandinavia", "Europe (EU/EEA)", "Both Scandinavia and Europe (EU/EEA)"].map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setTargetRegion(option)}
-                  className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
-                    targetRegion === option ? "border-gold bg-gold/10" : "border-border hover:border-gold"
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
+              <p className="text-lg font-medium text-navy">
+                Which country do you want to move to for work?
+              </p>
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-navy">Target country*</span>
+                <input
+                  required
+                  name="targetCountry"
+                  className={inputClass}
+                  placeholder="E.g. Norway, Sweden, Denmark, Germany"
+                  value={targetCountry}
+                  onChange={(event) => setTargetCountry(event.target.value)}
+                />
+              </label>
+              <p className="text-xs text-text-secondary">
+                This is important because visa and legal documentation depend on the specific country.
+              </p>
             </div>
           )}
 
