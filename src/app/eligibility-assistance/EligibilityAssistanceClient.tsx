@@ -38,6 +38,7 @@ export function EligibilityAssistanceClient() {
   const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [registrationKind, setRegistrationKind] = useState<"verify" | "already">("verify");
 
   const pageMetadata = useMemo(
     () =>
@@ -137,12 +138,33 @@ export function EligibilityAssistanceClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      if (!response.ok) throw new Error("Failed to send assistance request");
+      const result = (await response.json()) as {
+        success?: boolean;
+        alreadyRegistered?: boolean;
+      };
+      if (!response.ok || !result.success) throw new Error("Failed to send assistance request");
+      setRegistrationKind(result.alreadyRegistered ? "already" : "verify");
       setStatus("success");
     } catch {
       setStatus("error");
     }
+  };
+
+  const resetForAnotherCountry = () => {
+    setRegistrationKind("verify");
+    setFeedbackScore(null);
+    setFeedbackNote("");
+    setFeedbackStatus("idle");
+    setStepError("");
+    setStatus("idle");
+    setCurrentStep(1);
+    setWantsAssistance("yes");
+    setPausedByChoice(false);
+    setTargetRegion("");
+    setTargetCountry("");
+    setCountrySearch("");
+    setIsCountryPickerOpen(true);
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   };
 
   const submitFeedback = async () => {
@@ -169,7 +191,34 @@ export function EligibilityAssistanceClient() {
     }
   };
 
-  if (status === "success") {
+  if (status === "success" && registrationKind === "already") {
+    return (
+      <section className="bg-surface py-10">
+        <div className="mx-auto w-full max-w-2xl px-4">
+          <div className="rounded-xl bg-white p-8 text-center shadow-[0_10px_30px_rgba(13,27,42,0.08)]">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-3xl text-sky-700">
+              ℹ
+            </div>
+            <h1 className="mt-4 text-3xl font-bold text-navy">
+              You&apos;re already registered for {targetCountry} notifications.
+            </h1>
+            <p className="mt-3 text-sm text-text-secondary">
+              We&apos;ll notify you when opportunities match your profile.
+            </p>
+            <button
+              type="button"
+              onClick={resetForAnotherCountry}
+              className="mt-6 inline-flex rounded-md bg-[#0D1B2A] px-6 py-3 text-sm font-medium text-white hover:bg-[#122845]"
+            >
+              Apply for another country
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (status === "success" && registrationKind === "verify") {
     return (
       <section className="bg-surface py-10">
         <div className="mx-auto w-full max-w-2xl px-4">

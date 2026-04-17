@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { createEligibilityVerificationToken } from "@/lib/notificationToken";
 
 export const dynamic = "force-dynamic";
+
+function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,6 +33,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Marketing consent confirmation is required." }, { status: 400 });
     }
 
+    const emailTrimmed = data.notifyEmail.trim();
+    const countryTrimmed = data.targetCountry?.trim() ?? "";
+    if (!countryTrimmed) {
+      return NextResponse.json({ success: false, error: "Target country is required." }, { status: 400 });
+    }
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const existingVerified = await supabase
+        .from("guide_interest_signups")
+        .select("id")
+        .eq("notify_email", emailTrimmed)
+        .eq("target_country", countryTrimmed)
+        .eq("email_verified", true)
+        .limit(1);
+      if (existingVerified.error) {
+        console.error("[send-eligibility-assistance] Supabase lookup failed:", existingVerified.error.message);
+        return NextResponse.json({ success: false, error: "Could not verify registration status. Please try again." }, { status: 500 });
+      }
+      if (existingVerified.data && existingVerified.data.length > 0) {
+        return NextResponse.json({ success: true, alreadyRegistered: true });
+      }
+    }
+
     const transporter = nodemailer.createTransport({
       host: "send.one.com",
       port: 465,
@@ -37,7 +69,7 @@ export async function POST(request: NextRequest) {
 
     const token = createEligibilityVerificationToken({
       source: "eligibility-assistance",
-      notifyEmail: data.notifyEmail,
+      notifyEmail: emailTrimmed,
       wantsAssistance: data.wantsAssistance,
       targetRegion: data.targetRegion,
       targetCountry: data.targetCountry,
@@ -59,7 +91,7 @@ export async function POST(request: NextRequest) {
           <div style="padding:20px;color:#0D1B2A;">
             <p><strong>Target region:</strong> ${data.targetRegion || "-"}</p>
             <p><strong>Target country:</strong> ${data.targetCountry || "-"}</p>
-            <p><strong>Notification email:</strong> ${data.notifyEmail || "-"}</p>
+            <p><strong>Notification email:</strong> ${emailTrimmed || "-"}</p>
             <p><strong>Marketing consent:</strong> ${data.marketingConsent || "No"}</p>
             <p style="margin-top:14px;">
               <a
@@ -86,7 +118,7 @@ export async function POST(request: NextRequest) {
 
     await transporter.sendMail({
       from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
-      to: data.notifyEmail,
+      to: emailTrimmed,
       subject: "Verify your email for notifications | ArbeidMatch",
       html: candidateHtml,
     });
