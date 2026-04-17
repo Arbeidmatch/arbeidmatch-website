@@ -609,11 +609,7 @@ export default function RequestPage() {
                   disabled={status === "submitting"}
                   className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {status === "submitting"
-                    ? "Please wait..."
-                    : partnershipStatus === "existing"
-                      ? "Continue to candidate details"
-                      : "Send request"}
+                  {status === "submitting" ? "Please wait..." : "Continue to candidate details"}
                 </button>
               )}
             </div>
