@@ -6,8 +6,17 @@ import { useRouter } from "next/navigation";
 const COOKIE_NAME = "site_cookie_consent";
 
 function acceptPolicies() {
-  const secure = window.location.protocol === "https:" ? "; Secure" : "";
-  document.cookie = `${COOKIE_NAME}=accepted; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+  try {
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${COOKIE_NAME}=accepted; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+  } catch {
+    // Ignore storage errors from restricted browser policies.
+  }
+  try {
+    window.localStorage.setItem(COOKIE_NAME, "accepted");
+  } catch {
+    // Ignore storage errors from restricted browser policies.
+  }
 }
 
 export default function CookieRequiredPage() {

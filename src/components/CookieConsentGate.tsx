@@ -5,27 +5,55 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 const COOKIE_NAME = "site_cookie_consent";
+const STORAGE_KEY = "site_cookie_consent";
 
 function readConsentCookie(): "accepted" | "declined" | null {
   if (typeof document === "undefined") return null;
-  const cookie = document.cookie
-    .split("; ")
-    .find((entry) => entry.startsWith(`${COOKIE_NAME}=`));
-  if (!cookie) return null;
-  const value = cookie.split("=")[1];
-  if (value === "accepted" || value === "declined") return value;
+  try {
+    const cookie = document.cookie
+      .split("; ")
+      .find((entry) => entry.startsWith(`${COOKIE_NAME}=`));
+    if (!cookie) return null;
+    const value = cookie.split("=")[1];
+    if (value === "accepted" || value === "declined") return value;
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function readConsentValue(): "accepted" | "declined" | null {
+  const cookieValue = readConsentCookie();
+  if (cookieValue) return cookieValue;
+  if (typeof window === "undefined") return null;
+  try {
+    const storageValue = window.localStorage.getItem(STORAGE_KEY);
+    if (storageValue === "accepted" || storageValue === "declined") return storageValue;
+  } catch {
+    return null;
+  }
   return null;
 }
 
 function writeConsentCookie(value: "accepted" | "declined") {
-  const secure = window.location.protocol === "https:" ? "; Secure" : "";
-  document.cookie = `${COOKIE_NAME}=${value}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+  try {
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${COOKIE_NAME}=${value}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+  } catch {
+    // If cookies are blocked, keep UX functional in-memory.
+  }
+  try {
+    window.localStorage.setItem(STORAGE_KEY, value);
+  } catch {
+    // Ignore storage errors in hardened browser settings.
+  }
 }
 
 export default function CookieConsentGate() {
   const router = useRouter();
   const pathname = usePathname();
-  const [consent, setConsent] = useState<"accepted" | "declined" | null>(() => readConsentCookie());
+  const [consent, setConsent] = useState<"accepted" | "declined" | null>(() => readConsentValue());
+  const [processingAction, setProcessingAction] = useState<"accepted" | "declined" | null>(null);
   if (consent) return null;
   if (pathname === "/cookie-required") return null;
 
@@ -52,21 +80,28 @@ export default function CookieConsentGate() {
           <button
             type="button"
             onClick={() => {
+              if (processingAction) return;
+              setProcessingAction("accepted");
               writeConsentCookie("accepted");
               setConsent("accepted");
+              router.refresh();
             }}
-            className="rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
+            disabled={processingAction !== null}
+            className="rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             Accept policies
           </button>
           <button
             type="button"
             onClick={() => {
+              if (processingAction) return;
+              setProcessingAction("declined");
               writeConsentCookie("declined");
               setConsent("declined");
-              router.push("/cookie-required");
+              router.replace("/cookie-required");
             }}
-            className="rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface"
+            disabled={processingAction !== null}
+            className="rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
           >
             Decline for now
           </button>
