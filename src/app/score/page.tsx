@@ -77,6 +77,9 @@ export default function ScorePage() {
       });
       if (!response.ok) throw new Error("Failed");
       setFeedbackStatus("sent");
+      setTimeout(() => {
+        window.location.href = "https://jobs.arbeidmatch.no";
+      }, 3000);
     } catch {
       setFeedbackStatus("error");
     }
@@ -197,23 +200,17 @@ export default function ScorePage() {
                     </p>
                   )}
                   {feedbackStatus === "sent" && (
-                    <p className="mt-2 text-xs text-green-700">Thank you! Your feedback was received.</p>
+                    <p className="mt-2 text-xs text-green-700">
+                      Thank you! Your feedback was received. You can now choose the job you want to apply for.
+                      Redirecting to job listings in 3 seconds...
+                    </p>
                   )}
                 </div>
-                {feedbackStatus === "sent" ? (
-                  <a
-                    href="https://jobs.arbeidmatch.no"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-6 inline-block rounded-md bg-gold px-6 py-3 font-medium text-white hover:bg-gold-hover"
-                  >
-                    {result === "good" ? "Browse open positions" : "Browse jobs anyway"}
-                  </a>
-                ) : (
+                {feedbackStatus !== "sent" ? (
                   <p className="mt-4 text-sm text-text-secondary">
                     Send your feedback to continue to available job listings.
                   </p>
-                )}
+                ) : null}
               </>
             )}
           </div>
