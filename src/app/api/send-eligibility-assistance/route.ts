@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+
+function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
 export async function POST(request: NextRequest) {
   try {
     const data = (await request.json()) as Record<string, string>;
+    const supabase = getSupabaseClient();
 
     const transporter = nodemailer.createTransport({
       host: "send.one.com",
@@ -40,17 +49,11 @@ export async function POST(request: NextRequest) {
             <div style="margin-top:10px;font-size:13px;color:#C7D1DF;">${new Date().toLocaleString("en-GB")}</div>
           </div>
           <div style="padding:20px;">
-            ${section("Candidate Details", [
-              ["Full name", data.fullName],
-              ["Email", data.email],
-              ["Phone", data.phone],
-              ["Current country", data.currentCountry],
-            ])}
-            ${section("Assistance Request", [
+            ${section("Guide Request", [
               ["Wants assistance", data.wantsAssistance],
               ["Target region", data.targetRegion],
               ["Target country", data.targetCountry],
-              ["Additional details", data.details],
+              ["Notification email", data.notifyEmail],
             ])}
           </div>
           <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
@@ -64,16 +67,16 @@ export async function POST(request: NextRequest) {
       <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
         <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
           <div style="background:#0D1B2A;color:#fff;padding:20px 22px;">
-            <h2 style="margin:0;">Thank you for your request, ${data.fullName || "candidate"}!</h2>
+            <h2 style="margin:0;">Thank you for your interest!</h2>
             <p style="margin:8px 0 0;color:#E7EDF8;">
-              We received your eligibility assistance request and will contact you shortly.
+              We received your notification request and will email you when the updated guide is available.
             </p>
             <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
           </div>
           <div style="padding:20px;color:#0D1B2A;">
             <p><strong>Target region:</strong> ${data.targetRegion || "-"}</p>
             <p><strong>Target country:</strong> ${data.targetCountry || "-"}</p>
-            <p><strong>Support requested:</strong> ${data.wantsAssistance || "-"}</p>
+            <p><strong>Notification email:</strong> ${data.notifyEmail || "-"}</p>
             <p style="margin-top:18px;"><strong>Contact:</strong> post@arbeidmatch.no · +47 967 34 730</p>
           </div>
           <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">ArbeidMatch Norge AS</div>
@@ -84,17 +87,29 @@ export async function POST(request: NextRequest) {
     await transporter.sendMail({
       from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
       to: "post@arbeidmatch.no",
-      subject: `Work Eligibility Assistance Request | ${data.fullName ?? "Unknown candidate"}`,
+      subject: `Guide Notification Request | ${data.notifyEmail ?? "Unknown email"}`,
       html: adminHtml,
     });
 
-    if (data.email) {
+    if (data.notifyEmail) {
       await transporter.sendMail({
         from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
-        to: data.email,
-        subject: "We received your eligibility assistance request | ArbeidMatch",
+        to: data.notifyEmail,
+        subject: "Guide notification registered | ArbeidMatch",
         html: candidateHtml,
       });
+    }
+
+    if (supabase && data.notifyEmail) {
+      const { error } = await supabase.from("guide_interest_signups").insert({
+        notify_email: data.notifyEmail,
+        wants_assistance: data.wantsAssistance || null,
+        target_region: data.targetRegion || null,
+        target_country: data.targetCountry || null,
+      });
+      if (error) {
+        console.error("guide_interest_signups insert error:", error.message);
+      }
     }
 
     return NextResponse.json({ success: true });

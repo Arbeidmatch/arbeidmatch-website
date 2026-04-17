@@ -15,13 +15,9 @@ export default function EligibilityAssistancePage() {
   const [targetRegion, setTargetRegion] = useState<"Scandinavia" | "Europe" | "">("");
   const [targetCountry, setTargetCountry] = useState("");
   const [countrySearch, setCountrySearch] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [currentCountry, setCurrentCountry] = useState("");
-  const [details, setDetails] = useState("");
+  const [notifyEmail, setNotifyEmail] = useState("");
 
-  const totalSteps = 3;
+  const totalSteps = 2;
   const progress = pausedByChoice ? 100 : ((currentStep + 1) / totalSteps) * 100;
   const regionCountries: Record<"Scandinavia" | "Europe", string[]> = {
     Scandinavia: ["Norway", "Sweden", "Denmark", "Finland", "Iceland"],
@@ -63,8 +59,12 @@ export default function EligibilityAssistancePage() {
 
   const validateStep = () => {
     if (currentStep === 0) return Boolean(wantsAssistance);
-    if (currentStep === 1) return Boolean(targetRegion) && targetCountry.trim().length > 1;
-    return fullName.trim().length > 1 && email.includes("@") && currentCountry.trim().length > 1;
+    return (
+      Boolean(targetRegion) &&
+      targetCountry.trim().length > 1 &&
+      notifyEmail.trim().length > 3 &&
+      notifyEmail.includes("@")
+    );
   };
 
   const nextStep = () => {
@@ -98,11 +98,7 @@ export default function EligibilityAssistancePage() {
       wantsAssistance,
       targetRegion,
       targetCountry,
-      fullName,
-      email,
-      phone,
-      currentCountry,
-      details,
+      notifyEmail,
     };
 
     try {
@@ -249,65 +245,35 @@ export default function EligibilityAssistancePage() {
             </div>
           )}
 
-          {currentStep === 2 && !pausedByChoice && (
+          {currentStep === 1 && !pausedByChoice && (
             <div className="space-y-4">
-              <label className="block">
-                <span className="mb-1 block text-sm font-medium text-navy">Full name*</span>
-                <input
-                  required
-                  name="fullName"
-                  className={inputClass}
-                  placeholder="John Doe"
-                  value={fullName}
-                  onChange={(event) => setFullName(event.target.value)}
-                />
-              </label>
+              <div className="rounded-md border border-border bg-surface p-4">
+                <p className="text-sm font-medium text-navy">Get the legal procedure guide</p>
+                <p className="mt-1 text-sm text-text-secondary">
+                  We currently direct candidates to the guide for the latest visa and documentation steps.
+                </p>
+                <a
+                  href="https://arbeidmatch.no/guide"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-block rounded-md bg-gold px-4 py-2 text-sm font-medium text-white hover:bg-gold-hover"
+                >
+                  Buy guide
+                </a>
+              </div>
 
               <label className="block">
-                <span className="mb-1 block text-sm font-medium text-navy">Email*</span>
+                <span className="mb-1 block text-sm font-medium text-navy">
+                  Email for notification when updated guide is available*
+                </span>
                 <input
                   required
-                  name="email"
+                  name="notifyEmail"
                   type="email"
                   className={inputClass}
                   placeholder="you@example.com"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1 block text-sm font-medium text-navy">Phone number</span>
-                <input
-                  name="phone"
-                  className={inputClass}
-                  placeholder="+47 900 00 000"
-                  value={phone}
-                  onChange={(event) => setPhone(event.target.value)}
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1 block text-sm font-medium text-navy">Current country*</span>
-                <input
-                  required
-                  name="currentCountry"
-                  className={inputClass}
-                  placeholder="Country of residence"
-                  value={currentCountry}
-                  onChange={(event) => setCurrentCountry(event.target.value)}
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1 block text-sm font-medium text-navy">Additional details</span>
-                <textarea
-                  name="details"
-                  rows={4}
-                  className={inputClass}
-                  placeholder="Tell us your current situation and what support you need"
-                  value={details}
-                  onChange={(event) => setDetails(event.target.value)}
+                  value={notifyEmail}
+                  onChange={(event) => setNotifyEmail(event.target.value)}
                 />
               </label>
             </div>
@@ -344,7 +310,7 @@ export default function EligibilityAssistancePage() {
                   disabled={status === "submitting"}
                   className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {status === "submitting" ? "Sending..." : "Send assistance request"}
+                  {status === "submitting" ? "Sending..." : "Notify me"}
                 </button>
               )}
             </div>
@@ -352,7 +318,8 @@ export default function EligibilityAssistancePage() {
 
           {status === "success" && (
             <div className="rounded-md border border-green-200 bg-green-50 p-4 text-green-800">
-              Thank you. We received your request and will contact you shortly with next steps.
+              Thank you. You are on the notification list and will receive an email as soon as the
+              guide is available.
             </div>
           )}
 

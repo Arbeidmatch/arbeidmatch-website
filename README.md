@@ -34,3 +34,30 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Guide Interest Weekly Report
+
+This project sends a weekly report email every Monday at 07:00 via Vercel Cron:
+
+- Endpoint: `/api/weekly-guide-interest-report`
+- Schedule: defined in `vercel.json`
+
+Required environment variables:
+
+- `CRON_SECRET` (used to protect the weekly report endpoint)
+- `SMTP_PASS`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Required Supabase table:
+
+```sql
+create table if not exists public.guide_interest_signups (
+  id bigint generated always as identity primary key,
+  notify_email text not null,
+  wants_assistance text,
+  target_region text,
+  target_country text,
+  created_at timestamptz not null default now()
+);
+```
