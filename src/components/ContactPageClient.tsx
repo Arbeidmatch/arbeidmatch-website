@@ -29,7 +29,7 @@ function IconTikTok({ className }: { className?: string }) {
 }
 
 const inputClass =
-  "premium-dsb-input w-full rounded-md border border-[#E8E8E5] bg-[#F7F7F5] px-4 py-3 text-navy focus:outline-none";
+  "input-premium premium-dsb-input select-premium textarea-premium w-full rounded-md border border-[#E8E8E5] bg-[#F7F7F5] px-4 py-3 text-navy focus:outline-none";
 
 export default function ContactPageClient() {
   const [submitted, setSubmitted] = useState(false);
@@ -157,20 +157,20 @@ export default function ContactPageClient() {
                 aria-hidden="true"
               />
               <div className="grid gap-4 sm:grid-cols-2">
-                <label className="text-sm text-navy">
+                <label className="form-label-premium text-sm text-navy">
                   Your name
                   <input required name="name" className={inputClass} />
                 </label>
-                <label className="text-sm text-navy">
+                <label className="form-label-premium text-sm text-navy">
                   Company
                   <input required name="company" className={inputClass} />
                 </label>
               </div>
-              <label className="text-sm text-navy">
+              <label className="form-label-premium text-sm text-navy">
                 Work email
                 <input required type="email" name="email" className={inputClass} />
               </label>
-              <label className="text-sm text-navy">
+              <label className="form-label-premium text-sm text-navy">
                 I need
                 <select name="need" className={inputClass}>
                   <option>Qualified workers</option>
@@ -182,14 +182,14 @@ export default function ContactPageClient() {
                   <option>Other</option>
                 </select>
               </label>
-              <label className="text-sm text-navy">
+              <label className="form-label-premium text-sm text-navy">
                 Message
                 <textarea name="message" rows={5} className={`${inputClass} min-h-[100px]`} />
               </label>
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="btn-gold-shine w-full rounded-md bg-[#0D1B2A] py-3 font-medium text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0D1B2A]"
+                className="btn-micro btn-gold-shine w-full rounded-md bg-[#0D1B2A] py-3 font-medium text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0D1B2A]"
               >
                 {status === "submitting" ? "Sending..." : "Send message →"}
               </button>

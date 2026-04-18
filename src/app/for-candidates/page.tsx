@@ -3,6 +3,8 @@ import { CheckCircle2, DollarSign, Factory, HardHat, Home, Hotel, Sparkles, User
 import type { Metadata } from "next";
 
 import ForCandidatesDsbSection from "@/components/for-candidates/ForCandidatesDsbSection";
+import CandidateFeedbackPill from "@/components/for-candidates/CandidateFeedbackPill";
+import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
 import ScrollReveal from "@/components/ScrollReveal";
 import StaggerHero from "@/components/premium/StaggerHero";
 
@@ -31,15 +33,6 @@ export default function ForCandidatesPage() {
             >
               Browse open positions
             </a>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
-              <Link href="/for-employers" className="font-medium text-gold hover:text-gold-hover">
-                See how this works for employers
-              </Link>
-              <span className="text-text-secondary">•</span>
-              <Link href="/request" className="font-medium text-gold hover:text-gold-hover">
-                Apply directly through ArbeidMatch
-              </Link>
-            </div>
           </StaggerHero>
         </div>
       </section>
@@ -80,13 +73,16 @@ export default function ForCandidatesPage() {
               [DollarSign, "Logistics & Warehouse"],
             ].map(([Icon, title]) => (
               <ScrollReveal key={title as string} variant="fadeUp">
-                <article className="card-premium rounded-xl border border-border p-6">
+                <Link
+                  href="/score"
+                  className="card-premium group block h-full cursor-pointer rounded-xl border border-border bg-white p-6 no-underline"
+                >
                   <Icon className="text-gold" size={26} />
                   <h3 className="mt-4 font-semibold text-navy">{title as string}</h3>
-                  <a href="/score" className="mt-3 inline-block text-sm text-gold">
+                  <span className="mt-3 inline-block text-sm text-gold transition-colors group-hover:text-gold-hover">
                     View jobs →
-                  </a>
-                </article>
+                  </span>
+                </Link>
               </ScrollReveal>
             ))}
           </div>
@@ -144,15 +140,11 @@ export default function ForCandidatesPage() {
               Browse all open positions
             </a>
           </ScrollReveal>
-          <ScrollReveal variant="fadeUp">
-            <div>
-              <a href="/feedback" className="text-sm font-medium text-gold hover:text-gold-hover">
-                Share feedback about your candidate experience
-              </a>
-            </div>
-          </ScrollReveal>
         </div>
       </section>
+
+      <PreFooterCrossLinks variant="candidates" />
+      <CandidateFeedbackPill />
     </>
   );
 }

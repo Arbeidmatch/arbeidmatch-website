@@ -127,7 +127,7 @@ export default function Footer() {
           </div>
           <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center lg:w-full lg:flex-col lg:items-end">
             <a
-              href="#"
+              href="/download"
               aria-label="Download on the App Store (coming soon)"
               className="footer-app-store-btn"
             >
@@ -136,7 +136,7 @@ export default function Footer() {
                 Download on the <span className="block text-[0.95rem] text-white">App Store</span>
               </span>
             </a>
-            <a href="#" aria-label="Get it on Google Play (coming soon)" className="footer-app-store-btn">
+            <a href="/download" aria-label="Get it on Google Play (coming soon)" className="footer-app-store-btn">
               <IconPlay size={22} />
               <span className="text-left leading-tight">
                 Get it on <span className="block text-[0.95rem] text-white">Google Play</span>

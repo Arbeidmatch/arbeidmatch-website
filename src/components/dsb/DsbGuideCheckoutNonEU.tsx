@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 const inputClass =
-  "premium-dsb-input w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none";
+  "input-premium premium-dsb-input w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none";
 
 const INCLUDED_NON_EU = [
   "Full application walkthrough",
@@ -135,7 +135,7 @@ export default function DsbGuideCheckoutNonEU() {
               {step === "input" && (
                 <form onSubmit={startConfirmation} className="space-y-3">
                   <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
-                  <label className="block text-sm text-navy">
+                  <label className="form-label-premium block text-sm text-navy">
                     Email for receipt &amp; access*
                     <input
                       type="email"

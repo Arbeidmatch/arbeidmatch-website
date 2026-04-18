@@ -76,7 +76,7 @@ export default function RequestPage() {
   const progress = ((currentCard + 1) / (maxCard + 1)) * 100;
   const isAutoAdvanceCard = currentCard === 0 || (partnershipStatus === "new" && currentCard === 2);
 
-  const inputClass = "request-premium-input";
+  const inputClass = "request-premium-input input-premium";
 
   const selectedOptionBadge = (
     <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gold/15 text-xs font-bold text-gold">

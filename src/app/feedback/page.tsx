@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 
 const inputClass =
-  "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
+  "input-premium premium-dsb-input select-premium textarea-premium w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none";
 
 export default function FeedbackPage() {
   const [rating, setRating] = useState(0);
@@ -124,7 +124,7 @@ export default function FeedbackPage() {
               </div>
             </div>
 
-            <label className="block text-sm text-navy">
+            <label className="form-label-premium block text-sm text-navy">
               Email*
               <input
                 required
@@ -136,15 +136,17 @@ export default function FeedbackPage() {
               />
             </label>
 
-            <label className="block text-sm text-navy">
+            <label className="form-label-premium block text-sm text-navy">
               What can we improve? (optional)
               <textarea
                 rows={4}
+                maxLength={2000}
                 className={`${inputClass} min-h-[120px]`}
                 placeholder="Tell us what we can improve to make your experience better..."
                 value={note}
                 onChange={(event) => setNote(event.target.value)}
               />
+              <span className="mt-1 block text-right text-xs text-text-secondary">{note.length}/2000</span>
             </label>
 
             {needsFollowupQuestions && (
@@ -173,7 +175,7 @@ export default function FeedbackPage() {
                   </div>
                 </div>
 
-                <label className="block text-sm text-navy">
+                <label className="form-label-premium block text-sm text-navy">
                   What is this mainly about?*
                   <select
                     className={inputClass}
@@ -190,15 +192,17 @@ export default function FeedbackPage() {
                   </select>
                 </label>
 
-                <label className="block text-sm text-navy">
+                <label className="form-label-premium block text-sm text-navy">
                   Tell us what happened (optional)
                   <textarea
                     rows={3}
+                    maxLength={800}
                     className={`${inputClass} min-h-[90px]`}
                     placeholder="Add details so we can investigate and improve faster..."
                     value={issueDetails}
                     onChange={(event) => setIssueDetails(event.target.value)}
                   />
+                  <span className="mt-1 block text-right text-xs text-text-secondary">{issueDetails.length}/800</span>
                 </label>
               </div>
             )}
@@ -217,9 +221,16 @@ export default function FeedbackPage() {
             <button
               type="submit"
               disabled={status === "submitting"}
-              className="w-full rounded-md bg-[#0D1B2A] py-3 font-medium text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0D1B2A] disabled:cursor-not-allowed disabled:opacity-70"
+              className="btn-micro w-full rounded-md bg-[#0D1B2A] py-3 font-medium text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0D1B2A] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {status === "submitting" ? "Sending..." : "Send feedback"}
+              {status === "submitting" ? (
+                <span className="inline-flex items-center justify-center gap-2">
+                  <span className="form-submit-spinner border-white/30 border-t-white" aria-hidden />
+                  Sending…
+                </span>
+              ) : (
+                "Send feedback"
+              )}
             </button>
           </form>
         </div>

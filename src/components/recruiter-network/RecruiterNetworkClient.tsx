@@ -110,6 +110,7 @@ export default function RecruiterNetworkClient() {
   const [submitting, setSubmitting] = useState(false);
   const [successEmail, setSuccessEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [motivation, setMotivation] = useState("");
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -543,25 +544,25 @@ export default function RecruiterNetworkClient() {
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
                     Full name *
                   </label>
-                  <input name="full_name" required className="rn-input w-full px-4 py-3 text-sm" />
+                  <input name="full_name" required className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm" />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
                     Email address *
                   </label>
-                  <input name="email" type="email" required className="rn-input w-full px-4 py-3 text-sm" />
+                  <input name="email" type="email" required className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm" />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
                     Country *
                   </label>
-                  <input name="country" required className="rn-input w-full px-4 py-3 text-sm" />
+                  <input name="country" required className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm" />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
                     Region / City you want to cover *
                   </label>
-                  <input name="region" required className="rn-input w-full px-4 py-3 text-sm" />
+                  <input name="region" required className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm" />
                 </div>
 
                 <fieldset>
@@ -586,7 +587,13 @@ export default function RecruiterNetworkClient() {
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
                     Social media or professional profile link *
                   </label>
-                  <input name="social_url" type="url" required placeholder="https://" className="rn-input w-full px-4 py-3 text-sm" />
+                  <input
+                    name="social_url"
+                    type="url"
+                    required
+                    placeholder="https://"
+                    className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm"
+                  />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
@@ -598,7 +605,7 @@ export default function RecruiterNetworkClient() {
                     inputMode="numeric"
                     required
                     placeholder="e.g. 150,000"
-                    className="rn-input w-full px-4 py-3 text-sm"
+                    className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm"
                   />
                 </div>
 
@@ -629,8 +636,11 @@ export default function RecruiterNetworkClient() {
                     maxLength={500}
                     rows={4}
                     placeholder="What drives you? What is your market? What makes you the right partner?"
-                    className="rn-input w-full resize-y px-4 py-3 text-sm"
+                    value={motivation}
+                    onChange={(ev) => setMotivation(ev.target.value)}
+                    className="rn-input input-premium input-premium--dark textarea-premium w-full resize-y px-4 py-3 text-sm"
                   />
+                  <p className="mt-1 text-right text-[11px] text-white/40">{motivation.length}/500</p>
                 </div>
 
                 <label className="flex cursor-pointer items-start gap-3 text-sm leading-snug text-white/80">

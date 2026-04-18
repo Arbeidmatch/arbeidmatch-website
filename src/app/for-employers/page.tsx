@@ -4,6 +4,7 @@ import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
 import ScrollReveal from "@/components/ScrollReveal";
 import StaggerHero from "@/components/premium/StaggerHero";
+import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
 
 export const metadata: Metadata = {
   title: "For Employers - Find EU/EEA Workers",
@@ -30,15 +31,6 @@ export default function ForEmployersPage() {
             >
               Request candidates
             </Link>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
-              <Link href="/for-candidates" className="font-medium text-gold hover:text-gold-hover">
-                See what candidates receive
-              </Link>
-              <span className="text-text-secondary">•</span>
-              <Link href="/dsb-support" className="font-medium text-gold hover:text-gold-hover">
-                Need DSB support for non-EU electricians?
-              </Link>
-            </div>
           </StaggerHero>
         </div>
       </section>
@@ -98,6 +90,8 @@ export default function ForEmployersPage() {
           </ScrollReveal>
         </div>
       </section>
+
+      <PreFooterCrossLinks variant="employers" />
     </>
   );
 }

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 
 const inputClass =
-  "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-gold/60";
+  "input-premium input-premium--dark w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-0";
 
 export default function DsbChecklistClient() {
   const [firstName, setFirstName] = useState("");

@@ -2,10 +2,10 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 const inputClass =
-  "premium-dsb-input w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none";
+  "input-premium premium-dsb-input w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none";
 
 const INCLUDED_EU = [
   "Step-by-step application process",
@@ -17,6 +17,7 @@ const INCLUDED_EU = [
 ];
 
 export default function DsbGuideCheckoutEU() {
+  const reduceMotion = useReducedMotion();
   const [step, setStep] = useState<"input" | "confirm" | "sent">("input");
   const [email, setEmail] = useState("");
   const [confirmedEmail, setConfirmedEmail] = useState("");
@@ -86,9 +87,20 @@ export default function DsbGuideCheckoutEU() {
     <>
       <section className="bg-gradient-to-br from-[#0d3327] via-[#0a0f1e] to-[#0a0f1e] py-16 text-white md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
-          <span className="badge-pulse-border inline-flex rounded-full border border-emerald-300/35 bg-emerald-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-200">
-            EU/EEA Citizens Only
-          </span>
+          <div className="flex flex-wrap items-center gap-3 md:gap-4">
+            <motion.span
+              className="select-none text-[32px] leading-none md:text-[48px]"
+              initial={reduceMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: reduceMotion ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
+              aria-hidden
+            >
+              🇪🇺
+            </motion.span>
+            <span className="badge-pulse-border inline-flex rounded-full border border-emerald-300/35 bg-emerald-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-200">
+              EU/EEA Citizens Only
+            </span>
+          </div>
           <h1 className="mt-4 text-3xl font-bold leading-tight md:text-5xl">Get Your DSB Authorization in Norway</h1>
           <p className="mt-4 max-w-3xl text-base text-white/85 md:text-lg">
             Fast-track your electrical career in Norway. EU recognition means a simpler, faster process.
@@ -131,7 +143,7 @@ export default function DsbGuideCheckoutEU() {
               {step === "input" && (
                 <form onSubmit={startConfirmation} className="space-y-3">
                   <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
-                  <label className="block text-sm text-navy">
+                  <label className="form-label-premium block text-sm text-navy">
                     Email for receipt &amp; access*
                     <input
                       type="email"
