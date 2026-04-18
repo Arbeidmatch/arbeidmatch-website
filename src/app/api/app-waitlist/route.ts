@@ -69,9 +69,7 @@ export async function POST(request: NextRequest) {
 
 You are on the ArbeidMatch app waitlist. We will notify you when the app is available on iOS and Android.
 
-Visit https://arbeidmatch.no
-
-ArbeidMatch Norge AS`,
+Visit https://arbeidmatch.no`,
           html: wrapPremiumEmail(inner),
         });
       } catch (e) {

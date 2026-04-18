@@ -208,7 +208,6 @@ export async function POST(request: NextRequest) {
       `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton(verificationUrl, "Verify email and activate notifications")}</div>`,
       emailSupportAfterCta(),
       `<div style="text-align:center;margin:16px 0 0;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</div>`,
-      emailParagraph("<strong>Support:</strong> support@arbeidmatch.no"),
     ].join("");
 
     await transporter.sendMail({
@@ -222,9 +221,7 @@ Open the HTML version of this message and use the verify button.
 Target region: ${data.targetRegion || "—"}
 Target country: ${data.targetCountry || "—"}
 
-If the button does not work, contact support@arbeidmatch.no.
-
-ArbeidMatch Norge AS`,
+If the button does not work, reply to this email for help.`,
       html: wrapPremiumEmail(candidateInner),
     });
 

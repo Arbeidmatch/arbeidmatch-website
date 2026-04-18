@@ -181,7 +181,6 @@ export async function GET(request: NextRequest) {
         emailParagraph("Your email is now verified."),
         emailParagraph("You are now registered in our notification system."),
         emailParagraph("We will contact you by email when the updated guide is available."),
-        emailParagraph("<strong>Support:</strong> support@arbeidmatch.no"),
       ].join("");
 
       await transporter.sendMail({

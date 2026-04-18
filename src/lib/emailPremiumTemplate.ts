@@ -4,9 +4,6 @@ import { escapeHtml } from "@/lib/htmlSanitizer";
 export const EMAIL_FROM = '"ArbeidMatch Norge AS" <no-replay@arbeidmatch.no>';
 export const EMAIL_REPLY_TO = "support@arbeidmatch.no";
 
-const SUPPORT_LINE =
-  "If this button does not work, contact us at support@arbeidmatch.no and we will respond within 24 hours on business days.";
-
 /** Standard nodemailer fields for outbound mail. */
 export function mailHeaders() {
   return { from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO } as const;
@@ -60,27 +57,19 @@ export function wrapPremiumEmail(bodyHtml: string): string {
           </tr>
 
           <tr>
-            <td style="background:#f8f9fa;padding:24px 40px;border-top:1px solid #eeeeee;">
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="text-align:center;">
-                    <div style="font-size:12px;font-weight:600;color:#0D1B2A;margin-bottom:4px;">
-                      ArbeidMatch Norge AS
-                    </div>
-                    <div style="font-size:11px;color:#888888;line-height:1.6;">
-                      Org. nr. 935 667 089 (MVA)<br>
-                      Sverre Svendsens veg 38, 7056 Ranheim, Norway<br>
-                      post@arbeidmatch.no · arbeidmatch.no<br>
-                      Support: support@arbeidmatch.no
-                    </div>
-                    <div style="font-size:10px;color:#aaaaaa;margin-top:12px;line-height:1.5;">
-                      This email was sent by ArbeidMatch Norge AS.
-                      If you need assistance, contact us at support@arbeidmatch.no and we will
-                      respond within 24 hours on business days.
-                    </div>
-                  </td>
-                </tr>
-              </table>
+            <td style="padding:24px 40px;border-top:1px solid #eeeeee;text-align:center;">
+              <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#0D1B2A;">ArbeidMatch Norge AS</p>
+              <p style="margin:0 0 8px;font-size:11px;color:#888888;line-height:1.6;">
+                Org. nr. 935 667 089 (MVA) · Sverre Svendsens veg 38, 7056 Ranheim, Norway
+              </p>
+              <p style="margin:0;font-size:10px;color:#aaaaaa;">
+                Questions? Contact us at
+                <a href="mailto:support@arbeidmatch.no" style="color:#B8860B;text-decoration:none;">support@arbeidmatch.no</a>
+              </p>
+              <p style="margin:12px 0 0;font-size:10px;color:#aaaaaa;line-height:1.5;">
+                This email was sent by ArbeidMatch Norge AS in connection with your activity on our website.<br />
+                Transactional notice — not a marketing message.
+              </p>
             </td>
           </tr>
 
@@ -110,8 +99,11 @@ export function emailParagraph(html: string): string {
   return `<p style="margin:0 0 16px;line-height:1.7;color:#0D1B2A;font-size:15px;">${html}</p>`;
 }
 
+/** Short CTA fallback — support address lives in the shared footer only. */
 export function emailSupportAfterCta(): string {
-  return `<p style="margin:20px 0 0;line-height:1.7;color:#555555;font-size:13px;">${escapeHtml(SUPPORT_LINE)}</p>`;
+  return `<p style="margin:20px 0 0;line-height:1.65;color:#555555;font-size:13px;">${escapeHtml(
+    "If the button does not work, reply to this email and we will help you on business days.",
+  )}</p>`;
 }
 
 export function emailDataTable(rows: { label: string; value: string }[]): string {
@@ -163,6 +155,6 @@ export function buildInternalEmailHtml(opts: { title: string; rows: { label: str
   <h1 style="font-size:18px;margin:0 0 8px;font-weight:800;color:#0D1B2A;">${escapeHtml(opts.title)}</h1>
   <p style="margin:0 0 16px;font-size:12px;color:#666;">${escapeHtml(ts)}</p>
   <table style="width:100%;max-width:720px;border-collapse:collapse;background:#fff;border:1px solid #e5e5e5;">${rowsHtml}</table>
-  <p style="margin:16px 0 0;font-size:11px;color:#888;">ArbeidMatch internal notification · Reply goes to support@arbeidmatch.no</p>
+  <p style="margin:16px 0 0;font-size:10px;color:#aaaaaa;line-height:1.5;">ArbeidMatch internal notification.<br />Operational use only — do not forward.</p>
 </body></html>`;
 }

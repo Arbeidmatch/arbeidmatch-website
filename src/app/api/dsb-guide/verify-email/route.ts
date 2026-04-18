@@ -130,9 +130,7 @@ You requested access to the ${audience} DSB Authorization Guide.
 
 Please open the HTML version of this email and use the "Verify Email and Continue to Payment" button. This step expires in 30 minutes.
 
-If you cannot use the button, contact support@arbeidmatch.no and we will assist you.
-
-ArbeidMatch Norge AS`,
+If you cannot use the button, reply to this email for assistance.`,
       html: wrapPremiumEmail(innerHtml),
     });
 

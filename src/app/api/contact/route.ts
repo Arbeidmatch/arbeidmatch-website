@@ -78,7 +78,6 @@ export async function POST(request: NextRequest) {
       emailParagraph("Thank you for contacting us. We received your message and will respond shortly."),
       emailParagraph(`<strong>Request type:</strong> ${safeNeed}`),
       `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</div>`,
-      emailParagraph("Best regards,<br />ArbeidMatch Team"),
     ].join("");
 
     await transporter.sendMail({

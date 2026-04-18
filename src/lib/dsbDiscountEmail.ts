@@ -66,7 +66,6 @@ export function buildDiscountOfferEmailHtml(opts: {
     }),
     `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton(ctaUrl, "Use My Discount Now")}</div>`,
     `<p style="margin:16px 0 0;font-size:12px;line-height:1.65;color:#888888;">This offer expires on ${escapeHtml(expiry)}. After that, the regular price applies.</p>`,
-    `<p style="margin:12px 0 0;font-size:12px;line-height:1.65;color:#888888;">Questions? Contact us at support@arbeidmatch.no</p>`,
   ].join("");
   return wrapPremiumEmail(inner);
 }
@@ -95,7 +94,6 @@ export function buildDiscountReminderEmailHtml(opts: {
     }),
     `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton(ctaUrl, "Claim My Discount Before It Expires")}</div>`,
     `<p style="margin:16px 0 0;font-size:12px;line-height:1.65;color:#888888;">Offer expires: ${escapeHtml(expiry)}</p>`,
-    `<p style="margin:12px 0 0;font-size:12px;line-height:1.65;color:#888888;">Questions? Contact us at support@arbeidmatch.no</p>`,
   ].join("");
   return wrapPremiumEmail(inner);
 }

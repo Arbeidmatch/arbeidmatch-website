@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
       emailParagraph(
         `This link is personal and expires on <strong>${expDate}</strong>. Please do not share it.`,
       ),
-      emailParagraph("Having trouble? Contact us at support@arbeidmatch.no and we will help you."),
+      emailParagraph("Having trouble? Reply to this email and we will help you."),
     ].join("");
 
     await transporter.sendMail({
@@ -179,9 +179,7 @@ Please open the HTML version of this email and tap "Access Your Guide".
 
 This access is personal and expires on ${expDate}. Please do not share it.
 
-Having trouble? Contact support@arbeidmatch.no.
-
-ArbeidMatch Norge AS`,
+Having trouble? Reply to this email for help.`,
       html: wrapPremiumEmail(innerHtml),
     });
   }

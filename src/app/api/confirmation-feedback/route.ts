@@ -113,7 +113,6 @@ export async function POST(request: NextRequest) {
         emailParagraph("Thank you for sharing your feedback."),
         emailParagraph(`We received your score: <strong>${score}/10</strong>.`),
         emailParagraph(`Source: <strong>${source}</strong>`),
-        emailParagraph("Best regards,<br />ArbeidMatch Team"),
       ].join("");
       await transporter.sendMail({
         ...mailHeaders(),

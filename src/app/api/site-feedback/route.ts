@@ -73,7 +73,6 @@ export async function POST(request: NextRequest) {
       emailParagraph("Thank you for sharing your feedback with us."),
       emailParagraph(`We received your rating: <strong>${rating}/10</strong>.`),
       emailParagraph("Your input helps us improve the candidate and employer experience."),
-      emailParagraph("Best regards,<br />ArbeidMatch Team"),
     ].join("");
 
     await transporter.sendMail({
