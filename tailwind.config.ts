@@ -14,8 +14,8 @@ const config: Config = {
         obsidian: "#0a0f14",
       },
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
-        display: ["var(--font-display)", "Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       maxWidth: { content: "1140px" },
       transitionTimingFunction: {

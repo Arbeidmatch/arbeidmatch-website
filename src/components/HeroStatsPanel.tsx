@@ -47,12 +47,15 @@ function easeOutExpo(t: number): number {
 function SmoothNumber({
   value,
   run,
+  instant,
   durationMs,
   delayMs = 0,
   suffix = "",
 }: {
   value: number;
   run: boolean;
+  /** Skip count-up (e.g. hero stats already in view on first paint). */
+  instant?: boolean;
   durationMs: number;
   /** Stagger count-up start vs previous stat (ms). */
   delayMs?: number;
@@ -65,8 +68,15 @@ function SmoothNumber({
   useEffect(() => {
     if (!run) return;
 
-    const from = previousTargetRef.current;
     const to = Math.max(0, Math.floor(value));
+
+    if (instant) {
+      previousTargetRef.current = to;
+      setDisplay(to);
+      return;
+    }
+
+    const from = previousTargetRef.current;
     previousTargetRef.current = to;
 
     if (from === to) {
@@ -100,12 +110,12 @@ function SmoothNumber({
       window.cancelAnimationFrame(raf);
       window.clearTimeout(pulseTimer);
     };
-  }, [value, run, durationMs, delayMs]);
+  }, [value, run, instant, durationMs, delayMs]);
 
   return (
     <span
-      className={`inline-block tabular-nums transition-all duration-[400ms] ease-[ease] ${
-        tickPulse ? "scale-[1.02] opacity-95" : "scale-100 opacity-100"
+      className={`inline-block tabular-nums transition-opacity duration-[400ms] ease-[ease] ${
+        tickPulse ? "opacity-95" : "opacity-100"
       }`}
     >
       {display.toLocaleString()}
@@ -124,21 +134,28 @@ export default function HeroStatsPanel({
 }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [runNumbers, setRunNumbers] = useState(false);
+  /** When stats are already in view on first reveal, show values immediately (no count-up). */
+  const [countInstant, setCountInstant] = useState(false);
   const [candidatesToday, setCandidatesToday] = useState(0);
   const [activeNow, setActiveNow] = useState(12);
   const [totalVisits, setTotalVisits] = useState(TOTAL_VISITS_BASE);
 
-  // Run count-up once when panel enters viewport.
+  // Run count-up once when panel enters viewport — skip count-up if already visible (e.g. home hero).
   useEffect(() => {
     const node = panelRef.current;
     if (!node) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setRunNumbers(true);
-          observer.disconnect();
-        }
+        const entry = entries.find((e) => e.isIntersecting);
+        if (!entry) return;
+
+        const rect = entry.boundingClientRect;
+        const vh = window.innerHeight;
+        const alreadyInUpperViewport = rect.top >= 0 && rect.top < vh * 0.55;
+        setCountInstant(alreadyInUpperViewport);
+        setRunNumbers(true);
+        observer.disconnect();
       },
       { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
     );
@@ -252,10 +269,16 @@ export default function HeroStatsPanel({
   );
 
   return (
-    <div ref={panelRef} className="grid grid-cols-2 gap-6 rounded-xl bg-navy p-10 md:col-span-2">
+    <div ref={panelRef} className="grid grid-cols-2 gap-6 rounded-xl bg-navy p-10">
       <div className="col-span-2 border-b border-white/10 pb-6">
         <p className="font-mono text-4xl font-bold tabular-nums text-gold md:text-5xl">
-          <SmoothNumber value={candidatesToday} run={runNumbers} durationMs={2000} delayMs={0} />
+          <SmoothNumber
+            value={candidatesToday}
+            run={runNumbers}
+            instant={countInstant}
+            durationMs={2000}
+            delayMs={0}
+          />
         </p>
         <p className="mt-2 text-sm text-white">Candidates registered today</p>
       </div>
@@ -266,6 +289,7 @@ export default function HeroStatsPanel({
               value={item.value}
               suffix={item.suffix}
               run={runNumbers}
+              instant={countInstant}
               durationMs={2000}
               delayMs={150 * (i + 1)}
             />
@@ -275,13 +299,19 @@ export default function HeroStatsPanel({
       ))}
       <div>
         <p className="font-mono text-4xl font-bold tabular-nums text-gold md:text-5xl">
-          <SmoothNumber value={activeNow} run={runNumbers} durationMs={2000} delayMs={450} />
+          <SmoothNumber value={activeNow} run={runNumbers} instant={countInstant} durationMs={2000} delayMs={450} />
         </p>
         <p className="mt-2 text-sm text-white">Active on site now</p>
       </div>
       <div className="col-span-2 border-t border-white/10 pt-6">
         <p className="font-mono text-4xl font-bold tabular-nums text-gold md:text-5xl">
-          <SmoothNumber value={totalVisits} run={runNumbers} durationMs={2600} delayMs={600} />
+          <SmoothNumber
+            value={totalVisits}
+            run={runNumbers}
+            instant={countInstant}
+            durationMs={2600}
+            delayMs={600}
+          />
         </p>
         <p className="mt-2 text-sm text-white">Total visits</p>
       </div>

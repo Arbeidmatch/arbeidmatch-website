@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
-import { Syne } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -10,9 +10,10 @@ import CookieConsent from "@/components/CookieConsent";
 
 const ContextualHelper = dynamic(() => import("@/components/ContextualHelper"), { loading: () => null });
 
-const displayFont = Syne({
+const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-display",
+  variable: "--font-sans",
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -75,8 +76,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`h-full antialiased ${displayFont.variable}`}>
-      <body className="flex min-h-full flex-col">
+    <html lang="en" className={`h-full antialiased ${fontSans.variable}`}>
+      <body className="flex min-h-full flex-col font-sans">
         <ScrollProgressBar />
         <Navbar />
         <main className="flex min-w-0 flex-1 flex-col">{children}</main>

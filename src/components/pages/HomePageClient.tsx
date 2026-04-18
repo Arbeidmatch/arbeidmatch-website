@@ -21,9 +21,8 @@ import HeroStatsPanel from "@/components/HeroStatsPanel";
 import ScrollReveal, { ScrollRevealGrid } from "@/components/ScrollReveal";
 import type { CandidateActivityStats } from "@/lib/candidateActivityStats";
 
-import { EASE_PREMIUM } from "@/lib/animationConstants";
-
-const EASE = EASE_PREMIUM;
+const HERO_EASE = [0.16, 1, 0.3, 1] as const;
+const HERO_DURATION = 0.8;
 
 type Props = {
   candidateActivity: CandidateActivityStats;
@@ -41,57 +40,42 @@ export default function HomePageClient({
 }: Props) {
   const reduce = useReducedMotion();
 
+  const fade = (delaySec: number) =>
+    reduce
+      ? {}
+      : {
+          initial: { opacity: 0 } as const,
+          animate: { opacity: 1 } as const,
+          transition: { duration: HERO_DURATION, delay: delaySec, ease: HERO_EASE },
+        };
+
   const hero = !reduce ? (
-    <motion.div
-      className="md:col-span-3"
-      initial="hidden"
-      animate="visible"
-      variants={{
-        hidden: {},
-        visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
-      }}
-    >
+    <div className="md:col-span-3">
       <motion.p
-        className="mb-4 text-xs font-semibold uppercase tracking-widest text-gold"
-        variants={{
-          hidden: { opacity: 0, scale: 0.92 },
-          visible: { opacity: 1, scale: 1, transition: { delay: 0.05, duration: 0.45, ease: EASE } },
-        }}
+        className="mb-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#B8860B]"
+        {...fade(0)}
       >
         EU/EEA Workforce Solutions · Norway
       </motion.p>
       <motion.h1
-        className="heading-premium-xl font-display mb-6 text-4xl leading-tight md:text-5xl"
-        variants={{
-          hidden: { opacity: 0, y: 30 },
-          visible: { opacity: 1, y: 0, transition: { delay: 0.1, duration: 0.55, ease: EASE } },
-        }}
+        className="mb-6 max-w-[22ch] font-sans font-extrabold leading-[1.08] tracking-[-0.04em] text-navy"
+        style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}
+        {...fade(0.1)}
       >
-        <span className="text-shimmer-gold">
-          Qualified workers,
-          <br />
-          delivered to your
-          <br />
-          Norwegian business.
-        </span>
+        Qualified workers,
+        <br />
+        delivered to your
+        <br />
+        Norwegian business.
       </motion.h1>
       <motion.p
-        className="mb-8 max-w-lg text-lg text-text-secondary"
-        variants={{
-          hidden: { opacity: 0, y: 20 },
-          visible: { opacity: 1, y: 0, transition: { delay: 0.2, duration: 0.5, ease: EASE } },
-        }}
+        className="mb-8 max-w-[480px] text-[17px] leading-[1.6] text-[#555555]"
+        {...fade(0.25)}
       >
         We source, screen and deliver pre-qualified EU/EEA workers for construction, logistics and industry. Fast,
         legal, and fully compliant.
       </motion.p>
-      <motion.div
-        className="flex flex-wrap gap-4"
-        variants={{
-          hidden: { opacity: 0, y: 10 },
-          visible: { opacity: 1, y: 0, transition: { delay: 0.35, duration: 0.45, ease: EASE } },
-        }}
-      >
+      <motion.div className="flex flex-wrap gap-4" {...fade(0.4)}>
         <Link
           href="/request"
           className="btn-gold-premium relative inline-block min-h-[44px] rounded-md bg-gold px-6 py-3 font-medium text-white hover:bg-gold-hover"
@@ -105,31 +89,36 @@ export default function HomePageClient({
           How it works
         </Link>
       </motion.div>
-      <motion.div
-        className="mt-8 flex flex-wrap gap-6 text-sm text-text-secondary"
-        variants={{
-          hidden: { opacity: 0 },
-          visible: { opacity: 1, transition: { delay: 0.45, duration: 0.4 } },
-        }}
-      >
-        <p>✓ 500+ placements</p>
-        <p>✓ 50+ Norwegian clients</p>
-        <p>✓ 2-week delivery</p>
-      </motion.div>
-    </motion.div>
+      <motion.p className="mt-8 text-[13px] leading-relaxed text-[#888888]" {...fade(0.55)}>
+        <span className="inline">500+ placements</span>
+        <span className="mx-2 text-[#cccccc]" aria-hidden>
+          ·
+        </span>
+        <span className="inline">50+ Norwegian clients</span>
+        <span className="mx-2 text-[#cccccc]" aria-hidden>
+          ·
+        </span>
+        <span className="inline">2-week delivery</span>
+      </motion.p>
+    </div>
   ) : (
     <div className="md:col-span-3">
-      <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gold">EU/EEA Workforce Solutions · Norway</p>
-      <h1 className="heading-premium-xl font-display mb-6 text-4xl leading-tight text-navy md:text-5xl">
+      <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#B8860B]">
+        EU/EEA Workforce Solutions · Norway
+      </p>
+      <h1
+        className="mb-6 max-w-[22ch] font-sans font-extrabold leading-[1.08] tracking-[-0.04em] text-navy"
+        style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}
+      >
         Qualified workers,
         <br />
         delivered to your
         <br />
         Norwegian business.
       </h1>
-      <p className="mb-8 max-w-lg text-lg text-text-secondary">
-        We source, screen and deliver pre-qualified EU/EEA workers for construction, logistics and industry. Fast,
-        legal, and fully compliant.
+      <p className="mb-8 max-w-[480px] text-[17px] leading-[1.6] text-[#555555]">
+        We source, screen and deliver pre-qualified EU/EEA workers for construction, logistics and industry. Fast, legal,
+        and fully compliant.
       </p>
       <div className="flex flex-wrap gap-4">
         <Link
@@ -138,15 +127,24 @@ export default function HomePageClient({
         >
           Request candidates
         </Link>
-        <Link href="/#how-it-works" className="inline-block min-h-[44px] rounded-md border border-navy px-6 py-3 font-medium text-navy hover:bg-surface">
+        <Link
+          href="/#how-it-works"
+          className="inline-block min-h-[44px] rounded-md border border-navy px-6 py-3 font-medium text-navy transition-colors hover:bg-surface"
+        >
           How it works
         </Link>
       </div>
-      <div className="mt-8 flex flex-wrap gap-6 text-sm text-text-secondary">
-        <p>✓ 500+ placements</p>
-        <p>✓ 50+ Norwegian clients</p>
-        <p>✓ 2-week delivery</p>
-      </div>
+      <p className="mt-8 text-[13px] leading-relaxed text-[#888888]">
+        <span className="inline">500+ placements</span>
+        <span className="mx-2 text-[#cccccc]" aria-hidden>
+          ·
+        </span>
+        <span className="inline">50+ Norwegian clients</span>
+        <span className="mx-2 text-[#cccccc]" aria-hidden>
+          ·
+        </span>
+        <span className="inline">2-week delivery</span>
+      </p>
     </div>
   );
 
@@ -159,34 +157,47 @@ export default function HomePageClient({
     [HeartPulse, "Care & Health", "Support workers for care-driven services."],
   ];
 
+  const statsBlock = (
+    <HeroStatsPanel
+      candidatesRegisteredToday={candidateActivity.candidatesRegisteredToday}
+      activeOnSiteNow={candidateActivity.activeOnSiteNow}
+      totalVisits={candidateActivity.totalVisits}
+    />
+  );
+
   return (
     <>
       <section className="flex min-h-screen items-center bg-white py-28 lg:py-32">
         <div className="mx-auto grid w-full max-w-content gap-10 px-4 md:grid-cols-5 md:px-6">
           {hero}
-          <ScrollReveal variant="scaleIn" className="md:col-span-2">
-            <HeroStatsPanel
-              candidatesRegisteredToday={candidateActivity.candidatesRegisteredToday}
-              activeOnSiteNow={candidateActivity.activeOnSiteNow}
-              totalVisits={candidateActivity.totalVisits}
-            />
-          </ScrollReveal>
+          {!reduce ? (
+            <motion.div
+              className="md:col-span-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: HERO_DURATION, delay: 0.2, ease: HERO_EASE }}
+            >
+              {statsBlock}
+            </motion.div>
+          ) : (
+            <div className="md:col-span-2">{statsBlock}</div>
+          )}
         </div>
       </section>
 
       {bannerSlot}
 
-      <section className="bg-surface py-28 lg:py-32">
+      <section className="bg-surface py-32 lg:py-40">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="heading-premium-xl font-display text-4xl text-navy">Who are you?</h2>
+            <h2 className="heading-premium-xl font-sans text-4xl text-navy">Who are you?</h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp" className="text-center">
-            <p className="mb-12 mt-4 text-text-secondary">Two simple paths. Choose yours.</p>
+            <p className="mb-14 mt-4 text-text-secondary">Two simple paths. Choose yours.</p>
           </ScrollReveal>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-8 md:grid-cols-2">
             <ScrollReveal variant="fadeUp">
-              <article className="card-premium rounded-xl border border-border bg-white p-10 hover:shadow-lg">
+              <article className="who-choice-card card-premium rounded-xl border border-border bg-white p-10">
                 <Building2 className="text-gold" size={32} />
                 <h3 className="mt-4 text-2xl font-semibold text-navy">I&apos;m an employer</h3>
                 <p className="mt-2 text-text-secondary">Norwegian company looking for qualified workers</p>
@@ -211,7 +222,7 @@ export default function HomePageClient({
               </article>
             </ScrollReveal>
             <ScrollReveal variant="fadeUp">
-              <article className="card-premium rounded-xl border border-border bg-white p-10 hover:shadow-lg">
+              <article className="who-choice-card card-premium rounded-xl border border-border bg-white p-10">
                 <User className="text-gold" size={32} />
                 <h3 className="mt-4 text-2xl font-semibold text-navy">I&apos;m a candidate</h3>
                 <p className="mt-2 text-text-secondary">Looking for legal work in Norway</p>
@@ -236,7 +247,7 @@ export default function HomePageClient({
               </article>
             </ScrollReveal>
           </div>
-          <ScrollReveal variant="fadeUp" className="mt-8 text-center">
+          <ScrollReveal variant="fadeUp" className="mt-10 text-center">
             <Link href="/dsb-support" className="text-sm font-semibold text-gold hover:text-gold-hover">
               Electrician DSB authorization support →
             </Link>
@@ -249,7 +260,7 @@ export default function HomePageClient({
       <section className="bg-surface py-28 lg:py-32">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="heading-premium-xl font-display text-4xl text-navy">Industries we serve</h2>
+            <h2 className="heading-premium-xl font-sans text-4xl text-navy">Industries we serve</h2>
           </ScrollReveal>
           <ScrollRevealGrid
             className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
