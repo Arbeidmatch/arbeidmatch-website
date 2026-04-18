@@ -63,6 +63,8 @@ export async function createDsbGuideStripeCheckout(params: {
     success_url: `${baseUrl}/dsb-guide/${guideSlug}?token=${encodeURIComponent(accessToken)}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/dsb-support/${supportPath}`,
     customer_email: normalizedEmail,
+    /** Required when using `discounts`; mutual exclusion with customer-entered promotion codes. */
+    allow_promotion_codes: false,
     metadata: {
       guide_slug: guideSlug,
       email: normalizedEmail,
@@ -74,6 +76,12 @@ export async function createDsbGuideStripeCheckout(params: {
   if (appliedCoupon) {
     sessionParams.discounts = [{ coupon: appliedCoupon }];
   }
+
+  console.log("[Checkout] Coupon code received:", couponCode ?? "(none)");
+  console.log(
+    "[Checkout] Discounts applied:",
+    appliedCoupon ? [{ coupon: appliedCoupon }] : "none",
+  );
 
   const session = await stripe.checkout.sessions.create(sessionParams);
 

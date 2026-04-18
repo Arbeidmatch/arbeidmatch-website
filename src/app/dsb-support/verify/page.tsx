@@ -30,10 +30,16 @@ export default async function DsbSupportVerifyPage({
     );
   }
 
+  const couponFromToken =
+    typeof payload.coupon_code === "string" && payload.coupon_code.trim()
+      ? payload.coupon_code.trim()
+      : undefined;
+  console.log("[Checkout] Verify JWT coupon_code:", couponFromToken ?? "(absent)");
+
   const result = await createDsbGuideStripeCheckout({
     guideSlug: payload.guide_slug,
     email: payload.email,
-    couponCode: payload.coupon_code,
+    couponCode: couponFromToken,
   });
 
   if (!result.ok) {

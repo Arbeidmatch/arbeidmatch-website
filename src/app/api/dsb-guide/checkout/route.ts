@@ -35,7 +35,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Valid email is required." }, { status: 400 });
     }
 
-    const coupon = typeof body.coupon_code === "string" ? body.coupon_code : undefined;
+    const coupon =
+      typeof body.coupon_code === "string" && body.coupon_code.trim()
+        ? body.coupon_code.trim()
+        : undefined;
+    console.log("[Checkout] POST /api/dsb-guide/checkout coupon_code:", coupon ?? "(none)");
 
     const result = await createDsbGuideStripeCheckout({
       guideSlug: guideSlug as DsbGuideSlug,

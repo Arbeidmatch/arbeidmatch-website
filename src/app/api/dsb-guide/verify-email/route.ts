@@ -72,6 +72,10 @@ export async function POST(request: NextRequest) {
         expMs: Date.now() + VERIFY_LINK_TTL_MS,
         ...(couponInToken ? { coupon_code: couponInToken } : {}),
       });
+      console.log(
+        "[verify-email] Verify token includes coupon_code:",
+        Boolean(couponInToken),
+      );
     } catch (e) {
       const message = e instanceof Error ? e.message : "Verification is not configured.";
       console.error("[dsb-guide/verify-email] token:", message);
