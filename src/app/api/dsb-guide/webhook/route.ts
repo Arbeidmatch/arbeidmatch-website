@@ -3,6 +3,15 @@ import Stripe from "stripe";
 import nodemailer from "nodemailer";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { getPublicBaseUrl, type DsbGuideSlug } from "@/lib/dsbGuideAccess";
+import {
+  buildInternalEmailHtml,
+  emailDataTable,
+  emailParagraph,
+  formatEmailTimestampCet,
+  mailHeaders,
+  premiumCtaButton,
+  wrapPremiumEmail,
+} from "@/lib/emailPremiumTemplate";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +19,12 @@ function guideLabel(slug: string): string {
   if (slug === "eu") return "EU/EEA";
   if (slug === "non-eu") return "Non-EU";
   return slug;
+}
+
+function guideProductRow(slug: string | undefined): string {
+  if (slug === "eu") return "EU/EEA Electricians";
+  if (slug === "non-eu") return "Non-EU Electricians";
+  return "DSB Guide";
 }
 
 export async function POST(request: NextRequest) {
@@ -112,46 +127,86 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     const expRaw = purchaseRow?.token_expires_at as string | undefined;
     const expDate = expRaw
-      ? new Date(expRaw).toLocaleString("en-GB", { dateStyle: "long", timeStyle: "short" })
-      : "the date shown in your account email";
+      ? new Date(expRaw).toLocaleString("en-GB", {
+          timeZone: "Europe/Oslo",
+          dateStyle: "long",
+          timeStyle: "short",
+        })
+      : "the date shown in your purchase confirmation";
+
+    const validUntilDisplay = expRaw
+      ? new Date(expRaw).toLocaleString("en-GB", {
+          timeZone: "Europe/Oslo",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
+      : "See confirmation";
+
+    const innerHtml = [
+      emailParagraph("Hi,"),
+      emailParagraph("Your purchase is confirmed."),
+      emailParagraph(`Your <strong>${label}</strong> DSB Authorization Guide is now available.`),
+      emailDataTable([
+        { label: "Guide", value: guideProductRow(slug) },
+        { label: "Access", value: "30 days from today" },
+        { label: "Valid until", value: validUntilDisplay },
+      ]),
+      `<div style="text-align:center;margin:24px 0 0;">${premiumCtaButton(accessLink, "Access Your Guide")}</div>`,
+      emailParagraph(
+        `This link is personal and expires on <strong>${expDate}</strong>. Please do not share it.`,
+      ),
+      emailParagraph("Having trouble? Contact us at support@arbeidmatch.no and we will help you."),
+    ].join("");
 
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
       to: buyerEmail,
       subject: "Your DSB Guide is ready",
       text: `Hi,
 
 Your purchase is confirmed.
 
-Access your DSB ${label} Guide here:
-${accessLink}
+Your ${label} DSB Authorization Guide is now available.
 
-This link is personal and expires on ${expDate}.
-Do not share it with others.
+Please open the HTML version of this email and tap "Access Your Guide".
+
+This access is personal and expires on ${expDate}. Please do not share it.
+
+Having trouble? Contact support@arbeidmatch.no.
 
 ArbeidMatch Norge AS`,
-      html: `
-        <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-          <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #E2E5EA;padding:24px;color:#0D1B2A;">
-            <p>Hi,</p>
-            <p>Your purchase is confirmed.</p>
-            <p><strong>Access your DSB ${label} Guide here:</strong><br />
-              <a href="${accessLink}" style="color:#C9A84C;">${accessLink}</a>
-            </p>
-            <p>This link is personal and expires on <strong>${expDate}</strong>.</p>
-            <p>Do not share it with others.</p>
-            <p style="margin-top:24px;">ArbeidMatch Norge AS</p>
-          </div>
-        </div>
-      `,
+      html: wrapPremiumEmail(innerHtml),
     });
   }
 
+  const { data: purchaseForInternal } = await supabase
+    .from("dsb_guide_purchases")
+    .select("token_expires_at, access_token")
+    .eq("stripe_session_id", sessionId)
+    .maybeSingle();
+
+  const internalRows = [
+    { label: "Guide slug", value: slug || "—" },
+    { label: "Buyer email", value: buyerEmail || "—" },
+    { label: "Stripe session ID", value: sessionId },
+    { label: "Access token", value: (purchaseForInternal?.access_token as string) || token || "—" },
+    {
+      label: "Token expires at (raw)",
+      value: (purchaseForInternal?.token_expires_at as string) || "—",
+    },
+    { label: "Webhook received (CET)", value: formatEmailTimestampCet() },
+  ];
+
   await transporter.sendMail({
-    from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+    ...mailHeaders(),
     to: "post@arbeidmatch.no",
-    subject: `New DSB Guide purchase: ${slug || "?"} - ${buyerEmail || "unknown"}`,
+    subject: `New DSB Guide purchase: ${buyerEmail || "unknown"}`,
     text: `New DSB guide purchase.\nGuide: ${slug}\nEmail: ${buyerEmail}\nSession: ${sessionId}`,
+    html: buildInternalEmailHtml({
+      title: `New DSB Guide purchase: ${buyerEmail || "unknown"}`,
+      rows: internalRows,
+    }),
   });
 
   return NextResponse.json({ received: true });

@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
-import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import {
+  buildInternalEmailHtml,
+  emailParagraph,
+  mailHeaders,
+  premiumCtaButton,
+  wrapPremiumEmail,
+} from "@/lib/emailPremiumTemplate";
 
 type ContactPayload = {
   name?: string;
@@ -33,9 +40,8 @@ export async function POST(request: NextRequest) {
     }
 
     const isSupportRequest = need === "Support";
-    const supportRecipient = process.env.SUPPORT_EMAIL || "support@arbeidmatcgh.no";
+    const supportRecipient = process.env.SUPPORT_EMAIL || "support@arbeidmatch.no";
     const recipient = isSupportRequest ? supportRecipient : "post@arbeidmatch.no";
-    const submittedAt = new Date().toLocaleString("en-GB");
 
     const transporter = nodemailer.createTransport({
       host: "send.one.com",
@@ -47,57 +53,39 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    await transporter.sendMail({
-      from: '"ArbeidMatch Contact" <no-replay@arbeidmatch.no>',
-      to: recipient,
-      subject: `${isSupportRequest ? "Support request" : "New contact message"} - ${company}`,
-      html: `
-        <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-          <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #E2E5EA;overflow:hidden;">
-            <div style="background:#0D1B2A;color:#fff;padding:16px 20px;">
-              <div style="font-size:22px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-              <div style="margin-top:6px;color:#DDE3ED;">${isSupportRequest ? "Support message" : "Contact message"} from website</div>
-            </div>
-            <div style="padding:20px;color:#0D1B2A;">
-              <p><strong>Name:</strong> ${name}</p>
-              <p><strong>Company:</strong> ${company}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Request type:</strong> ${need}</p>
-              <p><strong>Submitted:</strong> ${submittedAt}</p>
-              <p style="margin-top:14px;"><strong>Message:</strong></p>
-              <div style="border:1px solid #E2E5EA;border-radius:8px;padding:10px;background:#FAFBFD;">
-                ${message}
-              </div>
-            </div>
-          </div>
-        </div>
-      `,
+    const internalHtml = buildInternalEmailHtml({
+      title: `${isSupportRequest ? "Support request" : "Contact message"}: ${name} from ${company}`,
+      rows: [
+        { label: "Name", value: name },
+        { label: "Company", value: company },
+        { label: "Email", value: email },
+        { label: "Request type", value: need },
+        { label: "Message", value: message },
+      ],
     });
 
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
+      to: recipient,
+      subject: `${isSupportRequest ? "Support request" : "New contact message"}: ${name} from ${company}`,
+      html: internalHtml,
+    });
+
+    const safeName = escapeHtml(name);
+    const safeNeed = escapeHtml(need);
+    const userInner = [
+      emailParagraph(`Hi ${safeName},`),
+      emailParagraph("Thank you for contacting us. We received your message and will respond shortly."),
+      emailParagraph(`<strong>Request type:</strong> ${safeNeed}`),
+      `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</div>`,
+      emailParagraph("Best regards,<br />ArbeidMatch Team"),
+    ].join("");
+
+    await transporter.sendMail({
+      ...mailHeaders(),
       to: email,
       subject: "We received your message - ArbeidMatch",
-      html: `
-        <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-          <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #E2E5EA;overflow:hidden;">
-            <div style="background:#0D1B2A;color:#fff;padding:16px 20px;">
-              <div style="font-size:22px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-              <div style="margin-top:6px;color:#DDE3ED;">Contact confirmation</div>
-            </div>
-            <div style="padding:20px;color:#0D1B2A;">
-              <p>Hi ${name},</p>
-              <p>Thank you for contacting us. We received your message and will respond shortly.</p>
-              <p><strong>Request type:</strong> ${need}</p>
-              <p style="margin-top:14px;">
-                Help us improve your experience:
-                <a href="https://arbeidmatch.no/feedback" style="color:#C9A84C;font-weight:600;text-decoration:none;"> Share feedback</a>
-              </p>
-              <p style="margin-top:16px;">Best regards,<br />ArbeidMatch Team</p>
-            </div>
-          </div>
-        </div>
-      `,
+      html: wrapPremiumEmail(userInner),
     });
 
     return NextResponse.json({ success: true });

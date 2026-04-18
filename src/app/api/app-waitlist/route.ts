@@ -3,6 +3,14 @@ import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { hasHoneypotValue } from "@/lib/requestProtection";
 import { isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import {
+  emailParagraph,
+  inDevelopmentBadgeStatic,
+  mailHeaders,
+  premiumCtaButton,
+  wrapPremiumEmail,
+} from "@/lib/emailPremiumTemplate";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +47,36 @@ export async function POST(request: NextRequest) {
       }
       console.error("[app-waitlist]", error.message);
       return NextResponse.json({ success: false, error: "Could not save. Please try again." }, { status: 500 });
+    }
+
+    const transporter = createSmtpTransporter();
+    if (transporter) {
+      try {
+        const inner = [
+          emailParagraph("Hi there,"),
+          emailParagraph(
+            "You are on the list. We will notify you as soon as the ArbeidMatch app is available on iOS and Android.",
+          ),
+          `<div style="text-align:center;margin:8px 0 20px;">${inDevelopmentBadgeStatic()}</div>`,
+          emailParagraph("We are building something great and you will be among the first to know."),
+          `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no", "Visit ArbeidMatch")}</div>`,
+        ].join("");
+        await transporter.sendMail({
+          ...mailHeaders(),
+          to: email,
+          subject: "You are on the ArbeidMatch App waitlist",
+          text: `Hi there,
+
+You are on the ArbeidMatch app waitlist. We will notify you when the app is available on iOS and Android.
+
+Visit https://arbeidmatch.no
+
+ArbeidMatch Norge AS`,
+          html: wrapPremiumEmail(inner),
+        });
+      } catch (e) {
+        console.error("[app-waitlist] confirmation email", e);
+      }
     }
 
     return NextResponse.json({ success: true });

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
-import { escapeHtml } from "@/lib/htmlSanitizer";
+import { buildInternalEmailHtml, emailParagraph, formatEmailTimestampCet, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
 
 type SiteFeedbackPayload = {
   rating?: number;
@@ -24,17 +24,17 @@ export async function POST(request: NextRequest) {
     }
 
     const rating = Number(body.rating);
-    const email = escapeHtml((body.email || "").trim());
-    const note = escapeHtml((body.note || "").trim());
-    const siteRelated = escapeHtml((body.siteRelated || "").trim());
-    const issueCategory = escapeHtml((body.issueCategory || "").trim());
-    const issueDetails = escapeHtml((body.issueDetails || "").trim());
-    const source = escapeHtml((body.source || "site-feedback").trim());
+    const emailRaw = (body.email || "").trim();
+    const noteRaw = (body.note || "").trim();
+    const siteRelatedRaw = (body.siteRelated || "").trim();
+    const issueCategoryRaw = (body.issueCategory || "").trim();
+    const issueDetailsRaw = (body.issueDetails || "").trim();
+    const sourceRaw = (body.source || "site-feedback").trim();
 
     if (!Number.isFinite(rating) || rating < 1 || rating > 10) {
       return NextResponse.json({ success: false, error: "Rating must be between 1 and 10." }, { status: 400 });
     }
-    if (!email || !email.includes("@")) {
+    if (!emailRaw || !emailRaw.includes("@")) {
       return NextResponse.json({ success: false, error: "A valid email is required." }, { status: 400 });
     }
 
@@ -48,60 +48,39 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const submittedAt = new Date().toLocaleString("en-GB");
+    const submittedAt = formatEmailTimestampCet();
 
     await transporter.sendMail({
-      from: '"ArbeidMatch Feedback" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
       to: "post@arbeidmatch.no",
-      subject: `New site feedback - ${rating}/10`,
-      html: `
-        <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-          <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #E2E5EA;overflow:hidden;">
-            <div style="background:#0D1B2A;color:#fff;padding:16px 20px;">
-              <div style="font-size:22px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-              <div style="margin-top:6px;color:#DDE3ED;">New website feedback</div>
-            </div>
-            <div style="padding:20px;color:#0D1B2A;">
-              <p style="margin:0 0 10px;"><strong>Rating:</strong> ${rating}/10</p>
-              <p style="margin:0 0 10px;"><strong>Email:</strong> ${email}</p>
-              <p style="margin:0 0 10px;"><strong>Source:</strong> ${source}</p>
-              <p style="margin:0 0 10px;"><strong>Submitted:</strong> ${submittedAt}</p>
-              <p style="margin:0 0 10px;"><strong>Related to website:</strong> ${siteRelated || "-"}</p>
-              <p style="margin:0 0 10px;"><strong>Category:</strong> ${issueCategory || "-"}</p>
-              <p style="margin:14px 0 6px;"><strong>Improvement note:</strong></p>
-              <div style="border:1px solid #E2E5EA;border-radius:8px;padding:10px;background:#FAFBFD;">
-                ${note || "No additional note provided."}
-              </div>
-              <p style="margin:14px 0 6px;"><strong>Issue details:</strong></p>
-              <div style="border:1px solid #E2E5EA;border-radius:8px;padding:10px;background:#FAFBFD;">
-                ${issueDetails || "No issue details provided."}
-              </div>
-            </div>
-          </div>
-        </div>
-      `,
+      subject: `New site feedback: ${rating}/10 from ${emailRaw}`,
+      html: buildInternalEmailHtml({
+        title: `New site feedback: ${rating}/10 from ${emailRaw}`,
+        rows: [
+          { label: "Rating", value: `${rating}/10` },
+          { label: "Email", value: emailRaw },
+          { label: "Source", value: sourceRaw },
+          { label: "Submitted (CET)", value: submittedAt },
+          { label: "Related to website", value: siteRelatedRaw || "—" },
+          { label: "Category", value: issueCategoryRaw || "—" },
+          { label: "Improvement note", value: noteRaw || "—" },
+          { label: "Issue details", value: issueDetailsRaw || "—" },
+        ],
+      }),
     });
 
+    const userInner = [
+      emailParagraph("Thank you for sharing your feedback with us."),
+      emailParagraph(`We received your rating: <strong>${rating}/10</strong>.`),
+      emailParagraph("Your input helps us improve the candidate and employer experience."),
+      emailParagraph("Best regards,<br />ArbeidMatch Team"),
+    ].join("");
+
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
-      to: email,
+      ...mailHeaders(),
+      to: emailRaw,
       subject: "Thank you for your feedback - ArbeidMatch",
-      html: `
-        <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-          <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #E2E5EA;overflow:hidden;">
-            <div style="background:#0D1B2A;color:#fff;padding:16px 20px;">
-              <div style="font-size:22px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-              <div style="margin-top:6px;color:#DDE3ED;">Feedback confirmation</div>
-            </div>
-            <div style="padding:20px;color:#0D1B2A;">
-              <p style="margin:0;">Thank you for sharing your feedback with us.</p>
-              <p style="margin:10px 0 0;">We received your rating: <strong>${rating}/10</strong>.</p>
-              <p style="margin:10px 0 0;">Your input helps us improve the candidate and employer experience.</p>
-              <p style="margin:16px 0 0;">Best regards,<br />ArbeidMatch Team</p>
-            </div>
-          </div>
-        </div>
-      `,
+      html: wrapPremiumEmail(userInner),
     });
 
     return NextResponse.json({ success: true });

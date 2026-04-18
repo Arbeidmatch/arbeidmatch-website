@@ -3,6 +3,14 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import {
+  emailDataTable,
+  emailParagraph,
+  emailSupportAfterCta,
+  mailHeaders,
+  premiumCtaButton,
+  wrapPremiumEmail,
+} from "@/lib/emailPremiumTemplate";
 import { createEligibilityVerificationToken } from "@/lib/notificationToken";
 
 export const dynamic = "force-dynamic";
@@ -187,49 +195,37 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://arbeidmatch.no";
     const verificationUrl = `${baseUrl}/api/verify-notification-email?token=${encodeURIComponent(token)}`;
 
-    const candidateHtml = `
-      <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-        <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
-          <div style="background:#0D1B2A;color:#fff;padding:20px 22px;">
-            <h2 style="margin:0;">Confirm your email to activate notifications</h2>
-            <p style="margin:8px 0 0;color:#E7EDF8;">
-              Please verify your email address to confirm consent and activate your notification subscription.
-            </p>
-            <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
-          </div>
-          <div style="padding:20px;color:#0D1B2A;">
-            <p><strong>Target region:</strong> ${data.targetRegion || "-"}</p>
-            <p><strong>Target country:</strong> ${data.targetCountry || "-"}</p>
-            <p><strong>Notification email:</strong> ${emailTrimmed || "-"}</p>
-            <p><strong>Marketing consent:</strong> ${data.marketingConsent || "No"}</p>
-            <p style="margin-top:14px;">
-              <a
-                href="${verificationUrl}"
-                style="display:inline-block;background:#C9A84C;color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600;"
-              >
-                Verify email and activate notifications
-              </a>
-            </p>
-            <p style="margin-top:10px;font-size:13px;color:#5F6C80;">
-              If the button does not work, copy and paste this link in your browser:<br />
-              <a href="${verificationUrl}" style="color:#0D1B2A;">${verificationUrl}</a>
-            </p>
-            <p style="margin-top:18px;">
-              Help us improve your experience:
-              <a href="https://arbeidmatch.no/feedback" style="color:#C9A84C;font-weight:600;text-decoration:none;"> Share feedback</a>
-            </p>
-            <p style="margin-top:18px;"><strong>Contact:</strong> support@arbeidmatch.no</p>
-          </div>
-          <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">ArbeidMatch Norge AS</div>
-        </div>
-      </div>
-    `;
+    const candidateInner = [
+      emailParagraph(
+        "Please verify your email address to confirm consent and activate your notification subscription.",
+      ),
+      emailDataTable([
+        { label: "Target region", value: data.targetRegion || "—" },
+        { label: "Target country", value: data.targetCountry || "—" },
+        { label: "Notification email", value: emailTrimmed },
+        { label: "Marketing consent", value: data.marketingConsent || "No" },
+      ]),
+      `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton(verificationUrl, "Verify email and activate notifications")}</div>`,
+      emailSupportAfterCta(),
+      `<div style="text-align:center;margin:16px 0 0;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</div>`,
+      emailParagraph("<strong>Support:</strong> support@arbeidmatch.no"),
+    ].join("");
 
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
       to: emailTrimmed,
       subject: "Verify your email for notifications | ArbeidMatch",
-      html: candidateHtml,
+      text: `Please verify your email to activate notifications.
+
+Open the HTML version of this message and use the verify button.
+
+Target region: ${data.targetRegion || "—"}
+Target country: ${data.targetCountry || "—"}
+
+If the button does not work, contact support@arbeidmatch.no.
+
+ArbeidMatch Norge AS`,
+      html: wrapPremiumEmail(candidateInner),
     });
 
     const okBody = { success: true, requiresVerification: true };

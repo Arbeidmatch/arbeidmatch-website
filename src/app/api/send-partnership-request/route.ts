@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
-import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import {
+  buildInternalEmailHtml,
+  emailParagraph,
+  mailHeaders,
+  premiumCtaButton,
+  wrapPremiumEmail,
+} from "@/lib/emailPremiumTemplate";
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,102 +44,58 @@ export async function POST(request: NextRequest) {
     });
 
     const hasValue = (value?: string) => value !== undefined && value !== null && String(value).trim() !== "";
-    const section = (title: string, rows: Array<[string, string | undefined]>) => {
-      const filtered = rows.filter(([, value]) => hasValue(value));
-      if (!filtered.length) return "";
-      return `
-        <div style="border:1px solid #E2E5EA;border-radius:10px;padding:14px 16px;margin-top:14px;">
-          <div style="border-left:4px solid #C9A84C;padding-left:10px;font-weight:700;color:#0D1B2A;margin-bottom:10px;">
-            ${title}
-          </div>
-          ${filtered
-            .map(
-              ([label, value]) =>
-                `<div style="margin:6px 0;color:#0D1B2A;"><span style="font-weight:600;">${label}:</span> ${value}</div>`,
-            )
-            .join("")}
-        </div>
-      `;
+    const push = (rows: { label: string; value: string }[], label: string, v?: string) => {
+      if (!hasValue(v)) return;
+      rows.push({ label, value: String(v).trim() });
     };
 
-    const adminHtml = `
-      <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-        <div style="max-width:760px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
-          <div style="background:#0D1B2A;color:#fff;padding:18px 22px;">
-            <div style="font-size:24px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-            <div style="margin-top:8px;color:#DDE3ED;">New non-partner request received via arbeidmatch.no</div>
-            <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
-            <div style="margin-top:10px;font-size:13px;color:#C7D1DF;">${new Date().toLocaleString("en-GB")}</div>
-          </div>
-          <div style="padding:20px;">
-            ${section("Company Contact", [
-              ["Company", data.company],
-              ["Org.nr.", data.orgNumber],
-              ["Email", data.email],
-              ["Requested location", data.requestedLocation],
-            ])}
-            ${section("Request Overview", [
-              ["Partnership status", partnershipLabel],
-              ["Initial summary", data.job_summary],
-              ["Engagement model", data.engagementModel],
-            ])}
-            ${section("Submission Metadata", [
-              ["Source channel", "Website form: https://www.arbeidmatch.no/request"],
-              ["Purpose", "Employer candidate request"],
-              ["Reference ID", referenceId],
-            ])}
-            ${section("Lead Source Details", [
-              ["How did you hear about us", leadSource],
-              ["Referral company", data.referralCompanyName],
-              ["Referral company org.nr", data.referralOrgNumber],
-              ["Referral contact email", data.referralEmail],
-            ])}
-          </div>
-          <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
-            ArbeidMatch Norge AS · Org.nr. 935 667 089 · post@arbeidmatch.no
-          </div>
-        </div>
-      </div>
-    `;
+    const adminRows: { label: string; value: string }[] = [];
+    push(adminRows, "Company", data.company);
+    push(adminRows, "Org.nr.", data.orgNumber);
+    push(adminRows, "Email", data.email);
+    push(adminRows, "Requested location", data.requestedLocation);
+    push(adminRows, "Partnership status", partnershipLabel);
+    push(adminRows, "Initial summary", data.job_summary);
+    push(adminRows, "Engagement model", data.engagementModel);
+    push(adminRows, "Source channel", "Website form (arbeidmatch.no/request)");
+    push(adminRows, "Purpose", "Employer candidate request");
+    push(adminRows, "Reference ID", referenceId);
+    push(adminRows, "How did you hear (resolved)", leadSource);
+    push(adminRows, "Referral company", data.referralCompanyName);
+    push(adminRows, "Referral company org.nr", data.referralOrgNumber);
+    push(adminRows, "Referral contact email", data.referralEmail);
 
-    const employerHtml = `
-      <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-        <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
-          <div style="background:#0D1B2A;color:#fff;padding:20px 22px;">
-            <h2 style="margin:0;">Thank you for your request, ${data.company || "team"}!</h2>
-            <p style="margin:8px 0 0;color:#E7EDF8;">
-              We received your request and our team will send you an offer as soon as possible.
-            </p>
-            <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
-          </div>
-          <div style="padding:20px;color:#0D1B2A;">
-            <h3 style="margin:0 0 8px;">Request summary</h3>
-            <p><strong>Engagement model:</strong> ${data.engagementModel || "-"}</p>
-            <p><strong>Location:</strong> ${data.requestedLocation || "-"}</p>
-            <p><strong>Needs:</strong> ${data.job_summary || "-"}</p>
-            <p><strong>Reference ID:</strong> ${referenceId}</p>
-            <p><strong>Source channel:</strong> Website form (arbeidmatch.no/request)</p>
-            <p style="margin-top:18px;">
-              Help us improve your experience:
-              <a href="https://arbeidmatch.no/feedback" style="color:#C9A84C;font-weight:600;text-decoration:none;"> Share feedback</a>
-            </p>
-            <p style="margin-top:18px;"><strong>Contact:</strong> post@arbeidmatch.no · +47 967 34 730</p>
-          </div>
-          <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">ArbeidMatch Norge AS</div>
-        </div>
-      </div>
-    `;
+    const companyName = data.company ?? "Unknown company";
+    const adminHtml = buildInternalEmailHtml({
+      title: `New partnership request: ${companyName} · ${referenceId}`,
+      rows: adminRows,
+    });
+
+    const safeCo = escapeHtml(data.company || "team");
+    const employerInner = [
+      emailParagraph(`Thank you for your request, <strong>${safeCo}</strong>!`),
+      emailParagraph("We received your request and our team will send you an offer as soon as possible."),
+      emailParagraph(`<strong>Engagement model:</strong> ${escapeHtml(data.engagementModel || "—")}`),
+      emailParagraph(`<strong>Location:</strong> ${escapeHtml(data.requestedLocation || "—")}`),
+      emailParagraph(`<strong>Needs:</strong> ${escapeHtml(data.job_summary || "—")}`),
+      emailParagraph(`<strong>Reference ID:</strong> ${escapeHtml(referenceId)}`),
+      emailParagraph("<strong>Source:</strong> Website form (arbeidmatch.no/request)"),
+      `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</div>`,
+      emailParagraph("<strong>Contact:</strong> post@arbeidmatch.no · +47 967 34 730"),
+    ].join("");
+
+    const employerHtml = wrapPremiumEmail(employerInner);
 
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
       to: "post@arbeidmatch.no",
-      subject: `New Partnership Request | ${data.company ?? "Unknown company"} | ${referenceId}`,
+      subject: `New partnership request: ${companyName} · ${referenceId}`,
       html: adminHtml,
     });
 
     if (data.email) {
       await transporter.sendMail({
-        from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+        ...mailHeaders(),
         to: data.email,
         subject: `Thank you for your request | ${data.company ?? "ArbeidMatch"}`,
         html: employerHtml,

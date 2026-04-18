@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
-import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import {
+  buildInternalEmailHtml,
+  emailDataTable,
+  emailParagraph,
+  mailHeaders,
+  premiumCtaButton,
+  wrapPremiumEmail,
+} from "@/lib/emailPremiumTemplate";
 
 const PARTNER_TYPES = new Set(["influencer", "recruiter", "learner"]);
 const HAS_COMPANY = new Set(["yes", "want_setup", "not_yet"]);
@@ -115,62 +115,52 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const applicantHtml = `
-      <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-        <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #E2E5EA;overflow:hidden;">
-          <div style="background:#0D1B2A;color:#fff;padding:20px 22px;">
-            <div style="font-size:22px;font-weight:800;">Arbeid<span style="color:#B8860B;">Match</span></div>
-            <div style="margin-top:8px;height:3px;background:#B8860B;border-radius:999px;max-width:120px;"></div>
-          </div>
-          <div style="padding:24px;color:#0D1B2A;line-height:1.6;">
-            <p style="margin:0 0 12px;">Hi ${escapeHtml(full_name)},</p>
-            <p style="margin:0 0 12px;">We received your application and will review it within <strong>48 hours</strong>. We look forward to potentially building together.</p>
-            <p style="margin:16px 0 0;color:#555;font-size:14px;">The ArbeidMatch Recruiter Network team</p>
-          </div>
-        </div>
-      </div>
-    `;
+    const safeName = escapeHtml(full_name);
+    const applicantHtml = wrapPremiumEmail(
+      [
+        emailParagraph(`Hi ${safeName},`),
+        emailParagraph("Thank you for applying to the ArbeidMatch Recruiter Network."),
+        emailDataTable([
+          { label: "Name", value: full_name },
+          { label: "Country", value: country },
+          { label: "Region", value: region },
+          { label: "Partner type", value: typeLabel },
+          { label: "Monthly reach", value: String(monthly_reach) },
+        ]),
+        emailParagraph("Our team will review your application and contact you within 48 hours."),
+        emailParagraph("We look forward to potentially building together."),
+        `<div style="text-align:center;margin:24px 0 0;">${premiumCtaButton("https://arbeidmatch.no", "Visit ArbeidMatch")}</div>`,
+      ].join(""),
+    );
 
-    const adminRows = [
-      ["Full name", full_name],
-      ["Email", email],
-      ["Country", country],
-      ["Region / city", region],
-      ["Path", typeLabel],
-      ["Profile URL", social_url],
-      ["Monthly reach", String(monthly_reach)],
-      ["ENK / AS", companyLabel],
-      ["Motivation", motivation || "None provided"],
-    ]
-      .map(
-        ([k, v]) =>
-          `<tr><td style="padding:8px 12px;border:1px solid #E2E5EA;font-weight:600;color:#0D1B2A;">${escapeHtml(k)}</td><td style="padding:8px 12px;border:1px solid #E2E5EA;color:#333;">${escapeHtml(v)}</td></tr>`,
-      )
-      .join("");
+    const internalRows = [
+      { label: "Full name", value: full_name },
+      { label: "Email", value: email },
+      { label: "Country", value: country },
+      { label: "Region / city", value: region },
+      { label: "Partner type", value: typeLabel },
+      { label: "Profile URL", value: social_url },
+      { label: "Monthly reach", value: String(monthly_reach) },
+      { label: "ENK / AS", value: companyLabel },
+      { label: "Motivation", value: motivation || "None provided" },
+    ];
 
-    const adminHtml = `
-      <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-        <div style="max-width:720px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #E2E5EA;overflow:hidden;">
-          <div style="background:#0D1B2A;color:#fff;padding:18px 22px;">
-            <div style="font-size:20px;font-weight:800;">New Recruiter Network application</div>
-            <div style="margin-top:6px;color:#DDE3ED;font-size:14px;">${escapeHtml(typeLabel)} · ${escapeHtml(country)}</div>
-          </div>
-          <table style="width:100%;border-collapse:collapse;margin:0;">${adminRows}</table>
-        </div>
-      </div>
-    `;
+    const adminHtml = buildInternalEmailHtml({
+      title: `New Recruiter Network application: ${full_name} from ${country}`,
+      rows: internalRows,
+    });
 
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
       to: email,
-      subject: "Your ArbeidMatch Recruiter Network application",
+      subject: "We received your application — ArbeidMatch Recruiter Network",
       html: applicantHtml,
     });
 
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
       to: "post@arbeidmatch.no",
-      subject: `New Network Application: ${full_name} · ${typeLabel} · ${country}`,
+      subject: `New Recruiter Network application: ${full_name} from ${country}`,
       html: adminHtml,
     });
 

@@ -5,6 +5,13 @@ import { getPublicBaseUrl, type DsbGuideSlug } from "@/lib/dsbGuideAccess";
 import { signDsbEmailVerifyToken } from "@/lib/dsbEmailVerifyToken";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
+import {
+  emailParagraph,
+  emailSupportAfterCta,
+  mailHeaders,
+  premiumCtaButton,
+  wrapPremiumEmail,
+} from "@/lib/emailPremiumTemplate";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +22,10 @@ type Body = {
 };
 
 const VERIFY_LINK_TTL_MS = 30 * 60 * 1000;
+
+function guideAudienceLabel(slug: DsbGuideSlug): string {
+  return slug === "eu" ? "EU/EEA" : "Non-EU";
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,13 +66,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Database is not configured." }, { status: 500 });
     }
 
-    const { data: guide, error: guideError } = await supabase
+    const { data: guideRow, error: guideError } = await supabase
       .from("dsb_guides")
-      .select("slug, title")
+      .select("slug")
       .eq("slug", guideSlug)
       .maybeSingle();
 
-    if (guideError || !guide) {
+    if (guideError || !guideRow) {
       return NextResponse.json({ success: false, error: "Guide not found." }, { status: 404 });
     }
 
@@ -84,34 +95,33 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const title = (guide.title as string) || "DSB Guide";
+    const audience = guideAudienceLabel(guideSlug);
+    const innerHtml = [
+      emailParagraph("Hi there,"),
+      emailParagraph(
+        `You requested access to the <strong>${audience}</strong> DSB Authorization Guide.`,
+      ),
+      emailParagraph(
+        "Click the button below to verify your email and proceed to payment. This link expires in 30 minutes.",
+      ),
+      `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton(verifyUrl, "Verify Email and Continue to Payment")}</div>`,
+      emailSupportAfterCta(),
+    ].join("");
 
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
       to: email,
-      subject: "Confirm your email to continue to checkout",
-      text: `Hi,
+      subject: "Verify your email to access the DSB Guide",
+      text: `Hi there,
 
-Please confirm your email to continue to secure checkout for: ${title}
+You requested access to the ${audience} DSB Authorization Guide.
 
-Open this link (expires in 30 minutes):
-${verifyUrl}
+Please open the HTML version of this email and use the "Verify Email and Continue to Payment" button. This step expires in 30 minutes.
 
-If you did not request this, you can ignore this email.
+If you cannot use the button, contact support@arbeidmatch.no and we will assist you.
 
 ArbeidMatch Norge AS`,
-      html: `
-        <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-          <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #E2E5EA;padding:24px;color:#0D1B2A;">
-            <p>Hi,</p>
-            <p>Please confirm your email to continue to secure checkout for: <strong>${title}</strong></p>
-            <p><a href="${verifyUrl}" style="display:inline-block;margin-top:12px;padding:12px 20px;background:#C9A84C;color:#0a0f14;font-weight:600;border-radius:8px;text-decoration:none;">Continue to checkout</a></p>
-            <p style="font-size:13px;color:#5c6470;margin-top:16px;">This link expires in 30 minutes.</p>
-            <p style="font-size:13px;color:#5c6470;">If you did not request this, you can ignore this email.</p>
-            <p style="margin-top:24px;">ArbeidMatch Norge AS</p>
-          </div>
-        </div>
-      `,
+      html: wrapPremiumEmail(innerHtml),
     });
 
     return NextResponse.json({ success: true });

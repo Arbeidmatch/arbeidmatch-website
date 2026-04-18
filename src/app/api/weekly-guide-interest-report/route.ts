@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import { buildInternalEmailHtml, formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
 
 function getSupabaseClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -62,34 +63,20 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const html = `
-      <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-        <div style="max-width:760px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
-          <div style="background:#0D1B2A;color:#fff;padding:18px 22px;">
-            <div style="font-size:24px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-            <div style="margin-top:8px;color:#DDE3ED;">Weekly guide interest report</div>
-            <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
-            <div style="margin-top:10px;font-size:13px;color:#C7D1DF;">Sent automatically every Monday at 07:00</div>
-          </div>
-          <div style="padding:20px;color:#0D1B2A;">
-            <p>You are receiving this email because candidates are joining the guide interest list from the eligibility assistance flow.</p>
-            <p><strong>Total interested candidates:</strong> ${totalInterested}</p>
-            <p><strong>New interested this week:</strong> ${weeklyInterested}</p>
-            <p><strong>Product launch target:</strong> ${launchTarget} interested candidates</p>
-            <p><strong>Progress:</strong> ${progressPercent}% (${remaining} remaining)</p>
-            <p style="margin-top:14px;">
-              Once you reach <strong>${launchTarget}</strong> interested candidates, you can move forward and launch the product with stronger demand validation.
-            </p>
-          </div>
-          <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
-            ArbeidMatch Norge AS · post@arbeidmatch.no
-          </div>
-        </div>
-      </div>
-    `;
+    const html = buildInternalEmailHtml({
+      title: `Weekly guide interest report — total ${totalInterested}`,
+      rows: [
+        { label: "Report generated (CET)", value: formatEmailTimestampCet() },
+        { label: "Context", value: "Guide interest signups (eligibility assistance flow)" },
+        { label: "Total interested candidates", value: String(totalInterested) },
+        { label: "New interested this week", value: String(weeklyInterested) },
+        { label: "Product launch target", value: String(launchTarget) },
+        { label: "Progress", value: `${progressPercent}% (${remaining} remaining to target)` },
+      ],
+    });
 
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
       to: "post@arbeidmatch.no",
       subject: `Weekly guide interest report | Total ${totalInterested}`,
       html,

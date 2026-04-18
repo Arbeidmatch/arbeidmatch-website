@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
-import { buildDsbChecklistEmailHtml } from "@/lib/dsbChecklistEmailContent";
+import { buildDsbChecklistEmailBodyHtml, DSB_CHECKLIST_EMAIL_SUBJECT } from "@/lib/dsbChecklistEmailContent";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { buildInternalEmailHtml, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
 
 export const dynamic = "force-dynamic";
 
@@ -13,14 +14,6 @@ type Body = {
   gdpr_consent?: string | boolean;
   source?: string;
 };
-
-function escapeHtml(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,31 +63,31 @@ export async function POST(request: NextRequest) {
 
     const transporter = createSmtpTransporter();
     if (transporter) {
-      const safeName = escapeHtml(firstName);
-      const safeEmail = escapeHtml(email);
-
       try {
         await transporter.sendMail({
-          from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+          ...mailHeaders(),
           to: email,
-          subject: "Your DSB Authorization Checklist - ArbeidMatch",
-          html: buildDsbChecklistEmailHtml(firstName),
+          subject: DSB_CHECKLIST_EMAIL_SUBJECT,
+          html: wrapPremiumEmail(buildDsbChecklistEmailBodyHtml(firstName)),
         });
       } catch (e) {
         console.error("[dsb-leads] user email", e);
       }
 
       try {
+        const internalHtml = buildInternalEmailHtml({
+          title: `New DSB checklist lead: ${firstName}`,
+          rows: [
+            { label: "First name", value: firstName },
+            { label: "Email", value: email },
+            { label: "Source", value: source },
+          ],
+        });
         await transporter.sendMail({
-          from: '"ArbeidMatch Leads" <no-replay@arbeidmatch.no>',
+          ...mailHeaders(),
           to: "post@arbeidmatch.no",
-          subject: `New DSB checklist lead - ${firstName}`,
-          html: `
-            <div style="font-family:Inter,Arial,sans-serif;padding:16px;background:#f5f6f8;color:#0d1b2a;">
-              <p><strong>New DSB checklist download</strong></p>
-              <p>Name: ${safeName}<br/>Email: ${safeEmail}<br/>Source: ${escapeHtml(source)}</p>
-            </div>
-          `,
+          subject: `New DSB checklist lead: ${firstName}`,
+          html: internalHtml,
         });
       } catch (e) {
         console.error("[dsb-leads] notify email", e);

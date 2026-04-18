@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
-import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import {
+  buildInternalEmailHtml,
+  emailDataTable,
+  emailParagraph,
+  mailHeaders,
+  premiumCtaButton,
+  wrapPremiumEmail,
+} from "@/lib/emailPremiumTemplate";
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,112 +59,106 @@ export async function POST(request: NextRequest) {
     });
 
     const hasValue = (value?: string) => value !== undefined && value !== null && String(value).trim() !== "";
-    const section = (title: string, rows: Array<[string, string | undefined]>) => {
-      const filtered = rows.filter(([, value]) => hasValue(value));
-      if (!filtered.length) return "";
-      return `
-        <div style="border:1px solid #E2E5EA;border-radius:10px;padding:14px 16px;margin-top:14px;">
-          <div style="border-left:4px solid #C9A84C;padding-left:10px;font-weight:700;color:#0D1B2A;margin-bottom:10px;">
-            ${title}
-          </div>
-          ${filtered
-            .map(
-              ([label, value]) =>
-                `<div style="margin:6px 0;color:#0D1B2A;"><span style="font-weight:600;">${label}:</span> ${value}</div>`,
-            )
-            .join("")}
-        </div>
-      `;
+    const push = (rows: { label: string; value: string }[], label: string, v?: string) => {
+      if (!hasValue(v)) return;
+      rows.push({ label, value: String(v).trim() });
     };
 
-    const adminHtml = `
-      <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-        <div style="max-width:760px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
-          <div style="background:#0D1B2A;color:#fff;padding:18px 22px;">
-            <div style="font-size:24px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-            <div style="margin-top:8px;color:#DDE3ED;">New candidate request received via arbeidmatch.no</div>
-            <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
-            <div style="margin-top:10px;font-size:13px;color:#C7D1DF;">${new Date().toLocaleString("en-GB")}</div>
-          </div>
-          <div style="padding:20px;">
-            ${section("Contact Info", [
-              ["Company", data.company],
-              ["Org.nr.", data.orgNumber],
-              ["Email", data.email],
-              ["Full name", data.full_name],
-              ["Phone", data.phone],
-            ])}
-            ${section("Engagement Type", [["Type", data.hiringType]])}
-            ${section("Position", [
-              ["Category", data.category],
-              ["Position", selectedPosition],
-              ["Initial summary", data.job_summary],
-            ])}
-            ${section("Qualification", [["Qualification", data.qualification], ["Candidates needed", data.numberOfPositions], ["Experience", data.experience], ["Norwegian level", data.norwegianLevel], ["English level", data.englishLevel], ["Certifications", data.certifications], ["Certifications (other)", data.certificationsOther]])}
-            ${section("Requirements", [["Driver license", data.driverLicense], ["Driver license (other)", data.driverLicenseOther], ["D-number", data.dNumber], ["D-number (other)", data.dNumberOther], ["Deal breakers", data.requirements]])}
-            ${section("Contract & Pay", [["Contract type", data.contractType], ["Salary", data.salary], ["Hours unit", data.hoursUnit], ["Hours amount", data.hoursAmount], ["Overtime", data.overtime], ["Max overtime/week", data.maxOvertimeHours], ["Has rotation", data.hasRotation], ["Rotation weeks on", data.rotationWeeksOn], ["Rotation weeks off", data.rotationWeeksOff]])}
-            ${section("Working Conditions", [["International travel", data.internationalTravel], ["Local travel", data.localTravel], ["Local travel (other)", data.localTravelOther], ["Accommodation", data.accommodation], ["Accommodation cost", data.accommodationCost], ["Accommodation (other)", data.accommodationOther], ["Equipment", data.equipment], ["Equipment (other)", data.equipmentOther], ["Tools", data.tools], ["Tools (other)", data.toolsOther]])}
-            ${section("Final Details", [["City", data.city], ["Start date", selectedStartDate], ["How did you hear about us", leadSource], ["Subscribe", data.subscribe], ["Notes", data.notes]])}
-            ${section("Lead Source Details", [
-              ["How did you hear about us", data.howDidYouHear],
-              ["Social media platform", socialMediaPlatformValue],
-              ["Social media other", socialMediaOtherValue],
-              ["How did you hear about us (other)", howDidYouHearOtherValue],
-              ["Referral company", referralCompanyValue],
-              ["Referral company org.nr", referralOrgNumberValue],
-              ["Referral contact email", referralEmailValue],
-            ])}
-          </div>
-          <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
-            ArbeidMatch Norge AS · Org.nr. 935 667 089 · post@arbeidmatch.no
-          </div>
-        </div>
-      </div>
-    `;
+    const adminRows: { label: string; value: string }[] = [];
+    push(adminRows, "Company", data.company);
+    push(adminRows, "Org.nr.", data.orgNumber);
+    push(adminRows, "Email", data.email);
+    push(adminRows, "Full name", data.full_name);
+    push(adminRows, "Phone", data.phone);
+    push(adminRows, "Hiring type", data.hiringType);
+    push(adminRows, "Category", data.category);
+    push(adminRows, "Position", selectedPosition);
+    push(adminRows, "Initial summary", data.job_summary);
+    push(adminRows, "Qualification", data.qualification);
+    push(adminRows, "Candidates needed", data.numberOfPositions);
+    push(adminRows, "Experience", data.experience);
+    push(adminRows, "Norwegian level", data.norwegianLevel);
+    push(adminRows, "English level", data.englishLevel);
+    push(adminRows, "Certifications", data.certifications);
+    push(adminRows, "Certifications (other)", data.certificationsOther);
+    push(adminRows, "Driver license", data.driverLicense);
+    push(adminRows, "Driver license (other)", data.driverLicenseOther);
+    push(adminRows, "D-number", data.dNumber);
+    push(adminRows, "D-number (other)", data.dNumberOther);
+    push(adminRows, "Deal breakers", data.requirements);
+    push(adminRows, "Contract type", data.contractType);
+    push(adminRows, "Salary", data.salary);
+    push(adminRows, "Hours unit", data.hoursUnit);
+    push(adminRows, "Hours amount", data.hoursAmount);
+    push(adminRows, "Overtime", data.overtime);
+    push(adminRows, "Max overtime/week", data.maxOvertimeHours);
+    push(adminRows, "Has rotation", data.hasRotation);
+    push(adminRows, "Rotation weeks on", data.rotationWeeksOn);
+    push(adminRows, "Rotation weeks off", data.rotationWeeksOff);
+    push(adminRows, "International travel", data.internationalTravel);
+    push(adminRows, "Local travel", data.localTravel);
+    push(adminRows, "Local travel (other)", data.localTravelOther);
+    push(adminRows, "Accommodation", data.accommodation);
+    push(adminRows, "Accommodation cost", data.accommodationCost);
+    push(adminRows, "Accommodation (other)", data.accommodationOther);
+    push(adminRows, "Equipment", data.equipment);
+    push(adminRows, "Equipment (other)", data.equipmentOther);
+    push(adminRows, "Tools", data.tools);
+    push(adminRows, "Tools (other)", data.toolsOther);
+    push(adminRows, "City", data.city);
+    push(adminRows, "Start date", selectedStartDate);
+    push(adminRows, "How did you hear (resolved)", leadSource);
+    push(adminRows, "Subscribe", data.subscribe);
+    push(adminRows, "Notes", data.notes);
+    push(adminRows, "How did you hear (raw)", data.howDidYouHear);
+    push(adminRows, "Social media platform", socialMediaPlatformValue);
+    push(adminRows, "Social media other", socialMediaOtherValue);
+    push(adminRows, "How did you hear (other)", howDidYouHearOtherValue);
+    push(adminRows, "Referral company", referralCompanyValue);
+    push(adminRows, "Referral company org.nr", referralOrgNumberValue);
+    push(adminRows, "Referral contact email", referralEmailValue);
+
+    const companyName = data.company ?? "Unknown company";
+    const cityLabel = data.city || "—";
+    const adminHtml = buildInternalEmailHtml({
+      title: `New candidate request: ${companyName} from ${cityLabel}`,
+      rows: adminRows,
+    });
 
     const employerRows = [
-      ["Position", selectedPosition],
-      ["Number of candidates", data.numberOfPositions],
-      ["Location", data.city],
-      ["Preferred start", selectedStartDate],
-    ].filter(([, value]) => hasValue(value));
-    const employerSummaryHtml = employerRows.map(([label, value]) => `<p><strong>${label}:</strong> ${value}</p>`).join("");
+      { label: "Position", value: selectedPosition },
+      { label: "Number of candidates", value: data.numberOfPositions },
+      { label: "Location", value: data.city },
+      { label: "Preferred start", value: selectedStartDate },
+    ].filter((r) => hasValue(r.value));
 
-    const employerHtml = `
-      <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-        <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
-          <div style="background:#0D1B2A;color:#fff;padding:20px 22px;">
-            <h2 style="margin:0;">Thank you for your request, ${data.company || "team"}!</h2>
-            <p style="margin:8px 0 0;color:#E7EDF8;">We have received your candidate request and will get back to you within 24 hours.</p>
-            <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
-          </div>
-          <div style="padding:20px;color:#0D1B2A;">
-            ${employerRows.length ? `<h3 style="margin:0 0 8px;">Request summary</h3>${employerSummaryHtml}` : ""}
-            <h3 style="margin:18px 0 8px;">What happens next</h3>
-            <p>1. We review your request</p>
-            <p>2. We match suitable candidates</p>
-            <p>3. We contact you within 24h</p>
-            <p style="margin-top:18px;">
-              Help us improve your experience:
-              <a href="https://arbeidmatch.no/feedback" style="color:#C9A84C;font-weight:600;text-decoration:none;"> Share feedback</a>
-            </p>
-            <p style="margin-top:18px;"><strong>Contact:</strong> post@arbeidmatch.no · +47 967 34 730</p>
-          </div>
-          <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">ArbeidMatch Norge AS</div>
-        </div>
-      </div>
-    `;
+    const safeCo = escapeHtml(data.company || "team");
+    const employerInner = [
+      emailParagraph(`Thank you for your request, <strong>${safeCo}</strong>!`),
+      emailParagraph("We have received your candidate request and will get back to you within 24 hours."),
+      employerRows.length ? emailDataTable(employerRows) : "",
+      emailParagraph("<strong>What happens next</strong>"),
+      emailParagraph("1. We review your request"),
+      emailParagraph("2. We match suitable candidates"),
+      emailParagraph("3. We contact you within 24 hours"),
+      `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</div>`,
+      emailParagraph("<strong>Contact:</strong> post@arbeidmatch.no · +47 967 34 730"),
+    ]
+      .filter(Boolean)
+      .join("");
+
+    const employerHtml = wrapPremiumEmail(employerInner);
 
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
       to: "post@arbeidmatch.no",
-      subject: `New Candidate Request | ${data.company ?? "Unknown company"}`,
+      subject: `New candidate request: ${companyName} from ${cityLabel}`,
       html: adminHtml,
     });
 
     if (data.email) {
       await transporter.sendMail({
-        from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+        ...mailHeaders(),
         to: data.email,
         subject: `Thank you for your request | ${data.company ?? "ArbeidMatch"}`,
         html: employerHtml,
@@ -164,32 +166,19 @@ export async function POST(request: NextRequest) {
     }
 
     if (data.referralEmail) {
-      const referralHtml = `
-        <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-          <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
-            <div style="background:#0D1B2A;color:#fff;padding:20px 22px;">
-              <h2 style="margin:0;">Thank you for recommending ArbeidMatch!</h2>
-              <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
-            </div>
-            <div style="padding:20px;color:#0D1B2A;line-height:1.6;">
-              <p>We received a request from <strong>${data.company || "-"}</strong> and they mentioned your recommendation.</p>
-              <p>We appreciate your trust. If we can support your hiring needs in the future, we would be happy to help.</p>
-              <a
-                href="https://arbeidmatch.no/contact"
-                style="display:inline-block;margin-top:12px;background:#C9A84C;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;"
-              >
-                Contact us
-              </a>
-            </div>
-            <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
-              ArbeidMatch Norge AS · post@arbeidmatch.no
-            </div>
-          </div>
-        </div>
-      `;
+      const safeRefCo = escapeHtml(data.company || "-");
+      const referralInner = [
+        emailParagraph("Thank you for recommending ArbeidMatch!"),
+        emailParagraph(
+          `We received a request from <strong>${safeRefCo}</strong> and they mentioned your recommendation.`,
+        ),
+        emailParagraph("We appreciate your trust. If we can support your hiring needs in the future, we would be happy to help."),
+        `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no/contact", "Contact us")}</div>`,
+      ].join("");
+      const referralHtml = wrapPremiumEmail(referralInner);
 
       await transporter.sendMail({
-        from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+        ...mailHeaders(),
         to: data.referralEmail,
         subject: "Thank you for the referral - ArbeidMatch Norge",
         html: referralHtml,

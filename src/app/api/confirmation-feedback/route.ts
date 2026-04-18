@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { escapeHtml } from "@/lib/htmlSanitizer";
+import { buildInternalEmailHtml, emailParagraph, formatEmailTimestampCet, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
 
 type FeedbackPayload = {
   source?: string;
@@ -43,23 +44,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Score must be between 1 and 10." }, { status: 400 });
     }
 
-    const source = escapeHtml((body.source || "unknown").trim());
-    const purpose = escapeHtml((body.purpose || "Candidate feedback").trim());
-    const pageUrl = escapeHtml(normalizePageUrl(body.pageUrl || ""));
-    const note = escapeHtml((body.note || "").trim());
-    const email = escapeHtml((body.email || "").trim());
-    const submittedAt = new Date().toLocaleString("en-GB");
-    const isAnonymous = !email;
+    const sourceRaw = (body.source || "unknown").trim();
+    const purposeRaw = (body.purpose || "Candidate feedback").trim();
+    const pageUrlRaw = normalizePageUrl(body.pageUrl || "");
+    const noteRaw = (body.note || "").trim();
+    const emailRaw = (body.email || "").trim();
+
+    const source = escapeHtml(sourceRaw);
+    const purpose = escapeHtml(purposeRaw);
+    const pageUrl = escapeHtml(pageUrlRaw);
+    const note = escapeHtml(noteRaw);
+    const email = escapeHtml(emailRaw);
+    const submittedAt = formatEmailTimestampCet();
+    const isAnonymous = !emailRaw;
 
     const supabase = getSupabaseClient();
     if (supabase) {
       const { error } = await supabase.from("candidate_feedback_submissions").insert({
-        source,
-        purpose,
-        page_url: pageUrl,
+        source: sourceRaw,
+        purpose: purposeRaw,
+        page_url: pageUrlRaw,
         score,
-        note: note || null,
-        email: email || null,
+        note: noteRaw || null,
+        email: emailRaw || null,
         is_anonymous: isAnonymous,
       });
       if (error) {
@@ -78,59 +85,41 @@ export async function POST(request: NextRequest) {
     });
 
     const weeklyOnlySources = new Set(["candidate-eligibility-check"]);
-    if (!weeklyOnlySources.has(source)) {
+    if (!weeklyOnlySources.has(sourceRaw)) {
+      const feedbackRows = [
+        { label: "Source", value: sourceRaw },
+        { label: "Purpose", value: purposeRaw },
+        { label: "Page URL", value: pageUrlRaw },
+        { label: "Score", value: `${score}/10` },
+        { label: "Submitted (CET)", value: submittedAt },
+        { label: "Email", value: emailRaw || "—" },
+      ];
+      if (noteRaw) {
+        feedbackRows.push({ label: "Note", value: noteRaw });
+      }
       await transporter.sendMail({
-        from: '"ArbeidMatch Feedback" <no-replay@arbeidmatch.no>',
+        ...mailHeaders(),
         to: "post@arbeidmatch.no",
-        subject: `Feedback ${score}/10 | ${source}`,
-        html: `
-          <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-            <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #E2E5EA;overflow:hidden;color:#0D1B2A;">
-              <div style="background:#0D1B2A;color:#fff;padding:16px 20px;">
-                <div style="font-size:22px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-                <div style="margin-top:6px;color:#DDE3ED;">New feedback received</div>
-              </div>
-              <div style="padding:20px;">
-                <p style="margin:0 0 10px;"><strong>Source:</strong> ${source}</p>
-                <p style="margin:0 0 10px;"><strong>Purpose:</strong> ${purpose}</p>
-                <p style="margin:0 0 10px;"><strong>Page:</strong> <a href="${pageUrl}" style="color:#0D1B2A;">${pageUrl}</a></p>
-                <p style="margin:0 0 10px;"><strong>Score:</strong> ${score}/10</p>
-                <p style="margin:0 0 10px;"><strong>Submitted:</strong> ${submittedAt}</p>
-                <p style="margin:0 0 10px;"><strong>Email:</strong> ${email || "-"}</p>
-                ${
-                  note
-                    ? `<p style="margin:14px 0 6px;"><strong>Note:</strong></p>
-                <div style="border:1px solid #E2E5EA;border-radius:8px;padding:10px;background:#FAFBFD;">${note}</div>`
-                    : ""
-                }
-              </div>
-            </div>
-          </div>
-        `,
+        subject: `New feedback: ${score}/10 from ${sourceRaw}`,
+        html: buildInternalEmailHtml({
+          title: `New feedback: ${score}/10 from ${sourceRaw}`,
+          rows: feedbackRows,
+        }),
       });
     }
 
-    if (email && email.includes("@")) {
+    if (emailRaw.includes("@")) {
+      const userInner = [
+        emailParagraph("Thank you for sharing your feedback."),
+        emailParagraph(`We received your score: <strong>${score}/10</strong>.`),
+        emailParagraph(`Source: <strong>${source}</strong>`),
+        emailParagraph("Best regards,<br />ArbeidMatch Team"),
+      ].join("");
       await transporter.sendMail({
-        from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
-        to: email,
+        ...mailHeaders(),
+        to: emailRaw,
         subject: "Thank you for your feedback - ArbeidMatch",
-        html: `
-          <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-            <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #E2E5EA;overflow:hidden;">
-              <div style="background:#0D1B2A;color:#fff;padding:16px 20px;">
-                <div style="font-size:22px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-                <div style="margin-top:6px;color:#DDE3ED;">Feedback confirmation</div>
-              </div>
-              <div style="padding:20px;color:#0D1B2A;">
-                <p style="margin:0;">Thank you for sharing your feedback.</p>
-                <p style="margin:10px 0 0;">We received your score: <strong>${score}/10</strong>.</p>
-                <p style="margin:10px 0 0;">Source: <strong>${source}</strong></p>
-                <p style="margin:16px 0 0;">Best regards,<br />ArbeidMatch Team</p>
-              </div>
-            </div>
-          </div>
-        `,
+        html: wrapPremiumEmail(userInner),
       });
     }
 

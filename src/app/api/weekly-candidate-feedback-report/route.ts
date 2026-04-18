@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { buildInternalEmailHtml, formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
 
 type FeedbackRow = {
   source: string | null;
@@ -139,51 +140,33 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const pageRows = byPage
-      .slice(0, 10)
-      .map(
-        (entry) =>
-          `<tr><td style="padding:6px 8px;border:1px solid #E2E5EA;">${entry.page}</td><td style="padding:6px 8px;border:1px solid #E2E5EA;text-align:center;">${entry.count}</td><td style="padding:6px 8px;border:1px solid #E2E5EA;text-align:center;">${entry.avg.toFixed(2)}</td></tr>`,
-      )
-      .join("");
+    const reportRows = [
+      { label: "Period start (ISO)", value: startDate.toISOString() },
+      { label: "Period end (ISO)", value: endDate.toISOString() },
+      { label: "Report generated (CET)", value: formatEmailTimestampCet() },
+      { label: "Total anonymous feedback", value: String(rows.length) },
+      { label: "Average score", value: `${avgScore.toFixed(2)} / 10` },
+    ];
+    byPage.slice(0, 10).forEach((entry, i) => {
+      reportRows.push({
+        label: `Top page ${i + 1}`,
+        value: `${entry.page} — count ${entry.count}, avg ${entry.avg.toFixed(2)}`,
+      });
+    });
+    if (!byPage.length) {
+      reportRows.push({ label: "Top pages", value: "No feedback this week." });
+    }
+    reportRows.push({ label: "Attachment", value: "Detailed PDF report (see attachment)" });
 
-    const html = `
-      <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-        <div style="max-width:760px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
-          <div style="background:#0D1B2A;color:#fff;padding:18px 22px;">
-            <div style="font-size:24px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-            <div style="margin-top:8px;color:#DDE3ED;">Weekly anonymous candidate feedback report</div>
-            <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
-            <div style="margin-top:10px;font-size:13px;color:#C7D1DF;">Monday 07:00 weekly summary</div>
-          </div>
-          <div style="padding:20px;color:#0D1B2A;">
-            <p><strong>Period:</strong> ${startDate.toLocaleString("en-GB")} - ${endDate.toLocaleString("en-GB")}</p>
-            <p><strong>Total anonymous feedback:</strong> ${rows.length}</p>
-            <p><strong>Average score:</strong> ${avgScore.toFixed(2)} / 10</p>
-            <h3 style="margin:14px 0 8px;">Top pages by feedback volume</h3>
-            <table style="width:100%;border-collapse:collapse;font-size:13px;">
-              <thead>
-                <tr>
-                  <th style="padding:6px 8px;border:1px solid #E2E5EA;text-align:left;">Page link</th>
-                  <th style="padding:6px 8px;border:1px solid #E2E5EA;text-align:center;">Feedback count</th>
-                  <th style="padding:6px 8px;border:1px solid #E2E5EA;text-align:center;">Average score</th>
-                </tr>
-              </thead>
-              <tbody>${pageRows || `<tr><td colspan="3" style="padding:8px;border:1px solid #E2E5EA;">No feedback this week.</td></tr>`}</tbody>
-            </table>
-            <p style="margin-top:14px;">Detailed report with graphics is attached as PDF.</p>
-          </div>
-          <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
-            ArbeidMatch Norge AS · post@arbeidmatch.no
-          </div>
-        </div>
-      </div>
-    `;
+    const html = buildInternalEmailHtml({
+      title: `Weekly candidate feedback report — avg ${avgScore.toFixed(2)}/10`,
+      rows: reportRows,
+    });
 
     const filename = `candidate-feedback-report-${endDate.toISOString().slice(0, 10)}.pdf`;
 
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
       to: "post@arbeidmatch.no",
       subject: `Weekly candidate feedback report | Avg ${avgScore.toFixed(2)}/10`,
       html,

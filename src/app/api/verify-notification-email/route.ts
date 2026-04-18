@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { verifyEligibilityVerificationToken } from "@/lib/notificationToken";
+import { buildInternalEmailHtml, emailParagraph, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
 
 function getSupabaseClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -47,27 +48,20 @@ async function sendErrorReport(
     const timestamp = new Date().toISOString();
 
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
       to: "post@arbeidmatch.no",
-      subject: "Verification Error Report",
-      html: `
-        <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-          <div style="max-width:760px;margin:0 auto;background:#fff;border-radius:14px;border:1px solid #E2E5EA;">
-            <div style="background:#0D1B2A;color:#fff;padding:18px 22px;">
-              <div style="font-size:24px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-              <div style="margin-top:8px;color:#DDE3ED;">Verification Error Report</div>
-            </div>
-            <div style="padding:20px;color:#0D1B2A;">
-              <p><strong>Timestamp:</strong> ${timestamp}</p>
-              <p><strong>Error type:</strong> ${errorType}</p>
-              <p><strong>Error message:</strong> ${errorMessage || "-"}</p>
-              <p><strong>Token preview:</strong> ${tokenPreview}</p>
-              <p><strong>User agent:</strong> ${userAgent}</p>
-              <p><strong>Client IP:</strong> ${clientIp}</p>
-            </div>
-          </div>
-        </div>
-      `,
+      subject: `Verification error: ${errorType}`,
+      html: buildInternalEmailHtml({
+        title: `Verification error: ${errorType}`,
+        rows: [
+          { label: "Timestamp (ISO)", value: timestamp },
+          { label: "Error type", value: errorType },
+          { label: "Error message", value: errorMessage || "—" },
+          { label: "Token preview", value: tokenPreview },
+          { label: "User agent", value: userAgent },
+          { label: "Client IP", value: clientIp },
+        ],
+      }),
     });
   } catch (reportError) {
     const message = reportError instanceof Error ? reportError.message : "Unknown report error";
@@ -165,46 +159,36 @@ export async function GET(request: NextRequest) {
         },
       });
 
-      await transporter.sendMail({
-        from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
-        to: "post@arbeidmatch.no",
-        subject: `Verified guide notification signup | ${payload.notifyEmail}`,
-        html: `
-          <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-            <div style="max-width:760px;margin:0 auto;background:#fff;border-radius:14px;border:1px solid #E2E5EA;">
-              <div style="background:#0D1B2A;color:#fff;padding:18px 22px;">
-                <div style="font-size:24px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-                <div style="margin-top:8px;color:#DDE3ED;">Email verified for guide notifications</div>
-              </div>
-              <div style="padding:20px;color:#0D1B2A;">
-                <p><strong>Email:</strong> ${payload.notifyEmail}</p>
-                <p><strong>Target region:</strong> ${payload.targetRegion || "-"}</p>
-                <p><strong>Target country:</strong> ${payload.targetCountry || "-"}</p>
-                <p><strong>Marketing consent:</strong> ${payload.marketingConsent || "No"}</p>
-              </div>
-            </div>
-          </div>
-        `,
+      const internalHtml = buildInternalEmailHtml({
+        title: `Verified guide notification signup: ${payload.notifyEmail}`,
+        rows: [
+          { label: "Email", value: payload.notifyEmail },
+          { label: "Target region", value: payload.targetRegion || "—" },
+          { label: "Target country", value: payload.targetCountry || "—" },
+          { label: "Marketing consent", value: payload.marketingConsent || "No" },
+          { label: "Verified at (ISO)", value: verifiedAt },
+        ],
       });
 
       await transporter.sendMail({
-        from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+        ...mailHeaders(),
+        to: "post@arbeidmatch.no",
+        subject: `Verified guide notification signup: ${payload.notifyEmail}`,
+        html: internalHtml,
+      });
+
+      const userInner = [
+        emailParagraph("Your email is now verified."),
+        emailParagraph("You are now registered in our notification system."),
+        emailParagraph("We will contact you by email when the updated guide is available."),
+        emailParagraph("<strong>Support:</strong> support@arbeidmatch.no"),
+      ].join("");
+
+      await transporter.sendMail({
+        ...mailHeaders(),
         to: payload.notifyEmail,
         subject: "Email verified for notifications | ArbeidMatch",
-        html: `
-          <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-            <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:14px;border:1px solid #E2E5EA;">
-              <div style="background:#0D1B2A;color:#fff;padding:20px 22px;">
-                <h2 style="margin:0;">Your email is now verified</h2>
-                <p style="margin:8px 0 0;color:#E7EDF8;">You are now registered in our notification system.</p>
-              </div>
-              <div style="padding:20px;color:#0D1B2A;">
-                <p>We will contact you by email when the updated guide is available.</p>
-                <p style="margin-top:18px;"><strong>Contact:</strong> support@arbeidmatch.no</p>
-              </div>
-            </div>
-          </div>
-        `,
+        html: wrapPremiumEmail(userInner),
       });
     } catch (mailError) {
       const message = mailError instanceof Error ? mailError.message : "unknown mail error";

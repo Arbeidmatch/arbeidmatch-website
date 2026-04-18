@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import { buildInternalEmailHtml, emailParagraph, mailHeaders, premiumCtaButton, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,58 +32,37 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
-      to: "post@arbeidmatch.no",
-      subject: `DSB Assistance Interest | ${data.email}`,
-      html: `
-        <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-          <div style="max-width:760px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
-            <div style="background:#0D1B2A;color:#fff;padding:18px 22px;">
-              <div style="font-size:24px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-              <div style="margin-top:8px;color:#DDE3ED;">New DSB assistance request</div>
-              <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
-            </div>
-            <div style="padding:20px;color:#0D1B2A;">
-              <p><strong>Email:</strong> ${data.email}</p>
-              <p><strong>Consent:</strong> ${data.consent}</p>
-              <p><strong>Source:</strong> /dsb-assistance</p>
-              <p><strong>Reference:</strong> DSB-${Date.now()}</p>
-            </div>
-            <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">
-              ArbeidMatch Norge AS · Org.nr. 935 667 089 · post@arbeidmatch.no
-            </div>
-          </div>
-        </div>
-      `,
+    const ref = `DSB-${Date.now()}`;
+    const internalHtml = buildInternalEmailHtml({
+      title: `New DSB assistance interest: ${data.email}`,
+      rows: [
+        { label: "Email", value: data.email },
+        { label: "Consent", value: data.consent },
+        { label: "Source", value: "/dsb-assistance" },
+        { label: "Reference", value: ref },
+      ],
     });
 
     await transporter.sendMail({
-      from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
+      ...mailHeaders(),
+      to: "post@arbeidmatch.no",
+      subject: `New DSB assistance interest: ${data.email}`,
+      html: internalHtml,
+    });
+
+    const userInner = [
+      emailParagraph("Thank you for your request."),
+      emailParagraph("We registered your interest in DSB support for electricians."),
+      emailParagraph("As soon as this assistance option becomes active, we will contact you with details by email."),
+      emailParagraph(`<strong>Registered email:</strong> ${data.email}`),
+      `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</div>`,
+    ].join("");
+
+    await transporter.sendMail({
+      ...mailHeaders(),
       to: data.email,
       subject: "DSB support notification registered | ArbeidMatch",
-      html: `
-        <div style="font-family:Inter,Arial,sans-serif;background:#F5F6F8;padding:24px;">
-          <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #E2E5EA;">
-            <div style="background:#0D1B2A;color:#fff;padding:20px 22px;">
-              <h2 style="margin:0;">Thank you for your request</h2>
-              <p style="margin:8px 0 0;color:#E7EDF8;">
-                We registered your interest in DSB support for electricians.
-              </p>
-              <div style="height:3px;background:#C9A84C;margin-top:12px;border-radius:999px;"></div>
-            </div>
-            <div style="padding:20px;color:#0D1B2A;">
-              <p>As soon as this assistance option becomes active, we will contact you with details by email.</p>
-              <p><strong>Registered email:</strong> ${data.email}</p>
-              <p style="margin-top:18px;">
-                Help us improve your experience:
-                <a href="https://arbeidmatch.no/feedback" style="color:#C9A84C;font-weight:600;text-decoration:none;"> Share feedback</a>
-              </p>
-            </div>
-            <div style="background:#0D1B2A;color:#fff;padding:14px 20px;font-size:13px;">ArbeidMatch Norge AS</div>
-          </div>
-        </div>
-      `,
+      html: wrapPremiumEmail(userInner),
     });
 
     return NextResponse.json({ success: true });
