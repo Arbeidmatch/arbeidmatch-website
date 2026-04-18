@@ -177,6 +177,18 @@ export default function DsbSupportClient() {
           <p className="mt-4 max-w-2xl text-lg text-white/80">
             Everything you need to know to get legally approved and start working as an electrician in Norway.
           </p>
+          <p className="mt-4 max-w-2xl text-sm text-white/75">
+            EU/EEA electricians with approved DSB authorization can be matched to active placements through
+            ArbeidMatch.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-4 text-sm">
+            <Link href="/for-candidates" className="font-medium text-gold hover:text-gold-hover">
+              Back to candidate path
+            </Link>
+            <Link href="/request" className="font-medium text-gold hover:text-gold-hover">
+              Ready for placements after DSB? Apply via request form
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -214,6 +226,14 @@ export default function DsbSupportClient() {
             price="49 EUR"
             buttonLabel="Get the Non-EU Guide"
           />
+        </div>
+        <div className="mx-auto mt-8 max-w-content px-4 text-center md:px-6">
+          <Link
+            href="/dsb-checklist"
+            className="text-sm font-semibold text-gold transition-colors duration-300 hover:text-gold-hover"
+          >
+            Not ready to buy? Get the free checklist first →
+          </Link>
         </div>
         <div className="mx-auto mt-10 max-w-content px-4 text-center text-sm text-text-secondary md:px-6">
           <p>

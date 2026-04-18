@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
+import { Syne } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MonetizationOverlays from "@/components/monetization/MonetizationOverlays";
+
+const displayFont = Syne({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://arbeidmatch.no"),
@@ -64,11 +71,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang="en" className={`h-full antialiased ${displayFont.variable}`}>
       <body className="flex min-h-full flex-col">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
+        <MonetizationOverlays />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

@@ -11,9 +11,35 @@ const config: Config = {
         surface: "#F5F6F8",
         "text-secondary": "#5A6472",
         border: "#E2E5EA",
+        obsidian: "#0a0f14",
       },
-      fontFamily: { sans: ["Inter", "sans-serif"] },
+      fontFamily: {
+        sans: ["Inter", "sans-serif"],
+        display: ["var(--font-display)", "Inter", "system-ui", "sans-serif"],
+      },
       maxWidth: { content: "1140px" },
+      transitionTimingFunction: {
+        premium: "cubic-bezier(0.16, 1, 0.3, 1)",
+      },
+      keyframes: {
+        "shine-sweep": {
+          "0%": { transform: "translateX(-120%)" },
+          "100%": { transform: "translateX(120%)" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { filter: "drop-shadow(0 0 6px rgba(201,168,76,0.35))" },
+          "50%": { filter: "drop-shadow(0 0 14px rgba(201,168,76,0.65))" },
+        },
+        "border-glow": {
+          "0%, 100%": { boxShadow: "0 0 0 1px rgba(201,168,76,0.25), 0 0 20px rgba(201,168,76,0.08)" },
+          "50%": { boxShadow: "0 0 0 1px rgba(201,168,76,0.45), 0 0 28px rgba(201,168,76,0.18)" },
+        },
+      },
+      animation: {
+        "shine-sweep": "shine-sweep 2.2s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 2.8s ease-in-out infinite",
+        "border-glow": "border-glow 3s ease-in-out infinite",
+      },
     },
   },
   plugins: [],

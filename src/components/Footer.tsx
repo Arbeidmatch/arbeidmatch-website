@@ -18,6 +18,8 @@ export default function Footer() {
           {[
             ["For Employers", "/for-employers"],
             ["For Candidates", "/for-candidates"],
+            ["Request Candidates", "/request"],
+            ["DSB Support", "/dsb-support"],
             ["About", "/about"],
             ["Contact", "/contact"],
             ["Feedback", "/feedback"],
@@ -31,6 +33,10 @@ export default function Footer() {
         </div>
 
         <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-white/70">Resources</p>
+          <Link href="/dsb-support" className="block text-sm text-white/80 hover:text-gold">
+            DSB Authorization Guide
+          </Link>
           <p className="text-sm text-white/80">Looking for jobs?</p>
           <a
             href="/score"

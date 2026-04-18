@@ -27,6 +27,15 @@ export default function ForEmployersPage() {
           >
             Request candidates
           </Link>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
+            <Link href="/for-candidates" className="font-medium text-gold hover:text-gold-hover">
+              See what candidates receive
+            </Link>
+            <span className="text-text-secondary">•</span>
+            <Link href="/dsb-support" className="font-medium text-gold hover:text-gold-hover">
+              Need DSB support for non-EU electricians?
+            </Link>
+          </div>
         </div>
       </section>
 

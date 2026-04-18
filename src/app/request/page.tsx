@@ -272,6 +272,14 @@ export default function RequestPage() {
         <p className="mt-3 text-text-secondary">
           For Norwegian employers only. Fill in your details and we&apos;ll get you started.
         </p>
+        <div className="mt-4 flex flex-wrap gap-4 text-sm">
+          <a href="/for-candidates" className="font-medium text-gold hover:text-gold-hover">
+            Candidate context and process
+          </a>
+          <a href="/dsb-support" className="font-medium text-gold hover:text-gold-hover">
+            Need DSB authorization first?
+          </a>
+        </div>
 
         <div className="mt-6 rounded-r-md border-l-4 border-gold bg-gold/10 p-3 text-sm text-navy">
           Looking for a job?{" "}

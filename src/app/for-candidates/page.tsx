@@ -24,6 +24,15 @@ export default function ForCandidatesPage() {
           >
             Browse open positions
           </a>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
+            <Link href="/for-employers" className="font-medium text-gold hover:text-gold-hover">
+              See how this works for employers
+            </Link>
+            <span className="text-text-secondary">•</span>
+            <Link href="/request" className="font-medium text-gold hover:text-gold-hover">
+              Apply directly through ArbeidMatch
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -66,6 +75,14 @@ export default function ForCandidatesPage() {
               </Link>
             </div>
             <p className="relative mt-5 text-sm text-white/60">Instant access after purchase. Valid for 30 days.</p>
+          </div>
+          <div className="relative mx-auto mt-8 max-w-content text-center md:px-6">
+            <Link
+              href="/dsb-checklist"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-navy transition-colors duration-300 hover:text-gold"
+            >
+              Prefer email? Get the free EU/EEA DSB document checklist →
+            </Link>
           </div>
         </div>
       </section>
@@ -156,11 +173,6 @@ export default function ForCandidatesPage() {
           <div>
             <a href="/feedback" className="text-sm font-medium text-gold hover:text-gold-hover">
               Share feedback about your candidate experience
-            </a>
-          </div>
-          <div>
-            <a href="/dsb-assistance" className="text-sm font-medium text-gold hover:text-gold-hover">
-              Need DSB support info for electricians?
             </a>
           </div>
         </div>

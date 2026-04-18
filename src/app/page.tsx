@@ -108,10 +108,10 @@ export default async function Home() {
                 ))}
               </ul>
               <Link
-                href="/request"
+                href="/for-employers"
                 className="mt-7 inline-block rounded-md bg-gold px-5 py-2.5 font-medium text-white"
               >
-                Request candidates →
+                Explore employer services →
               </Link>
             </article>
             <article className="rounded-xl border border-border bg-white p-10 transition hover:shadow-lg">
@@ -130,13 +130,18 @@ export default async function Home() {
                   </li>
                 ))}
               </ul>
-              <a
-                href="/score"
+              <Link
+                href="/for-candidates"
                 className="mt-7 inline-block rounded-md bg-navy px-5 py-2.5 font-medium text-white"
               >
-                Browse jobs →
-              </a>
+                Explore candidate path →
+              </Link>
             </article>
+          </div>
+          <div className="mt-8 text-center">
+            <Link href="/dsb-support" className="text-sm font-semibold text-gold hover:text-gold-hover">
+              Electrician DSB authorization support →
+            </Link>
           </div>
         </div>
       </section>
