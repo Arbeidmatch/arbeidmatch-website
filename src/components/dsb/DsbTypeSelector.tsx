@@ -9,29 +9,45 @@ type DsbType = "eu" | "non-eu";
 
 const STORAGE_KEY = "am_dsb_type";
 
-export default function DsbTypeSelector() {
+type DsbTypeSelectorProps = {
+  /** When set, visibility is controlled by the parent (e.g. For Candidates modal). */
+  isOpen?: boolean;
+  /** Called when the user closes via X; also use for embedded mode from other pages (skip auto redirect). */
+  onClose?: () => void;
+};
+
+export default function DsbTypeSelector({ isOpen: isOpenProp, onClose }: DsbTypeSelectorProps = {}) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const isControlled = isOpenProp !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
   const [showCloseButton, setShowCloseButton] = useState(false);
 
+  const open = isControlled ? Boolean(isOpenProp) : internalOpen;
+
   useEffect(() => {
-    try {
-      const savedType = localStorage.getItem(STORAGE_KEY);
-      if (savedType === "eu") {
-        router.replace("/dsb-support/eu");
-        return;
+    const embedded = typeof onClose === "function";
+    if (!embedded) {
+      try {
+        const savedType = localStorage.getItem(STORAGE_KEY);
+        if (savedType === "eu") {
+          router.replace("/dsb-support/eu");
+          return;
+        }
+        if (savedType === "non-eu") {
+          router.replace("/dsb-support/non-eu");
+          return;
+        }
+      } catch {
+        // ignore storage errors
       }
-      if (savedType === "non-eu") {
-        router.replace("/dsb-support/non-eu");
-        return;
-      }
-    } catch {
-      // ignore storage errors
     }
 
-    const timer = window.setTimeout(() => setOpen(true), 1000);
+    if (isControlled) return;
+
+    const delay = embedded ? 0 : 1000;
+    const timer = window.setTimeout(() => setInternalOpen(true), delay);
     return () => window.clearTimeout(timer);
-  }, [router]);
+  }, [router, isControlled, onClose]);
 
   useEffect(() => {
     if (!open) {
@@ -52,7 +68,8 @@ export default function DsbTypeSelector() {
   };
 
   const dismissWithoutSelection = () => {
-    setOpen(false);
+    onClose?.();
+    if (!isControlled) setInternalOpen(false);
   };
 
   return (

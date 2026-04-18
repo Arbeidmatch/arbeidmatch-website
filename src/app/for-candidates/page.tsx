@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { CheckCircle2, DollarSign, Factory, HardHat, Home, Hotel, Sparkles, Users, Zap } from "lucide-react";
+import { CheckCircle2, DollarSign, Factory, HardHat, Home, Hotel, Sparkles, Users } from "lucide-react";
 import type { Metadata } from "next";
+
+import ForCandidatesDsbSection from "@/components/for-candidates/ForCandidatesDsbSection";
 
 export const metadata: Metadata = {
   title: "For Candidates - Jobs in Norway",
@@ -36,56 +38,7 @@ export default function ForCandidatesPage() {
         </div>
       </section>
 
-      <section className="bg-surface py-16 md:py-20">
-        <div className="mx-auto w-full max-w-content px-4 md:px-6">
-          <div className="relative overflow-hidden rounded-2xl border border-gold/35 bg-navy px-6 py-10 shadow-[0_12px_48px_rgba(13,27,42,0.25)] md:px-10 md:py-12">
-            <div
-              className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gold/10 blur-3xl"
-              aria-hidden
-            />
-            <div className="relative flex max-w-2xl gap-4">
-              <span
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gold/15 text-gold"
-                aria-hidden
-              >
-                <Zap className="h-8 w-8" strokeWidth={2} />
-              </span>
-              <div>
-                <h2 className="mt-1 text-2xl font-bold leading-tight text-white md:text-3xl">
-                  DSB Authorization Guides
-                </h2>
-                <p className="mt-3 text-base leading-relaxed text-white/80 md:text-lg">
-                  Everything you need to get legally approved as an electrician in Norway. Step-by-step,
-                  official sources, instant access.
-                </p>
-              </div>
-            </div>
-            <div className="relative mt-8 flex flex-col gap-4 sm:flex-row">
-              <Link
-                href="/dsb-support"
-                className="inline-flex flex-1 items-center justify-center rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-white transition hover:border-gold/50 hover:bg-white/10"
-              >
-                EU/EEA Electricians
-              </Link>
-              <Link
-                href="/dsb-support"
-                className="inline-flex flex-1 items-center justify-center rounded-lg border border-white/20 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-white transition hover:border-gold/50 hover:bg-white/10"
-              >
-                Non-EU Electricians
-              </Link>
-            </div>
-            <p className="relative mt-5 text-sm text-white/60">Instant access after purchase. Valid for 30 days.</p>
-          </div>
-          <div className="relative mx-auto mt-8 max-w-content text-center md:px-6">
-            <Link
-              href="/dsb-checklist"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-navy transition-colors duration-300 hover:text-gold"
-            >
-              Prefer email? Get the free EU/EEA DSB document checklist →
-            </Link>
-          </div>
-        </div>
-      </section>
+      <ForCandidatesDsbSection />
 
       <section className="bg-surface py-24">
         <div className="mx-auto grid w-full max-w-content gap-6 px-4 md:grid-cols-2 md:px-6">
