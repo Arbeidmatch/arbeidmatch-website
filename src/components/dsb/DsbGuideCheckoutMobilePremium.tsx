@@ -16,7 +16,6 @@ import { DSB_DISCOUNT } from "@/lib/dsbDiscountPricing";
 import {
   DSB_DISCOUNT_LS_COUPON,
   DSB_DISCOUNT_LS_GUIDE,
-  inferGuideTypeFromCouponCode,
 } from "@/lib/dsbDiscountStorage";
 
 type GuideSlug = "eu" | "non-eu";
@@ -197,14 +196,12 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    const d = params.get("discount")?.trim();
-    if (!d) return;
-    const inferred = inferGuideTypeFromCouponCode(d);
-    if (inferred !== cfg.slug) return;
+    const discountCode = params.get("discount")?.trim();
+    if (!discountCode) return;
     try {
-      localStorage.setItem(DSB_DISCOUNT_LS_COUPON, d);
-      localStorage.setItem(DSB_DISCOUNT_LS_GUIDE, inferred);
-      setAppliedCoupon(d);
+      localStorage.setItem(DSB_DISCOUNT_LS_COUPON, discountCode);
+      localStorage.setItem(DSB_DISCOUNT_LS_GUIDE, variant);
+      setAppliedCoupon(discountCode);
     } catch {
       /* ignore */
     }

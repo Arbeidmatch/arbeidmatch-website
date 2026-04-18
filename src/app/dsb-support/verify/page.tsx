@@ -25,8 +25,8 @@ export default async function DsbSupportVerifyPage({
     const payload = verifyDsbEmailVerifyToken(normalizedToken);
     console.log("[Verify Page] Payload decoded:", !!payload);
     console.log("[Verify Page] Guide slug:", payload?.guide_slug);
+    console.log("[Verify] guide_slug:", payload?.guide_slug);
     console.log("[Verify Page] Coupon:", payload?.coupon_code);
-    console.log("[Verify] guide_slug from JWT:", payload?.guide_slug);
 
     if (!payload) {
       redirect("/dsb-support/eu?error=link_expired");

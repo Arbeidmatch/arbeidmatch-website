@@ -33,10 +33,18 @@ export async function createDsbGuideStripeCheckout(params: {
   if (guideError || !guide) {
     return { ok: false, error: "Guide not found." };
   }
+  console.log("[Verify] guide found:", !!guide);
+  console.log("[Verify] stripe price id:", guide.stripe_price_id);
 
   const priceId = resolveStripePriceId(guideSlug, guide.stripe_price_id as string);
-  if (guideSlug === "non-eu") {
-    console.log("[Verify] Non-EU Stripe price ID resolved:", priceId);
+  const expectedPriceId =
+    guideSlug === "eu" ? "price_1TNXG9JOA4NI25QcuBmmDvZ3" : "price_1TNXIwJOA4NI25QcxOP5CSrX";
+  if (priceId !== expectedPriceId) {
+    console.warn("[Verify] Stripe price ID differs from expected:", {
+      guideSlug,
+      expectedPriceId,
+      resolvedPriceId: priceId,
+    });
   }
   if (!priceId?.startsWith("price_")) {
     return {
