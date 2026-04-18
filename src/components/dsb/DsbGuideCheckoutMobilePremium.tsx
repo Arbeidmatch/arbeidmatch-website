@@ -11,6 +11,13 @@ import {
   IconShield,
   type DsbPremiumIconName,
 } from "@/components/dsb/DsbIcons";
+import DsbExitDiscountPopup from "@/components/dsb/DsbExitDiscountPopup";
+import { DSB_DISCOUNT } from "@/lib/dsbDiscountPricing";
+import {
+  DSB_DISCOUNT_LS_COUPON,
+  DSB_DISCOUNT_LS_GUIDE,
+  inferGuideTypeFromCouponCode,
+} from "@/lib/dsbDiscountStorage";
 
 type GuideSlug = "eu" | "non-eu";
 
@@ -162,6 +169,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
   const [resendCountdown, setResendCountdown] = useState(0);
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const sectionHeadRef = useRef<HTMLDivElement>(null);
   const headerInView = useInView(sectionHeadRef, { once: true, amount: 0.35 });
@@ -173,6 +181,38 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
     const timer = window.setInterval(() => setResendCountdown((v) => (v > 0 ? v - 1 : 0)), 1000);
     return () => window.clearInterval(timer);
   }, [step, resendCountdown]);
+
+  useEffect(() => {
+    try {
+      const code = localStorage.getItem(DSB_DISCOUNT_LS_COUPON)?.trim();
+      const g = localStorage.getItem(DSB_DISCOUNT_LS_GUIDE)?.trim();
+      if (code && g === cfg.slug) {
+        setAppliedCoupon(code);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [cfg.slug]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const d = params.get("discount")?.trim();
+    if (!d) return;
+    const inferred = inferGuideTypeFromCouponCode(d);
+    if (inferred !== cfg.slug) return;
+    try {
+      localStorage.setItem(DSB_DISCOUNT_LS_COUPON, d);
+      localStorage.setItem(DSB_DISCOUNT_LS_GUIDE, inferred);
+      setAppliedCoupon(d);
+    } catch {
+      /* ignore */
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.delete("discount");
+    const next = url.pathname + (url.searchParams.toString() ? `?${url.searchParams.toString()}` : "");
+    window.history.replaceState({}, "", next);
+  }, [cfg.slug]);
 
   const startConfirmation = (e: FormEvent) => {
     e.preventDefault();
@@ -193,7 +233,12 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
       const res = await fetch("/api/dsb-guide/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ guide_slug: cfg.slug, email: confirmedEmail, website: "" }),
+        body: JSON.stringify({
+          guide_slug: cfg.slug,
+          email: confirmedEmail,
+          website: "",
+          ...(appliedCoupon ? { coupon_code: appliedCoupon } : {}),
+        }),
       });
       const data = (await res.json()) as { success?: boolean; error?: string };
       if (!res.ok || !data.success) {
@@ -227,6 +272,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
   };
 
   const spring = [0.16, 1, 0.3, 1] as const;
+  const discountRow = appliedCoupon ? DSB_DISCOUNT[cfg.slug] : null;
 
   return (
     <div className={`dsb-premium-page dsb-premium-page--${cfg.region}`}>
@@ -378,6 +424,13 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
           </motion.div>
 
           <div className="dsb-form-shell">
+            {discountRow && (
+              <div className="dsb-discount-applied">
+                Your discount is applied: <strong>−€{discountRow.save}</strong> (you pay €{discountRow.discounted} at
+                checkout).
+                <div className="dsb-discount-code">{appliedCoupon}</div>
+              </div>
+            )}
             {step === "input" && (
               <form onSubmit={startConfirmation} className="dsb-form-stack">
                 <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
@@ -502,6 +555,8 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
           </div>
         </div>
       </section>
+
+      <DsbExitDiscountPopup guideType={cfg.slug} />
     </div>
   );
 }

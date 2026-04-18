@@ -10,6 +10,7 @@ type Body = {
   guide_slug?: string;
   email?: string;
   website?: string;
+  coupon_code?: string;
 };
 
 /** Legacy direct-checkout endpoint (prefer verify-email + /dsb-support/verify flow). */
@@ -34,9 +35,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Valid email is required." }, { status: 400 });
     }
 
+    const coupon = typeof body.coupon_code === "string" ? body.coupon_code : undefined;
+
     const result = await createDsbGuideStripeCheckout({
       guideSlug: guideSlug as DsbGuideSlug,
       email,
+      couponCode: coupon,
     });
 
     if (!result.ok) {

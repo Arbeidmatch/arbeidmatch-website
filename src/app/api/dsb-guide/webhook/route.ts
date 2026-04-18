@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import nodemailer from "nodemailer";
+import { markDiscountLeadUsed } from "@/lib/dsbDiscountLeads";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { getPublicBaseUrl, type DsbGuideSlug } from "@/lib/dsbGuideAccess";
 import {
@@ -95,6 +96,11 @@ export async function POST(request: NextRequest) {
   if (updateError) {
     console.error("[dsb-guide/webhook] update failed:", updateError.message);
     return NextResponse.json({ error: "Update failed" }, { status: 500 });
+  }
+
+  const discountCoupon = (metadata.discount_coupon as string | undefined)?.trim();
+  if (discountCoupon) {
+    await markDiscountLeadUsed(supabase, discountCoupon);
   }
 
   const baseUrl = getPublicBaseUrl();

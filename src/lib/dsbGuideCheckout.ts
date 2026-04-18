@@ -1,14 +1,16 @@
 import { randomUUID } from "crypto";
 import Stripe from "stripe";
 
+import { validateCouponForCheckout } from "@/lib/dsbDiscountLeads";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { getPublicBaseUrl, resolveStripePriceId, type DsbGuideSlug } from "@/lib/dsbGuideAccess";
 
 export async function createDsbGuideStripeCheckout(params: {
   guideSlug: DsbGuideSlug;
   email: string;
+  couponCode?: string | null;
 }): Promise<{ ok: true; checkoutUrl: string } | { ok: false; error: string }> {
-  const { guideSlug, email } = params;
+  const { guideSlug, email, couponCode } = params;
   const normalizedEmail = email.trim().toLowerCase();
 
   const secret = process.env.STRIPE_SECRET_KEY;
@@ -45,7 +47,17 @@ export async function createDsbGuideStripeCheckout(params: {
   const stripe = new Stripe(secret);
   const supportPath = guideSlug === "non-eu" ? "non-eu" : "eu";
 
-  const session = await stripe.checkout.sessions.create({
+  const trimmedCoupon = couponCode?.trim() || "";
+  let appliedCoupon = "";
+  if (trimmedCoupon) {
+    const ok = await validateCouponForCheckout(supabase, normalizedEmail, guideSlug, trimmedCoupon);
+    if (!ok) {
+      return { ok: false, error: "This discount code is invalid, expired, or does not match this email." };
+    }
+    appliedCoupon = trimmedCoupon;
+  }
+
+  const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${baseUrl}/dsb-guide/${guideSlug}?token=${encodeURIComponent(accessToken)}&session_id={CHECKOUT_SESSION_ID}`,
@@ -55,8 +67,15 @@ export async function createDsbGuideStripeCheckout(params: {
       guide_slug: guideSlug,
       email: normalizedEmail,
       access_token: accessToken,
+      discount_coupon: appliedCoupon,
     },
-  });
+  };
+
+  if (appliedCoupon) {
+    sessionParams.discounts = [{ coupon: appliedCoupon }];
+  }
+
+  const session = await stripe.checkout.sessions.create(sessionParams);
 
   if (!session.id || !session.url) {
     return { ok: false, error: "Could not start checkout." };

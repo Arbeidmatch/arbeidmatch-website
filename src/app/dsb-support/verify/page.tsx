@@ -33,6 +33,7 @@ export default async function DsbSupportVerifyPage({
   const result = await createDsbGuideStripeCheckout({
     guideSlug: payload.guide_slug,
     email: payload.email,
+    couponCode: payload.coupon_code,
   });
 
   if (!result.ok) {
