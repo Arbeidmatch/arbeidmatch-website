@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Syne } from "next/font/google";
-import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MonetizationOverlays from "@/components/monetization/MonetizationOverlays";
+import CookieConsent from "@/components/CookieConsent";
 
 const displayFont = Syne({
   subsets: ["latin"],
@@ -76,6 +76,7 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
+        <CookieConsent />
         <MonetizationOverlays />
         <script
           type="application/ld+json"
@@ -108,7 +109,6 @@ export default function RootLayout({
             }),
           }}
         />
-        <GoogleAnalytics gaId="G-W6XXW7Q98" />
       </body>
     </html>
   );

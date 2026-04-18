@@ -25,6 +25,7 @@ function formatExpiry(iso: string): string {
 export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, guideSlug }: Props) {
   const headingCursorRef = useRef(0);
   const [activeId, setActiveId] = useState<string | null>(toc[0]?.id ?? null);
+  const [protectionMessage, setProtectionMessage] = useState<string | null>(null);
 
   headingCursorRef.current = 0;
 
@@ -71,12 +72,61 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
     };
   }, [toc]);
 
+  useEffect(() => {
+    const hide = () => {
+      window.setTimeout(() => setProtectionMessage(null), 2600);
+    };
+
+    const showProtection = (message: string) => {
+      setProtectionMessage(message);
+      hide();
+    };
+
+    const onContextMenu = (event: MouseEvent) => {
+      event.preventDefault();
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      if (event.ctrlKey && (key === "p" || key === "s")) {
+        event.preventDefault();
+        showProtection("This content is protected. Printing is not permitted.");
+      }
+    };
+
+    const onBeforePrint = (event: Event) => {
+      event.preventDefault();
+      showProtection("This content is protected. Printing is not permitted.");
+    };
+
+    window.addEventListener("contextmenu", onContextMenu);
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("beforeprint", onBeforePrint);
+
+    return () => {
+      window.removeEventListener("contextmenu", onContextMenu);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("beforeprint", onBeforePrint);
+    };
+  }, []);
+
   const title = guideSlug === "eu" ? "DSB Guide: EU/EEA Electricians" : "DSB Guide: Non-EU Electricians";
+  const watermarkText = `Licensed to: ${email} - arbeidmatch.no`;
+  const watermarkItems = Array.from({ length: 36 }, (_, index) => `${watermarkText} · ${index + 1}`);
 
   return (
-    <div className="min-h-screen bg-surface pb-16 pt-8">
+    <div className="relative min-h-screen bg-surface pb-16 pt-8">
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute inset-[-20%] flex rotate-[-45deg] flex-wrap content-start gap-12 opacity-[0.03]">
+          {watermarkItems.map((item) => (
+            <span key={item} className="whitespace-nowrap text-2xl font-semibold text-navy">
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
-        <header className="mb-8 rounded-xl border border-border bg-navy px-6 py-5 text-white">
+        <header className="relative z-10 mb-8 rounded-xl border border-border bg-navy px-6 py-5 text-white">
           <p className="text-xs font-semibold uppercase tracking-widest text-gold">{title}</p>
           <div className="mt-3 flex flex-col gap-2 text-sm text-white/90 md:flex-row md:items-center md:justify-between">
             <p>
@@ -88,9 +138,13 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
               <span className="font-medium text-gold">{formatExpiry(expiresAtIso)}</span>
             </p>
           </div>
+          <div className="mt-4 rounded-lg border border-gold/35 bg-black/20 px-4 py-3 text-sm leading-relaxed text-white/85">
+            This content is licensed for personal use only. Copying, sharing or reproducing this guide is
+            prohibited and may result in legal action.
+          </div>
         </header>
 
-        <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
+        <div className="relative z-10 flex flex-col gap-10 lg:flex-row lg:items-start">
           <aside className="lg:sticky lg:top-24 lg:w-64 lg:shrink-0 print:hidden">
             <nav
               className="rounded-xl border border-border bg-white p-4 shadow-[0_8px_24px_rgba(13,27,42,0.06)]"
@@ -114,7 +168,9 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
             </nav>
             <button
               type="button"
-              onClick={() => window.print()}
+              onClick={() =>
+                setProtectionMessage("This content is protected. Printing is not permitted.")
+              }
               className="mt-4 w-full rounded-md border border-border bg-white px-4 py-2 text-sm font-medium text-navy hover:bg-surface print:hidden"
             >
               Print this page
@@ -125,6 +181,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
             <article
               className="prose-guide rounded-xl border border-border bg-white px-6 py-8 shadow-[0_10px_30px_rgba(13,27,42,0.06)] print:shadow-none"
               data-guide-slug={guideSlug}
+              style={{ userSelect: "none", WebkitUserSelect: "none" }}
             >
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
@@ -202,6 +259,15 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
           </div>
         </div>
       </div>
+      {protectionMessage && (
+        <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/65 px-4">
+          <div className="w-full max-w-md rounded-xl border border-gold/30 bg-navy px-6 py-5 text-center shadow-2xl">
+            <p className="text-lg font-semibold text-white">
+              This content is protected. Printing is not permitted.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -20,6 +20,7 @@ export default function Footer() {
             ["For Candidates", "/for-candidates"],
             ["Request Candidates", "/request"],
             ["DSB Support", "/dsb-support"],
+            ["Partners", "/partners"],
             ["About", "/about"],
             ["Contact", "/contact"],
             ["Feedback", "/feedback"],
@@ -37,6 +38,9 @@ export default function Footer() {
           <Link href="/dsb-support" className="block text-sm text-white/80 hover:text-gold">
             DSB Authorization Guide
           </Link>
+          <Link href="/dsb-checklist" className="block text-sm text-white/80 hover:text-gold">
+            Free DSB Checklist
+          </Link>
           <p className="text-sm text-white/80">Looking for jobs?</p>
           <a
             href="/score"
@@ -51,7 +55,7 @@ export default function Footer() {
       </div>
       <div className="border-t border-white/15">
         <p className="mx-auto w-full max-w-content px-4 py-4 text-sm text-white/70 md:px-6">
-          © 2025 ArbeidMatch Norge AS · All rights reserved
+          © 2026 ArbeidMatch Norge AS · All rights reserved
         </p>
       </div>
     </footer>
