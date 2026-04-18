@@ -275,7 +275,7 @@ select:focus {
   height: 2px;
   width: 0;
   background: #c9a84c;
-  transition: width 200ms ease;
+  transition: width 300ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -297,5 +297,37 @@ select:focus {
   .footer-link-premium:hover {
     opacity: 1;
     transform: translateX(2px);
+  }
+}
+
+/* DSB for-candidates EU / Non-EU cards — glow follows hover between siblings */
+.dsb-cards .dsb-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+  transition:
+    box-shadow 400ms ease,
+    border-color 400ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dsb-cards:has(.dsb-card:hover) .dsb-card:not(:hover) {
+    border-color: rgba(255, 255, 255, 0.05);
+    box-shadow: none;
+  }
+
+  .dsb-cards .dsb-card--eu:hover {
+    border-color: rgba(201, 168, 76, 0.45);
+    box-shadow:
+      0 0 30px rgba(201, 168, 76, 0.18),
+      0 0 60px rgba(201, 168, 76, 0.09),
+      0 0 0 1px rgba(201, 168, 76, 0.22);
+  }
+
+  .dsb-cards .dsb-card--non-eu:hover {
+    border-color: rgba(217, 165, 32, 0.42);
+    box-shadow:
+      0 0 30px rgba(245, 180, 50, 0.16),
+      0 0 60px rgba(217, 165, 32, 0.08),
+      0 0 0 1px rgba(217, 165, 32, 0.2);
   }
 }

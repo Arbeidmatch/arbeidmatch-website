@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import CandidateActivityBanner from "@/components/CandidateActivityBanner";
 import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
 import TikTokLiveBanner from "@/components/TikTokLiveBanner";
@@ -23,7 +22,6 @@ export default async function Home() {
       <TikTokLiveBanner />
       <HomePageClient
         candidateActivity={candidateActivity}
-        bannerSlot={<CandidateActivityBanner stats={candidateActivity} />}
         howItWorksSlot={<HowItWorks />}
         testimonialsSlot={<Testimonials />}
       />

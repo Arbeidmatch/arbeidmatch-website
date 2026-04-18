@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 const STORAGE_KEY = "am_dsb_type";
 
 const cardBase =
-  "rounded-xl border p-5 text-left text-white transition-shadow md:p-6";
+  "dsb-card rounded-xl p-5 text-left text-white md:p-6";
 
 const listItem = "relative pl-4 text-sm text-white/85 before:absolute before:left-0 before:top-2 before:h-1 before:w-1 before:rounded-full before:bg-gold";
 
@@ -69,13 +69,15 @@ export default function ForCandidatesDsbSection() {
                   transition={{ duration: 0.2, ease: "easeOut" }}
                   className="mt-8"
                 >
-                  <button
-                    type="button"
-                    onClick={() => setExpanded(true)}
-                    className="w-full rounded-lg bg-gradient-to-r from-[#b8923f] via-gold to-[#d4b45c] py-3.5 text-sm font-semibold text-[#0a0f14] shadow-[0_8px_28px_rgba(201,168,76,0.35)] transition hover:shadow-[0_12px_36px_rgba(201,168,76,0.45)]"
-                  >
-                    Find My Guide →
-                  </button>
+                  <div className="flex justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setExpanded(true)}
+                      className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[#b8923f] via-gold to-[#d4b45c] py-[14px] px-[40px] text-sm font-semibold text-[#0a0f14] shadow-[0_8px_28px_rgba(201,168,76,0.35)] transition hover:shadow-[0_12px_36px_rgba(201,168,76,0.45)]"
+                    >
+                      Find My Guide →
+                    </button>
+                  </div>
                   <p className="mt-3 text-center text-xs text-white/55">
                     Instant access · Valid 30 days · 500+ electricians
                   </p>
@@ -107,13 +109,13 @@ export default function ForCandidatesDsbSection() {
                       },
                     }}
                   >
-                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <div className="dsb-cards grid grid-cols-1 gap-5 md:grid-cols-2">
                     <motion.article
                       variants={{
                         hidden: { opacity: 0, y: 16 },
                         show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
                       }}
-                      className={`${cardBase} border-gold/45 bg-white/[0.05] shadow-[0_0_28px_rgba(201,168,76,0.22)] animate-pulse-glow`}
+                      className={`${cardBase} dsb-card--eu bg-white/[0.05]`}
                     >
                       <p className="text-4xl" aria-hidden>
                         🇪🇺
@@ -138,7 +140,7 @@ export default function ForCandidatesDsbSection() {
                         hidden: { opacity: 0, y: 16 },
                         show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
                       }}
-                      className={`${cardBase} border-amber-300/40 bg-white/[0.03]`}
+                      className={`${cardBase} dsb-card--non-eu bg-white/[0.03]`}
                     >
                       <p className="text-4xl" aria-hidden>
                         🌍

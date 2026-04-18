@@ -9,7 +9,7 @@ const config: Config = {
         gold: "#C9A84C",
         "gold-hover": "#B8913A",
         surface: "#F5F6F8",
-        "text-secondary": "#5A6472",
+        "text-secondary": "#555555",
         border: "#E2E5EA",
         obsidian: "#0a0f14",
       },

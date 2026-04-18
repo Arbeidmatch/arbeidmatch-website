@@ -26,25 +26,25 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-[100] transition-all duration-[400ms] ease-premium ${
+      className={`sticky top-0 z-[100] transition-[background-color,box-shadow,border-color,backdrop-filter] duration-300 ease-out ${
         scrolled
-          ? "border-b border-[rgba(184,134,11,0.15)] bg-[rgba(10,12,20,0.85)] shadow-[0_1px_40px_rgba(0,0,0,0.3)] backdrop-blur-[20px] backdrop-saturate-[180%] md:min-h-[64px]"
-          : "border-b border-transparent bg-white py-1 md:min-h-[80px]"
+          ? "border-b border-[rgba(184,134,11,0.15)] bg-[rgba(10,12,20,0.92)] shadow-[0_1px_40px_rgba(0,0,0,0.28)] backdrop-blur-[20px] backdrop-saturate-[180%] md:min-h-[64px]"
+          : "border-b border-white/20 bg-[rgba(255,255,255,0.88)] py-1 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-md md:min-h-[80px]"
       }`}
     >
       <div
-        className={`mx-auto flex w-full max-w-content items-center justify-between px-4 transition-all duration-[400ms] ease-premium md:px-6 ${
+        className={`mx-auto flex w-full max-w-content items-center justify-between px-4 transition-[padding] duration-300 ease-out md:px-6 ${
           scrolled ? "py-2 md:py-3" : "py-4"
         }`}
       >
         <Link
           href="/"
-          className={`block origin-left text-2xl transition-transform duration-[400ms] ease-premium ${
+          className={`block origin-left text-2xl transition-transform duration-300 ease-out ${
             scrolled ? "scale-[0.95] md:scale-[0.95]" : "scale-100"
           }`}
         >
-          <span className="font-bold text-navy">Arbeid</span>
-          <span className="font-bold text-gold">Match</span>
+          <span className={`font-bold ${scrolled ? "text-[#f5f5f5]" : "text-[#0D1B2A]"}`}>Arbeid</span>
+          <span className="font-bold text-[#B8860B]">Match</span>
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
@@ -52,8 +52,10 @@ export default function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`nav-link-premium text-[15px] text-navy transition-colors ${
-                scrolled ? "text-white/90 hover:text-gold" : "hover:text-gold"
+              className={`nav-link-premium text-[15px] transition-colors duration-300 ease-out ${
+                scrolled
+                  ? "text-[#cccccc] hover:text-white"
+                  : "text-[#555555] hover:text-[#0D1B2A]"
               }`}
             >
               {link.label}
@@ -81,17 +83,17 @@ export default function Navbar() {
           <span className="sr-only">Menu</span>
           <span className="flex h-4 w-5 flex-col justify-center gap-1.5">
             <motion.span
-              className={`block h-0.5 w-5 rounded-full ${scrolled ? "bg-white" : "bg-navy"}`}
+              className={`block h-0.5 w-5 rounded-full ${scrolled ? "bg-[#f5f5f5]" : "bg-[#0D1B2A]"}`}
               animate={open ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             />
             <motion.span
-              className={`block h-0.5 w-5 rounded-full ${scrolled ? "bg-white" : "bg-navy"}`}
+              className={`block h-0.5 w-5 rounded-full ${scrolled ? "bg-[#f5f5f5]" : "bg-[#0D1B2A]"}`}
               animate={open ? { opacity: 0 } : { opacity: 1 }}
               transition={{ duration: 0.2 }}
             />
             <motion.span
-              className={`block h-0.5 w-5 rounded-full ${scrolled ? "bg-white" : "bg-navy"}`}
+              className={`block h-0.5 w-5 rounded-full ${scrolled ? "bg-[#f5f5f5]" : "bg-[#0D1B2A]"}`}
               animate={open ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             />
@@ -106,7 +108,7 @@ export default function Navbar() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden border-t border-border bg-white lg:hidden"
+            className="overflow-hidden border-t border-border bg-white transition-colors duration-300 lg:hidden"
           >
             <div className="mx-auto flex max-w-content flex-col gap-4 px-4 py-4 md:px-6">
               {links.map((link) => (
@@ -114,7 +116,7 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="text-[15px] text-navy transition-colors hover:text-gold"
+                  className="text-[15px] text-[#555555] transition-colors duration-300 hover:text-[#0D1B2A]"
                 >
                   {link.label}
                 </Link>

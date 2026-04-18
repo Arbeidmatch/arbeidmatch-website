@@ -27,7 +27,8 @@ const EASE = EASE_PREMIUM;
 
 type Props = {
   candidateActivity: CandidateActivityStats;
-  bannerSlot: ReactNode;
+  /** Optional strip below hero (omit on home to avoid duplicating hero live stats). */
+  bannerSlot?: ReactNode;
   howItWorksSlot: ReactNode;
   testimonialsSlot: ReactNode;
 };
