@@ -23,6 +23,7 @@ export async function createDsbGuideStripeCheckout(params: {
     return { ok: false, error: "Database is not configured." };
   }
 
+  console.log("[Verify] Looking up guide in DB...");
   const { data: guide, error: guideError } = await supabase
     .from("dsb_guides")
     .select("slug, stripe_price_id, title")
@@ -34,6 +35,9 @@ export async function createDsbGuideStripeCheckout(params: {
   }
 
   const priceId = resolveStripePriceId(guideSlug, guide.stripe_price_id as string);
+  if (guideSlug === "non-eu") {
+    console.log("[Verify] Non-EU Stripe price ID resolved:", priceId);
+  }
   if (!priceId?.startsWith("price_")) {
     return {
       ok: false,
