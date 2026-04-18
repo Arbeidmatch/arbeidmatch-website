@@ -267,7 +267,7 @@ export default function RecruiterNetworkClient() {
                 className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B8860B]"
                 {...heroFade(0)}
               >
-                Recruiter Network
+                RECRUITER NETWORK
               </motion.p>
               <h1
                 className="mt-6 font-sans font-extrabold tracking-[-0.04em] text-white"
@@ -308,7 +308,7 @@ export default function RecruiterNetworkClient() {
             </>
           ) : (
             <>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B8860B]">Recruiter Network</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B8860B]">RECRUITER NETWORK</p>
               <h1
                 className="mt-6 font-sans font-extrabold tracking-[-0.04em] text-white"
                 style={{ fontSize: "clamp(3rem, 8vw, 7rem)", lineHeight: 1.02 }}
