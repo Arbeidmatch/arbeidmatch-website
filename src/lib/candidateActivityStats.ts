@@ -1,15 +1,16 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-/** Rough model: site visitors vs. signup rows (no dedicated analytics table). */
-const DEFAULT_VISITOR_MULTIPLIER = 26;
-
 export type CandidateActivityStats = {
+  /** Total rows in `guide_interest_signups` (exact when DB is available). */
   registeredCount: number;
+  /** Display-only: deterministic daily count 20–50 for hero / activity strip. */
+  candidatesRegisteredToday: number;
   activeOnSiteNow: number;
-  avgDailyVisitors: number;
+  /** Modeled cumulative visits, moves with `activeOnSiteNow` so metrics feel linked. */
+  totalVisits: number;
   registeredIsExact: boolean;
   activeIsEstimated: boolean;
-  avgIsEstimated: boolean;
+  totalVisitsIsEstimated: boolean;
 };
 
 function getSupabaseClient(): SupabaseClient | null {
@@ -19,95 +20,135 @@ function getSupabaseClient(): SupabaseClient | null {
   return createClient(url, key);
 }
 
-function parseMultiplier(): number {
-  const raw = process.env.CANDIDATE_ACTIVITY_VISITOR_MULTIPLIER;
-  if (!raw) return DEFAULT_VISITOR_MULTIPLIER;
-  const n = Number.parseFloat(raw);
-  return Number.isFinite(n) && n > 0 ? n : DEFAULT_VISITOR_MULTIPLIER;
+/** 32-bit mixing; deterministic for a given seed. */
+function hash32(seed: number): number {
+  let x = Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b) >>> 0;
+  x ^= x >>> 13;
+  x = Math.imul(x, 0xc2b2ae35) >>> 0;
+  x ^= x >>> 16;
+  return x >>> 0;
 }
 
-/** Peak-ish curve over UTC hours (stable per request, no random walk). */
-function intradayActiveFactorUtc(hour: number): number {
-  const h = Math.min(23, Math.max(0, hour));
-  const base = 0.032;
-  const amp = 0.052;
-  return base + amp * Math.sin(((h - 7) / 24) * Math.PI * 2);
+/** Calendar day index in Europe/Oslo (Norwegian “today”). */
+function osloDayIndex(d: Date): number {
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Oslo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = fmt.formatToParts(d);
+  const map = Object.fromEntries(parts.filter((p) => p.type !== "literal").map((p) => [p.type, p.value])) as Record<
+    string,
+    string
+  >;
+  const y = Number(map.year);
+  const m = Number(map.month) - 1;
+  const day = Number(map.day);
+  return Math.floor(Date.UTC(y, m, day) / 86_400_000);
+}
+
+function osloHourMinute(d: Date): { hour: number; minute: number } {
+  const fmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Oslo",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const parts = fmt.formatToParts(d);
+  const map = Object.fromEntries(parts.filter((p) => p.type !== "literal").map((p) => [p.type, p.value])) as Record<
+    string,
+    string
+  >;
+  return { hour: Number(map.hour), minute: Number(map.minute) };
+}
+
+/**
+ * Daily count 20–50; uses full calendar day index so the same weekday in different weeks
+ * does not repeat the same value (unlike a pure 7-day cycle).
+ */
+export function getCandidatesRegisteredToday(now: Date): number {
+  const day = osloDayIndex(now);
+  const h = hash32(day * 0x165667b1 + 0x27d4eb2d);
+  return 20 + (h % 31);
+}
+
+const ACTIVE_MIN = 205;
+const ACTIVE_MAX = 432;
+const ACTIVE_SPAN = ACTIVE_MAX - ACTIVE_MIN + 1;
+
+/**
+ * "Active on site now" in [205, 432], varies by ~5-minute UTC bucket so it feels live.
+ */
+export function getActiveOnSiteNow(now: Date): number {
+  const day = osloDayIndex(now);
+  const { hour, minute } = osloHourMinute(now);
+  const bucket = hour * 12 + Math.floor(minute / 5);
+  const h = hash32(day * 1_000_000 + bucket * 0x9e3779b9 + 0x85ebca6b);
+  return ACTIVE_MIN + (h % ACTIVE_SPAN);
+}
+
+/**
+ * Total visits: large cumulative-style number that rises when active rises (same formula, same request).
+ */
+export function getTotalVisitsLinked(activeOnSiteNow: number, now: Date): number {
+  const day = osloDayIndex(now);
+  const base = 1_240_000 + (day % 10_000) * 73;
+  return Math.round(base + activeOnSiteNow * 1_847);
 }
 
 /**
  * Loads candidate activity numbers for home page / API.
- * Registered count is exact from `guide_interest_signups`; other fields are modeled estimates.
+ * `registeredCount` is exact from `guide_interest_signups` when available.
+ * Display metrics use deterministic modeled values (ranges per product request).
  */
 export async function getCandidateActivityStats(): Promise<CandidateActivityStats> {
-  const multiplier = parseMultiplier();
   const now = new Date();
-  const hourUtc = now.getUTCHours();
+
+  const candidatesRegisteredToday = getCandidatesRegisteredToday(now);
+  const activeOnSiteNow = getActiveOnSiteNow(now);
+  const totalVisits = getTotalVisitsLinked(activeOnSiteNow, now);
 
   const supabase = getSupabaseClient();
   if (!supabase) {
-    const fallbackAvg = 180;
-    const activeOnSiteNow = Math.round(
-      Math.max(18, Math.min(420, fallbackAvg * intradayActiveFactorUtc(hourUtc) * 3.2)),
-    );
     return {
       registeredCount: 0,
+      candidatesRegisteredToday,
       activeOnSiteNow,
-      avgDailyVisitors: fallbackAvg,
+      totalVisits,
       registeredIsExact: false,
       activeIsEstimated: true,
-      avgIsEstimated: true,
+      totalVisitsIsEstimated: true,
     };
   }
 
   try {
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-
-    const [totalRes, last7Res, last24Res] = await Promise.all([
-      supabase.from("guide_interest_signups").select("*", { count: "exact", head: true }),
-      supabase.from("guide_interest_signups").select("*", { count: "exact", head: true }).gte("created_at", sevenDaysAgo),
-      supabase.from("guide_interest_signups").select("*", { count: "exact", head: true }).gte("created_at", twentyFourHoursAgo),
-    ]);
+    const totalRes = await supabase.from("guide_interest_signups").select("*", { count: "exact", head: true });
 
     if (totalRes.error) throw totalRes.error;
-    if (last7Res.error) throw last7Res.error;
-    if (last24Res.error) throw last24Res.error;
 
     const registeredCount = totalRes.count ?? 0;
-    const signupsLast7d = last7Res.count ?? 0;
-    const signupsLast24h = last24Res.count ?? 0;
-
-    const avgDailySignups = signupsLast7d / 7;
-    const avgDailyFromWeek = Math.max(0, avgDailySignups * multiplier);
-    const avgFromLast24h = signupsLast24h * multiplier;
-
-    const avgDailyVisitors = Math.round(Math.max(48, (avgDailyFromWeek + avgFromLast24h) / 2));
-
-    const activeRaw = avgDailyVisitors * intradayActiveFactorUtc(hourUtc) * 3.1;
-    const activeOnSiteNow = Math.round(Math.max(12, Math.min(520, activeRaw)));
 
     return {
       registeredCount,
+      candidatesRegisteredToday,
       activeOnSiteNow,
-      avgDailyVisitors,
+      totalVisits,
       registeredIsExact: true,
       activeIsEstimated: true,
-      avgIsEstimated: true,
+      totalVisitsIsEstimated: true,
     };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[candidate-activity-stats]", message);
-    const fallbackAvg = 160;
-    const activeOnSiteNow = Math.round(
-      Math.max(16, Math.min(400, fallbackAvg * intradayActiveFactorUtc(hourUtc) * 3)),
-    );
     return {
       registeredCount: 0,
+      candidatesRegisteredToday,
       activeOnSiteNow,
-      avgDailyVisitors: fallbackAvg,
+      totalVisits,
       registeredIsExact: false,
       activeIsEstimated: true,
-      avgIsEstimated: true,
+      totalVisitsIsEstimated: true,
     };
   }
 }

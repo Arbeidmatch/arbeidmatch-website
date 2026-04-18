@@ -9,9 +9,9 @@ type Props = {
 
 export default function CandidateActivityMetrics({ stats }: Props) {
   const items: { label: string; value: number }[] = [
-    { label: "Candidates registered", value: stats.registeredCount },
+    { label: "Candidates registered today", value: stats.candidatesRegisteredToday },
     { label: "Active on site now", value: stats.activeOnSiteNow },
-    { label: "Avg. daily visitors", value: stats.avgDailyVisitors },
+    { label: "Total visits", value: stats.totalVisits },
   ];
 
   return (

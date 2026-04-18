@@ -72,7 +72,11 @@ export default async function Home() {
               <p>✓ 2-week delivery</p>
             </div>
           </div>
-          <HeroStatsPanel registeredCount={candidateActivity.registeredCount} />
+          <HeroStatsPanel
+            candidatesRegisteredToday={candidateActivity.candidatesRegisteredToday}
+            activeOnSiteNow={candidateActivity.activeOnSiteNow}
+            totalVisits={candidateActivity.totalVisits}
+          />
         </div>
       </section>
 
