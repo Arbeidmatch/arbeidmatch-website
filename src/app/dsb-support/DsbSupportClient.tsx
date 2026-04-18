@@ -207,7 +207,7 @@ export default function DsbSupportClient() {
               "FAQ and common mistakes",
             ]}
             processingTime="2 to 4 months"
-            price="19 EUR"
+            price="15 EUR"
             buttonLabel="Get the EU/EEA Guide"
           />
           <GuideCheckoutCard
@@ -223,7 +223,7 @@ export default function DsbSupportClient() {
               "FAQ and appeals process",
             ]}
             processingTime="6 to 12 months"
-            price="49 EUR"
+            price="39 EUR"
             buttonLabel="Get the Non-EU Guide"
           />
         </div>
