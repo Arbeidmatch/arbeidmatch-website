@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Props = {
   candidatesRegisteredToday: number;
@@ -26,20 +26,19 @@ function getCandidatesBaseForDate(now: Date): number {
   return Math.max(1, Math.min(18, raw));
 }
 
-/** B2B-scale hourly band for “active now” (before global clamp). */
+/** Hourly band for “active on site now” (local hour). */
 function getActiveRangeByHour(hour: number): { min: number; max: number } {
-  if (hour >= 0 && hour <= 6) return { min: 2, max: 6 }; // night 00-07 (hours 0-6)
-  if (hour >= 7 && hour < 10) return { min: 8, max: 15 }; // morning 07-10
-  if (hour >= 10 && hour < 17) return { min: 12, max: 28 }; // day 10-17
-  if (hour >= 17 && hour < 22) return { min: 8, max: 18 }; // evening 17-22
-  return { min: 4, max: 10 }; // late 22-00
+  if (hour >= 0 && hour <= 6) return { min: 3, max: 8 }; // night 00–07
+  if (hour >= 7 && hour <= 9) return { min: 8, max: 18 }; // morning 07–10
+  if (hour >= 10 && hour <= 16) return { min: 15, max: 30 }; // day 10–17
+  if (hour >= 17 && hour <= 21) return { min: 10, max: 22 }; // evening 17–22
+  return { min: 5, max: 12 }; // late 22–00
 }
 
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-/** ease-out-expo — slow dramatic finish */
 function easeOutExpo(t: number): number {
   return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
 }
@@ -54,10 +53,8 @@ function SmoothNumber({
 }: {
   value: number;
   run: boolean;
-  /** Skip count-up (e.g. hero stats already in view on first paint). */
   instant?: boolean;
   durationMs: number;
-  /** Stagger count-up start vs previous stat (ms). */
   delayMs?: number;
   suffix?: string;
 }) {
@@ -118,14 +115,22 @@ function SmoothNumber({
         tickPulse ? "opacity-95" : "opacity-100"
       }`}
     >
-      {display.toLocaleString()}
+      {display.toLocaleString("en-US")}
       {suffix}
     </span>
   );
 }
 
+function readVisitsFromStorage(): number {
+  if (typeof window === "undefined") return TOTAL_VISITS_BASE;
+  const stored = window.localStorage.getItem(STORAGE_VISITS);
+  if (!stored) return TOTAL_VISITS_BASE;
+  const n = Number.parseInt(stored, 10);
+  return Number.isFinite(n) ? n : TOTAL_VISITS_BASE;
+}
+
 /**
- * Hero navy grid: modeled daily signups + static placement stats + linked live-style metrics.
+ * Hero navy grid: daily signups + static placement stats + active band + persistent total visits.
  */
 export default function HeroStatsPanel({
   candidatesRegisteredToday: _candidatesRegisteredToday,
@@ -133,14 +138,17 @@ export default function HeroStatsPanel({
   totalVisits: _totalVisits,
 }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const activeNowRef = useRef(12);
   const [runNumbers, setRunNumbers] = useState(false);
-  /** When stats are already in view on first reveal, show values immediately (no count-up). */
   const [countInstant, setCountInstant] = useState(false);
   const [candidatesToday, setCandidatesToday] = useState(0);
   const [activeNow, setActiveNow] = useState(12);
   const [totalVisits, setTotalVisits] = useState(TOTAL_VISITS_BASE);
 
-  // Run count-up once when panel enters viewport — skip count-up if already visible (e.g. home hero).
+  useEffect(() => {
+    activeNowRef.current = activeNow;
+  }, [activeNow]);
+
   useEffect(() => {
     const node = panelRef.current;
     if (!node) return;
@@ -165,13 +173,53 @@ export default function HeroStatsPanel({
   }, []);
 
   useEffect(() => {
+    setTotalVisits(readVisitsFromStorage());
+  }, []);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden) return;
+      const fresh = window.localStorage.getItem(STORAGE_VISITS);
+      if (!fresh) return;
+      const n = Number.parseInt(fresh, 10);
+      if (Number.isFinite(n)) setTotalVisits(n);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    let tid: number | undefined;
+
+    const schedule = () => {
+      tid = window.setTimeout(() => {
+        if (!alive) return;
+        setTotalVisits((currentVisits) => {
+          const increment =
+            Math.floor(Math.random() * Math.max(1, Math.floor(activeNowRef.current * 0.3))) + 1;
+          const newVisits = currentVisits + increment;
+          window.localStorage.setItem(STORAGE_VISITS, String(newVisits));
+          return newVisits;
+        });
+        schedule();
+      }, randomInt(20, 40) * 1000);
+    };
+
+    schedule();
+    return () => {
+      alive = false;
+      if (tid !== undefined) window.clearTimeout(tid);
+    };
+  }, []);
+
+  useEffect(() => {
     const now = new Date();
     const todayKey = getLocalDateKey(now);
     const baseCandidates = getCandidatesBaseForDate(now);
 
     const storedDate = window.localStorage.getItem(STORAGE_CANDIDATES_DATE);
     const storedCandidatesRaw = window.localStorage.getItem(STORAGE_CANDIDATES);
-    const storedVisitsRaw = window.localStorage.getItem(STORAGE_VISITS);
 
     const restoredCandidates = storedCandidatesRaw ? Number.parseInt(storedCandidatesRaw, 10) : Number.NaN;
     const safeCandidates =
@@ -182,14 +230,10 @@ export default function HeroStatsPanel({
     window.localStorage.setItem(STORAGE_CANDIDATES_DATE, todayKey);
     window.localStorage.setItem(STORAGE_CANDIDATES, String(safeCandidates));
 
-    const restoredVisits = storedVisitsRaw ? Number.parseInt(storedVisitsRaw, 10) : TOTAL_VISITS_BASE;
-    const safeVisits = Number.isFinite(restoredVisits) ? Math.max(TOTAL_VISITS_BASE, restoredVisits) : TOTAL_VISITS_BASE;
-    setTotalVisits(safeVisits);
-    window.localStorage.setItem(STORAGE_VISITS, String(safeVisits));
-
     const activeRange = getActiveRangeByHour(now.getHours());
-    const seed = clamp(randomInt(6, 18), activeRange.min, activeRange.max);
+    const seed = clamp(randomInt(activeRange.min, activeRange.max), activeRange.min, activeRange.max);
     setActiveNow(seed);
+    activeNowRef.current = seed;
   }, []);
 
   useEffect(() => {
@@ -232,8 +276,7 @@ export default function HeroStatsPanel({
 
       setActiveNow((prev) => {
         const nudged = prev + delta;
-        const inBand = clamp(nudged, range.min, range.max);
-        return clamp(inBand, 2, 35);
+        return clamp(nudged, range.min, range.max);
       });
 
       nextAt = Date.now() + randomInt(15, 25) * 1000;
@@ -241,32 +284,6 @@ export default function HeroStatsPanel({
 
     return () => window.clearInterval(intervalId);
   }, []);
-
-  useEffect(() => {
-    let nextAt = Date.now() + randomInt(18, 35) * 1000;
-    const intervalId = window.setInterval(() => {
-      if (Date.now() < nextAt) return;
-
-      setTotalVisits((prev) => {
-        const next = prev + 1;
-        window.localStorage.setItem(STORAGE_VISITS, String(next));
-        return next;
-      });
-
-      nextAt = Date.now() + randomInt(18, 35) * 1000;
-    }, 1000);
-
-    return () => window.clearInterval(intervalId);
-  }, []);
-
-  const staticMetrics = useMemo(
-    () => [
-      { value: 200, suffix: "+", label: "Candidates placed" },
-      { value: 30, suffix: "+", label: "Active clients" },
-      { value: 8, suffix: "+", label: "EU countries" },
-    ],
-    [],
-  );
 
   return (
     <div ref={panelRef} className="grid grid-cols-2 gap-6 rounded-xl bg-navy p-10">
@@ -282,27 +299,27 @@ export default function HeroStatsPanel({
         </p>
         <p className="mt-2 text-sm text-white">Candidates registered today</p>
       </div>
-      {staticMetrics.map((item, i) => (
-        <div key={item.label}>
-          <p className="font-mono text-4xl font-bold text-gold">
-            <SmoothNumber
-              value={item.value}
-              suffix={item.suffix}
-              run={runNumbers}
-              instant={countInstant}
-              durationMs={2000}
-              delayMs={150 * (i + 1)}
-            />
-          </p>
-          <p className="text-sm text-white">{item.label}</p>
-        </div>
-      ))}
+
+      <div>
+        <p className="font-mono text-4xl font-bold text-gold">30</p>
+        <p className="text-sm text-white">EU/EEA countries</p>
+      </div>
+      <div>
+        <p className="font-mono text-4xl font-bold text-gold">200+</p>
+        <p className="text-sm text-white">Candidates placed</p>
+      </div>
+      <div>
+        <p className="font-mono text-4xl font-bold text-gold">30+</p>
+        <p className="text-sm text-white">Active clients</p>
+      </div>
+
       <div>
         <p className="font-mono text-4xl font-bold tabular-nums text-gold md:text-5xl">
           <SmoothNumber value={activeNow} run={runNumbers} instant={countInstant} durationMs={2000} delayMs={450} />
         </p>
         <p className="mt-2 text-sm text-white">Active on site now</p>
       </div>
+
       <div className="col-span-2 border-t border-white/10 pt-6">
         <p className="font-mono text-4xl font-bold tabular-nums text-gold md:text-5xl">
           <SmoothNumber
