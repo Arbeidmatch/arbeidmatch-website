@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import DsbTypeSelector from "@/components/dsb/DsbTypeSelector";
 
 export const metadata: Metadata = {
-  title: "DSB Authorization Guide Norway — Choose Your Guide",
+  title: "DSB Authorization Guide for Norway: Choose Your Guide",
   description: "Choose your EU/EEA or Non-EU DSB authorization guide for Norway.",
 };
 

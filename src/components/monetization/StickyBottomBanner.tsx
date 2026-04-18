@@ -62,7 +62,7 @@ export default function StickyBottomBanner({ enabled }: { enabled: boolean }) {
                   <span className="bg-gradient-to-r from-gold via-amber-100 to-gold bg-clip-text text-transparent">
                     Free DSB checklist for electricians
                   </span>
-                  <span className="text-white/85"> — Norway-ready documents in one place.</span>
+                  <span className="text-white/85"> Norway-ready documents in one place.</span>
                 </span>
               </p>
             </div>

@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
           <div style="padding:24px;color:#0D1B2A;line-height:1.6;">
             <p style="margin:0 0 12px;">Hi ${escapeHtml(full_name)},</p>
             <p style="margin:0 0 12px;">We received your application and will review it within <strong>48 hours</strong>. We look forward to potentially building together.</p>
-            <p style="margin:16px 0 0;color:#555;font-size:14px;">— ArbeidMatch Recruiter Network</p>
+            <p style="margin:16px 0 0;color:#555;font-size:14px;">The ArbeidMatch Recruiter Network team</p>
           </div>
         </div>
       </div>
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       ["Profile URL", social_url],
       ["Monthly reach", String(monthly_reach)],
       ["ENK / AS", companyLabel],
-      ["Motivation", motivation || "—"],
+      ["Motivation", motivation || "None provided"],
     ]
       .map(
         ([k, v]) =>
@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
     await transporter.sendMail({
       from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
       to: "post@arbeidmatch.no",
-      subject: `New Network Application: ${full_name} — ${typeLabel} — ${country}`,
+      subject: `New Network Application: ${full_name} · ${typeLabel} · ${country}`,
       html: adminHtml,
     });
 

@@ -1,4 +1,4 @@
-export const DSB_CHECKLIST_EMAIL_SUBJECT = "Your Free DSB Document Checklist — ArbeidMatch";
+export const DSB_CHECKLIST_EMAIL_SUBJECT = "Your Free DSB Document Checklist from ArbeidMatch";
 
 function escapeHtml(s: string) {
   return s

@@ -130,7 +130,7 @@ export default function RecruiterNetworkClient() {
       badge: "100K+ monthly reach",
       title: "The Influencer",
       headline: "You have the audience.",
-      body: "If you run an active social media channel focused on jobs, migration, work abroad or careers — your audience is already looking for what we offer. Monetize your reach with real placements.",
+      body: "If you run an active social media channel focused on jobs, migration, work abroad or careers, your audience is already looking for what we offer. Monetize your reach with real placements.",
       bullets: [
         "Social media channel with 100K+ monthly visitors",
         "Content focused on work, jobs or migration",
@@ -150,7 +150,7 @@ export default function RecruiterNetworkClient() {
       badge: "Starting from zero",
       title: "The Learner",
       headline: "You want to learn.",
-      body: "No experience? No problem. We train you from scratch. If you are motivated, speak English and want to build something real — we will teach you everything about recruitment, compliance and the Norwegian market.",
+      body: "No experience? No problem. We train you from scratch. If you are motivated, speak English and want to build something real, we will teach you everything about recruitment, compliance and the Norwegian market.",
       bullets: ["Strong motivation and work ethic", "Professional English", "Willingness to learn and commit"],
     },
   ] as const;
@@ -164,7 +164,7 @@ export default function RecruiterNetworkClient() {
     {
       icon: <IconLayers size={36} />,
       title: "Full Infrastructure",
-      text: "ArbeidMatch website, ATS and CRM — ready from day one. No setup costs. No technical headaches.",
+      text: "ArbeidMatch website, ATS and CRM, ready from day one. No setup costs. No technical headaches.",
     },
     {
       icon: <IconVenn size={36} />,
@@ -202,10 +202,10 @@ export default function RecruiterNetworkClient() {
   ] as const;
 
   const requirements = [
-    "Active presence — social media, community or professional network",
+    "Active presence: social media, community or professional network",
     "100K+ monthly reach (for influencer track) or relevant experience",
     "Professional English communication",
-    "ENK or AS in your country — we help you set this up",
+    "ENK or AS in your country: we help you set this up",
     "Exclusive focus on your designated region",
     "Genuine interest in building something long-term",
   ] as const;
@@ -496,7 +496,7 @@ export default function RecruiterNetworkClient() {
           <Reveal isMobile={isMobile} delay={0.25} className="mx-auto mt-10 max-w-2xl">
             <p className="text-center text-sm leading-relaxed text-white/50">
               We accept partners from all EU/EEA countries. Regional exclusivity is granted per area, not per country. No
-              experience? Apply anyway — we evaluate motivation.
+              experience? Apply anyway: we evaluate motivation.
             </p>
           </Reveal>
         </div>
