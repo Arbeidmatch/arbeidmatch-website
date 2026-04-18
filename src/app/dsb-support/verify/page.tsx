@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { verifyDsbEmailVerifyToken } from "@/lib/dsbEmailVerifyToken";
 import { createDsbGuideStripeCheckout } from "@/lib/dsbGuideCheckout";
 
@@ -11,47 +11,59 @@ export default async function DsbSupportVerifyPage({
 }: {
   searchParams: Promise<{ token?: string }>;
 }) {
-  const params = await searchParams;
-  const token = params.token?.trim();
+  try {
+    const params = await searchParams;
+    const token = params.token?.trim();
 
-  if (!token) {
-    redirect("/dsb-support");
+    console.log("[Verify Page] Token received:", !!params.token);
+    console.log("[Verify Page] Starting verification...");
+
+    if (!token) {
+      redirect("/dsb-support/eu?error=link_expired");
+    }
+
+    const payload = verifyDsbEmailVerifyToken(token);
+    console.log("[Verify Page] Payload decoded:", !!payload);
+    console.log("[Verify Page] Guide slug:", payload?.guide_slug);
+    console.log("[Verify Page] Coupon:", payload?.coupon_code);
+
+    if (!payload) {
+      redirect("/dsb-support/eu?error=link_expired");
+    }
+
+    const couponFromToken =
+      typeof payload.coupon_code === "string" && payload.coupon_code.trim()
+        ? payload.coupon_code.trim()
+        : undefined;
+
+    console.log("[Verify Page] Creating Stripe session...");
+    let result: Awaited<ReturnType<typeof createDsbGuideStripeCheckout>>;
+    try {
+      result = await createDsbGuideStripeCheckout({
+        guideSlug: payload.guide_slug,
+        email: payload.email,
+        couponCode: couponFromToken,
+      });
+    } catch (stripeErr) {
+      if (isRedirectError(stripeErr)) {
+        throw stripeErr;
+      }
+      console.error("[Verify Page] Stripe session threw:", stripeErr);
+      redirect("/dsb-support/eu?error=checkout_failed");
+    }
+
+    if (!result.ok) {
+      console.error("[Verify Page] Checkout failed:", result.error);
+      redirect("/dsb-support/eu?error=checkout_failed");
+    }
+
+    console.log("[Verify Page] Stripe URL:", result.checkoutUrl);
+    redirect(result.checkoutUrl);
+  } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+    console.error("[Verify Page] Unexpected error:", error);
+    redirect("/dsb-support?error=verify_error");
   }
-
-  const payload = verifyDsbEmailVerifyToken(token);
-  if (!payload) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center bg-surface px-4 py-16 text-center">
-        <p className="max-w-md text-navy">This verification link is invalid or has expired.</p>
-        <Link href="/dsb-support" className="mt-6 text-sm font-medium text-gold hover:text-gold-hover">
-          Back to DSB support
-        </Link>
-      </div>
-    );
-  }
-
-  const couponFromToken =
-    typeof payload.coupon_code === "string" && payload.coupon_code.trim()
-      ? payload.coupon_code.trim()
-      : undefined;
-  console.log("[Checkout] Verify JWT coupon_code:", couponFromToken ?? "(absent)");
-
-  const result = await createDsbGuideStripeCheckout({
-    guideSlug: payload.guide_slug,
-    email: payload.email,
-    couponCode: couponFromToken,
-  });
-
-  if (!result.ok) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center bg-surface px-4 py-16 text-center">
-        <p className="max-w-md text-navy">{result.error}</p>
-        <Link href="/dsb-support" className="mt-6 text-sm font-medium text-gold hover:text-gold-hover">
-          Back to DSB support
-        </Link>
-      </div>
-    );
-  }
-
-  redirect(result.checkoutUrl);
 }
