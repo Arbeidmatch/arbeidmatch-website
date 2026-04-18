@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import {
@@ -89,10 +89,6 @@ const NON_EU_CONFIG: VariantConfig = {
     "This guide covers DSB authorization only. Your work visa must be arranged separately with your Norwegian employer.",
 };
 
-function titleWords(title: string) {
-  return title.split(/\s+/).filter(Boolean);
-}
-
 function IncludedRow({
   item,
   index,
@@ -168,7 +164,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
   const sectionHeadRef = useRef<HTMLDivElement>(null);
   const headerInView = useInView(sectionHeadRef, { once: true, amount: 0.35 });
 
-  const words = useMemo(() => titleWords(cfg.title), [cfg.title]);
+  const heroHighlight = cfg.region === "eu" ? "EU/EEA" : "NON-EU";
 
   useEffect(() => {
     if (step !== "sent" || resendCountdown <= 0) return;
@@ -291,25 +287,11 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
           </div>
 
           <h1 className="dsb-premium-hero-title">
-            {words.map((word, i) => {
-              const isLast = i === words.length - 1;
-              return (
-                <motion.span
-                  key={`${word}-${i}`}
-                  className={`dsb-premium-hero-word${isLast ? " dsb-hero-word-shimmer" : ""}`}
-                  initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    delay: reduceMotion ? 0 : 0.12 + i * 0.08,
-                    duration: 0.55,
-                    ease: spring,
-                  }}
-                >
-                  {word}
-                  {i < words.length - 1 ? "\u00a0" : ""}
-                </motion.span>
-              );
-            })}
+            <span className="dsb-premium-hero-line">DSB Authorization</span>
+            <span className="dsb-premium-hero-line">Guide for</span>
+            <span className="dsb-premium-hero-line">
+              <span className="dsb-premium-hero-highlight">{heroHighlight}</span> Electricians
+            </span>
           </h1>
 
           <motion.p
