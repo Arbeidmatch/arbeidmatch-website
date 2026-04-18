@@ -2413,6 +2413,99 @@ button:focus:not(:focus-visible) {
   word-break: break-all;
 }
 
+@media (min-width: 1024px) {
+  .dsb-premium-hero {
+    padding: 60px 0 24px;
+  }
+
+  .dsb-premium-body {
+    padding: 24px 0 60px;
+  }
+
+  .dsb-premium-hero-inner,
+  .dsb-premium-body-inner {
+    max-width: 480px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  .dsb-premium-body-inner {
+    gap: 24px;
+  }
+
+  .dsb-price-card {
+    padding: 24px 32px;
+    border-radius: 16px;
+    background: rgba(184, 134, 11, 0.05);
+    border: 1px solid rgba(184, 134, 11, 0.2);
+  }
+
+  .dsb-price-value {
+    font-size: 56px;
+  }
+
+  .dsb-included-list {
+    gap: 8px;
+  }
+
+  .dsb-included-row {
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .dsb-included-row-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .dsb-included-row-text {
+    font-size: 14px;
+  }
+
+  .dsb-form-stack {
+    gap: 12px;
+  }
+
+  .dsb-discount-applied {
+    margin-bottom: 8px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+  }
+
+  .dsb-email-input-premium {
+    height: 48px;
+    border-radius: 12px;
+    margin-top: 20px;
+  }
+
+  .dsb-cta-premium {
+    height: 52px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .dsb-trust-row {
+    margin-top: 16px;
+    gap: 24px;
+  }
+
+  .dsb-trust-item {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 640px) {
+  .dsb-premium-hero-inner,
+  .dsb-premium-body-inner {
+    max-width: 100%;
+    padding: 0 16px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dsb-exit-limited {
     animation: none;
