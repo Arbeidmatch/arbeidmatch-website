@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 const links = [
   { href: "/for-employers", label: "For Employers" },
   { href: "/for-candidates", label: "For Candidates" },
-  { href: "/download", label: "Download App" },
+  { href: "/recruiter-network", label: "Partner Program" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
   { href: "/feedback", label: "Feedback" },

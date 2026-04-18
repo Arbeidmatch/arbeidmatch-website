@@ -722,3 +722,53 @@ select:focus {
 .rn-check-draw.is-done path {
   stroke-dashoffset: 0;
 }
+
+/* Footer — Download App block */
+@keyframes footer-app-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.footer-app-phone-float {
+  animation: footer-app-float 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-app-phone-float {
+    animation: none;
+  }
+}
+
+.footer-app-store-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 9999px;
+  background: rgba(10, 12, 20, 0.75);
+  border: 1px solid rgba(184, 134, 11, 0.28);
+  color: #f5f5f5;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
+  transition:
+    transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 280ms ease,
+    box-shadow 280ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .footer-app-store-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(184, 134, 11, 0.5);
+    box-shadow:
+      0 12px 32px rgba(0, 0, 0, 0.35),
+      0 0 24px rgba(184, 134, 11, 0.18);
+  }
+}
