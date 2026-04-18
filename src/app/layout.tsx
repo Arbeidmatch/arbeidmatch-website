@@ -3,6 +3,7 @@ import { Syne } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ScrollProgressBar from "@/components/ScrollProgressBar";
 import MonetizationOverlays from "@/components/monetization/MonetizationOverlays";
 import CookieConsent from "@/components/CookieConsent";
 
@@ -73,8 +74,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`h-full antialiased ${displayFont.variable}`}>
       <body className="flex min-h-full flex-col">
+        <ScrollProgressBar />
         <Navbar />
-        <main className="flex-1">{children}</main>
+        <main className="flex min-w-0 flex-1 flex-col">{children}</main>
         <Footer />
         <CookieConsent />
         <MonetizationOverlays />

@@ -27,7 +27,7 @@ export default function Footer() {
             ["Privacy", "/privacy"],
             ["Terms", "/terms"],
           ].map(([label, href]) => (
-            <Link key={href} href={href} className="block text-sm text-white/80 hover:text-gold">
+            <Link key={href} href={href} className="footer-link-premium block text-sm text-white/80">
               {label}
             </Link>
           ))}
@@ -35,10 +35,10 @@ export default function Footer() {
 
         <div className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-white/70">Resources</p>
-          <Link href="/dsb-support" className="block text-sm text-white/80 hover:text-gold">
+          <Link href="/dsb-support" className="footer-link-premium block text-sm text-white/80">
             DSB Authorization Guide
           </Link>
-          <Link href="/dsb-checklist" className="block text-sm text-white/80 hover:text-gold">
+          <Link href="/dsb-checklist" className="footer-link-premium block text-sm text-white/80">
             Free DSB Checklist
           </Link>
           <p className="text-sm text-white/80">Looking for jobs?</p>
@@ -48,7 +48,7 @@ export default function Footer() {
           >
             Browse open positions →
           </a>
-          <a href="mailto:post@arbeidmatch.no" className="text-sm text-white/80 hover:text-gold">
+          <a href="mailto:post@arbeidmatch.no" className="footer-link-premium text-sm text-white/80">
             post@arbeidmatch.no
           </a>
         </div>

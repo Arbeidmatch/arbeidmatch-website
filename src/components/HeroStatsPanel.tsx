@@ -39,19 +39,23 @@ function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function easeOutCubic(t: number): number {
-  return 1 - (1 - t) ** 3;
+/** ease-out-expo — slow dramatic finish */
+function easeOutExpo(t: number): number {
+  return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
 }
 
 function SmoothNumber({
   value,
   run,
   durationMs,
+  delayMs = 0,
   suffix = "",
 }: {
   value: number;
   run: boolean;
   durationMs: number;
+  /** Stagger count-up start vs previous stat (ms). */
+  delayMs?: number;
   suffix?: string;
 }) {
   const [display, setDisplay] = useState(0);
@@ -72,12 +76,17 @@ function SmoothNumber({
 
     setTickPulse(true);
     const pulseTimer = window.setTimeout(() => setTickPulse(false), 400);
-    const start = performance.now();
     let raf = 0;
+    const startAt = performance.now() + delayMs;
 
     const animate = (now: number) => {
-      const t = Math.min(1, (now - start) / durationMs);
-      const eased = easeOutCubic(t);
+      if (now < startAt) {
+        raf = window.requestAnimationFrame(animate);
+        return;
+      }
+      const elapsed = now - startAt;
+      const t = Math.min(1, elapsed / durationMs);
+      const eased = easeOutExpo(t);
       setDisplay(Math.round(from + (to - from) * eased));
       if (t < 1) {
         raf = window.requestAnimationFrame(animate);
@@ -91,7 +100,7 @@ function SmoothNumber({
       window.cancelAnimationFrame(raf);
       window.clearTimeout(pulseTimer);
     };
-  }, [value, run, durationMs]);
+  }, [value, run, durationMs, delayMs]);
 
   return (
     <span
@@ -246,27 +255,33 @@ export default function HeroStatsPanel({
     <div ref={panelRef} className="grid grid-cols-2 gap-6 rounded-xl bg-navy p-10 md:col-span-2">
       <div className="col-span-2 border-b border-white/10 pb-6">
         <p className="text-4xl font-bold tabular-nums text-gold md:text-5xl">
-          <SmoothNumber value={candidatesToday} run={runNumbers} durationMs={1500} />
+          <SmoothNumber value={candidatesToday} run={runNumbers} durationMs={2000} delayMs={0} />
         </p>
         <p className="mt-2 text-sm text-white">Candidates registered today</p>
       </div>
-      {staticMetrics.map((item) => (
+      {staticMetrics.map((item, i) => (
         <div key={item.label}>
           <p className="text-4xl font-bold text-gold">
-            <SmoothNumber value={item.value} suffix={item.suffix} run={runNumbers} durationMs={1500} />
+            <SmoothNumber
+              value={item.value}
+              suffix={item.suffix}
+              run={runNumbers}
+              durationMs={2000}
+              delayMs={150 * (i + 1)}
+            />
           </p>
           <p className="text-sm text-white">{item.label}</p>
         </div>
       ))}
       <div>
         <p className="text-4xl font-bold tabular-nums text-gold md:text-5xl">
-          <SmoothNumber value={activeNow} run={runNumbers} durationMs={1500} />
+          <SmoothNumber value={activeNow} run={runNumbers} durationMs={2000} delayMs={450} />
         </p>
         <p className="mt-2 text-sm text-white">Active on site now</p>
       </div>
       <div className="col-span-2 border-t border-white/10 pt-6">
         <p className="text-4xl font-bold tabular-nums text-gold md:text-5xl">
-          <SmoothNumber value={totalVisits} run={runNumbers} durationMs={1500} />
+          <SmoothNumber value={totalVisits} run={runNumbers} durationMs={2600} delayMs={600} />
         </p>
         <p className="mt-2 text-sm text-white">Total visits</p>
       </div>
