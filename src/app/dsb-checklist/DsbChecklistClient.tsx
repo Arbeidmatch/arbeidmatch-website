@@ -66,13 +66,13 @@ export default function DsbChecklistClient() {
             className="mx-auto max-w-3xl text-center"
           >
             <span className="inline-flex items-center rounded-full border border-gold/35 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-              Free — Instant Access
+              Free · Instant Access
             </span>
             <h1 className="mt-6 font-display text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl">
               Free DSB Checklist
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/65 md:text-lg">
-              The complete EU/EEA document list for DSB electrician approval in Norway — formatted for action, delivered
+              The complete EU/EEA document list for DSB electrician approval in Norway, formatted for action, delivered
               to your inbox.
             </p>
           </motion.div>

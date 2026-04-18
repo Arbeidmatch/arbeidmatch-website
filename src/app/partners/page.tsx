@@ -12,7 +12,7 @@ import {
 export const metadata: Metadata = {
   title: "Partners",
   description:
-    "Trusted partners for ArbeidMatch — accounting, translation, language courses, accommodation and more. Coming soon.",
+    "Trusted partners for ArbeidMatch, accounting, translation, language courses, accommodation and more. Coming soon.",
 };
 
 const cards: { icon: typeof Building2; title: string }[] = [
@@ -33,7 +33,7 @@ export default function PartnersPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Ecosystem</p>
           <h1 className="mt-4 font-display text-4xl font-bold tracking-tight md:text-5xl">Trusted Partners</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-white/65">
-            Curated services for EU/EEA workers and Norwegian employers — quality bar, zero fluff.
+            Curated services for EU/EEA workers and Norwegian employers, quality bar, zero fluff.
           </p>
         </div>
 

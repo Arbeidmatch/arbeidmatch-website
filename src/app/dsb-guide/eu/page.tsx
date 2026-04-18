@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DsbGuidePage } from "@/components/dsb/DsbGuidePage";
 
 export const metadata: Metadata = {
-  title: "DSB Guide — EU/EEA Electricians",
+  title: "DSB Guide: EU/EEA Electricians",
   robots: { index: false, follow: false },
 };
 

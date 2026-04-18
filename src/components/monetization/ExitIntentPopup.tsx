@@ -95,7 +95,7 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
                 Before you leave...
               </h2>
               <p className="mt-3 bg-gradient-to-r from-gold via-amber-200 to-gold bg-clip-text text-base font-medium text-transparent sm:text-lg">
-                Grab the free EU/EEA DSB document checklist — instant email delivery.
+                Grab the free EU/EEA DSB document checklist, instant email delivery.
               </p>
               <div className="mt-8">
                 <Link

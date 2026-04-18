@@ -5,7 +5,7 @@ import DsbSupportClient from "./DsbSupportClient";
 export const metadata: Metadata = {
   title: "DSB Authorization Guides",
   description:
-    "DSB authorization guides for electricians in Norway — EU/EEA and non-EU paths, secure checkout and online access.",
+    "DSB authorization guides for electricians in Norway: EU/EEA and non-EU paths, secure checkout and online access.",
 };
 
 export default function DsbSupportPage() {

@@ -1,24 +1,4 @@
-/**
- * EU/EEA DSB document checklist excerpted from docs/dsb-guide-eu.md (Step 3).
- * Used in confirmation emails for /dsb-checklist leads.
- */
-export const DSB_EU_DOCUMENT_CHECKLIST_ITEMS: string[] = [
-  "CV describing your personal data, education with dates and relevant practical experience in the profession you are applying for",
-  "Copy of original school report or diploma including a list of subjects, transcript of grades and curriculum",
-  "Copy of translated school report or diploma (if not in English, Swedish or Danish)",
-  "Copy of original authorization, permission or certificate of competence to practice the profession in your home country",
-  "Copy of translated authorization or certificate of competence (if applicable)",
-  "Copy of original references from current or former employers proving at least one year of practical experience in the profession during the previous 10 years after graduation (experience must be from outside Norway)",
-  "Copy of translated references (if not in English, Swedish or Danish)",
-  "Copy of valid passport or national identity card issued by an EU/EEA or EFTA state",
-];
-
-export const DSB_SUBMISSION_NOTES = [
-  "All documents must be submitted in PDF format.",
-  "Documents not written in English, Swedish or Danish must be translated by an authorized translator (primarily English, secondarily Norwegian).",
-  "Online portal (recommended): profapp.dsb.no · Email: postmottak@dsb.no",
-  "From Jan 1, 2025, DSB processing fee: 3,200 NOK for the first profession; 2,400 NOK for each additional profession in the same application (payable to DSB directly).",
-];
+export const DSB_CHECKLIST_EMAIL_SUBJECT = "Your Free DSB Document Checklist — ArbeidMatch";
 
 function escapeHtml(s: string) {
   return s
@@ -30,31 +10,46 @@ function escapeHtml(s: string) {
 
 export function buildDsbChecklistEmailHtml(firstName: string) {
   const safe = escapeHtml(firstName);
-  const listItems = DSB_EU_DOCUMENT_CHECKLIST_ITEMS.map(
-    (item, i) => `<li style="margin:0 0 10px 0;">${i + 1}. ${escapeHtml(item)}</li>`,
-  ).join("");
-  const notes = DSB_SUBMISSION_NOTES.map((n) => `<p style="margin:0 0 8px 0;">${escapeHtml(n)}</p>`).join("");
 
   return `
-    <div style="font-family:Inter,Arial,sans-serif;background:#0a0f14;padding:24px;color:#e8ecf2;">
-      <div style="max-width:640px;margin:0 auto;background:#111a24;border-radius:12px;border:1px solid rgba(201,168,76,0.35);overflow:hidden;">
-        <div style="background:#0D1B2A;color:#fff;padding:20px 22px;">
-          <div style="font-size:22px;font-weight:800;">Arbeid<span style="color:#C9A84C;">Match</span></div>
-          <div style="margin-top:8px;color:#DDE3ED;font-size:15px;">Your DSB Authorization Checklist (EU/EEA)</div>
+    <div style="background:#ffffff;padding:24px;">
+      <div style="max-width:600px;margin:0 auto;color:#1a1a1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;">
+        <div style="padding-bottom:14px;margin-bottom:20px;border-bottom:1px solid #ececec;">
+          <div style="font-size:24px;font-weight:700;color:#B8860B;">ArbeidMatch</div>
         </div>
-        <div style="padding:22px;">
-          <p style="margin:0 0 14px 0;font-size:16px;">Hi ${safe},</p>
-          <p style="margin:0 0 16px 0;line-height:1.55;color:#c9d2de;">
-            Here is the complete document checklist for EU/EEA electricians applying for DSB approval in Norway.
-          </p>
-          <p style="margin:0 0 10px 0;font-weight:700;color:#C9A84C;">Required documents for all EU/EEA applicants</p>
-          <ol style="margin:0;padding-left:18px;line-height:1.45;color:#e8ecf2;">${listItems}</ol>
-          <div style="margin-top:18px;padding:14px;border-radius:8px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);font-size:13px;color:#c9d2de;">
-            ${notes}
-          </div>
-          <p style="margin:20px 0 0 0;font-size:12px;color:#8a96a8;">
-            This email is informational only and does not constitute legal advice. Verify current requirements with DSB before submitting.
-          </p>
+
+        <p style="margin:0 0 12px 0;">Hi ${safe},</p>
+        <p style="margin:0 0 18px 0;">Here is your free DSB Authorization Document Checklist.</p>
+
+        <p style="margin:0 0 8px 0;font-weight:700;color:#1a1a1a;">DOCUMENTS YOU NEED TO GATHER:</p>
+        <ul style="margin:0 0 18px 0;padding-left:22px;color:#1a1a1a;">
+          <li style="margin:0 0 8px 0;">CV with dated education and work experience</li>
+          <li style="margin:0 0 8px 0;">Original school diploma or certificate including grades and curriculum</li>
+          <li style="margin:0 0 8px 0;">Copy of your professional authorization or license from your home country</li>
+          <li style="margin:0 0 8px 0;">Employer references proving at least 1 year of practical experience in the last 10 years</li>
+          <li style="margin:0 0 8px 0;">Valid passport or national ID card</li>
+          <li style="margin:0 0 8px 0;">Authorized translations of all documents not in English, Swedish or Danish</li>
+        </ul>
+
+        <p style="margin:0 0 8px 0;font-weight:700;color:#1a1a1a;">THINGS TO KEEP IN MIND:</p>
+        <p style="margin:0 0 16px 0;">
+          All files must be submitted in PDF format. Your practical experience must be from outside Norway.
+          Processing times vary depending on your application type, and there is an official government fee to pay when you submit.
+        </p>
+
+        <div style="margin:18px 0;padding:16px;border:1px solid #e8d9b2;background:#fffaf0;border-radius:8px;">
+          <p style="margin:0 0 8px 0;font-weight:700;color:#1a1a1a;">Ready for the next step?</p>
+          <p style="margin:0 0 10px 0;">Our complete DSB Authorization Guide walks you through each stage in detail.</p>
+          <a href="https://arbeidmatch.no/dsb-support" style="color:#B8860B;text-decoration:underline;">arbeidmatch.no/dsb-support</a>
+        </div>
+
+        <p style="margin:16px 0 0 0;">ArbeidMatch Norge AS</p>
+
+        <hr style="border:none;border-top:1px solid #ececec;margin:20px 0;" />
+        <p style="margin:0;font-size:12px;color:#666666;">
+          You received this because you requested our free DSB checklist.
+          Reply with "unsubscribe" to stop receiving emails from us.
+        </p>
         </div>
       </div>
     </div>

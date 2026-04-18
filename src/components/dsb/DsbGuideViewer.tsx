@@ -71,7 +71,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
     };
   }, [toc]);
 
-  const title = guideSlug === "eu" ? "DSB Guide — EU/EEA Electricians" : "DSB Guide — Non-EU Electricians";
+  const title = guideSlug === "eu" ? "DSB Guide: EU/EEA Electricians" : "DSB Guide: Non-EU Electricians";
 
   return (
     <div className="min-h-screen bg-surface pb-16 pt-8">

@@ -94,7 +94,7 @@ export default function ScrollProgressCTA({ pathname }: { pathname: string }) {
           </p>
           <p className="mt-1.5 text-xs leading-relaxed text-white/65">
             {isEmployers
-              ? "Send a staffing request — we source and screen for you."
+              ? "Send a staffing request, we source and screen for you."
               : "Browse verified roles and get matched with Norwegian employers."}
           </p>
           <Link

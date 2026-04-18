@@ -32,7 +32,7 @@ export function resolveWorkGuidePlace(input: WorkGuideTitleInput): string {
 }
 
 export function getWorkGuidePageTitle(input: WorkGuideTitleInput): string {
-  return `Work in ${resolveWorkGuidePlace(input)} — Guide`;
+  return `Work in ${resolveWorkGuidePlace(input)}: Guide`;
 }
 
 export function getWorkGuidePageDescription(place: string): string {

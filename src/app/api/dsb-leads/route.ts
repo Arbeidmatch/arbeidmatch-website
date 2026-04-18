@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         await transporter.sendMail({
           from: '"ArbeidMatch" <no-replay@arbeidmatch.no>',
           to: email,
-          subject: "Your DSB Authorization Checklist — ArbeidMatch",
+          subject: "Your DSB Authorization Checklist - ArbeidMatch",
           html: buildDsbChecklistEmailHtml(firstName),
         });
       } catch (e) {
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         await transporter.sendMail({
           from: '"ArbeidMatch Leads" <no-replay@arbeidmatch.no>',
           to: "post@arbeidmatch.no",
-          subject: `New DSB checklist lead — ${firstName}`,
+          subject: `New DSB checklist lead - ${firstName}`,
           html: `
             <div style="font-family:Inter,Arial,sans-serif;padding:16px;background:#f5f6f8;color:#0d1b2a;">
               <p><strong>New DSB checklist download</strong></p>
