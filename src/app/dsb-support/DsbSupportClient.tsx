@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -26,17 +26,35 @@ function GuideCheckoutCard({
   buttonLabel: string;
   anchorId: string;
 }) {
+  const [step, setStep] = useState<"input" | "confirm" | "sent">("input");
   const [email, setEmail] = useState("");
+  const [confirmedEmail, setConfirmedEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
+  const [resendCountdown, setResendCountdown] = useState(0);
 
-  const submit = async (e: FormEvent) => {
+  useEffect(() => {
+    if (step !== "sent" || resendCountdown <= 0) return;
+    const timer = window.setInterval(() => {
+      setResendCountdown((value) => (value > 0 ? value - 1 : 0));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [step, resendCountdown]);
+
+  const startConfirmation = (e: FormEvent) => {
     e.preventDefault();
     setError("");
     if (!email.trim() || !email.includes("@")) {
       setError("Please enter a valid email.");
       return;
     }
+    setConfirmedEmail(email.trim());
+    setStep("confirm");
+  };
+
+  const sendLink = async () => {
+    if (!confirmedEmail) return;
+    setError("");
     setStatus("loading");
     try {
       const res = await fetch("/api/dsb-guide/checkout", {
@@ -44,21 +62,30 @@ function GuideCheckoutCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           guide_slug: guideSlug,
-          email: email.trim(),
+          email: confirmedEmail,
           website: "",
         }),
       });
       const data = (await res.json()) as { success?: boolean; checkout_url?: string; error?: string };
-      if (!res.ok || !data.success || !data.checkout_url) {
+      if (!res.ok || !data.success) {
         setStatus("error");
-        setError(data.error || "Could not start checkout.");
+        setError(data.error || "Could not send access link.");
         return;
       }
-      window.location.href = data.checkout_url;
+      setStatus("idle");
+      setStep("sent");
+      setResendCountdown(60);
     } catch {
       setStatus("error");
       setError("Something went wrong. Please try again.");
     }
+  };
+
+  const resetToInput = () => {
+    setStep("input");
+    setStatus("idle");
+    setError("");
+    setResendCountdown(0);
   };
 
   return (
@@ -84,28 +111,93 @@ function GuideCheckoutCard({
         <span className="font-semibold">Typical processing time:</span> {processingTime}
       </p>
       <p className="mt-2 text-lg font-bold text-gold">{price}</p>
-      <form onSubmit={submit} className="mt-6 space-y-3">
-        <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
-        <label className="block text-sm text-navy">
-          Email for receipt &amp; access*
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(ev) => setEmail(ev.target.value)}
-            className={inputClass}
-            placeholder="you@example.com"
-          />
-        </label>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={status === "loading"}
-          className="w-full rounded-md bg-navy py-3 text-sm font-medium text-white transition hover:bg-gold hover:text-navy disabled:opacity-60"
-        >
-          {status === "loading" ? "Redirecting…" : buttonLabel}
-        </button>
-      </form>
+      <div className="mt-6 min-h-[220px] transition-all duration-300">
+        {step === "input" && (
+          <form onSubmit={startConfirmation} className="space-y-3 opacity-100 transition-opacity duration-300">
+            <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
+            <label className="block text-sm text-navy">
+              Email for receipt &amp; access*
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(ev) => setEmail(ev.target.value)}
+                className={inputClass}
+                placeholder="you@example.com"
+              />
+            </label>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <button
+              type="submit"
+              className="w-full rounded-md bg-navy py-3 text-sm font-medium text-white transition hover:bg-gold hover:text-navy"
+            >
+              {buttonLabel}
+            </button>
+          </form>
+        )}
+
+        {step === "confirm" && (
+          <div className="space-y-4 rounded-lg border border-gold/30 bg-surface p-4 text-center opacity-100 transition-opacity duration-300">
+            <p className="text-sm font-semibold uppercase tracking-wide text-navy">Please confirm your email address</p>
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gold/10 text-gold" aria-hidden>
+              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M4 6h16v12H4z" />
+                <path d="m4 7 8 6 8-6" />
+              </svg>
+            </div>
+            <p className="text-sm text-text-secondary">We will send your access link to:</p>
+            <p className="rounded-md bg-gold/10 px-3 py-2 text-xl font-bold text-navy break-all">{confirmedEmail}</p>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <button
+              type="button"
+              onClick={sendLink}
+              disabled={status === "loading"}
+              className="w-full rounded-md bg-gold py-3 text-sm font-semibold text-navy transition hover:bg-gold-hover disabled:opacity-60"
+            >
+              {status === "loading" ? "Sending..." : "Yes, this is correct - Send the link"}
+            </button>
+            <button
+              type="button"
+              onClick={resetToInput}
+              className="mx-auto block text-sm text-text-secondary underline underline-offset-2 hover:text-navy"
+            >
+              No, let me edit it
+            </button>
+          </div>
+        )}
+
+        {step === "sent" && (
+          <div className="space-y-4 rounded-lg border border-border bg-surface p-4 text-center opacity-100 transition-opacity duration-300">
+            <h3 className="text-xl font-bold text-navy">Check your inbox!</h3>
+            <p className="text-sm text-text-secondary">
+              We sent your access link to <span className="font-semibold text-navy break-all">{confirmedEmail}</span>.
+            </p>
+            <p className="text-sm text-text-secondary">
+              Click the link in the email to proceed to payment. The link expires in 30 minutes.
+            </p>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            {resendCountdown === 0 ? (
+              <button
+                type="button"
+                onClick={sendLink}
+                disabled={status === "loading"}
+                className="mx-auto rounded-md border border-navy px-4 py-2 text-xs font-medium text-navy transition hover:bg-navy hover:text-white disabled:opacity-60"
+              >
+                {status === "loading" ? "Sending..." : "Resend email"}
+              </button>
+            ) : (
+              <p className="text-xs text-text-secondary">Resend available in {resendCountdown}s</p>
+            )}
+            <button
+              type="button"
+              onClick={resetToInput}
+              className="mx-auto block text-sm text-text-secondary underline underline-offset-2 hover:text-navy"
+            >
+              Wrong email? Start over
+            </button>
+          </div>
+        )}
+      </div>
     </article>
   );
 }
