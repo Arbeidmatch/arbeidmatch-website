@@ -28,7 +28,7 @@ export default function PartnersPage() {
   return (
     <div className="relative min-h-[70vh] overflow-hidden bg-[#06090e] text-white">
       <div className="pointer-events-none absolute inset-0 min-h-[70vh] bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(201,168,76,0.12),transparent),linear-gradient(180deg,#0a0f14_0%,#06090e_100%)]" />
-      <section className="relative px-4 py-20 md:py-28">
+      <section className="relative px-4 py-12 md:py-20">
         <div className="mx-auto w-full max-w-content text-center md:px-6">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Ecosystem</p>
           <h1 className="mt-4 font-sans text-4xl font-bold tracking-tight md:text-5xl">Trusted Partners</h1>

@@ -15,13 +15,13 @@ export const metadata: Metadata = {
 export default function ForEmployersPage() {
   return (
     <>
-      <section className="bg-white py-28 lg:py-32">
+      <section className="bg-white py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 text-center md:px-6">
           <StaggerHero className="flex flex-col items-center">
             <h1 className="heading-premium-xl font-display text-4xl text-navy md:text-5xl">
               Qualified EU/EEA workforce for Norwegian businesses
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-lg text-text-secondary">
+            <p className="subtitle-premium mx-auto mt-5 max-w-2xl text-lg">
               We help employers in construction, logistics and industry secure reliable workers quickly, legally and with
               full support.
             </p>
@@ -37,7 +37,7 @@ export default function ForEmployersPage() {
 
       <HowItWorks />
 
-      <section className="bg-surface py-28 lg:py-32">
+      <section className="bg-surface py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp" className="text-center">
             <h2 className="heading-premium-xl font-display text-4xl text-navy">Our services</h2>
@@ -70,7 +70,7 @@ export default function ForEmployersPage() {
 
       <Testimonials />
 
-      <section className="mesh-cta-wrap bg-navy py-24 text-center lg:py-28">
+      <section className="mesh-cta-wrap bg-navy py-12 text-center md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp">
             <h2 className="heading-premium-xl text-3xl text-white">Need workers now?</h2>

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <section className="bg-white py-28 lg:py-32">
+    <section className="bg-white py-12 md:py-20">
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
         <ScrollReveal variant="fadeUp" className="text-center">
           <h1 className="heading-premium-xl font-display text-4xl text-navy md:text-5xl">About ArbeidMatch Norge AS</h1>

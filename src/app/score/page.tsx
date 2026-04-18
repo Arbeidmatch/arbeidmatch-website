@@ -86,7 +86,7 @@ export default function ScorePage() {
   };
 
   return (
-    <section className="bg-surface py-16">
+    <section className="bg-surface py-12 md:py-20">
       <div className="mx-auto w-full max-w-2xl rounded-xl border border-border bg-white p-8">
         <h1 className="text-3xl font-bold text-navy">
           Check if you are a good fit to work with our clients in Scandinavia

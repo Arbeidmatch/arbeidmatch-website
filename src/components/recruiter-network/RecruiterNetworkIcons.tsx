@@ -3,8 +3,6 @@
 import type { ReactNode } from "react";
 import { useId } from "react";
 
-const glow = { filter: "drop-shadow(0 0 8px rgba(184,134,11,0.4))" } as const;
-
 function GoldStroke({ children, size }: { children: ReactNode; size: number }) {
   const id = useId().replace(/:/g, "");
   return (
@@ -15,7 +13,6 @@ function GoldStroke({ children, size }: { children: ReactNode; size: number }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="rn-draw shrink-0"
-      style={glow}
       aria-hidden
     >
       <defs>
@@ -155,16 +152,17 @@ export function IconHandshake({ size = 36 }: { size?: number }) {
 
 export function IconCheckCircle({ className }: { className?: string }) {
   const id = useId().replace(/:/g, "");
+  const svgClass = ["rn-draw", className].filter(Boolean).join(" ");
   return (
     <svg
       width="56"
       height="56"
       viewBox="0 0 56 56"
       fill="none"
-      className={className}
+      className={svgClass}
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
-      style={glow}
+      style={{ filter: "drop-shadow(0 0 6px rgba(184,134,11,0.35))" }}
     >
       <defs>
         <linearGradient id={`gc-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">

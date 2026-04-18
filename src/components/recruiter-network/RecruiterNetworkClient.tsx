@@ -68,30 +68,39 @@ function Reveal({
   );
 }
 
+const ICON_SPRING_EASE = [0.34, 1.56, 0.64, 1] as const;
+
 function IconReveal({
   children,
   className = "",
   isMobile,
+  staggerIndex = 0,
 }: {
   children: ReactNode;
   className?: string;
   isMobile: boolean;
+  staggerIndex?: number;
 }) {
   const ref = useRef(null);
   const reduce = useReducedMotion();
   const isInView = useInView(ref, { once: true, amount: 0.15 });
 
   if (reduce) {
-    return <div className={`rn-icon-wrap ${className}`}>{children}</div>;
+    return <div className={`rn-icon-wrap rn-icon-wrap--static ${className}`}>{children}</div>;
   }
 
   return (
     <motion.div
       ref={ref}
       className={`rn-icon-wrap ${className}`}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={isInView ? { opacity: 1, scale: 1 } : {}}
-      transition={{ duration: isMobile ? 0.35 : 0.5, ease: HERO_EASE }}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={isInView ? { opacity: [0, 1, 1], scale: [0, 1.1, 1] } : {}}
+      transition={{
+        delay: staggerIndex * 0.1,
+        duration: isMobile ? 0.55 : 0.6,
+        times: [0, 0.52, 1],
+        ease: ICON_SPRING_EASE,
+      }}
     >
       {children}
     </motion.div>
@@ -127,7 +136,7 @@ export default function RecruiterNetworkClient() {
 
   const pathCards = [
     {
-      icon: <IconMegaphone size={36} />,
+      icon: <IconMegaphone size={48} />,
       badge: "100K+ monthly reach",
       title: "The Influencer",
       headline: "You have the audience.",
@@ -139,7 +148,7 @@ export default function RecruiterNetworkClient() {
       ],
     },
     {
-      icon: <IconNetworkPeople size={36} />,
+      icon: <IconNetworkPeople size={48} />,
       badge: "Experienced professional",
       title: "The Recruiter",
       headline: "You know the game.",
@@ -147,7 +156,7 @@ export default function RecruiterNetworkClient() {
       bullets: ["Background in recruitment or HR", "Network in your region", "ENK or AS (we help you set it up)"],
     },
     {
-      icon: <IconBookUp size={36} />,
+      icon: <IconBookUp size={48} />,
       badge: "Starting from zero",
       title: "The Learner",
       headline: "You want to learn.",
@@ -158,22 +167,22 @@ export default function RecruiterNetworkClient() {
 
   const whatYouGet = [
     {
-      icon: <IconMapCoverage size={36} />,
+      icon: <IconMapCoverage size={48} />,
       title: "Your Own Market",
       text: "Exclusive regional coverage. Clients in your region are yours. We route clients from other regions to you.",
     },
     {
-      icon: <IconLayers size={36} />,
+      icon: <IconLayers size={48} />,
       title: "Full Infrastructure",
       text: "ArbeidMatch website, ATS and CRM, ready from day one. No setup costs. No technical headaches.",
     },
     {
-      icon: <IconVenn size={36} />,
+      icon: <IconVenn size={48} />,
       title: "Shared Database",
       text: "Access our pool of pre-screened EU/EEA candidates and Norwegian employer clients from day one.",
     },
     {
-      icon: <IconTrend size={36} />,
+      icon: <IconTrend size={48} />,
       title: "Commission Model",
       text: "Zero upfront investment. You earn on every placement. We help you set up your ENK or AS to invoice legally.",
     },
@@ -181,22 +190,22 @@ export default function RecruiterNetworkClient() {
 
   const steps = [
     {
-      icon: <IconDocCheck size={28} />,
+      icon: <IconDocCheck size={36} />,
       title: "Apply",
       text: "Fill out the form. We review your profile, reach and motivation.",
     },
     {
-      icon: <IconMonitor size={28} />,
+      icon: <IconMonitor size={36} />,
       title: "Get onboarded",
       text: "We set up your account, train you on the platform and introduce you to our processes.",
     },
     {
-      icon: <IconPeopleArrow size={28} />,
+      icon: <IconPeopleArrow size={36} />,
       title: "Start recruiting",
       text: "Use our full infrastructure to serve clients and source candidates in your region.",
     },
     {
-      icon: <IconHandshake size={28} />,
+      icon: <IconHandshake size={36} />,
       title: "Earn together",
       text: "Commission on every placement. Scale at your own pace. Grow with the network.",
     },
@@ -260,7 +269,7 @@ export default function RecruiterNetworkClient() {
 
   return (
     <div className="bg-[#06090e] text-white">
-      <section className="recruiter-network-hero min-h-[88vh] flex flex-col justify-center py-24 md:py-32">
+      <section className="recruiter-network-hero flex min-h-[88vh] flex-col justify-center py-12 md:py-20">
         <div className="rn-hero-inner mx-auto w-full max-w-content px-4 md:px-6">
           {!reduce ? (
             <>
@@ -342,7 +351,7 @@ export default function RecruiterNetworkClient() {
         </div>
       </section>
 
-      <section id="three-paths" className="border-t border-white/5 py-24 md:py-32">
+      <section id="three-paths" className="border-t border-white/5 py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <Reveal isMobile={isMobile}>
             <h2 className="text-center font-sans text-3xl font-extrabold tracking-[-0.03em] text-white md:text-4xl">
@@ -354,7 +363,7 @@ export default function RecruiterNetworkClient() {
             {pathCards.map((card, i) => (
               <Reveal key={card.title} isMobile={isMobile} delay={i * stagger} className="h-full">
                 <article className="rn-card-net card-premium card-premium-gold flex h-full flex-col p-8">
-                  <IconReveal isMobile={isMobile} className="mb-5">
+                  <IconReveal isMobile={isMobile} className="mb-5" staggerIndex={i}>
                     {card.icon}
                   </IconReveal>
                   <span className="mb-4 inline-flex w-fit rounded-full border border-[#B8860B]/50 bg-[#B8860B]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">
@@ -378,7 +387,7 @@ export default function RecruiterNetworkClient() {
         </div>
       </section>
 
-      <section className="border-t border-white/5 py-24 md:py-32">
+      <section className="border-t border-white/5 py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <Reveal isMobile={isMobile}>
             <h2 className="text-center font-sans text-3xl font-extrabold tracking-[-0.03em] text-white md:text-4xl">
@@ -389,7 +398,7 @@ export default function RecruiterNetworkClient() {
             {whatYouGet.map((item, i) => (
               <Reveal key={item.title} isMobile={isMobile} delay={i * stagger} className="h-full">
                 <article className="rn-card-net card-premium card-premium-gold flex h-full flex-col p-8">
-                  <IconReveal isMobile={isMobile} className="mb-5">
+                  <IconReveal isMobile={isMobile} className="mb-5" staggerIndex={i}>
                     {item.icon}
                   </IconReveal>
                   <h3 className="text-lg font-bold text-white">{item.title}</h3>
@@ -401,7 +410,7 @@ export default function RecruiterNetworkClient() {
         </div>
       </section>
 
-      <section className="border-t border-white/5 py-24 md:py-32">
+      <section className="border-t border-white/5 py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <Reveal isMobile={isMobile}>
             <h2 className="text-center font-sans text-3xl font-extrabold tracking-[-0.03em] text-white md:text-4xl">
@@ -444,7 +453,7 @@ export default function RecruiterNetworkClient() {
                     </motion.span>
                   </div>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                    <IconReveal isMobile={isMobile} className="shrink-0 pt-1">
+                    <IconReveal isMobile={isMobile} className="shrink-0 pt-1" staggerIndex={i}>
                       {step.icon}
                     </IconReveal>
                     <div>
@@ -459,7 +468,7 @@ export default function RecruiterNetworkClient() {
         </div>
       </section>
 
-      <section className="border-t border-white/5 py-24 md:py-32">
+      <section className="border-t border-white/5 py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <Reveal isMobile={isMobile}>
             <h2 className="text-center font-sans text-3xl font-extrabold tracking-[-0.03em] text-white md:text-4xl">
@@ -503,7 +512,7 @@ export default function RecruiterNetworkClient() {
         </div>
       </section>
 
-      <section ref={formRef} id="apply" className="border-t border-white/5 py-24 md:py-32">
+      <section ref={formRef} id="apply" className="border-t border-white/5 py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <Reveal isMobile={isMobile}>
             <h2 className="text-center font-sans text-3xl font-extrabold tracking-[-0.03em] text-white md:text-4xl">

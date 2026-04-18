@@ -71,10 +71,10 @@ export default function DownloadPage() {
             "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,168,76,0.14), transparent 55%), radial-gradient(ellipse 60% 40% at 100% 100%, rgba(13,27,42,0.5), transparent), linear-gradient(180deg, #0a0c14 0%, #06090e 50%, #05070b 100%)",
         }}
       />
-      <div className="relative mx-auto flex w-full max-w-content flex-col items-center px-4 py-16 md:px-6 md:py-24">
+      <div className="relative mx-auto flex w-full max-w-content flex-col items-center px-4 py-12 md:px-6 md:py-20">
         <motion.div
           animate={reduce ? undefined : { y: [0, -10, 0] }}
-          transition={reduce ? undefined : { duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+          transition={reduce ? undefined : { duration: 3, repeat: Infinity, ease: [0.42, 0, 0.58, 1] }}
           className="mb-8 flex h-20 w-20 items-center justify-center rounded-2xl border border-gold/35 bg-[#111320]/90 text-gold shadow-[0_12px_40px_rgba(0,0,0,0.45)]"
           aria-hidden
         >

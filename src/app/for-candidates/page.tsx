@@ -17,13 +17,13 @@ export const metadata: Metadata = {
 export default function ForCandidatesPage() {
   return (
     <>
-      <section className="bg-white py-28 lg:py-32">
+      <section className="bg-white py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 text-center md:px-6">
           <StaggerHero className="flex flex-col items-center">
             <h1 className="heading-premium-xl font-display text-4xl text-navy md:text-5xl">
               Find legal, quality jobs in Norway
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-lg text-text-secondary">
+            <p className="subtitle-premium mx-auto mt-5 max-w-2xl text-lg">
               We connect qualified EU/EEA workers with Norwegian employers. Legal contracts, competitive conditions, and
               full support.
             </p>
@@ -39,7 +39,7 @@ export default function ForCandidatesPage() {
 
       <ForCandidatesDsbSection />
 
-      <section className="bg-surface py-28 lg:py-32">
+      <section className="bg-surface py-12 md:py-20">
         <div className="mx-auto grid w-full max-w-content gap-6 px-4 md:grid-cols-2 md:px-6">
           {[
             [CheckCircle2, "Legal employment", "Permanent contract under Norwegian labor law"],
@@ -58,7 +58,7 @@ export default function ForCandidatesPage() {
         </div>
       </section>
 
-      <section className="bg-white py-28 lg:py-32">
+      <section className="bg-white py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp" className="text-center">
             <h2 className="heading-premium-xl font-display text-4xl text-navy">Industries hiring now</h2>
@@ -75,7 +75,7 @@ export default function ForCandidatesPage() {
               <ScrollReveal key={title as string} variant="fadeUp">
                 <Link
                   href="/score"
-                  className="card-premium group block h-full cursor-pointer rounded-xl border border-border bg-white p-6 no-underline"
+                  className="card-premium card-premium-gold group block h-full cursor-pointer rounded-xl border border-border bg-white p-6 no-underline"
                 >
                   <Icon className="text-gold" size={26} />
                   <h3 className="mt-4 font-semibold text-navy">{title as string}</h3>
@@ -89,7 +89,7 @@ export default function ForCandidatesPage() {
         </div>
       </section>
 
-      <section className="bg-surface py-28 lg:py-32">
+      <section className="bg-surface py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp" className="text-center">
             <h2 className="heading-premium-xl font-display text-4xl text-navy">How to apply</h2>
@@ -111,7 +111,7 @@ export default function ForCandidatesPage() {
         </div>
       </section>
 
-      <section className="bg-navy py-20 text-center">
+      <section className="bg-navy py-12 text-center md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp">
             <h2 className="heading-premium-xl text-3xl text-white">Not sure if you qualify?</h2>
@@ -122,7 +122,7 @@ export default function ForCandidatesPage() {
           <ScrollReveal variant="fadeUp">
             <a
               href="/score"
-              className="mt-6 inline-block rounded-md border border-white px-6 py-3 text-white transition-colors hover:bg-white/10"
+              className="btn-outline-premium mt-6 inline-block rounded-md border border-white px-6 py-3 text-white hover:bg-white/10"
             >
               Start readiness check
             </a>
@@ -130,7 +130,7 @@ export default function ForCandidatesPage() {
         </div>
       </section>
 
-      <section className="bg-white py-24 text-center">
+      <section className="bg-white py-12 text-center md:py-20">
         <div className="space-y-4">
           <ScrollReveal variant="fadeUp">
             <a

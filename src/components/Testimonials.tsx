@@ -29,7 +29,7 @@ const testimonials = [
 
 export default function Testimonials() {
   return (
-    <section className="bg-surface py-28 lg:py-32">
+    <section className="bg-surface py-12 md:py-20">
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
         <ScrollReveal variant="fadeUp" className="text-center">
           <h2 className="heading-premium-xl font-display text-4xl text-navy">What our clients say</h2>

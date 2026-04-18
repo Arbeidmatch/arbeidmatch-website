@@ -1,9 +1,11 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import ExitIntentPopup from "./ExitIntentPopup";
-import StickyBottomBanner from "./StickyBottomBanner";
 import ScrollProgressCTA from "./ScrollProgressCTA";
+
+const ExitIntentPopup = dynamic(() => import("./ExitIntentPopup"), { ssr: false });
+const StickyBottomBanner = dynamic(() => import("./StickyBottomBanner"), { ssr: false });
 
 /**
  * Monetization / passive conversion layer (Nordic Precision UI).

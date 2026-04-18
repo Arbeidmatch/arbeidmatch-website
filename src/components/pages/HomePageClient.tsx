@@ -167,7 +167,7 @@ export default function HomePageClient({
 
   return (
     <>
-      <section className="flex min-h-screen items-center bg-white py-28 lg:py-32">
+      <section className="flex min-h-screen items-center bg-white py-12 md:py-20">
         <div className="mx-auto grid w-full max-w-content gap-10 px-4 md:grid-cols-5 md:px-6">
           {hero}
           {!reduce ? (
@@ -187,7 +187,7 @@ export default function HomePageClient({
 
       {bannerSlot}
 
-      <section className="bg-surface py-32 lg:py-40">
+      <section className="bg-surface py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp" className="text-center">
             <h2 className="heading-premium-xl font-sans text-4xl text-navy">Who are you?</h2>
@@ -257,7 +257,7 @@ export default function HomePageClient({
 
       <ScrollReveal variant="fadeIn">{howItWorksSlot}</ScrollReveal>
 
-      <section className="bg-surface py-28 lg:py-32">
+      <section className="bg-surface py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp" className="text-center">
             <h2 className="heading-premium-xl font-sans text-4xl text-navy">Industries we serve</h2>
@@ -280,7 +280,7 @@ export default function HomePageClient({
         </div>
       </section>
 
-      <section className="bg-white py-28 lg:py-32">
+      <section className="bg-white py-12 md:py-20">
         <div className="mx-auto grid w-full max-w-content gap-8 px-4 md:grid-cols-2 md:px-6">
           <ScrollReveal variant="fadeLeft" className="rounded-xl bg-navy p-12">
             <h2 className="heading-premium-xl mb-8 text-3xl text-white">Why Norwegian companies choose us</h2>
@@ -318,7 +318,7 @@ export default function HomePageClient({
 
       <ScrollReveal variant="fadeIn">{testimonialsSlot}</ScrollReveal>
 
-      <section className="mesh-cta-wrap bg-navy py-28 text-center lg:py-32">
+      <section className="mesh-cta-wrap bg-navy py-12 text-center md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp">
             <h2 className="heading-premium-xl mb-4 text-4xl text-white">Ready to find your next workers?</h2>

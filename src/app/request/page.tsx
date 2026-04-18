@@ -321,7 +321,7 @@ export default function RequestPage() {
   const motionHero = !reduce;
 
   return (
-    <section className="bg-surface py-16">
+    <section className="bg-surface py-12 md:py-20">
       <div className="relative mx-auto w-full max-w-2xl rounded-xl border border-border bg-white p-8 shadow-[0_12px_40px_rgba(13,27,42,0.06)]">
         {status === "success" && (
           <motion.div

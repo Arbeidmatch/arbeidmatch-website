@@ -5,15 +5,16 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollProgressBar from "@/components/ScrollProgressBar";
-import MonetizationOverlays from "@/components/monetization/MonetizationOverlays";
 import CookieConsent from "@/components/CookieConsent";
 
-const ContextualHelper = dynamic(() => import("@/components/ContextualHelper"), { loading: () => null });
+const DeferredAppOverlays = dynamic(() => import("@/components/client/DeferredAppOverlays"), { loading: () => null });
 
 const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -82,9 +83,8 @@ export default function RootLayout({
         <Navbar />
         <main className="flex min-w-0 flex-1 flex-col overflow-x-clip">{children}</main>
         <Footer />
-        <ContextualHelper />
+        <DeferredAppOverlays />
         <CookieConsent />
-        <MonetizationOverlays />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

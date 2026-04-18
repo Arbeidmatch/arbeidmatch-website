@@ -1,6 +1,6 @@
 export default function TermsPage() {
   return (
-    <section className="bg-[#0a0f14] py-20 md:py-28">
+    <section className="bg-[#0a0f14] py-12 md:py-20">
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
         <article className="mx-auto max-w-[680px] space-y-8 text-[12px] leading-[1.6] text-[#888]">
           <header className="space-y-3">

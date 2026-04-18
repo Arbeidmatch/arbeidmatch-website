@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import DsbTypeSelector from "@/components/dsb/DsbTypeSelector";
+import DsbTypeSelectorLoader from "./DsbTypeSelectorLoader";
 
 export const metadata: Metadata = {
   title: "DSB Authorization Guide for Norway: Choose Your Guide",
@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 export default function DsbSupportPage() {
   return (
     <>
-      <DsbTypeSelector />
-      <section className="min-h-[70vh] bg-navy py-16 text-white md:py-20">
+      <DsbTypeSelectorLoader />
+      <section className="min-h-[70vh] bg-navy py-12 text-white md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <h1 className="text-center text-3xl font-bold md:text-5xl">Which guide do you need?</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-white/80">
+          <p className="mx-auto mt-4 max-w-2xl text-center text-base leading-[1.6] text-white/80">
             Choose your correct path to access the right DSB authorization guide.
           </p>
           <div className="mx-auto mt-10 grid max-w-4xl gap-6 md:grid-cols-2">

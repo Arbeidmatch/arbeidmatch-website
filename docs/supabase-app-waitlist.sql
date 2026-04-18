@@ -6,3 +6,5 @@ create table if not exists public.app_waitlist (
 );
 
 create unique index if not exists app_waitlist_email_lower_unique on public.app_waitlist (lower(email));
+
+grant all on table public.app_waitlist to service_role;

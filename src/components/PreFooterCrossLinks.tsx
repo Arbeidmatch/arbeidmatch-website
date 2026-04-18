@@ -25,17 +25,17 @@ export default function PreFooterCrossLinks({ variant }: { variant: Variant }) {
   const { links } = CONFIG[variant];
 
   return (
-    <section className="border-t border-[var(--border-subtle)] bg-[var(--bg-primary)] py-10 md:py-12">
+    <section className="border-t border-[var(--border-subtle)] bg-[var(--bg-primary)] py-12 md:py-20">
       <div className="mx-auto w-full max-w-content px-4 text-center md:px-6">
         <ScrollReveal variant="fadeUp">
-          <p className="text-[12px] leading-relaxed text-[var(--text-muted)]">
+          <p className="text-[12px] leading-relaxed text-[#888]">
             Looking for something else?{" "}
             {links.map((link, i) => (
               <span key={link.href}>
-                {i > 0 ? <span className="text-[var(--text-muted)]"> · </span> : null}
+                {i > 0 ? <span className="text-[#888]"> · </span> : null}
                 <Link
                   href={link.href}
-                  className="text-[var(--text-secondary)] underline-offset-2 transition-colors duration-200 hover:text-gold hover:underline"
+                  className="text-[#B8860B]/80 underline-offset-2 transition-colors duration-200 hover:text-[#B8860B] hover:underline"
                 >
                   {link.label}
                 </Link>
