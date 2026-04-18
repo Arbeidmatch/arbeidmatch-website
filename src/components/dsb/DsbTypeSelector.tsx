@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
+import { X } from "lucide-react";
 
 type DsbType = "eu" | "non-eu";
 
@@ -11,6 +12,7 @@ const STORAGE_KEY = "am_dsb_type";
 export default function DsbTypeSelector() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [showCloseButton, setShowCloseButton] = useState(false);
 
   useEffect(() => {
     try {
@@ -31,6 +33,15 @@ export default function DsbTypeSelector() {
     return () => window.clearTimeout(timer);
   }, [router]);
 
+  useEffect(() => {
+    if (!open) {
+      setShowCloseButton(false);
+      return;
+    }
+    const delay = window.setTimeout(() => setShowCloseButton(true), 6000);
+    return () => window.clearTimeout(delay);
+  }, [open]);
+
   const selectType = (type: DsbType) => {
     try {
       localStorage.setItem(STORAGE_KEY, type);
@@ -38,6 +49,10 @@ export default function DsbTypeSelector() {
       // ignore storage errors
     }
     router.push(type === "eu" ? "/dsb-support/eu" : "/dsb-support/non-eu");
+  };
+
+  const dismissWithoutSelection = () => {
+    setOpen(false);
   };
 
   return (
@@ -51,12 +66,26 @@ export default function DsbTypeSelector() {
           transition={{ duration: 0.35 }}
         >
           <motion.div
-            className="w-full max-w-5xl rounded-2xl border border-gold/25 bg-[#0a1018]/90 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.6)] sm:p-8"
+            className="relative w-full max-w-5xl rounded-2xl border border-gold/25 bg-[#0a1018]/90 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.6)] sm:p-8"
             initial={{ opacity: 0, scale: 0.72 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
+            {showCloseButton && (
+              <motion.button
+                type="button"
+                onClick={dismissWithoutSelection}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+                title="I'll decide later"
+                aria-label="I'll decide later"
+                className="absolute right-3 top-3 rounded p-1 text-[#888] transition-colors hover:text-white sm:right-4 sm:top-4"
+              >
+                <X className="h-4 w-4" strokeWidth={2} aria-hidden />
+              </motion.button>
+            )}
             <h2 className="text-center text-3xl font-bold text-white sm:text-4xl">Are you an EU/EEA citizen?</h2>
             <p className="mt-3 text-center text-sm text-white/80 sm:text-base">
               Select your category to see the right guide for you

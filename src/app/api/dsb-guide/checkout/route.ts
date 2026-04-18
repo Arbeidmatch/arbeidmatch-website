@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
-import { randomUUID } from "crypto";
-import { getSupabaseServiceClient } from "@/lib/supabaseService";
-import { getPublicBaseUrl, resolveStripePriceId, type DsbGuideSlug } from "@/lib/dsbGuideAccess";
+
+import { createDsbGuideStripeCheckout } from "@/lib/dsbGuideCheckout";
+import type { DsbGuideSlug } from "@/lib/dsbGuideAccess";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +12,7 @@ type Body = {
   website?: string;
 };
 
+/** Legacy direct-checkout endpoint (prefer verify-email + /dsb-support/verify flow). */
 export async function POST(request: NextRequest) {
   try {
     const raw = (await request.json()) as Record<string, unknown>;
@@ -34,77 +34,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Valid email is required." }, { status: 400 });
     }
 
-    const secret = process.env.STRIPE_SECRET_KEY;
-    if (!secret) {
-      return NextResponse.json({ success: false, error: "Payment is not configured." }, { status: 500 });
-    }
-
-    const supabase = getSupabaseServiceClient();
-    if (!supabase) {
-      return NextResponse.json({ success: false, error: "Database is not configured." }, { status: 500 });
-    }
-
-    const { data: guide, error: guideError } = await supabase
-      .from("dsb_guides")
-      .select("slug, stripe_price_id, title")
-      .eq("slug", guideSlug)
-      .maybeSingle();
-
-    console.log("ENV CHECK - Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL ? "set" : "missing");
-    console.log("ENV CHECK - Service key:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "set" : "missing");
-    console.log("GUIDE SLUG received:", guideSlug);
-    console.log("GUIDE QUERY result:", JSON.stringify({ guide, guideError }));
-
-    if (guideError || !guide) {
-      return NextResponse.json({ success: false, error: "Guide not found." }, { status: 404 });
-    }
-
-    const priceId = resolveStripePriceId(guideSlug as DsbGuideSlug, guide.stripe_price_id as string);
-    if (!priceId?.startsWith("price_")) {
-      return NextResponse.json(
-        { success: false, error: "Stripe price is not configured. Set STRIPE_PRICE_ID_DSB_EU / NON_EU or dsb_guides.stripe_price_id." },
-        { status: 500 },
-      );
-    }
-
-    const accessToken = randomUUID();
-    const baseUrl = getPublicBaseUrl();
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-    const stripe = new Stripe(secret);
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${baseUrl}/dsb-guide/${guideSlug}?token=${encodeURIComponent(accessToken)}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/dsb-support`,
-      customer_email: email,
-      metadata: {
-        guide_slug: guideSlug,
-        email,
-        access_token: accessToken,
-      },
-    });
-
-    if (!session.id || !session.url) {
-      return NextResponse.json({ success: false, error: "Could not start checkout." }, { status: 500 });
-    }
-
-    const { error: insertError } = await supabase.from("dsb_guide_purchases").insert({
-      guide_slug: guideSlug,
+    const result = await createDsbGuideStripeCheckout({
+      guideSlug: guideSlug as DsbGuideSlug,
       email,
-      stripe_session_id: session.id,
-      stripe_payment_status: "pending",
-      access_token: accessToken,
-      token_expires_at: expiresAt,
     });
 
-    if (insertError) {
-      console.error("[dsb-guide/checkout] insert failed:", insertError.message);
-      return NextResponse.json({ success: false, error: "Could not save purchase. Please contact support." }, { status: 500 });
+    if (!result.ok) {
+      const status = result.error === "Guide not found." ? 404 : 500;
+      return NextResponse.json({ success: false, error: result.error }, { status });
     }
 
-    return NextResponse.json({ success: true, checkout_url: session.url });
+    return NextResponse.json({ success: true, checkout_url: result.checkoutUrl });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[dsb-guide/checkout]", message);

@@ -8,10 +8,14 @@ export function getPublicBaseUrl(): string {
   return raw.replace(/\/$/, "");
 }
 
+/** Fallback Stripe Price ID for Non-EU guide (39 EUR) when env/DB are not set. */
+const STRIPE_PRICE_FALLBACK_NON_EU = "price_1TNXIwJOA4NI25QcxOP5CSrX";
+
 export function resolveStripePriceId(slug: DsbGuideSlug, dbPriceId: string): string {
   const fromEnv = slug === "eu" ? process.env.STRIPE_PRICE_ID_DSB_EU : process.env.STRIPE_PRICE_ID_DSB_NON_EU;
   if (fromEnv?.trim().startsWith("price_")) return fromEnv.trim();
   if (dbPriceId?.startsWith("price_") && !dbPriceId.includes("REPLACE")) return dbPriceId;
+  if (slug === "non-eu") return STRIPE_PRICE_FALLBACK_NON_EU;
   return fromEnv?.trim() || dbPriceId;
 }
 

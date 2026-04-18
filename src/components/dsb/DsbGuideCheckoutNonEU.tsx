@@ -36,7 +36,7 @@ export default function DsbGuideCheckoutNonEU() {
     setError("");
     setStatus("loading");
     try {
-      const res = await fetch("/api/dsb-guide/checkout", {
+      const res = await fetch("/api/dsb-guide/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ guide_slug: "non-eu", email: confirmedEmail, website: "" }),
