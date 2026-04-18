@@ -91,27 +91,42 @@ export async function POST(request: NextRequest) {
       expiresAt: created.expiresAt,
     });
 
-    await transporter.sendMail({
-      ...mailHeaders(),
-      to: email,
-      subject: "Your exclusive DSB Guide discount — valid 7 days",
-      html,
-    });
+    try {
+      console.log("[Discount] Attempting to send email to:", email);
+      console.log("[Discount] SMTP config:", {
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        user: process.env.SMTP_USER,
+        hasPass: !!process.env.SMTP_PASS,
+      });
 
-    await transporter.sendMail({
-      ...mailHeaders(),
-      to: "post@arbeidmatch.no",
-      subject: `New discount lead: ${email} (${guideType})`,
-      html: buildInternalEmailHtml({
-        title: `New discount lead: ${email}`,
-        rows: [
-          { label: "Email", value: email },
-          { label: "Guide", value: guideType },
-          { label: "Coupon", value: created.couponCode },
-          { label: "Expires", value: created.expiresAt.toISOString() },
-        ],
-      }),
-    });
+      await transporter.sendMail({
+        ...mailHeaders(),
+        to: email,
+        subject: "Your exclusive DSB Guide discount — valid 7 days",
+        html,
+      });
+
+      await transporter.sendMail({
+        ...mailHeaders(),
+        to: "post@arbeidmatch.no",
+        subject: `New discount lead: ${email} (${guideType})`,
+        html: buildInternalEmailHtml({
+          title: `New discount lead: ${email}`,
+          rows: [
+            { label: "Email", value: email },
+            { label: "Guide", value: guideType },
+            { label: "Coupon", value: created.couponCode },
+            { label: "Expires", value: created.expiresAt.toISOString() },
+          ],
+        }),
+      });
+
+      console.log("[Discount] Email sent successfully");
+    } catch (error) {
+      console.error("[Discount] Email failed:", error);
+      throw error;
+    }
 
     return NextResponse.json({
       success: true,
