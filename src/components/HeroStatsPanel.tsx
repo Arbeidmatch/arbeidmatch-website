@@ -254,14 +254,14 @@ export default function HeroStatsPanel({
   return (
     <div ref={panelRef} className="grid grid-cols-2 gap-6 rounded-xl bg-navy p-10 md:col-span-2">
       <div className="col-span-2 border-b border-white/10 pb-6">
-        <p className="text-4xl font-bold tabular-nums text-gold md:text-5xl">
+        <p className="font-mono text-4xl font-bold tabular-nums text-gold md:text-5xl">
           <SmoothNumber value={candidatesToday} run={runNumbers} durationMs={2000} delayMs={0} />
         </p>
         <p className="mt-2 text-sm text-white">Candidates registered today</p>
       </div>
       {staticMetrics.map((item, i) => (
         <div key={item.label}>
-          <p className="text-4xl font-bold text-gold">
+          <p className="font-mono text-4xl font-bold text-gold">
             <SmoothNumber
               value={item.value}
               suffix={item.suffix}
@@ -274,13 +274,13 @@ export default function HeroStatsPanel({
         </div>
       ))}
       <div>
-        <p className="text-4xl font-bold tabular-nums text-gold md:text-5xl">
+        <p className="font-mono text-4xl font-bold tabular-nums text-gold md:text-5xl">
           <SmoothNumber value={activeNow} run={runNumbers} durationMs={2000} delayMs={450} />
         </p>
         <p className="mt-2 text-sm text-white">Active on site now</p>
       </div>
       <div className="col-span-2 border-t border-white/10 pt-6">
-        <p className="text-4xl font-bold tabular-nums text-gold md:text-5xl">
+        <p className="font-mono text-4xl font-bold tabular-nums text-gold md:text-5xl">
           <SmoothNumber value={totalVisits} run={runNumbers} durationMs={2600} delayMs={600} />
         </p>
         <p className="mt-2 text-sm text-white">Total visits</p>

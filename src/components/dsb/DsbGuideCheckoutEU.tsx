@@ -2,9 +2,19 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 const inputClass =
-  "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
+  "premium-dsb-input w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none";
+
+const INCLUDED_EU = [
+  "Step-by-step application process",
+  "Complete document checklist",
+  "Official DSB links and forms",
+  "Processing times and fees",
+  "FAQ and common mistakes",
+  "30-day secure online access",
+];
 
 export default function DsbGuideCheckoutEU() {
   const [step, setStep] = useState<"input" | "confirm" | "sent">("input");
@@ -76,7 +86,7 @@ export default function DsbGuideCheckoutEU() {
     <>
       <section className="bg-gradient-to-br from-[#0d3327] via-[#0a0f1e] to-[#0a0f1e] py-16 text-white md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
-          <span className="inline-flex rounded-full border border-emerald-300/35 bg-emerald-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-200">
+          <span className="badge-pulse-border inline-flex rounded-full border border-emerald-300/35 bg-emerald-300/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-200">
             EU/EEA Citizens Only
           </span>
           <h1 className="mt-4 text-3xl font-bold leading-tight md:text-5xl">Get Your DSB Authorization in Norway</h1>
@@ -93,14 +103,28 @@ export default function DsbGuideCheckoutEU() {
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <div className="mx-auto max-w-3xl rounded-xl border border-emerald-300/35 bg-white p-8 shadow-[0_10px_30px_rgba(13,27,42,0.08)]">
             <h2 className="text-2xl font-bold text-navy">What&apos;s included</h2>
-            <ul className="mt-4 grid gap-2 text-sm text-text-secondary sm:grid-cols-2">
-              <li>Step-by-step application process</li>
-              <li>Complete document checklist</li>
-              <li>Official DSB links and forms</li>
-              <li>Processing times and fees</li>
-              <li>FAQ and common mistakes</li>
-              <li>30-day secure online access</li>
-            </ul>
+            <motion.ul
+              className="mt-4 grid gap-2 text-sm text-text-secondary sm:grid-cols-2"
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.25 }}
+              variants={{
+                hidden: {},
+                show: { transition: { staggerChildren: 0.06 } },
+              }}
+            >
+              {INCLUDED_EU.map((text) => (
+                <motion.li
+                  key={text}
+                  variants={{
+                    hidden: { opacity: 0, x: -10 },
+                    show: { opacity: 1, x: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
+                  }}
+                >
+                  {text}
+                </motion.li>
+              ))}
+            </motion.ul>
             <p className="mt-6 text-2xl font-bold text-gold">15 EUR - One-time access</p>
 
             <div className="mt-6 min-h-[220px] transition-all duration-300">

@@ -41,14 +41,14 @@ export default function PartnersPage() {
           {cards.map(({ icon: Icon, title }) => (
             <article
               key={title}
-              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_16px_48px_rgba(0,0,0,0.35)] backdrop-blur-sm transition-all duration-300 ease-premium hover:scale-[1.02] hover:border-gold/45 hover:shadow-[0_20px_56px_rgba(201,168,76,0.12)]"
+              className="card-premium group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-[var(--shadow-card)] backdrop-blur-sm transition-all duration-300 ease-premium hover:border-gold/45"
             >
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-gold/[0.06] via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <div className="relative flex items-start justify-between gap-3">
                 <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-gold/25 bg-gold/10 text-gold transition-transform duration-300 group-hover:scale-105">
                   <Icon size={24} strokeWidth={1.75} />
                 </span>
-                <span className="rounded-full border border-white/15 bg-black/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/55">
+                <span className="badge-coming-soon rounded-full border border-white/15 bg-black/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/80">
                   Coming soon
                 </span>
               </div>

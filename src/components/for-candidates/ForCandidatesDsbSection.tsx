@@ -37,7 +37,7 @@ export default function ForCandidatesDsbSection() {
   return (
     <section className="bg-surface py-16 md:py-20">
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
-        <div className="relative overflow-hidden rounded-2xl border border-gold/35 bg-gradient-to-br from-[#050815] via-[#0a0f1e] to-[#050c18] shadow-[0_12px_48px_rgba(13,27,42,0.35)]">
+        <div className="dsb-premium-outer-ring relative overflow-hidden rounded-2xl border border-gold/35 bg-gradient-to-br from-[#050815] via-[#0a0f1e] to-[#050c18]">
           <div
             className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-r from-gold/20 via-gold/8 to-gold/20 opacity-50 animate-pulse-glow"
             aria-hidden

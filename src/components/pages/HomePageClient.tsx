@@ -61,17 +61,19 @@ export default function HomePageClient({
         EU/EEA Workforce Solutions · Norway
       </motion.p>
       <motion.h1
-        className="mb-6 text-4xl font-bold leading-tight text-navy md:text-5xl"
+        className="heading-premium-xl font-display mb-6 text-4xl leading-tight md:text-5xl"
         variants={{
           hidden: { opacity: 0, y: 30 },
           visible: { opacity: 1, y: 0, transition: { delay: 0.1, duration: 0.55, ease: EASE } },
         }}
       >
-        Qualified workers,
-        <br />
-        delivered to your
-        <br />
-        Norwegian business.
+        <span className="text-shimmer-gold">
+          Qualified workers,
+          <br />
+          delivered to your
+          <br />
+          Norwegian business.
+        </span>
       </motion.h1>
       <motion.p
         className="mb-8 max-w-lg text-lg text-text-secondary"
@@ -118,7 +120,7 @@ export default function HomePageClient({
   ) : (
     <div className="md:col-span-3">
       <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-gold">EU/EEA Workforce Solutions · Norway</p>
-      <h1 className="mb-6 text-4xl font-bold leading-tight text-navy md:text-5xl">
+      <h1 className="heading-premium-xl font-display mb-6 text-4xl leading-tight text-navy md:text-5xl">
         Qualified workers,
         <br />
         delivered to your
@@ -159,7 +161,7 @@ export default function HomePageClient({
 
   return (
     <>
-      <section className="flex min-h-screen items-center bg-white py-20">
+      <section className="flex min-h-screen items-center bg-white py-28 lg:py-32">
         <div className="mx-auto grid w-full max-w-content gap-10 px-4 md:grid-cols-5 md:px-6">
           {hero}
           <ScrollReveal variant="scaleIn" className="md:col-span-2">
@@ -174,10 +176,10 @@ export default function HomePageClient({
 
       {bannerSlot}
 
-      <section className="bg-surface py-24">
+      <section className="bg-surface py-28 lg:py-32">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="text-4xl font-bold text-navy">Who are you?</h2>
+            <h2 className="heading-premium-xl font-display text-4xl text-navy">Who are you?</h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp" className="text-center">
             <p className="mb-12 mt-4 text-text-secondary">Two simple paths. Choose yours.</p>
@@ -244,10 +246,10 @@ export default function HomePageClient({
 
       <ScrollReveal variant="fadeIn">{howItWorksSlot}</ScrollReveal>
 
-      <section className="bg-surface py-24">
+      <section className="bg-surface py-28 lg:py-32">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="text-4xl font-bold text-navy">Industries we serve</h2>
+            <h2 className="heading-premium-xl font-display text-4xl text-navy">Industries we serve</h2>
           </ScrollReveal>
           <ScrollRevealGrid
             className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
@@ -267,10 +269,10 @@ export default function HomePageClient({
         </div>
       </section>
 
-      <section className="bg-white py-24">
+      <section className="bg-white py-28 lg:py-32">
         <div className="mx-auto grid w-full max-w-content gap-8 px-4 md:grid-cols-2 md:px-6">
           <ScrollReveal variant="fadeLeft" className="rounded-xl bg-navy p-12">
-            <h2 className="mb-8 text-3xl font-bold text-white">Why Norwegian companies choose us</h2>
+            <h2 className="heading-premium-xl mb-8 text-3xl text-white">Why Norwegian companies choose us</h2>
             <ul className="space-y-4">
               {[
                 "Pre-screened, fully documented candidates",
@@ -294,7 +296,7 @@ export default function HomePageClient({
                 ["98%", "Client satisfaction rate"],
               ].map(([number, label]) => (
                 <article key={label} className="card-premium rounded-xl border border-border p-8 text-center">
-                  <p className="text-5xl font-bold text-gold">{number}</p>
+                  <p className="font-mono text-5xl font-bold text-gold">{number}</p>
                   <p className="mt-3 text-text-secondary">{label}</p>
                 </article>
               ))}
@@ -305,10 +307,10 @@ export default function HomePageClient({
 
       <ScrollReveal variant="fadeIn">{testimonialsSlot}</ScrollReveal>
 
-      <section className="bg-navy py-24 text-center">
+      <section className="mesh-cta-wrap bg-navy py-28 text-center lg:py-32">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp">
-            <h2 className="mb-4 text-4xl font-bold text-white">Ready to find your next workers?</h2>
+            <h2 className="heading-premium-xl mb-4 text-4xl text-white">Ready to find your next workers?</h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
             <p className="mb-8 text-lg text-white/70">

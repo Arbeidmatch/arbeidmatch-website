@@ -76,7 +76,7 @@ export default function DsbTypeSelector({ isOpen: isOpenProp, onClose }: DsbType
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-[#030508]/85 p-4 backdrop-blur-md"
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-[#030508]/82 p-4 backdrop-blur-xl backdrop-saturate-150"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -84,10 +84,10 @@ export default function DsbTypeSelector({ isOpen: isOpenProp, onClose }: DsbType
         >
           <motion.div
             className="relative w-full max-w-5xl rounded-2xl border border-gold/25 bg-[#0a1018]/90 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.6)] sm:p-8"
-            initial={{ opacity: 0, scale: 0.72 }}
+            initial={{ opacity: 0, scale: 0.88 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, scale: 0.94 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             {showCloseButton && (
               <motion.button

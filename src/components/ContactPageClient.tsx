@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { Building2, Mail, MapPin } from "lucide-react";
+import ScrollReveal from "@/components/ScrollReveal";
 
 function IconFacebook({ className }: { className?: string }) {
   return (
@@ -28,7 +29,7 @@ function IconTikTok({ className }: { className?: string }) {
 }
 
 const inputClass =
-  "w-full rounded-md border border-[#E8E8E5] bg-[#F7F7F5] px-4 py-3 text-navy focus:border-[#C9A84C] focus:outline-none focus:ring-0";
+  "premium-dsb-input w-full rounded-md border border-[#E8E8E5] bg-[#F7F7F5] px-4 py-3 text-navy focus:outline-none";
 
 export default function ContactPageClient() {
   const [submitted, setSubmitted] = useState(false);
@@ -83,6 +84,7 @@ export default function ContactPageClient() {
           </a>
         </div>
         <div className="grid gap-8 md:grid-cols-2 md:gap-10">
+          <ScrollReveal variant="fadeUp">
           <aside className="text-white">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C9A84C]">Get in touch</p>
             <h1 className="mt-3 text-[28px] font-bold leading-tight md:text-5xl">
@@ -137,8 +139,10 @@ export default function ContactPageClient() {
               </div>
             </div>
           </aside>
+          </ScrollReveal>
 
-          <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-7 md:p-10">
+          <ScrollReveal variant="fadeUp">
+          <form onSubmit={handleSubmit} className="card-premium rounded-2xl border border-white/10 bg-white p-7 shadow-[var(--shadow-card)] md:p-10">
             <h2 className="text-2xl font-bold text-navy">Send us a message</h2>
             <p className="mt-2 text-sm text-text-secondary">
               Employers and partners only. Job seekers, please complete the work readiness check first.
@@ -185,7 +189,7 @@ export default function ContactPageClient() {
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="w-full rounded-md bg-[#0D1B2A] py-3 font-medium text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0D1B2A]"
+                className="btn-gold-shine w-full rounded-md bg-[#0D1B2A] py-3 font-medium text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0D1B2A]"
               >
                 {status === "submitting" ? "Sending..." : "Send message →"}
               </button>
@@ -204,10 +208,12 @@ export default function ContactPageClient() {
               )}
             </div>
           </form>
+          </ScrollReveal>
         </div>
 
+        <ScrollReveal variant="fadeUp">
         <div className="mt-14 border-t border-white/[0.07] pt-12">
-          <h2 className="text-center text-2xl font-bold text-white md:text-3xl">Join Our Community</h2>
+          <h2 className="heading-premium-xl text-center text-2xl text-white md:text-3xl">Join Our Community</h2>
           <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-white/70 md:text-base">
             Follow us for job tips, updates and live sessions
           </p>
@@ -262,7 +268,9 @@ export default function ContactPageClient() {
             </a>
           </div>
         </div>
+        </ScrollReveal>
 
+        <ScrollReveal variant="fadeUp">
         <div className="mt-12 border-t border-white/[0.07] pt-6">
           <div className="grid gap-5 text-center sm:grid-cols-3">
             <div>
@@ -279,6 +287,7 @@ export default function ContactPageClient() {
             </div>
           </div>
         </div>
+        </ScrollReveal>
       </div>
     </section>
   );

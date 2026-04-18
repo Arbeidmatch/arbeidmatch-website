@@ -24,7 +24,7 @@ export default function ScrollProgressBar() {
 
   return (
     <div
-      className="pointer-events-none fixed left-0 top-0 z-[200] h-[2px] w-full md:h-[3px]"
+      className="pointer-events-none fixed left-0 top-0 z-[9999] h-[2px] w-full"
       role="progressbar"
       aria-valuenow={Math.round(p)}
       aria-valuemin={0}
@@ -32,7 +32,7 @@ export default function ScrollProgressBar() {
       aria-label="Page scroll progress"
     >
       <div
-        className="h-full bg-gradient-to-r from-[#a07830] via-gold to-[#d4b45c] transition-[width] duration-150 ease-out"
+        className="h-full bg-gradient-to-r from-[#B8860B] via-amber-400 to-[#C9A84C] transition-[width] duration-150 ease-out"
         style={{ width: `${p}%` }}
       />
     </div>

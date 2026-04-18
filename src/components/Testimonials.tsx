@@ -1,3 +1,5 @@
+import ScrollReveal from "@/components/ScrollReveal";
+
 const testimonials = [
   {
     quote:
@@ -27,18 +29,22 @@ const testimonials = [
 
 export default function Testimonials() {
   return (
-    <section className="bg-surface py-24">
+    <section className="bg-surface py-28 lg:py-32">
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
-        <h2 className="text-center text-4xl font-bold text-navy">What our clients say</h2>
+        <ScrollReveal variant="fadeUp" className="text-center">
+          <h2 className="heading-premium-xl font-display text-4xl text-navy">What our clients say</h2>
+        </ScrollReveal>
         <div className="mt-12 grid gap-6 md:grid-cols-2">
           {testimonials.map((item) => (
-            <article key={item.name} className="rounded-xl border border-border bg-white p-8">
-              <p className="text-lg text-gold">★★★★★</p>
-              <p className="mt-3 italic text-text-secondary">{item.quote}</p>
-              <p className="mt-4 font-semibold text-navy">
-                {item.name} <span className="font-normal text-text-secondary">| {item.company}</span>
-              </p>
-            </article>
+            <ScrollReveal key={item.name} variant="fadeUp">
+              <article className="card-premium rounded-xl border border-border bg-white p-8">
+                <p className="text-lg text-gold">★★★★★</p>
+                <p className="mt-3 italic text-text-secondary">{item.quote}</p>
+                <p className="mt-4 font-semibold text-navy">
+                  {item.name} <span className="font-normal text-text-secondary">| {item.company}</span>
+                </p>
+              </article>
+            </ScrollReveal>
           ))}
         </div>
       </div>

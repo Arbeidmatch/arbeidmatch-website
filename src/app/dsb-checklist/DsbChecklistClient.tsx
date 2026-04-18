@@ -55,6 +55,7 @@ export default function DsbChecklistClient() {
   return (
     <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden bg-[#06090e] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_-10%,rgba(201,168,76,0.18),transparent_55%),radial-gradient(ellipse_50%_40%_at_100%_0%,rgba(13,27,42,0.9),transparent),linear-gradient(180deg,#0a0f14_0%,#06090e_45%,#05070b_100%)]" />
+      <div className="pointer-events-none absolute inset-0 mesh-checklist-bg opacity-40 mix-blend-soft-light" />
       <div className="am-noise pointer-events-none absolute inset-0" />
 
       <section className="relative px-4 py-16 md:py-24">
@@ -65,7 +66,7 @@ export default function DsbChecklistClient() {
             transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
             className="mx-auto max-w-3xl text-center"
           >
-            <span className="inline-flex items-center rounded-full border border-gold/35 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+            <span className="badge-free-shimmer inline-flex items-center rounded-full border border-gold/40 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
               Free · Instant Access
             </span>
             <h1 className="mt-6 font-display text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl">
@@ -83,8 +84,8 @@ export default function DsbChecklistClient() {
             transition={{ duration: 0.55, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
             className="mx-auto mt-12 w-full max-w-md"
           >
-            <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-px shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-              <div className="rounded-[15px] bg-[#0c1219]/90 p-6 md:p-8">
+            <div className="rounded-2xl border border-white/15 bg-white/[0.08] p-px shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-2xl backdrop-saturate-150">
+              <div className="rounded-[15px] bg-[#0c1219]/88 p-6 md:p-8">
                 <AnimatePresence mode="wait">
                   {status === "success" ? (
                     <motion.div
