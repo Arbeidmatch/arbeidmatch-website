@@ -1,7 +1,7 @@
 import { escapeHtml } from "@/lib/htmlSanitizer";
 
-/** Display From (SMTP auth may use no-replay@ — same domain). */
-export const EMAIL_FROM = '"ArbeidMatch Norge AS" <no-reply@arbeidmatch.no>';
+/** Display From (transactional mail; SMTP auth may still use no-replay@). */
+export const EMAIL_FROM = '"ArbeidMatch Norge AS" <post@arbeidmatch.no>';
 export const EMAIL_REPLY_TO = "support@arbeidmatch.no";
 
 const SUPPORT_LINE =
