@@ -1398,7 +1398,7 @@ button:focus:not(:focus-visible) {
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.05;
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(1.6rem, 4vw, 3rem);
   color: #ffffff;
   max-width: 100%;
   word-break: break-word;
@@ -1407,7 +1407,7 @@ button:focus:not(:focus-visible) {
 
 .dsb-premium-hero-line {
   display: block;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .dsb-premium-hero-highlight {
@@ -2028,7 +2028,7 @@ button:focus:not(:focus-visible) {
 
 @media (max-width: 767px) {
   .dsb-premium-hero-title {
-    font-size: clamp(1.8rem, 7vw, 2.5rem);
+    font-size: clamp(1.5rem, 7vw, 2.2rem);
   }
 }
 
