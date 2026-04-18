@@ -44,19 +44,18 @@ const EU_CONFIG: VariantConfig = {
   badge: "EU/EEA Citizens Only",
   heroEmoji: "🇪🇺",
   title: "Get Your DSB Authorization in Norway",
-  subtitle: "Fast-track your electrical career in Norway. EU recognition means a simpler, faster process.",
+  subtitle: "EU/EEA Electricians — €15",
   pills: [
     { icon: "clock", text: "2–4 months" },
-    { icon: "shield", text: "No visa" },
-    { icon: "graph", text: "Job placement" },
+    { icon: "shield", text: "No visa required" },
+    { icon: "graph", text: "Job placement available" },
   ],
   items: [
-    { text: "Step-by-step application process", icon: "lightning" },
-    { text: "Complete document checklist", icon: "document" },
-    { text: "Official DSB links and forms (inside the guide)", icon: "link" },
-    { text: "Processing times and fees explained", icon: "clock" },
-    { text: "FAQ and common mistakes", icon: "check" },
-    { text: "30-day secure online access", icon: "shield" },
+    { text: "Process: 2-4 months", icon: "clock" },
+    { text: "No visa required", icon: "shield" },
+    { text: "Job placement available", icon: "graph" },
+    { text: "30-day access", icon: "check" },
+    { text: "Instant delivery", icon: "lightning" },
   ],
   ctaLabel: "Get the EU/EEA Guide",
   crossLinkHref: "/dsb-support/non-eu",
@@ -69,23 +68,19 @@ const NON_EU_CONFIG: VariantConfig = {
   badge: "Non-EU Citizens",
   heroEmoji: "🌍",
   title: "DSB Authorization Guide for Non-EU Electricians",
-  subtitle: "The complete guide to navigating the Norwegian DSB authorization process from outside the EU.",
+  subtitle: "Non-EU Electricians — €39",
   pills: [
     { icon: "clock", text: "6–12 months" },
-    { icon: "airplane", text: "Work visa" },
-    { icon: "document", text: "Individual assessment" },
+    { icon: "airplane", text: "Work visa required" },
+    { icon: "document", text: "Individual DSB assessment" },
   ],
   items: [
-    { text: "Step-by-step application process", icon: "lightning" },
-    { text: "Complete document checklist", icon: "document" },
-    { text: "Official DSB links and forms (inside the guide)", icon: "link" },
-    { text: "Processing times and fees explained", icon: "clock" },
-    { text: "FAQ and common mistakes", icon: "check" },
-    { text: "30-day secure online access", icon: "shield" },
-    { text: "Document translation requirements", icon: "translate" },
-    { text: "Work visa process explained", icon: "airplane" },
-    { text: "Timeline and cost breakdown", icon: "graph" },
-    { text: "Appeals process", icon: "scale" },
+    { text: "Process: 6-12 months", icon: "clock" },
+    { text: "Work visa required (provided by employer)", icon: "airplane" },
+    { text: "Individual DSB assessment", icon: "document" },
+    { text: "Document translation required", icon: "translate" },
+    { text: "30-day access", icon: "shield" },
+    { text: "Instant delivery", icon: "lightning" },
   ],
   ctaLabel: "Get the Non-EU Guide",
   crossLinkHref: "/dsb-support/eu",
@@ -272,7 +267,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
   const discountRow = appliedCoupon ? DSB_DISCOUNT[cfg.slug] : null;
 
   return (
-    <div className={`dsb-premium-page dsb-premium-page--${cfg.region}`}>
+    <div className={`dsb-premium-page dsb-mobile-page dsb-premium-page--${cfg.region}`}>
       <section className="dsb-premium-hero">
         <div className="dsb-premium-hero-mesh" aria-hidden />
         <div className="dsb-premium-hero-noise" aria-hidden />
@@ -394,22 +389,18 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
             viewport={{ once: true, amount: 0.05 }}
             transition={{ duration: 0.6, ease: spring }}
           >
-            <p className="dsb-price-card-label">One-time access</p>
+            <p className="dsb-price-card-label">
+              {cfg.region === "eu" ? "EU/EEA Electricians — €15" : "Non-EU Electricians — €39"}
+            </p>
             <div className="dsb-price-row">
-              <div className={`dsb-price-block ${cfg.region === "eu" ? "is-primary" : ""}`}>
+              <div className="dsb-price-block is-primary">
                 <div className="dsb-price-amount">
                   <span className="dsb-price-currency">€</span>
-                  <span className="dsb-price-value">15</span>
+                  <span className="dsb-price-value">{cfg.region === "eu" ? "15" : "39"}</span>
                 </div>
-                <span className="dsb-price-meta">EU/EEA</span>
-              </div>
-              <div className="dsb-price-divider" aria-hidden />
-              <div className={`dsb-price-block ${cfg.region === "non-eu" ? "is-primary" : ""}`}>
-                <div className="dsb-price-amount">
-                  <span className="dsb-price-currency">€</span>
-                  <span className="dsb-price-value">39</span>
-                </div>
-                <span className="dsb-price-meta">Non-EU</span>
+                <span className="dsb-price-meta">
+                  {cfg.region === "eu" ? "EU/EEA Electricians" : "Non-EU Electricians"}
+                </span>
               </div>
             </div>
             <p className="dsb-price-note">Prices include VAT where applicable. You pay after email verification.</p>
