@@ -75,7 +75,7 @@ export default function ForCandidatesPage() {
               <ScrollReveal key={title as string} variant="fadeUp">
                 <Link
                   href="/score"
-                  className="card-premium card-premium-gold group block h-full cursor-pointer rounded-xl border border-border bg-white p-6 no-underline"
+                  className="industry-card card-premium card-premium-gold group block h-full cursor-pointer rounded-xl border border-border bg-white p-6 no-underline"
                 >
                   <Icon className="text-gold" size={26} />
                   <h3 className="mt-4 font-semibold text-navy">{title as string}</h3>

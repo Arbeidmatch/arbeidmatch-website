@@ -605,6 +605,19 @@ select:focus {
     transform: scale(0.97);
     transition: transform 100ms ease;
   }
+
+  .industry-card {
+    transition:
+      transform 150ms ease,
+      opacity 150ms ease,
+      border-color 200ms ease;
+  }
+
+  .industry-card:active {
+    transform: scale(0.96);
+    opacity: 0.8;
+    border-color: rgba(184, 134, 11, 0.6);
+  }
 }
 
 /* Gold buttons — micro-interactions */
