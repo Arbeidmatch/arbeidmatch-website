@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { Syne } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -6,6 +7,8 @@ import Footer from "@/components/Footer";
 import ScrollProgressBar from "@/components/ScrollProgressBar";
 import MonetizationOverlays from "@/components/monetization/MonetizationOverlays";
 import CookieConsent from "@/components/CookieConsent";
+
+const ContextualHelper = dynamic(() => import("@/components/ContextualHelper"), { loading: () => null });
 
 const displayFont = Syne({
   subsets: ["latin"],
@@ -78,6 +81,7 @@ export default function RootLayout({
         <Navbar />
         <main className="flex min-w-0 flex-1 flex-col">{children}</main>
         <Footer />
+        <ContextualHelper />
         <CookieConsent />
         <MonetizationOverlays />
         <script
