@@ -3,9 +3,177 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 
 const inputClass =
   "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
+type DsbGuideSlug = "eu" | "non-eu";
+
+function GuideSelectionModal({
+  open,
+  selectedGuide,
+  confirmationChecked,
+  onClose,
+  onSelectGuide,
+  onConfirmationChange,
+  onContinue,
+}: {
+  open: boolean;
+  selectedGuide: DsbGuideSlug;
+  confirmationChecked: boolean;
+  onClose: () => void;
+  onSelectGuide: (guide: DsbGuideSlug) => void;
+  onConfirmationChange: (checked: boolean) => void;
+  onContinue: (guide: DsbGuideSlug) => void;
+}) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-[100] flex items-end justify-center p-4 pb-6 sm:items-center sm:p-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dsb-guide-selection-title"
+        >
+          <button
+            type="button"
+            className="absolute inset-0 bg-[#030508]/75 backdrop-blur-[2px]"
+            aria-label="Close dialog backdrop"
+            onClick={onClose}
+          />
+          <motion.div
+            className="relative z-10 w-full max-w-4xl overflow-hidden rounded-2xl border border-gold/25 bg-[#0a1018]/85 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.94 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-gold/[0.07] via-transparent to-transparent" />
+            <div className="relative p-5 sm:p-7">
+              <button
+                type="button"
+                onClick={onClose}
+                className="absolute right-4 top-4 rounded-full border border-white/20 bg-white/5 px-2.5 py-1 text-sm text-white/70 hover:bg-white/10 hover:text-white"
+                aria-label="Close guide selection modal"
+              >
+                X
+              </button>
+              <h2 id="dsb-guide-selection-title" className="pr-10 text-xl font-bold text-white sm:text-2xl">
+                Before you continue - make sure you choose the right guide
+              </h2>
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <div
+                  className={`rounded-xl border p-4 text-white transition-all ${
+                    selectedGuide === "eu"
+                      ? "border-gold bg-white/10 shadow-[0_0_0_1px_rgba(201,168,76,0.35)]"
+                      : "border-white/15 bg-white/[0.04] opacity-75"
+                  }`}
+                >
+                  <p className="text-2xl" aria-hidden>
+                    🇪🇺
+                  </p>
+                  <h3 className="mt-2 text-lg font-semibold">EU/EEA Citizens</h3>
+                  <p className="mt-2 text-xs text-white/75">
+                    Romania, Poland, Bulgaria, Hungary, Croatia, Slovakia, Czech Republic, Lithuania, Latvia,
+                    Estonia, and all other EU/EEA countries
+                  </p>
+                  <ul className="mt-3 space-y-2 text-sm">
+                    <li className="text-emerald-300">- Faster process: 2 to 4 months</li>
+                    <li className="text-emerald-300">- No visa required</li>
+                    <li className="text-emerald-300">- Direct recognition under EU Directive</li>
+                    <li className="text-emerald-300">- Job placement available after approval</li>
+                  </ul>
+                  <p className="mt-3 text-lg font-bold text-gold">15 EUR</p>
+                  <button
+                    type="button"
+                    onClick={() => onContinue("eu")}
+                    disabled={!confirmationChecked}
+                    className="mt-3 w-full rounded-md bg-gold py-2.5 text-sm font-semibold text-navy transition hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    I am EU/EEA - Get this guide
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onSelectGuide("eu")}
+                    className="mt-2 text-xs text-gold/90 underline underline-offset-2 hover:text-gold"
+                  >
+                    Select this guide
+                  </button>
+                </div>
+
+                <div
+                  className={`rounded-xl border p-4 text-white transition-all ${
+                    selectedGuide === "non-eu"
+                      ? "border-gold bg-white/10 shadow-[0_0_0_1px_rgba(201,168,76,0.35)]"
+                      : "border-white/15 bg-white/[0.04] opacity-75"
+                  }`}
+                >
+                  <p className="text-2xl" aria-hidden>
+                    🌍
+                  </p>
+                  <h3 className="mt-2 text-lg font-semibold">Non-EU Citizens</h3>
+                  <p className="mt-2 text-xs text-white/75">
+                    Ukraine, Philippines, India, Pakistan, Morocco, Serbia, and all countries outside EU/EEA
+                  </p>
+                  <ul className="mt-3 space-y-2 text-sm">
+                    <li className="text-amber-200">- Longer process: 6 to 12 months</li>
+                    <li className="text-amber-200">- Work visa required (provided by employer)</li>
+                    <li className="text-amber-200">- Individual assessment by DSB</li>
+                    <li className="text-amber-200">- No job placement guarantee</li>
+                  </ul>
+                  <p className="mt-3 text-lg font-bold text-gold">39 EUR</p>
+                  <button
+                    type="button"
+                    onClick={() => onContinue("non-eu")}
+                    disabled={!confirmationChecked}
+                    className="mt-3 w-full rounded-md border border-gold/60 bg-transparent py-2.5 text-sm font-semibold text-gold transition hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    I am Non-EU - Get this guide
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onSelectGuide("non-eu")}
+                    className="mt-2 text-xs text-gold/90 underline underline-offset-2 hover:text-gold"
+                  >
+                    Select this guide
+                  </button>
+                </div>
+              </div>
+
+              <p className="mt-4 text-xs text-white/75">
+                Not sure which applies to you? Check if your country is in the EU/EEA{" "}
+                <a
+                  href="https://en.wikipedia.org/wiki/European_Economic_Area"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-semibold text-gold underline underline-offset-2 hover:text-gold-hover"
+                >
+                  here
+                </a>
+              </p>
+              <label className="mt-4 flex items-start gap-2 rounded-lg border border-white/20 bg-white/[0.03] p-3 text-sm text-white/90">
+                <input
+                  type="checkbox"
+                  checked={confirmationChecked}
+                  onChange={(event) => onConfirmationChange(event.target.checked)}
+                  className="mt-1"
+                />
+                <span>
+                  I confirm I have selected the correct guide for my country. I understand that purchases are
+                  non-refundable once access is granted.
+                </span>
+              </label>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 function GuideCheckoutCard({
   guideSlug,
@@ -16,8 +184,10 @@ function GuideCheckoutCard({
   price,
   buttonLabel,
   anchorId,
+  activationToken,
+  onOpenSelector,
 }: {
-  guideSlug: "eu" | "non-eu";
+  guideSlug: DsbGuideSlug;
   badge: string;
   title: string;
   bullets: string[];
@@ -25,8 +195,10 @@ function GuideCheckoutCard({
   price: string;
   buttonLabel: string;
   anchorId: string;
+  activationToken: number;
+  onOpenSelector: (guide: DsbGuideSlug) => void;
 }) {
-  const [step, setStep] = useState<"input" | "confirm" | "sent">("input");
+  const [step, setStep] = useState<"cta" | "input" | "confirm" | "sent">("cta");
   const [email, setEmail] = useState("");
   const [confirmedEmail, setConfirmedEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
@@ -40,6 +212,14 @@ function GuideCheckoutCard({
     }, 1000);
     return () => window.clearInterval(timer);
   }, [step, resendCountdown]);
+
+  useEffect(() => {
+    if (activationToken <= 0) return;
+    setStep("input");
+    setStatus("idle");
+    setError("");
+    setResendCountdown(0);
+  }, [activationToken]);
 
   const startConfirmation = (e: FormEvent) => {
     e.preventDefault();
@@ -112,6 +292,19 @@ function GuideCheckoutCard({
       </p>
       <p className="mt-2 text-lg font-bold text-gold">{price}</p>
       <div className="mt-6 min-h-[220px] transition-all duration-300">
+        {step === "cta" && (
+          <div className="rounded-lg border border-border bg-surface p-4 text-center">
+            <p className="text-sm text-text-secondary">Please confirm your guide selection before entering your email.</p>
+            <button
+              type="button"
+              onClick={() => onOpenSelector(guideSlug)}
+              className="mt-4 w-full rounded-md bg-navy py-3 text-sm font-medium text-white transition hover:bg-gold hover:text-navy"
+            >
+              {buttonLabel}
+            </button>
+          </div>
+        )}
+
         {step === "input" && (
           <form onSubmit={startConfirmation} className="space-y-3 opacity-100 transition-opacity duration-300">
             <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
@@ -205,6 +398,10 @@ function GuideCheckoutCard({
 export default function DsbSupportClient() {
   const searchParams = useSearchParams();
   const purchaseRequired = searchParams.get("purchase") === "required";
+  const [selectorOpen, setSelectorOpen] = useState(false);
+  const [selectedGuide, setSelectedGuide] = useState<DsbGuideSlug>("eu");
+  const [guideConfirmation, setGuideConfirmation] = useState(false);
+  const [activationTokens, setActivationTokens] = useState<Record<DsbGuideSlug, number>>({ eu: 0, "non-eu": 0 });
 
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
@@ -214,6 +411,22 @@ export default function DsbSupportClient() {
   const [waitStatus, setWaitStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [waitError, setWaitError] = useState("");
   const [submittedEmail, setSubmittedEmail] = useState("");
+
+  const openGuideSelector = (preferredGuide: DsbGuideSlug) => {
+    setSelectedGuide(preferredGuide);
+    setGuideConfirmation(false);
+    setSelectorOpen(true);
+  };
+
+  const confirmGuideSelection = (guide: DsbGuideSlug) => {
+    if (!guideConfirmation) return;
+    setSelectorOpen(false);
+    setActivationTokens((prev) => ({ ...prev, [guide]: prev[guide] + 1 }));
+    window.setTimeout(() => {
+      const anchorId = guide === "eu" ? "guide-eu" : "guide-non-eu";
+      document.getElementById(anchorId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+  };
 
   const submitWaitlist = async (e: FormEvent) => {
     e.preventDefault();
@@ -252,6 +465,16 @@ export default function DsbSupportClient() {
 
   return (
     <>
+      <GuideSelectionModal
+        open={selectorOpen}
+        selectedGuide={selectedGuide}
+        confirmationChecked={guideConfirmation}
+        onClose={() => setSelectorOpen(false)}
+        onSelectGuide={setSelectedGuide}
+        onConfirmationChange={setGuideConfirmation}
+        onContinue={confirmGuideSelection}
+      />
+
       <section className="bg-navy py-16 text-white md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           {purchaseRequired && (
@@ -301,6 +524,8 @@ export default function DsbSupportClient() {
             processingTime="2 to 4 months"
             price="15 EUR"
             buttonLabel="Get the EU/EEA Guide"
+            activationToken={activationTokens.eu}
+            onOpenSelector={openGuideSelector}
           />
           <GuideCheckoutCard
             anchorId="guide-non-eu"
@@ -317,6 +542,8 @@ export default function DsbSupportClient() {
             processingTime="6 to 12 months"
             price="39 EUR"
             buttonLabel="Get the Non-EU Guide"
+            activationToken={activationTokens["non-eu"]}
+            onOpenSelector={openGuideSelector}
           />
         </div>
         <div className="mx-auto mt-8 max-w-content px-4 text-center md:px-6">
