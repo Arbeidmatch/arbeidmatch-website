@@ -31,7 +31,7 @@ export default function PartnersPage() {
       <section className="relative px-4 py-20 md:py-28">
         <div className="mx-auto w-full max-w-content text-center md:px-6">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Ecosystem</p>
-          <h1 className="mt-4 font-display text-4xl font-bold tracking-tight md:text-5xl">Trusted Partners</h1>
+          <h1 className="mt-4 font-sans text-4xl font-bold tracking-tight md:text-5xl">Trusted Partners</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-white/65">
             Curated services for EU/EEA workers and Norwegian employers, quality bar, zero fluff.
           </p>

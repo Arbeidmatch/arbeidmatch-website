@@ -47,12 +47,12 @@ export default function Navbar() {
           <span className="font-bold text-[#B8860B]">Match</span>
         </Link>
 
-        <nav className="hidden items-center gap-8 lg:flex">
+        <nav className="hidden items-center gap-5 xl:gap-7 2xl:gap-8 xl:flex">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`nav-link-premium text-[15px] transition-colors duration-300 ease-out ${
+              className={`nav-link-premium shrink-0 text-[14px] transition-colors duration-300 ease-out 2xl:text-[15px] ${
                 scrolled
                   ? "text-[#cccccc] hover:text-white"
                   : "text-[#555555] hover:text-[#0D1B2A]"
@@ -63,10 +63,10 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="hidden lg:block">
+        <div className="hidden xl:block">
           <Link
             href="/request"
-            className="btn-gold-premium relative inline-block rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
+            className="btn-gold-premium relative inline-flex min-h-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
           >
             Request Candidates
           </Link>
@@ -76,7 +76,7 @@ export default function Navbar() {
           aria-label="Toggle navigation"
           aria-expanded={open}
           onClick={() => setOpen((prev) => !prev)}
-          className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-md border p-0 lg:hidden ${
+          className={`relative flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border p-0 xl:hidden ${
             scrolled ? "border-white/20 text-white" : "border-border text-navy"
           }`}
         >
@@ -108,15 +108,21 @@ export default function Navbar() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden border-t border-border bg-white transition-colors duration-300 lg:hidden"
+            className={`overflow-hidden border-t transition-colors duration-300 xl:hidden ${
+              scrolled
+                ? "border-white/10 bg-[#0c0f18] text-white"
+                : "border-border bg-white text-[#555555]"
+            }`}
           >
-            <div className="mx-auto flex max-w-content flex-col gap-4 px-4 py-4 md:px-6">
+            <div className="mx-auto flex max-w-content flex-col gap-1 px-4 py-3 md:px-6">
               {links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="text-[15px] text-[#555555] transition-colors duration-300 hover:text-[#0D1B2A]"
+                  className={`min-h-[44px] rounded-md px-2 py-3 text-[15px] transition-colors duration-300 ${
+                    scrolled ? "text-white/90 hover:bg-white/5 hover:text-white" : "hover:bg-surface hover:text-[#0D1B2A]"
+                  }`}
                 >
                   {link.label}
                 </Link>
@@ -124,7 +130,7 @@ export default function Navbar() {
               <Link
                 href="/request"
                 onClick={() => setOpen(false)}
-                className="btn-gold-premium rounded-md bg-gold py-2.5 text-center text-sm font-medium text-white hover:bg-gold-hover"
+                className="btn-gold-premium mt-1 flex min-h-[48px] items-center justify-center rounded-md bg-gold py-3 text-center text-sm font-medium text-white hover:bg-gold-hover"
               >
                 Request Candidates
               </Link>

@@ -270,7 +270,7 @@ export default function RecruiterNetworkClient() {
                 RECRUITER NETWORK
               </motion.p>
               <h1
-                className="mt-6 font-sans font-extrabold tracking-[-0.04em] text-white"
+                className="mt-6 min-w-0 break-words font-sans font-extrabold tracking-[-0.04em] text-white"
                 style={{ fontSize: "clamp(3rem, 8vw, 7rem)", lineHeight: 1.02 }}
               >
                 <motion.span className="block" {...heroFade(0.1)}>
@@ -300,7 +300,7 @@ export default function RecruiterNetworkClient() {
                 </button>
                 <a
                   href="#three-paths"
-                  className="text-sm font-semibold text-[#B8860B] underline-offset-4 hover:text-gold-hover hover:underline"
+                  className="inline-flex min-h-[44px] min-w-[44px] items-center text-sm font-semibold text-[#B8860B] underline-offset-4 hover:text-gold-hover hover:underline"
                 >
                   Learn more ↓
                 </a>
@@ -310,7 +310,7 @@ export default function RecruiterNetworkClient() {
             <>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B8860B]">RECRUITER NETWORK</p>
               <h1
-                className="mt-6 font-sans font-extrabold tracking-[-0.04em] text-white"
+                className="mt-6 min-w-0 break-words font-sans font-extrabold tracking-[-0.04em] text-white"
                 style={{ fontSize: "clamp(3rem, 8vw, 7rem)", lineHeight: 1.02 }}
               >
                 <span className="block">Recruit.</span>
@@ -331,7 +331,7 @@ export default function RecruiterNetworkClient() {
                 </button>
                 <a
                   href="#three-paths"
-                  className="text-sm font-semibold text-[#B8860B] underline-offset-4 hover:underline"
+                  className="inline-flex min-h-[44px] min-w-[44px] items-center text-sm font-semibold text-[#B8860B] underline-offset-4 hover:underline"
                 >
                   Learn more ↓
                 </a>

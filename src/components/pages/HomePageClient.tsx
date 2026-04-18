@@ -58,7 +58,7 @@ export default function HomePageClient({
         EU/EEA Workforce Solutions · Norway
       </motion.p>
       <motion.h1
-        className="mb-6 max-w-[22ch] font-sans font-extrabold leading-[1.08] tracking-[-0.04em] text-navy"
+        className="mb-6 max-w-full break-words font-sans font-extrabold leading-[1.08] tracking-[-0.04em] text-navy sm:max-w-[22ch]"
         style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}
         {...fade(0.1)}
       >
@@ -107,7 +107,7 @@ export default function HomePageClient({
         EU/EEA Workforce Solutions · Norway
       </p>
       <h1
-        className="mb-6 max-w-[22ch] font-sans font-extrabold leading-[1.08] tracking-[-0.04em] text-navy"
+        className="mb-6 max-w-full break-words font-sans font-extrabold leading-[1.08] tracking-[-0.04em] text-navy sm:max-w-[22ch]"
         style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}
       >
         Qualified workers,

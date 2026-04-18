@@ -4,6 +4,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
@@ -12,6 +13,7 @@ body {
   background: #fff;
   -webkit-font-smoothing: antialiased;
   line-height: 1.7;
+  overflow-x: clip;
 }
 
 /* Premium design tokens */

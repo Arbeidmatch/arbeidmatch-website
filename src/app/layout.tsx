@@ -80,7 +80,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col font-sans">
         <ScrollProgressBar />
         <Navbar />
-        <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+        <main className="flex min-w-0 flex-1 flex-col overflow-x-clip">{children}</main>
         <Footer />
         <ContextualHelper />
         <CookieConsent />

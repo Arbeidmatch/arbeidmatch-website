@@ -41,7 +41,7 @@ export default function StickyBottomBanner({ enabled }: { enabled: boolean }) {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 72, opacity: 0 }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="pointer-events-auto fixed bottom-0 left-0 right-0 z-[85] border-t border-gold/20 bg-[#0a1018]/92 backdrop-blur-xl"
+          className="pointer-events-auto fixed bottom-0 left-0 right-0 z-[85] border-t border-gold/20 bg-[#0a1018]/92 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-xl"
         >
           <div className="mx-auto flex min-h-[56px] w-full max-w-content flex-col justify-center gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between md:px-6">
             <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
@@ -54,7 +54,7 @@ export default function StickyBottomBanner({ enabled }: { enabled: boolean }) {
               <p className="min-w-0 flex-1 text-sm font-medium leading-snug sm:text-base">
                 <Link
                   href="/dsb-checklist"
-                  className="block text-white/95 hover:text-white sm:hidden"
+                  className="block min-h-[44px] py-2 text-white/95 hover:text-white sm:hidden"
                 >
                   ⚡ Need DSB authorization? Get the guide →
                 </Link>
@@ -69,7 +69,7 @@ export default function StickyBottomBanner({ enabled }: { enabled: boolean }) {
             <div className="flex shrink-0 items-center justify-end gap-2 sm:justify-start">
               <Link
                 href="/dsb-checklist"
-                className="hidden rounded-full bg-gradient-to-r from-[#b8923f] to-gold px-4 py-2 text-xs font-semibold text-[#0a0f14] shadow-sm transition-transform duration-300 ease-premium hover:scale-[1.03] sm:inline-flex sm:text-sm"
+                className="hidden min-h-[44px] items-center justify-center rounded-full bg-gradient-to-r from-[#b8923f] to-gold px-4 py-2 text-xs font-semibold text-[#0a0f14] shadow-sm transition-transform duration-300 ease-premium hover:scale-[1.03] sm:inline-flex sm:text-sm"
               >
                 Get it free
               </Link>
@@ -77,7 +77,7 @@ export default function StickyBottomBanner({ enabled }: { enabled: boolean }) {
                 type="button"
                 onClick={dismiss}
                 aria-label="Dismiss banner"
-                className="rounded-lg p-2 text-white/50 transition-all duration-300 ease-premium hover:rotate-90 hover:text-white"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-white/50 transition-all duration-300 ease-premium hover:rotate-90 hover:text-white"
               >
                 <X size={18} strokeWidth={2} />
               </button>

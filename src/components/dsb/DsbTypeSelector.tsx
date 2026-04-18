@@ -76,14 +76,14 @@ export default function DsbTypeSelector({ isOpen: isOpenProp, onClose }: DsbType
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-[#030508]/82 p-4 backdrop-blur-xl backdrop-saturate-150"
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-[#030508]/82 p-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-xl backdrop-saturate-150 sm:p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.35 }}
         >
           <motion.div
-            className="relative w-full max-w-5xl rounded-2xl border border-gold/25 bg-[#0a1018]/90 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.6)] sm:p-8"
+            className="relative max-h-[min(92dvh,920px)] w-full max-w-5xl overflow-y-auto overscroll-contain rounded-2xl border border-gold/25 bg-[#0a1018]/90 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.6)] sm:p-8"
             initial={{ opacity: 0, scale: 0.88 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.94 }}
@@ -98,13 +98,15 @@ export default function DsbTypeSelector({ isOpen: isOpenProp, onClose }: DsbType
                 transition={{ duration: 0.4 }}
                 title="I'll decide later"
                 aria-label="I'll decide later"
-                className="absolute right-3 top-3 rounded p-1 text-[#888] transition-colors hover:text-white sm:right-4 sm:top-4"
+                className="absolute right-2 top-2 z-10 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-[#c4c4c4] transition-colors hover:bg-white/10 hover:text-white sm:right-3 sm:top-3"
               >
-                <X className="h-4 w-4" strokeWidth={2} aria-hidden />
+                <X className="h-5 w-5" strokeWidth={2} aria-hidden />
               </motion.button>
             )}
-            <h2 className="text-center text-3xl font-bold text-white sm:text-4xl">Are you an EU/EEA citizen?</h2>
-            <p className="mt-3 text-center text-sm text-white/80 sm:text-base">
+            <h2 className="pr-10 text-center text-2xl font-bold leading-tight text-white sm:pr-0 sm:text-3xl md:text-4xl">
+              Are you an EU/EEA citizen?
+            </h2>
+            <p className="mt-3 text-center text-sm text-white/85 sm:text-base">
               Select your category to see the right guide for you
             </p>
 
@@ -115,7 +117,7 @@ export default function DsbTypeSelector({ isOpen: isOpenProp, onClose }: DsbType
                 </p>
                 <h3 className="mt-3 text-2xl font-semibold text-white">EU/EEA Citizen</h3>
                 <p className="mt-2 text-xs text-white/75">Romania, Poland, Bulgaria, Hungary + 24 more</p>
-                <ul className="mt-4 space-y-2 text-sm text-emerald-200">
+                <ul className="mt-4 space-y-2 text-sm text-emerald-100/95">
                   <li>- Faster process (2-4 months)</li>
                   <li>- No visa required</li>
                   <li>- Job placement available</li>
@@ -124,7 +126,7 @@ export default function DsbTypeSelector({ isOpen: isOpenProp, onClose }: DsbType
                 <button
                   type="button"
                   onClick={() => selectType("eu")}
-                  className="mt-4 w-full rounded-md bg-gold py-3 text-sm font-bold text-navy transition hover:bg-gold-hover"
+                  className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold py-3 text-sm font-bold text-navy transition hover:bg-gold-hover"
                 >
                   I am EU/EEA →
                 </button>
@@ -136,7 +138,7 @@ export default function DsbTypeSelector({ isOpen: isOpenProp, onClose }: DsbType
                 </p>
                 <h3 className="mt-3 text-2xl font-semibold text-white">Non-EU Citizen</h3>
                 <p className="mt-2 text-xs text-white/75">Ukraine, India, Philippines, Serbia + others</p>
-                <ul className="mt-4 space-y-2 text-sm text-amber-200">
+                <ul className="mt-4 space-y-2 text-sm text-white/90">
                   <li>- Longer process (6-12 months)</li>
                   <li>- Work visa required</li>
                   <li>- Individual DSB assessment</li>
@@ -145,7 +147,7 @@ export default function DsbTypeSelector({ isOpen: isOpenProp, onClose }: DsbType
                 <button
                   type="button"
                   onClick={() => selectType("non-eu")}
-                  className="mt-4 w-full rounded-md border border-amber-300/70 py-3 text-sm font-bold text-amber-200 transition hover:bg-amber-300/10"
+                  className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-md border border-amber-300/70 py-3 text-sm font-bold text-white transition hover:bg-amber-300/15"
                 >
                   I am Non-EU →
                 </button>

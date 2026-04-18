@@ -58,7 +58,7 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
       {open && (
         <motion.div
           key="exit-overlay"
-          className="fixed inset-0 z-[100] flex items-end justify-center p-4 pb-10 sm:items-center sm:p-6"
+          className="fixed inset-0 z-[150] flex items-end justify-center p-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:items-center sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -78,7 +78,7 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 28 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-gold/25 bg-[#0a1018]/85 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+            className="relative z-10 w-full max-w-md max-h-[90dvh] overflow-y-auto overflow-x-hidden rounded-2xl border border-gold/25 bg-[#0a1018]/85 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl"
           >
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-gold/[0.07] via-transparent to-transparent" />
             <div className="relative px-7 pb-7 pt-8 text-center sm:px-8 sm:pt-9">
@@ -90,7 +90,7 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
               </div>
               <h2
                 id="exit-intent-title"
-                className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl"
+                className="font-sans text-2xl font-bold tracking-tight text-white sm:text-3xl"
               >
                 Before you leave...
               </h2>
@@ -101,7 +101,7 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
                 <Link
                   href="/dsb-checklist"
                   onClick={() => dismiss(true)}
-                  className="btn-gold-shine relative inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#b8923f] via-gold to-[#d4b45c] px-6 py-3.5 text-sm font-semibold text-[#0a0f14] shadow-[0_8px_32px_rgba(201,168,76,0.35)] transition-[transform,box-shadow] duration-300 ease-premium hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(201,168,76,0.45)]"
+                  className="btn-gold-shine relative inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#b8923f] via-gold to-[#d4b45c] px-6 py-3.5 text-sm font-semibold text-[#0a0f14] shadow-[0_8px_32px_rgba(201,168,76,0.35)] transition-[transform,box-shadow] duration-300 ease-premium hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(201,168,76,0.45)]"
                 >
                   Get the free checklist
                 </Link>
@@ -109,7 +109,7 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
               <button
                 type="button"
                 onClick={() => dismiss(true)}
-                className="mt-5 text-xs font-medium text-white/45 transition-colors duration-300 hover:text-white/70"
+                className="mt-5 min-h-[44px] w-full rounded-md px-3 py-2.5 text-xs font-medium text-white/55 transition-colors duration-300 hover:bg-white/5 hover:text-white/80"
               >
                 No thanks, continue browsing
               </button>
