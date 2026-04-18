@@ -117,7 +117,7 @@ export default function ForCandidatesDsbSection() {
                       }}
                       className={`${cardBase} dsb-card--eu bg-white/[0.05]`}
                     >
-                      <p className="text-4xl" aria-hidden>
+                      <p className="flex h-8 w-8 items-center justify-center text-[32px] leading-none" aria-hidden>
                         🇪🇺
                       </p>
                       <h3 className="mt-3 text-xl font-semibold text-white">EU/EEA Electricians</h3>
@@ -142,7 +142,7 @@ export default function ForCandidatesDsbSection() {
                       }}
                       className={`${cardBase} dsb-card--non-eu bg-white/[0.03]`}
                     >
-                      <p className="text-4xl" aria-hidden>
+                      <p className="flex h-8 w-8 items-center justify-center text-[32px] leading-none" aria-hidden>
                         🌍
                       </p>
                       <h3 className="mt-3 text-xl font-semibold text-white">Non-EU Electricians</h3>

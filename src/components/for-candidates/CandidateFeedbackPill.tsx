@@ -6,7 +6,8 @@ export default function CandidateFeedbackPill() {
   return (
     <Link
       href="/feedback"
-      className="candidate-feedback-pill fixed bottom-[80px] right-[20px] z-[90] max-w-[min(280px,calc(100vw-2.5rem))] rounded-full border border-gold/30 bg-[#0d1524]/92 px-3.5 py-2 text-center text-[12px] leading-snug text-[#888] shadow-lg backdrop-blur-md transition-[color,box-shadow,border-color] duration-200 hover:border-gold hover:text-gold"
+      className="candidate-feedback-pill fixed bottom-[90px] right-4 z-[80] max-w-[160px] origin-bottom-right scale-90 overflow-hidden text-ellipsis whitespace-nowrap rounded-full border border-[rgba(184,134,11,0.2)] bg-[rgba(10,12,20,0.8)] px-3 py-[6px] text-center text-[11px] leading-snug text-[#888] opacity-50 transition-all duration-300 ease-in-out hover:scale-100 hover:opacity-100 hover:text-gold"
+      title="Share feedback about your candidate experience"
     >
       Share feedback about your candidate experience
     </Link>
