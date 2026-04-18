@@ -50,6 +50,11 @@ export async function POST(request: NextRequest) {
       .eq("slug", guideSlug)
       .maybeSingle();
 
+    console.log("ENV CHECK - Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL ? "set" : "missing");
+    console.log("ENV CHECK - Service key:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "set" : "missing");
+    console.log("GUIDE SLUG received:", guideSlug);
+    console.log("GUIDE QUERY result:", JSON.stringify({ guide, guideError }));
+
     if (guideError || !guide) {
       return NextResponse.json({ success: false, error: "Guide not found." }, { status: 404 });
     }
