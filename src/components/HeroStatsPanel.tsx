@@ -17,6 +17,9 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
+const ACTIVE_GLOBAL_MIN = 8;
+const ACTIVE_GLOBAL_MAX = 35;
+
 function getLocalDateKey(now: Date): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
@@ -28,11 +31,11 @@ function getCandidatesBaseForDate(now: Date): number {
 
 /** Hourly band for “active on site now” (local hour). */
 function getActiveRangeByHour(hour: number): { min: number; max: number } {
-  if (hour >= 0 && hour <= 6) return { min: 3, max: 8 }; // night 00–07
-  if (hour >= 7 && hour <= 9) return { min: 8, max: 18 }; // morning 07–10
-  if (hour >= 10 && hour <= 16) return { min: 15, max: 30 }; // day 10–17
-  if (hour >= 17 && hour <= 21) return { min: 10, max: 22 }; // evening 17–22
-  return { min: 5, max: 12 }; // late 22–00
+  if (hour >= 0 && hour <= 6) return { min: 8, max: 15 }; // night 00–07
+  if (hour >= 7 && hour <= 9) return { min: 15, max: 25 }; // morning 07–10
+  if (hour >= 10 && hour <= 16) return { min: 20, max: 35 }; // day 10–17
+  if (hour >= 17 && hour <= 21) return { min: 15, max: 28 }; // evening 17–22
+  return { min: 10, max: 18 }; // late 22–00
 }
 
 function randomInt(min: number, max: number): number {
@@ -231,7 +234,7 @@ export default function HeroStatsPanel({
     window.localStorage.setItem(STORAGE_CANDIDATES, String(safeCandidates));
 
     const activeRange = getActiveRangeByHour(now.getHours());
-    const seed = clamp(randomInt(activeRange.min, activeRange.max), activeRange.min, activeRange.max);
+    const seed = clamp(randomInt(activeRange.min, activeRange.max), ACTIVE_GLOBAL_MIN, ACTIVE_GLOBAL_MAX);
     setActiveNow(seed);
     activeNowRef.current = seed;
   }, []);
@@ -276,7 +279,8 @@ export default function HeroStatsPanel({
 
       setActiveNow((prev) => {
         const nudged = prev + delta;
-        return clamp(nudged, range.min, range.max);
+        const bounded = clamp(nudged, range.min, range.max);
+        return clamp(bounded, ACTIVE_GLOBAL_MIN, ACTIVE_GLOBAL_MAX);
       });
 
       nextAt = Date.now() + randomInt(15, 25) * 1000;
