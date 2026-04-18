@@ -31,6 +31,10 @@ export default function Footer() {
               {label}
             </Link>
           ))}
+          <p className="pt-4 text-xs font-semibold uppercase tracking-wide text-white/85">Network</p>
+          <Link href="/recruiter-network" className="footer-link-premium block text-sm text-white/90">
+            Recruiter Network
+          </Link>
         </div>
 
         <div className="space-y-3">

@@ -595,3 +595,130 @@ select:focus {
       0 0 0 1px rgba(217, 165, 32, 0.2);
   }
 }
+
+/* Recruiter Network page */
+.recruiter-network-hero {
+  position: relative;
+  overflow: hidden;
+  background: #0a0c14;
+}
+
+.recruiter-network-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.52;
+  background:
+    radial-gradient(ellipse 72% 55% at 28% 18%, rgba(184, 134, 11, 0.16), transparent 52%),
+    radial-gradient(ellipse 58% 48% at 78% 78%, rgba(13, 27, 42, 0.55), transparent 55%),
+    linear-gradient(148deg, #0a0c14 0%, #13182c 42%, #0a0c14 100%);
+  background-size: 165% 165%;
+  animation: mesh-shift 22s ease-in-out infinite;
+}
+
+.recruiter-network-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: repeating-linear-gradient(
+    -12deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.04) 2px,
+    rgba(255, 255, 255, 0.04) 3px
+  );
+}
+
+.recruiter-network-hero > .rn-hero-inner {
+  position: relative;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recruiter-network-hero::before {
+    animation: none;
+    opacity: 0.4;
+  }
+}
+
+.rn-card-net {
+  background: rgba(22, 24, 40, 0.92);
+  border: 1px solid rgba(184, 134, 11, 0.22);
+  border-radius: 1rem;
+  transition:
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 300ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rn-card-net:hover {
+    transform: translateY(-4px);
+    border-color: rgba(184, 134, 11, 0.42);
+    box-shadow:
+      0 24px 56px rgba(0, 0, 0, 0.45),
+      0 0 28px rgba(184, 134, 11, 0.12),
+      0 0 0 1px rgba(184, 134, 11, 0.25);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .rn-card-net:active {
+    transform: scale(0.97);
+    transition: transform 100ms ease;
+  }
+}
+
+.rn-input {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(10, 12, 20, 0.6);
+  color: #f5f5f5;
+  border-radius: 0.5rem;
+  transition:
+    border-color 300ms ease,
+    box-shadow 300ms ease;
+}
+
+.rn-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.rn-input:focus {
+  outline: none;
+  border-color: rgba(184, 134, 11, 0.55);
+  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.18);
+}
+
+.rn-draw path,
+.rn-draw line,
+.rn-draw polyline,
+.rn-draw circle,
+.rn-draw rect {
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  transition: stroke-dashoffset 600ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rn-icon-wrap:hover .rn-draw path,
+  .rn-icon-wrap:hover .rn-draw line,
+  .rn-icon-wrap:hover .rn-draw polyline,
+  .rn-icon-wrap:hover .rn-draw circle,
+  .rn-icon-wrap:hover .rn-draw rect {
+    stroke-dashoffset: 0;
+  }
+}
+
+.rn-check-draw path {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  transition: stroke-dashoffset 500ms ease;
+}
+
+.rn-check-draw.is-done path {
+  stroke-dashoffset: 0;
+}
