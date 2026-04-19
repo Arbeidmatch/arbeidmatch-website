@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -68,7 +67,6 @@ export default function BemanningsbyraTrondheimPage() {
             Hvor raskt kan dere starte? - Avhengig av rolle og marked; vi avklarer realistisk tidslinje tidlig.
           </p>
         </section>
-        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[

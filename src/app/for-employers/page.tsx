@@ -5,6 +5,7 @@ import Testimonials from "@/components/Testimonials";
 import ScrollReveal from "@/components/ScrollReveal";
 import StaggerHero from "@/components/premium/StaggerHero";
 import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
+import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import ForEmployersExtendedServices from "@/components/for-employers/ForEmployersExtendedServices";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
@@ -38,6 +39,12 @@ export default function ForEmployersPage() {
       </section>
 
       <HowItWorks />
+
+      <section className="bg-white py-10 md:py-12 lg:py-14">
+        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+          <BemanningLegalSection />
+        </div>
+      </section>
 
       <section className="bg-surface py-12 md:py-16 lg:py-[100px]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">

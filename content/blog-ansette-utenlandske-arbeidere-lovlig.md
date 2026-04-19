@@ -42,15 +42,3 @@ Når dere sammenligner tilbud, be om oversikt over administrasjonsgebyrer, event
 ## Slik kan ArbeidMatch hjelpe deg
 
 Vi kobler EU/EEA-sourcing med dokumentasjon og forventningsstyring slik at prosjektledere får forutsigbare profiler. Vi erstatter ikke juridisk rådgivning, men reduserer friksjon mellom HR, innkjøp og produksjon når behovet er akutt.
-
----
-
-**Merk:** Artikkelen erstatter ikke individuell juridisk beregning.
-
-**Meta (forslag):**  
-Title: `Ansatte utenlandske arbeidere lovlig Norge 2025 | ArbeidMatch`  
-Description: `Sjekkliste for arbeidsgivere: EØS vs. utenfor EØS, kontrakt, allmenngjøring og HMS. Unngå vanlige feil – les guiden og ta kontakt.`
-
-**Interne lenker:** [For arbeidsgivere](/for-employers) · [Kontakt](/contact) · [Bemanning bygg](/bemanning-bygg-anlegg)
-
-**CTA:** [Gå til for arbeidsgivere](/for-employers) · [Send bemanningsbehov](/request)

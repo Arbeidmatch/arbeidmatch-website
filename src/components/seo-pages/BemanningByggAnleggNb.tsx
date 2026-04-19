@@ -1,5 +1,4 @@
 import Link from "next/link";
-import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 const roleCardClass =
@@ -144,8 +143,6 @@ export default function BemanningByggAnleggNb() {
             ))}
           </dl>
         </section>
-
-        <BemanningLegalSection />
 
         <SeeAlsoSection
           variant="surface"

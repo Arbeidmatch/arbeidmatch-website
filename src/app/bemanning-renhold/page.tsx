@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -56,7 +55,6 @@ export default function BemanningRenholdPage() {
             Kan dere dekke helgevakter? - Avhengig av tilgjengelighet og område; vi avklarer før oppstart.
           </p>
         </section>
-        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[

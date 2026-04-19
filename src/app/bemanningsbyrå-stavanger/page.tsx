@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -68,7 +67,6 @@ export default function BemanningsbyraStavangerPage() {
             Dekker dere offshore? - Avhengig av kurs og autorisasjoner; vi avklarer før vi presenterer kandidater.
           </p>
         </section>
-        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[

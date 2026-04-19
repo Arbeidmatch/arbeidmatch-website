@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -80,7 +79,6 @@ export default function BemanningLogistikkPage() {
             </div>
           </dl>
         </section>
-        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[
