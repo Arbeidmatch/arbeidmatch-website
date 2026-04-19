@@ -41,15 +41,16 @@ const primaryDesktopLinks = [
 
 const megaAllHrefs = [...tjenesterLinks, ...stederLinks, ...ressurserLinks];
 
+/** Mobile drawer: order matches spec (Welding after For arbeidsgivere). */
 const mobileEmployersLinks = [
   { href: "/for-employers", label: "For arbeidsgivere" },
+  { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/bemanning-bygg-anlegg", label: "Bygg og Anlegg" },
   { href: "/bemanning-logistikk", label: "Logistikk" },
   { href: "/bemanning-industri", label: "Industri" },
   { href: "/bemanning-renhold", label: "Renhold" },
   { href: "/bemanning-horeca", label: "HoReCa" },
   { href: "/bemanning-helse", label: "Helse" },
-  { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/for-staffing-agencies", label: "For bemanningsbyråer" },
 ] as const;
 
@@ -88,29 +89,27 @@ const mobileSectionHeaderClass =
   "px-6 pb-2 pt-4 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#C9A84C]";
 
 const mobileLinkRowBase =
-  "block border-b border-white/[0.04] py-3.5 text-[15px] transition-colors duration-150";
+  "block border-b border-white/[0.04] py-3.5 pl-6 pr-6 text-[15px] text-white transition-colors duration-150";
 
-function MobileNavRow({
+function MobileDrawerLink({
   href,
   children,
-  delaySec,
   pathname,
   external,
   premium,
-  onNavigate,
+  onClose,
 }: {
   href: string;
   children: ReactNode;
-  delaySec: number;
   pathname: string;
   external?: boolean;
   premium?: boolean;
-  onNavigate: () => void;
+  onClose: () => void;
 }) {
   const active = !external && linkActive(pathname, href);
   const activeClass = active
     ? "border-l-2 border-l-[#C9A84C] pl-[22px] font-medium text-[#C9A84C]"
-    : "border-l-2 border-l-transparent pl-6 text-white";
+    : "border-l-2 border-l-transparent font-normal text-white";
 
   const inner = (
     <span className="inline-flex items-center gap-2">
@@ -120,34 +119,35 @@ function MobileNavRow({
     </span>
   );
 
+  if (external) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`${mobileLinkRowBase} ${activeClass}`}
+        onClick={onClose}
+      >
+        {inner}
+      </a>
+    );
+  }
+
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -12 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: delaySec, duration: 0.28, ease: "easeOut" }}
-    >
-      {external ? (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`${mobileLinkRowBase} ${activeClass}`}
-          onClick={onNavigate}
-        >
-          {inner}
-        </a>
-      ) : (
-        <Link href={href} className={`${mobileLinkRowBase} ${activeClass}`} onClick={onNavigate}>
-          {inner}
-        </Link>
-      )}
-    </motion.div>
+    <Link href={href} className={`${mobileLinkRowBase} ${activeClass}`} onClick={onClose}>
+      {inner}
+    </Link>
   );
 }
 
+const DRAWER_EASE = [0.32, 0.72, 0, 1] as const;
+/** Stacking above sticky header (z-210); spec z-40/50 would sit under the bar. */
+const Z_MOBILE_BACKDROP = 280;
+const Z_MOBILE_DRAWER = 290;
+
 export default function Navbar() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -158,22 +158,20 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    queueMicrotask(() => {
-      setOpen(false);
-    });
+    setIsOpen(false);
   }, [pathname]);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
     const onMq = () => {
-      if (!mq.matches) setOpen(false);
+      if (!mq.matches) setIsOpen(false);
     };
     mq.addEventListener("change", onMq);
     return () => mq.removeEventListener("change", onMq);
   }, []);
 
   useEffect(() => {
-    if (!open) {
+    if (!isOpen) {
       document.body.style.overflow = "";
       return;
     }
@@ -187,7 +185,7 @@ export default function Navbar() {
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [open]);
+  }, [isOpen]);
 
   const navItemClass =
     "shrink-0 text-[15px] font-normal text-[#555555] transition-[color,font-weight] duration-150 hover:font-medium hover:text-[#0D1B2A]";
@@ -196,11 +194,7 @@ export default function Navbar() {
     ? "border-b border-black/[0.06] bg-white/95 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-md"
     : "border-b border-black/[0.06] bg-white/90 backdrop-blur-sm";
 
-  const closeMenu = () => {
-    setOpen(false);
-  };
-
-  const hamburgerEase = [0.32, 0.72, 0, 1] as const;
+  const closeMenu = () => setIsOpen(false);
 
   return (
     <header className={`sticky top-0 z-[210] transition-colors duration-200 ${headerSurface}`}>
@@ -299,139 +293,140 @@ export default function Navbar() {
         </div>
 
         <button
-          aria-label="Toggle navigation"
-          aria-expanded={open}
-          onClick={() => setOpen((prev) => !prev)}
+          type="button"
+          aria-label={isOpen ? "Lukk meny" : "Åpne meny"}
+          aria-expanded={isOpen}
+          onClick={() => setIsOpen((v) => !v)}
           className="relative flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border-0 bg-transparent lg:hidden"
-          style={{ width: 44, height: 44 }}
         >
           <span className="sr-only">Menu</span>
           <span className="flex h-[14px] w-[22px] flex-col justify-center gap-[5px]">
             <motion.span
               className="block h-0.5 w-[22px] rounded-[2px] bg-[#C9A84C]"
               style={{ height: 2 }}
-              animate={open ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.3, ease: hamburgerEase }}
+              animate={isOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
+              transition={{ duration: 0.3, ease: DRAWER_EASE }}
             />
             <motion.span
               className="block h-0.5 w-[22px] rounded-[2px] bg-[#C9A84C]"
               style={{ height: 2 }}
-              animate={open ? { opacity: 0 } : { opacity: 1 }}
-              transition={{ duration: 0.3, ease: hamburgerEase }}
+              animate={isOpen ? { opacity: 0 } : { opacity: 1 }}
+              transition={{ duration: 0.3, ease: DRAWER_EASE }}
             />
             <motion.span
               className="block h-0.5 w-[22px] rounded-[2px] bg-[#C9A84C]"
               style={{ height: 2 }}
-              animate={open ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.3, ease: hamburgerEase }}
+              animate={isOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
+              transition={{ duration: 0.3, ease: DRAWER_EASE }}
             />
           </span>
         </button>
       </div>
 
       <AnimatePresence initial={false}>
-        {open ? (
-          <motion.div
-            key="mobile-nav"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Navigasjon"
-            className="fixed inset-0 z-[220] flex flex-col bg-[#0a0f19] lg:hidden"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-          >
-            <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-6 py-5">
-              <Link href="/" className="text-xl font-bold" onClick={closeMenu}>
-                <span className="text-white">Arbeid</span>
-                <span className="text-[#C9A84C]">Match</span>
-              </Link>
-              <button
-                type="button"
-                aria-label="Lukk meny"
-                className="flex h-11 w-11 items-center justify-center text-white"
-                onClick={closeMenu}
-              >
-                <X className="h-6 w-6" strokeWidth={1.75} />
-              </button>
-            </div>
-
-            <div className="flex shrink-0 gap-3 border-b border-white/[0.06] bg-white/[0.02] px-6 py-4">
-              <Link
-                href="/for-employers"
-                onClick={closeMenu}
-                className="rounded-full border border-[rgba(201,168,76,0.3)] px-4 py-2 text-[13px] font-medium text-[#C9A84C]"
-              >
-                Arbeidsgiver
-              </Link>
-              <Link
-                href="/for-candidates"
-                onClick={closeMenu}
-                className="rounded-full border border-white/[0.15] px-4 py-2 text-[13px] font-medium text-white/[0.6]"
-              >
-                Candidate
-              </Link>
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-              <p className={mobileSectionHeaderClass}>For employers</p>
-              {mobileEmployersLinks.map((item, i) => (
-                <MobileNavRow
-                  key={item.href}
-                  href={item.href}
-                  delaySec={0.1 + i * 0.05}
-                  pathname={pathname}
-                  onNavigate={closeMenu}
+        {isOpen ? (
+          <>
+            <motion.button
+              key="mobile-nav-backdrop"
+              type="button"
+              aria-label="Lukk meny"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/50 lg:hidden"
+              style={{ zIndex: Z_MOBILE_BACKDROP }}
+              onClick={closeMenu}
+            />
+            <motion.aside
+              key="mobile-nav-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigasjon"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.35, ease: DRAWER_EASE }}
+              className="fixed bottom-0 right-0 top-0 flex w-[min(100vw,320px)] flex-col overflow-hidden bg-[#0a0f19] lg:hidden"
+              style={{ zIndex: Z_MOBILE_DRAWER }}
+            >
+              <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-6 py-5">
+                <Link href="/" className="text-xl font-bold" onClick={closeMenu}>
+                  <span className="text-white">Arbeid</span>
+                  <span className="text-[#C9A84C]">Match</span>
+                </Link>
+                <button
+                  type="button"
+                  aria-label="Lukk meny"
+                  className="flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center text-white"
+                  onClick={closeMenu}
                 >
-                  {item.label}
-                </MobileNavRow>
-              ))}
-
-              <p className={mobileSectionHeaderClass}>For candidates</p>
-              {mobileCandidatesLinks.map((item, i) => (
-                <MobileNavRow
-                  key={item.href}
-                  href={item.href}
-                  delaySec={0.3 + i * 0.05}
-                  pathname={pathname}
-                  external={"external" in item && item.external}
-                  premium={"premium" in item && item.premium}
-                  onNavigate={closeMenu}
-                >
-                  {item.label}
-                </MobileNavRow>
-              ))}
-
-              <p className={mobileSectionHeaderClass}>Locations</p>
-              <div className="grid grid-cols-2 gap-2 px-6 py-2">
-                {stederLinks.map((item, i) => (
-                  <MobileNavRow
-                    key={item.href}
-                    href={item.href}
-                    delaySec={0.5 + i * 0.05}
-                    pathname={pathname}
-                    onNavigate={closeMenu}
-                  >
-                    {item.label}
-                  </MobileNavRow>
-                ))}
+                  <X className="h-6 w-6" strokeWidth={1.75} />
+                </button>
               </div>
 
-              <p className={mobileSectionHeaderClass}>Company</p>
-              {mobileCompanyLinks.map((item, i) => (
-                <MobileNavRow
-                  key={item.href}
-                  href={item.href}
-                  delaySec={0.6 + i * 0.05}
-                  pathname={pathname}
-                  onNavigate={closeMenu}
+              <div className="flex shrink-0 flex-row gap-2 border-b border-white/[0.06] px-6 py-4">
+                <Link
+                  href="/for-employers"
+                  onClick={closeMenu}
+                  className="rounded-full border border-[rgba(201,168,76,0.3)] px-4 py-2 text-[13px] font-medium text-[#C9A84C]"
                 >
-                  {item.label}
-                </MobileNavRow>
-              ))}
-            </div>
-          </motion.div>
+                  Arbeidsgiver
+                </Link>
+                <Link
+                  href="/for-candidates"
+                  onClick={closeMenu}
+                  className="rounded-full border border-white/30 px-4 py-2 text-[13px] font-medium text-white/60"
+                >
+                  Candidate
+                </Link>
+              </div>
+
+              <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <p className={mobileSectionHeaderClass}>For employers</p>
+                {mobileEmployersLinks.map((item) => (
+                  <MobileDrawerLink
+                    key={item.href}
+                    href={item.href}
+                    pathname={pathname}
+                    onClose={closeMenu}
+                  >
+                    {item.label}
+                  </MobileDrawerLink>
+                ))}
+
+                <p className={mobileSectionHeaderClass}>For candidates</p>
+                {mobileCandidatesLinks.map((item) => (
+                  <MobileDrawerLink
+                    key={item.href}
+                    href={item.href}
+                    pathname={pathname}
+                    external={"external" in item && item.external}
+                    premium={"premium" in item && item.premium}
+                    onClose={closeMenu}
+                  >
+                    {item.label}
+                  </MobileDrawerLink>
+                ))}
+
+                <p className={mobileSectionHeaderClass}>Locations</p>
+                <div className="grid grid-cols-2 gap-2 px-6 py-2">
+                  {stederLinks.map((item) => (
+                    <MobileDrawerLink key={item.href} href={item.href} pathname={pathname} onClose={closeMenu}>
+                      {item.label}
+                    </MobileDrawerLink>
+                  ))}
+                </div>
+
+                <p className={mobileSectionHeaderClass}>Company</p>
+                {mobileCompanyLinks.map((item) => (
+                  <MobileDrawerLink key={item.href} href={item.href} pathname={pathname} onClose={closeMenu}>
+                    {item.label}
+                  </MobileDrawerLink>
+                ))}
+              </nav>
+            </motion.aside>
+          </>
         ) : null}
       </AnimatePresence>
     </header>
