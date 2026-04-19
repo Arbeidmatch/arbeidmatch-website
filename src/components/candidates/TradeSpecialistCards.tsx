@@ -319,11 +319,20 @@ export default function TradeSpecialistCards() {
                   Register your profile and we will match you with Norwegian employers actively looking for DSB-authorized
                   electricians. Norwegian employer references are a strong advantage.
                 </p>
+                <a
+                  href="https://jobs.arbeidmatch.no"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 box-border block w-full min-w-0 rounded-[8px] px-[18px] py-2.5 text-center text-[13px] font-bold text-white no-underline transition-colors duration-[180ms] hover:bg-[#178a66]"
+                  style={{ background: GREEN, boxSizing: "border-box" }}
+                >
+                  Browse open electrician jobs
+                </a>
                 <button
                   type="button"
                   onClick={() => setElecOpen((k) => (k === "a" ? null : "a"))}
-                  className="mt-3 box-border w-full min-w-0 rounded-[8px] py-2.5 text-[13px] font-bold text-white"
-                  style={{ background: GREEN }}
+                  className="mt-2 box-border w-full min-w-0 rounded-[8px] border border-[rgba(29,158,117,0.4)] bg-transparent py-2.5 text-[13px] font-bold transition-colors duration-[180ms] hover:bg-[rgba(29,158,117,0.08)]"
+                  style={{ color: GREEN, boxSizing: "border-box" }}
                 >
                   Register and find work
                 </button>
@@ -398,13 +407,22 @@ export default function TradeSpecialistCards() {
                 <p className="mt-2 text-[11px] leading-snug text-white/[0.4]">
                   Typical salary: 280 to 330 NOK per hour. Rotation: 4 weeks on, 2 weeks home or 6 weeks on, 2 weeks home.
                 </p>
+                <a
+                  href="https://jobs.arbeidmatch.no"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 box-border block w-full min-w-0 rounded-[8px] px-[18px] py-2.5 text-center text-[13px] font-bold text-white no-underline transition-colors duration-[180ms] hover:bg-[#178a66]"
+                  style={{ background: GREEN, boxSizing: "border-box" }}
+                >
+                  Browse open welding jobs
+                </a>
                 <button
                   type="button"
                   onClick={() => setWeldOpen((k) => (k === "a" ? null : "a"))}
-                  className="mt-3 box-border w-full min-w-0 rounded-[8px] py-2.5 text-[13px] font-bold text-white"
-                  style={{ background: GREEN }}
+                  className="mt-2 box-border w-full min-w-0 rounded-[8px] border border-[rgba(29,158,117,0.4)] bg-transparent py-2.5 text-[13px] font-bold transition-colors duration-[180ms] hover:bg-[rgba(29,158,117,0.08)]"
+                  style={{ color: GREEN, boxSizing: "border-box" }}
                 >
-                  Apply for welding jobs
+                  Register your profile
                 </button>
                 <InlineSignup
                   open={weldOpen === "a"}
