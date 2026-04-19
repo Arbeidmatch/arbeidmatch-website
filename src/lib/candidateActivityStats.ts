@@ -29,8 +29,8 @@ function hash32(seed: number): number {
   return x >>> 0;
 }
 
-/** Calendar day index in Europe/Oslo (Norwegian “today”). */
-function osloDayIndex(d: Date): number {
+/** Calendar day index in Norway’s main IANA zone (Norwegian “today”). */
+function norwayCivilDayIndex(d: Date): number {
   const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Oslo",
     year: "numeric",
@@ -48,7 +48,7 @@ function osloDayIndex(d: Date): number {
   return Math.floor(Date.UTC(y, m, day) / 86_400_000);
 }
 
-function osloHourMinute(d: Date): { hour: number; minute: number } {
+function norwayWallClock(d: Date): { hour: number; minute: number } {
   const fmt = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Europe/Oslo",
     hour: "2-digit",
@@ -68,7 +68,7 @@ function osloHourMinute(d: Date): { hour: number; minute: number } {
  * does not repeat the same value (unlike a pure 7-day cycle).
  */
 export function getCandidatesRegisteredToday(now: Date): number {
-  const day = osloDayIndex(now);
+  const day = norwayCivilDayIndex(now);
   const h = hash32(day * 0x165667b1 + 0x27d4eb2d);
   return 20 + (h % 31);
 }
@@ -81,8 +81,8 @@ const ACTIVE_SPAN = ACTIVE_MAX - ACTIVE_MIN + 1;
  * "Active on site now" in [205, 432], varies by ~5-minute UTC bucket so it feels live.
  */
 export function getActiveOnSiteNow(now: Date): number {
-  const day = osloDayIndex(now);
-  const { hour, minute } = osloHourMinute(now);
+  const day = norwayCivilDayIndex(now);
+  const { hour, minute } = norwayWallClock(now);
   const bucket = hour * 12 + Math.floor(minute / 5);
   const h = hash32(day * 1_000_000 + bucket * 0x9e3779b9 + 0x85ebca6b);
   return ACTIVE_MIN + (h % ACTIVE_SPAN);
@@ -92,7 +92,7 @@ export function getActiveOnSiteNow(now: Date): number {
  * Total visits: large cumulative-style number that rises when active rises (same formula, same request).
  */
 export function getTotalVisitsLinked(activeOnSiteNow: number, now: Date): number {
-  const day = osloDayIndex(now);
+  const day = norwayCivilDayIndex(now);
   const base = 1_240_000 + (day % 10_000) * 73;
   return Math.round(base + activeOnSiteNow * 1_847);
 }

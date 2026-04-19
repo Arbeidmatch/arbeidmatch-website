@@ -23,7 +23,6 @@ const localBusiness = {
     longitude: 10.52,
   },
   areaServed: [
-    { "@type": "City", name: "Oslo" },
     { "@type": "City", name: "Bergen" },
     { "@type": "City", name: "Trondheim" },
     { "@type": "City", name: "Stavanger" },

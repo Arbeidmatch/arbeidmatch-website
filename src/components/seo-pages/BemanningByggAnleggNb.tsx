@@ -154,7 +154,6 @@ export default function BemanningByggAnleggNb() {
           items={[
             { href: "/bemanning-logistikk", label: "Logistikk & lager" },
             { href: "/bemanning-industri", label: "Industri & produksjon" },
-            { href: "/bemanningsbyrå-oslo", label: "Bemanning Oslo" },
             { href: "/bemanningsbyrå-trondheim", label: "Bemanning Trondheim" },
             { href: "/dsb-support", label: "DSB-godkjenning for elektrikere" },
           ]}

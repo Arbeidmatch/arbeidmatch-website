@@ -10,9 +10,9 @@ function getSupabaseClient() {
   return createClient(url, key);
 }
 
-function getOsloWeekStartIso() {
+function getUtcWeekStartIsoMonday() {
   const now = new Date();
-  // Approximate Oslo week start with UTC Monday 00:00 to keep query deterministic in cron.
+  // UTC Monday 00:00 week boundary to keep the cron query deterministic.
   const day = now.getUTCDay();
   const diffToMonday = (day + 6) % 7;
   const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - diffToMonday, 0, 0, 0));
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Supabase configuration missing" }, { status: 500 });
     }
 
-    const weekStartIso = getOsloWeekStartIso();
+    const weekStartIso = getUtcWeekStartIsoMonday();
 
     const totalResult = await supabase
       .from("guide_interest_signups")

@@ -54,7 +54,6 @@ ArbeidMatch-siten har nå **samkjørte norske metadata** (tittel, beskrivelse, c
 | `/bemanning-horeca` | `src/app/bemanning-horeca/page.tsx` | ✅ | — | ✅ |
 | `/bemanning-helse` | `src/app/bemanning-helse/page.tsx` | ✅ | — | ✅ |
 | `/bemanningsbyrå-trondheim` | `src/app/bemanningsbyrå-trondheim/page.tsx` | ✅ | — | ✅ |
-| `/bemanningsbyrå-oslo` | `src/app/bemanningsbyrå-oslo/page.tsx` | ✅ | — | ✅ |
 | `/bemanningsbyrå-bergen` | `src/app/bemanningsbyrå-bergen/page.tsx` | ✅ | — | ✅ |
 | `/bemanningsbyrå-stavanger` | `src/app/bemanningsbyrå-stavanger/page.tsx` | ✅ | — | ✅ |
 | `/bemanningsbyrå-kristiansand` | `src/app/bemanningsbyrå-kristiansand/page.tsx` | ✅ | — | ✅ |

@@ -75,7 +75,6 @@ const tjenesterCol: [string, string][] = [
 
 const stederCol: [string, string][] = [
   ["Trondheim", "/bemanningsbyrå-trondheim"],
-  ["Oslo", "/bemanningsbyrå-oslo"],
   ["Bergen", "/bemanningsbyrå-bergen"],
   ["Stavanger", "/bemanningsbyrå-stavanger"],
   ["Kristiansand", "/bemanningsbyrå-kristiansand"],

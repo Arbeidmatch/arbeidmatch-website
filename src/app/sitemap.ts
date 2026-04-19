@@ -43,7 +43,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // Location landing pages (0.8, monthly)
     ...[
       "/bemanningsbyrå-trondheim",
-      "/bemanningsbyrå-oslo",
       "/bemanningsbyrå-bergen",
       "/bemanningsbyrå-stavanger",
       "/bemanningsbyrå-kristiansand",

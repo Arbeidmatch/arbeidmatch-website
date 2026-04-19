@@ -17,7 +17,6 @@ const tjenesterLinks = [
 
 const stederLinks = [
   { href: "/bemanningsbyrå-trondheim", label: "Trondheim" },
-  { href: "/bemanningsbyrå-oslo", label: "Oslo" },
   { href: "/bemanningsbyrå-bergen", label: "Bergen" },
   { href: "/bemanningsbyrå-stavanger", label: "Stavanger" },
   { href: "/bemanningsbyrå-kristiansand", label: "Kristiansand" },

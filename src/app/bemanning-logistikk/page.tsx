@@ -38,7 +38,6 @@ export default function BemanningLogistikkPage() {
           items={[
             { href: "/bemanning-bygg-anlegg", label: "Bygg & Anlegg" },
             { href: "/bemanning-industri", label: "Industri & produksjon" },
-            { href: "/bemanningsbyrå-oslo", label: "Bemanning Oslo" },
             { href: "/for-employers", label: "For arbeidsgivere" },
           ]}
         />
