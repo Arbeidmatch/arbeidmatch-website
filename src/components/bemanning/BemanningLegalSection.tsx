@@ -3,15 +3,15 @@ import Link from "next/link";
 export default function BemanningLegalSection() {
   return (
     <section
-      className="my-12 rounded-lg border-l-[3px] border-[#C9A84C] px-7 py-6"
-      style={{ background: "rgba(201,168,76,0.06)", padding: "24px 28px" }}
+      className="my-12 rounded-lg border-l-[3px] border-[#C9A84C] px-5 py-5 md:px-7 md:py-6"
+      style={{ background: "rgba(201,168,76,0.06)" }}
       aria-labelledby="bemanning-legal-heading"
     >
-      <h2 id="bemanning-legal-heading" className="text-base font-semibold text-navy">
+      <h2 id="bemanning-legal-heading" className="text-base font-semibold text-navy md:text-[16px]">
         Viktig informasjon om bemanningsregler
       </h2>
-      <h3 className="mt-2 text-base font-semibold text-navy">Når kan norske bedrifter bruke bemanningsbyrå?</h3>
-      <div className="mt-4 space-y-3 text-[15px] leading-relaxed text-text-secondary">
+      <h3 className="mt-2 text-base font-semibold text-navy md:text-[16px]">Når kan norske bedrifter bruke bemanningsbyrå?</h3>
+      <div className="mt-4 space-y-3 text-sm leading-relaxed text-text-secondary md:text-[15px]">
         <p>
           I henhold til norsk arbeidsmiljølov § 14-12 kan innleie fra bemanningsforetak benyttes i følgende tilfeller:
         </p>
@@ -31,7 +31,7 @@ export default function BemanningLegalSection() {
           href="https://www.arbeidstilsynet.no"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[13px] font-medium text-gold underline-offset-4 hover:underline"
+          className="inline-flex min-h-[44px] min-w-[44px] items-center text-[13px] font-medium text-gold underline-offset-4 hover:underline"
         >
           Les mer om regelverket → arbeidstilsynet.no
         </Link>

@@ -290,9 +290,12 @@ export default function HeroStatsPanel({
   }, []);
 
   return (
-    <div ref={panelRef} className="grid grid-cols-2 gap-6 rounded-xl bg-navy p-10">
-      <div className="col-span-2 border-b border-white/10 pb-6">
-        <p className="font-mono text-4xl font-bold tabular-nums text-gold md:text-5xl">
+    <div
+      ref={panelRef}
+      className="grid w-full grid-cols-2 gap-4 rounded-xl bg-navy p-5 sm:gap-5 md:gap-6 md:p-8 lg:p-10"
+    >
+      <div className="col-span-2 border-b border-white/10 pb-4 md:pb-6">
+        <p className="font-mono text-2xl font-bold tabular-nums text-gold sm:text-3xl md:text-4xl lg:text-5xl">
           <SmoothNumber
             value={candidatesToday}
             run={runNumbers}
@@ -301,31 +304,31 @@ export default function HeroStatsPanel({
             delayMs={0}
           />
         </p>
-        <p className="mt-2 text-sm text-white">Candidates registered today</p>
+        <p className="mt-2 text-xs text-white md:text-sm">Candidates registered today</p>
       </div>
 
       <div>
-        <p className="font-mono text-4xl font-bold text-gold">30</p>
-        <p className="text-sm text-white">EU/EEA countries</p>
+        <p className="font-mono text-2xl font-bold text-gold sm:text-3xl md:text-4xl">30</p>
+        <p className="text-xs text-white md:text-sm">EU/EEA countries</p>
       </div>
       <div>
-        <p className="font-mono text-4xl font-bold text-gold">200+</p>
-        <p className="text-sm text-white">Candidates placed</p>
+        <p className="font-mono text-2xl font-bold text-gold sm:text-3xl md:text-4xl">200+</p>
+        <p className="text-xs text-white md:text-sm">Candidates placed</p>
       </div>
       <div>
-        <p className="font-mono text-4xl font-bold text-gold">30+</p>
-        <p className="text-sm text-white">Active clients</p>
+        <p className="font-mono text-2xl font-bold text-gold sm:text-3xl md:text-4xl">30+</p>
+        <p className="text-xs text-white md:text-sm">Active clients</p>
       </div>
 
       <div>
-        <p className="font-mono text-4xl font-bold tabular-nums text-gold md:text-5xl">
+        <p className="font-mono text-2xl font-bold tabular-nums text-gold sm:text-3xl md:text-4xl lg:text-5xl">
           <SmoothNumber value={activeNow} run={runNumbers} instant={countInstant} durationMs={2000} delayMs={450} />
         </p>
-        <p className="mt-2 text-sm text-white">Active on site now</p>
+        <p className="mt-2 text-xs text-white md:text-sm">Active on site now</p>
       </div>
 
-      <div className="col-span-2 border-t border-white/10 pt-6">
-        <p className="font-mono text-4xl font-bold tabular-nums text-gold md:text-5xl">
+      <div className="col-span-2 border-t border-white/10 pt-4 md:pt-6">
+        <p className="font-mono text-2xl font-bold tabular-nums text-gold sm:text-3xl md:text-4xl lg:text-5xl">
           <SmoothNumber
             value={totalVisits}
             run={runNumbers}
@@ -334,7 +337,7 @@ export default function HeroStatsPanel({
             delayMs={600}
           />
         </p>
-        <p className="mt-2 text-sm text-white">Total visits</p>
+        <p className="mt-2 text-xs text-white md:text-sm">Total visits</p>
       </div>
     </div>
   );

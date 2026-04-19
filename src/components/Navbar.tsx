@@ -48,9 +48,9 @@ function megaHasActive(pathname: string): boolean {
 }
 
 const megaColLabelClass =
-  "mb-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#C9A84C]";
+  "am-eyebrow mb-3 font-semibold uppercase tracking-[0.1em] text-[#C9A84C]";
 const megaLinkClass =
-  "block rounded-md px-3 py-2 text-[14px] text-navy transition-colors duration-150 hover:bg-black/[0.04]";
+  "flex min-h-[44px] min-w-[44px] items-center rounded-md px-6 py-3 text-[14px] text-navy transition-colors duration-150 hover:bg-black/[0.04] lg:min-h-0 lg:min-w-0 lg:px-3 lg:py-2";
 
 const megaPanelInnerClass =
   "rounded-2xl border border-black/[0.06] bg-white p-8 shadow-[0_8px_32px_rgba(0,0,0,0.08)]";
@@ -75,6 +75,32 @@ export default function Navbar() {
     });
   }, [pathname]);
 
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const onMq = () => {
+      if (!mq.matches) setOpen(false);
+    };
+    mq.addEventListener("change", onMq);
+    return () => mq.removeEventListener("change", onMq);
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      document.body.style.overflow = "";
+      return;
+    }
+    const mq = window.matchMedia("(max-width: 1023px)");
+    if (!mq.matches) {
+      document.body.style.overflow = "";
+      return;
+    }
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   const navItemClass =
     "shrink-0 text-[15px] font-normal text-[#555555] transition-[color,font-weight] duration-150 hover:font-medium hover:text-[#0D1B2A]";
 
@@ -82,15 +108,20 @@ export default function Navbar() {
     ? "border-b border-black/[0.06] bg-white/95 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-md"
     : "border-b border-black/[0.06] bg-white/90 backdrop-blur-sm";
 
+  const closeMenu = () => {
+    setOpen(false);
+    setMobileSub(null);
+  };
+
   return (
-    <header className={`sticky top-0 z-[100] transition-colors duration-200 ${headerSurface}`}>
-      <div className="mx-auto flex h-[72px] min-h-[72px] w-full max-w-content items-center justify-between gap-4 px-4 md:px-6">
-        <Link href="/" className="block shrink-0 text-2xl">
+    <header className={`sticky top-0 z-[210] transition-colors duration-200 ${headerSurface}`}>
+      <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-4 px-6 md:h-16 md:min-h-[64px] md:px-12 lg:h-[72px] lg:min-h-[72px] lg:gap-10 lg:px-20">
+        <Link href="/" className="block min-h-[44px] shrink-0 text-2xl leading-[44px]">
           <span className="font-bold text-[#0D1B2A]">Arbeid</span>
           <span className="font-bold text-[#B8860B]">Match</span>
         </Link>
 
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-10 xl:flex">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-10 lg:flex">
           {primaryDesktopLinks.map((link) => (
             <Link
               key={link.href}
@@ -103,12 +134,12 @@ export default function Navbar() {
 
           <div className="group/mer relative">
             <span
-              className={`inline-flex cursor-default items-center gap-1 ${navItemClass} ${
+              className={`inline-flex min-h-[44px] cursor-default items-center gap-1 ${navItemClass} ${
                 megaHasActive(pathname) ? "font-medium text-[#0D1B2A] underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""
               }`}
             >
               Mer
-              <ChevronDown className="h-3.5 w-3.5 opacity-50" aria-hidden />
+              <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
             </span>
             <div className="pointer-events-none invisible absolute left-1/2 top-full z-[130] w-[min(920px,calc(100vw-2rem))] -translate-x-1/2 pt-3 opacity-0 transition-[opacity,transform,visibility] duration-[180ms] ease-out translate-y-[-6px] group-hover/mer:pointer-events-auto group-hover/mer:visible group-hover/mer:translate-y-0 group-hover/mer:opacity-100">
               <div className={megaPanelInnerClass}>
@@ -164,10 +195,10 @@ export default function Navbar() {
           </div>
         </nav>
 
-        <div className="hidden shrink-0 xl:block">
+        <div className="hidden shrink-0 md:block">
           <Link
             href="/request"
-            className="btn-gold-premium inline-flex min-h-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-[15px] font-medium text-white hover:bg-gold-hover"
+            className="btn-gold-premium inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-[15px] font-medium text-white hover:bg-gold-hover"
           >
             Request Candidates
           </Link>
@@ -177,7 +208,7 @@ export default function Navbar() {
           aria-label="Toggle navigation"
           aria-expanded={open}
           onClick={() => setOpen((prev) => !prev)}
-          className="relative flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border border-border text-navy xl:hidden"
+          className="relative flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border border-border text-navy lg:hidden"
         >
           <span className="sr-only">Menu</span>
           <span className="flex h-4 w-5 flex-col justify-center gap-1.5">
@@ -202,93 +233,113 @@ export default function Navbar() {
 
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden border-t border-border bg-white text-[#555555] xl:hidden"
-          >
-            <div className="mx-auto flex max-w-content flex-col gap-1 px-4 py-3 md:px-6">
-              {primaryDesktopLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className={`min-h-[44px] rounded-md px-2 py-3 text-[15px] hover:bg-surface ${linkActive(pathname, link.href) ? "font-medium text-navy underline decoration-gold" : ""}`}
+          <>
+            <motion.button
+              type="button"
+              aria-label="Lukk meny"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[200] bg-black/40 lg:hidden"
+              onClick={closeMenu}
+            />
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigasjon"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed left-0 right-0 top-[60px] z-[201] flex max-h-[calc(100dvh-60px)] flex-col bg-white shadow-lg md:top-16 md:max-h-[calc(100dvh-4rem)] lg:hidden"
+            >
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-4 pt-2">
+                {primaryDesktopLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={closeMenu}
+                    className={`flex min-h-[44px] items-center rounded-md px-6 py-3 text-[15px] hover:bg-surface ${linkActive(pathname, link.href) ? "font-medium text-navy underline decoration-gold" : "text-[#555555]"}`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+
+                <button
+                  type="button"
+                  aria-expanded={mobileSub === "mer"}
+                  onClick={() => setMobileSub((s) => (s === "mer" ? null : "mer"))}
+                  className="flex min-h-[44px] w-full items-center justify-between rounded-md px-6 py-3 text-left text-[15px] text-[#555555] hover:bg-surface"
                 >
-                  {link.label}
+                  Mer
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 transition-transform ${mobileSub === "mer" ? "rotate-180" : ""}`}
+                    aria-hidden
+                  />
+                </button>
+                {mobileSub === "mer" && (
+                  <div className="ml-2 flex flex-col gap-4 border-l border-black/10 pl-4 pb-2">
+                    <div>
+                      <p className={megaColLabelClass}>Tjenester</p>
+                      <div className="mt-1 flex flex-col">
+                        {tjenesterLinks.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={closeMenu}
+                            className="flex min-h-[44px] items-center py-2 pl-2 text-[14px] hover:text-navy"
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className={megaColLabelClass}>Steder</p>
+                      <div className="mt-1 flex flex-col">
+                        {stederLinks.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={closeMenu}
+                            className="flex min-h-[44px] items-center py-2 pl-2 text-[14px] hover:text-navy"
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className={megaColLabelClass}>Ressurser</p>
+                      <div className="mt-1 flex flex-col">
+                        {ressurserLinks.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={closeMenu}
+                            className="flex min-h-[44px] items-center py-2 pl-2 text-[14px] hover:text-navy"
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="shrink-0 border-t border-border bg-white px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden">
+                <Link
+                  href="/request"
+                  onClick={closeMenu}
+                  className="btn-gold-premium flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-center text-sm font-medium text-white hover:bg-gold-hover"
+                >
+                  Request Candidates
                 </Link>
-              ))}
-
-              <button
-                type="button"
-                aria-expanded={mobileSub === "mer"}
-                onClick={() => setMobileSub((s) => (s === "mer" ? null : "mer"))}
-                className="flex min-h-[44px] items-center justify-between rounded-md px-2 py-3 text-left text-[15px] hover:bg-surface"
-              >
-                Mer
-                <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${mobileSub === "mer" ? "rotate-180" : ""}`} />
-              </button>
-              {mobileSub === "mer" && (
-                <div className="ml-2 flex flex-col gap-4 border-l border-black/10 pl-3 pb-2">
-                  <div>
-                    <p className={megaColLabelClass}>Tjenester</p>
-                    <div className="mt-1 flex flex-col">
-                      {tjenesterLinks.map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setOpen(false)}
-                          className="min-h-[40px] py-2 text-[14px] hover:text-navy"
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <p className={megaColLabelClass}>Steder</p>
-                    <div className="mt-1 flex flex-col">
-                      {stederLinks.map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setOpen(false)}
-                          className="min-h-[40px] py-2 text-[14px] hover:text-navy"
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <p className={megaColLabelClass}>Ressurser</p>
-                    <div className="mt-1 flex flex-col">
-                      {ressurserLinks.map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setOpen(false)}
-                          className="min-h-[40px] py-2 text-[14px] hover:text-navy"
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <Link
-                href="/request"
-                onClick={() => setOpen(false)}
-                className="btn-gold-premium mt-1 flex min-h-[48px] items-center justify-center rounded-md bg-gold py-3 text-center text-sm font-medium text-white hover:bg-gold-hover"
-              >
-                Request Candidates
-              </Link>
-            </div>
-          </motion.div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </header>

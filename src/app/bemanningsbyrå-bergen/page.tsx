@@ -13,12 +13,12 @@ export const metadata: Metadata = {
 export default function BemanningsbyraBergenPage() {
   return (
     <article className="bg-white">
-      <div className="mx-auto w-full max-w-content px-4 py-12 md:px-6 md:py-16">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Lokalside</p>
-        <h1 className="mt-3 max-w-4xl text-3xl font-extrabold text-navy md:text-4xl">
+      <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Lokalside</p>
+        <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
           Bemanning Bergen der havn, byfjell og byutvikling møtes
         </h1>
-        <div className="mt-8 max-w-3xl space-y-4 text-[17px] leading-relaxed text-text-secondary">
+        <div className="mt-8 max-w-3xl space-y-4 leading-relaxed text-text-secondary">
           <p>
             Bergensøkonomien er formet av sjøtransport, maritim teknologi og byutvikling i krevende terreng. ArbeidMatch
             leverer bemanning Bergen til maritim klynge og landbasert bygg, med fokus på dokumentert EU/EEA-erfaring,
@@ -46,7 +46,7 @@ export default function BemanningsbyraBergenPage() {
             <li>Byggfag til fortetting i sentrum og i dagligvarekjeder</li>
           </ul>
         </section>
-        <section className="mt-10 grid gap-4 md:grid-cols-3">
+        <section className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {[
             ["Maritim forståelse", "Kandidater vurderes opp mot havn, verft og logistikk i regionen."],
             ["Dokumentasjon", "Vi arbeider for ryddig papirflyt som tåler innkjøp og revisjon."],
@@ -62,8 +62,8 @@ export default function BemanningsbyraBergenPage() {
             </article>
           ))}
         </section>
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold text-navy">Kort FAQ</h2>
+        <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
+          <h2 className="am-h3 font-semibold text-navy">Kort FAQ</h2>
           <p className="mt-3 text-sm text-text-secondary">
             Dekker dere hele Vestland? — Vi vurderer oppdrag nasjonalt; bergenske prosjekter får lokal kontekst i
             screening.
@@ -82,11 +82,17 @@ export default function BemanningsbyraBergenPage() {
           Ta kontakt med oss for bemanning i Bergen – vi starter med deres prosjektforutsetninger og leverer ryddige
           kandidatprofiler.
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/request" className="btn-gold-premium inline-flex min-h-[44px] items-center rounded-md px-6 py-3 text-sm font-semibold text-white">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+          <Link
+            href="/request"
+            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
+          >
             Send forespørsel
           </Link>
-          <Link href="/for-employers" className="inline-flex min-h-[44px] items-center rounded-md border border-navy px-6 py-3 text-sm font-semibold text-navy">
+          <Link
+            href="/for-employers"
+            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md border border-navy px-6 py-3 text-sm font-semibold text-navy sm:w-auto"
+          >
             For arbeidsgivere
           </Link>
         </div>

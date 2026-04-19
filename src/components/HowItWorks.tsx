@@ -21,7 +21,7 @@ const steps = [
 export default function HowItWorks() {
   return (
     <section id="how-it-works" className="bg-white py-12 md:py-20">
-      <div className="mx-auto w-full max-w-content px-4 md:px-6">
+      <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <ScrollReveal variant="fadeUp" className="text-center">
           <h2 className="heading-premium-xl font-display text-4xl text-navy">How we work</h2>
         </ScrollReveal>

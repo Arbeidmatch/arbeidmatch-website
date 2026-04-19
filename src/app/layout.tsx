@@ -87,8 +87,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nb" className={`h-full antialiased ${fontSans.variable}`}>
-      <body className="flex min-h-full flex-col font-sans">
+    <html lang="nb" className={`h-full overflow-x-hidden antialiased ${fontSans.variable}`}>
+      <body className="flex min-h-full flex-col overflow-x-hidden font-sans">
         <ScrollProgressBar />
         <Navbar />
         <main className="flex min-w-0 flex-1 flex-col overflow-x-clip">{children}</main>

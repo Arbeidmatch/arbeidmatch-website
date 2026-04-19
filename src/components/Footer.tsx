@@ -103,8 +103,8 @@ const quickLinks: [string, string][] = [
 export default function Footer() {
   return (
     <footer className="bg-navy text-white">
-      <div className="mx-auto grid w-full max-w-content grid-cols-1 justify-items-center gap-12 px-4 py-14 text-center sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 xl:justify-items-stretch xl:gap-8 xl:text-left md:px-6">
-        <div className="w-full max-w-sm space-y-3 sm:col-span-2 xl:col-span-1 xl:max-w-none">
+      <div className="mx-auto grid w-full max-w-content grid-cols-1 justify-items-stretch gap-8 px-6 py-12 text-center sm:grid-cols-2 sm:gap-10 sm:text-left md:px-12 md:py-16 lg:grid-cols-3 lg:gap-12 lg:py-20 xl:grid-cols-5 xl:gap-10">
+        <div className="w-full max-w-sm space-y-3 justify-self-center sm:col-span-2 sm:justify-self-start lg:col-span-1 xl:max-w-none">
           <p className="text-2xl">
             <span className="font-bold text-[#f5f5f5]">Arbeid</span>
             <span className="font-bold text-[#B8860B]">Match</span>
@@ -112,50 +112,69 @@ export default function Footer() {
           <p className="text-sm text-white/90">Rekruttering og bemanning · Norway</p>
         </div>
 
-        <div className="w-full max-w-sm space-y-2 xl:max-w-none">
-          <p className="text-xs font-semibold uppercase tracking-wide text-white/85">Snarveier</p>
+        <div className="w-full max-w-sm space-y-1 justify-self-center sm:justify-self-start lg:max-w-none">
+          <p className="am-eyebrow font-semibold uppercase tracking-wide text-white/85">Snarveier</p>
           {quickLinks.map(([label, href]) => (
-            <Link key={href} href={href} className="footer-link-premium block text-sm text-white/90">
+            <Link
+              key={href}
+              href={href}
+              className="footer-link-premium flex min-h-[44px] items-center text-sm text-white/90 sm:min-h-0 sm:py-1"
+            >
               {label}
             </Link>
           ))}
         </div>
 
-        <div className="w-full max-w-sm space-y-2 xl:max-w-none">
-          <p className="text-xs font-semibold uppercase tracking-wide text-white/85">Tjenester</p>
+        <div className="w-full max-w-sm space-y-1 justify-self-center sm:justify-self-start lg:max-w-none">
+          <p className="am-eyebrow font-semibold uppercase tracking-wide text-white/85">Tjenester</p>
           {tjenesterCol.map(([label, href]) => (
-            <Link key={href} href={href} className="footer-link-premium block text-sm text-white/90">
+            <Link
+              key={href}
+              href={href}
+              className="footer-link-premium flex min-h-[44px] items-center text-sm text-white/90 sm:min-h-0 sm:py-1"
+            >
               {label}
             </Link>
           ))}
         </div>
 
-        <div className="w-full max-w-sm space-y-2 xl:max-w-none">
-          <p className="text-xs font-semibold uppercase tracking-wide text-white/85">Steder</p>
+        <div className="w-full max-w-sm space-y-1 justify-self-center sm:justify-self-start lg:max-w-none">
+          <p className="am-eyebrow font-semibold uppercase tracking-wide text-white/85">Steder</p>
           {stederCol.map(([label, href]) => (
-            <Link key={href} href={href} className="footer-link-premium block text-sm text-white/90">
+            <Link
+              key={href}
+              href={href}
+              className="footer-link-premium flex min-h-[44px] items-center text-sm text-white/90 sm:min-h-0 sm:py-1"
+            >
               {label}
             </Link>
           ))}
         </div>
 
-        <div className="w-full max-w-sm space-y-2 xl:max-w-none">
-          <p className="text-xs font-semibold uppercase tracking-wide text-white/85">Ressurser</p>
+        <div className="w-full max-w-sm space-y-1 justify-self-center sm:col-span-2 sm:justify-self-start lg:col-span-1 lg:max-w-none">
+          <p className="am-eyebrow font-semibold uppercase tracking-wide text-white/85">Ressurser</p>
           {ressurserCol.map(([label, href]) => (
-            <Link key={href} href={href} className="footer-link-premium block text-sm text-white/90">
+            <Link
+              key={href}
+              href={href}
+              className="footer-link-premium flex min-h-[44px] items-center text-sm text-white/90 sm:min-h-0 sm:py-1"
+            >
               {label}
             </Link>
           ))}
           <p className="pt-3 text-sm text-white/90">Looking for jobs?</p>
-          <Link href="/score" className="block text-xl font-semibold text-gold">
+          <Link href="/score" className="mt-2 inline-flex min-h-[44px] items-center text-xl font-semibold text-gold">
             Browse open positions →
           </Link>
-          <a href="mailto:post@arbeidmatch.no" className="footer-link-premium block text-sm text-white/90">
+          <a
+            href="mailto:post@arbeidmatch.no"
+            className="footer-link-premium mt-1 inline-flex min-h-[44px] items-center text-sm text-white/90"
+          >
             post@arbeidmatch.no
           </a>
         </div>
 
-        <div className="flex w-full max-w-sm flex-col items-center gap-4 border-t border-white/10 pt-10 sm:col-span-2 xl:col-span-1 xl:max-w-none xl:border-t-0 xl:pt-0 xl:items-end xl:text-right">
+        <div className="flex w-full max-w-sm flex-col items-center gap-4 border-t border-white/10 pt-8 sm:col-span-2 sm:pt-10 lg:col-span-1 lg:border-t-0 lg:pt-0 xl:max-w-none xl:items-end xl:text-right">
           <SmartphoneIcon />
           <div className="space-y-2">
             <p className="text-lg font-semibold text-gold">ArbeidMatch App</p>
@@ -179,7 +198,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-white/15">
-        <div className="mx-auto w-full max-w-content px-4 py-4 md:px-6">
+        <div className="mx-auto w-full max-w-content px-6 py-6 text-center md:px-12 md:text-left lg:px-20">
           <p className="text-sm text-white/85">
             © 2026{" "}
             <span className="font-medium text-[#f5f5f5]">Arbeid</span>

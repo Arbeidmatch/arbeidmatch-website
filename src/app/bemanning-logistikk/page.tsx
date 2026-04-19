@@ -13,12 +13,12 @@ export const metadata: Metadata = {
 export default function BemanningLogistikkPage() {
   return (
     <article className="bg-white">
-      <div className="mx-auto w-full max-w-content px-4 py-12 md:px-6 md:py-16">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Bemanning logistikk</p>
-        <h1 className="mt-3 max-w-3xl text-3xl font-extrabold text-navy md:text-4xl">
+      <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Bemanning logistikk</p>
+        <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
           Bemanning logistikk med folk som behersker terminaltempo
         </h1>
-        <div className="mt-8 max-w-3xl space-y-4 text-[17px] leading-relaxed text-text-secondary">
+        <div className="mt-8 max-w-3xl space-y-4 leading-relaxed text-text-secondary">
           <p>
             Norske distribusjonsnett presser kapasiteten: sesongtopper, JIT-leveranser og strengere krav til sikker
             truck- og truckløyve. ArbeidMatch rekrutterer EU/EEA-kandidater til lager, terminal og kjøring der
@@ -39,7 +39,7 @@ export default function BemanningLogistikkPage() {
         </div>
         <section className="mt-10">
           <h2 className="text-lg font-semibold text-navy">Typiske roller</h2>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          <ul className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
             {["Truckførere", "Terminalarbeidere", "Lager- og ordreplukk", "Co-drivere / logistikkassistenter"].map((r) => (
               <li
                 key={r}
@@ -51,7 +51,7 @@ export default function BemanningLogistikkPage() {
             ))}
           </ul>
         </section>
-        <section className="mt-10 grid gap-4 md:grid-cols-3">
+        <section className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {[
             ["Trygg dokumentasjon", "Vi arbeider for å strukturere papirflyt og førerkortklasser før presentasjon."],
             ["Skift og tempo", "Kandidater vurderes opp mot reelle krav til terminaltempo og HMS."],
@@ -67,8 +67,8 @@ export default function BemanningLogistikkPage() {
             </article>
           ))}
         </section>
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold text-navy">Korte svar</h2>
+        <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
+          <h2 className="am-h3 font-semibold text-navy">Korte svar</h2>
           <dl className="mt-4 space-y-4 text-sm text-text-secondary">
             <div>
               <dt className="font-semibold text-navy">Kan dere dekke korte topper?</dt>
@@ -89,11 +89,17 @@ export default function BemanningLogistikkPage() {
             { href: "/for-employers", label: "For arbeidsgivere" },
           ]}
         />
-        <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/request" className="btn-gold-premium inline-flex min-h-[44px] items-center rounded-md px-6 py-3 text-sm font-semibold text-white">
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+          <Link
+            href="/request"
+            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
+          >
             Diskuter behov
           </Link>
-          <Link href="/for-employers" className="inline-flex min-h-[44px] items-center rounded-md border border-navy px-6 py-3 text-sm font-semibold text-navy">
+          <Link
+            href="/for-employers"
+            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md border border-navy px-6 py-3 text-sm font-semibold text-navy sm:w-auto"
+          >
             For arbeidsgivere
           </Link>
         </div>

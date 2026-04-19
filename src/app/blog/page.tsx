@@ -11,7 +11,7 @@ export const metadata: Metadata = nbPageMetadata(
 export default function BlogIndexPage() {
   return (
     <div className="bg-white">
-      <div className="mx-auto w-full max-w-content px-4 py-12 md:px-6 md:py-16">
+      <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
         <h1 className="text-3xl font-extrabold text-navy md:text-4xl">Blogg</h1>
         <p className="mt-4 max-w-2xl text-text-secondary">
           Praktiske artikler for norske arbeidsgivere om rekruttering, compliance og EU/EEA-arbeidskraft.

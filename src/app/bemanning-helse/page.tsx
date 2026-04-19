@@ -13,12 +13,12 @@ export const metadata: Metadata = {
 export default function BemanningHelsePage() {
   return (
     <article className="bg-white">
-      <div className="mx-auto w-full max-w-content px-4 py-12 md:px-6 md:py-16">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Bemanning helse</p>
-        <h1 className="mt-3 max-w-3xl text-3xl font-extrabold text-navy md:text-4xl">
+      <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Bemanning helse</p>
+        <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
           Bemanning helse med tydelige krav til autorisasjon
         </h1>
-        <div className="mt-8 max-w-3xl space-y-4 text-[17px] leading-relaxed text-text-secondary">
+        <div className="mt-8 max-w-3xl space-y-4 leading-relaxed text-text-secondary">
           <p>
             Helse og omsorg krever sporbar kompetanse. ArbeidMatch arbeider med EU/EEA-kandidater der godkjenning,
             språk og praksis er avklart i tråd med norske krav før presentasjon. Vi erstatter ikke myndighetenes
@@ -34,7 +34,7 @@ export default function BemanningHelsePage() {
             .
           </p>
         </div>
-        <section className="mt-10 grid gap-4 md:grid-cols-3">
+        <section className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {[
             ["Autorisasjon", "Krav avklares før presentasjon — ingen snarveier."],
             ["Dokumentasjon", "Vi tilstreber sporbarhet i papirflyt som støtter deres internkontroll."],
@@ -59,11 +59,17 @@ export default function BemanningHelsePage() {
             { href: "/for-candidates", label: "For kandidater" },
           ]}
         />
-        <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/request" className="btn-gold-premium inline-flex min-h-[44px] items-center rounded-md px-6 py-3 text-sm font-semibold text-white">
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+          <Link
+            href="/request"
+            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
+          >
             Avklar behov
           </Link>
-          <Link href="/for-employers" className="inline-flex min-h-[44px] items-center rounded-md border border-navy px-6 py-3 text-sm font-semibold text-navy">
+          <Link
+            href="/for-employers"
+            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md border border-navy px-6 py-3 text-sm font-semibold text-navy sm:w-auto"
+          >
             For arbeidsgivere
           </Link>
         </div>

@@ -13,12 +13,12 @@ export const metadata: Metadata = {
 export default function BemanningsbyraTrondheimPage() {
   return (
     <article className="bg-white">
-      <div className="mx-auto w-full max-w-content px-4 py-12 md:px-6 md:py-16">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Lokalside</p>
-        <h1 className="mt-3 max-w-4xl text-3xl font-extrabold text-navy md:text-4xl">
+      <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Lokalside</p>
+        <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
           Bemanningsbyrå Trondheim for prosjekter i teknologibyen som bygger videre
         </h1>
-        <div className="mt-8 max-w-3xl space-y-4 text-[17px] leading-relaxed text-text-secondary">
+        <div className="mt-8 max-w-3xl space-y-4 leading-relaxed text-text-secondary">
           <p>
             Trondheim-regionen kombinerer marin næring, byutvikling og industrielt tyngdepunkt. ArbeidMatch har
             hovedkontor i Ranheim og leverer bemanningsbyrå Trondheim med kort vei til møter, befaring og oppfølging. Vi
@@ -46,7 +46,7 @@ export default function BemanningsbyraTrondheimPage() {
             <li>Stillas og rigg mot infrastrukturunderentreprise</li>
           </ul>
         </section>
-        <section className="mt-10 grid gap-4 md:grid-cols-3">
+        <section className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {[
             ["Lokal nærhet", "Kort vei til kundemøter og oppstartsoppfølging i Midt-Norge."],
             ["HMS-forventninger", "Vi jobber strukturert med krav som er høye i norske byggeplassmiljøer."],
@@ -62,8 +62,8 @@ export default function BemanningsbyraTrondheimPage() {
             </article>
           ))}
         </section>
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold text-navy">Kort FAQ</h2>
+        <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
+          <h2 className="am-h3 font-semibold text-navy">Kort FAQ</h2>
           <p className="mt-3 text-sm text-text-secondary">
             Hvor raskt kan dere starte? — Avhengig av rolle og marked; vi avklarer realistisk tidslinje tidlig.
           </p>
@@ -82,11 +82,17 @@ export default function BemanningsbyraTrondheimPage() {
           Ta kontakt med oss for bemanning i Trondheim – vi starter med krav og leverer profiler som er forberedt på
           norske forhold.
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/request" className="btn-gold-premium inline-flex min-h-[44px] items-center rounded-md px-6 py-3 text-sm font-semibold text-white">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+          <Link
+            href="/request"
+            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
+          >
             Send forespørsel
           </Link>
-          <Link href="/for-employers" className="inline-flex min-h-[44px] items-center rounded-md border border-navy px-6 py-3 text-sm font-semibold text-navy">
+          <Link
+            href="/for-employers"
+            className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md border border-navy px-6 py-3 text-sm font-semibold text-navy sm:w-auto"
+          >
             Les mer for arbeidsgivere
           </Link>
         </div>

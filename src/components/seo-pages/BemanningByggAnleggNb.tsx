@@ -8,7 +8,9 @@ const roleCardClass =
 function RoleIcon() {
   return (
     <svg
-      className="h-5 w-5 shrink-0 text-gold transition-transform duration-200 group-hover:scale-110"
+      width={20}
+      height={20}
+      className="h-5 w-5 shrink-0 text-gold transition-transform duration-200 group-hover:scale-110 md:h-6 md:w-6"
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden
@@ -22,16 +24,16 @@ export default function BemanningByggAnleggNb() {
   return (
     <article className="bg-white">
       <header className="border-b border-border bg-surface">
-        <div className="mx-auto w-full max-w-content px-4 py-12 md:px-6 md:py-16">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Bemanning bygg</p>
-          <h1 className="mt-3 max-w-4xl text-3xl font-extrabold leading-tight tracking-tight text-navy md:text-4xl">
+        <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
+          <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Bemanning bygg</p>
+          <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold leading-tight tracking-tight text-navy">
             Bemanning bygg og anlegg med dokumentert EU/EEA-kompetanse
           </h1>
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-content space-y-12 px-4 py-12 md:px-6 md:py-16">
-        <section className="max-w-3xl space-y-4 text-[17px] leading-relaxed text-text-secondary">
+      <div className="mx-auto w-full max-w-content space-y-12 px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
+        <section className="max-w-3xl space-y-4 leading-relaxed text-text-secondary">
           <p>
             Norske bygge- og anleggsprosjekter må balansere fremdrift, HMS og tilgang på fagarbeidere. ArbeidMatch
             kobler virksomheter med forhåndsvurderte kandidater fra EU/EØS der dokumentasjon og forventninger er avklart
@@ -57,7 +59,7 @@ export default function BemanningByggAnleggNb() {
 
         <section>
           <h2 className="text-2xl font-bold text-navy">Hvilke fagarbeidere kan vi levere?</h2>
-          <ul className="mt-6 grid gap-4 md:grid-cols-2">
+          <ul className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
             {[
               [
                 "Betongarbeider",
@@ -86,7 +88,7 @@ export default function BemanningByggAnleggNb() {
 
         <section>
           <h2 className="text-2xl font-bold text-navy">Hvorfor velge ArbeidMatch?</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
             {[
               {
                 t: "Faglig tyngde",
@@ -116,7 +118,7 @@ export default function BemanningByggAnleggNb() {
 
         <section>
           <h2 className="text-2xl font-bold text-navy">Ofte stilte spørsmål</h2>
-          <dl className="mt-6 space-y-6">
+          <dl className="mx-auto mt-6 max-w-[800px] space-y-6 px-0 md:px-4">
             {[
               {
                 q: "Kan vi få fagarbeidere på kort varsel?",
@@ -162,16 +164,16 @@ export default function BemanningByggAnleggNb() {
             oppstart der markedet tillater det, ofte i om lag{" "}
             <span className="font-semibold text-white">2 ukers leveringstid</span> for relevante roller.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
             <Link
               href="/request"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-white hover:bg-gold-hover"
+              className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-white hover:bg-gold-hover sm:w-auto"
             >
               Bestill kandidater
             </Link>
             <Link
               href="/for-employers"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-md border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
+              className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10 sm:w-auto"
             >
               Les om arbeidsgiverløsningen
             </Link>

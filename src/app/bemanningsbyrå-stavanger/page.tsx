@@ -13,12 +13,12 @@ export const metadata: Metadata = {
 export default function BemanningsbyraStavangerPage() {
   return (
     <article className="bg-white">
-      <div className="mx-auto w-full max-w-content px-4 py-12 md:px-6 md:py-16">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Lokalside</p>
-        <h1 className="mt-3 max-w-4xl text-3xl font-extrabold text-navy md:text-4xl">
+      <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Lokalside</p>
+        <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
           Bemanning Stavanger olje industri – når sikkerhetskrav og tempo møtes
         </h1>
-        <div className="mt-8 max-w-3xl space-y-4 text-[17px] leading-relaxed text-text-secondary">
+        <div className="mt-8 max-w-3xl space-y-4 leading-relaxed text-text-secondary">
           <p>
             Rogaland er et kraftsentrum for energi, leverandørindustri og havnæring, med bolig- og infrastrukturprosjekter
             som krever dokumentert kompetanse og tydelig sikkerhetsbrief. ArbeidMatch leverer bemanning Stavanger med
@@ -46,7 +46,7 @@ export default function BemanningsbyraStavangerPage() {
             <li>Byggfag til bolig og næring i storbyregionen</li>
           </ul>
         </section>
-        <section className="mt-10 grid gap-4 md:grid-cols-3">
+        <section className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {[
             ["Sikkerhetskrav", "Vi matcher kandidater mot dokumentasjon og offshore/HMS-forventninger."],
             ["Nasjonal oppfølging", "Kort vei til koordinering når innkjøps- og sikkerhetsløp er avklart."],
@@ -62,8 +62,8 @@ export default function BemanningsbyraStavangerPage() {
             </article>
           ))}
         </section>
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold text-navy">Kort FAQ</h2>
+        <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
+          <h2 className="am-h3 font-semibold text-navy">Kort FAQ</h2>
           <p className="mt-3 text-sm text-text-secondary">
             Dekker dere offshore? — Avhengig av kurs og autorisasjoner; vi avklarer før vi presenterer kandidater.
           </p>
@@ -80,11 +80,17 @@ export default function BemanningsbyraStavangerPage() {
         <p className="mt-10 text-lg font-semibold text-navy">
           Ta kontakt med oss for bemanning i Stavanger – vi kobler sikkerhetskrav med reell rekrutteringskapasitet.
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/request" className="btn-gold-premium inline-flex min-h-[44px] items-center rounded-md px-6 py-3 text-sm font-semibold text-white">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+          <Link
+            href="/request"
+            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
+          >
             Avklar behov
           </Link>
-          <Link href="/contact" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-gold underline">
+          <Link
+            href="/contact"
+            className="inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center text-sm font-semibold text-gold underline sm:w-auto"
+          >
             Kontakt oss
           </Link>
         </div>

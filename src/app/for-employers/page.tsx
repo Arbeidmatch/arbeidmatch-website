@@ -17,8 +17,8 @@ export const metadata: Metadata = nbPageMetadata(
 export default function ForEmployersPage() {
   return (
     <>
-      <section className="bg-white py-12 md:py-20">
-        <div className="mx-auto w-full max-w-content px-4 text-center md:px-6">
+      <section className="bg-white py-12 md:py-16 lg:py-[100px]">
+        <div className="mx-auto w-full max-w-content px-6 text-center md:px-12 lg:px-20">
           <StaggerHero className="flex flex-col items-center">
             <h1 className="heading-premium-xl font-display text-4xl text-navy md:text-5xl">
               Qualified EU/EEA workforce for Norwegian businesses
@@ -29,7 +29,7 @@ export default function ForEmployersPage() {
             </p>
             <Link
               href="/request"
-              className="btn-gold-premium mt-8 inline-block rounded-md bg-gold px-8 py-3 font-medium text-white hover:bg-gold-hover"
+              className="btn-gold-premium mt-8 inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md bg-gold px-8 py-3 font-medium text-white hover:bg-gold-hover sm:mx-auto sm:w-auto sm:max-w-none"
             >
               Request candidates
             </Link>
@@ -39,8 +39,8 @@ export default function ForEmployersPage() {
 
       <HowItWorks />
 
-      <section className="bg-surface py-12 md:py-20">
-        <div className="mx-auto w-full max-w-content px-4 md:px-6">
+      <section className="bg-surface py-12 md:py-16 lg:py-[100px]">
+        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
             <h2 className="heading-premium-xl font-display text-4xl text-navy">Our services</h2>
           </ScrollReveal>
@@ -74,10 +74,10 @@ export default function ForEmployersPage() {
 
       <Testimonials />
 
-      <section className="mesh-cta-wrap bg-navy py-12 text-center md:py-20">
-        <div className="mx-auto w-full max-w-content px-4 md:px-6">
+      <section className="mesh-cta-wrap bg-navy py-12 text-center md:py-16 lg:py-[100px]">
+        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <h2 className="heading-premium-xl text-3xl text-white">Need workers now?</h2>
+            <h2 className="am-h2 heading-premium-xl font-extrabold text-white">Need workers now?</h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
             <p className="mx-auto mt-4 max-w-2xl text-white/70">
@@ -87,7 +87,7 @@ export default function ForEmployersPage() {
           <ScrollReveal variant="fadeUp">
             <Link
               href="/request"
-              className="btn-gold-premium mt-8 inline-block rounded-md bg-gold px-8 py-3 font-medium text-white hover:bg-gold-hover"
+              className="btn-gold-premium mt-8 inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md bg-gold px-8 py-3 font-medium text-white hover:bg-gold-hover sm:mx-auto sm:w-auto sm:max-w-none"
             >
               Request candidates
             </Link>
