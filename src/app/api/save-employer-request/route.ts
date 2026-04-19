@@ -8,6 +8,7 @@ import {
   noStoreJson,
   parseJsonBodyWithSchema,
 } from "@/lib/apiSecurity";
+import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 
 const requestSchema = z
@@ -86,6 +87,7 @@ function parseNumeric(value?: string) {
 }
 
 export async function POST(request: NextRequest) {
+  let companySnapshot = "unknown";
   try {
     const rate = getRateLimitResult(request, "save-employer-request", 8, 10 * 60 * 1000);
     if (rate.limited) {
@@ -111,6 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = parsed.data;
+    companySnapshot = payload.company?.trim() || "unknown";
 
     const { error } = await supabase.from("employer_requests").insert({
       token_id:                      payload.token,
@@ -179,6 +182,14 @@ export async function POST(request: NextRequest) {
     return noStoreJson({ success: true });
   } catch (error) {
     logApiError("save-employer-request", error);
+    await notifyError({
+      route: "/api/save-employer-request",
+      error,
+      context: {
+        company: companySnapshot,
+        timestamp: new Date().toISOString(),
+      },
+    });
     return noStoreJson({ success: false, error: "Could not save employer request." }, { status: 500 });
   }
 }

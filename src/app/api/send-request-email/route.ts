@@ -3,6 +3,7 @@ import { z } from "zod";
 import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { getRateLimitResult, hasHoneypotValue, noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
+import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import {
   buildInternalEmailHtml,
@@ -216,6 +217,14 @@ export async function POST(request: NextRequest) {
     return noStoreJson({ success: true });
   } catch (error) {
     logApiError("send-request-email", error);
+    await notifyError({
+      route: "/api/send-request-email",
+      error,
+      context: {
+        recipient: "post@arbeidmatch.no",
+        timestamp: new Date().toISOString(),
+      },
+    });
     return noStoreJson({ success: false, error: "Failed to send email." }, { status: 500 });
   }
 }

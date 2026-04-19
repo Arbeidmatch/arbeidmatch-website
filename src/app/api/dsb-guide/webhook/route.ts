@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import nodemailer from "nodemailer";
+import { notifyError } from "@/lib/errorNotifier";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { getPublicBaseUrl, type DsbGuideSlug } from "@/lib/dsbGuideAccess";
 import {
@@ -54,125 +55,145 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const session = event.data.object as Stripe.Checkout.Session;
-  const sessionId = session.id;
-  const metadata = session.metadata || {};
-  const guideSlug = metadata.guide_slug as string | undefined;
-  const customerEmail =
-    session.customer_details?.email?.trim().toLowerCase() ||
-    (typeof session.customer_email === "string" ? session.customer_email.trim().toLowerCase() : "") ||
-    (metadata.email as string | undefined)?.trim().toLowerCase() ||
-    "";
-  const accessToken = metadata.access_token as string | undefined;
+  try {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const sessionId = session.id;
+    const metadata = session.metadata || {};
+    const guideSlug = metadata.guide_slug as string | undefined;
+    const customerEmail =
+      session.customer_details?.email?.trim().toLowerCase() ||
+      (typeof session.customer_email === "string" ? session.customer_email.trim().toLowerCase() : "") ||
+      (metadata.email as string | undefined)?.trim().toLowerCase() ||
+      "";
+    const accessToken = metadata.access_token as string | undefined;
 
-  if (!sessionId) {
-    return NextResponse.json({ received: true });
-  }
+    if (!sessionId) {
+      return NextResponse.json({ received: true });
+    }
 
-  const supabase = getSupabaseServiceClient();
-  if (!supabase) {
-    return NextResponse.json({ error: "Database not configured" }, { status: 500 });
-  }
+    const supabase = getSupabaseServiceClient();
+    if (!supabase) {
+      await notifyError({
+        route: "/api/dsb-guide/webhook",
+        error: new Error("Database not configured"),
+        context: {
+          event: event.type || "unknown",
+          phase: "supabase_client",
+          timestamp: new Date().toISOString(),
+        },
+      });
+      return NextResponse.json({ error: "Database not configured" }, { status: 500 });
+    }
 
-  const { data: existing } = await supabase
-    .from("dsb_guide_purchases")
-    .select("id, stripe_payment_status, access_token, guide_slug, email")
-    .eq("stripe_session_id", sessionId)
-    .maybeSingle();
-
-  const token =
-    accessToken ||
-    (existing?.access_token as string | undefined) ||
-    undefined;
-  const slug = (guideSlug || existing?.guide_slug) as DsbGuideSlug | undefined;
-  const buyerEmail = customerEmail || (existing?.email as string | undefined)?.trim().toLowerCase() || "";
-
-  if (existing?.stripe_payment_status === "paid") {
-    return NextResponse.json({ received: true, duplicate: true });
-  }
-
-  const updatePayload: { stripe_payment_status: string; email?: string } = { stripe_payment_status: "paid" };
-  if (customerEmail) {
-    updatePayload.email = customerEmail;
-  }
-
-  const { error: updateError } = await supabase
-    .from("dsb_guide_purchases")
-    .update(updatePayload)
-    .eq("stripe_session_id", sessionId);
-
-  if (updateError) {
-    console.error("[dsb-guide/webhook] update failed:", updateError.message);
-    return NextResponse.json({ error: "Update failed" }, { status: 500 });
-  }
-
-  const baseUrl = getPublicBaseUrl();
-  const pathSlug = slug === "non-eu" ? "non-eu" : "eu";
-  const accessLink = token ? `${baseUrl}/dsb-guide/${pathSlug}?token=${encodeURIComponent(token)}` : `${baseUrl}/dsb-support`;
-
-  const smtpPass = process.env.SMTP_PASS;
-  if (!smtpPass) {
-    console.error("[dsb-guide/webhook] SMTP_PASS missing; skipping emails.");
-    return NextResponse.json({ received: true, emailed: false });
-  }
-
-  const transporter = nodemailer.createTransport({
-    host: "send.one.com",
-    port: 465,
-    secure: true,
-    auth: {
-      user: "no-replay@arbeidmatch.no",
-      pass: smtpPass,
-    },
-  });
-
-  const label = slug ? guideLabel(slug) : "DSB";
-
-  if (buyerEmail) {
-    const { data: purchaseRow } = await supabase
+    const { data: existing } = await supabase
       .from("dsb_guide_purchases")
-      .select("token_expires_at")
+      .select("id, stripe_payment_status, access_token, guide_slug, email")
       .eq("stripe_session_id", sessionId)
       .maybeSingle();
-    const expRaw = purchaseRow?.token_expires_at as string | undefined;
-    const expDate = expRaw
-      ? new Date(expRaw).toLocaleString("en-GB", {
-          timeZone: "Europe/Oslo",
-          dateStyle: "long",
-          timeStyle: "short",
-        })
-      : "the date shown in your purchase confirmation";
 
-    const validUntilDisplay = expRaw
-      ? new Date(expRaw).toLocaleString("en-GB", {
-          timeZone: "Europe/Oslo",
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        })
-      : "See confirmation";
+    const token =
+      accessToken ||
+      (existing?.access_token as string | undefined) ||
+      undefined;
+    const slug = (guideSlug || existing?.guide_slug) as DsbGuideSlug | undefined;
+    const buyerEmail = customerEmail || (existing?.email as string | undefined)?.trim().toLowerCase() || "";
 
-    const innerHtml = [
-      emailParagraph("Hi,"),
-      emailParagraph("Your purchase is confirmed."),
-      emailParagraph(`Your <strong>${label}</strong> DSB Authorization Guide is now available.`),
-      emailDataTable([
-        { label: "Guide", value: guideProductRow(slug) },
-        { label: "Access", value: "30 days from today" },
-        { label: "Valid until", value: validUntilDisplay },
-      ]),
-      `<div style="text-align:center;margin:24px 0 0;">${premiumCtaButton(accessLink, "Access Your Guide")}</div>`,
-      emailParagraph(
-        `This link is personal and expires on <strong>${expDate}</strong>. Please do not share it.`,
-      ),
-      emailParagraph("Having trouble? Reply to this email and we will help you."),
-    ].join("");
+    if (existing?.stripe_payment_status === "paid") {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
 
-    await transporter.sendMail({
-      ...mailHeaders(),
-      to: buyerEmail,
-      subject: "Your DSB Guide is ready",
-      text: `Hi,
+    const updatePayload: { stripe_payment_status: string; email?: string } = { stripe_payment_status: "paid" };
+    if (customerEmail) {
+      updatePayload.email = customerEmail;
+    }
+
+    const { error: updateError } = await supabase
+      .from("dsb_guide_purchases")
+      .update(updatePayload)
+      .eq("stripe_session_id", sessionId);
+
+    if (updateError) {
+      console.error("[dsb-guide/webhook] update failed:", updateError.message);
+      await notifyError({
+        route: "/api/dsb-guide/webhook",
+        error: new Error(updateError.message),
+        context: {
+          event: event.type || "unknown",
+          phase: "update_purchase",
+          code: updateError.code,
+          timestamp: new Date().toISOString(),
+        },
+      });
+      return NextResponse.json({ error: "Update failed" }, { status: 500 });
+    }
+
+    const baseUrl = getPublicBaseUrl();
+    const pathSlug = slug === "non-eu" ? "non-eu" : "eu";
+    const accessLink = token ? `${baseUrl}/dsb-guide/${pathSlug}?token=${encodeURIComponent(token)}` : `${baseUrl}/dsb-support`;
+
+    const smtpPass = process.env.SMTP_PASS;
+    if (!smtpPass) {
+      console.error("[dsb-guide/webhook] SMTP_PASS missing; skipping emails.");
+      return NextResponse.json({ received: true, emailed: false });
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: "send.one.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: "no-replay@arbeidmatch.no",
+        pass: smtpPass,
+      },
+    });
+
+    const label = slug ? guideLabel(slug) : "DSB";
+
+    if (buyerEmail) {
+      const { data: purchaseRow } = await supabase
+        .from("dsb_guide_purchases")
+        .select("token_expires_at")
+        .eq("stripe_session_id", sessionId)
+        .maybeSingle();
+      const expRaw = purchaseRow?.token_expires_at as string | undefined;
+      const expDate = expRaw
+        ? new Date(expRaw).toLocaleString("en-GB", {
+            timeZone: "Europe/Oslo",
+            dateStyle: "long",
+            timeStyle: "short",
+          })
+        : "the date shown in your purchase confirmation";
+
+      const validUntilDisplay = expRaw
+        ? new Date(expRaw).toLocaleString("en-GB", {
+            timeZone: "Europe/Oslo",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })
+        : "See confirmation";
+
+      const innerHtml = [
+        emailParagraph("Hi,"),
+        emailParagraph("Your purchase is confirmed."),
+        emailParagraph(`Your <strong>${label}</strong> DSB Authorization Guide is now available.`),
+        emailDataTable([
+          { label: "Guide", value: guideProductRow(slug) },
+          { label: "Access", value: "30 days from today" },
+          { label: "Valid until", value: validUntilDisplay },
+        ]),
+        `<div style="text-align:center;margin:24px 0 0;">${premiumCtaButton(accessLink, "Access Your Guide")}</div>`,
+        emailParagraph(
+          `This link is personal and expires on <strong>${expDate}</strong>. Please do not share it.`,
+        ),
+        emailParagraph("Having trouble? Reply to this email and we will help you."),
+      ].join("");
+
+      await transporter.sendMail({
+        ...mailHeaders(),
+        to: buyerEmail,
+        subject: "Your DSB Guide is ready",
+        text: `Hi,
 
 Your purchase is confirmed.
 
@@ -183,38 +204,49 @@ Please open the HTML version of this email and tap "Access Your Guide".
 This access is personal and expires on ${expDate}. Please do not share it.
 
 Having trouble? Reply to this email for help.`,
-      html: wrapPremiumEmail(innerHtml),
+        html: wrapPremiumEmail(innerHtml),
+      });
+    }
+
+    const { data: purchaseForInternal } = await supabase
+      .from("dsb_guide_purchases")
+      .select("token_expires_at, access_token")
+      .eq("stripe_session_id", sessionId)
+      .maybeSingle();
+
+    const internalRows = [
+      { label: "Guide slug", value: slug || "-" },
+      { label: "Buyer email", value: buyerEmail || "-" },
+      { label: "Stripe session ID", value: sessionId },
+      { label: "Access token", value: (purchaseForInternal?.access_token as string) || token || "-" },
+      {
+        label: "Token expires at (raw)",
+        value: (purchaseForInternal?.token_expires_at as string) || "-",
+      },
+      { label: "Webhook received (CET)", value: formatEmailTimestampCet() },
+    ];
+
+    await transporter.sendMail({
+      ...mailHeaders(),
+      to: "post@arbeidmatch.no",
+      subject: `New DSB Guide purchase: ${buyerEmail || "unknown"}`,
+      text: `New DSB guide purchase.\nGuide: ${slug}\nEmail: ${buyerEmail}\nSession: ${sessionId}`,
+      html: buildInternalEmailHtml({
+        title: `New DSB Guide purchase: ${buyerEmail || "unknown"}`,
+        rows: internalRows,
+      }),
     });
+
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    await notifyError({
+      route: "/api/dsb-guide/webhook",
+      error,
+      context: {
+        event: event.type || "unknown",
+        timestamp: new Date().toISOString(),
+      },
+    });
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
-
-  const { data: purchaseForInternal } = await supabase
-    .from("dsb_guide_purchases")
-    .select("token_expires_at, access_token")
-    .eq("stripe_session_id", sessionId)
-    .maybeSingle();
-
-  const internalRows = [
-    { label: "Guide slug", value: slug || "-" },
-    { label: "Buyer email", value: buyerEmail || "-" },
-    { label: "Stripe session ID", value: sessionId },
-    { label: "Access token", value: (purchaseForInternal?.access_token as string) || token || "-" },
-    {
-      label: "Token expires at (raw)",
-      value: (purchaseForInternal?.token_expires_at as string) || "-",
-    },
-    { label: "Webhook received (CET)", value: formatEmailTimestampCet() },
-  ];
-
-  await transporter.sendMail({
-    ...mailHeaders(),
-    to: "post@arbeidmatch.no",
-    subject: `New DSB Guide purchase: ${buyerEmail || "unknown"}`,
-    text: `New DSB guide purchase.\nGuide: ${slug}\nEmail: ${buyerEmail}\nSession: ${sessionId}`,
-    html: buildInternalEmailHtml({
-      title: `New DSB Guide purchase: ${buyerEmail || "unknown"}`,
-      rows: internalRows,
-    }),
-  });
-
-  return NextResponse.json({ received: true });
 }

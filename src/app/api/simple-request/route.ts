@@ -8,6 +8,7 @@ import {
   noStoreJson,
   parseJsonBodyWithSchema,
 } from "@/lib/apiSecurity";
+import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 
 const requestSchema = z
@@ -39,6 +40,7 @@ const requestSchema = z
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  let companySnapshot = "unknown";
   try {
     const rate = getRateLimitResult(request, "simple-request", 8, 10 * 60 * 1000);
     if (rate.limited) {
@@ -81,6 +83,7 @@ export async function POST(request: NextRequest) {
       referralEmail,
       orgNumber,
     } = parsed.data;
+    companySnapshot = company?.trim() || "unknown";
 
     const token = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
@@ -110,6 +113,14 @@ export async function POST(request: NextRequest) {
     return noStoreJson({ success: true, token });
   } catch (error) {
     logApiError("simple-request", error);
+    await notifyError({
+      route: "/api/simple-request",
+      error,
+      context: {
+        company: companySnapshot,
+        timestamp: new Date().toISOString(),
+      },
+    });
     return noStoreJson({ success: false, error: "Unable to create request token." }, { status: 500 });
   }
 }

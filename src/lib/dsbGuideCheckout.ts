@@ -21,6 +21,14 @@ export async function createDsbGuideStripeCheckout(params: {
   const { guideSlug, email } = params;
   const normalizedEmail = email?.trim().toLowerCase() ?? "";
 
+  console.log("DSB Checkout attempt:", {
+    guideType: guideSlug,
+    hasPriceIdEU: Boolean(process.env.STRIPE_PRICE_ID_DSB_EU?.trim()),
+    hasPriceIdNonEU: Boolean(process.env.STRIPE_PRICE_ID_DSB_NON_EU?.trim()),
+    hasStripeKey: Boolean(process.env.STRIPE_SECRET_KEY?.trim()),
+    hasSiteUrl: Boolean(process.env.NEXT_PUBLIC_SITE_URL?.trim()),
+  });
+
   const secret = process.env.STRIPE_SECRET_KEY?.trim();
   if (!secret) {
     return {
