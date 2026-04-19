@@ -3,9 +3,9 @@
  * Connects arbeidmatch.no with ats.arbeidmatch.no
  *
  * All functions are non-blocking for callers (void or safe defaults).
- * Failures are silent — website continues normally if ATS is unreachable.
+ * Failures are silent - website continues normally if ATS is unreachable.
  *
- * Status: READY FOR INTEGRATION — activate by setting ATS_API_KEY
+ * Status: READY FOR INTEGRATION - activate by setting ATS_API_KEY
  */
 
 const ATS_BASE_URL = process.env.ATS_BASE_URL || "https://ats.arbeidmatch.no";
@@ -42,7 +42,7 @@ export interface ATSPartnerStatus {
   creditApproved?: boolean;
 }
 
-/** Register candidate in ATS — non-blocking, fails silently */
+/** Register candidate in ATS - non-blocking, fails silently */
 export async function registerCandidateInATS(candidate: ATSCandidate): Promise<void> {
   if (!ATS_API_KEY) return;
   try {
@@ -54,11 +54,11 @@ export async function registerCandidateInATS(candidate: ATSCandidate): Promise<v
     //   body: JSON.stringify(candidate),
     // })
   } catch {
-    // Silent fail — website continues normally
+    // Silent fail - website continues normally
   }
 }
 
-/** Check if employer is a verified partner — returns safe defaults if ATS unavailable */
+/** Check if employer is a verified partner - returns safe defaults if ATS unavailable */
 export async function checkPartnerStatus(email: string): Promise<ATSPartnerStatus> {
   if (!ATS_API_KEY) return { isPartner: false };
   try {
@@ -76,7 +76,7 @@ export async function checkPartnerStatus(email: string): Promise<ATSPartnerStatu
   }
 }
 
-/** Create job post in ATS — non-blocking, fails silently */
+/** Create job post in ATS - non-blocking, fails silently */
 export async function createJobPostInATS(request: ATSEmployerRequest, partnerId: string): Promise<void> {
   if (!ATS_API_KEY) return;
   try {
@@ -89,7 +89,7 @@ export async function createJobPostInATS(request: ATSEmployerRequest, partnerId:
   }
 }
 
-/** Register employer for approval — non-blocking, fails silently */
+/** Register employer for approval - non-blocking, fails silently */
 export async function registerEmployerInATS(data: {
   companyName: string;
   email: string;

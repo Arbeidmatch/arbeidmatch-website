@@ -1,6 +1,6 @@
 /**
  * Receives events FROM ATS → website (e.g. partner_approved, job_filled).
- * Status: READY FOR INTEGRATION — extend handlers when ATS sends real payloads.
+ * Status: READY FOR INTEGRATION - extend handlers when ATS sends real payloads.
  */
 
 import { NextRequest, NextResponse } from "next/server";

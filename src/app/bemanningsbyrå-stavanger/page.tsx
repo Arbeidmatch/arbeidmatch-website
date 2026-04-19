@@ -23,7 +23,7 @@ export default function BemanningsbyraStavangerPage() {
             Rogaland er et kraftsentrum for energi, leverandørindustri og havnæring, med bolig- og infrastrukturprosjekter
             som krever dokumentert kompetanse og tydelig sikkerhetsbrief. ArbeidMatch leverer bemanning Stavanger med
             forventningsstyring: vi avklarer kurs, adgang og roller før presentasjon. Vi tilstreber profiler som kan
-            verifiseres — ikke «ukjente navn på liste».
+            verifiseres - ikke «ukjente navn på liste».
           </p>
           <p>
             Vi rekrutterer fra EU/EEA med fokus på regulerte miljø og prosjektmodus. Ta kontakt via{" "}
@@ -50,7 +50,7 @@ export default function BemanningsbyraStavangerPage() {
           {[
             ["Sikkerhetskrav", "Vi matcher kandidater mot dokumentasjon og offshore/HMS-forventninger."],
             ["Nasjonal oppfølging", "Kort vei til koordinering når innkjøps- og sikkerhetsløp er avklart."],
-            ["Ingen absolutte løfter", "Leveranse avhenger av marked og kompetanse — vi er åpne om det."],
+            ["Ingen absolutte løfter", "Leveranse avhenger av marked og kompetanse - vi er åpne om det."],
           ].map(([t, b]) => (
             <article
               key={t}
@@ -65,7 +65,7 @@ export default function BemanningsbyraStavangerPage() {
         <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
           <h2 className="am-h3 font-semibold text-navy">Kort FAQ</h2>
           <p className="mt-3 text-sm text-text-secondary">
-            Dekker dere offshore? — Avhengig av kurs og autorisasjoner; vi avklarer før vi presenterer kandidater.
+            Dekker dere offshore? - Avhengig av kurs og autorisasjoner; vi avklarer før vi presenterer kandidater.
           </p>
         </section>
         <BemanningLegalSection />

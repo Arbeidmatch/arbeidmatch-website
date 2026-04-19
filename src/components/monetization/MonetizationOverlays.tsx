@@ -10,7 +10,7 @@ const StickyBottomBanner = dynamic(() => import("./StickyBottomBanner"), { ssr: 
 /**
  * Monetization / passive conversion layer (Nordic Precision UI).
  *
- * AFFILIATE / PARTNER DISCLOSURE (placeholder — hidden until partners go live):
+ * AFFILIATE / PARTNER DISCLOSURE (placeholder - hidden until partners go live):
  * When we display paid partner placements, sponsored tools, or affiliate links,
  * render a clear disclosure near those modules, e.g.:
  * "ArbeidMatch may earn a commission when you use partner links. This does not

@@ -1,4 +1,4 @@
-# ATS Integration — arbeidmatch.no ↔ ats.arbeidmatch.no
+# ATS Integration - arbeidmatch.no ↔ ats.arbeidmatch.no
 
 ## Status: READY FOR INTEGRATION
 
@@ -15,10 +15,10 @@ Website-side scaffolding is in place. Implement ATS endpoints and set environmen
 | ------------------- | -------------------------------------------- |
 | `ATS_BASE_URL`      | Base URL of the ATS app (default in code)    |
 | `ATS_API_KEY`       | Server-to-server API key (ATS admin)         |
-| `ATS_API_SECRET`    | Optional — reserved for future signing       |
+| `ATS_API_SECRET`    | Optional - reserved for future signing       |
 | `ATS_WEBHOOK_SECRET`| Shared secret for verifying inbound webhooks |
 
-Copy from `.env.example` into `.env.local` / Vercel — never commit secrets.
+Copy from `.env.example` into `.env.local` / Vercel - never commit secrets.
 
 ## ATS endpoints to build (on ats.arbeidmatch.no)
 
@@ -29,7 +29,7 @@ Copy from `.env.example` into `.env.local` / Vercel — never commit secrets.
 | POST   | `/api/jobs`             | Create job post            |
 | POST   | `/api/employers/register` | Register employer for approval |
 
-Optional: `GET /api/jobs/public` — public job listings.
+Optional: `GET /api/jobs/public` - public job listings.
 
 ## Website endpoints (ready)
 
@@ -39,7 +39,7 @@ Optional: `GET /api/jobs/public` — public job listings.
 
 ## Client module
 
-- **`src/lib/atsClient.ts`** — `registerCandidateInATS`, `checkPartnerStatus`, `createJobPostInATS`, `registerEmployerInATS`
+- **`src/lib/atsClient.ts`** - `registerCandidateInATS`, `checkPartnerStatus`, `createJobPostInATS`, `registerEmployerInATS`
 - All calls are **no-op** until real `fetch` is uncommented and `ATS_API_KEY` is set.
 - Errors are **never thrown** to callers; failures are swallowed so the site keeps working.
 
@@ -54,7 +54,7 @@ Optional: `GET /api/jobs/public` — public job listings.
 
 - Use **API key** in `Authorization` or `X-API-Key` (align with ATS when implemented).
 - **Webhook**: verify signature with `ATS_WEBHOOK_SECRET` when ATS defines the signing scheme.
-- **Never** call ATS from the browser — only from server code.
+- **Never** call ATS from the browser - only from server code.
 
 ## Graceful degradation
 

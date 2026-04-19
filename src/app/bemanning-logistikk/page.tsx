@@ -30,7 +30,7 @@ export default function BemanningLogistikkPage() {
           </p>
           <p>
             Vi kartlegger skift, truckklasser, terminalerfaring og ordreplukk, og støtter i dialog om innleie og
-            onboarding. Målet vårt er færre avbrudd i flyt og mer forutsigbar bemanning — i tråd med{" "}
+            onboarding. Målet vårt er færre avbrudd i flyt og mer forutsigbar bemanning - i tråd med{" "}
             <Link href="/for-employers" className="font-medium text-gold hover:underline">
               arbeidsgiverløsningen
             </Link>{" "}
@@ -55,7 +55,7 @@ export default function BemanningLogistikkPage() {
           {[
             ["Trygg dokumentasjon", "Vi arbeider for å strukturere papirflyt og førerkortklasser før presentasjon."],
             ["Skift og tempo", "Kandidater vurderes opp mot reelle krav til terminaltempo og HMS."],
-            ["Ingen absolutte løfter", "Leveransetid avhenger av marked og krav — vi er åpne om begrensninger."],
+            ["Ingen absolutte løfter", "Leveransetid avhenger av marked og krav - vi er åpne om begrensninger."],
           ].map(([t, b]) => (
             <article
               key={t}
@@ -72,11 +72,11 @@ export default function BemanningLogistikkPage() {
           <dl className="mt-4 space-y-4 text-sm text-text-secondary">
             <div>
               <dt className="font-semibold text-navy">Kan dere dekke korte topper?</dt>
-              <dd className="mt-1">Ja, innenfor rammer som passer utleie og prosjekt — vi avklarer kapasitet tidlig.</dd>
+              <dd className="mt-1">Ja, innenfor rammer som passer utleie og prosjekt - vi avklarer kapasitet tidlig.</dd>
             </div>
             <div>
               <dt className="font-semibold text-navy">Hva med språk?</dt>
-              <dd className="mt-1">Vi vurderer språk opp mot rolle og sikkerhetsbrief — uten å love «perfekt norsk».</dd>
+              <dd className="mt-1">Vi vurderer språk opp mot rolle og sikkerhetsbrief - uten å love «perfekt norsk».</dd>
             </div>
           </dl>
         </section>

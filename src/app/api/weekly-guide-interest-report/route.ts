@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     });
 
     const html = buildInternalEmailHtml({
-      title: `Weekly guide interest report — total ${totalInterested}`,
+      title: `Weekly guide interest report - total ${totalInterested}`,
       rows: [
         { label: "Report generated (CET)", value: formatEmailTimestampCet() },
         { label: "Context", value: "Guide interest signups (eligibility assistance flow)" },

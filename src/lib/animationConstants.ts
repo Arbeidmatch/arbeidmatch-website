@@ -1,4 +1,4 @@
-/** Premium easing — Linear / Stripe style */
+/** Premium easing - Linear / Stripe style */
 export const EASE_PREMIUM = [0.16, 1, 0.3, 1] as const;
 
 export function getRevealDurationMs(isMobile: boolean): number {

@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-/** Shared SMTP config (one.com) — requires SMTP_PASS in env. */
+/** Shared SMTP config (one.com) - requires SMTP_PASS in env. */
 export function createSmtpTransporter() {
   if (!process.env.SMTP_PASS) return null;
   return nodemailer.createTransport({

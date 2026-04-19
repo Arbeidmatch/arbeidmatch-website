@@ -259,10 +259,10 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
           <ScrollReveal variant="fadeUp">
             <div className="mx-auto max-w-4xl rounded-xl bg-navy p-10 md:p-12">
               <h2 className="am-h2 heading-premium-xl mb-6 font-extrabold text-white">
-                Rekruttering som fungerer — for alle parter
+                Rekruttering som fungerer - for alle parter
               </h2>
               <p className="leading-relaxed text-white/80">
-                Vi tror ikke vi har funnet opp noe nytt. Men vi organiserer prosessen så godt vi kan — slik at kandidater
+                Vi tror ikke vi har funnet opp noe nytt. Men vi organiserer prosessen så godt vi kan - slik at kandidater
                 fra ulike kulturer, bakgrunner og religioner opplever respekt og klarhet fra første kontakt. Og slik at
                 norske arbeidsgivere får arbeidskraft som faktisk fungerer i deres miljø.
               </p>
@@ -270,7 +270,7 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
                 {[
                   "Kulturell og religiøs sensitivitet i screening-prosessen",
                   "Tydelig kommunikasjon på tvers av språk og forventninger",
-                  "Vi lover ikke perfeksjon — vi lover kontinuerlig forbedring",
+                  "Vi lover ikke perfeksjon - vi lover kontinuerlig forbedring",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3 text-white">
                     <span className="mt-0.5 shrink-0 text-gold" aria-hidden>

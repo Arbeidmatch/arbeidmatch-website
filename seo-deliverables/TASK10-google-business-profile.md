@@ -1,8 +1,8 @@
-# Task 10 — Google Bedriftsprofil (ArbeidMatch Norge AS)
+# Task 10 - Google Bedriftsprofil (ArbeidMatch Norge AS)
 
 ## 1) Bedriftsbeskrivelse (maks 750 tegn)
 
-ArbeidMatch Norge AS er bemannings- og rekrutteringspartner for norske virksomheter som trenger kvalifisert arbeidskraft fra EU/EØS til bygg, logistikk, industri, renhold, HoReCa og helse. Vi kombinerer strukturert sourcing og screening med tydelig dokumentasjon og forventningsstyring, slik at prosjektledere får forutsigbare team. Hovedkontor i Ranheim (Trondheim), leveranser i hele Norge. Kontakt oss for avklaring av kapasitet, roller og tidsplan — vi hjelper dere å rekruttere EU arbeidere trygt og ryddig.
+ArbeidMatch Norge AS er bemannings- og rekrutteringspartner for norske virksomheter som trenger kvalifisert arbeidskraft fra EU/EØS til bygg, logistikk, industri, renhold, HoReCa og helse. Vi kombinerer strukturert sourcing og screening med tydelig dokumentasjon og forventningsstyring, slik at prosjektledere får forutsigbare team. Hovedkontor i Ranheim (Trondheim), leveranser i hele Norge. Kontakt oss for avklaring av kapasitet, roller og tidsplan - vi hjelper dere å rekruttere EU arbeidere trygt og ryddig.
 
 *(Tegn/character count: lim inn i GBP og trim ved behov til 750.)*
 
@@ -23,46 +23,46 @@ ArbeidMatch Norge AS er bemannings- og rekrutteringspartner for norske virksomhe
 
 ---
 
-## 3) Google Posts (maks 1500 tegn hver — maler)
+## 3) Google Posts (maks 1500 tegn hver - maler)
 
 ### A) Suksesshistorie (generisk)
 
-I forrige måned leverte vi et komplett lag med dokumenterte betong- og stillasfolk til et presset byggeprosjekt. Prosjektlederen trengte forutsigbarhet: vi kartla skift, sikkerhetsbrief og språk før oppstart. Resultatet ble færre avvik i HMS-runden og stabil fremdrift i to uker. Vil du diskutere hvordan vi kan gjøre det samme for deres neste anlegg? Kontakt ArbeidMatch — bemanning med tydelige rammer.
+I forrige måned leverte vi et komplett lag med dokumenterte betong- og stillasfolk til et presset byggeprosjekt. Prosjektlederen trengte forutsigbarhet: vi kartla skift, sikkerhetsbrief og språk før oppstart. Resultatet ble færre avvik i HMS-runden og stabil fremdrift i to uker. Vil du diskutere hvordan vi kan gjøre det samme for deres neste anlegg? Kontakt ArbeidMatch - bemanning med tydelige rammer.
 
 ### B) Tips til arbeidsgivere (EU-arbeidskraft)
 
-Tre sjekkpunkter før dere tar inn EU/EEA-arbeidere: (1) Skriftlig avtale som speiler reelt arbeidsinnhold. (2) Lønn i tråd med tariff/allmenngjøring der det gjelder. (3) HMS-innføring som er forståelig uten «fagjargon-only». Mangler dere kapasitet til å gjøre dette i fart, er det bedre å pause enn å presse oppstart. ArbeidMatch hjelper med struktur og dokumentasjon — ta kontakt.
+Tre sjekkpunkter før dere tar inn EU/EEA-arbeidere: (1) Skriftlig avtale som speiler reelt arbeidsinnhold. (2) Lønn i tråd med tariff/allmenngjøring der det gjelder. (3) HMS-innføring som er forståelig uten «fagjargon-only». Mangler dere kapasitet til å gjøre dette i fart, er det bedre å pause enn å presse oppstart. ArbeidMatch hjelper med struktur og dokumentasjon - ta kontakt.
 
 ### C) Sesong (byggsesong)
 
-Når værvinduet åpner, øker behovet for parallelle lag på anlegg. Vi bygger kapasitet i EU/EEA med fokus på roller som tåler norske HMS-krav. Bestill avklaring nå, så kan vi presentere team når prosjektplanen låses. ArbeidMatch — bemanning bygg og anlegg med ryddige prosesser.
+Når værvinduet åpner, øker behovet for parallelle lag på anlegg. Vi bygger kapasitet i EU/EEA med fokus på roller som tåler norske HMS-krav. Bestill avklaring nå, så kan vi presentere team når prosjektplanen låses. ArbeidMatch - bemanning bygg og anlegg med ryddige prosesser.
 
 ### D) Kandidat-rekruttering
 
-Vi ser etter folk med dokumentert erfaring som vil jobbe i Norge innen bygg, logistikk og industri. Vi veileder i forberedelser til intervju og dokumentasjon. Send oss profil og fagbrev/attester — vi kobler dere med seriøse arbeidsgivere som følger norske krav.
+Vi ser etter folk med dokumentert erfaring som vil jobbe i Norge innen bygg, logistikk og industri. Vi veileder i forberedelser til intervju og dokumentasjon. Send oss profil og fagbrev/attester - vi kobler dere med seriøse arbeidsgivere som følger norske krav.
 
 ### E) Milepæl
 
-ArbeidMatch har passert nye milepæler i leveranser til norske prosjekter — takk til kunder som stiller tydelige krav og til kandidater som leverer kvalitet. Vi fortsetter å investere i bedre screening og trygg onboarding. Følg med her for tips om bemanning og rekruttering.
+ArbeidMatch har passert nye milepæler i leveranser til norske prosjekter - takk til kunder som stiller tydelige krav og til kandidater som leverer kvalitet. Vi fortsetter å investere i bedre screening og trygg onboarding. Følg med her for tips om bemanning og rekruttering.
 
 ---
 
-## 4) Svar på anmeldelse — 5 stjerner (norsk)
+## 4) Svar på anmeldelse - 5 stjerner (norsk)
 
 Tusen takk for varme ord og for at du tok deg tid til å dele opplevelsen din! Det betyr mye for hele teamet vårt. Vi er glade for at samarbeidet fungerte ryddig og forutsigbart, og vi ser frem til å hjelpe deg igjen. Ta gjerne kontakt om du har flere behov.
 
 ---
 
-## 5) Svar på anmeldelse — 3 stjerner (norsk)
+## 5) Svar på anmeldelse - 3 stjerner (norsk)
 
-Takk for ærlig tilbakemelding — det er viktig for oss. Vi beklager at opplevelsen ikke ble som forventet, og vi tar dette på alvor. Send oss gjerne en kort e-post på post@arbeidmatch.no med saksreferanse, så følger vi opp internt og finner en løsning sammen med deg. Målet vårt er at du skal føle deg trygg på prosessen.
+Takk for ærlig tilbakemelding - det er viktig for oss. Vi beklager at opplevelsen ikke ble som forventet, og vi tar dette på alvor. Send oss gjerne en kort e-post på post@arbeidmatch.no med saksreferanse, så følger vi opp internt og finner en løsning sammen med deg. Målet vårt er at du skal føle deg trygg på prosessen.
 
 ---
 
 ## 6) Q&A til forhåndsutfylling i GBP
 
 **Spørsmål:** Hvilke bransjer dekker ArbeidMatch?  
-**Svar:** Vi leverer bemanning og rekruttering til bygg, logistikk, industri, renhold, HoReCa og helse — med fokus på EU/EØS-arbeidskraft og dokumentasjon.
+**Svar:** Vi leverer bemanning og rekruttering til bygg, logistikk, industri, renhold, HoReCa og helse - med fokus på EU/EØS-arbeidskraft og dokumentasjon.
 
 **Spørsmål:** Hvor ligger dere?  
 **Svar:** Hovedkontor: Sverre Svendsens veg 38, 7056 Ranheim (Trondheim). Vi leverer til prosjekter i hele Norge.

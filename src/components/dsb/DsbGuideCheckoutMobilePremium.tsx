@@ -44,7 +44,7 @@ const EU_CONFIG: VariantConfig = {
   badge: "EU/EEA Citizens Only",
   heroEmoji: "🇪🇺",
   title: "Get Your DSB Authorization in Norway",
-  subtitle: "EU/EEA Electricians — €15",
+  subtitle: "EU/EEA Electricians - €15",
   pills: [
     { icon: "clock", text: "2–4 months" },
     { icon: "shield", text: "No visa required" },
@@ -68,7 +68,7 @@ const NON_EU_CONFIG: VariantConfig = {
   badge: "Non-EU Citizens",
   heroEmoji: "🌍",
   title: "DSB Authorization Guide for Non-EU Electricians",
-  subtitle: "Non-EU Electricians — €39",
+  subtitle: "Non-EU Electricians - €39",
   pills: [
     { icon: "clock", text: "6–12 months" },
     { icon: "airplane", text: "Work visa required" },
@@ -372,7 +372,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
             transition={{ duration: 0.6, ease: spring }}
           >
             <p className="dsb-price-card-label">
-              {cfg.region === "eu" ? "EU/EEA Electricians — €15" : "Non-EU Electricians — €39"}
+              {cfg.region === "eu" ? "EU/EEA Electricians - €15" : "Non-EU Electricians - €39"}
             </p>
             <div className="dsb-price-row">
               <div className="dsb-price-block is-primary">

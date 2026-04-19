@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     push(adminRows, "Referral contact email", referralEmailValue);
 
     const companyName = data.company ?? "Unknown company";
-    const cityLabel = data.city || "—";
+    const cityLabel = data.city || "-";
     const adminHtml = buildInternalEmailHtml({
       title: `New candidate request: ${companyName} from ${cityLabel}`,
       rows: adminRows,

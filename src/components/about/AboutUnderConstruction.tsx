@@ -6,7 +6,7 @@ const FACTS = [
   { label: "Adresse", value: "Sverre Svendsens veg 38, 7056 Ranheim" },
   { label: "E-post", value: "post@arbeidmatch.no" },
   { label: "Telefon", value: "967 34 730" },
-  { label: "Bransje", value: "78.200 — Midlertidig ansettelse" },
+  { label: "Bransje", value: "78.200 - Midlertidig ansettelse" },
 ] as const;
 
 export default function AboutUnderConstruction() {
@@ -26,7 +26,7 @@ export default function AboutUnderConstruction() {
           Vi jobber med siden
         </p>
         <h1 className="am-h1 mt-8 font-bold text-white">ArbeidMatch Norge AS</h1>
-        <p className="mt-4 text-sm text-white/60 md:text-base">Kommer snart — vi setter opp alt riktig for deg.</p>
+        <p className="mt-4 text-sm text-white/60 md:text-base">Kommer snart - vi setter opp alt riktig for deg.</p>
         <div className="my-10 border-t border-white/[0.08]" />
         <dl className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-8">
           {FACTS.map((row) => (

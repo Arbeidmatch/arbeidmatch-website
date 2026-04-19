@@ -6,7 +6,7 @@ Når utdanningen er hentet fra land med flere utdanningsbaner, bør du legge ved
 
 ## GOD-ordningen og offisielle krav (overblikk)
 
-Norge har ordninger for godkjenning av utenlandsk utdanning og faglig kompetanse som skal sikre likeverdig vurdering innenfor nasjonalt regelverk. I praksis møter elektrikerfeltet krav som er tett knyttet til sikkerhet i anlegg og installasjoner. Selv om denne artikkelen ikke gjengir enkeltparagrafer, er anbefalingen klar: bruk DSBs egne veiledningstekster som primærkilde når dere setter sammen søknadspakken, og kryssjekk mot oppdaterte rundskriv. GOD-ordningen er et sentralt begrep i kompetansevurdering; forstå den som rammeverket for hvordan utenlandsk utdanning og praksis oversettes til norske kvalifikasjonskrav — ikke som en «snarvei» uavhengig av dokumentasjon.
+Norge har ordninger for godkjenning av utenlandsk utdanning og faglig kompetanse som skal sikre likeverdig vurdering innenfor nasjonalt regelverk. I praksis møter elektrikerfeltet krav som er tett knyttet til sikkerhet i anlegg og installasjoner. Selv om denne artikkelen ikke gjengir enkeltparagrafer, er anbefalingen klar: bruk DSBs egne veiledningstekster som primærkilde når dere setter sammen søknadspakken, og kryssjekk mot oppdaterte rundskriv. GOD-ordningen er et sentralt begrep i kompetansevurdering; forstå den som rammeverket for hvordan utenlandsk utdanning og praksis oversettes til norske kvalifikasjonskrav - ikke som en «snarvei» uavhengig av dokumentasjon.
 
 ## Detaljert dokumentliste (sjekk før innsending)
 

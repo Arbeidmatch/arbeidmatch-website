@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         { label: "Page URL", value: pageUrlRaw },
         { label: "Score", value: `${score}/10` },
         { label: "Submitted (CET)", value: submittedAt },
-        { label: "Email", value: emailRaw || "—" },
+        { label: "Email", value: emailRaw || "-" },
       ];
       if (noteRaw) {
         feedbackRows.push({ label: "Note", value: noteRaw });

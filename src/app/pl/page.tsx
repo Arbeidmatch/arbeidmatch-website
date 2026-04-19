@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Polski",
-  description: "ArbeidMatch — rekrutacja z UE/EOG dla norweskich pracodawców.",
+  description: "ArbeidMatch - rekrutacja z UE/EOG dla norweskich pracodawców.",
   alternates: { canonical: "https://www.arbeidmatch.no/pl" },
 };
 

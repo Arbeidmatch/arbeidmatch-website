@@ -19,7 +19,7 @@ const CHECKLIST_ITEMS = [
   "Authorized translations (if not in English/Swedish/Danish)",
 ];
 
-/** Inner HTML only — wrap with `wrapPremiumEmail` when sending. */
+/** Inner HTML only - wrap with `wrapPremiumEmail` when sending. */
 export function buildDsbChecklistEmailBodyHtml(firstName: string) {
   const display = (firstName || "").trim() || "there";
   const safeName = escapeHtml(display);

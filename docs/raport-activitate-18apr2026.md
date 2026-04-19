@@ -1,4 +1,4 @@
-﻿# Raport Activitate — 18 Aprilie 2026
+﻿# Raport Activitate - 18 Aprilie 2026
 **Proiect:** `arbeidmatch-website`
 **Total commituri:** 43
 **Start:** 09:42 | **Stop:** 23:56 | **Total:** ~14h 14min
@@ -41,10 +41,10 @@
 ## 🔍 Ce a găsit analiza
 
 - **TODOs / FIXMEs găsite:**
-  - `TASKS.md:4` — formular angajator: 12 puncte restante.
-  - `TASKS.md:7` — flux candidați complet (CV -> parse -> GDPR -> ATS) încă in progress.
-  - `src/lib/atsClient.ts` — 4 TODO-uri pentru activare endpoints ATS.
-  - `src/app/api/ats/webhook/route.ts` — TODO-uri pentru emailuri approval/rejection + status sync.
+  - `TASKS.md:4` - formular angajator: 12 puncte restante.
+  - `TASKS.md:7` - flux candidați complet (CV -> parse -> GDPR -> ATS) încă in progress.
+  - `src/lib/atsClient.ts` - 4 TODO-uri pentru activare endpoints ATS.
+  - `src/app/api/ats/webhook/route.ts` - TODO-uri pentru emailuri approval/rejection + status sync.
 
 - **Console/debug logs rămase în producție (impact observabil):**
   - `src/app/dsb-support/verify/page.tsx`
@@ -84,53 +84,53 @@
 
 ---
 
-## 🎯 Next Steps — Priorități
+## 🎯 Next Steps - Priorități
 
-#### 🔴 CRITIC — Stabilizare checkout DSB (EU + Non-EU) cu smoke tests reale
+#### 🔴 CRITIC - Stabilizare checkout DSB (EU + Non-EU) cu smoke tests reale
 - **De ce:** flow-ul de conversie a fost modificat intensiv (verify token, coupon, Stripe session, redirect handling).
 - **Fișiere afectate:** `src/app/dsb-support/verify/page.tsx`, `src/lib/dsbGuideCheckout.ts`, `src/app/api/dsb-guide/*.ts`
 - **Effort:** mediu
 
-#### 🔴 CRITIC — Hardening pe env/config validation la startup
+#### 🔴 CRITIC - Hardening pe env/config validation la startup
 - **De ce:** multe feature-uri noi depind de secret keys; lipsa lor produce fail-uri runtime (email/Stripe/Supabase).
 - **Fișiere afectate:** `src/lib/*` (Stripe/email/supabase helpers), `.env.example`
 - **Effort:** mic-mediu
 
-#### 🔴 CRITIC — Reduce risc CSS regressions din `globals.css`
+#### 🔴 CRITIC - Reduce risc CSS regressions din `globals.css`
 - **De ce:** volum mare de stiluri globale; ușor de introdus efecte secundare cross-page.
 - **Fișiere afectate:** `src/app/globals.css`, componentele DSB + home/recruiter
 - **Effort:** mediu
 
 ---
 
-#### 🟠 IMPORTANT — Închide TODO-urile ATS (client + webhook)
+#### 🟠 IMPORTANT - Închide TODO-urile ATS (client + webhook)
 - **De ce:** există TODO-uri explicite care blochează finalizarea automată a pipeline-ului.
 - **Fișiere afectate:** `src/lib/atsClient.ts`, `src/app/api/ats/webhook/route.ts`
 - **Effort:** mediu
 
-#### 🟠 IMPORTANT — Finalizează taskurile deschise din `TASKS.md`
+#### 🟠 IMPORTANT - Finalizează taskurile deschise din `TASKS.md`
 - **De ce:** formularul angajator și fluxul candidați rămân restante cu impact pe conversie.
 - **Fișiere afectate:** `TASKS.md`, `src/app/request/page.tsx`, fluxuri candidate/ATS
 - **Effort:** mare
 
-#### 🟠 IMPORTANT — QA funcțional E2E pe email flows
+#### 🟠 IMPORTANT - QA funcțional E2E pe email flows
 - **De ce:** multe modificări pe template/headers/logging/discount notifications în aceeași zi.
 - **Fișiere afectate:** `src/lib/emailPremiumTemplate.ts`, `src/lib/dsbDiscountEmail.ts`, `src/app/api/*email*`
 - **Effort:** mediu
 
 ---
 
-#### 🟡 NICE TO HAVE — Curățare loguri verbose pentru producție
+#### 🟡 NICE TO HAVE - Curățare loguri verbose pentru producție
 - **De ce:** util în debug, dar zgomot mare în runtime logs după stabilizare.
 - **Fișiere afectate:** `src/app/dsb-support/verify/page.tsx`, `src/lib/dsbGuideCheckout.ts`, `src/app/api/dsb-guide/*`
 - **Effort:** mic
 
-#### 🟡 NICE TO HAVE — Separă stilurile DSB într-un fișier dedicat
+#### 🟡 NICE TO HAVE - Separă stilurile DSB într-un fișier dedicat
 - **De ce:** reduce complexitatea `globals.css` și facilitează mentenanța.
 - **Fișiere afectate:** `src/app/globals.css`, componente DSB
 - **Effort:** mediu
 
-#### 🟡 NICE TO HAVE — Test automat pentru mapping prețuri Stripe
+#### 🟡 NICE TO HAVE - Test automat pentru mapping prețuri Stripe
 - **De ce:** previne mismatch între expected IDs și config DB/env.
 - **Fișiere afectate:** `src/lib/dsbGuideAccess.ts`, `src/lib/dsbGuideCheckout.ts`
 - **Effort:** mic

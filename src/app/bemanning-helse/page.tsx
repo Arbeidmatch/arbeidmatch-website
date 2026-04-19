@@ -36,9 +36,9 @@ export default function BemanningHelsePage() {
         </div>
         <section className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {[
-            ["Autorisasjon", "Krav avklares før presentasjon — ingen snarveier."],
+            ["Autorisasjon", "Krav avklares før presentasjon - ingen snarveier."],
             ["Dokumentasjon", "Vi tilstreber sporbarhet i papirflyt som støtter deres internkontroll."],
-            ["Åpen dialog", "Vi lover ikke «alltid» løsning — vi lover ryddig kommunikasjon om muligheter."],
+            ["Åpen dialog", "Vi lover ikke «alltid» løsning - vi lover ryddig kommunikasjon om muligheter."],
           ].map(([t, b]) => (
             <article
               key={t}

@@ -26,7 +26,7 @@ export default function BemanningHorecaPage() {
           </p>
           <p>
             Vi kartlegger skift, språk i møte med gjester og mattrygghet. Kandidater presenteres med tydelig erfaring
-            fra tilsvarende miljø. Målet er forutsigbar bemanning som kan skaleres — uten å love ubegrenset kapasitet i
+            fra tilsvarende miljø. Målet er forutsigbar bemanning som kan skaleres - uten å love ubegrenset kapasitet i
             alle topper. Les mer om{" "}
             <Link href="/for-employers" className="font-medium text-gold hover:underline">
               arbeidsgiverløsning
@@ -40,9 +40,9 @@ export default function BemanningHorecaPage() {
         </div>
         <section className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {[
-            ["Mattrygghet", "Erfaring fra storkjøkken og hotell — avklart før presentasjon."],
+            ["Mattrygghet", "Erfaring fra storkjøkken og hotell - avklart før presentasjon."],
             ["Skift og språk", "Vi matcher behov mot reell erfaring i gjestemøte."],
-            ["Sesongtopper", "Vi skalerer der markedet tillater — uten absolutte løfter om volum."],
+            ["Sesongtopper", "Vi skalerer der markedet tillater - uten absolutte løfter om volum."],
           ].map(([t, b]) => (
             <article
               key={t}

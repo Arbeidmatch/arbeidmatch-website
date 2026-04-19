@@ -424,7 +424,7 @@ export default function RecruiterNetworkClient() {
 
           <div ref={stepsRef} className="relative mx-auto mt-16 max-w-[600px] px-4">
             <div className="relative">
-              {/* pl-12 (48px) + half of 40px dot = 68px — line through dot centers */}
+              {/* pl-12 (48px) + half of 40px dot = 68px - line through dot centers */}
               <div
                 className="pointer-events-none absolute bottom-6 left-[68px] top-6 z-0 w-[2px] -translate-x-1/2 rounded-full bg-[#C9A84C]/30"
                 aria-hidden

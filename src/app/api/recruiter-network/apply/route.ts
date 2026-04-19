@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
     await transporter.sendMail({
       ...mailHeaders(),
       to: email,
-      subject: "We received your application — ArbeidMatch Recruiter Network",
+      subject: "We received your application - ArbeidMatch Recruiter Network",
       html: applicantHtml,
     });
 

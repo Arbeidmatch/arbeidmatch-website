@@ -1,4 +1,4 @@
-# Raport Activitate — 17 Aprilie 2026
+# Raport Activitate - 17 Aprilie 2026
 **Proiect:** `arbeidmatch-website`
 **Total commituri:** 100
 **Start:** 09:14 | **Stop:** 22:04 | **Total:** ~13 ore
@@ -53,7 +53,7 @@
 
 > Completează această secțiune din analiza reală a codului:
 
-- **TODOs / FIXMEs găsite:** `TASKS.md:4` — `Fix formular angajator — toate 12 TODO-urile rămase (...)`; `TASKS.md:7` — `Flux candidați complet (CV upload → Claude parse → formular pre-completat → GDPR → ATS)`
+- **TODOs / FIXMEs găsite:** `TASKS.md:4` - `Fix formular angajator - toate 12 TODO-urile rămase (...)`; `TASKS.md:7` - `Flux candidați complet (CV upload → Claude parse → formular pre-completat → GDPR → ATS)`
 - **console.log-uri rămase în producție:** `src/app/api/send-eligibility-assistance/route.ts`, `src/app/api/verify-notification-email/route.ts`, `src/lib/notificationToken.ts`
 - **Componente incomplete:** `src/components/TikTokLiveBanner.tsx` nu afișează explicit error/loading state (fallback silent pe `null/false`); `src/app/request/page.tsx` și `src/app/request/[token]/page.tsx` sunt fluxuri mari, fără error boundary dedicat la nivel de pagină
 - **Fluxuri neconectate end-to-end:** validarea Turnstile server-side este dezactivată temporar (`src/app/api/send-eligibility-assistance/route.ts`, funcția `verifyTurnstileToken` returnează mereu `true`); fluxul ATS/CV parse menționat în `TASKS.md` este încă nefinalizat
@@ -74,23 +74,23 @@
 
 ---
 
-## 🎯 Next Steps — Priorități
+## 🎯 Next Steps - Priorități
 
 > Generează această secțiune din analiza codului + git log. Folosește formatul de mai jos și respectă ordinea de prioritate.
 
 ---
 
-#### 🔴 CRITIC — Re-activează verificarea Turnstile pe server
+#### 🔴 CRITIC - Re-activează verificarea Turnstile pe server
 - **De ce:** protecția anti-bot este parțială cât timp validarea server-side e bypass (`return true`), risc de abuse/spam în producție
 - **Fișiere afectate:** `src/app/api/send-eligibility-assistance/route.ts`
 - **Effort:** mediu
 
-#### 🔴 CRITIC — Documentează și validează env vars obligatorii
+#### 🔴 CRITIC - Documentează și validează env vars obligatorii
 - **De ce:** lipsa `.env.example` și fallback-uri tăcute pot produce crash-uri sau comportament inconsistent între medii
 - **Fișiere afectate:** `src/lib/supabaseService.ts`, `src/lib/notificationToken.ts`, `src/app/api/**/*.ts`, `.env.example` (nou)
 - **Effort:** mic
 
-#### 🔴 CRITIC — Error boundaries pentru fluxurile mari de request/eligibility
+#### 🔴 CRITIC - Error boundaries pentru fluxurile mari de request/eligibility
 - **De ce:** paginile complexe pot ceda fără fallback UX controlat la erori neașteptate de runtime
 - **Fișiere afectate:** `src/app/request/page.tsx`, `src/app/request/[token]/page.tsx`, `src/app/eligibility-assistance/page.tsx`
 - **Effort:** mediu
@@ -99,17 +99,17 @@
 
 ---
 
-#### 🟠 IMPORTANT — Închide TODO-urile urgente din formularul angajator
+#### 🟠 IMPORTANT - Închide TODO-urile urgente din formularul angajator
 - **De ce:** sunt explicit marcate ca restante critice în `TASKS.md`, impact direct pe UX și conversie
 - **Fișiere afectate:** `src/app/request/page.tsx`, `src/app/request/[token]/page.tsx`, `TASKS.md`
 - **Effort:** mare
 
-#### 🟠 IMPORTANT — Finalizează fluxul candidați end-to-end (CV parse → ATS)
+#### 🟠 IMPORTANT - Finalizează fluxul candidați end-to-end (CV parse → ATS)
 - **De ce:** fluxul este marcat in-progress și incomplet, deci lead-urile candidate nu au pipeline complet
 - **Fișiere afectate:** `TASKS.md`, `src/app/for-candidates/page.tsx` (și viitoarele endpoint-uri ATS/CV)
 - **Effort:** mare
 
-#### 🟠 IMPORTANT — QA complet pe flow-urile noi (mobile + edge-cases)
+#### 🟠 IMPORTANT - QA complet pe flow-urile noi (mobile + edge-cases)
 - **De ce:** ritm mare de commit-uri (111 în zi) crește riscul de regresii subtile între pași/formuri
 - **Fișiere afectate:** `src/app/request/page.tsx`, `src/app/eligibility-assistance/EligibilityAssistanceClient.tsx`, `src/app/feedback/page.tsx`
 - **Effort:** mediu
@@ -118,17 +118,17 @@
 
 ---
 
-#### 🟡 NICE TO HAVE — Optimizează fetch polling și caching pentru bannere live/activity
+#### 🟡 NICE TO HAVE - Optimizează fetch polling și caching pentru bannere live/activity
 - **De ce:** polling periodic poate fi redus cu strategie mai eficientă (revalidate, backoff, cache tags)
 - **Fișiere afectate:** `src/components/TikTokLiveBanner.tsx`, `src/app/api/tiktok-live-status/route.ts`, `src/lib/candidateActivityStats.ts`
 - **Effort:** mic
 
-#### 🟡 NICE TO HAVE — Lazy loading pentru secțiuni grele și componente non-critice
+#### 🟡 NICE TO HAVE - Lazy loading pentru secțiuni grele și componente non-critice
 - **De ce:** îmbunătățește LCP/TTI pe homepage și paginile lungi
 - **Fișiere afectate:** `src/app/page.tsx`, `src/components/CandidateActivityBanner.tsx`, `src/components/HeroStatsPanel.tsx`
 - **Effort:** mediu
 
-#### 🟡 NICE TO HAVE — Consolidare query patterns Supabase și index hints
+#### 🟡 NICE TO HAVE - Consolidare query patterns Supabase și index hints
 - **De ce:** query-urile frecvente pe `guide_interest_signups` și `request_tokens` pot beneficia de tuning suplimentar
 - **Fișiere afectate:** `src/app/api/send-eligibility-assistance/route.ts`, `src/app/api/verify-notification-email/route.ts`, `src/app/api/verify-token/route.ts`
 - **Effort:** mediu
@@ -141,4 +141,4 @@
 
 Într-o sesiune nouă Claude/GPT, lipește conținutul cu:
 > "Continuăm pe arbeidmatch-website. Iată contextul din sesiunea anterioară:"
-Apoi descrie ce vrei să faci — AI-ul are tot contextul fără să reexplici.
+Apoi descrie ce vrei să faci - AI-ul are tot contextul fără să reexplici.

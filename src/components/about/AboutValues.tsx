@@ -5,7 +5,7 @@ import { useState } from "react";
 const CARDS = [
   {
     title: "Kvalitet",
-    body: "Hver kandidat er pre-screenet og dokumentert. Vi presenterer kun de som møter kundens krav — faglig og personlig.",
+    body: "Hver kandidat er pre-screenet og dokumentert. Vi presenterer kun de som møter kundens krav - faglig og personlig.",
     icon: (
       <svg width={36} height={36} viewBox="0 0 24 24" fill="none" aria-hidden>
         <circle cx="12" cy="12" r="9" stroke="#C9A84C" strokeWidth={2} />

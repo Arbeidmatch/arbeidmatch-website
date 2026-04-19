@@ -37,7 +37,7 @@ export default function AboutHero() {
             margin: "0 auto",
           }}
         >
-          ArbeidMatch ble grunnlagt i Trondheim i 2025 med ett klart oppdrag — å gjøre det enklere for norske bedrifter
+          ArbeidMatch ble grunnlagt i Trondheim i 2025 med ett klart oppdrag - å gjøre det enklere for norske bedrifter
           å finne kvalifiserte arbeidere fra EU/EEA, og gi europeiske arbeidere tilgang til lovlige, godt betalte jobber
           i Norge.
         </p>

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "English",
-  description: "ArbeidMatch — EU/EEA recruitment for Norwegian employers.",
+  description: "ArbeidMatch - EU/EEA recruitment for Norwegian employers.",
   alternates: { canonical: "https://www.arbeidmatch.no/en" },
 };
 

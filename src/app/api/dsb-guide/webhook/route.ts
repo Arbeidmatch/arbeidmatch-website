@@ -191,13 +191,13 @@ Having trouble? Reply to this email for help.`,
     .maybeSingle();
 
   const internalRows = [
-    { label: "Guide slug", value: slug || "—" },
-    { label: "Buyer email", value: buyerEmail || "—" },
+    { label: "Guide slug", value: slug || "-" },
+    { label: "Buyer email", value: buyerEmail || "-" },
     { label: "Stripe session ID", value: sessionId },
-    { label: "Access token", value: (purchaseForInternal?.access_token as string) || token || "—" },
+    { label: "Access token", value: (purchaseForInternal?.access_token as string) || token || "-" },
     {
       label: "Token expires at (raw)",
-      value: (purchaseForInternal?.token_expires_at as string) || "—",
+      value: (purchaseForInternal?.token_expires_at as string) || "-",
     },
     { label: "Webhook received (CET)", value: formatEmailTimestampCet() },
   ];

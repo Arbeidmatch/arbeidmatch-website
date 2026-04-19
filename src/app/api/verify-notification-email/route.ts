@@ -56,7 +56,7 @@ async function sendErrorReport(
         rows: [
           { label: "Timestamp (ISO)", value: timestamp },
           { label: "Error type", value: errorType },
-          { label: "Error message", value: errorMessage || "—" },
+          { label: "Error message", value: errorMessage || "-" },
           { label: "Token preview", value: tokenPreview },
           { label: "User agent", value: userAgent },
           { label: "Client IP", value: clientIp },
@@ -163,8 +163,8 @@ export async function GET(request: NextRequest) {
         title: `Verified guide notification signup: ${payload.notifyEmail}`,
         rows: [
           { label: "Email", value: payload.notifyEmail },
-          { label: "Target region", value: payload.targetRegion || "—" },
-          { label: "Target country", value: payload.targetCountry || "—" },
+          { label: "Target region", value: payload.targetRegion || "-" },
+          { label: "Target country", value: payload.targetCountry || "-" },
           { label: "Marketing consent", value: payload.marketingConsent || "No" },
           { label: "Verified at (ISO)", value: verifiedAt },
         ],

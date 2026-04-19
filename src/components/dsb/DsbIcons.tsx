@@ -164,7 +164,7 @@ export function DsbPremiumIcon({ name, className }: { name: DsbPremiumIconName; 
   return <Cmp className={className} />;
 }
 
-/** Animated list check (circle + check) — stroke controlled by parent via CSS var or class */
+/** Animated list check (circle + check) - stroke controlled by parent via CSS var or class */
 export function IconListCheckDrawn({ drawn, className }: { drawn: boolean; className?: string }) {
   return (
     <svg

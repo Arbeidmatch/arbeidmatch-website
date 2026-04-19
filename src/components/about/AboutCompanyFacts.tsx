@@ -2,7 +2,7 @@ const ROWS = [
   { label: "Selskapsnavn", value: "ArbeidMatch Norge AS" },
   { label: "Organisasjonsnummer", value: "935 667 089 (MVA-registrert)" },
   { label: "Stiftet", value: "08. mai 2025" },
-  { label: "Bransje", value: "78.200 — Midlertidig ansettelse" },
+  { label: "Bransje", value: "78.200 - Midlertidig ansettelse" },
   { label: "Adresse", value: "Sverre Svendsens veg 38, 7056 Ranheim, Trondheim" },
   { label: "E-post", value: "post@arbeidmatch.no" },
   { label: "Telefon", value: "967 34 730" },

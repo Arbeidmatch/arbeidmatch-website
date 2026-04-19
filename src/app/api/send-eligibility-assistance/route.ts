@@ -200,8 +200,8 @@ export async function POST(request: NextRequest) {
         "Please verify your email address to confirm consent and activate your notification subscription.",
       ),
       emailDataTable([
-        { label: "Target region", value: data.targetRegion || "—" },
-        { label: "Target country", value: data.targetCountry || "—" },
+        { label: "Target region", value: data.targetRegion || "-" },
+        { label: "Target country", value: data.targetCountry || "-" },
         { label: "Notification email", value: emailTrimmed },
         { label: "Marketing consent", value: data.marketingConsent || "No" },
       ]),
@@ -218,8 +218,8 @@ export async function POST(request: NextRequest) {
 
 Open the HTML version of this message and use the verify button.
 
-Target region: ${data.targetRegion || "—"}
-Target country: ${data.targetCountry || "—"}
+Target region: ${data.targetRegion || "-"}
+Target country: ${data.targetCountry || "-"}
 
 If the button does not work, reply to this email for help.`,
       html: wrapPremiumEmail(candidateInner),

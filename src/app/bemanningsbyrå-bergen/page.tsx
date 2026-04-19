@@ -65,7 +65,7 @@ export default function BemanningsbyraBergenPage() {
         <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
           <h2 className="am-h3 font-semibold text-navy">Kort FAQ</h2>
           <p className="mt-3 text-sm text-text-secondary">
-            Dekker dere hele Vestland? — Vi vurderer oppdrag nasjonalt; bergenske prosjekter får lokal kontekst i
+            Dekker dere hele Vestland? - Vi vurderer oppdrag nasjonalt; bergenske prosjekter får lokal kontekst i
             screening.
           </p>
         </section>

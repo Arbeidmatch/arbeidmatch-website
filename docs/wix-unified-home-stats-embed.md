@@ -1,12 +1,12 @@
-# Unified homepage stats — Wix embed (reference)
+# Unified homepage stats - Wix embed (reference)
 
 The production **Next.js** site uses the React component `src/components/UnifiedHomeStats.tsx` (single source of truth). If you maintain a **parallel Wix** homepage, use this document to replicate the block.
 
 ## 1) Remove the two old counter blocks in Wix
 
 1. **Editor → Pages → Home.**
-2. Identify **hero** widgets that show live or static numbers (e.g. “candidates today”, “active on site”, “total visits”) inside a dark card — **delete that entire strip/column.**
-3. Scroll to the **“Why Norwegian companies choose us”** (or similar) area and find the **four light stat cards** (500+, 50+, 10+, 98%) — **delete that whole group** (or the column that only contains those cards).
+2. Identify **hero** widgets that show live or static numbers (e.g. “candidates today”, “active on site”, “total visits”) inside a dark card - **delete that entire strip/column.**
+3. Scroll to the **“Why Norwegian companies choose us”** (or similar) area and find the **four light stat cards** (500+, 50+, 10+, 98%) - **delete that whole group** (or the column that only contains those cards).
 4. **Publish** and verify in preview that no duplicate metrics remain.
 
 ## 2) Insert the new unified block (Custom embed)

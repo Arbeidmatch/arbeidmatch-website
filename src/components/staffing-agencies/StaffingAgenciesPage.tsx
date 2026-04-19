@@ -3,7 +3,7 @@ import Link from "next/link";
 const OFFERS = [
   "Tilgang til pre-screenede EU/EEA-kandidater uten å bygge eget sourcing-team",
   "Dokumentasjonsstøtte og tydelige prosesser som kan tilpasses deres kvalitetssystem",
-  "Skalerbar kapasitet i topper — dere beholder kundeforholdet",
+  "Skalerbar kapasitet i topper, dere beholder kundeforholdet",
   "Samarbeidsmodeller som avklarer roller, priser og forventninger på forhånd",
   "Målet vårt er forutsigbar leveranse innenfor norsk arbeidslovgivning",
 ] as const;
@@ -52,8 +52,8 @@ const CARDS = [
     icon: IconHandshake,
   },
   {
-    title: "Ingen konkurranse — bare samarbeid",
-    text: "Vi opererer ikke som et tradisjonelt bemanningsbyrå overfor dine kunder. Vår rolle er sourcing og pre-screening — resten er ditt.",
+    title: "Ingen konkurranse, bare samarbeid",
+    text: "Vi opererer ikke som et tradisjonelt bemanningsbyrå overfor dine kunder. Vår rolle er sourcing og pre-screening. Resten er ditt.",
     icon: IconShieldCheck,
   },
   {
@@ -71,7 +71,7 @@ export default function StaffingAgenciesPage() {
           <div className="mx-auto max-w-[800px] lg:mx-0">
             <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">For bemanningsbyråer</p>
             <h1 className="am-h1 mt-4 font-extrabold leading-tight text-white">
-              Vi konkurrerer ikke med deg — vi hjelper deg å vokse
+              Vi konkurrerer ikke med deg. Vi hjelper deg å vokse.
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-white/70">
               ArbeidMatch spesialiserer seg på sourcing og screening av EU/EEA-kandidater. Du beholder kundeforholdet. Vi

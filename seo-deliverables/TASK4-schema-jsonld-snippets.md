@@ -1,4 +1,4 @@
-# Task 4 — JSON-LD (lim inn som separate `<script type="application/ld+json">`)
+# Task 4 - JSON-LD (lim inn som separate `<script type="application/ld+json">`)
 
 **Kilde i repo (single source of truth):**
 

@@ -34,7 +34,7 @@ function IconMegaphone({ className }: { className?: string }) {
 const CARDS = [
   {
     title: "Full rekruttering",
-    text: "Vi håndterer hele prosessen — sourcing, screening, intervju og presentasjon. Du velger, vi leverer.",
+    text: "Vi håndterer hele prosessen - sourcing, screening, intervju og presentasjon. Du velger, vi leverer.",
     href: "/request",
     cta: "Be om rekruttering →",
     icon: IconSearchUser,
@@ -42,7 +42,7 @@ const CARDS = [
   },
   {
     title: "Bemanning og innleie",
-    text: "Fleksibel arbeidskraft når du trenger det. Vi er arbeidsgiveren — du fokuserer på prosjektet.",
+    text: "Fleksibel arbeidskraft når du trenger det. Vi er arbeidsgiveren - du fokuserer på prosjektet.",
     href: "/request",
     cta: "Se bemanningsløsninger →",
     icon: IconUsers,
@@ -50,7 +50,7 @@ const CARDS = [
   },
   {
     title: "Direkteannonsering",
-    text: "Nå kandidater der de faktisk er. Vi publiserer stillingen din på våre EU/EEA-nettverk og kanaler — du ansetter direkte. Mer effektivt enn lokale jobbtavler, til en brøkdel av kostnaden.",
+    text: "Nå kandidater der de faktisk er. Vi publiserer stillingen din på våre EU/EEA-nettverk og kanaler - du ansetter direkte. Mer effektivt enn lokale jobbtavler, til en brøkdel av kostnaden.",
     href: "/contact",
     cta: "Hør mer om annonsering →",
     icon: IconMegaphone,
@@ -63,7 +63,7 @@ export default function ForEmployersExtendedServices() {
     <section className="border-t border-border bg-white py-12 md:py-16 lg:py-[100px]">
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <h2 className="am-h2 text-center font-display font-bold text-navy">
-          Trenger du kandidater — men ønsker å ansette selv?
+          Trenger du kandidater - men ønsker å ansette selv?
         </h2>
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {CARDS.map((card, i) => {
@@ -90,7 +90,7 @@ export default function ForEmployersExtendedServices() {
         </div>
         <p className="mx-auto mt-10 max-w-3xl text-center text-[13px] italic leading-relaxed text-text-secondary">
           Alle tjenester leveres innenfor norsk arbeidslovgivning. ArbeidMatch påtar seg ansvar for det som ligger
-          innenfor vår kontroll. Vi er transparente om prosess, forventninger og begrensninger — og vi forbedrer oss
+          innenfor vår kontroll. Vi er transparente om prosess, forventninger og begrensninger - og vi forbedrer oss
           kontinuerlig.
         </p>
       </div>

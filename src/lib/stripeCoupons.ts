@@ -42,7 +42,7 @@ export async function createDiscountCoupon(
 
   const redeemBy = Math.floor(expiresAt.getTime() / 1000);
   const name =
-    guideType === "eu" ? "DSB EU Guide — Special Offer" : "DSB Non-EU Guide — Special Offer";
+    guideType === "eu" ? "DSB EU Guide - Special Offer" : "DSB Non-EU Guide - Special Offer";
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const couponId = buildCouponId(guideType);

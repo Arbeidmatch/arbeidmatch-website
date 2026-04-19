@@ -191,7 +191,7 @@ export default function DsbExitDiscountPopup({ guideType }: Props) {
 
             {!success ? (
               <>
-                <p className="dsb-exit-eyebrow">⚡ Wait — before you go</p>
+                <p className="dsb-exit-eyebrow">⚡ Wait - before you go</p>
                 <h2 id="dsb-exit-title" className="dsb-exit-title">
                   Get {pricing.percentLabel} off today only
                 </h2>
@@ -225,7 +225,7 @@ export default function DsbExitDiscountPopup({ guideType }: Props) {
                   disabled={loading}
                   onClick={submit}
                 >
-                  {loading ? <span className="dsb-exit-spinner" aria-hidden /> : `Get My Discount — €${pricing.discounted} →`}
+                  {loading ? <span className="dsb-exit-spinner" aria-hidden /> : `Get My Discount - €${pricing.discounted} →`}
                 </button>
                 <ul className="dsb-exit-trust">
                   <li>One-time use code</li>

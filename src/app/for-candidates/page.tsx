@@ -12,7 +12,7 @@ import { nbPageMetadata } from "@/lib/nbPageMetadata";
 export const metadata: Metadata = nbPageMetadata(
   "/for-candidates",
   "Jobb i Norge for EU/EEA-borgere | ArbeidMatch",
-  "Finn lovlig arbeid i Norge. ArbeidMatch kobler deg med norske arbeidsgivere innen bygg, logistikk og industri. Søk nå — reelle muligheter, trygge kontrakter.",
+  "Finn lovlig arbeid i Norge. ArbeidMatch kobler deg med norske arbeidsgivere innen bygg, logistikk og industri. Søk nå - reelle muligheter, trygge kontrakter.",
 );
 
 export default function ForCandidatesPage() {

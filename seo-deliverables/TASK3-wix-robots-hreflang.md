@@ -1,4 +1,4 @@
-# Task 3 — robots.txt, hreflang og Wix
+# Task 3 - robots.txt, hreflang og Wix
 
 ## 1) robots.txt (lim inn i Wix *SEO (Google)* → *Robots.txt Editor* eller tilsvarende)
 
@@ -50,7 +50,7 @@ Host: https://www.arbeidmatch.no
 
 ---
 
-## 2) HTML `<head>` — hreflang (språkversjoner)
+## 2) HTML `<head>` - hreflang (språkversjoner)
 
 Lim inn i **Custom Code** i `<head>` for hele nettstedet (Wix: *Settings → Custom Code → Head*), eller i Next.js `layout.tsx` via `metadata.alternates.languages` (allerede satt i kodebasen).
 

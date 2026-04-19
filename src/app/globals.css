@@ -58,7 +58,7 @@ body {
   }
 }
 
-/* /for-candidates — floating feedback pill (hidden on small viewports) */
+/* /for-candidates - floating feedback pill (hidden on small viewports) */
 @media (max-width: 767px) {
   .candidate-feedback-pill {
     display: none !important;
@@ -149,7 +149,7 @@ body {
   }
 }
 
-/* Display headings — clean, authoritative */
+/* Display headings - clean, authoritative */
 .heading-premium-xl {
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -170,7 +170,7 @@ body {
   color: #aaa;
 }
 
-/* Who are you — light cards, subtle gold hover glow */
+/* Who are you - light cards, subtle gold hover glow */
 .who-choice-card {
   transition:
     border-color 300ms ease,
@@ -186,7 +186,7 @@ body {
   }
 }
 
-/* CTA section — subtle animated mesh */
+/* CTA section - subtle animated mesh */
 @keyframes mesh-shift {
   0% {
     background-position: 0% 40%;
@@ -231,7 +231,7 @@ body {
   }
 }
 
-/* DSB collapsed card — continuous border pulse */
+/* DSB collapsed card - continuous border pulse */
 @keyframes dsb-outer-glow {
   0%,
   100% {
@@ -460,7 +460,7 @@ textarea.textarea-premium::-webkit-resizer {
   }
 }
 
-/* Premium form focus (DSB checkout — light inputs on white) */
+/* Premium form focus (DSB checkout - light inputs on white) */
 .premium-dsb-input:focus {
   border-color: rgba(184, 134, 11, 0.55) !important;
   box-shadow:
@@ -573,7 +573,7 @@ textarea.textarea-premium::-webkit-resizer {
   animation: tiktok-live-border 2.2s ease-in-out infinite;
 }
 
-/* Noise overlay (Nordic Precision — premium dark surfaces) */
+/* Noise overlay (Nordic Precision - premium dark surfaces) */
 .am-noise {
   position: relative;
 }
@@ -614,7 +614,7 @@ textarea.textarea-premium::-webkit-resizer {
   }
 }
 
-/* DSB employer guide + popup — keyframes */
+/* DSB employer guide + popup - keyframes */
 @keyframes fadeSlideUp {
   from {
     opacity: 0;
@@ -692,7 +692,7 @@ textarea.textarea-premium::-webkit-resizer {
   }
 }
 
-/* Inputs — focus ring */
+/* Inputs - focus ring */
 input:not([type="checkbox"]):not([type="radio"]),
 textarea,
 select {
@@ -737,7 +737,7 @@ select:focus {
   animation: skeleton-pulse 1.5s ease infinite;
 }
 
-/* Premium cards — hover on fine pointers only */
+/* Premium cards - hover on fine pointers only */
 .card-premium {
   transition:
     transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -783,7 +783,7 @@ select:focus {
   }
 }
 
-/* Gold buttons — micro-interactions */
+/* Gold buttons - micro-interactions */
 .btn-gold-premium {
   position: relative;
   overflow: hidden;
@@ -969,7 +969,7 @@ button:focus:not(:focus-visible) {
   }
 }
 
-/* DSB for-candidates EU / Non-EU cards — glow follows hover between siblings */
+/* DSB for-candidates EU / Non-EU cards - glow follows hover between siblings */
 .dsb-cards .dsb-card {
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: none;
@@ -1181,7 +1181,7 @@ button:focus:not(:focus-visible) {
   stroke-dashoffset: 0;
 }
 
-/* Footer — Download App block */
+/* Footer - Download App block */
 @keyframes footer-app-float {
   0%,
   100% {
@@ -1231,7 +1231,7 @@ button:focus:not(:focus-visible) {
   }
 }
 
-/* /request — premium form */
+/* /request - premium form */
 .request-premium-input {
   width: 100%;
   border-radius: 0.375rem;
@@ -1366,7 +1366,7 @@ button:focus:not(:focus-visible) {
   stroke-dashoffset: 0;
 }
 
-/* ─── DSB checkout — mobile premium (EU / Non-EU) ─── */
+/* ─── DSB checkout - mobile premium (EU / Non-EU) ─── */
 @property --dsb-badge-angle {
   syntax: "<angle>";
   initial-value: 0deg;

@@ -47,7 +47,7 @@ export default function BemanningsbyraKristiansandPage() {
         </section>
         <section className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {[
-            ["Reell erfaring", "Vi stiller spørsmål om konkrete prosesser — ikke bare generelle etiketter."],
+            ["Reell erfaring", "Vi stiller spørsmål om konkrete prosesser - ikke bare generelle etiketter."],
             ["Regional logikk", "Pendling og bolig avklares tidlig for stabile team."],
             ["Digital oppfølging", "Avstand til hovedkontor skal ikke bety avstand i dialog."],
           ].map(([t, b]) => (
@@ -64,7 +64,7 @@ export default function BemanningsbyraKristiansandPage() {
         <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
           <h2 className="am-h3 font-semibold text-navy">Kort FAQ</h2>
           <p className="mt-3 text-sm text-text-secondary">
-            Dekker dere hele Agder? — Ja, med samme metodikk som i større byer — krav først, deretter sourcing.
+            Dekker dere hele Agder? - Ja, med samme metodikk som i større byer - krav først, deretter sourcing.
           </p>
         </section>
         <BemanningLegalSection />

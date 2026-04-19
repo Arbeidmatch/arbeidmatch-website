@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       await transporter.sendMail({
         ...mailHeaders(),
         to: email,
-        subject: "Your exclusive DSB Guide discount — valid 7 days",
+        subject: "Your exclusive DSB Guide discount - valid 7 days",
         html,
       });
 

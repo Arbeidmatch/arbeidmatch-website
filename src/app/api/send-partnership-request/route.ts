@@ -75,9 +75,9 @@ export async function POST(request: NextRequest) {
     const employerInner = [
       emailParagraph(`Thank you for your request, <strong>${safeCo}</strong>!`),
       emailParagraph("We received your request and our team will send you an offer as soon as possible."),
-      emailParagraph(`<strong>Engagement model:</strong> ${escapeHtml(data.engagementModel || "—")}`),
-      emailParagraph(`<strong>Location:</strong> ${escapeHtml(data.requestedLocation || "—")}`),
-      emailParagraph(`<strong>Needs:</strong> ${escapeHtml(data.job_summary || "—")}`),
+      emailParagraph(`<strong>Engagement model:</strong> ${escapeHtml(data.engagementModel || "-")}`),
+      emailParagraph(`<strong>Location:</strong> ${escapeHtml(data.requestedLocation || "-")}`),
+      emailParagraph(`<strong>Needs:</strong> ${escapeHtml(data.job_summary || "-")}`),
       emailParagraph(`<strong>Reference ID:</strong> ${escapeHtml(referenceId)}`),
       emailParagraph("<strong>Source:</strong> Website form (arbeidmatch.no/request)"),
       `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</div>`,

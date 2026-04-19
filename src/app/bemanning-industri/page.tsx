@@ -43,7 +43,7 @@ export default function BemanningIndustriPage() {
           {[
             ["Operatører og montører", "Screening mot reell fabrikkerfaring og skift."],
             ["Dokumentasjon", "Vi samler relevant info for internkontroll uten å love mer enn markedet tillater."],
-            ["HMS i praksis", "Sikkerhetsbrief og prosedyrer avstemmes tidlig — målet er trygg oppstart."],
+            ["HMS i praksis", "Sikkerhetsbrief og prosedyrer avstemmes tidlig - målet er trygg oppstart."],
           ].map(([t, b]) => (
             <article
               key={t}
@@ -60,7 +60,7 @@ export default function BemanningIndustriPage() {
           <dl className="mt-4 space-y-3 text-sm text-text-secondary">
             <div>
               <dt className="font-semibold text-navy">Dekker dere korte vedlikeholdsvinduer?</dt>
-              <dd className="mt-1">Ofte ja — avhengig av kompetanse og tilgjengelighet. Vi er åpne om tidslinje.</dd>
+              <dd className="mt-1">Ofte ja - avhengig av kompetanse og tilgjengelighet. Vi er åpne om tidslinje.</dd>
             </div>
           </dl>
         </section>

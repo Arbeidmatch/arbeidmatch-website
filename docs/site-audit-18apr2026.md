@@ -1,4 +1,4 @@
-# Site Audit — 18 Aprilie 2026
+# Site Audit - 18 Aprilie 2026
 
 ## Rezumat executiv
 Starea generala a proiectului este buna: build-ul trece, TypeScript nu raporteaza erori, rutele principale sunt generate corect, iar interconectarea interna este functionala. Exista totusi cateva riscuri importante: logging de debug ramas in productie pe checkout DSB, lipsa metadata SEO pe mai multe pagini publice, configuratie de environment incompleta in `.env.example`, si suprafata larga de API-uri publice fara un strat uniform de autentificare/rate-limit.

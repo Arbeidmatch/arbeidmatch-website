@@ -1,4 +1,4 @@
-# SEO-rapport — ArbeidMatch (Next.js App Router)
+# SEO-rapport - ArbeidMatch (Next.js App Router)
 
 **Dato:** 2026-04-19  
 **Status:** `npm run build` OK · endrede filer i oppgaver 11–14 er `eslint`-rene (se avsnitt om lint nederst)
@@ -24,10 +24,10 @@ ArbeidMatch-siten har nå **samkjørte norske metadata** (tittel, beskrivelse, c
 
 ### Viktige filer (oppgave 11–14)
 
-- `src/lib/nbPageMetadata.ts` — gjenbrukbar metadata-fabrikk  
-- `src/components/seo/SeeAlsoSection.tsx` — «Se også»-blokk  
-- `src/components/Navbar.tsx` — oppdatert navigasjon  
-- `src/components/Footer.tsx` — oppdatert footer  
+- `src/lib/nbPageMetadata.ts` - gjenbrukbar metadata-fabrikk  
+- `src/components/seo/SeeAlsoSection.tsx` - «Se også»-blokk  
+- `src/components/Navbar.tsx` - oppdatert navigasjon  
+- `src/components/Footer.tsx` - oppdatert footer  
 - Oppdaterte `page.tsx` / innholdsfiler som listet i PR-beskrivelse / git status
 
 ---
@@ -36,30 +36,30 @@ ArbeidMatch-siten har nå **samkjørte norske metadata** (tittel, beskrivelse, c
 
 | Rute | Fil | Metadata | Schema JSON-LD | Interne «Se også»-lenker |
 |------|-----|----------|----------------|---------------------------|
-| `/` | `src/app/page.tsx` | ✅ (nb, egen) | ✅ (layout + FAQ hjem) | — |
-| `/for-employers` | `src/app/for-employers/page.tsx` | ✅ `nbPageMetadata` | — | — |
-| `/for-candidates` | `src/app/for-candidates/page.tsx` | ✅ | — | — |
-| `/about` | `src/app/about/page.tsx` | ✅ | — | — |
-| `/contact` | `src/app/contact/page.tsx` | ✅ | — | — |
-| `/dsb-support` | `src/app/dsb-support/page.tsx` | ✅ | — (artikkel) | ✅ |
-| `/dsb-checklist` | `src/app/dsb-checklist/page.tsx` | ✅ | — | — |
-| `/recruiter-network` | `src/app/recruiter-network/page.tsx` | ✅ | — | — |
-| `/partners` | `src/app/partners/page.tsx` | ✅ | — | — |
-| `/blog` | `src/app/blog/page.tsx` | ✅ | — | — |
-| `/blog/ansette-utenlandske-arbeidere-lovlig` | `src/app/blog/ansette-utenlandske-arbeidere-lovlig/page.tsx` | ✅ | — | ✅ |
+| `/` | `src/app/page.tsx` | ✅ (nb, egen) | ✅ (layout + FAQ hjem) | - |
+| `/for-employers` | `src/app/for-employers/page.tsx` | ✅ `nbPageMetadata` | - | - |
+| `/for-candidates` | `src/app/for-candidates/page.tsx` | ✅ | - | - |
+| `/about` | `src/app/about/page.tsx` | ✅ | - | - |
+| `/contact` | `src/app/contact/page.tsx` | ✅ | - | - |
+| `/dsb-support` | `src/app/dsb-support/page.tsx` | ✅ | - (artikkel) | ✅ |
+| `/dsb-checklist` | `src/app/dsb-checklist/page.tsx` | ✅ | - | - |
+| `/recruiter-network` | `src/app/recruiter-network/page.tsx` | ✅ | - | - |
+| `/partners` | `src/app/partners/page.tsx` | ✅ | - | - |
+| `/blog` | `src/app/blog/page.tsx` | ✅ | - | - |
+| `/blog/ansette-utenlandske-arbeidere-lovlig` | `src/app/blog/ansette-utenlandske-arbeidere-lovlig/page.tsx` | ✅ | - | ✅ |
 | `/bemanning-bygg-anlegg` | `src/app/bemanning-bygg-anlegg/page.tsx` + `BemanningByggAnleggNb.tsx` | ✅ `nbPageMetadata` | ✅ Breadcrumb | ✅ |
-| `/bemanning-logistikk` | `src/app/bemanning-logistikk/page.tsx` | ✅ (tittel/desc/canonical) | — | ✅ |
-| `/bemanning-industri` | `src/app/bemanning-industri/page.tsx` | ✅ | — | ✅ |
-| `/bemanning-renhold` | `src/app/bemanning-renhold/page.tsx` | ✅ | — | ✅ |
-| `/bemanning-horeca` | `src/app/bemanning-horeca/page.tsx` | ✅ | — | ✅ |
-| `/bemanning-helse` | `src/app/bemanning-helse/page.tsx` | ✅ | — | ✅ |
-| `/bemanningsbyrå-trondheim` | `src/app/bemanningsbyrå-trondheim/page.tsx` | ✅ | — | ✅ |
-| `/bemanningsbyrå-bergen` | `src/app/bemanningsbyrå-bergen/page.tsx` | ✅ | — | ✅ |
-| `/bemanningsbyrå-stavanger` | `src/app/bemanningsbyrå-stavanger/page.tsx` | ✅ | — | ✅ |
-| `/bemanningsbyrå-kristiansand` | `src/app/bemanningsbyrå-kristiansand/page.tsx` | ✅ | — | ✅ |
-| `/en` | `src/app/en/page.tsx` | Delvis (ikke omfattet av oppg. 11) | — | — |
-| `/ro` | `src/app/ro/page.tsx` | Delvis | — | — |
-| `/pl` | `src/app/pl/page.tsx` | Delvis | — | — |
+| `/bemanning-logistikk` | `src/app/bemanning-logistikk/page.tsx` | ✅ (tittel/desc/canonical) | - | ✅ |
+| `/bemanning-industri` | `src/app/bemanning-industri/page.tsx` | ✅ | - | ✅ |
+| `/bemanning-renhold` | `src/app/bemanning-renhold/page.tsx` | ✅ | - | ✅ |
+| `/bemanning-horeca` | `src/app/bemanning-horeca/page.tsx` | ✅ | - | ✅ |
+| `/bemanning-helse` | `src/app/bemanning-helse/page.tsx` | ✅ | - | ✅ |
+| `/bemanningsbyrå-trondheim` | `src/app/bemanningsbyrå-trondheim/page.tsx` | ✅ | - | ✅ |
+| `/bemanningsbyrå-bergen` | `src/app/bemanningsbyrå-bergen/page.tsx` | ✅ | - | ✅ |
+| `/bemanningsbyrå-stavanger` | `src/app/bemanningsbyrå-stavanger/page.tsx` | ✅ | - | ✅ |
+| `/bemanningsbyrå-kristiansand` | `src/app/bemanningsbyrå-kristiansand/page.tsx` | ✅ | - | ✅ |
+| `/en` | `src/app/en/page.tsx` | Delvis (ikke omfattet av oppg. 11) | - | - |
+| `/ro` | `src/app/ro/page.tsx` | Delvis | - | - |
+| `/pl` | `src/app/pl/page.tsx` | Delvis | - | - |
 | `/sitemap.xml` | `src/app/sitemap.ts` | N/A | N/A | N/A |
 | `/robots.txt` | `src/app/robots.ts` | N/A | N/A | N/A |
 
@@ -76,12 +76,12 @@ ArbeidMatch-siten har nå **samkjørte norske metadata** (tittel, beskrivelse, c
 
 ## Anbefalte neste steg
 
-1. **Google Business Profile** — samle anmeldelser, post ukentlig, hold NAP identisk med footer.  
-2. **Lenkebygging** — bransjeorganisasjoner, leverandørnettverk, case-sider mot store prosjekt.  
-3. **Bloggkalender** — 1–2 fagartikler/måned (HMS, allmenngjøring, DSB-oppdateringer).  
+1. **Google Business Profile** - samle anmeldelser, post ukentlig, hold NAP identisk med footer.  
+2. **Lenkebygging** - bransjeorganisasjoner, leverandørnettverk, case-sider mot store prosjekt.  
+3. **Bloggkalender** - 1–2 fagartikler/måned (HMS, allmenngjøring, DSB-oppdateringer).  
 4. **Full `nbPageMetadata`** på alle landingsider (bransje/by) for identisk OG/Twitter/hreflang-mønster.  
-5. **Språkversjoner** — når `/en/...` faktisk finnes, oppdater `alternates.languages` per side i stedet for rotkun på en/ro/pl.  
-6. **Search Console** — overvåk indeksering etter internlenke-endring.
+5. **Språkversjoner** - når `/en/...` faktisk finnes, oppdater `alternates.languages` per side i stedet for rotkun på en/ro/pl.  
+6. **Search Console** - overvåk indeksering etter internlenke-endring.
 
 ---
 

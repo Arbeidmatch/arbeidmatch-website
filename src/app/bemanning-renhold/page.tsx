@@ -53,7 +53,7 @@ export default function BemanningRenholdPage() {
         <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
           <h2 className="am-h3 font-semibold text-navy">Kort FAQ</h2>
           <p className="mt-3 text-sm text-text-secondary">
-            Kan dere dekke helgevakter? — Avhengig av tilgjengelighet og område; vi avklarer før oppstart.
+            Kan dere dekke helgevakter? - Avhengig av tilgjengelighet og område; vi avklarer før oppstart.
           </p>
         </section>
         <BemanningLegalSection />

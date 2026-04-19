@@ -1,15 +1,15 @@
-# Stripe setup — DSB guides
+# Stripe setup - DSB guides
 
 This project uses Stripe Checkout for one-time payments for DSB authorization guides.
 
 ## 1. Create two products in Stripe Dashboard
 
 1. Open [Stripe Dashboard → Products](https://dashboard.stripe.com/products).
-2. **Product A — EU/EEA guide**
+2. **Product A - EU/EEA guide**
    - Name: `DSB Guide EU/EEA` (or similar).
    - Pricing: **One-time**, **19 EUR**.
    - Save and copy the **Price ID** (starts with `price_...`).
-3. **Product B — Non-EU guide**
+3. **Product B - Non-EU guide**
    - Name: `DSB Guide Non-EU`.
    - Pricing: **One-time**, **49 EUR**.
    - Save and copy the **Price ID**.

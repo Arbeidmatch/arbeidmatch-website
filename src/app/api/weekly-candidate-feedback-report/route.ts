@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
     byPage.slice(0, 10).forEach((entry, i) => {
       reportRows.push({
         label: `Top page ${i + 1}`,
-        value: `${entry.page} — count ${entry.count}, avg ${entry.avg.toFixed(2)}`,
+        value: `${entry.page} - count ${entry.count}, avg ${entry.avg.toFixed(2)}`,
       });
     });
     if (!byPage.length) {
@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
     reportRows.push({ label: "Attachment", value: "Detailed PDF report (see attachment)" });
 
     const html = buildInternalEmailHtml({
-      title: `Weekly candidate feedback report — avg ${avgScore.toFixed(2)}/10`,
+      title: `Weekly candidate feedback report - avg ${avgScore.toFixed(2)}/10`,
       rows: reportRows,
     });
 

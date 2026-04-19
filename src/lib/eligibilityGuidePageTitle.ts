@@ -13,7 +13,7 @@ function normalizeUrlRegion(value: string | null | undefined): "Scandinavia" | "
   return null;
 }
 
-/** Region or country label used in "Work in … — Guide" (fallback: Europe). */
+/** Region or country label used in "Work in … - Guide" (fallback: Europe). */
 export function resolveWorkGuidePlace(input: WorkGuideTitleInput): string {
   const country = input.targetCountry.trim();
   if (country.length > 0) return country;

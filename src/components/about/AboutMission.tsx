@@ -25,7 +25,7 @@ export default function AboutMission() {
               lineHeight: 1.3,
             }}
           >
-            Vi tror på lovlig, rettferdig og lønnsom arbeidskraft — for alle parter.
+            Vi tror på lovlig, rettferdig og lønnsom arbeidskraft - for alle parter.
           </p>
         </div>
         <div>
@@ -35,7 +35,7 @@ export default function AboutMission() {
           >
             Siden oppstarten i 2025 har ArbeidMatch hjulpet norske bedrifter med å finne riktige fagarbeidere fra hele
             EU/EEA. Vi kombinerer direkte sourcing, strukturert screening og personlig oppfølging for å levere
-            arbeidskraft som faktisk fungerer — raskt, lovlig og med full dokumentasjon.
+            arbeidskraft som faktisk fungerer - raskt, lovlig og med full dokumentasjon.
           </p>
           <ul className="list-none p-0">
             {BULLETS.map((text) => (

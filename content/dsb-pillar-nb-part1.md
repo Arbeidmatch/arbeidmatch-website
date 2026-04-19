@@ -42,7 +42,7 @@ Nedenfor er en generell prosessmodell. Frister, skjemaversjoner og krav endres; 
 7. **Vedtak**  
    Ved godkjenning: registrer autorisasjon i internkontrollsystem og i prosjektets HMS-mapper. Ved avslag: les begrunnelsen nøye; vurder anke eller rettet søknad med ny dokumentasjon.
 
-## Vanlige årsaker til avslag — og hvordan unngå dem
+## Vanlige årsaker til avslag - og hvordan unngå dem
 
 **Manglende sammenheng mellom dokumentasjon og faktisk arbeid**  
 Hvis CV sier «10 års industri», men attestene kun dekker korte perioder, svekkes troverdigheten. Sørg for sammenhengende tidslinje.

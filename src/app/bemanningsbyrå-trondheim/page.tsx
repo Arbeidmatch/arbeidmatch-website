@@ -22,7 +22,7 @@ export default function BemanningsbyraTrondheimPage() {
           <p>
             Trondheim-regionen kombinerer marin næring, byutvikling og industrielt tyngdepunkt. ArbeidMatch har
             hovedkontor i Ranheim og leverer bemanningsbyrå Trondheim med kort vei til møter, befaring og oppfølging. Vi
-            rekrutterer EU/EEA-arbeidere der dokumentasjon og språk er avklart før oppstart — og vi tør å si nei når krav
+            rekrutterer EU/EEA-arbeidere der dokumentasjon og språk er avklart før oppstart - og vi tør å si nei når krav
             og kompetanse ikke matcher.
           </p>
           <p>
@@ -65,7 +65,7 @@ export default function BemanningsbyraTrondheimPage() {
         <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
           <h2 className="am-h3 font-semibold text-navy">Kort FAQ</h2>
           <p className="mt-3 text-sm text-text-secondary">
-            Hvor raskt kan dere starte? — Avhengig av rolle og marked; vi avklarer realistisk tidslinje tidlig.
+            Hvor raskt kan dere starte? - Avhengig av rolle og marked; vi avklarer realistisk tidslinje tidlig.
           </p>
         </section>
         <BemanningLegalSection />

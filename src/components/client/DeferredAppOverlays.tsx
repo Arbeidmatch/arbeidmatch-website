@@ -8,7 +8,7 @@ const MonetizationOverlays = dynamic(() => import("@/components/monetization/Mon
   loading: () => null,
 });
 
-/** Below-the-fold / client-only overlays — loaded without SSR (smaller initial HTML). */
+/** Below-the-fold / client-only overlays - loaded without SSR (smaller initial HTML). */
 export default function DeferredAppOverlays() {
   return (
     <>

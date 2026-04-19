@@ -169,7 +169,7 @@ const ACCORDION = [
   },
   {
     icon: <IconBrief />,
-    title: "Arbeidsattester — min. 1 år praksis siste 10 år",
+    title: "Arbeidsattester - min. 1 år praksis siste 10 år",
     body: "Kopi av attester fra nåværende eller tidligere arbeidsgivere som dokumenterer minst ett års praksis i elektrikeryrket i løpet av de siste 10 år etter endt utdanning.",
   },
   {
@@ -216,11 +216,11 @@ const LEGAL_LINKS = [
     href: "https://www.dsb.no/en/Electrical-safety/kvalifikasjoner-foretak-og-virksomhet/Apply-for-approval-as-electrical-professionals-in-Norway/Applicants-with-professional-qualifications-within-the-EUEOS/",
   },
   {
-    label: "Altinn: Elektriker — søknadsveiledning",
+    label: "Altinn: Elektriker - søknadsveiledning",
     href: "https://info.altinn.no/skjemaoversikt/direktoratet-for-samfunnssikkerhet-og-beredskap/elektriker/",
   },
   {
-    label: "Elvirksomhetsregisteret — verifiser elektriker",
+    label: "Elvirksomhetsregisteret - verifiser elektriker",
     href: "https://elvirksomhetsregisteret.dsb.no",
   },
 ] as const;
@@ -295,7 +295,7 @@ export default function DsbEmployerGuide() {
 
         {/* Status cards */}
         <div className="mt-14 md:mt-16">
-          <h3 className="mb-8 text-2xl font-bold text-white">Tre situasjoner — tre svar</h3>
+          <h3 className="mb-8 text-2xl font-bold text-white">Tre situasjoner - tre svar</h3>
           <div ref={cardsRef} className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             <article
               className={`group rounded-2xl border border-white/10 bg-white/[0.04] p-6 transition-all duration-500 ease-out ${
@@ -319,7 +319,7 @@ export default function DsbEmployerGuide() {
               } border-t-[3px] border-t-[#C9A84C]`}
             >
               <IconStatusClock />
-              <h4 className="mt-4 text-base font-bold text-[#C9A84C]">Søknad sendt — venter på svar</h4>
+              <h4 className="mt-4 text-base font-bold text-[#C9A84C]">Søknad sendt - venter på svar</h4>
               <p className="mt-3 text-sm leading-relaxed text-white/70">
                 Kandidaten har søkt om midlertidig godkjenning. DSB svarer innen 1 måned. Etter positivt svar kan
                 kandidaten starte lovlig. Gyldighet: maks 12 måneder.

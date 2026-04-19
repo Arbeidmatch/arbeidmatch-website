@@ -45,7 +45,7 @@ export default function BemanningByggAnleggNb() {
           </p>
           <p>
             Når dere trenger utenlandske byggearbeidere, kartlegger vi fag, sertifikater og språkbehov. Målet vårt er
-            riktig match — ikke høyest mulig volum. For autoriserte roller (f.eks. elektriker) viser vi vei til{" "}
+            riktig match - ikke høyest mulig volum. For autoriserte roller (f.eks. elektriker) viser vi vei til{" "}
             <Link href="/dsb-support" className="font-medium text-gold hover:underline">
               DSB-godkjenning
             </Link>{" "}
@@ -92,11 +92,11 @@ export default function BemanningByggAnleggNb() {
             {[
               {
                 t: "Faglig tyngde",
-                b: "Vi stiller presise spørsmål om erfaring fra norsk byggeplasskultur og prosjektstørrelse — basert på vår erfaring med rekruttering til bygg.",
+                b: "Vi stiller presise spørsmål om erfaring fra norsk byggeplasskultur og prosjektstørrelse - basert på vår erfaring med rekruttering til bygg.",
               },
               {
                 t: "Compliance i praksis",
-                b: "Vi arbeider for å avklare avtaler, dokumentasjon og tariff/allmenngjøring der det inngår i oppdraget — i tråd med gjeldende krav.",
+                b: "Vi arbeider for å avklare avtaler, dokumentasjon og tariff/allmenngjøring der det inngår i oppdraget - i tråd med gjeldende krav.",
               },
               {
                 t: "Forutsigbar leveranse",
@@ -160,7 +160,7 @@ export default function BemanningByggAnleggNb() {
         <section className="rounded-2xl border border-gold/30 bg-navy px-6 py-10 text-center text-white">
           <h2 className="text-2xl font-bold">Klar for trygg bemanning på byggeplassen?</h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-white/80">
-            Send oss kravene deres — vi returnerer med profiler og en plan. Vi tilstreber kort tid fra avklaring til
+            Send oss kravene deres - vi returnerer med profiler og en plan. Vi tilstreber kort tid fra avklaring til
             oppstart der markedet tillater det, ofte i om lag{" "}
             <span className="font-semibold text-white">2 ukers leveringstid</span> for relevante roller.
           </p>

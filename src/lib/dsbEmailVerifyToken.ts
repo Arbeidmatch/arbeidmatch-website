@@ -14,7 +14,7 @@ function getSecret(): string {
   return (process.env.DSB_EMAIL_VERIFY_SECRET || process.env.STRIPE_SECRET_KEY || "").trim();
 }
 
-/** Signed token: base64url(payload).hmac — valid until `exp` (unix ms). */
+/** Signed token: base64url(payload).hmac - valid until `exp` (unix ms). */
 export function signDsbEmailVerifyToken(
   payload: Omit<DsbEmailVerifyPayload, "exp"> & { expMs: number; coupon_code?: string },
 ): string {

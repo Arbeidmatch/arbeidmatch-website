@@ -1,7 +1,7 @@
-# TASKS — arbeidmatch-website (arbeidmatch.no)
+# TASKS: arbeidmatch-website (arbeidmatch.no)
 
 ## 🔴 URGENT
-- [ ] Fix formular angajator — toate 12 TODO-urile rămase (radio vertical, categorii, permis conducere, D-number, salary link, rotation dropdown, accommodation cost condiționat, international travel, referral inline, success screen, validare roșu, phone prefix +47)
+- [ ] Fix formular angajator: toate 12 TODO-urile rămase (radio vertical, categorii, permis conducere, D-number, salary link, rotation dropdown, accommodation cost condiționat, international travel, referral inline, success screen, validare roșu, phone prefix +47)
 
 ## 🟡 IN PROGRESS
 - [ ] Flux candidați complet (CV upload → Claude parse → formular pre-completat → GDPR → ATS)

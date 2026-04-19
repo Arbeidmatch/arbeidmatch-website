@@ -68,7 +68,7 @@ export function wrapPremiumEmail(bodyHtml: string): string {
               </p>
               <p style="margin:12px 0 0;font-size:10px;color:#aaaaaa;line-height:1.5;">
                 This email was sent by ArbeidMatch Norge AS in connection with your activity on our website.<br />
-                Transactional notice — not a marketing message.
+                Transactional notice - not a marketing message.
               </p>
             </td>
           </tr>
@@ -99,7 +99,7 @@ export function emailParagraph(html: string): string {
   return `<p style="margin:0 0 16px;line-height:1.7;color:#0D1B2A;font-size:15px;">${html}</p>`;
 }
 
-/** Short CTA fallback — support address lives in the shared footer only. */
+/** Short CTA fallback - support address lives in the shared footer only. */
 export function emailSupportAfterCta(): string {
   return `<p style="margin:20px 0 0;line-height:1.65;color:#555555;font-size:13px;">${escapeHtml(
     "If the button does not work, reply to this email and we will help you on business days.",
@@ -155,6 +155,6 @@ export function buildInternalEmailHtml(opts: { title: string; rows: { label: str
   <h1 style="font-size:18px;margin:0 0 8px;font-weight:800;color:#0D1B2A;">${escapeHtml(opts.title)}</h1>
   <p style="margin:0 0 16px;font-size:12px;color:#666;">${escapeHtml(ts)}</p>
   <table style="width:100%;max-width:720px;border-collapse:collapse;background:#fff;border:1px solid #e5e5e5;">${rowsHtml}</table>
-  <p style="margin:16px 0 0;font-size:10px;color:#aaaaaa;line-height:1.5;">ArbeidMatch internal notification.<br />Operational use only — do not forward.</p>
+  <p style="margin:16px 0 0;font-size:10px;color:#aaaaaa;line-height:1.5;">ArbeidMatch internal notification.<br />Operational use only - do not forward.</p>
 </body></html>`;
 }
