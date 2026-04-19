@@ -1,18 +1,45 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import DsbApplicationChecklist from "@/components/dsb/DsbApplicationChecklist";
 import DsbEmployerGuide from "@/components/dsb/DsbEmployerGuide";
 import DsbPillarFromMarkdown from "@/components/dsb/DsbPillarFromMarkdown";
 import DsbRequestPopup from "@/components/dsb/DsbRequestPopup";
 import DsbCompleteGuide from "@/components/dsb/DsbCompleteGuide";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
-import { nbPageMetadata } from "@/lib/nbPageMetadata";
 import DsbTypeSelectorLoader from "./DsbTypeSelectorLoader";
 
-export const metadata: Metadata = nbPageMetadata(
-  "/dsb-support",
-  "DSB-godkjenning elektriker utenlandsk – komplett guide | ArbeidMatch",
-  "Lær om DSB autorisasjon elektriker, dokumentasjon, tidslinje og vanlige avslagsårsaker. Veiledning for arbeidsgivere og kandidater – ta kontakt for støtte.",
-);
+const SITE = "https://www.arbeidmatch.no";
+const canonical = `${SITE}/dsb-support`;
+
+export const metadata: Metadata = {
+  title: { absolute: "DSB Authorization for Electricians in Norway | ArbeidMatch" },
+  description:
+    "Complete guide and checklist for EU/EEA electricians applying for DSB authorization in Norway. Documents required, processing times, and step-by-step guidance.",
+  alternates: {
+    canonical,
+    languages: {
+      nb: canonical,
+      en: `${SITE}/en`,
+      ro: `${SITE}/ro`,
+      pl: `${SITE}/pl`,
+    },
+  },
+  openGraph: {
+    title: "DSB Authorization for Electricians in Norway | ArbeidMatch",
+    description:
+      "Complete guide and checklist for EU/EEA electricians applying for DSB authorization in Norway. Documents required, processing times, and step-by-step guidance.",
+    locale: "en_US",
+    siteName: "ArbeidMatch",
+    type: "website",
+    url: canonical,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DSB Authorization for Electricians in Norway | ArbeidMatch",
+    description:
+      "Complete guide and checklist for EU/EEA electricians applying for DSB authorization in Norway. Documents required, processing times, and step-by-step guidance.",
+  },
+};
 
 export default function DsbSupportPage() {
   return (
@@ -20,29 +47,29 @@ export default function DsbSupportPage() {
       <DsbTypeSelectorLoader disableAutoOpen />
       <section className="border-b border-border bg-white">
         <div className="mx-auto w-full max-w-content px-4 py-10 md:px-6 md:py-14">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Fagartikkel</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Guide</p>
           <h1 className="mt-3 max-w-4xl text-3xl font-extrabold leading-tight tracking-tight text-navy md:text-4xl">
-            DSB-godkjenning for utenlandske elektrikere i Norge: Komplett guide 2025
+            DSB authorisation for foreign electricians in Norway: complete overview 2025
           </h1>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-text-secondary">
-            Arbeidsgivere trenger trygg dokumentasjon før elektrisk arbeid starter. Denne guiden forklarer DSB-godkjenning
-            elektriker utenlandsk i et arbeidsrettet språk, med vekt på prosess, dokumentasjon og realistisk tidsbruk.
+            Employers need reliable documentation before electrical work starts. This guide explains DSB authorisation for
+            foreign electricians in practical terms, with emphasis on process, documentation, and realistic timelines.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/dsb-support/eu"
               className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-semibold text-white hover:bg-gold-hover"
             >
-              EU/EEA-guide
+              EU/EEA guide
             </Link>
             <Link
               href="/dsb-support/non-eu"
               className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-navy px-5 py-2.5 text-sm font-semibold text-navy hover:bg-surface"
             >
-              Utenfor EU/EEA-guide
+              Outside EU/EEA guide
             </Link>
             <Link href="/contact" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-gold underline">
-              Kontakt oss
+              Contact us
             </Link>
           </div>
         </div>
@@ -53,13 +80,14 @@ export default function DsbSupportPage() {
       <SeeAlsoSection
         variant="white"
         items={[
-          { href: "/for-employers", label: "For arbeidsgivere" },
-          { href: "/for-candidates", label: "For kandidater" },
-          { href: "/dsb-checklist", label: "Last ned DSB-sjekkliste" },
+          { href: "/for-employers", label: "For employers" },
+          { href: "/for-candidates", label: "For candidates" },
+          { href: "/dsb-support", label: "DSB Authorization Guide" },
           { href: "/bemanningsbyrå-trondheim", label: "Bemanning Trondheim" },
         ]}
       />
       <DsbEmployerGuide />
+      <DsbApplicationChecklist />
       <DsbRequestPopup />
       <DsbCompleteGuide />
     </>

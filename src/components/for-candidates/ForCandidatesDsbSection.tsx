@@ -245,10 +245,10 @@ export default function ForCandidatesDsbSection() {
 
         <div className="relative mx-auto mt-8 max-w-content text-center md:px-6">
           <Link
-            href="/dsb-checklist"
+            href="/dsb-support"
             className="inline-flex items-center gap-2 text-sm font-semibold text-navy transition-colors duration-300 hover:text-gold"
           >
-            Prefer email? Get the free EU/EEA DSB document checklist →
+            DSB Authorization Guide: documents and checklist on one page →
           </Link>
         </div>
       </div>

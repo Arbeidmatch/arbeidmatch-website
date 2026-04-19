@@ -1,13 +1,13 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import DsbChecklistClient from "./DsbChecklistClient";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
 export const metadata: Metadata = nbPageMetadata(
-  "/dsb-checklist",
-  "DSB-sjekkliste for utenlandske elektrikere | ArbeidMatch",
-  "Last ned gratis DSB-sjekkliste for EU/EEA-elektrikere som søker godkjenning i Norge. Alle dokumenter du trenger - samlet på ett sted.",
+  "/dsb-support",
+  "DSB Authorization for Electricians in Norway | ArbeidMatch",
+  "Complete guide and checklist for EU/EEA electricians applying for DSB authorization in Norway. Documents required, processing times, and step-by-step guidance.",
 );
 
 export default function DsbChecklistPage() {
-  return <DsbChecklistClient />;
+  redirect("/dsb-support");
 }

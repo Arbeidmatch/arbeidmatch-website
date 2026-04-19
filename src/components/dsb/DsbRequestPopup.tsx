@@ -39,9 +39,9 @@ function IconClose() {
 }
 
 const CHECKS = [
-  "Pre-screenet for DSB-dokumentasjon",
-  "Vi bistår med søknadsprosessen til DSB",
-  "Levering innen 2-4 uker etter godkjenning",
+  "Pre-screened for DSB documentation",
+  "We support the application process with DSB",
+  "Delivery within 2 to 4 weeks after approval",
 ] as const;
 
 export default function DsbRequestPopup() {
@@ -64,11 +64,11 @@ export default function DsbRequestPopup() {
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             onClick={() => setOpen(true)}
-            className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-[50px] bg-[#C9A84C] px-5 py-3.5 text-sm font-semibold text-[#0f1923] shadow-[0_4px_20px_rgba(201,168,76,0.35)] transition-[transform,box-shadow] duration-200 hover:scale-[1.04] hover:shadow-[0_8px_28px_rgba(201,168,76,0.45)] md:bottom-8 md:right-8"
+            className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-[50px] border border-[rgba(201,168,76,0.45)] bg-[#C9A84C] px-5 py-3.5 text-sm font-semibold text-[#0f1923] transition-transform duration-200 hover:scale-[1.04] md:bottom-8 md:right-8"
           >
             <IconUsersPlus className="shrink-0" />
-            <span className="hidden md:inline">Be om elektriker-kandidat</span>
-            <span className="md:hidden">Be om kandidat</span>
+            <span className="hidden md:inline">Request an electrician candidate</span>
+            <span className="md:hidden">Request a candidate</span>
           </motion.button>
         )}
       </AnimatePresence>
@@ -92,26 +92,26 @@ export default function DsbRequestPopup() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-[95vw] max-w-[520px] rounded-[20px] border border-[rgba(201,168,76,0.25)] bg-[#0f1923] px-6 py-8 text-white shadow-2xl md:px-12 md:py-12"
+              className="relative w-[95vw] max-w-[520px] rounded-[20px] border border-[rgba(201,168,76,0.25)] bg-[#0f1923] px-6 py-8 text-white md:px-12 md:py-12"
               onClick={(e) => e.stopPropagation()}
             >
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center text-white/50 transition-colors hover:text-white md:right-4 md:top-4"
-                aria-label="Lukk dialog"
+                aria-label="Close dialog"
               >
                 <IconClose />
               </button>
               <p className="text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">
-                Trenger du en DSB-godkjent elektriker?
+                Need a DSB-approved electrician?
               </p>
               <h3 id="dsb-popup-title" className="mt-3 text-2xl font-bold text-white">
-                Vi finner kandidaten for deg
+                We find the candidate for you
               </h3>
               <p className="mt-3 text-[15px] leading-[1.7] text-white/[0.65]">
-                ArbeidMatch har tilgang til pre-screene EU/EEA-elektrikere med DSB-godkjenning eller aktiv søknad. Vi
-                hjelper med hele prosessen, fra sourcing til oppstart.
+                ArbeidMatch has access to pre-screened EU/EEA electricians with DSB approval or an active application. We
+                support the full process, from sourcing to start-up.
               </p>
               <ul className="mt-8 space-y-3">
                 {CHECKS.map((line) => (
@@ -127,7 +127,7 @@ export default function DsbRequestPopup() {
                   onClick={() => setOpen(false)}
                   className="group inline-flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-8 py-4 text-[15px] font-semibold text-[#0f1923] transition-transform hover:scale-[1.02]"
                 >
-                  Send forespørsel nå
+                  Send a request now
                   <IconArrow className="transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
                 <a
@@ -136,10 +136,10 @@ export default function DsbRequestPopup() {
                   rel="noopener noreferrer"
                   className="inline-flex min-h-[52px] flex-1 items-center justify-center rounded-[10px] border border-white/20 px-8 py-4 text-[15px] font-semibold text-white transition-colors hover:bg-white/5"
                 >
-                  Se alle elektrikerstillinger
+                  View all electrician roles
                 </a>
               </div>
-              <p className="mt-6 text-center text-xs text-white/40">Ingen forpliktelse. Vi tar kontakt innen 24 timer.</p>
+              <p className="mt-6 text-center text-xs text-white/40">No obligation. We will contact you within 24 hours.</p>
             </motion.div>
           </motion.div>
         )}

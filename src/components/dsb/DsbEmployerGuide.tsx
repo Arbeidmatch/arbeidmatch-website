@@ -154,28 +154,28 @@ function IconStarSm() {
 const ACCORDION = [
   {
     icon: <IconDoc />,
-    title: "CV med datert utdanning og praksis",
-    body: "CV må inneholde biografiske data, datert utdanning og datert relevant praksis som elektriker. Erfaring må dokumenteres fra land utenfor Norge.",
+    title: "CV with dated education and practice",
+    body: "The CV must include biographical data, dated education, and dated relevant practice as an electrician. Experience must be documented from outside Norway.",
   },
   {
     icon: <IconDiploma />,
-    title: "Vitnemål og karakterutskrift",
-    body: "Kopi av originalvitnemål med fag, karakterer og læreplan. Dokumenter på andre språk enn engelsk, svensk eller dansk må oversettes av autorisert translatør.",
+    title: "Diploma and transcript",
+    body: "Copy of the original diploma with subjects, grades, and curriculum. Documents in languages other than English, Swedish, or Danish must be translated by an authorised translator.",
   },
   {
     icon: <IconCert />,
-    title: "Fagbrev, svennebrev eller kompetansebevis",
-    body: "Kopi av originalt fagbrev eller tilsvarende kompetansebevis i det aktuelle elektroyrket. Både original og oversettelse må vedlegges.",
+    title: "Trade certificate, journeyman certificate, or equivalent",
+    body: "Copy of the original trade certificate or equivalent proof of competence for the specific electrical trade. Both the original and translation must be attached.",
   },
   {
     icon: <IconBrief />,
-    title: "Arbeidsattester - min. 1 år praksis siste 10 år",
-    body: "Kopi av attester fra nåværende eller tidligere arbeidsgivere som dokumenterer minst ett års praksis i elektrikeryrket i løpet av de siste 10 år etter endt utdanning.",
+    title: "Employer references, minimum 1 year of practice in the last 10 years",
+    body: "Copies of references from current or former employers documenting at least one year of practice in the electrical trade within the last 10 years after completed education.",
   },
   {
     icon: <IconPass />,
-    title: "Gyldig pass + prosjektbeskrivelse (midlertidig)",
-    body: "Kopi av gyldig pass. Ved midlertidig godkjenning: vedlegg med prosjektets art, varighet, hyppighet og kontinuitet. DSB vurderer om arbeidet er av midlertidig karakter.",
+    title: "Valid passport and project description (temporary)",
+    body: "Copy of a valid passport. For temporary approval: include the nature of the project, duration, frequency, and continuity. DSB assesses whether the work is of a temporary nature.",
   },
 ] as const;
 
@@ -189,38 +189,38 @@ type TimelineStep = {
 const TIMELINE: TimelineStep[] = [
   {
     icon: <IconFileSend />,
-    label: "Dag 1",
-    text: "Send komplett søknad via DSBs søknadsportal",
-    fee: "Gebyr: 3.200 NOK",
+    label: "Day 1",
+    text: "Submit a complete application through DSB application portal",
+    fee: "Fee: 3,200 NOK",
   },
   {
     icon: <IconCheckCircle />,
-    label: "Innen 1 måned",
-    text: "DSB bekrefter mottak og informerer om eventuelle mangler",
+    label: "Within 1 month",
+    text: "DSB confirms receipt and informs you of any missing items",
   },
   {
     icon: <IconClockSm />,
-    label: "Innen 2 måneder",
-    text: "Svar på midlertidig godkjenning. Kandidaten kan starte ved positivt svar",
+    label: "Within 2 months",
+    text: "Decision on temporary approval. The candidate may start after a positive reply",
   },
   {
     icon: <IconStarSm />,
-    label: "Innen 4 måneder",
-    text: "Svar på permanent godkjenning (etablering)",
+    label: "Within 4 months",
+    text: "Decision on permanent approval (establishment)",
   },
 ];
 
 const LEGAL_LINKS = [
   {
-    label: "DSB: Søknad om godkjenning for EU/EEA-elektrikere",
+    label: "DSB: Application for approval (EU/EEA electricians)",
     href: "https://www.dsb.no/en/Electrical-safety/kvalifikasjoner-foretak-og-virksomhet/Apply-for-approval-as-electrical-professionals-in-Norway/Applicants-with-professional-qualifications-within-the-EUEOS/",
   },
   {
-    label: "Altinn: Elektriker - søknadsveiledning",
+    label: "Altinn: Electrician application guidance",
     href: "https://info.altinn.no/skjemaoversikt/direktoratet-for-samfunnssikkerhet-og-beredskap/elektriker/",
   },
   {
-    label: "Elvirksomhetsregisteret - verifiser elektriker",
+    label: "Electrical enterprise register: verify an electrician",
     href: "https://elvirksomhetsregisteret.dsb.no",
   },
 ] as const;
@@ -279,23 +279,23 @@ export default function DsbEmployerGuide() {
           className={`rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-gradient-to-br from-[#0f1923] to-[#1a2a3a] px-8 py-10 md:px-[60px] md:py-[60px] ${heroIn ? "dsb-employer-hero-enter" : "opacity-0"}`}
         >
           <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#C9A84C]">
-            Strategisk guide for norske arbeidsgivere
+            Strategic guide for Norwegian employers
           </p>
           <h2
             className="mt-4 font-extrabold leading-[1.2] text-white"
             style={{ fontSize: "clamp(28px, 4vw, 44px)" }}
           >
-            Elektriker fra EU/EEA uten DSB: Hva kan du gjøre lovlig?
+            EU/EEA electrician without DSB approval: what can you do lawfully?
           </h2>
           <p className="mt-5 max-w-[680px] text-base leading-[1.7] text-white/[0.65]">
-            Vi hjelper deg å forstå regelverket og finne riktig kandidat. Her er det du trenger å vite om midlertidig
-            godkjenning og lovlig ansettelse.
+            We help you understand the rules and find the right candidate. Here is what you need to know about temporary
+            approval and lawful employment.
           </p>
         </div>
 
         {/* Status cards */}
         <div className="mt-14 md:mt-16">
-          <h3 className="mb-8 text-2xl font-bold text-white">Tre situasjoner - tre svar</h3>
+          <h3 className="mb-8 text-2xl font-bold text-white">Three situations, three answers</h3>
           <div ref={cardsRef} className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             <article
               className={`group rounded-2xl border border-white/10 bg-white/[0.04] p-6 transition-all duration-500 ease-out ${
@@ -303,13 +303,13 @@ export default function DsbEmployerGuide() {
               } border-t-[3px] border-t-[#E24B4A]`}
             >
               <IconStatusX />
-              <h4 className="mt-4 text-base font-bold text-[#E24B4A]">Ingen søknad sendt til DSB</h4>
+              <h4 className="mt-4 text-base font-bold text-[#E24B4A]">No application sent to DSB</h4>
               <p className="mt-3 text-sm leading-relaxed text-white/70">
-                Kandidaten kan ikke utføre elektrisk arbeid i Norge. Søknad må sendes til DSB før oppstart. ArbeidMatch
-                kan hjelpe med dokumentasjon og prosess.
+                The candidate cannot perform electrical work in Norway. An application must be sent to DSB before start-up.
+                ArbeidMatch can help with documentation and process.
               </p>
               <span className="mt-4 inline-block rounded-full bg-[rgba(226,75,74,0.1)] px-3 py-1 text-xs font-semibold text-[#E24B4A]">
-                Ikke lovlig uten godkjenning
+                Not lawful without approval
               </span>
             </article>
 
@@ -319,13 +319,13 @@ export default function DsbEmployerGuide() {
               } border-t-[3px] border-t-[#C9A84C]`}
             >
               <IconStatusClock />
-              <h4 className="mt-4 text-base font-bold text-[#C9A84C]">Søknad sendt - venter på svar</h4>
+              <h4 className="mt-4 text-base font-bold text-[#C9A84C]">Application sent, awaiting reply</h4>
               <p className="mt-3 text-sm leading-relaxed text-white/70">
-                Kandidaten har søkt om midlertidig godkjenning. DSB svarer innen 1 måned. Etter positivt svar kan
-                kandidaten starte lovlig. Gyldighet: maks 12 måneder.
+                The candidate has applied for temporary approval. DSB replies within one month. After a positive reply the
+                candidate may start lawfully. Validity: up to 12 months.
               </p>
               <span className="mt-4 inline-block rounded-full bg-[rgba(201,168,76,0.1)] px-3 py-1 text-xs font-semibold text-[#C9A84C]">
-                DSB svarer innen 1 måned
+                DSB replies within one month
               </span>
             </article>
 
@@ -335,13 +335,13 @@ export default function DsbEmployerGuide() {
               } border-t-[3px] border-t-[#1D9E75]`}
             >
               <IconStatusCheck />
-              <h4 className="mt-4 text-base font-bold text-[#1D9E75]">Midlertidig godkjenning aktiv</h4>
+              <h4 className="mt-4 text-base font-bold text-[#1D9E75]">Temporary approval active</h4>
               <p className="mt-3 text-sm leading-relaxed text-white/70">
-                Kandidaten er godkjent for inntil 12 måneder. Kan starte umiddelbart. Permanent godkjenning anbefales
-                for langsiktige ansettelsesforhold.
+                The candidate is approved for up to 12 months. They may start immediately. Permanent approval is
+                recommended for long-term employment.
               </p>
               <span className="mt-4 inline-block rounded-full bg-[rgba(29,158,117,0.12)] px-3 py-1 text-xs font-semibold text-[#1D9E75]">
-                Kan starte umiddelbart
+                May start immediately
               </span>
             </article>
           </div>
@@ -349,8 +349,8 @@ export default function DsbEmployerGuide() {
 
         {/* Accordion */}
         <div className="mt-16 border-t border-white/10 pt-14">
-          <h3 className="text-[22px] font-bold text-white">Dokumenter som kreves av DSB</h3>
-          <p className="mt-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">For EU/EEA-søkere</p>
+          <h3 className="text-[22px] font-bold text-white">Documents required by DSB</h3>
+          <p className="mt-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">For EU/EEA applicants</p>
           <ul className="mt-8 space-y-2">
             {ACCORDION.map((item, i) => {
               const open = openAcc === i;
@@ -394,7 +394,7 @@ export default function DsbEmployerGuide() {
 
         {/* Timeline */}
         <div className="mt-16 border-t border-white/10 pt-14">
-          <h3 className="text-[22px] font-bold text-white">Slik ser tidslinje ut</h3>
+          <h3 className="text-[22px] font-bold text-white">How the timeline looks</h3>
           <div ref={timelineRef} className="relative mt-10">
             {/* Desktop horizontal */}
             <div className="relative hidden lg:block">
@@ -410,7 +410,9 @@ export default function DsbEmployerGuide() {
               <div className="relative grid grid-cols-4 gap-6">
                 {TIMELINE.map((step) => (
                   <div key={step.label} className="text-center">
-                    <div className="mx-auto flex h-4 w-4 items-center justify-center rounded-full bg-[#C9A84C] shadow-[0_0_0_4px_rgba(201,168,76,0.2)]" />
+                    <div className="mx-auto flex h-5 w-5 items-center justify-center rounded-full border-2 border-[rgba(201,168,76,0.45)] bg-[#0b141c] p-0.5">
+                      <span className="block h-2.5 w-2.5 rounded-full bg-[#C9A84C]" aria-hidden />
+                    </div>
                     <div className="mt-4 flex justify-center">{step.icon}</div>
                     <p className="mt-3 text-sm font-bold text-[#C9A84C]">{step.label}</p>
                     <p className="mt-2 text-sm leading-relaxed text-white/70">{step.text}</p>
@@ -451,7 +453,7 @@ export default function DsbEmployerGuide() {
         {/* Legal */}
         <div className="mt-14 rounded-xl border border-white/[0.08] bg-white/[0.03] px-6 py-6 md:px-7 md:py-7">
           <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
-            Offisielle kilder og regelverk
+            Official sources and regulations
           </h3>
           <ul className="mt-5 space-y-3">
             {LEGAL_LINKS.map((link) => (
@@ -469,8 +471,8 @@ export default function DsbEmployerGuide() {
             ))}
           </ul>
           <p className="mt-6 text-center text-xs italic leading-relaxed text-white/40 md:text-left">
-            Informasjonen på denne siden er basert på offentlig tilgjengelig regelverk fra DSB og gjelder per april
-            2026. ArbeidMatch påtar seg ikke juridisk ansvar. Kontakt DSB direkte for bindende veiledning.
+            The information on this page is based on publicly available regulations from DSB and applies as of April
+            2026. ArbeidMatch does not accept legal liability. Contact DSB directly for binding guidance.
           </p>
         </div>
       </div>

@@ -22,7 +22,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       "/for-candidates",
       "/for-staffing-agencies",
       "/dsb-support",
-      "/dsb-checklist",
       "/recruiter-network",
       "/partners",
       "/bemanning-bygg-anlegg",

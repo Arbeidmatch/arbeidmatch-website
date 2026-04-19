@@ -99,11 +99,11 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
               </p>
               <div className="mt-8">
                 <Link
-                  href="/dsb-checklist"
+                  href="/dsb-support"
                   onClick={() => dismiss(true)}
                   className="btn-gold-shine relative inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#b8923f] via-gold to-[#d4b45c] px-6 py-3.5 text-sm font-semibold text-[#0a0f14] shadow-[0_8px_32px_rgba(201,168,76,0.35)] transition-[transform,box-shadow] duration-300 ease-premium hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(201,168,76,0.45)]"
                 >
-                  Get the free checklist
+                  DSB Authorization Guide
                 </Link>
               </div>
               <button

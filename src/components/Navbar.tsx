@@ -9,7 +9,9 @@ import { ChevronDown, Crown } from "lucide-react";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
 
-const tjenesterLinks = [
+const tjenesterStaffingLink = { href: "/for-staffing-agencies", label: "For bemanningsbyråer" } as const;
+
+const tjenesterIndustryLinks = [
   { href: "/bemanning-bygg-anlegg", label: "Bygg & Anlegg" },
   { href: "/bemanning-logistikk", label: "Logistikk" },
   { href: "/bemanning-industri", label: "Industri" },
@@ -29,10 +31,9 @@ const stederLinks = [
 const ressurserLinks: { href: string; label: string; premium?: boolean }[] = [
   { href: "/premium", label: "Premium Guides", premium: true },
   { href: "/about", label: "Om oss" },
-  { href: "/dsb-support", label: "DSB-godkjenning" },
+  { href: "/dsb-support", label: "DSB Authorization Guide" },
   { href: "/blog", label: "Blog" },
   { href: "/recruiter-network", label: "Partner Program" },
-  { href: "/for-staffing-agencies", label: "For bemanningsbyråer" },
   { href: "/contact", label: "Kontakt" },
 ];
 
@@ -41,7 +42,7 @@ const primaryDesktopLinks = [
   { href: "/for-candidates", label: "For Candidates" },
 ] as const;
 
-const megaAllHrefs = [...tjenesterLinks, ...stederLinks, ...ressurserLinks];
+const megaAllHrefs = [tjenesterStaffingLink, ...tjenesterIndustryLinks, ...stederLinks, ...ressurserLinks];
 
 function linkActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
@@ -200,7 +201,16 @@ export default function Navbar() {
                     <div>
                       <p className={megaColLabelClass}>Tjenester</p>
                       <ul className="space-y-0.5">
-                        {tjenesterLinks.map((item) => (
+                        <li>
+                          <Link
+                            href={tjenesterStaffingLink.href}
+                            className={`${megaLinkClass} ${linkActive(pathname, tjenesterStaffingLink.href) ? "font-medium text-gold" : ""}`}
+                          >
+                            {tjenesterStaffingLink.label}
+                          </Link>
+                          <div className="mx-3 my-2 h-px bg-[rgba(201,168,76,0.2)]" aria-hidden />
+                        </li>
+                        {tjenesterIndustryLinks.map((item) => (
                           <li key={item.href}>
                             <Link
                               href={item.href}

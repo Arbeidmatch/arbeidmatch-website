@@ -9,6 +9,8 @@ import ComingSoonCapture from "@/components/ui/ComingSoonCapture";
 
 const GOLD = "#C9A84C";
 
+const employerTjenesterStaffing = { href: "/for-staffing-agencies", label: "For bemanningsbyråer" } as const;
+
 const employerTjenester: { href: string; label: string }[] = [
   { href: "/for-employers", label: "For arbeidsgivere" },
   { href: "/welding-specialists", label: "Sveisespesialister" },
@@ -18,7 +20,6 @@ const employerTjenester: { href: string; label: string }[] = [
   { href: "/bemanning-renhold", label: "Renhold" },
   { href: "/bemanning-horeca", label: "HoReCa" },
   { href: "/bemanning-helse", label: "Helse" },
-  { href: "/for-staffing-agencies", label: "For bemanningsbyråer" },
 ];
 
 const employerOmOss: { href: string; label: string }[] = [
@@ -326,6 +327,17 @@ export default function MobileDrawerContent({
               </button>
             </div>
             <SectionLabel>TJENESTER</SectionLabel>
+            <Link
+              href={employerTjenesterStaffing.href}
+              onClick={onClose}
+              className={`block border-b border-white/[0.04] px-6 py-3.5 text-[15px] transition-colors ${
+                linkActive(pathname, employerTjenesterStaffing.href)
+                  ? "border-l-2 border-l-[#C9A84C] pl-[22px] font-medium text-[#C9A84C]"
+                  : "border-l-2 border-l-transparent font-normal text-[#C9A84C]"
+              }`}
+            >
+              {employerTjenesterStaffing.label}
+            </Link>
             {employerTjenester.map((item) => (
               <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
                 {item.label}

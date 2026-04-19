@@ -85,8 +85,7 @@ const ressurserCol: [string, string][] = [
   ["Premium Guides", "/premium"],
   ["Electricians in Norway", "/electricians-norway"],
   ["Welding Specialists", "/welding-specialists"],
-  ["DSB-godkjenning", "/dsb-support"],
-  ["DSB-sjekkliste", "/dsb-checklist"],
+  ["DSB Authorization Guide", "/dsb-support"],
   ["Blog", "/blog"],
   ["Guide: ansette EU-arbeidere", "/blog/ansette-utenlandske-arbeidere-lovlig"],
 ];

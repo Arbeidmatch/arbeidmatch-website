@@ -5,8 +5,8 @@ import remarkGfm from "remark-gfm";
 
 async function loadPillarMd(): Promise<string> {
   const root = process.cwd();
-  const a = await fs.readFile(path.join(root, "content", "dsb-pillar-nb-part1.md"), "utf8");
-  const b = await fs.readFile(path.join(root, "content", "dsb-pillar-nb-part2.md"), "utf8");
+  const a = await fs.readFile(path.join(root, "content", "dsb-pillar-en-part1.md"), "utf8");
+  const b = await fs.readFile(path.join(root, "content", "dsb-pillar-en-part2.md"), "utf8");
   return `${a.trim()}\n\n${b.trim()}`;
 }
 

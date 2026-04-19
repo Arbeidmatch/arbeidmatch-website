@@ -53,10 +53,10 @@ export default function StickyBottomBanner({ enabled }: { enabled: boolean }) {
               </span>
               <p className="min-w-0 flex-1 text-sm font-medium leading-snug sm:text-base">
                 <Link
-                  href="/dsb-checklist"
+                  href="/dsb-support"
                   className="block min-h-[44px] py-2 text-white/95 hover:text-white sm:hidden"
                 >
-                  ⚡ Need DSB authorization? Get the guide →
+                  ⚡ DSB Authorization Guide →
                 </Link>
                 <span className="hidden sm:block text-white/95">
                   <span className="bg-gradient-to-r from-gold via-amber-100 to-gold bg-clip-text text-transparent">
@@ -68,10 +68,10 @@ export default function StickyBottomBanner({ enabled }: { enabled: boolean }) {
             </div>
             <div className="flex shrink-0 items-center justify-end gap-2 sm:justify-start">
               <Link
-                href="/dsb-checklist"
+                href="/dsb-support"
                 className="hidden min-h-[44px] items-center justify-center rounded-full bg-gradient-to-r from-[#b8923f] to-gold px-4 py-2 text-xs font-semibold text-[#0a0f14] shadow-sm transition-transform duration-300 ease-premium hover:scale-[1.03] sm:inline-flex sm:text-sm"
               >
-                Get it free
+                Open guide
               </Link>
               <button
                 type="button"

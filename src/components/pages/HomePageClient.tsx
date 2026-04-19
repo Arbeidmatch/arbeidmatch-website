@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+import BemanningCard from "@/components/home/BemanningCard";
 import HeroStatsPanel from "@/components/HeroStatsPanel";
 import RoleSelector from "@/components/onboarding/RoleSelector";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
@@ -174,6 +175,8 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
           )}
         </div>
       </section>
+
+      <BemanningCard />
 
       {sessionRoleBanner === "employer" ? (
         <motion.div

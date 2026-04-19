@@ -47,18 +47,12 @@ const HELPERS: Record<string, HelperConfig> = {
     icon: "🇪🇺",
     title: "Quick tip",
     text: "Start gathering your documents now. Processing begins only after your application is submitted.",
-    cta: { label: "Get the free checklist →", href: "/dsb-checklist" },
+    cta: { label: "DSB Authorization Guide →", href: "/dsb-support" },
   },
   "/dsb-support/non-eu": {
     icon: "📄",
     title: "Important",
     text: "Start your visa process in parallel with DSB. Both take several months.",
-    cta: null,
-  },
-  "/dsb-checklist": {
-    icon: "✉️",
-    title: "It's free",
-    text: "Enter your email and receive the complete document checklist instantly.",
     cta: null,
   },
   "/partners": {
