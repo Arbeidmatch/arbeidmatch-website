@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Briefcase, Clock, FileCheck } from "lucide-react";
 
 import SourceDisclaimer from "@/components/ui/SourceDisclaimer";
@@ -257,71 +256,31 @@ export default function ElectriciansNorwayPage() {
             cannot guarantee timelines. Norwegian employer references are a strong advantage and help us match you with
             better projects.
           </p>
-          <FooterRegisterForm />
+          <div style={{ marginTop: 24 }}>
+            <a
+              href="https://jobs.arbeidmatch.no/sign-up"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-block",
+                background: "#C9A84C",
+                color: "#0f1923",
+                fontWeight: 700,
+                fontSize: 16,
+                padding: "16px 40px",
+                borderRadius: 12,
+                textDecoration: "none",
+                transition: "background 180ms",
+              }}
+            >
+              Register your profile
+            </a>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 12, lineHeight: 1.6 }}>
+              You will be redirected to our job portal to create your candidate profile.
+            </p>
+          </div>
         </div>
       </section>
     </main>
-  );
-}
-
-function FooterRegisterForm() {
-  const [email, setEmail] = useState("");
-  const [consent, setConsent] = useState(false);
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!consent) return;
-    setStatus("loading");
-    try {
-      const res = await fetch("/api/guide-interest-signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), specialty: "electrician", consent: true }),
-      });
-      const data = (await res.json()) as { success?: boolean };
-      if (!res.ok || !data.success) {
-        setStatus("error");
-        return;
-      }
-      setStatus("success");
-    } catch {
-      setStatus("error");
-    }
-  };
-
-  if (status === "success") {
-    return (
-      <p className="mt-6 text-[13px]" style={{ color: GOLD }}>
-        We have registered your interest. If we have a suitable opportunity matching your profile, our team will reach out.
-        We cannot guarantee contact or placement timelines.
-      </p>
-    );
-  }
-
-  return (
-    <form onSubmit={submit} className="mt-8 w-full max-w-md">
-      <input
-        type="email"
-        required
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Your email address"
-        className="w-full rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-[14px] py-2.5 text-[13px] text-white placeholder:text-white/40"
-      />
-      <label className="mt-2 flex cursor-pointer items-start gap-2 text-[11px] text-white/[0.5]">
-        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 shrink-0" />
-        <span>I agree to receive job-related emails from ArbeidMatch</span>
-      </label>
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        className="mt-4 w-full max-w-xs rounded-[8px] py-3 text-[14px] font-bold text-[#0f1923] disabled:opacity-60"
-        style={{ background: GOLD }}
-      >
-        Submit
-      </button>
-      {status === "error" ? <p className="mt-2 text-[13px] text-red-400">Something went wrong. Please try again.</p> : null}
-    </form>
   );
 }
