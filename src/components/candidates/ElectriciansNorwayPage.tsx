@@ -13,33 +13,7 @@ const NAVY = "#0f1923";
 const ARBEIDSTILSYNET_MIN =
   "https://www.arbeidstilsynet.no/en/pay-and-engagement-of-employees/pay-and-minimum-rates-of-pay/minimum-wage/";
 
-function InlineRegisterBlock({ idPrefix, onPrimaryDsb }: { idPrefix: string; onPrimaryDsb: () => void }) {
-  const [email, setEmail] = useState("");
-  const [consent, setConsent] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!consent) return;
-    setStatus("loading");
-    try {
-      const res = await fetch("/api/guide-interest-signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), specialty: "electrician", consent: true }),
-      });
-      const data = (await res.json()) as { success?: boolean };
-      if (!res.ok || !data.success) {
-        setStatus("error");
-        return;
-      }
-      setStatus("success");
-    } catch {
-      setStatus("error");
-    }
-  };
-
+function InlineRegisterBlock({ onPrimaryDsb }: { onPrimaryDsb: () => void }) {
   return (
     <div className="mt-8 w-full max-w-2xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
@@ -51,56 +25,16 @@ function InlineRegisterBlock({ idPrefix, onPrimaryDsb }: { idPrefix: string; onP
         >
           Get the Full DSB Guide
         </button>
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
+        <a
+          href="https://jobs.arbeidmatch.no/sign-up"
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex min-h-[48px] items-center justify-center rounded-[10px] border bg-transparent px-8 py-3.5 text-[15px] font-semibold transition-colors duration-200 hover:bg-[rgba(201,168,76,0.08)]"
           style={{ color: GOLD, borderColor: "rgba(201,168,76,0.45)" }}
         >
           Register for job alerts
-        </button>
+        </a>
       </div>
-      {open ? (
-        <div className="mt-6 w-full max-w-md">
-          {status === "success" ? (
-            <p className="text-[13px]" style={{ color: GOLD }}>
-              You are on the list. We will be in touch.
-            </p>
-          ) : (
-            <form onSubmit={submit}>
-              <input
-                id={`${idPrefix}-email`}
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Your email address"
-                className="w-full rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-[14px] py-2.5 text-[13px] text-white placeholder:text-white/40"
-              />
-              <label className="mt-2 flex cursor-pointer items-start gap-2 text-[11px] text-white/[0.5]">
-                <input
-                  type="checkbox"
-                  checked={consent}
-                  onChange={(e) => setConsent(e.target.checked)}
-                  className="mt-0.5 shrink-0"
-                />
-                <span>I agree to receive job-related emails from ArbeidMatch</span>
-              </label>
-              <button
-                type="submit"
-                disabled={status === "loading"}
-                className="mt-3 w-full rounded-[8px] py-3 text-[13px] font-semibold text-[#0f1923] disabled:opacity-60"
-                style={{ background: GOLD }}
-              >
-                Notify me of matching jobs
-              </button>
-              {status === "error" ? (
-                <p className="mt-2 text-[13px] text-red-400">Something went wrong. Please try again.</p>
-              ) : null}
-            </form>
-          )}
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -155,7 +89,7 @@ export default function ElectriciansNorwayPage() {
             Norway has strong demand for qualified electricians. As an EU/EEA citizen, you have the right to apply for legal
             employment. Here is what you need to know before you start.
           </p>
-          <InlineRegisterBlock idPrefix="hero" onPrimaryDsb={() => router.push("/dsb-support")} />
+          <InlineRegisterBlock onPrimaryDsb={() => router.push("/dsb-support")} />
         </div>
       </section>
 

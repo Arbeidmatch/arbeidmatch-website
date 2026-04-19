@@ -292,11 +292,9 @@ function IconBox({ children }: { children: ReactNode }) {
 
 function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
   const { view, navigate, shellMotion } = useViewTransition(reducedMotion);
-  const [formCert, setFormCert] = useState(false);
   const [formNoDsb, setFormNoDsb] = useState(false);
 
   useEffect(() => {
-    setFormCert(false);
     setFormNoDsb(false);
   }, [view]);
 
@@ -380,21 +378,27 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
             >
               Browse open electrician jobs
             </a>
-            <button
-              type="button"
-              onClick={() => setFormCert((o) => !o)}
-              className="w-full rounded-[10px] border py-3.5 text-[14px] font-bold"
-              style={{ borderColor: "rgba(29,158,117,0.35)", color: GREEN, background: "transparent" }}
+            <a
+              href="https://jobs.arbeidmatch.no/sign-up"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "block",
+                width: "100%",
+                textAlign: "center",
+                background: "transparent",
+                border: "1px solid rgba(29,158,117,0.35)",
+                color: "#1D9E75",
+                fontWeight: 600,
+                fontSize: 14,
+                padding: "14px 20px",
+                borderRadius: 10,
+                textDecoration: "none",
+                boxSizing: "border-box",
+              }}
             >
               Register and find work
-            </button>
-            <InlineSignup
-              open={formCert}
-              specialty="electrician-dsb"
-              guideWanted={false}
-              successMessage="We have registered your interest. If we have a suitable opportunity matching your profile, our team will reach out. We cannot guarantee contact or placement timelines."
-              reducedMotion={reducedMotion}
-            />
+            </a>
           </div>
         </>
       ) : null}
@@ -454,11 +458,9 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
 
 function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
   const { view, navigate, shellMotion } = useViewTransition(reducedMotion);
-  const [formIso, setFormIso] = useState(false);
   const [formNoIso, setFormNoIso] = useState(false);
 
   useEffect(() => {
-    setFormIso(false);
     setFormNoIso(false);
   }, [view]);
 
@@ -546,21 +548,27 @@ function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
             >
               Browse open welding jobs
             </a>
-            <button
-              type="button"
-              onClick={() => setFormIso((o) => !o)}
-              className="w-full rounded-[10px] border py-3.5 text-[14px] font-bold"
-              style={{ borderColor: "rgba(29,158,117,0.35)", color: GREEN, background: "transparent" }}
+            <a
+              href="https://jobs.arbeidmatch.no/sign-up"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "block",
+                width: "100%",
+                textAlign: "center",
+                background: "transparent",
+                border: "1px solid rgba(29,158,117,0.35)",
+                color: "#1D9E75",
+                fontWeight: 600,
+                fontSize: 14,
+                padding: "14px 20px",
+                borderRadius: 10,
+                textDecoration: "none",
+                boxSizing: "border-box",
+              }}
             >
               Register your profile
-            </button>
-            <InlineSignup
-              open={formIso}
-              specialty="welder-iso"
-              guideWanted={false}
-              successMessage="We have registered your interest. If we have a suitable shipyard placement matching your profile, our team will reach out. We cannot guarantee contact or placement timelines."
-              reducedMotion={reducedMotion}
-            />
+            </a>
           </div>
         </>
       ) : null}
