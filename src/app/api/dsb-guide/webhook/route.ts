@@ -58,7 +58,11 @@ export async function POST(request: NextRequest) {
   const sessionId = session.id;
   const metadata = session.metadata || {};
   const guideSlug = metadata.guide_slug as string | undefined;
-  const email = (metadata.email as string | undefined)?.trim().toLowerCase();
+  const customerEmail =
+    session.customer_details?.email?.trim().toLowerCase() ||
+    (typeof session.customer_email === "string" ? session.customer_email.trim().toLowerCase() : "") ||
+    (metadata.email as string | undefined)?.trim().toLowerCase() ||
+    "";
   const accessToken = metadata.access_token as string | undefined;
 
   if (!sessionId) {
@@ -81,15 +85,20 @@ export async function POST(request: NextRequest) {
     (existing?.access_token as string | undefined) ||
     undefined;
   const slug = (guideSlug || existing?.guide_slug) as DsbGuideSlug | undefined;
-  const buyerEmail = email || (existing?.email as string | undefined);
+  const buyerEmail = customerEmail || (existing?.email as string | undefined)?.trim().toLowerCase() || "";
 
   if (existing?.stripe_payment_status === "paid") {
     return NextResponse.json({ received: true, duplicate: true });
   }
 
+  const updatePayload: { stripe_payment_status: string; email?: string } = { stripe_payment_status: "paid" };
+  if (customerEmail) {
+    updatePayload.email = customerEmail;
+  }
+
   const { error: updateError } = await supabase
     .from("dsb_guide_purchases")
-    .update({ stripe_payment_status: "paid" })
+    .update(updatePayload)
     .eq("stripe_session_id", sessionId);
 
   if (updateError) {

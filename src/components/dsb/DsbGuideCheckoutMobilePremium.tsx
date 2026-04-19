@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import {
@@ -41,7 +41,7 @@ const EU_CONFIG: VariantConfig = {
   title: "Get Your DSB Authorization in Norway",
   subtitle: "EU/EEA Electricians - €29",
   pills: [
-    { icon: "clock", text: "2–4 months" },
+    { icon: "clock", text: "2-4 months" },
     { icon: "shield", text: "No visa required" },
     { icon: "graph", text: "Job placement available" },
   ],
@@ -52,7 +52,7 @@ const EU_CONFIG: VariantConfig = {
     { text: "30-day access", icon: "check" },
     { text: "Instant delivery", icon: "lightning" },
   ],
-  ctaLabel: "Get the EU/EEA Guide",
+  ctaLabel: "Get the EU Guide",
   crossLinkHref: "/dsb-support/non-eu",
   crossLinkLabel: "Not EU/EEA? See the Non-EU guide",
 };
@@ -65,7 +65,7 @@ const NON_EU_CONFIG: VariantConfig = {
   title: "DSB Authorization Guide for Non-EU Electricians",
   subtitle: "Non-EU Electricians - €39",
   pills: [
-    { icon: "clock", text: "6–12 months" },
+    { icon: "clock", text: "6-12 months" },
     { icon: "airplane", text: "Work visa required" },
     { icon: "document", text: "Individual DSB assessment" },
   ],
@@ -120,98 +120,39 @@ function IncludedRow({
   );
 }
 
-function ResendRing({ secondsLeft, total }: { secondsLeft: number; total: number }) {
-  const r = 20;
-  const c = 2 * Math.PI * r;
-  const progress = total > 0 ? secondsLeft / total : 0;
-  const offset = c * (1 - progress);
-  return (
-    <svg className="dsb-resend-ring" viewBox="0 0 52 52" width={52} height={52} aria-hidden>
-      <circle cx="26" cy="26" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
-      <circle
-        cx="26"
-        cy="26"
-        r={r}
-        fill="none"
-        stroke="#B8860B"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeDasharray={c}
-        strokeDashoffset={offset}
-        transform="rotate(-90 26 26)"
-        className="dsb-resend-ring-progress"
-      />
-    </svg>
-  );
-}
-
 export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: GuideSlug }) {
   const cfg = variant === "eu" ? EU_CONFIG : NON_EU_CONFIG;
   const reduceMotion = useReducedMotion();
-  const [step, setStep] = useState<"input" | "confirm" | "sent">("input");
-  const [email, setEmail] = useState("");
-  const [confirmedEmail, setConfirmedEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [resendCountdown, setResendCountdown] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
   const sectionHeadRef = useRef<HTMLDivElement>(null);
   const headerInView = useInView(sectionHeadRef, { once: true, amount: 0.35 });
 
   const heroHighlight = cfg.region === "eu" ? "EU/EEA" : "NON-EU";
 
-  useEffect(() => {
-    if (step !== "sent" || resendCountdown <= 0) return;
-    const timer = window.setInterval(() => setResendCountdown((v) => (v > 0 ? v - 1 : 0)), 1000);
-    return () => window.clearInterval(timer);
-  }, [step, resendCountdown]);
-
-  const startConfirmation = (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    setLoading(true);
     setError("");
-    if (!email.trim() || !email.includes("@")) {
-      setError("Please enter a valid email.");
-      return;
-    }
-    setConfirmedEmail(email.trim());
-    setStep("confirm");
-  };
-
-  const sendLink = async () => {
-    if (!confirmedEmail) return;
-    setError("");
-    setStatus("loading");
     try {
-      const res = await fetch("/api/dsb-guide/verify-email", {
+      const res = await fetch("/api/dsb-guide/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          guide_slug: cfg.slug,
           guideType: cfg.slug,
-          email: confirmedEmail,
-          website: "",
         }),
       });
-      const data = (await res.json()) as { success?: boolean; error?: string };
-      if (!res.ok || !data.success) {
-        setStatus("error");
-        setError(data.error || "Could not send access link.");
-        return;
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || "Could not start checkout. Please try again.");
       }
-      setStatus("idle");
-      setStep("sent");
-      setResendCountdown(60);
     } catch {
-      setStatus("error");
       setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const resetToInput = () => {
-    setStep("input");
-    setStatus("idle");
-    setError("");
-    setResendCountdown(0);
   };
 
   const resetSelection = () => {
@@ -376,7 +317,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 8 }}>
               Launch discount applied automatically. No code needed.
             </p>
-            <p className="dsb-price-note">Prices include VAT where applicable. You pay after email verification.</p>
+            <p className="dsb-price-note">Prices include VAT where applicable.</p>
             <ul className="dsb-price-trust">
               <li>30-day access</li>
               <li>Instant delivery</li>
@@ -385,103 +326,35 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
           </motion.div>
 
           <div className="dsb-form-shell">
-            {step === "input" && (
-              <form onSubmit={startConfirmation} className="dsb-form-stack">
-                <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
-                <label className="dsb-form-label">
-                  <span className="dsb-form-label-text">Email for receipt &amp; access</span>
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    value={email}
-                    onChange={(ev) => setEmail(ev.target.value)}
-                    className="dsb-email-input-premium"
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                  />
-                </label>
-                {error && <p className="dsb-form-error">{error}</p>}
-                <button type="submit" className="dsb-cta-premium dsb-tap-scale">
-                  {cfg.ctaLabel}
-                </button>
-              </form>
-            )}
-
-            {step === "confirm" && (
-              <div className="dsb-confirm-card">
-                <p className="dsb-confirm-label">We will send to:</p>
-                <p className="dsb-confirm-email">{confirmedEmail}</p>
-                {error && <p className="dsb-form-error">{error}</p>}
-                <div className="dsb-confirm-actions">
-                  <button
-                    type="button"
-                    onClick={sendLink}
-                    disabled={status === "loading"}
-                    className="dsb-cta-premium dsb-tap-scale dsb-cta-confirm"
-                  >
-                    {status === "loading" ? (
-                      <span className="dsb-cta-loading">
-                        <span className="dsb-cta-spinner" aria-hidden />
-                        <span className="sr-only">Sending</span>
-                      </span>
-                    ) : (
-                      "Yes, send the link"
-                    )}
-                  </button>
-                  <button type="button" onClick={resetToInput} className="dsb-btn-outline dsb-tap-scale">
-                    Edit email
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {step === "sent" && (
-              <div className="dsb-sent-card">
-                <motion.div
-                  className="dsb-sent-icon text-[#B8860B]"
-                  initial={reduceMotion ? { scale: 1, opacity: 1 } : { scale: 0.85, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                >
-                  <IconMail className="h-12 w-12" />
-                </motion.div>
-                <h3 className="dsb-sent-title">Check your inbox!</h3>
-                <p className="dsb-sent-copy">
-                  We sent your secure link to <span className="dsb-sent-email">{confirmedEmail}</span>.
-                </p>
-                <p className="dsb-sent-copy muted">
-                  Open the email and continue to payment. The link expires in 30 minutes.
-                </p>
-                {error && <p className="dsb-form-error">{error}</p>}
-                <div className="dsb-resend-wrap">
-                  {resendCountdown > 0 ? (
-                    <div className="dsb-resend-countdown">
-                      <ResendRing secondsLeft={resendCountdown} total={60} />
-                      <span className="dsb-resend-text">Resend in {resendCountdown}s</span>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={sendLink}
-                      disabled={status === "loading"}
-                      className={`dsb-btn-resend dsb-tap-scale ${resendCountdown === 0 && step === "sent" ? "is-ready" : ""}`}
-                    >
-                      {status === "loading" ? (
-                        <span className="dsb-cta-loading">
-                          <span className="dsb-cta-spinner" aria-hidden />
-                        </span>
-                      ) : (
-                        "Resend email"
-                      )}
-                    </button>
-                  )}
-                </div>
-                <button type="button" onClick={resetToInput} className="dsb-link-muted dsb-tap-scale">
-                  Wrong email? Start over
-                </button>
-              </div>
-            )}
+            <div className="dsb-form-stack">
+              {error ? <p className="dsb-form-error">{error}</p> : null}
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="dsb-cta-premium dsb-tap-scale"
+              >
+                {loading ? (
+                  <span className="dsb-cta-loading">
+                    <span className="dsb-cta-spinner" aria-hidden />
+                    <span className="sr-only">Redirecting</span>
+                    Redirecting to payment...
+                  </span>
+                ) : (
+                  cfg.ctaLabel
+                )}
+              </button>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "rgba(255,255,255,0.4)",
+                  marginTop: 8,
+                  textAlign: "center",
+                }}
+              >
+                Secure payment via Stripe. You will enter your email and card details on the next page.
+              </p>
+            </div>
 
             <div className="dsb-trust-row">
               <div className="dsb-trust-item">
@@ -509,7 +382,6 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
           </div>
         </div>
       </section>
-
     </div>
   );
 }

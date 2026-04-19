@@ -6,10 +6,11 @@ import { getPublicBaseUrl, resolveStripePriceId, type DsbGuideSlug } from "@/lib
 
 export async function createDsbGuideStripeCheckout(params: {
   guideSlug: DsbGuideSlug;
-  email: string;
+  /** When omitted, Stripe Checkout collects email; webhook fills purchase row. */
+  email?: string;
 }): Promise<{ ok: true; checkoutUrl: string } | { ok: false; error: string }> {
   const { guideSlug, email } = params;
-  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedEmail = email?.trim().toLowerCase() ?? "";
 
   const secret = process.env.STRIPE_SECRET_KEY;
   if (!secret) {
@@ -54,6 +55,14 @@ export async function createDsbGuideStripeCheckout(params: {
   const couponName = guideSlug === "eu" ? "DSB EU Guide - Special Offer" : "DSB NON-EU Guide - Special Offer";
 
   // One unique Stripe coupon per checkout customer, valid 7 days, one redemption.
+  const couponMetadata: Record<string, string> = {
+    guide_type: guideSlug,
+    created_for: normalizedEmail || "stripe_checkout",
+  };
+  if (normalizedEmail) {
+    couponMetadata.email = normalizedEmail;
+  }
+
   const coupon = await stripe.coupons.create({
     amount_off: 1200,
     currency: "eur",
@@ -61,11 +70,7 @@ export async function createDsbGuideStripeCheckout(params: {
     max_redemptions: 1,
     redeem_by: expiresAtUnix,
     name: couponName,
-    metadata: {
-      email: normalizedEmail,
-      guide_type: guideSlug,
-      created_for: normalizedEmail,
-    },
+    metadata: couponMetadata,
   });
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
@@ -73,7 +78,6 @@ export async function createDsbGuideStripeCheckout(params: {
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${baseUrl}/dsb-guide/${guideSlug}?token=${encodeURIComponent(accessToken)}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/dsb-support/${supportPath}`,
-    customer_email: normalizedEmail,
     /** Required when using `discounts`; mutual exclusion with customer-entered promotion codes. */
     allow_promotion_codes: false,
     discounts: [{ coupon: coupon.id }],
@@ -85,6 +89,10 @@ export async function createDsbGuideStripeCheckout(params: {
     },
   };
 
+  if (normalizedEmail) {
+    sessionParams.customer_email = normalizedEmail;
+  }
+
   const session = await stripe.checkout.sessions.create(sessionParams);
 
   if (!session.id || !session.url) {
@@ -93,7 +101,7 @@ export async function createDsbGuideStripeCheckout(params: {
 
   const { error: insertError } = await supabase.from("dsb_guide_purchases").insert({
     guide_slug: guideSlug,
-    email: normalizedEmail,
+    email: normalizedEmail || "",
     stripe_session_id: session.id,
     stripe_payment_status: "pending",
     access_token: accessToken,
