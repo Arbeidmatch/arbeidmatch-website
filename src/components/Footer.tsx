@@ -205,6 +205,22 @@ export default function Footer() {
           </div>
         </div>
       </div>
+      <p
+        style={{
+          fontSize: 11,
+          color: "rgba(255,255,255,0.25)",
+          textAlign: "center",
+          padding: "12px 24px",
+          lineHeight: 1.6,
+          borderTop: "1px solid rgba(255,255,255,0.05)",
+          marginTop: 16,
+        }}
+      >
+        ArbeidMatch Norge AS is a private recruitment and staffing agency. We are not an official Norwegian authority.
+        Information on this site is for general guidance only and does not constitute legal advice. Always verify
+        requirements with relevant Norwegian authorities. ArbeidMatch Norge AS accepts no liability for decisions made
+        based on information provided on this website.
+      </p>
       <div className="border-t border-white/15">
         <div className="mx-auto w-full max-w-content px-6 py-6 text-center md:px-12 md:text-left lg:px-20">
           <p className="text-sm text-white/85">

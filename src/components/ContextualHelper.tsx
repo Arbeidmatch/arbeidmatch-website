@@ -34,7 +34,7 @@ const HELPERS: Record<string, HelperConfig> = {
   "/for-employers": {
     icon: "🤝",
     title: "Need workers fast?",
-    text: "We deliver pre-qualified candidates in as little as 2 weeks.",
+    text: "First candidate profiles are often ready within approximately two weeks, depending on role, location, and current capacity.",
     cta: { label: "Request now →", href: "/request" },
   },
   "/dsb-support": {

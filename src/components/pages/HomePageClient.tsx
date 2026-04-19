@@ -72,7 +72,8 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       </motion.h1>
       <motion.p className="mb-8 max-w-[480px] leading-[1.6] text-[#555555]" {...fade(0.25)}>
         We source, screen and work to connect you with pre-qualified EU/EEA workers for construction, logistics and industry.
-        Fast, legal, and fully compliant.
+        We source and screen EU/EEA workers for Norwegian businesses. Employers remain responsible for compliance with
+        applicable Norwegian labor law and collective agreements.
       </motion.p>
       <motion.div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap" {...fade(0.4)}>
         <Link
@@ -103,7 +104,8 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       </h1>
       <p className="mb-8 max-w-[480px] leading-[1.6] text-[#555555]">
         We source, screen and work to connect you with pre-qualified EU/EEA workers for construction, logistics and industry.
-        Fast, legal, and fully compliant.
+        We source and screen EU/EEA workers for Norwegian businesses. Employers remain responsible for compliance with
+        applicable Norwegian labor law and collective agreements.
       </p>
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Link
@@ -200,7 +202,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
                 <ul className="mt-6 space-y-2">
                   {[
                     "Fast candidate delivery",
-                    "Pre-screened workers only",
+                    "Pre-screened candidate profiles",
                     "Legal and compliant staffing",
                     "Dedicated recruiter support",
                   ].map((item) => (
@@ -297,7 +299,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
                 {[
                   "Cultural and religious sensitivity throughout our screening process",
                   "Clear communication across languages and expectations",
-                  "We do not promise perfection. We promise continuous improvement.",
+                  "We do not promise perfection. We work continuously to improve our process and service.",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3 text-white">
                     <span className="mt-0.5 shrink-0 text-gold" aria-hidden>

@@ -2,6 +2,7 @@
 
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 
@@ -140,7 +141,13 @@ export default function ComingSoonCapture({ featureName, isOpen, onClose }: Comi
                 onChange={(e) => setConsent(e.target.checked)}
                 className="mt-0.5 shrink-0"
               />
-              <span>I agree to receive updates from ArbeidMatch about this feature</span>
+              <span>
+                I agree to receive updates from ArbeidMatch. I have read and accept the{" "}
+                <Link href="/privacy" className="text-[#C9A84C] underline">
+                  Privacy Policy
+                </Link>
+                .
+              </span>
             </label>
             <button
               type="submit"

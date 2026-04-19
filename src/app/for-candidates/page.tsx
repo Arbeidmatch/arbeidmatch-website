@@ -25,8 +25,8 @@ export default function ForCandidatesPage() {
               Find legal, quality jobs in Norway
             </h1>
             <p className="subtitle-premium mx-auto mt-5 max-w-2xl text-lg">
-              We connect qualified EU/EEA workers with Norwegian employers. Legal contracts, competitive conditions, and
-              full support.
+              We connect qualified EU/EEA workers with Norwegian employers. Contract terms and conditions vary by employer
+              and role.
             </p>
             <a
               href="https://jobs.arbeidmatch.no"
@@ -45,7 +45,11 @@ export default function ForCandidatesPage() {
       <section className="bg-surface py-12 md:py-20">
         <div className="mx-auto grid w-full max-w-content gap-6 px-4 md:grid-cols-2 md:px-6">
           {[
-            [CheckCircle2, "Legal employment", "Permanent contract under Norwegian labor law"],
+            [
+              CheckCircle2,
+              "Legal employment",
+              "Employment contracts under Norwegian labor law (permanent or temporary depending on the role)",
+            ],
             [DollarSign, "Competitive pay", "Salary based on role, experience, and employer terms"],
             [Home, "Accommodation support", "Help finding housing when you arrive in Norway"],
             [Users, "Full support", "Dedicated support throughout your entire process"],

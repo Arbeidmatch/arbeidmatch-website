@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { Building2, Mail, MapPin } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -198,12 +199,16 @@ export default function ContactPageClient() {
               >
                 {status === "submitting" ? "Sending..." : "Send message →"}
               </button>
-              <p className="text-xs text-text-secondary">
-                By sending, you agree to our Privacy Policy. No spam, ever.
+              <p style={{ fontSize: 11, color: "rgba(0,0,0,0.4)", marginTop: 8 }}>
+                By submitting this form you agree to our{" "}
+                <Link href="/privacy" className="text-[#C9A84C]">
+                  Privacy Policy
+                </Link>
+                .
               </p>
               {submitted && (
                 <div className="rounded-md border border-gold/40 bg-gold/10 p-4 text-navy">
-                  Thank you! We&apos;ll be in touch within 24 hours.
+                  Thank you! We will typically be in touch within 1 to 2 business days.
                 </div>
               )}
               {status === "error" && (
@@ -281,14 +286,15 @@ export default function ContactPageClient() {
             <div>
               <p className="text-2xl font-bold text-[#C9A84C]">500+</p>
               <p className="mt-1 text-xs uppercase tracking-[0.12em] text-white/55">Candidates placed</p>
+              <p className="mt-2 text-[10px] leading-snug text-white/40">(based on internal records, updated periodically)</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#C9A84C]">12</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.12em] text-white/55">EU/EEA countries covered</p>
+              <p className="text-2xl font-bold text-[#C9A84C]">EU/EEA</p>
+              <p className="mt-1 text-xs uppercase tracking-[0.12em] text-white/55">Countries covered</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#C9A84C]">48h</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.12em] text-white/55">Average first match</p>
+              <p className="text-lg font-bold leading-snug text-[#C9A84C] md:text-xl">Typically within a few business days</p>
+              <p className="mt-1 text-xs uppercase tracking-[0.12em] text-white/55">First response timing</p>
             </div>
           </div>
         </div>

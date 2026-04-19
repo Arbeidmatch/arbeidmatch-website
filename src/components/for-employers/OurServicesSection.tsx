@@ -22,7 +22,7 @@ const SERVICES: ServiceItem[] = [
   {
     Icon: UserCheck,
     title: "Pre-screening",
-    body: "Structured interviews, document checks, and trade relevance validation before any candidate is presented to you. Only qualified profiles reach your desk.",
+    body: "Structured interviews, document checks, and trade relevance validation before any candidate is presented to you. We aim to present profiles that meet agreed criteria. Final hiring decisions remain with the employer.",
   },
   {
     Icon: FileText,
@@ -42,7 +42,7 @@ const SERVICES: ServiceItem[] = [
   {
     Icon: RefreshCw,
     title: "Follow-up",
-    body: "Weekly follow-up with both client and candidate after placement. We address issues early and work to ensure the placement is working well for everyone.",
+    body: "Weekly follow-up with both client and candidate after placement. We follow up to identify and resolve issues early.",
   },
 ];
 

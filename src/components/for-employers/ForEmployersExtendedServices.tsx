@@ -34,7 +34,7 @@ function IconMegaphone({ className }: { className?: string }) {
 const CARDS = [
   {
     title: "Full Recruitment",
-    text: "We manage the entire process: sourcing, screening, interviews and presentation. You choose, we deliver.",
+    text: "We manage the entire process: sourcing, screening, interviews and presentation. You make the final decision. We handle the recruitment steps.",
     href: "/request",
     cta: "Request recruitment →",
     icon: IconSearchUser,

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 const GOLD = "#C9A84C";
@@ -77,7 +78,13 @@ export default function BlogComingSoonCapture() {
             className="mt-0.5 h-4 w-4 shrink-0 rounded border-black/20"
             style={{ accentColor: GOLD }}
           />
-          <span>I agree to receive blog updates from ArbeidMatch</span>
+          <span>
+            I agree to receive updates from ArbeidMatch. I have read and accept the{" "}
+            <Link href="/privacy" className="underline" style={{ color: GOLD }}>
+              Privacy Policy
+            </Link>
+            .
+          </span>
         </label>
         <button
           type="button"

@@ -296,7 +296,11 @@ export default function PremiumLandingPage() {
                 style={{ marginTop: 2, accentColor: "#C9A84C", minWidth: 16, height: 16 }}
               />
               <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
-                I agree to receive launch notifications and early access offers from ArbeidMatch. Unsubscribe anytime.
+                I agree to receive updates from ArbeidMatch. I have read and accept the{" "}
+                <Link href="/privacy" className="text-[#C9A84C] underline">
+                  Privacy Policy
+                </Link>
+                . Unsubscribe anytime.
               </span>
             </label>
 
@@ -335,7 +339,10 @@ export default function PremiumLandingPage() {
       <section className="border-y border-white/[0.06] bg-white/[0.02] px-6 py-16 md:px-10 md:py-20">
         <div className="mx-auto max-w-[1100px]">
           <p className="text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">What you get with Premium</p>
-          <h2 className="mt-3 text-4xl font-bold text-white">The most complete English-language resource for working in Norway.</h2>
+          <h2 className="mt-3 text-4xl font-bold text-white">
+            A detailed English-language overview of Norwegian labor law, DSB approvals, workers rights, employment contracts,
+            tax, and more.
+          </h2>
           <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2">
             {features.map((f, i) => (
               <div
@@ -360,10 +367,7 @@ export default function PremiumLandingPage() {
         <div className="mx-auto mt-12 grid max-w-[760px] grid-cols-1 gap-5 md:grid-cols-2">
           <div className="rounded-[14px] border-[0.5px] border-white/[0.08] bg-white/[0.04] p-7">
             <p className="text-[12px] font-semibold uppercase tracking-wide text-white/50">Monthly</p>
-            <p className="mt-3 flex items-baseline gap-2">
-              <span className="text-5xl font-extrabold text-white">EUR 10</span>
-              <span className="text-base text-white/50">/month</span>
-            </p>
+            <p className="mt-4 text-lg font-semibold text-white/90">Pricing will be announced at launch.</p>
             <ul className="mt-6 space-y-2.5 text-left text-sm text-white">
               {[
                 "Access to all premium articles and guides",
@@ -401,21 +405,10 @@ export default function PremiumLandingPage() {
           </div>
 
           <div className="relative rounded-[14px] border-2 border-[#C9A84C] bg-white/[0.04] p-7">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-[20px] bg-[#C9A84C] px-3.5 py-1 text-[11px] font-bold uppercase tracking-wide text-[#0f1923]">
-              Best Value. Save EUR 40/year.
-            </div>
-            <p className="mt-4 text-[12px] font-semibold uppercase tracking-wide text-white/50">Annual</p>
-            <p className="mt-3 flex items-baseline gap-2">
-              <span className="text-5xl font-extrabold text-white">EUR 80</span>
-              <span className="text-base text-white/50">/year</span>
-            </p>
-            <p className="mt-2 text-[13px] text-white/50">Equivalent to EUR 6.67 per month</p>
+            <p className="text-[12px] font-semibold uppercase tracking-wide text-white/50">Annual</p>
+            <p className="mt-4 text-lg font-semibold text-white/90">Pricing will be announced at launch.</p>
             <ul className="mt-6 space-y-2.5 text-left text-sm text-white">
-              {[
-                "Everything in Monthly",
-                "Priority access to new content",
-                "Locked-in price guarantee for 12 months",
-              ].map((t) => (
+              {["Everything in Monthly", "Priority access to new content"].map((t) => (
                 <li key={t} className="flex gap-2">
                   <IconCheck className="mt-0.5 shrink-0" />
                   <span>{t}</span>
@@ -452,7 +445,7 @@ export default function PremiumLandingPage() {
           {[
             {
               quote:
-                "The DSB approval guide alone saved me weeks of confusion. Everything is explained clearly and sourced from official pages. Worth every euro.",
+                "The DSB approval guide alone saved me weeks of confusion. Everything is explained clearly and sourced from official pages. Worth the investment.",
               who: "Electrician, Poland. Working in Bergen since 2024.",
             },
             {

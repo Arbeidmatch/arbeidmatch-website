@@ -73,6 +73,7 @@ export default function RequestPage() {
   const [companyResults, setCompanyResults] = useState<CompanyResult[]>([]);
   const [isSearchingCompanies, setIsSearchingCompanies] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [gdprConsent, setGdprConsent] = useState(false);
 
   const maxCard = partnershipStatus === "new" ? 3 : 1;
   const progress = ((currentCard + 1) / (maxCard + 1)) * 100;
@@ -152,6 +153,10 @@ export default function RequestPage() {
     event.preventDefault();
     if (!validateCurrentCard()) {
       bumpError("Please complete the required fields in this card before sending.");
+      return;
+    }
+    if (currentCard === maxCard && !gdprConsent) {
+      bumpError("Please accept the Privacy Policy to continue.");
       return;
     }
 
@@ -350,7 +355,8 @@ export default function RequestPage() {
 
         <h1 className="mt-6 text-[28px] font-extrabold text-white">Request received.</h1>
         <p className="mt-3 max-w-[400px] text-[16px] leading-[1.7] text-white/60">
-          We have received your request and will be in touch within 24 hours. Check your email for confirmation.
+          We have received your request and will typically be in touch within 1 to 2 business days. Check your email for
+          confirmation.
         </p>
 
         <div className="my-8 h-px w-[60px] bg-white/10" />
@@ -840,6 +846,51 @@ export default function RequestPage() {
               {cardError}
             </motion.div>
           )}
+
+          {currentCard === maxCard && !isAutoAdvanceCard ? (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 10,
+                marginTop: 16,
+                marginBottom: 8,
+              }}
+            >
+              <input
+                type="checkbox"
+                id="gdpr-consent"
+                checked={gdprConsent}
+                onChange={(e) => {
+                  setGdprConsent(e.target.checked);
+                  if (e.target.checked) setCardError("");
+                }}
+                style={{
+                  marginTop: 3,
+                  accentColor: "#C9A84C",
+                  minWidth: 16,
+                  height: 16,
+                  cursor: "pointer",
+                }}
+              />
+              <label
+                htmlFor="gdpr-consent"
+                style={{
+                  fontSize: 12,
+                  color: "rgba(0,0,0,0.55)",
+                  lineHeight: 1.6,
+                  cursor: "pointer",
+                }}
+              >
+                I agree that ArbeidMatch Norge AS may process the information I have provided in order to respond to my
+                request. I have read and accept the{" "}
+                <Link href="/privacy" className="text-gold underline">
+                  Privacy Policy
+                </Link>
+                .
+              </label>
+            </div>
+          ) : null}
 
           {!isAutoAdvanceCard && (
             <div className="flex items-center justify-between gap-3">

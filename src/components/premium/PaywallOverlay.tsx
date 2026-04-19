@@ -1,11 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type Plan = "monthly" | "annual";
-
-const MONTHLY = 10;
-const ANNUAL = 80;
 
 function IconLockShake() {
   return (
@@ -63,10 +60,7 @@ export default function PaywallOverlay({
     };
   }, []);
 
-  const priceLabel = useMemo(() => {
-    if (plan === "monthly") return `EUR ${MONTHLY}/month`;
-    return `EUR ${ANNUAL}/year`;
-  }, [plan]);
+  const priceLabel = "Pricing available at launch.";
 
   const subscribe = useCallback(async () => {
     const checkoutEmail = workEmail.trim().toLowerCase();
@@ -184,10 +178,7 @@ export default function PaywallOverlay({
             </button>
           </div>
           <div className="mt-4 text-center">
-            <p className="text-2xl font-extrabold text-white transition-all duration-300">{priceLabel}</p>
-            {plan === "annual" ? (
-              <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-[#C9A84C]">Save EUR 40</p>
-            ) : null}
+            <p className="text-lg font-semibold text-white/90 transition-all duration-300">{priceLabel}</p>
           </div>
 
           {err ? <p className="mt-3 text-center text-sm text-red-400">{err}</p> : null}

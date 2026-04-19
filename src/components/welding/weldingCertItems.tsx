@@ -41,7 +41,7 @@ export const WELDING_CERT_ITEMS: WeldingCertItem[] = [
   {
     Icon: Clock,
     title: "Certificate Validity Verification",
-    body: "Every candidate we present has their ISO and EN certificates verified for validity before presentation. We confirm renewal status and expiry dates as part of our screening process.",
+    body: "Every candidate we present has their ISO and EN certificates verified for validity before presentation. We check renewal status and expiry dates as part of screening. Employers should conduct their own verification before onboarding.",
   },
   {
     Icon: Users,
