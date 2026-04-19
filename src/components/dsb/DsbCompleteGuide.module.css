@@ -1,0 +1,230 @@
+/* DSB Complete Guide: animations, no box-shadows in this file */
+
+@media (prefers-reduced-motion: reduce) {
+  .respectMotion *,
+  .respectMotion *::before,
+  .respectMotion *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .tabPanelEnter {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .fadeUpStagger,
+  .fadeUpIO,
+  .timelineStep,
+  .timelineLine,
+  .strokeDrawCircle,
+  .strokeDrawCheck,
+  .pulseOnce,
+  .clockHandMin,
+  .clockHandHr {
+    opacity: 1 !important;
+    transform: none !important;
+    stroke-dashoffset: 0 !important;
+    animation: none !important;
+  }
+}
+
+.tabPanelEnter {
+  animation: dsgTabFade 200ms ease-out forwards;
+}
+
+@keyframes dsgTabFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fadeUpStagger {
+  opacity: 0;
+  animation: dsgFadeUp20 500ms ease-out forwards;
+}
+
+@keyframes dsgFadeUp20 {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fadeUpIO {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 400ms ease-out,
+    transform 400ms ease-out;
+}
+
+.fadeUpIOVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.timelineStep {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: dsgTimelineStep 450ms ease-out forwards;
+}
+
+@keyframes dsgTimelineStep {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.timelineLine {
+  transform-origin: top;
+  transform: scaleY(0);
+  animation: dsgLineGrow 600ms ease-out forwards;
+}
+
+@keyframes dsgLineGrow {
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.strokeDrawCircle {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: dsgStrokeDraw 600ms ease-out forwards;
+}
+
+@keyframes dsgStrokeDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.strokeDrawCheck {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: dsgCheckDraw 500ms ease-out forwards;
+}
+
+@keyframes dsgCheckDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.pulseOnce {
+  animation: dsgZapPulse 900ms ease-out 1;
+}
+
+@keyframes dsgZapPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.85;
+  }
+}
+
+.clockHandMin {
+  transform-origin: 24px 24px;
+  animation: dsgClockSpin 4s linear infinite;
+}
+
+.clockHandHr {
+  transform-origin: 24px 24px;
+  animation: dsgClockSpinHr 48s linear infinite;
+}
+
+@keyframes dsgClockSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dsgClockSpinHr {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fseListItem {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: dsgFseFade 450ms ease-out forwards;
+}
+
+@keyframes dsgFseFade {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.floatSlow {
+  animation: dsgFloat 3s ease-in-out infinite;
+}
+
+.floatSlowDelay1 {
+  animation: dsgFloat 3s ease-in-out 1s infinite;
+}
+
+.floatSlowDelay2 {
+  animation: dsgFloat 3s ease-in-out 2s infinite;
+}
+
+@keyframes dsgFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.accordionGrid {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms ease;
+}
+
+.accordionGridOpen {
+  grid-template-rows: 1fr;
+}
+
+.accordionInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chevron {
+  transition: transform 300ms ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import DsbEmployerGuide from "@/components/dsb/DsbEmployerGuide";
 import DsbPillarFromMarkdown from "@/components/dsb/DsbPillarFromMarkdown";
 import DsbRequestPopup from "@/components/dsb/DsbRequestPopup";
+import DsbCompleteGuide from "@/components/dsb/DsbCompleteGuide";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 import DsbTypeSelectorLoader from "./DsbTypeSelectorLoader";
@@ -60,6 +61,7 @@ export default function DsbSupportPage() {
       />
       <DsbEmployerGuide />
       <DsbRequestPopup />
+      <DsbCompleteGuide />
     </>
   );
 }
