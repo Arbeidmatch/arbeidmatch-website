@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 
 type Body = {
   guide_slug?: string;
+  guideType?: string;
   email?: string;
   website?: string;
 };
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = raw as Body;
-    const guideSlug = body.guide_slug?.trim() as DsbGuideSlug | undefined;
+    const guideSlug = (body.guide_slug || body.guideType)?.trim() as DsbGuideSlug | undefined;
     const email = body.email?.trim().toLowerCase();
 
     if (guideSlug !== "eu" && guideSlug !== "non-eu") {

@@ -187,6 +187,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           guide_slug: cfg.slug,
+          guideType: cfg.slug,
           email: confirmedEmail,
           website: "",
         }),
