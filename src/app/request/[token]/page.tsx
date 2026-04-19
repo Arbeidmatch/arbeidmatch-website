@@ -688,21 +688,25 @@ export default function DetailedRequestPage() {
     };
 
     try {
-      const emailRes = await fetch("/api/send-request-email", {
+      const saveRes = await fetch("/api/save-employer-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!emailRes.ok) throw new Error("send-request-email");
+      if (!saveRes.ok) throw new Error("save-employer-request");
 
       try {
-        await fetch("/api/save-employer-request", {
+        const emailRes = await fetch("/api/send-request-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+        if (!emailRes.ok) {
+          const emailError = await emailRes.json().catch(() => ({} as { error?: string }));
+          console.error("send-request-email failed after save", emailError?.error || "unknown");
+        }
       } catch (error) {
-        console.error("save-employer-request failed", error);
+        console.error("send-request-email failed after save", error);
       }
 
       try {

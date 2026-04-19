@@ -60,8 +60,8 @@ export async function POST(request: NextRequest) {
       orgNumber?: string;
     };
 
-    if (!company || !email || !job_summary) {
-      throw new Error("Missing required fields");
+    if (!company || !email) {
+      throw new Error("Missing required fields: company and email are required.");
     }
 
     const token = crypto.randomUUID();
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       email,
       phone,
       org_number: orgNumber,
-      job_summary,
+      job_summary: job_summary?.trim() || "General hiring inquiry",
       how_did_you_hear: howDidYouHear,
       social_media_platform: socialMediaPlatform,
       how_did_you_hear_other: howDidYouHearOther || socialMediaOther,
@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, token });
   } catch (error) {
-    console.error("simple-request POST failed:", JSON.stringify(error));
-    const message = error instanceof Error ? error.message : JSON.stringify(error);
+    console.error("simple-request POST failed:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

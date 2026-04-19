@@ -46,6 +46,7 @@ export default function RequestPage() {
   const dur = (sec: number) => (reduce ? 0.01 : isMobile ? sec * 0.7 : sec);
 
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [submitError, setSubmitError] = useState("");
   const [drawSuccessCheck, setDrawSuccessCheck] = useState(false);
   const [cardError, setCardError] = useState("");
   const [errorShakeKey, setErrorShakeKey] = useState(0);
@@ -162,9 +163,11 @@ export default function RequestPage() {
     }
 
     setCardError("");
+    setSubmitError("");
     setStatus("submitting");
 
     if (!partnershipStatus) {
+      setSubmitError("Please select your partnership status.");
       setStatus("error");
       return;
     }
@@ -201,8 +204,10 @@ export default function RequestPage() {
         }),
       });
 
-      if (!response.ok) throw new Error("Request failed");
-      const data = (await response.json()) as { success?: boolean; token?: string };
+      const data = (await response.json()) as { success?: boolean; token?: string; error?: string };
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Request failed");
+      }
       if (data.success && data.token) {
         setStatus("success");
         window.setTimeout(() => {
@@ -211,7 +216,8 @@ export default function RequestPage() {
         return;
       }
       throw new Error("No token received");
-    } catch {
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Request failed");
       setStatus("error");
     }
   };
@@ -843,7 +849,7 @@ export default function RequestPage() {
               transition={{ duration: dur(0.35), ease: PREMIUM_EASE }}
               className="rounded-md border border-red-200 bg-red-50 p-4 text-red-700"
             >
-              Something went wrong. Please email post@arbeidmatch.no
+              {submitError || "Something went wrong. Please email post@arbeidmatch.no"}
             </motion.div>
           )}
         </form>
