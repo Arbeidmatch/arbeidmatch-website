@@ -19,6 +19,7 @@ import type { LucideIcon } from "lucide-react";
 
 import HeroStatsPanel from "@/components/HeroStatsPanel";
 import RoleSelector from "@/components/onboarding/RoleSelector";
+import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 import ScrollReveal, { ScrollRevealGrid } from "@/components/ScrollReveal";
 import type { CandidateActivityStats } from "@/lib/candidateActivityStats";
 
@@ -341,6 +342,10 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
       </section>
 
       <ScrollReveal variant="fadeIn">{testimonialsSlot}</ScrollReveal>
+
+      <section className="bg-surface py-12 md:py-16 lg:py-[100px]">
+        <WeldingSpecialistsCard />
+      </section>
 
       <section className="mesh-cta-wrap bg-navy py-12 text-center md:py-16 lg:py-[100px]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">

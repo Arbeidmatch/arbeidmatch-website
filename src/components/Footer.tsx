@@ -71,6 +71,7 @@ const tjenesterCol: [string, string][] = [
   ["Renhold", "/bemanning-renhold"],
   ["HoReCa", "/bemanning-horeca"],
   ["Helse", "/bemanning-helse"],
+  ["Welding Specialists", "/welding-specialists"],
 ];
 
 const stederCol: [string, string][] = [

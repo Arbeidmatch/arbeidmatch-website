@@ -14,6 +14,7 @@ const tjenesterLinks = [
   { href: "/bemanning-renhold", label: "Renhold" },
   { href: "/bemanning-horeca", label: "HoReCa" },
   { href: "/bemanning-helse", label: "Helse" },
+  { href: "/welding-specialists", label: "Welding Specialists" },
 ];
 
 const stederLinks = [
@@ -48,6 +49,7 @@ const mobileEmployersLinks = [
   { href: "/bemanning-renhold", label: "Renhold" },
   { href: "/bemanning-horeca", label: "HoReCa" },
   { href: "/bemanning-helse", label: "Helse" },
+  { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/for-staffing-agencies", label: "For bemanningsbyråer" },
 ] as const;
 

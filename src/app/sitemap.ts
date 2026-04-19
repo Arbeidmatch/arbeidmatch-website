@@ -56,6 +56,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     })),
     {
+      url: `${SITE}/welding-specialists`,
+      lastModified: new Date("2026-04-19"),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: `${SITE}/blog`,
       lastModified: primaryLastMod,
       changeFrequency: "monthly",

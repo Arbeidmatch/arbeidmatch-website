@@ -7,6 +7,7 @@ import StaggerHero from "@/components/premium/StaggerHero";
 import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
 import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import ForEmployersExtendedServices from "@/components/for-employers/ForEmployersExtendedServices";
+import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
 export const metadata: Metadata = nbPageMetadata(
@@ -78,6 +79,10 @@ export default function ForEmployersPage() {
       </section>
 
       <ForEmployersExtendedServices />
+
+      <section className="bg-surface py-12 md:py-16 lg:py-[100px]">
+        <WeldingSpecialistsCard />
+      </section>
 
       <Testimonials />
 

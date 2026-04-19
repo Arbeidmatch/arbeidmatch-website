@@ -71,7 +71,7 @@ function RoleCard({
       onMouseLeave={() => setHovered(false)}
       onTouchStart={handleTouchStart}
       onClick={onSelect}
-      className="group relative w-full cursor-pointer overflow-hidden rounded-[20px] border border-white/[0.08] bg-[rgba(255,255,255,0.03)] p-7 transition-all duration-[250ms] ease-out max-[640px]:min-h-0 sm:w-[380px] sm:min-h-[340px] sm:px-8 sm:py-10"
+      className="group relative box-border w-full min-w-0 max-w-[400px] cursor-pointer overflow-hidden break-words rounded-[20px] border border-white/[0.08] bg-[rgba(255,255,255,0.03)] px-5 py-6 transition-all duration-[250ms] ease-out max-[639px]:max-w-none min-[640px]:flex-1 min-[640px]:py-7 lg:px-7 lg:py-9"
       style={{
         borderColor: hovered ? "rgba(201,168,76,0.5)" : "rgba(255,255,255,0.08)",
         transform: hovered ? "scale(1.02)" : "scale(1)",
@@ -86,7 +86,7 @@ function RoleCard({
         }}
         aria-hidden
       />
-      <div className="relative z-[1]">
+      <div className="relative z-[1] min-w-0">
         <div
           className="flex h-14 w-14 items-center justify-center rounded-[14px] border border-[rgba(201,168,76,0.2)] transition-all duration-200"
           style={{
@@ -95,18 +95,18 @@ function RoleCard({
         >
           <span className="transition-transform duration-200 group-hover:scale-110">{icon}</span>
         </div>
-        <h2 className="mt-5 text-[22px] font-extrabold leading-tight text-white sm:text-[26px]">{title}</h2>
-        <p className="mt-2.5 text-[14px] leading-[1.65] text-white/[0.55]">{subtitle}</p>
+        <h2 className="mt-5 text-[20px] font-extrabold leading-tight text-white min-[640px]:text-[26px]">{title}</h2>
+        <p className="mt-2.5 text-[13px] leading-[1.65] text-white/[0.55] min-[640px]:text-sm">{subtitle}</p>
         <div className="my-6 h-px bg-white/[0.06]" />
         <ul className="flex flex-col gap-2.5">
           {features.map((f) => (
-            <li key={f} className="flex items-start gap-2.5 text-[14px] text-white/[0.7]">
+            <li key={f} className="flex items-start gap-2.5 text-[13px] text-white/[0.7] min-[640px]:text-sm">
               <span
                 className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
                 style={{ background: GOLD }}
                 aria-hidden
               />
-              {f}
+              <span className="min-w-0 break-words">{f}</span>
             </li>
           ))}
         </ul>
@@ -114,8 +114,8 @@ function RoleCard({
           type="button"
           className={
             ctaVariant === "gold"
-              ? "mt-7 w-full rounded-[10px] py-3.5 text-[15px] font-bold transition-colors duration-[180ms] sm:mt-7"
-              : "mt-7 w-full rounded-[10px] border py-3.5 text-[15px] font-bold transition-all duration-[180ms] sm:mt-7"
+              ? "mt-6 box-border w-full rounded-[10px] py-3 px-5 text-sm font-bold transition-colors duration-[180ms] min-[640px]:mt-7 min-[640px]:py-3.5 min-[640px]:text-[15px]"
+              : "mt-6 box-border w-full rounded-[10px] border py-3 px-5 text-sm font-bold transition-all duration-[180ms] min-[640px]:mt-7 min-[640px]:py-3.5 min-[640px]:text-[15px]"
           }
           style={
             ctaVariant === "gold"
@@ -194,7 +194,7 @@ export default function RoleSelector() {
       {isOpen ? (
         <motion.div
           key="role-overlay"
-          className="fixed inset-0 z-[240] flex items-center justify-center backdrop-blur-[12px]"
+          className="fixed inset-0 z-[240] flex items-center justify-center overflow-hidden backdrop-blur-[12px]"
           style={{ background: "rgba(10, 15, 25, 0.92)" }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -209,28 +209,30 @@ export default function RoleSelector() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="flex min-h-screen w-full flex-col items-center justify-center px-4 py-10 sm:px-6"
+            className="flex h-full max-h-[100dvh] w-full min-h-0 flex-col items-center justify-center overflow-hidden p-2 min-[640px]:max-h-[100vh] min-[640px]:p-4"
           >
-            <div className="mx-auto flex w-[92vw] max-w-[840px] flex-col items-center sm:w-[92vw]">
+            <div className="mx-auto box-border flex w-full max-w-[860px] min-h-0 max-h-[calc(100dvh-32px)] flex-col gap-4 overflow-y-auto overflow-x-hidden px-4 py-4 min-[640px]:gap-5 min-[640px]:px-6 min-[640px]:py-6">
               <motion.div
-                className="mb-8 text-center max-[640px]:mb-6"
+                className="shrink-0 text-center max-[639px]:mb-4 min-[640px]:mb-6"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.2, ease: "easeOut" }}
               >
-                <p className="text-[22px] font-bold">
+                <p className="text-[18px] font-bold min-[640px]:text-[22px]">
                   <span style={{ color: GOLD }}>Arbeid</span>
                   <span className="text-white">Match</span>
                 </p>
-                <p className="mt-2 text-[13px] text-white/[0.6] sm:text-[15px]">Who are you? Choose your path.</p>
+                <p className="mt-2 text-[13px] text-white/[0.6] min-[640px]:text-[15px]">
+                  Who are you? Choose your path.
+                </p>
               </motion.div>
 
-              <div className="flex w-full flex-col items-stretch justify-center gap-4 sm:flex-row sm:gap-8">
+              <div className="flex min-h-0 w-full flex-col gap-4 min-[640px]:flex-row min-[640px]:gap-5">
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.45, delay: 0.3, ease: "easeOut" }}
-                  className="w-full sm:w-auto"
+                  className="flex min-h-0 min-w-0 flex-1 justify-center"
                 >
                   <RoleCard
                     icon={<Briefcase className="h-7 w-7" stroke={GOLD} strokeWidth={1.5} />}
@@ -250,7 +252,7 @@ export default function RoleSelector() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.45, delay: 0.45, ease: "easeOut" }}
-                  className="w-full sm:w-auto"
+                  className="flex min-h-0 min-w-0 flex-1 justify-center"
                 >
                   <RoleCard
                     icon={<UserCheck className="h-7 w-7" stroke={GOLD} strokeWidth={1.5} />}
@@ -270,7 +272,7 @@ export default function RoleSelector() {
 
               <button
                 type="button"
-                className="mt-6 cursor-pointer text-center text-[13px] text-white/[0.3] transition-colors hover:text-white/50"
+                className="shrink-0 cursor-pointer pt-1 text-center text-[12px] text-white/[0.3] transition-colors hover:text-white/50 max-[639px]:mt-4 min-[640px]:mt-2 min-[640px]:text-[13px]"
                 onClick={() => closeWithOptionalRedirect("skipped", null)}
               >
                 Continue without selecting
