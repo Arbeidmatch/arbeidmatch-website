@@ -18,22 +18,19 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 import BemanningCard from "@/components/home/BemanningCard";
-import HeroStatsPanel from "@/components/HeroStatsPanel";
 import RoleSelector from "@/components/onboarding/RoleSelector";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 import ScrollReveal, { ScrollRevealGrid } from "@/components/ScrollReveal";
-import type { CandidateActivityStats } from "@/lib/candidateActivityStats";
 
 const HERO_EASE = [0.16, 1, 0.3, 1] as const;
 const HERO_DURATION = 0.8;
 
 type Props = {
-  candidateActivity: CandidateActivityStats;
   howItWorksSlot: ReactNode;
   testimonialsSlot: ReactNode;
 };
 
-export default function HomePageClient({ candidateActivity, howItWorksSlot, testimonialsSlot }: Props) {
+export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Props) {
   const reduce = useReducedMotion();
   const [sessionRoleBanner, setSessionRoleBanner] = useState<null | "employer" | "candidate">(null);
 
@@ -125,14 +122,6 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
     </div>
   );
 
-  const statsBlock = (
-    <HeroStatsPanel
-      candidatesRegisteredToday={candidateActivity.candidatesRegisteredToday}
-      activeOnSiteNow={candidateActivity.activeOnSiteNow}
-      totalVisits={candidateActivity.totalVisits}
-    />
-  );
-
   const industries: [LucideIcon, string, string][] = [
     [HardHat, "Construction & Renovation", "Skilled trades and building teams."],
     [Forklift, "Logistics & Warehouse", "Warehouse, forklift and terminal roles."],
@@ -146,20 +135,8 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
     <>
       <RoleSelector />
       <section className="flex min-h-screen items-center bg-white py-12 md:py-16 lg:py-[100px]">
-        <div className="mx-auto grid w-full max-w-content grid-cols-1 gap-8 px-6 md:grid-cols-2 md:gap-10 md:px-12 lg:gap-12 lg:px-20">
+        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           {hero}
-          {!reduce ? (
-            <motion.div
-              className="min-w-0 md:row-span-1"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: HERO_DURATION, delay: 0.2, ease: HERO_EASE }}
-            >
-              {statsBlock}
-            </motion.div>
-          ) : (
-            <div className="min-w-0">{statsBlock}</div>
-          )}
         </div>
       </section>
 
