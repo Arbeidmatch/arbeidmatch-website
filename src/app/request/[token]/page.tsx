@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-type TokenData = { company: string; email: string; job_summary: string; org_number?: string; full_name?: string };
+type TokenData = { company: string; email: string; job_summary: string; org_number?: string; full_name?: string; phone?: string };
 type CompanyResult = { name: string; orgNumber: string };
 type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
@@ -351,7 +351,7 @@ export default function DetailedRequestPage() {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [step, setStep] = useState<Step>(0);
+  const [step, setStep] = useState<Step>(1);
   const [visible, setVisible] = useState(true);
   const [stepError, setStepError] = useState("");
   const [invalidField, setInvalidField] = useState("");
@@ -370,8 +370,8 @@ export default function DetailedRequestPage() {
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
 
-  const stepCount = 9;
-  const progress = ((step + 1) / stepCount) * 100;
+  const stepCount = 8;
+  const progress = (step / stepCount) * 100;
   const roles = useMemo(
     () => (formData.category ? [...(rolesByCategory[formData.category] ?? []), "Other"] : []),
     [formData.category],
@@ -443,6 +443,17 @@ export default function DetailedRequestPage() {
         const dataRes = await fetch(`/api/token-data/${token}`).then((r) => r.json());
         if (!dataRes.success || !dataRes.data) return setTokenStatus("invalid");
         setTokenData(dataRes.data);
+        if (typeof dataRes.data.phone === "string" && dataRes.data.phone.trim()) {
+          const rawPhone = dataRes.data.phone.trim();
+          const prefix =
+            rawPhone.startsWith("+46") ? "+46" : rawPhone.startsWith("+45") ? "+45" : "+47";
+          const normalizedDigits = rawPhone.replace(prefix, "").replace(/[^\d]/g, "");
+          setFormData((prev) => ({
+            ...prev,
+            phonePrefix: prefix as "+47" | "+46" | "+45",
+            phoneNumber: normalizedDigits,
+          }));
+        }
         setTokenStatus("valid");
       } catch {
         setTokenStatus("invalid");
@@ -553,9 +564,7 @@ export default function DetailedRequestPage() {
 
   const validateStep = (s: Step): string | null => {
     const phoneDigits = formData.phoneNumber.replace(/\D/g, "");
-    if (s === 0) {
-      if (!formData.phonePrefix || phoneDigits.length < 8) return "phone";
-    }
+    if (s === 0) return null;
     if (s === 1 && !formData.hiringType) return "hiringType";
     if (s === 2) {
       if (!formData.category) return "category";
@@ -652,7 +661,7 @@ export default function DetailedRequestPage() {
   const back = () => {
     setStepError("");
     window.scrollTo({ top: 0, behavior: "auto" });
-    if (step > 0) goStep((step - 1) as Step);
+    if (step > 1) goStep((step - 1) as Step);
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -675,7 +684,7 @@ export default function DetailedRequestPage() {
       ...formData,
       token,
       full_name: tokenData?.full_name ?? "",
-      phone: `${formData.phonePrefix} ${formData.phoneNumber.replace(/\D/g, "")}`,
+      phone: tokenData?.phone ?? `${formData.phonePrefix} ${formData.phoneNumber.replace(/\D/g, "")}`,
       company: tokenData?.company ?? "",
       orgNumber: tokenData?.org_number ?? "",
       email: tokenData?.email ?? "",
