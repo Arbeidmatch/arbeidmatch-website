@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-import ExitIntentDiscount from "@/components/premium/ExitIntentDiscount";
 import pm from "@/components/premium/premiumMarketing.module.css";
 
 const NAVY = "#0f1923";
@@ -105,121 +104,57 @@ function StarRow() {
 }
 
 export default function PremiumLandingPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
-  const [footerEmail, setFooterEmail] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-  const [showPricing, setShowPricing] = useState(false);
+  const [consent, setConsent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [bannerMsg, setBannerMsg] = useState<string | null>(null);
 
   const locked = searchParams.get("locked") === "true";
   const checkoutFailed = searchParams.get("checkout") === "failed";
 
   useEffect(() => {
-    if (locked) setMsg("Sign in with your email to continue reading Premium guides.");
+    if (locked) setBannerMsg("Sign in with your email to continue reading Premium guides.");
   }, [locked]);
 
   useEffect(() => {
-    if (checkoutFailed) setMsg("Checkout could not be confirmed. Please try again or contact support.");
+    if (checkoutFailed) setBannerMsg("Checkout could not be confirmed. Please try again or contact support.");
   }, [checkoutFailed]);
 
-  const submit = useCallback(
-    async (rawEmail: string) => {
-      const e = rawEmail.trim().toLowerCase();
-      if (!e || !e.includes("@")) {
-        setMsg("Please enter a valid work email.");
-        return;
+  const handleNotify = async () => {
+    setError("");
+    setSuccess(false);
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (!consent) {
+      setError("Please accept to continue.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/feature-waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, feature: "premium-launch", consent: true }),
+      });
+      const data = (await res.json()) as { success?: boolean };
+      if (data.success) {
+        setSuccess(true);
+        setEmail("");
+        setConsent(false);
+      } else {
+        setError("Something went wrong. Please try again.");
       }
-      setBusy(true);
-      setMsg(null);
-      try {
-        const check = await fetch("/api/premium/check-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: e }),
-        });
-        const c = (await check.json()) as {
-          isNew?: boolean;
-          hasAccess?: boolean;
-          error?: string;
-        };
-        if (!check.ok) throw new Error(c.error || "Could not verify email.");
-
-        if (c.hasAccess) {
-          router.push("/premium/browse");
-          return;
-        }
-
-        if (c.isNew) {
-          const start = await fetch("/api/premium/start-trial", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: e }),
-          });
-          const s = (await start.json()) as { requiresPayment?: boolean; error?: string };
-          if (!start.ok) throw new Error(s.error || "Could not start trial.");
-          if (s.requiresPayment) {
-            setMsg("Your free trial has ended. Choose a plan to continue.");
-            setShowPricing(true);
-            return;
-          }
-          router.push("/premium/browse");
-          return;
-        }
-
-        const start = await fetch("/api/premium/start-trial", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: e }),
-        });
-        const s = (await start.json()) as { requiresPayment?: boolean; hasAccess?: boolean; error?: string };
-        if (!start.ok) throw new Error(s.error || "Could not continue.");
-        if (s.hasAccess) {
-          router.push("/premium/browse");
-          return;
-        }
-        if (s.requiresPayment) {
-          setMsg("Your free trial has ended. Choose a plan to continue.");
-          setShowPricing(true);
-          return;
-        }
-        router.push("/premium/browse");
-      } catch (err) {
-        setMsg(err instanceof Error ? err.message : "Something went wrong.");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [router],
-  );
-
-  const startCheckout = useCallback(
-    async (plan: "monthly" | "annual") => {
-      const e = email.trim() || footerEmail.trim();
-      if (!e) {
-        setMsg("Enter your email above before choosing a plan.");
-        setShowPricing(true);
-        return;
-      }
-      setBusy(true);
-      try {
-        const res = await fetch("/api/premium/create-checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: e, plan, withDiscount: false }),
-        });
-        const data = (await res.json()) as { checkoutUrl?: string; error?: string };
-        if (!res.ok || !data.checkoutUrl) throw new Error(data.error || "Checkout unavailable.");
-        window.location.href = data.checkoutUrl;
-      } catch (er) {
-        setMsg(er instanceof Error ? er.message : "Checkout failed.");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [email, footerEmail],
-  );
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const features = useMemo(
     () => [
@@ -259,15 +194,30 @@ export default function PremiumLandingPage() {
 
   return (
     <div className="bg-[#0f1923] text-white" style={{ backgroundColor: NAVY }}>
-      <ExitIntentDiscount email={email || footerEmail} />
-
       <section className="px-6 pb-12 pt-16 md:px-10 md:pb-20 md:pt-[100px]">
         <div className="mx-auto max-w-[1100px]">
-          <div
-            className={`${pm.heroBadge} inline-flex rounded-full border px-5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.1em]`}
-            style={{ backgroundColor: "rgba(201,168,76,0.1)", borderColor: "rgba(201,168,76,0.3)", color: GOLD }}
-          >
-            ArbeidMatch Premium. Knowledge that works for you.
+          <div className="flex flex-col items-start gap-3">
+            <span
+              style={{
+                display: "inline-block",
+                background: "rgba(226,75,74,0.12)",
+                color: "#E24B4A",
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                borderRadius: 20,
+                padding: "4px 12px",
+              }}
+            >
+              Coming Soon
+            </span>
+            <div
+              className={`${pm.heroBadge} inline-flex rounded-full border px-5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.1em]`}
+              style={{ backgroundColor: "rgba(201,168,76,0.1)", borderColor: "rgba(201,168,76,0.3)", color: GOLD }}
+            >
+              ArbeidMatch Premium. Knowledge that works for you.
+            </div>
           </div>
           <h1
             className={`${pm.fadeUp} mt-6 max-w-[920px] font-extrabold tracking-[-0.02em] text-white`}
@@ -287,32 +237,81 @@ export default function PremiumLandingPage() {
             and more. Written in plain English. Sourced from official Norwegian authorities.
           </p>
 
-          <form
-            className={`${pm.fadeUp} mt-10 flex max-w-[720px] flex-col gap-3 md:flex-row md:items-start`}
-            style={{ animationDelay: "300ms" }}
-            onSubmit={(ev) => {
-              ev.preventDefault();
-              void submit(email);
-            }}
+          {bannerMsg ? <p className="mt-4 max-w-xl text-sm text-amber-200/90">{bannerMsg}</p> : null}
+
+          <div
+            id="notify-form"
+            className={pm.fadeUp}
+            style={{ maxWidth: 480, marginTop: 32, animationDelay: "300ms" }}
           >
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your work email"
-              className="w-full max-w-[380px] rounded-[10px] border border-white/12 bg-white/[0.06] px-5 py-3.5 text-[15px] text-white placeholder:text-white/35"
-            />
-            <button
-              type="submit"
-              disabled={busy}
-              className="rounded-[10px] bg-[#C9A84C] px-7 py-3.5 text-[15px] font-bold text-[#0f1923] transition-opacity disabled:opacity-60"
-            >
-              {busy ? "Please wait…" : "Start Free 24h Trial"}
-            </button>
-          </form>
-          <p className="mt-2.5 text-[12px] text-white/40">No credit card required for trial. Cancel anytime.</p>
-          {msg ? <p className="mt-4 max-w-xl text-sm text-amber-200/90">{msg}</p> : null}
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginBottom: 16, lineHeight: 1.6 }}>
+              Premium is currently being prepared. Leave your email and we will notify you the moment it launches,
+              including an exclusive early access offer.
+            </p>
+
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <input
+                type="email"
+                placeholder="Your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{
+                  flex: 1,
+                  minWidth: 200,
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: 10,
+                  padding: "14px 20px",
+                  color: "white",
+                  fontSize: 15,
+                  outline: "none",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => void handleNotify()}
+                disabled={loading}
+                style={{
+                  background: "#C9A84C",
+                  color: "#0f1923",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  padding: "14px 28px",
+                  borderRadius: 10,
+                  border: "none",
+                  cursor: loading ? "not-allowed" : "pointer",
+                  opacity: loading ? 0.7 : 1,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {loading ? "Sending..." : "Notify Me at Launch"}
+              </button>
+            </div>
+
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 8, marginTop: 12, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+                style={{ marginTop: 2, accentColor: "#C9A84C", minWidth: 16, height: 16 }}
+              />
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
+                I agree to receive launch notifications and early access offers from ArbeidMatch. Unsubscribe anytime.
+              </span>
+            </label>
+
+            {error ? <p style={{ fontSize: 13, color: "#E24B4A", marginTop: 10 }}>{error}</p> : null}
+
+            {success ? (
+              <p style={{ fontSize: 13, color: "#1D9E75", fontWeight: 500, marginTop: 10 }}>
+                You are on the list. We will notify you when Premium launches, with an exclusive early offer.
+              </p>
+            ) : null}
+
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 10 }}>
+              No payment required. No spam. Just a launch notification.
+            </p>
+          </div>
 
           <div
             className={`${pm.fadeUp} mt-14 flex flex-wrap items-center justify-center gap-8 md:gap-10`}
@@ -358,9 +357,7 @@ export default function PremiumLandingPage() {
           <p className="text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">Simple pricing</p>
           <h2 className="mt-3 text-4xl font-bold text-white">Start free. Stay informed.</h2>
         </div>
-        <div
-          className={`mx-auto mt-12 grid max-w-[760px] grid-cols-1 gap-5 md:grid-cols-2 ${showPricing || locked ? "" : "opacity-100"}`}
-        >
+        <div className="mx-auto mt-12 grid max-w-[760px] grid-cols-1 gap-5 md:grid-cols-2">
           <div className="rounded-[14px] border-[0.5px] border-white/[0.08] bg-white/[0.04] p-7">
             <p className="text-[12px] font-semibold uppercase tracking-wide text-white/50">Monthly</p>
             <p className="mt-3 flex items-baseline gap-2">
@@ -382,11 +379,23 @@ export default function PremiumLandingPage() {
             </ul>
             <button
               type="button"
-              onClick={() => void startCheckout("monthly")}
-              disabled={busy}
-              className="mt-8 w-full rounded-[10px] bg-[#C9A84C] py-4 text-[15px] font-bold text-[#0f1923] disabled:opacity-60"
+              onClick={() => {
+                document.getElementById("notify-form")?.scrollIntoView({ behavior: "smooth" });
+              }}
+              style={{
+                width: "100%",
+                marginTop: 32,
+                background: "rgba(255,255,255,0.06)",
+                color: "rgba(255,255,255,0.5)",
+                fontWeight: 600,
+                fontSize: 14,
+                padding: "14px 24px",
+                borderRadius: 10,
+                border: "1px solid rgba(255,255,255,0.1)",
+                cursor: "pointer",
+              }}
             >
-              Start Free Trial
+              Notify me at launch
             </button>
             <p className="mt-3 text-center text-[11px] text-white/40">No credit card required to start trial</p>
           </div>
@@ -415,11 +424,23 @@ export default function PremiumLandingPage() {
             </ul>
             <button
               type="button"
-              onClick={() => void startCheckout("annual")}
-              disabled={busy}
-              className="mt-8 w-full rounded-[10px] bg-[#C9A84C] py-4 text-[15px] font-bold text-[#0f1923] disabled:opacity-60"
+              onClick={() => {
+                document.getElementById("notify-form")?.scrollIntoView({ behavior: "smooth" });
+              }}
+              style={{
+                width: "100%",
+                marginTop: 32,
+                background: "rgba(255,255,255,0.06)",
+                color: "rgba(255,255,255,0.5)",
+                fontWeight: 600,
+                fontSize: 14,
+                padding: "14px 24px",
+                borderRadius: 10,
+                border: "1px solid rgba(255,255,255,0.1)",
+                cursor: "pointer",
+              }}
             >
-              Start Free Trial
+              Notify me at launch
             </button>
             <p className="mt-3 text-center text-[11px] text-white/40">No credit card required to start trial</p>
           </div>
@@ -460,30 +481,17 @@ export default function PremiumLandingPage() {
           <p className="mt-4 text-[17px] leading-relaxed text-white/60">
             Join workers and employers who use ArbeidMatch Premium to navigate Norwegian work life with confidence.
           </p>
-          <form
-            className="mt-10 flex flex-col items-center gap-3 md:flex-row md:justify-center"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void submit(footerEmail);
+          <button
+            type="button"
+            className="mt-10 w-full max-w-[380px] rounded-[10px] border border-white/10 bg-white/[0.06] px-7 py-3.5 text-[15px] font-semibold text-white/50 transition-colors hover:bg-white/[0.08] md:mx-auto"
+            onClick={() => {
+              document.getElementById("notify-form")?.scrollIntoView({ behavior: "smooth" });
             }}
           >
-            <input
-              type="email"
-              value={footerEmail}
-              onChange={(e) => setFooterEmail(e.target.value)}
-              placeholder="Enter your work email"
-              className="w-full max-w-[380px] rounded-[10px] border border-white/12 bg-white/[0.06] px-5 py-3.5 text-[15px] text-white placeholder:text-white/35"
-            />
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full max-w-[240px] rounded-[10px] bg-[#C9A84C] px-7 py-3.5 text-[15px] font-bold text-[#0f1923] disabled:opacity-60 md:w-auto"
-            >
-              Start Free 24h Trial
-            </button>
-          </form>
+            Notify me at launch
+          </button>
           <p className="mt-4 text-[12px] text-white/40">
-            By starting a trial you agree to our{" "}
+            By requesting launch notifications you agree to our{" "}
             <Link href="/terms" className="text-[#C9A84C] underline">
               Terms of Service
             </Link>{" "}

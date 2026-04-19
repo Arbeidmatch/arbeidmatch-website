@@ -8,12 +8,12 @@ const canonical = "https://www.arbeidmatch.no/premium";
 export const metadata: Metadata = {
   title: "ArbeidMatch Premium | Guides for EU/EEA Workers and Employers in Norway",
   description:
-    "In-depth English-language guides on Norwegian labor law, DSB approvals, tax registration, workers rights, and employment contracts. Start free for 24 hours.",
+    "ArbeidMatch Premium is coming soon. Register to be notified at launch and receive an exclusive early access offer.",
   alternates: { canonical },
   openGraph: {
     title: "ArbeidMatch Premium | Guides for EU/EEA Workers and Employers in Norway",
     description:
-      "In-depth English-language guides on Norwegian labor law, DSB approvals, tax registration, workers rights, and employment contracts. Start free for 24 hours.",
+      "ArbeidMatch Premium is coming soon. Register to be notified at launch and receive an exclusive early access offer.",
     url: canonical,
     locale: "nb_NO",
     type: "website",
