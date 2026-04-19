@@ -48,7 +48,7 @@ export default function BemanningCard() {
       };
 
   const points = [
-    "Pre-screened candidates from 30 EU/EEA countries",
+    "Pre-screened candidates from EU and EEA countries",
     "You choose the candidates, we handle the sourcing",
     "No competition with your clients",
   ];

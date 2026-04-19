@@ -61,25 +61,75 @@ export default function WeldingSpecialistsPage() {
         </div>
       </section>
 
-      {/* Section 2 Stats */}
+      {/* Section 2 Feature highlights (replaces numeric counters) */}
       <section className="bg-[#0f1923]">
-        <div
-          className="mx-auto grid max-w-content grid-cols-2 gap-10 px-6 py-12 md:grid-cols-4 md:gap-8 md:px-6 lg:px-20"
-          style={{ background: "rgba(255,255,255,0.02)" }}
-        >
-          {[
-            ["30+", "EU/EEA source countries"],
-            ["ISO 9606", "Primary certification standard"],
-            ["2 weeks", "Our goal is to present candidates within about two weeks"],
-            ["Screening", "Basic certificate validity check as part of screening"],
-          ].map(([num, label]) => (
-            <div key={label} className="text-center md:text-left">
-              <p className="text-[40px] font-extrabold leading-none" style={{ color: GOLD }}>
-                {num}
+        <div className="mx-auto max-w-content px-6 lg:px-20" style={{ background: "rgba(255,255,255,0.02)" }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 24,
+              padding: "40px 0",
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <p
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#C9A84C",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  marginBottom: 6,
+                }}
+              >
+                Primary certification
               </p>
-              <p className="mt-2 text-[12px] uppercase tracking-[0.08em] text-white/50">{label}</p>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>
+                ISO 9606-1 is the primary standard required for welding positions at Norwegian shipyards and offshore facilities.
+              </p>
             </div>
-          ))}
+
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <p
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#C9A84C",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  marginBottom: 6,
+                }}
+              >
+                Candidate sourcing
+              </p>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>
+                We source certified welders from EU and EEA countries and ask candidates to provide current certification documents
+                as part of screening.
+              </p>
+            </div>
+
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <p
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#C9A84C",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  marginBottom: 6,
+                }}
+              >
+                Timeline
+              </p>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>
+                Our goal is to present qualified candidate profiles within approximately two weeks of receiving a request, depending
+                on role and availability.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

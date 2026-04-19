@@ -26,7 +26,7 @@ const CARDS: CardDef[] = [
     body: "You send us the request. We search our EU/EEA network and do the pre-screening. You conduct the interview and handle all legal hiring procedures. We support you with candidate documentation and background information.",
     steps: [
       "You send us the candidate request with requirements",
-      "We source and pre-screen from 30 EU/EEA countries",
+      "We source and pre-screen across EU and EEA countries",
       "We present qualified candidates to you",
       "You interview, select, and manage the hiring process",
     ],

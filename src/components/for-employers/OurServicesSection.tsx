@@ -17,7 +17,7 @@ const SERVICES: ServiceItem[] = [
   {
     Icon: Search,
     title: "Sourcing",
-    body: "Targeted outreach across 30 EU/EEA countries to identify candidates that match your exact requirements. We use direct networks, not just job boards.",
+    body: "Targeted outreach across EU and EEA countries to identify candidates that match your exact requirements. We use direct networks, not just job boards.",
   },
   {
     Icon: UserCheck,

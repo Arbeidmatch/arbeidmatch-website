@@ -79,7 +79,6 @@ Standalone example (adjust selectors if your HTML differs). Same targets as prod
   var stats = [
     { key: "a", end: 500, suffix: "+", label: "Placements completed", aria: "500 plus placements completed" },
     { key: "b", end: 50, suffix: "+", label: "Active Norwegian clients", aria: "50 plus active Norwegian clients" },
-    { key: "c", end: 30, suffix: "", label: "EU/EEA source countries", aria: "30 EU and EEA source countries" },
     { key: "d", end: 98, suffix: "%", label: "Client satisfaction rate", aria: "98 percent client satisfaction rate" },
     { key: "e", end: 94288, suffix: "+", label: "Total visits", aria: "94,288 plus total visits", locale: true },
   ];
@@ -103,6 +102,13 @@ Standalone example (adjust selectors if your HTML differs). Same targets as prod
       "</div></div>";
     grid.appendChild(art);
   });
+
+  var euStat = document.createElement("article");
+  euStat.className = "am-stat";
+  euStat.setAttribute("aria-label", "Sourcing across EU and EEA countries");
+  euStat.innerHTML =
+    '<div aria-hidden="true"><div class="am-stat-num am-stat-eu" style="opacity:1">EU and EEA</div><div class="am-stat-label">Source countries</div></div>';
+  grid.appendChild(euStat);
 
   var del = document.createElement("article");
   del.className = "am-stat";
