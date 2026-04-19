@@ -2,6 +2,7 @@
 
 import type { CSSProperties, FormEvent, ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Flame, Zap } from "lucide-react";
 
@@ -291,12 +292,8 @@ function IconBox({ children }: { children: ReactNode }) {
 }
 
 function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
+  const router = useRouter();
   const { view, navigate, shellMotion } = useViewTransition(reducedMotion);
-  const [formNoDsb, setFormNoDsb] = useState(false);
-
-  useEffect(() => {
-    setFormNoDsb(false);
-  }, [view]);
 
   return (
     <CardShell shellMotion={shellMotion()}>
@@ -420,35 +417,68 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
             >
               No DSB yet
             </span>
-            <h3 className="text-[22px] font-extrabold text-white">Get your DSB authorization guide</h3>
+            <h3 className="mt-[14px] text-[22px] font-extrabold text-white">Where are you from?</h3>
             <p className="mt-2 text-[14px] leading-[1.65] text-white/[0.6]">
-              DSB authorization is required by Norwegian law to work on electrical installations. Our guide walks you through
-              the process step by step.
+              DSB authorization requirements differ based on your country of origin. Select your situation to get the right
+              guide.
             </p>
           </div>
-          <div className="mt-6 flex flex-col gap-2.5">
-            <Link
-              href="/dsb-support"
-              className="flex w-full items-center justify-center rounded-[10px] py-3.5 text-center text-[14px] font-bold text-[#0f1923] no-underline"
-              style={{ background: GOLD }}
-            >
-              Get the DSB Authorization Guide
-            </Link>
+          <div
+            style={{
+              margin: "20px 0",
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+            }}
+          />
+          <div className="flex flex-col gap-[10px]">
             <button
               type="button"
-              onClick={() => setFormNoDsb((o) => !o)}
-              className="w-full rounded-[10px] border py-3.5 text-[14px] font-bold"
-              style={{ borderColor: "rgba(201,168,76,0.3)", color: GOLD, background: "transparent" }}
+              onClick={() => router.push("/dsb-support/eu")}
+              className="flex w-full items-center justify-between rounded-[10px] border px-5 py-4 text-left transition-all duration-200 ease-out hover:bg-[rgba(201,168,76,0.15)] hover:border-[rgba(201,168,76,0.5)]"
+              style={{ background: "rgba(201,168,76,0.08)", borderColor: "rgba(201,168,76,0.25)" }}
             >
-              Notify me of DSB updates
+              <span className="flex flex-col items-start gap-[2px]">
+                <span style={{ color: GOLD, fontSize: 14, fontWeight: 600 }}>I am from EU / EEA</span>
+                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>
+                  Austria, Romania, Poland, Germany and more
+                </span>
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M9 6L15 12L9 18" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
-            <InlineSignup
-              open={formNoDsb}
-              specialty="electrician-no-dsb"
-              guideWanted
-              successMessage="We have registered your interest. We aim to notify you about new DSB resources when available. We cannot guarantee timing of specific job opportunities."
-              reducedMotion={reducedMotion}
-            />
+            <button
+              type="button"
+              onClick={() => router.push("/dsb-support/non-eu")}
+              className="flex w-full items-center justify-between rounded-[10px] border px-5 py-4 text-left transition-all duration-200 ease-out hover:bg-[rgba(201,168,76,0.12)] hover:border-[rgba(201,168,76,0.4)]"
+              style={{ background: "rgba(201,168,76,0.06)", borderColor: "rgba(201,168,76,0.2)" }}
+            >
+              <span className="flex flex-col items-start gap-[2px]">
+                <span style={{ color: GOLD, fontSize: 14, fontWeight: 600 }}>I am from outside EU / EEA</span>
+                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>
+                  Philippines, India, Ukraine, Brazil and more
+                </span>
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M9 6L15 12L9 18" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+          <p className="mt-4 text-center text-[11px] italic text-white/[0.3]">
+            Not sure? Check if your country is in the EU/EEA on{" "}
+            <a
+              href="https://european-union.europa.eu/principles-countries-history/country-profiles_en"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] no-underline"
+              style={{ color: GOLD }}
+            >
+              europa.eu
+            </a>
+          </p>
+          <div className="mt-6">
+            <Link href="/dsb-support" className="text-[12px] text-white/[0.4] underline underline-offset-2">
+              Learn more about DSB authorization
+            </Link>
           </div>
         </>
       ) : null}
