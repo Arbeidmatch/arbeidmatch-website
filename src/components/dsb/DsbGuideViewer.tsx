@@ -73,10 +73,6 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
     const active = resolvedToc.find((i) => i.id === activeId);
     return active?.text || resolvedToc[0]?.text || "Contents";
   }, [activeId, resolvedToc]);
-  const isLongToc = useMemo(() => {
-    const h3Count = resolvedToc.filter((item) => item.level === 3).length;
-    return resolvedToc.length > 18 || h3Count > 10;
-  }, [resolvedToc]);
 
   // eslint-disable-next-line react-hooks/refs -- reset for markdown render pass
   headingCursorRef.current = 0;
@@ -122,9 +118,18 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
 
     const onKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
-      if (event.ctrlKey && (key === "p" || key === "s")) {
+      const isProtectedShortcut =
+        event.key === "PrintScreen" ||
+        (event.ctrlKey && event.shiftKey && key === "s") ||
+        (event.metaKey && event.shiftKey && key === "4") ||
+        (event.metaKey && event.shiftKey && key === "3") ||
+        (event.ctrlKey && key === "p") ||
+        (event.metaKey && key === "p");
+      if (isProtectedShortcut) {
         event.preventDefault();
-        showProtection("This content is protected. Printing is not permitted.");
+        const message = "This content is protected. Screenshots and printing are not permitted.";
+        showProtection(message);
+        window.alert(message);
       }
     };
 
@@ -167,7 +172,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
   const watermarkItems = Array.from({ length: 36 }, (_, index) => `${watermarkText} · ${index + 1}`);
 
   return (
-    <div className="relative min-h-screen bg-surface pb-16 pt-8">
+    <div className="relative min-h-screen bg-surface pb-[76px] pt-8">
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         <div className="absolute inset-[-20%] flex rotate-[-45deg] flex-wrap content-start gap-12 opacity-[0.03]">
           {watermarkItems.map((item) => (
@@ -219,7 +224,6 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
             <nav aria-label="Table of contents">
               <ul className="space-y-1">
                 {resolvedToc.map((item) => {
-                  if (isLongToc && item.level === 3) return null;
                   return (
                   <li key={item.id}>
                     <a
@@ -244,20 +248,13 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                 })}
               </ul>
             </nav>
-            <button
-              type="button"
-              onClick={() => setProtectionMessage("This content is protected. Printing is not permitted.")}
-              className="mt-4 w-full rounded-md border border-border bg-white px-4 py-2 text-sm font-medium text-navy hover:bg-surface print:hidden"
-            >
-              Print this page
-            </button>
           </aside>
 
           <div className="min-w-0">
             <article
               className="dsb-guide-content prose-guide rounded-xl border border-border bg-white px-5 py-6 md:px-12 md:py-10"
               data-guide-slug={guideSlug}
-              style={{ userSelect: "none", WebkitUserSelect: "none" }}
+              style={{ userSelect: "none", WebkitUserSelect: "none", MozUserSelect: "none", paddingBottom: "60px" }}
             >
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
@@ -279,7 +276,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
 
                     const lower = text.toLowerCase();
                     const isStep = /^step\s*\d+/i.test(text);
-                    const isDisclaimer = lower.includes("important legal disclaimer");
+                    const isDisclaimer = lower.includes("disclaimer") || lower.includes("legal");
                     const isUsefulLinks = lower.includes("useful links");
 
                     sectionModeRef.current = isStep ? "step" : isDisclaimer ? "disclaimer" : isUsefulLinks ? "links" : "default";
@@ -304,7 +301,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                       <h2
                         id={id}
                         className={`scroll-mt-24 mb-3 mt-10 flex items-center gap-2.5 text-[clamp(18px,2.5vw,24px)] font-bold text-[#0f1923] ${
-                          isDisclaimer ? "text-[12px] uppercase tracking-[0.08em] text-[#E24B4A]" : ""
+                          isDisclaimer ? "mb-3 text-[13px] font-bold uppercase tracking-[0.08em] text-[#E24B4A]" : ""
                         }`}
                         {...props}
                       >
@@ -349,7 +346,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                     <p
                       className={`mb-4 max-w-[680px] text-[15px] leading-[1.8] text-[#374151] ${
                         sectionModeRef.current === "disclaimer"
-                          ? "rounded-r-lg border border-[rgba(226,75,74,0.15)] border-l-[3px] border-l-[#E24B4A] bg-[rgba(226,75,74,0.04)] px-6 py-5 text-[13px] leading-[1.65] text-black/55"
+                          ? "my-5 rounded-xl border border-[rgba(226,75,74,0.2)] border-l-4 border-l-[#E24B4A] bg-[rgba(226,75,74,0.06)] px-6 py-5 text-[13px] leading-[1.7] text-[#374151]"
                           : ""
                       }`}
                       {...props}
@@ -398,15 +395,25 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                       href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={
-                        sectionModeRef.current === "links"
-                          ? "flex items-center justify-between rounded-[10px] border border-black/10 bg-white px-[18px] py-3.5 text-[14px] font-medium text-[#0f1923] no-underline transition-all duration-180 ease-out hover:border-[#C9A84C] hover:bg-[rgba(201,168,76,0.04)]"
-                          : "font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#b8953f]"
-                      }
+                      style={{
+                        color: "#C9A84C",
+                        textDecoration: "underline",
+                        textDecorationColor: "rgba(201,168,76,0.4)",
+                        fontWeight: 500,
+                        transition: "color 150ms",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = "#b8953f";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = "#C9A84C";
+                      }}
                       {...props}
                     >
-                      <span>{children}</span>
-                      {sectionModeRef.current === "links" ? <ExternalLink size={16} className="text-[#C9A84C]" aria-hidden /> : null}
+                      <span className="inline-flex items-center gap-1.5">
+                        {children}
+                        <ExternalLink size={14} className="text-[#C9A84C]" aria-hidden />
+                      </span>
                     </a>
                   ),
                   table: ({ children }) => (
@@ -497,6 +504,24 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
           </div>
         </div>
       ) : null}
+      <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-3 bg-[rgba(15,25,35,0.95)] px-6 py-2 backdrop-blur">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path d="M12 2l8 3v6c0 5-3.4 9.7-8 11-4.6-1.3-8-6-8-11V5l8-3Z" stroke="rgba(255,255,255,0.4)" strokeWidth="1.6" />
+        </svg>
+        <p className="text-center text-[11px] italic text-white/40">
+          This guide is for informational purposes only. Always verify current requirements directly with DSB.no before
+          submitting any application. ArbeidMatch Norge AS accepts no legal liability.
+          {" "}
+          <a
+            href="https://www.dsb.no/en/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-[#C9A84C] underline"
+          >
+            DSB.no
+          </a>
+        </p>
+      </div>
     </div>
   );
 }
