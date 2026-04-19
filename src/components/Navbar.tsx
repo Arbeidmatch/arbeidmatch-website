@@ -372,7 +372,7 @@ export default function Navbar() {
               </Link>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-40">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(1.5rem,env(safe-area-inset-bottom))]">
               <p className={mobileSectionHeaderClass}>For employers</p>
               {mobileEmployersLinks.map((item, i) => (
                 <MobileNavRow
@@ -429,22 +429,6 @@ export default function Navbar() {
                 </MobileNavRow>
               ))}
             </div>
-
-            <motion.div
-              className="fixed bottom-0 left-0 right-0 border-t border-white/[0.06] bg-[#0a0f19] px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6"
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7, duration: 0.28, ease: "easeOut" }}
-            >
-              <Link
-                href="/request"
-                onClick={closeMenu}
-                className="flex w-full items-center justify-center rounded-[10px] bg-[#C9A84C] py-4 text-[15px] font-bold text-[#0f1923]"
-              >
-                Request Candidates
-              </Link>
-              <p className="mt-3 text-center text-[12px] text-white/[0.3]">post@arbeidmatch.no</p>
-            </motion.div>
           </motion.div>
         ) : null}
       </AnimatePresence>
