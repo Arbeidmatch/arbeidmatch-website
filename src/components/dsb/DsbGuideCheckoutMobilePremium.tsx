@@ -63,7 +63,7 @@ const NON_EU_CONFIG: VariantConfig = {
   badge: "Non-EU Citizens",
   heroEmoji: "🌍",
   title: "DSB Authorization Guide for Non-EU Electricians",
-  subtitle: "Non-EU Electricians - €29",
+  subtitle: "Non-EU Electricians - €39",
   pills: [
     { icon: "clock", text: "6-12 months" },
     { icon: "airplane", text: "Work visa required" },
@@ -293,43 +293,12 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
               </>
             ) : (
               <>
-                <div className="dsb-price-row">
-                  <div className="dsb-price-block is-primary">
-                    <div
-                      className="dsb-price-amount"
-                      style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10 }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 18,
-                          color: "rgba(255,255,255,0.35)",
-                          textDecoration: "line-through",
-                        }}
-                      >
-                        €39
-                      </span>
-                      <span style={{ fontSize: 48, fontWeight: 800, color: GOLD }}>€29</span>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    background: "rgba(29,158,117,0.15)",
-                    color: "#1D9E75",
-                    borderRadius: 20,
-                    padding: "3px 12px",
-                    fontWeight: 600,
-                    display: "inline-block",
-                    marginTop: 6,
-                  }}
-                >
-                  €10 off
-                </div>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>
-                  Launch discount applied automatically. No code needed.
+                <div style={{ fontSize: 48, fontWeight: 800, color: GOLD }}>€39</div>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>Non-EU Electricians</p>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
+                  One-time payment. Instant access. No subscription.
                 </p>
-                <p className="dsb-price-note" style={{ marginTop: 8 }}>
+                <p className="dsb-price-note" style={{ marginTop: 12 }}>
                   Prices include VAT where applicable.
                 </p>
                 <ul className="dsb-price-trust">
