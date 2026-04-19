@@ -6,6 +6,7 @@ import DsbPillarFromMarkdown from "@/components/dsb/DsbPillarFromMarkdown";
 import DsbRequestPopup from "@/components/dsb/DsbRequestPopup";
 import DsbCompleteGuide from "@/components/dsb/DsbCompleteGuide";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
+import DsbPublicOverviewBar from "@/components/dsb/DsbPublicOverviewBar";
 import DsbTypeSelectorLoader from "./DsbTypeSelectorLoader";
 
 const SITE = "https://www.arbeidmatch.no";
@@ -74,6 +75,7 @@ export default function DsbSupportPage() {
           </div>
         </div>
       </section>
+      <DsbPublicOverviewBar />
       <section className="bg-surface">
         <DsbPillarFromMarkdown />
       </section>

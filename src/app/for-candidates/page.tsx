@@ -2,6 +2,7 @@ import { CheckCircle2, DollarSign, Factory, HardHat, Home, Hotel, Sparkles, User
 import type { Metadata } from "next";
 
 import TradeSpecialistCards from "@/components/candidates/TradeSpecialistCards";
+import CandidateAuthorityDisclaimerBar from "@/components/for-candidates/CandidateAuthorityDisclaimerBar";
 import CandidateFeedbackPill from "@/components/for-candidates/CandidateFeedbackPill";
 import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -38,6 +39,8 @@ export default function ForCandidatesPage() {
           </StaggerHero>
         </div>
       </section>
+
+      <CandidateAuthorityDisclaimerBar />
 
       <TradeSpecialistCards />
 
@@ -102,7 +105,7 @@ export default function ForCandidatesPage() {
             {[
               "Complete the work readiness check",
               "Apply with your CV in about 2 minutes",
-              "Our team contacts you within 5 business days",
+              "Our goal is to contact you within 5 business days",
             ].map((step, i) => (
               <ScrollReveal key={step} variant="fadeUp">
                 <p className="rounded-xl border border-border bg-white p-6 text-lg text-navy">

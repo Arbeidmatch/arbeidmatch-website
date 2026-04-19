@@ -6,12 +6,13 @@ export default function BemanningLegalSection() {
       aria-labelledby="bemanning-innleie-heading"
     >
       <h2 id="bemanning-innleie-heading" className="text-lg font-semibold text-navy md:text-xl">
-        Når kan du leie inn arbeidskraft?
+        When can you hire through a staffing agency?
       </h2>
       <p className="mt-3 text-sm leading-relaxed text-text-secondary md:text-[15px]">
-        I henhold til arbeidsmiljøloven § 14-12 er innleie fra bemanningsforetak tillatt ved midlertidig behov, vikariat,
-        praksisarbeid og sesongarbeid. ArbeidMatch opererer innenfor disse rammene og sikrer at alle arbeidsforhold er i
-        samsvar med norsk arbeidslovgivning og tariffavtaler.
+        Under Norwegian law (Working Environment Act section 14-12), hiring through a staffing agency is permitted for
+        temporary needs, substitution for permanent employees, work placements, and seasonal work. ArbeidMatch operates
+        within these rules and works to ensure all employment arrangements comply with Norwegian labor law and collective
+        agreements.
       </p>
       <p className="mt-4">
         <a
@@ -20,7 +21,7 @@ export default function BemanningLegalSection() {
           rel="noopener noreferrer"
           className="inline-flex min-h-[44px] min-w-[44px] items-center text-sm font-medium text-gold underline-offset-4 hover:underline"
         >
-          Les regelverket på Arbeidstilsynet.no
+          Read the regulations at Arbeidstilsynet.no
         </a>
       </p>
     </section>

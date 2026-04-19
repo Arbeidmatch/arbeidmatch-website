@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Flame, Zap } from "lucide-react";
 
+import SourceDisclaimer from "@/components/ui/SourceDisclaimer";
+
 const GOLD = "#C9A84C";
 const CARD_BG = "#0f1923";
 const GREEN = "#1D9E75";
@@ -314,9 +316,9 @@ export default function TradeSpecialistCards() {
                 >
                   I have DSB authorization
                 </span>
-                <p className="text-[15px] font-bold leading-snug text-white">Ready to work. Find your next project.</p>
+                <p className="text-[15px] font-bold leading-snug text-white">Prepared to start work. Find your next project.</p>
                 <p className="mt-1.5 text-[13px] leading-[1.6] text-white/[0.6]">
-                  Register your profile and we will match you with Norwegian employers actively looking for DSB-authorized
+                  Register your profile and we work to connect you with Norwegian employers actively looking for DSB-authorized
                   electricians. Norwegian employer references are a strong advantage.
                 </p>
                 <a
@@ -340,7 +342,7 @@ export default function TradeSpecialistCards() {
                   open={elecOpen === "a"}
                   specialty="electrician-dsb"
                   guideWanted={false}
-                  successMessage="Your profile is registered. Our team will contact you when we have a matching opportunity."
+                  successMessage="We have registered your interest. If we have a suitable opportunity matching your profile, our team will reach out. We cannot guarantee contact or placement timelines."
                   reducedMotion={reducedMotion}
                 />
               </PathBlockShell>
@@ -374,7 +376,7 @@ export default function TradeSpecialistCards() {
                   open={elecOpen === "b"}
                   specialty="electrician-no-dsb"
                   guideWanted
-                  successMessage="You are on the list. We will notify you of new DSB resources and job opportunities."
+                  successMessage="We have registered your interest. We aim to notify you about new DSB resources when available. We cannot guarantee timing of specific job opportunities."
                   reducedMotion={reducedMotion}
                 />
               </PathBlockShell>
@@ -401,12 +403,21 @@ export default function TradeSpecialistCards() {
                 </span>
                 <p className="text-[15px] font-bold leading-snug text-white">Apply now for shipyard placements.</p>
                 <p className="mt-1.5 text-[13px] leading-[1.6] text-white/[0.6]">
-                  ISO 9606 certified welders are in high demand at Norwegian shipyards. Transport and accommodation are
-                  typically included. Register your profile and we will match you with active openings.
+                  ISO 9606 certified welders are in high demand at Norwegian shipyards. Many employers for shipyard and
+                  offshore placements include transport and accommodation as part of the package. This varies by employer and
+                  project. Always confirm specifics before accepting any offer. Register your profile and we work to connect you
+                  with active openings.
                 </p>
                 <p className="mt-2 text-[11px] leading-snug text-white/[0.4]">
                   Typical salary: 280 to 330 NOK per hour. Rotation: 4 weeks on, 2 weeks home or 6 weeks on, 2 weeks home.
                 </p>
+                <SourceDisclaimer
+                  variant="dark"
+                  className="mt-1 text-white/[0.4]"
+                  text="Salary ranges are general market estimates based on collective agreements and publicly available sources. Actual pay depends on qualifications, employer, project type, and individual negotiation. ArbeidMatch is not responsible for salary outcomes."
+                  sourceLabel="Source: Arbeidstilsynet.no"
+                  sourceUrl="https://www.arbeidstilsynet.no/en/pay-and-engagement-of-employees/pay-and-minimum-rates-of-pay/minimum-wage/"
+                />
                 <a
                   href="https://jobs.arbeidmatch.no"
                   target="_blank"
@@ -428,7 +439,7 @@ export default function TradeSpecialistCards() {
                   open={weldOpen === "a"}
                   specialty="welder-iso"
                   guideWanted={false}
-                  successMessage="Your profile is registered. Our team will review your certifications and contact you when we have a matching shipyard placement."
+                  successMessage="We have registered your interest. If we have a suitable shipyard placement matching your profile, our team will reach out. We cannot guarantee contact or placement timelines."
                   reducedMotion={reducedMotion}
                 />
               </PathBlockShell>
@@ -453,7 +464,7 @@ export default function TradeSpecialistCards() {
                   open={weldOpen === "b"}
                   specialty="welder-no-iso"
                   guideWanted
-                  successMessage="You are on the list. We will notify you when the welding certification guide becomes available."
+                  successMessage="We have registered your interest. We aim to notify you when the welding certification guide becomes available. We cannot guarantee a publication date."
                   reducedMotion={reducedMotion}
                 />
               </PathBlockShell>
@@ -461,11 +472,16 @@ export default function TradeSpecialistCards() {
           </TradeCardShell>
         </div>
       </div>
-      <p className="mx-auto mt-6 max-w-[680px] px-6 text-center text-[12px] italic text-[#6b7280]">
-        Salary ranges are general market estimates based on publicly available data and collective agreements (tariffavtale).
-        Actual compensation depends on individual qualifications, employer, and negotiation. ArbeidMatch does not guarantee
-        any specific salary. Norwegian employer references significantly influence placement opportunities.
-      </p>
+      <div className="mx-auto mt-6 max-w-[680px] px-6 text-center">
+        <SourceDisclaimer
+          text="Salary ranges are general market estimates based on collective agreements and publicly available sources. Actual pay depends on qualifications, employer, project type, and individual negotiation. ArbeidMatch is not responsible for salary outcomes."
+          sourceLabel="Source: Arbeidstilsynet.no"
+          sourceUrl="https://www.arbeidstilsynet.no/en/pay-and-engagement-of-employees/pay-and-minimum-rates-of-pay/minimum-wage/"
+        />
+        <p className="mt-2 text-center text-[12px] italic text-[#6b7280]">
+          Norwegian employer references significantly influence placement opportunities.
+        </p>
+      </div>
     </section>
   );
 }

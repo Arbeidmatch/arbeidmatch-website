@@ -74,8 +74,8 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
         Norwegian business.
       </motion.h1>
       <motion.p className="mb-8 max-w-[480px] leading-[1.6] text-[#555555]" {...fade(0.25)}>
-        We source, screen and deliver pre-qualified EU/EEA workers for construction, logistics and industry. Fast,
-        legal, and fully compliant.
+        We source, screen and work to connect you with pre-qualified EU/EEA workers for construction, logistics and industry.
+        Fast, legal, and fully compliant.
       </motion.p>
       <motion.div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap" {...fade(0.4)}>
         <Link
@@ -91,14 +91,6 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
           How it works
         </Link>
       </motion.div>
-      <motion.div
-        className="mt-8 grid grid-cols-2 gap-x-3 gap-y-2 text-center text-[11px] leading-snug text-[#888888] sm:text-xs md:grid-cols-3 md:text-[13px] md:leading-relaxed"
-        {...fade(0.55)}
-      >
-        <span>500+ placements</span>
-        <span>50+ Norwegian clients</span>
-        <span className="col-span-2 md:col-span-1">2-week delivery</span>
-      </motion.div>
     </div>
   ) : (
     <div className="min-w-0">
@@ -113,8 +105,8 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
         Norwegian business.
       </h1>
       <p className="mb-8 max-w-[480px] leading-[1.6] text-[#555555]">
-        We source, screen and deliver pre-qualified EU/EEA workers for construction, logistics and industry. Fast, legal,
-        and fully compliant.
+        We source, screen and work to connect you with pre-qualified EU/EEA workers for construction, logistics and industry.
+        Fast, legal, and fully compliant.
       </p>
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Link
@@ -129,11 +121,6 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
         >
           How it works
         </Link>
-      </div>
-      <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-2 text-center text-[11px] leading-snug text-[#888888] sm:text-xs md:grid-cols-3 md:text-[13px] md:leading-relaxed">
-        <span>500+ placements</span>
-        <span>50+ Norwegian clients</span>
-        <span className="col-span-2 md:col-span-1">2-week delivery</span>
       </div>
     </div>
   );
@@ -317,18 +304,18 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
           <ScrollReveal variant="fadeUp">
             <div className="mx-auto max-w-4xl rounded-xl bg-navy p-10 md:p-12">
               <h2 className="am-h2 heading-premium-xl mb-6 font-extrabold text-white">
-                Rekruttering som fungerer - for alle parter
+                Recruitment that works. For everyone.
               </h2>
               <p className="leading-relaxed text-white/80">
-                Vi tror ikke vi har funnet opp noe nytt. Men vi organiserer prosessen så godt vi kan - slik at kandidater
-                fra ulike kulturer, bakgrunner og religioner opplever respekt og klarhet fra første kontakt. Og slik at
-                norske arbeidsgivere får arbeidskraft som faktisk fungerer i deres miljø.
+                We have not invented anything new. But we organize the process as well as we can, so that candidates from
+                different cultures, backgrounds and religions experience respect and clarity from the first contact. And so
+                that Norwegian employers get workers who genuinely fit their environment.
               </p>
               <ul className="mt-8 space-y-4">
                 {[
-                  "Kulturell og religiøs sensitivitet i screening-prosessen",
-                  "Tydelig kommunikasjon på tvers av språk og forventninger",
-                  "Vi lover ikke perfeksjon - vi lover kontinuerlig forbedring",
+                  "Cultural and religious sensitivity throughout our screening process",
+                  "Clear communication across languages and expectations",
+                  "We do not promise perfection. We promise continuous improvement.",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3 text-white">
                     <span className="mt-0.5 shrink-0 text-gold" aria-hidden>
@@ -362,7 +349,7 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
             <p className="mb-8 text-lg text-white/70">
-              Contact us today and receive pre-qualified candidates within 2 weeks.
+              Contact us today. Our goal is to connect you with pre-qualified candidates within about two weeks.
             </p>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">

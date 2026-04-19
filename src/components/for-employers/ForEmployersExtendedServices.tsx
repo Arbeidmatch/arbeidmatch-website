@@ -33,26 +33,26 @@ function IconMegaphone({ className }: { className?: string }) {
 
 const CARDS = [
   {
-    title: "Full rekruttering",
-    text: "Vi håndterer hele prosessen - sourcing, screening, intervju og presentasjon. Du velger, vi leverer.",
+    title: "Full Recruitment",
+    text: "We manage the entire process: sourcing, screening, interviews and presentation. You choose, we deliver.",
     href: "/request",
-    cta: "Be om rekruttering →",
+    cta: "Request recruitment →",
     icon: IconSearchUser,
     topBorder: true,
   },
   {
-    title: "Bemanning og innleie",
-    text: "Fleksibel arbeidskraft når du trenger det. Vi er arbeidsgiveren - du fokuserer på prosjektet.",
+    title: "Staffing and Temporary Hire",
+    text: "Flexible workforce when you need it. We are the employer. You focus on the project.",
     href: "/request",
-    cta: "Se bemanningsløsninger →",
+    cta: "View staffing solutions →",
     icon: IconUsers,
     topBorder: false,
   },
   {
-    title: "Direkteannonsering",
-    text: "Nå kandidater der de faktisk er. Vi publiserer stillingen din på våre EU/EEA-nettverk og kanaler - du ansetter direkte. Mer effektivt enn lokale jobbtavler, til en brøkdel av kostnaden.",
+    title: "Direct Advertising",
+    text: "Reach candidates where they actually are. We publish your position on our EU/EEA networks and channels. You hire directly. More effective than local job boards, at a fraction of the cost.",
     href: "/contact",
-    cta: "Hør mer om annonsering →",
+    cta: "Ask about advertising →",
     icon: IconMegaphone,
     topBorder: false,
   },
@@ -63,7 +63,7 @@ export default function ForEmployersExtendedServices() {
     <section className="border-t border-border bg-white py-12 md:py-16 lg:py-[100px]">
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <h2 className="am-h2 text-center font-display font-bold text-navy">
-          Trenger du kandidater - men ønsker å ansette selv?
+          Need candidates but want to hire directly?
         </h2>
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {CARDS.map((card, i) => {
@@ -89,9 +89,8 @@ export default function ForEmployersExtendedServices() {
           })}
         </div>
         <p className="mx-auto mt-10 max-w-3xl text-center text-[13px] italic leading-relaxed text-text-secondary">
-          Alle tjenester leveres innenfor norsk arbeidslovgivning. ArbeidMatch påtar seg ansvar for det som ligger
-          innenfor vår kontroll. Vi er transparente om prosess, forventninger og begrensninger - og vi forbedrer oss
-          kontinuerlig.
+          All services are delivered within Norwegian labor law. ArbeidMatch takes responsibility for what is within our
+          control. We are transparent about process, expectations and limitations, and we continuously improve.
         </p>
       </div>
     </section>

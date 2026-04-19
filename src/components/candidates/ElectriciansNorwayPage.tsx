@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Briefcase, Clock, FileCheck } from "lucide-react";
 
+import SourceDisclaimer from "@/components/ui/SourceDisclaimer";
+
 const GOLD = "#C9A84C";
 const NAVY = "#0f1923";
 const ARBEIDSTILSYNET_MIN =
@@ -275,19 +277,16 @@ export default function ElectriciansNorwayPage() {
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-[11px] italic leading-relaxed text-black/[0.4]">
-              Sources: Arbeidstilsynet.no minimum wage rates 2025, ERI Economic Research Institute Norway 2026, NorwayExplained.com.
-              Rates are general estimates and subject to change. Always verify current rates with your employer and relevant
-              collective agreement.
+            <SourceDisclaimer
+              className="mt-4 text-left"
+              text="Salary ranges are general market estimates based on collective agreements and publicly available sources. Actual pay depends on qualifications, employer, project type, and individual negotiation. ArbeidMatch is not responsible for salary outcomes."
+              sourceLabel="Source: Arbeidstilsynet.no"
+              sourceUrl={ARBEIDSTILSYNET_MIN}
+            />
+            <p className="mt-2 text-[11px] italic leading-relaxed text-black/[0.4]">
+              Additional context may include ERI Economic Research Institute Norway 2026 and NorwayExplained.com. Always
+              verify current rates with your employer and the relevant collective agreement.
             </p>
-            <a
-              href={ARBEIDSTILSYNET_MIN}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 inline-block text-[11px] font-medium text-gold underline-offset-4 hover:underline"
-            >
-              Check current minimum wage rates at Arbeidstilsynet.no
-            </a>
           </div>
         </div>
       </section>
@@ -319,9 +318,10 @@ export default function ElectriciansNorwayPage() {
         <div className="mx-auto w-full max-w-2xl">
           <h2 className="text-[28px] font-bold text-white">Already have your DSB? Register now.</h2>
           <p className="mt-3 text-[15px] leading-[1.7] text-white/[0.6]">
-            Register your profile and our team will match you with Norwegian employers actively looking for qualified
-            electricians. We review every profile and contact you personally when we have a relevant opportunity. Norwegian
-            employer references are a strong advantage and help us match you with better projects.
+            Register your profile and we work to connect you with Norwegian employers actively looking for qualified
+            electricians. We check each submission and aim to contact you personally when we have a relevant opportunity. We
+            cannot guarantee timelines. Norwegian employer references are a strong advantage and help us match you with
+            better projects.
           </p>
           <FooterRegisterForm />
         </div>
@@ -359,7 +359,8 @@ function FooterRegisterForm() {
   if (status === "success") {
     return (
       <p className="mt-6 text-[13px]" style={{ color: GOLD }}>
-        Your profile has been registered. Our team will contact you when we have a matching opportunity.
+        We have registered your interest. If we have a suitable opportunity matching your profile, our team will reach out.
+        We cannot guarantee contact or placement timelines.
       </p>
     );
   }

@@ -74,8 +74,10 @@ export default function WeldingSpecialistsCard() {
               ISO-Certified Welders and Specialist Technicians
             </h2>
             <p className="mt-3 max-w-[560px] text-base leading-[1.7] text-white/[0.6]">
-              We source pre-screened welders and technical specialists holding valid ISO certifications, EN standards,
-              and sector-specific authorizations. Ready to work on demanding Norwegian and international projects.
+              We source pre-screened welders and technical specialists holding valid ISO certifications, EN standards, and
+              sector-specific authorizations. We ask candidates to provide current certification documents and check basic
+              validity as part of our screening process. Prepared to start work on demanding Norwegian and international
+              projects.
             </p>
             <Link
               href="/request"
@@ -102,7 +104,11 @@ export default function WeldingSpecialistsCard() {
 
         <div className="mt-9 flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-6">
-            {["Certificate validation included", "EU/EEA legal compliance", "2-week average delivery"].map((t) => (
+            {[
+              "Basic certificate validity check included in our screening",
+              "EU/EEA legal compliance",
+              "Our goal is to connect you with candidates within about two weeks",
+            ].map((t) => (
               <div key={t} className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: GOLD }} aria-hidden />
                 <span className="text-[13px] text-white/[0.55]">{t}</span>
