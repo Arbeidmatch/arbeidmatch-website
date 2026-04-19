@@ -7,6 +7,49 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const STORAGE_KEY = "am_dsb_type";
 
+/** EU disc (blue + ring of stars): renders reliably on desktop where 🇪🇺 may clip or fall back to letters. */
+function EuFlagBadge({ className }: { className?: string }) {
+  const stars = Array.from({ length: 12 }, (_, i) => {
+    const angle = (i * Math.PI) / 6 - Math.PI / 2;
+    const r = 12.5;
+    const cx = 20 + r * Math.cos(angle);
+    const cy = 20 + r * Math.sin(angle);
+    return <circle key={i} cx={cx} cy={cy} r={1.65} fill="#FFCC00" />;
+  });
+  return (
+    <svg
+      width={40}
+      height={40}
+      viewBox="0 0 40 40"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <circle cx={20} cy={20} r={20} fill="#003399" />
+      {stars}
+    </svg>
+  );
+}
+
+function GlobeBadge({ className }: { className?: string }) {
+  return (
+    <svg
+      width={40}
+      height={40}
+      viewBox="0 0 40 40"
+      fill="none"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <circle cx={20} cy={20} r={18} stroke="currentColor" strokeWidth={1.5} className="opacity-90" />
+      <ellipse cx={20} cy={20} rx={8} ry={18} stroke="currentColor" strokeWidth={1.5} className="opacity-80" />
+      <path d="M2 20h36" stroke="currentColor" strokeWidth={1.5} className="opacity-80" />
+      <path d="M20 2c8 6 8 30 0 36M20 2c-8 6-8 30 0 36" stroke="currentColor" strokeWidth={1.5} className="opacity-80" />
+    </svg>
+  );
+}
+
 const cardBase =
   "dsb-card rounded-xl p-5 text-left text-white md:p-6";
 
@@ -117,9 +160,9 @@ export default function ForCandidatesDsbSection() {
                       }}
                       className={`${cardBase} dsb-card--eu bg-white/[0.05]`}
                     >
-                      <p className="flex h-8 w-8 items-center justify-center text-[32px] leading-none" aria-hidden>
-                        🇪🇺
-                      </p>
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center" aria-hidden>
+                        <EuFlagBadge className="block" />
+                      </span>
                       <h3 className="mt-3 text-xl font-semibold text-white">EU/EEA Electricians</h3>
                       <ul className="mt-4 space-y-2">
                         <li className={listItem}>Faster process: 2-4 months</li>
@@ -142,9 +185,9 @@ export default function ForCandidatesDsbSection() {
                       }}
                       className={`${cardBase} dsb-card--non-eu bg-white/[0.03]`}
                     >
-                      <p className="flex h-8 w-8 items-center justify-center text-[32px] leading-none" aria-hidden>
-                        🌍
-                      </p>
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center text-sky-200/90" aria-hidden>
+                        <GlobeBadge className="block" />
+                      </span>
                       <h3 className="mt-3 text-xl font-semibold text-white">Non-EU Electricians</h3>
                       <ul className="mt-4 space-y-2">
                         <li className={listItem}>Longer process: 6-12 months</li>
