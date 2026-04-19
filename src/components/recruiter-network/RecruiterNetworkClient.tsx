@@ -86,7 +86,11 @@ function IconReveal({
   const isInView = useInView(ref, { once: true, amount: 0.15 });
 
   if (reduce) {
-    return <div className={`rn-icon-wrap rn-icon-wrap--static ${className}`}>{children}</div>;
+    return (
+      <div className={`rn-icon-wrap rn-icon-wrap--static ${className}`}>
+        <span className="rn-icon-inner">{children}</span>
+      </div>
+    );
   }
 
   return (
@@ -102,7 +106,7 @@ function IconReveal({
         ease: ICON_SPRING_EASE,
       }}
     >
-      {children}
+      <span className="rn-icon-inner">{children}</span>
     </motion.div>
   );
 }
@@ -362,7 +366,7 @@ export default function RecruiterNetworkClient() {
           <div className="mt-14 grid gap-8 lg:grid-cols-3">
             {pathCards.map((card, i) => (
               <Reveal key={card.title} isMobile={isMobile} delay={i * stagger} className="h-full">
-                <article className="rn-card-net card-premium card-premium-gold flex h-full flex-col p-8">
+                <article className="rn-card-net flex h-full flex-col p-8">
                   <IconReveal isMobile={isMobile} className="mb-5" staggerIndex={i}>
                     {card.icon}
                   </IconReveal>
@@ -397,7 +401,7 @@ export default function RecruiterNetworkClient() {
           <div className="mt-14 grid gap-8 md:grid-cols-2">
             {whatYouGet.map((item, i) => (
               <Reveal key={item.title} isMobile={isMobile} delay={i * stagger} className="h-full">
-                <article className="rn-card-net card-premium card-premium-gold flex h-full flex-col p-8">
+                <article className="rn-card-net flex h-full flex-col p-8">
                   <IconReveal isMobile={isMobile} className="mb-5" staggerIndex={i}>
                     {item.icon}
                   </IconReveal>
@@ -418,52 +422,39 @@ export default function RecruiterNetworkClient() {
             </h2>
           </Reveal>
 
-          <div ref={stepsRef} className="relative mx-auto mt-16 max-w-3xl">
-            <div className="pointer-events-none absolute bottom-8 left-[18px] top-8 w-[2px] overflow-hidden rounded-full bg-white/10 md:left-5" aria-hidden>
-              <motion.div
-                className="w-full rounded-full bg-[#B8860B]"
-                initial={{ height: 0 }}
-                animate={stepsInView ? { height: "100%" } : {}}
-                transition={{ duration: isMobile ? 0.85 : 1.2, ease: HERO_EASE }}
+          <div ref={stepsRef} className="relative mx-auto mt-16 max-w-[600px] px-4">
+            <div className="relative">
+              {/* pl-12 (48px) + half of 40px dot = 68px — line through dot centers */}
+              <div
+                className="pointer-events-none absolute bottom-6 left-[68px] top-6 z-0 w-[2px] -translate-x-1/2 rounded-full bg-[#C9A84C]/30"
+                aria-hidden
               />
-            </div>
 
-            <ol className="relative space-y-12 pl-12 md:pl-14">
+              <ol className="relative z-[1] flex flex-col gap-8 pl-12">
               {steps.map((step, i) => (
                 <motion.li
                   key={step.title}
-                  className="relative"
+                  className="group relative flex items-start gap-4"
                   initial={reduce ? false : { opacity: 0, y: 16 }}
                   animate={stepsInView ? { opacity: 1, y: 0 } : {}}
                   transition={{ delay: i * stepStagger, duration: isMobile ? 0.42 : 0.55, ease: HERO_EASE }}
                 >
-                  <div className="absolute left-0 top-0 flex h-10 w-10 -translate-x-[11px] items-center justify-center md:-translate-x-[10px]">
-                    <motion.span
-                      className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#B8860B] bg-[#0a0c14] text-sm font-extrabold text-[#B8860B] shadow-[0_0_16px_rgba(184,134,11,0.35)]"
-                      initial={reduce ? false : { scale: 0.6, opacity: 0 }}
-                      animate={stepsInView ? { scale: 1, opacity: 1 } : {}}
-                      transition={{
-                        delay: i * stepStagger + 0.05,
-                        type: "spring",
-                        stiffness: 260,
-                        damping: 18,
-                      }}
-                    >
-                      {i + 1}
-                    </motion.span>
-                  </div>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                    <IconReveal isMobile={isMobile} className="shrink-0 pt-1" staggerIndex={i}>
+                  <div
+                    className="relative z-[2] flex h-10 min-h-10 w-10 min-w-10 shrink-0 items-center justify-center rounded-full border border-[#C9A84C] bg-[rgba(201,168,76,0.15)] transition-[border-color,background-color] duration-200 ease-out group-hover:border-[#C9A84C] group-hover:bg-[rgba(201,168,76,0.25)]"
+                    aria-hidden
+                  >
+                    <span className="inline-flex origin-center transition-transform duration-[180ms] ease-out group-hover:scale-110">
                       {step.icon}
-                    </IconReveal>
-                    <div>
-                      <h3 className="text-lg font-bold text-white">{step.title}</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-white/65">{step.text}</p>
-                    </div>
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1 pt-2">
+                    <h3 className="mb-1 text-base font-semibold text-white">{step.title}</h3>
+                    <p className="text-sm leading-relaxed text-white/60">{step.text}</p>
                   </div>
                 </motion.li>
               ))}
-            </ol>
+              </ol>
+            </div>
           </div>
         </div>
       </section>
