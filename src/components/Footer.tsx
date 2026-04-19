@@ -81,6 +81,7 @@ const stederCol: [string, string][] = [
 ];
 
 const ressurserCol: [string, string][] = [
+  ["Premium Guides", "/premium"],
   ["DSB-godkjenning", "/dsb-support"],
   ["DSB-sjekkliste", "/dsb-checklist"],
   ["Blog", "/blog"],

@@ -22,7 +22,8 @@ const stederLinks = [
   { href: "/bemanningsbyrå-kristiansand", label: "Kristiansand" },
 ];
 
-const ressurserLinks = [
+const ressurserLinks: { href: string; label: string; premium?: boolean }[] = [
+  { href: "/premium", label: "ArbeidMatch Premium", premium: true },
   { href: "/about", label: "Om oss" },
   { href: "/dsb-support", label: "DSB-godkjenning" },
   { href: "/blog", label: "Blog" },
@@ -183,7 +184,12 @@ export default function Navbar() {
                             href={item.href}
                             className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
                           >
-                            {item.label}
+                            <span className="inline-flex items-center gap-2">
+                              {item.premium ? (
+                                <span className="h-2 w-2 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
+                              ) : null}
+                              <span>{item.label}</span>
+                            </span>
                           </Link>
                         </li>
                       ))}
@@ -320,7 +326,12 @@ export default function Navbar() {
                             onClick={closeMenu}
                             className="flex min-h-[44px] items-center py-2 pl-2 text-[14px] hover:text-navy"
                           >
-                            {item.label}
+                            <span className="inline-flex items-center gap-2">
+                              {item.premium ? (
+                                <span className="h-2 w-2 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
+                              ) : null}
+                              <span>{item.label}</span>
+                            </span>
                           </Link>
                         ))}
                       </div>

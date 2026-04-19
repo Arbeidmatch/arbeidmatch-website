@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { PREMIUM_ARTICLE_SLUGS } from "@/lib/premium/articleSlugs";
+
 const SITE = "https://www.arbeidmatch.no";
 
 /** lastmod for homepage + primary commercial URLs (task spec: “today”) */
@@ -71,6 +73,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.55,
     })),
+    {
+      url: `${SITE}/premium`,
+      lastModified: primaryLastMod,
+      changeFrequency: "weekly",
+      priority: 0.75,
+    },
+    {
+      url: `${SITE}/premium/browse`,
+      lastModified: primaryLastMod,
+      changeFrequency: "weekly",
+      priority: 0.65,
+    },
+    ...PREMIUM_ARTICLE_SLUGS.map((slug) => ({
+      url: `${SITE}/premium/article/${slug}`,
+      lastModified: primaryLastMod,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
+    {
+      url: `${SITE}/premium/success`,
+      lastModified: primaryLastMod,
+      changeFrequency: "yearly" as const,
+      priority: 0.3,
+    },
     {
       url: `${SITE}/feedback`,
       lastModified: stableLastMod,

@@ -641,7 +641,7 @@ function TabDocuments() {
       title: "Employer References, Minimum 1 Year Practice in Last 10 Years",
       icon: <IconBriefcase />,
       body:
-        "Copies of original references from current or former employers proving at least 1 year of practical experience in the electrical profession during the previous 10 years after graduation. This experience must be from outside Norway. Both original and certified translation required.",
+        "Copies of original references from current or former employers proving at least 1 year of practical experience in the electrical profession during the previous 10 years after graduation. For this DSB pathway, qualifying practice must be documented from employment outside Norway, as required by the applicable regulations. Both original and certified translation required.",
     },
     {
       id: "d5",
