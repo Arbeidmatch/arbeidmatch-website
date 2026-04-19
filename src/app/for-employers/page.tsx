@@ -7,6 +7,7 @@ import StaggerHero from "@/components/premium/StaggerHero";
 import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
 import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import ForEmployersExtendedServices from "@/components/for-employers/ForEmployersExtendedServices";
+import OurServicesSection from "@/components/for-employers/OurServicesSection";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
@@ -48,34 +49,7 @@ export default function ForEmployersPage() {
       </section>
 
       <section className="bg-surface py-12 md:py-16 lg:py-[100px]">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-          <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="heading-premium-xl font-display text-4xl text-navy">Our services</h2>
-          </ScrollReveal>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {[
-              [
-                "Sourcing",
-                "Targeted outreach across EU/EEA countries to identify candidates that match your exact needs.",
-              ],
-              [
-                "Screening",
-                "Structured interviews, documentation checks and trade relevance validation before presentation.",
-              ],
-              [
-                "Staffing & Compliance",
-                "Support with contracts, onboarding and compliance with Norwegian labor requirements.",
-              ],
-            ].map(([title, text]) => (
-              <ScrollReveal key={title} variant="fadeUp">
-                <article className="card-premium rounded-xl border border-border bg-white p-8">
-                  <h3 className="text-xl font-semibold text-navy">{title}</h3>
-                  <p className="mt-3 text-text-secondary">{text}</p>
-                </article>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
+        <OurServicesSection />
       </section>
 
       <ForEmployersExtendedServices />
