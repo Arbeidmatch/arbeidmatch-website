@@ -142,11 +142,11 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
           guideType: cfg.slug,
         }),
       });
-      const data = (await res.json()) as { url?: string; error?: string };
+      const data = (await res.json()) as { url?: string; error?: string; details?: string };
       if (data.url) {
         window.location.href = data.url;
       } else {
-        setError(data.error || "Could not start checkout. Please try again.");
+        setError(data.details || data.error || "Checkout failed. Please try again.");
       }
     } catch {
       setError("Something went wrong. Please try again.");
