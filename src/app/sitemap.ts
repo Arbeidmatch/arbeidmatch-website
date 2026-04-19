@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...[
       "/for-employers",
       "/for-candidates",
+      "/for-staffing-agencies",
       "/dsb-support",
       "/dsb-checklist",
       "/recruiter-network",

@@ -22,39 +22,47 @@ const stederLinks = [
   { href: "/bemanningsbyrå-kristiansand", label: "Kristiansand" },
 ];
 
-const mainLinks = [
+const ressurserLinks = [
+  { href: "/about", label: "Om oss" },
+  { href: "/dsb-support", label: "DSB-godkjenning" },
+  { href: "/blog", label: "Blog" },
+  { href: "/recruiter-network", label: "Partner Program" },
+  { href: "/for-staffing-agencies", label: "For bemanningsbyråer" },
+  { href: "/contact", label: "Kontakt" },
+];
+
+const primaryDesktopLinks = [
   { href: "/for-employers", label: "For Employers" },
   { href: "/for-candidates", label: "For Candidates" },
-  { href: "/recruiter-network", label: "Partner Program" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-  { href: "/blog", label: "Blog" },
-  { href: "/dsb-support", label: "DSB" },
-  { href: "/feedback", label: "Feedback" },
-];
+] as const;
+
+const megaAllHrefs = [...tjenesterLinks, ...stederLinks, ...ressurserLinks];
 
 function linkActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function dropdownHasActive(pathname: string, items: { href: string }[]): boolean {
-  return items.some((i) => linkActive(pathname, i.href));
+function megaHasActive(pathname: string): boolean {
+  return megaAllHrefs.some((i) => linkActive(pathname, i.href));
 }
 
-const dropdownPanelClass =
-  "min-w-[200px] rounded-lg border-[0.5px] border-black/10 bg-white py-2 shadow-none";
-const dropdownItemClass =
-  "block px-4 py-2.5 text-left text-[14px] text-navy transition-colors duration-150 hover:bg-black/[0.04]";
+const megaColLabelClass =
+  "mb-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#C9A84C]";
+const megaLinkClass =
+  "block rounded-md px-3 py-2 text-[14px] text-navy transition-colors duration-150 hover:bg-black/[0.04]";
+
+const megaPanelInnerClass =
+  "rounded-2xl border border-black/[0.06] bg-white p-8 shadow-[0_8px_32px_rgba(0,0,0,0.08)]";
 
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [mobileSub, setMobileSub] = useState<null | "tjenester" | "steder">(null);
+  const [mobileSub, setMobileSub] = useState<null | "mer">(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -67,106 +75,99 @@ export default function Navbar() {
     });
   }, [pathname]);
 
-  const navText = scrolled ? "text-[#cccccc] hover:text-white" : "text-[#555555] hover:text-[#0D1B2A]";
-  const navTextBase = `shrink-0 text-[14px] transition-colors duration-300 ease-out 2xl:text-[15px] ${navText}`;
+  const navItemClass =
+    "shrink-0 text-[15px] font-normal text-[#555555] transition-[color,font-weight] duration-150 hover:font-medium hover:text-[#0D1B2A]";
+
+  const headerSurface = scrolled
+    ? "border-b border-black/[0.06] bg-white/95 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-md"
+    : "border-b border-black/[0.06] bg-white/90 backdrop-blur-sm";
 
   return (
-    <header
-      className={`sticky top-0 z-[100] transition-[background-color,box-shadow,border-color,backdrop-filter] duration-300 ease-out ${
-        scrolled
-          ? "border-b border-[rgba(184,134,11,0.15)] bg-[rgba(10,12,20,0.92)] shadow-[0_1px_40px_rgba(0,0,0,0.28)] backdrop-blur-[20px] backdrop-saturate-[180%] md:min-h-[64px]"
-          : "border-b border-white/20 bg-[rgba(255,255,255,0.88)] py-1 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-md md:min-h-[80px]"
-      }`}
-    >
-      <div
-        className={`mx-auto flex w-full max-w-content items-center justify-between px-4 transition-[padding] duration-300 ease-out md:px-6 ${
-          scrolled ? "py-2 md:py-3" : "py-4"
-        }`}
-      >
-        <Link
-          href="/"
-          className={`block origin-left text-2xl transition-transform duration-300 ease-out ${
-            scrolled ? "scale-[0.95] md:scale-[0.95]" : "scale-100"
-          }`}
-        >
-          <span className={`font-bold ${scrolled ? "text-[#f5f5f5]" : "text-[#0D1B2A]"}`}>Arbeid</span>
+    <header className={`sticky top-0 z-[100] transition-colors duration-200 ${headerSurface}`}>
+      <div className="mx-auto flex h-[72px] min-h-[72px] w-full max-w-content items-center justify-between gap-4 px-4 md:px-6">
+        <Link href="/" className="block shrink-0 text-2xl">
+          <span className="font-bold text-[#0D1B2A]">Arbeid</span>
           <span className="font-bold text-[#B8860B]">Match</span>
         </Link>
 
-        <nav className="hidden items-center gap-5 xl:flex xl:gap-5 2xl:gap-6">
-          {mainLinks.slice(0, 2).map((link) => (
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-10 xl:flex">
+          {primaryDesktopLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`nav-link-premium ${navTextBase} ${linkActive(pathname, link.href) ? "font-medium underline decoration-gold decoration-2 underline-offset-4" : ""}`}
+              className={`${navItemClass} ${linkActive(pathname, link.href) ? "font-medium text-[#0D1B2A] underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""}`}
             >
               {link.label}
             </Link>
           ))}
 
-          <div className="group/tjen relative">
+          <div className="group/mer relative">
             <span
-              className={`nav-link-premium inline-flex cursor-default items-center gap-1 ${navTextBase} ${
-                dropdownHasActive(pathname, tjenesterLinks) ? "font-medium underline decoration-gold decoration-2 underline-offset-4" : ""
+              className={`inline-flex cursor-default items-center gap-1 ${navItemClass} ${
+                megaHasActive(pathname) ? "font-medium text-[#0D1B2A] underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""
               }`}
             >
-              Tjenester
-              <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden />
+              Mer
+              <ChevronDown className="h-3.5 w-3.5 opacity-50" aria-hidden />
             </span>
-            <div className="pointer-events-none absolute left-0 top-full z-[130] pt-2 opacity-0 transition-[opacity,transform] duration-[180ms] ease-out translate-y-[-4px] group-hover/tjen:pointer-events-auto group-hover/tjen:translate-y-0 group-hover/tjen:opacity-100">
-              <div className={dropdownPanelClass}>
-                {tjenesterLinks.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`${dropdownItemClass} ${linkActive(pathname, item.href) ? "font-medium underline decoration-gold/80" : ""}`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+            <div className="pointer-events-none invisible absolute left-1/2 top-full z-[130] w-[min(920px,calc(100vw-2rem))] -translate-x-1/2 pt-3 opacity-0 transition-[opacity,transform,visibility] duration-[180ms] ease-out translate-y-[-6px] group-hover/mer:pointer-events-auto group-hover/mer:visible group-hover/mer:translate-y-0 group-hover/mer:opacity-100">
+              <div className={megaPanelInnerClass}>
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-10">
+                  <div>
+                    <p className={megaColLabelClass}>Tjenester</p>
+                    <ul className="space-y-0.5">
+                      {tjenesterLinks.map((item) => (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
+                          >
+                            {item.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className={megaColLabelClass}>Steder</p>
+                    <ul className="space-y-0.5">
+                      {stederLinks.map((item) => (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
+                          >
+                            {item.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className={megaColLabelClass}>Ressurser</p>
+                    <ul className="space-y-0.5">
+                      {ressurserLinks.map((item) => (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
+                          >
+                            {item.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-
-          <div className="group/sted relative">
-            <span
-              className={`nav-link-premium inline-flex cursor-default items-center gap-1 ${navTextBase} ${
-                dropdownHasActive(pathname, stederLinks) ? "font-medium underline decoration-gold decoration-2 underline-offset-4" : ""
-              }`}
-            >
-              Steder
-              <ChevronDown className="h-3.5 w-3.5 opacity-60" aria-hidden />
-            </span>
-            <div className="pointer-events-none absolute left-0 top-full z-[130] pt-2 opacity-0 transition-[opacity,transform] duration-[180ms] ease-out translate-y-[-4px] group-hover/sted:pointer-events-auto group-hover/sted:translate-y-0 group-hover/sted:opacity-100">
-              <div className={dropdownPanelClass}>
-                {stederLinks.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`${dropdownItemClass} ${linkActive(pathname, item.href) ? "font-medium underline decoration-gold/80" : ""}`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {mainLinks.slice(2).map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`nav-link-premium ${navTextBase} ${linkActive(pathname, link.href) ? "font-medium underline decoration-gold decoration-2 underline-offset-4" : ""}`}
-            >
-              {link.label}
-            </Link>
-          ))}
         </nav>
 
-        <div className="hidden xl:block">
+        <div className="hidden shrink-0 xl:block">
           <Link
             href="/request"
-            className="btn-gold-premium relative inline-flex min-h-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
+            className="btn-gold-premium inline-flex min-h-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-[15px] font-medium text-white hover:bg-gold-hover"
           >
             Request Candidates
           </Link>
@@ -176,24 +177,22 @@ export default function Navbar() {
           aria-label="Toggle navigation"
           aria-expanded={open}
           onClick={() => setOpen((prev) => !prev)}
-          className={`relative flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border p-0 xl:hidden ${
-            scrolled ? "border-white/20 text-white" : "border-border text-navy"
-          }`}
+          className="relative flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border border-border text-navy xl:hidden"
         >
           <span className="sr-only">Menu</span>
           <span className="flex h-4 w-5 flex-col justify-center gap-1.5">
             <motion.span
-              className={`block h-0.5 w-5 rounded-full ${scrolled ? "bg-[#f5f5f5]" : "bg-[#0D1B2A]"}`}
+              className="block h-0.5 w-5 rounded-full bg-[#0D1B2A]"
               animate={open ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             />
             <motion.span
-              className={`block h-0.5 w-5 rounded-full ${scrolled ? "bg-[#f5f5f5]" : "bg-[#0D1B2A]"}`}
+              className="block h-0.5 w-5 rounded-full bg-[#0D1B2A]"
               animate={open ? { opacity: 0 } : { opacity: 1 }}
               transition={{ duration: 0.2 }}
             />
             <motion.span
-              className={`block h-0.5 w-5 rounded-full ${scrolled ? "bg-[#f5f5f5]" : "bg-[#0D1B2A]"}`}
+              className="block h-0.5 w-5 rounded-full bg-[#0D1B2A]"
               animate={open ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             />
@@ -208,21 +207,15 @@ export default function Navbar() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className={`overflow-hidden border-t transition-colors duration-300 xl:hidden ${
-              scrolled
-                ? "border-white/10 bg-[#0c0f18] text-white"
-                : "border-border bg-white text-[#555555]"
-            }`}
+            className="overflow-hidden border-t border-border bg-white text-[#555555] xl:hidden"
           >
             <div className="mx-auto flex max-w-content flex-col gap-1 px-4 py-3 md:px-6">
-              {mainLinks.slice(0, 2).map((link) => (
+              {primaryDesktopLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className={`min-h-[44px] rounded-md px-2 py-3 text-[15px] transition-colors duration-300 ${
-                    scrolled ? "text-white/90 hover:bg-white/5 hover:text-white" : "hover:bg-surface hover:text-[#0D1B2A]"
-                  } ${linkActive(pathname, link.href) ? "font-medium underline decoration-gold" : ""}`}
+                  className={`min-h-[44px] rounded-md px-2 py-3 text-[15px] hover:bg-surface ${linkActive(pathname, link.href) ? "font-medium text-navy underline decoration-gold" : ""}`}
                 >
                   {link.label}
                 </Link>
@@ -230,72 +223,62 @@ export default function Navbar() {
 
               <button
                 type="button"
-                aria-expanded={mobileSub === "tjenester"}
-                onClick={() => setMobileSub((s) => (s === "tjenester" ? null : "tjenester"))}
-                className={`flex min-h-[44px] items-center justify-between rounded-md px-2 py-3 text-left text-[15px] ${
-                  scrolled ? "text-white/90 hover:bg-white/5" : "hover:bg-surface"
-                }`}
+                aria-expanded={mobileSub === "mer"}
+                onClick={() => setMobileSub((s) => (s === "mer" ? null : "mer"))}
+                className="flex min-h-[44px] items-center justify-between rounded-md px-2 py-3 text-left text-[15px] hover:bg-surface"
               >
-                Tjenester
-                <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${mobileSub === "tjenester" ? "rotate-180" : ""}`} />
+                Mer
+                <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${mobileSub === "mer" ? "rotate-180" : ""}`} />
               </button>
-              {mobileSub === "tjenester" && (
-                <div
-                  className={`ml-2 flex flex-col border-l pl-3 ${scrolled ? "border-white/15" : "border-black/10"}`}
-                >
-                  {tjenesterLinks.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className={`min-h-[40px] py-2 text-[14px] ${scrolled ? "text-white/85" : "text-[#444]"}`}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
+              {mobileSub === "mer" && (
+                <div className="ml-2 flex flex-col gap-4 border-l border-black/10 pl-3 pb-2">
+                  <div>
+                    <p className={megaColLabelClass}>Tjenester</p>
+                    <div className="mt-1 flex flex-col">
+                      {tjenesterLinks.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setOpen(false)}
+                          className="min-h-[40px] py-2 text-[14px] hover:text-navy"
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className={megaColLabelClass}>Steder</p>
+                    <div className="mt-1 flex flex-col">
+                      {stederLinks.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setOpen(false)}
+                          className="min-h-[40px] py-2 text-[14px] hover:text-navy"
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className={megaColLabelClass}>Ressurser</p>
+                    <div className="mt-1 flex flex-col">
+                      {ressurserLinks.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setOpen(false)}
+                          className="min-h-[40px] py-2 text-[14px] hover:text-navy"
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
-
-              <button
-                type="button"
-                aria-expanded={mobileSub === "steder"}
-                onClick={() => setMobileSub((s) => (s === "steder" ? null : "steder"))}
-                className={`flex min-h-[44px] items-center justify-between rounded-md px-2 py-3 text-left text-[15px] ${
-                  scrolled ? "text-white/90 hover:bg-white/5" : "hover:bg-surface"
-                }`}
-              >
-                Steder
-                <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${mobileSub === "steder" ? "rotate-180" : ""}`} />
-              </button>
-              {mobileSub === "steder" && (
-                <div
-                  className={`ml-2 flex flex-col border-l pl-3 ${scrolled ? "border-white/15" : "border-black/10"}`}
-                >
-                  {stederLinks.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className={`min-h-[40px] py-2 text-[14px] ${scrolled ? "text-white/85" : "text-[#444]"}`}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-
-              {mainLinks.slice(2).map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className={`min-h-[44px] rounded-md px-2 py-3 text-[15px] transition-colors duration-300 ${
-                    scrolled ? "text-white/90 hover:bg-white/5 hover:text-white" : "hover:bg-surface hover:text-[#0D1B2A]"
-                  } ${linkActive(pathname, link.href) ? "font-medium underline decoration-gold" : ""}`}
-                >
-                  {link.label}
-                </Link>
-              ))}
 
               <Link
                 href="/request"

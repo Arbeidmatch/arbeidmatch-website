@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -21,18 +22,65 @@ export default function BemanningLogistikkPage() {
           <p>
             Norske distribusjonsnett presser kapasiteten: sesongtopper, JIT-leveranser og strengere krav til sikker
             truck- og truckløyve. ArbeidMatch rekrutterer EU/EEA-kandidater til lager, terminal og kjøring der
-            dokumentasjon og språkbehov er avklart på forhånd.
+            dokumentasjon og språkbehov er avklart på forhånd. Vi tilstreber tydelig forventningsstyring før{" "}
+            <Link href="/request" className="font-medium text-gold hover:underline">
+              bestilling
+            </Link>
+            .
           </p>
           <p>
-            Vi kartlegger skift, truckklasser, terminalerfaring og ordreplukk. Teamene får profiler som tåler fysisk
-            tempo samtidig som HMS og kvalitetsrutiner følges. For oppdragsgiver betyr det færre avbrudd i flyt og
-            tydeligere planlegging av bemanning.
-          </p>
-          <p>
-            Kombiner bemanning logistikk med trygg kontraktsoppfølging: vi støtter i dialog om innleie, onboarding og
-            praktisk koordinering slik at drift og HR slipper unødvendig friksjon.
+            Vi kartlegger skift, truckklasser, terminalerfaring og ordreplukk, og støtter i dialog om innleie og
+            onboarding. Målet vårt er færre avbrudd i flyt og mer forutsigbar bemanning — i tråd med{" "}
+            <Link href="/for-employers" className="font-medium text-gold hover:underline">
+              arbeidsgiverløsningen
+            </Link>{" "}
+            deres.
           </p>
         </div>
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-navy">Typiske roller</h2>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {["Truckførere", "Terminalarbeidere", "Lager- og ordreplukk", "Co-drivere / logistikkassistenter"].map((r) => (
+              <li
+                key={r}
+                className="group rounded-xl border border-border bg-surface px-5 py-4 text-sm font-medium text-navy transition-all duration-200 hover:-translate-y-1 hover:border-[#C9A84C]"
+                style={{ padding: "28px 24px" }}
+              >
+                {r}
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section className="mt-10 grid gap-4 md:grid-cols-3">
+          {[
+            ["Trygg dokumentasjon", "Vi arbeider for å strukturere papirflyt og førerkortklasser før presentasjon."],
+            ["Skift og tempo", "Kandidater vurderes opp mot reelle krav til terminaltempo og HMS."],
+            ["Ingen absolutte løfter", "Leveransetid avhenger av marked og krav — vi er åpne om begrensninger."],
+          ].map(([t, b]) => (
+            <article
+              key={t}
+              className="group rounded-xl border border-border bg-white p-6 transition-all duration-200 hover:-translate-y-1 hover:border-[#C9A84C]"
+              style={{ padding: "28px 24px" }}
+            >
+              <h3 className="text-base font-semibold text-navy">{t}</h3>
+              <p className="mt-2 text-sm text-text-secondary">{b}</p>
+            </article>
+          ))}
+        </section>
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-navy">Korte svar</h2>
+          <dl className="mt-4 space-y-4 text-sm text-text-secondary">
+            <div>
+              <dt className="font-semibold text-navy">Kan dere dekke korte topper?</dt>
+              <dd className="mt-1">Ja, innenfor rammer som passer utleie og prosjekt — vi avklarer kapasitet tidlig.</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-navy">Hva med språk?</dt>
+              <dd className="mt-1">Vi vurderer språk opp mot rolle og sikkerhetsbrief — uten å love «perfekt norsk».</dd>
+            </div>
+          </dl>
+        </section>
+        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[

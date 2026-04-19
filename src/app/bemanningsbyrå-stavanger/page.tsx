@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -19,35 +20,24 @@ export default function BemanningsbyraStavangerPage() {
         </h1>
         <div className="mt-8 max-w-3xl space-y-4 text-[17px] leading-relaxed text-text-secondary">
           <p>
-            Rogaland er fortsatt et kraftsentrum for energi, leverandørindustri og havnæring, samtidig som bolig- og
-            infrastrukturprosjekter i Randaberg, Sandnes og Sola krever stabil arbeidskraft. I olje og gass-relaterte
-            anlegg er det ikke nok med «generell håndverkererfaring» – dokumentasjon for adgang, offshore-kurs og
-            sikkerhetsbrief er ofte avgjørende før kandidat kan møte på verksted eller anlegg.
+            Rogaland er et kraftsentrum for energi, leverandørindustri og havnæring, med bolig- og infrastrukturprosjekter
+            som krever dokumentert kompetanse og tydelig sikkerhetsbrief. ArbeidMatch leverer bemanning Stavanger med
+            forventningsstyring: vi avklarer kurs, adgang og roller før presentasjon. Vi tilstreber profiler som kan
+            verifiseres — ikke «ukjente navn på liste».
           </p>
           <p>
-            ArbeidMatch leverer bemanning Stavanger olje industri med tydelig forventningsstyring: vi avklarer hvilke
-            kurs som allerede finnes, hva som må etterutdannes i Norge, og hvilke roller som kan besettes umiddelbart.
-            Samtidig støtter vi landbaserte prosjekter der sveis, mekanisk og elektrohjelp trengs i kortere perioder rundt
-            vedlikeholdsvinduer.
-          </p>
-          <p>
-            Vekst og omstilling i regionen handler mye om elektrifisering, havvind-forberedende aktivitet og logistikk
-            rundt havnene. Det gir etterspørsel etter industrioperatører, logistikkfolk og byggteam som kan jobbe i
-            prosjektmodus. Vi rekrutterer fra EU/EEA med fokus på erfaring fra tilsvarende regulerte miljø, slik at
-            onboarding blir forutsigbar.
-          </p>
-          <p>
-            Stavanger-kulturen er direkte: beslutninger tas i møterom med tydelige sikkerhetsforventninger. Våre rådgivere
-            er derfor forberedt på tekniske spørsmål om sveiseprosedyrer, rigg og arbeidstillatelser der det er relevant.
-            Vi leverer ikke «ukjente navn på liste», men profiler med forklart bakgrunn og referanser som kan verifiseres.
-          </p>
-          <p>
-            ArbeidMatch opererer nasjonalt med hovedkontor i Trondheim, men følger Rogaland-prosjekter tett. Vi kan
-            mobilisere kandidater til oppstart når innkjøps- og sikkerhetsløp er avklart, og vi hjelper med praktisk
-            koordinering av reise og innkvartering der det er behov.
+            Vi rekrutterer fra EU/EEA med fokus på regulerte miljø og prosjektmodus. Ta kontakt via{" "}
+            <Link href="/request" className="font-medium text-gold hover:underline">
+              forespørsel
+            </Link>{" "}
+            eller les mer for{" "}
+            <Link href="/for-employers" className="font-medium text-gold hover:underline">
+              arbeidsgivere
+            </Link>
+            .
           </p>
         </div>
-        <section className="mt-10 rounded-xl border border-border bg-surface p-6">
+        <section className="mt-10 rounded-xl border border-border bg-surface p-6 transition-all duration-200 hover:border-[#C9A84C]">
           <h2 className="text-lg font-semibold text-navy">Etterspurte roller i Rogaland</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-text-secondary">
             <li>Industri- og vedlikeholdsassistenter med dokumentert erfaring</li>
@@ -56,6 +46,29 @@ export default function BemanningsbyraStavangerPage() {
             <li>Byggfag til bolig og næring i storbyregionen</li>
           </ul>
         </section>
+        <section className="mt-10 grid gap-4 md:grid-cols-3">
+          {[
+            ["Sikkerhetskrav", "Vi matcher kandidater mot dokumentasjon og offshore/HMS-forventninger."],
+            ["Nasjonal oppfølging", "Kort vei til koordinering når innkjøps- og sikkerhetsløp er avklart."],
+            ["Ingen absolutte løfter", "Leveranse avhenger av marked og kompetanse — vi er åpne om det."],
+          ].map(([t, b]) => (
+            <article
+              key={t}
+              className="rounded-xl border border-border bg-white transition-all duration-200 hover:-translate-y-1 hover:border-[#C9A84C]"
+              style={{ padding: "28px 24px" }}
+            >
+              <h3 className="text-base font-semibold text-navy">{t}</h3>
+              <p className="mt-2 text-sm text-text-secondary">{b}</p>
+            </article>
+          ))}
+        </section>
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-navy">Kort FAQ</h2>
+          <p className="mt-3 text-sm text-text-secondary">
+            Dekker dere offshore? — Avhengig av kurs og autorisasjoner; vi avklarer før vi presenterer kandidater.
+          </p>
+        </section>
+        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[

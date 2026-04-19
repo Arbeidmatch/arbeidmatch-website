@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -24,15 +25,32 @@ export default function BemanningHelsePage() {
             vurdering, men hjelper med å samle dokumentasjon og forventningsstyring.
           </p>
           <p>
-            Typiske roller er hjelpepleiere, helsefagarbeidere med utenlandsk utdanning som skal inn i norsk system,
-            og støttefunksjoner der arbeidsgiver har definert rammer. Vi legger vekt på åpen dialog om hva som er
-            realistisk innenfor gitte tidsrammer.
-          </p>
-          <p>
-            Målet er trygg drift for institusjoner og hjemmetjenester som opplever rekrutteringspress, uten å gå på
-            akkord med kvalitet og etikk.
+            Typiske roller er hjelpepleiere, helsefagarbeidere med utenlandsk utdanning som skal inn i norsk system, og
+            støttefunksjoner der arbeidsgiver har definert rammer. Målet er trygg drift uten å gå på akkord med kvalitet
+            og etikk. Vi hjelper med struktur og{" "}
+            <Link href="/request" className="font-medium text-gold hover:underline">
+              avklaring
+            </Link>
+            .
           </p>
         </div>
+        <section className="mt-10 grid gap-4 md:grid-cols-3">
+          {[
+            ["Autorisasjon", "Krav avklares før presentasjon — ingen snarveier."],
+            ["Dokumentasjon", "Vi tilstreber sporbarhet i papirflyt som støtter deres internkontroll."],
+            ["Åpen dialog", "Vi lover ikke «alltid» løsning — vi lover ryddig kommunikasjon om muligheter."],
+          ].map(([t, b]) => (
+            <article
+              key={t}
+              className="rounded-xl border border-border bg-surface transition-all duration-200 hover:-translate-y-1 hover:border-[#C9A84C]"
+              style={{ padding: "28px 24px" }}
+            >
+              <h3 className="text-base font-semibold text-navy">{t}</h3>
+              <p className="mt-2 text-sm text-text-secondary">{b}</p>
+            </article>
+          ))}
+        </section>
+        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[

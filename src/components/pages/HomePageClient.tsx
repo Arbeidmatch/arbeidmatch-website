@@ -6,7 +6,6 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   Building2,
   Check,
-  CheckCircle2,
   Factory,
   Forklift,
   HardHat,
@@ -275,17 +274,31 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <ScrollReveal variant="fadeUp">
             <div className="mx-auto max-w-4xl rounded-xl bg-navy p-10 md:p-12">
-              <h2 className="heading-premium-xl mb-8 text-3xl text-white">Why Norwegian companies choose us</h2>
-              <ul className="space-y-4">
+              <h2 className="heading-premium-xl mb-6 text-3xl text-white">
+                Rekruttering som fungerer — for alle parter
+              </h2>
+              <p className="text-[17px] leading-relaxed text-white/80">
+                Vi tror ikke vi har funnet opp noe nytt. Men vi organiserer prosessen så godt vi kan — slik at kandidater
+                fra ulike kulturer, bakgrunner og religioner opplever respekt og klarhet fra første kontakt. Og slik at
+                norske arbeidsgivere får arbeidskraft som faktisk fungerer i deres miljø.
+              </p>
+              <ul className="mt-8 space-y-4">
                 {[
-                  "Pre-screened, fully documented candidates",
-                  "Workers delivered within 2 weeks",
-                  "Full Norwegian labor law compliance",
-                  "Dedicated recruiter per client",
-                  "Follow-up after every placement",
+                  "Kulturell og religiøs sensitivitet i screening-prosessen",
+                  "Tydelig kommunikasjon på tvers av språk og forventninger",
+                  "Vi lover ikke perfeksjon — vi lover kontinuerlig forbedring",
                 ].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-white">
-                    <CheckCircle2 className="text-gold" size={20} /> {item}
+                  <li key={item} className="flex items-start gap-3 text-white">
+                    <span className="mt-0.5 shrink-0 text-gold" aria-hidden>
+                      <svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M12 3l2.4 5.5L20 9.3l-4.3 3.7 1.3 5.5L12 15.9 6 18.5l1.3-5.5L3 9.3l5.6-.8L12 3z"
+                          fill="currentColor"
+                          opacity={0.9}
+                        />
+                      </svg>
+                    </span>
+                    <span className="text-[15px] leading-relaxed text-white/90">{item}</span>
                   </li>
                 ))}
               </ul>

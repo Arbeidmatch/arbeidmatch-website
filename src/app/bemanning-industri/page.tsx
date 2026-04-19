@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -25,14 +26,45 @@ export default function BemanningIndustriPage() {
           </p>
           <p>
             Vi jobber med operatører, montører, sveisehjelp og tekniske assistenter. Screening fokuserer på reell
-            erfaring fra tilsvarende miljø – ikke generelle «industri»-etiketter. Målet er stabil kvalitet i skift og
-            forutsigbarhet for vedlikeholdsvinduer.
-          </p>
-          <p>
-            Når prosjektet krever dokumentasjon mot internkontroll, hjelper vi med å strukturere informasjonen slik at
-            verksleder og HMS får det de trenger uten å miste tempo i rekrutteringen.
+            erfaring fra tilsvarende miljø. Når prosjektet krever dokumentasjon mot internkontroll, hjelper vi med å
+            strukturere informasjonen slik at verksleder og HMS får det de trenger. Vi tilstreber ryddige prosesser og
+            viser vei til{" "}
+            <Link href="/request" className="font-medium text-gold hover:underline">
+              kapasitetsavklaring
+            </Link>{" "}
+            og{" "}
+            <Link href="/for-employers" className="font-medium text-gold hover:underline">
+              arbeidsgiverinformasjon
+            </Link>
+            .
           </p>
         </div>
+        <section className="mt-10 grid gap-4 md:grid-cols-3">
+          {[
+            ["Operatører og montører", "Screening mot reell fabrikkerfaring og skift."],
+            ["Dokumentasjon", "Vi samler relevant info for internkontroll uten å love mer enn markedet tillater."],
+            ["HMS i praksis", "Sikkerhetsbrief og prosedyrer avstemmes tidlig — målet er trygg oppstart."],
+          ].map(([t, b]) => (
+            <article
+              key={t}
+              className="group rounded-xl border border-border bg-surface transition-all duration-200 hover:-translate-y-1 hover:border-[#C9A84C]"
+              style={{ padding: "28px 24px" }}
+            >
+              <h3 className="text-base font-semibold text-navy">{t}</h3>
+              <p className="mt-2 text-sm text-text-secondary">{b}</p>
+            </article>
+          ))}
+        </section>
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-navy">Korte svar</h2>
+          <dl className="mt-4 space-y-3 text-sm text-text-secondary">
+            <div>
+              <dt className="font-semibold text-navy">Dekker dere korte vedlikeholdsvinduer?</dt>
+              <dd className="mt-1">Ofte ja — avhengig av kompetanse og tilgjengelighet. Vi er åpne om tidslinje.</dd>
+            </div>
+          </dl>
+        </section>
+        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[

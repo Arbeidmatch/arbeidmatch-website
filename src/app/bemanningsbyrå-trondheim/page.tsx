@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -19,37 +20,24 @@ export default function BemanningsbyraTrondheimPage() {
         </h1>
         <div className="mt-8 max-w-3xl space-y-4 text-[17px] leading-relaxed text-text-secondary">
           <p>
-            Trondheim-regionen kombinerer marin næring, byutvikling på Lade og Sluppen, campusvekst og et industrielt
-            tyngdepunkt på Heimdal og Ranheim. Det gir et arbeidsmarked der små og mellomstore entreprenører ofte
-            konkurrerer om de samme fagpersonene samtidig som store infrastrukturprosjekter trekker folk ut av byen.
-            Resultatet er lengre ledig tid før oppstart og mer press på lønns- og innkjøpsledd.
+            Trondheim-regionen kombinerer marin næring, byutvikling og industrielt tyngdepunkt. ArbeidMatch har
+            hovedkontor i Ranheim og leverer bemanningsbyrå Trondheim med kort vei til møter, befaring og oppfølging. Vi
+            rekrutterer EU/EEA-arbeidere der dokumentasjon og språk er avklart før oppstart — og vi tør å si nei når krav
+            og kompetanse ikke matcher.
           </p>
           <p>
-            For mange bedrifter er derfor et lokalt forankret bemanningsbyrå Trondheim et praktisk førstevalg: dere får
-            partner som forstår pendling, kollektivknutepunkt og logistikk rundt Trondheimsfjorden. ArbeidMatch har
-            hovedkontor i Ranheim og kjenner hverdagen til leverandørkjeder som opererer inn mot Orkanger, Stjørdal og
-            Melhus. Vi rekrutterer EU/EEA-arbeidere til roller der dokumentasjon og språk er avklart før folk møter på
-            anlegg eller i produksjon.
-          </p>
-          <p>
-            Typiske oppdrag i regionen omfatter betongarbeidere til boligblokker, elektrohjelp der autorisasjon er på
-            plass, logistikkpersonell til nye lagerhuber og industrioperatører til mat og prosess. Vi jobber strukturert
-            med HMS-forventninger som er høye i norske byggeplassmiljøer, og vi tør å si nei når krav og kompetanse ikke
-            matcher – det beskytter både prosjekt og kandidat.
-          </p>
-          <p>
-            Vekstsektorer vi ser nå er elektrifisering av industri, energieffektivisering i boligmasse og økt behov for
-            terminalarbeid knyttet til import. Det krever arbeidskraft som tåler skift og dokumentasjon som tåler
-            kontroll. Vår modell er å koble rekruttering med tydelige kontraktsrammer slik at HR og prosjektleder ser
-            samme bilde av leveransen.
-          </p>
-          <p>
-            ArbeidMatch leverer til hele Norge, men nettopp i Trondheim har vi kort vei til kundemøter, befaring og
-            oppfølging i oppstartsuka. Det gir trygghet når dere skal skalere bemanning raskt uten å miste kontroll på
-            kvalitet.
+            Typiske oppdrag omfatter bygg, logistikk og industri. Les om{" "}
+            <Link href="/dsb-support" className="font-medium text-gold hover:underline">
+              DSB-godkjenning
+            </Link>{" "}
+            ved behov, eller send{" "}
+            <Link href="/request" className="font-medium text-gold hover:underline">
+              forespørsel
+            </Link>
+            .
           </p>
         </div>
-        <section className="mt-10 rounded-xl border border-border bg-surface p-6">
+        <section className="mt-10 rounded-xl border border-border bg-surface p-6 transition-all duration-200 hover:border-[#C9A84C]">
           <h2 className="text-lg font-semibold text-navy">Relevante roller i regionen</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-text-secondary">
             <li>Betong og tømrerhjelp til bolig- og næringsbygg</li>
@@ -58,6 +46,29 @@ export default function BemanningsbyraTrondheimPage() {
             <li>Stillas og rigg mot infrastrukturunderentreprise</li>
           </ul>
         </section>
+        <section className="mt-10 grid gap-4 md:grid-cols-3">
+          {[
+            ["Lokal nærhet", "Kort vei til kundemøter og oppstartsoppfølging i Midt-Norge."],
+            ["HMS-forventninger", "Vi jobber strukturert med krav som er høye i norske byggeplassmiljøer."],
+            ["Kontraktsrammer", "Målet er at HR og prosjektleder ser samme bilde av leveransen."],
+          ].map(([t, b]) => (
+            <article
+              key={t}
+              className="rounded-xl border border-border bg-white transition-all duration-200 hover:-translate-y-1 hover:border-[#C9A84C]"
+              style={{ padding: "28px 24px" }}
+            >
+              <h3 className="text-base font-semibold text-navy">{t}</h3>
+              <p className="mt-2 text-sm text-text-secondary">{b}</p>
+            </article>
+          ))}
+        </section>
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-navy">Kort FAQ</h2>
+          <p className="mt-3 text-sm text-text-secondary">
+            Hvor raskt kan dere starte? — Avhengig av rolle og marked; vi avklarer realistisk tidslinje tidlig.
+          </p>
+        </section>
+        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[

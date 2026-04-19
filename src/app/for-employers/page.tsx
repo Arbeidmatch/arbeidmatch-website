@@ -5,6 +5,7 @@ import Testimonials from "@/components/Testimonials";
 import ScrollReveal from "@/components/ScrollReveal";
 import StaggerHero from "@/components/premium/StaggerHero";
 import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
+import ForEmployersExtendedServices from "@/components/for-employers/ForEmployersExtendedServices";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
 export const metadata: Metadata = nbPageMetadata(
@@ -68,6 +69,8 @@ export default function ForEmployersPage() {
           </div>
         </div>
       </section>
+
+      <ForEmployersExtendedServices />
 
       <Testimonials />
 

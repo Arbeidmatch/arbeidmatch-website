@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -19,35 +20,24 @@ export default function BemanningsbyraBergenPage() {
         </h1>
         <div className="mt-8 max-w-3xl space-y-4 text-[17px] leading-relaxed text-text-secondary">
           <p>
-            Bergensøkonomien er formet av sjøtransport, maritim teknologi og en bykjerne som presses av boligbehov og
-            infrastruktur i bratte terreng. Det gir et arbeidsmarked der erfaring fra havn og verft er like relevant som
-            tradisjonell byggbemanning. Når prosjekter i Fyllingsdalen eller Åsane skal ha folk på plass, er det avgjørende
-            med kandidater som forstår værforbehold, adkomst og sikring mot fall.
+            Bergensøkonomien er formet av sjøtransport, maritim teknologi og byutvikling i krevende terreng. ArbeidMatch
+            leverer bemanning Bergen til maritim klynge og landbasert bygg, med fokus på dokumentert EU/EEA-erfaring,
+            HMS og forutsigbar oppstart. Vi tilstreber tydelig avklaring før presentasjon.
           </p>
           <p>
-            ArbeidMatch leverer bemanning Bergen til både maritim klynge og landbasert bygg. Vi rekrutterer EU/EEA-folk
-            med dokumentert erfaring fra stillas, sveising, overflate og logistikk i havnemiljø. Samtidig støtter vi
-            entreprenører som bygger boligblokker og næring langs Bybanen, der HMS-krav og støyhensyn krever modenhet i
-            planlegging.
-          </p>
-          <p>
-            Vekstsektorer vi ser tydelig er oppgradering av kaier, elektrifisering av flåter og mer lagerkapasitet knyttet
-            til import. Det krever truckførere, terminalarbeidere og tekniske assistenter som tåler skift og har orden i
-            papirene. Vi avklarer truckklasser, språk og sertifikater før kandidater presenteres, slik at driftsleder
-            slipper overraskelser i oppstartsuka.
-          </p>
-          <p>
-            Bergensk arbeidsliv er også personlig: tillit bygges i gatekjøkkenkø og på foreldremøter. Derfor legger vi
-            vekt på at bemanningen føles trygg for både verksleder og fagforeninger som følger prosjektet. Vi kommuniserer
-            åpent om lønnsrammer, tariff og allmenngjøring der det gjelder, og vi dokumenterer avtaler slik at
-            innkjøpsløpet tåler revisjon.
-          </p>
-          <p>
-            ArbeidMatch har nasjonal dekning og følger bergenske prosjekter digitalt og med fysiske befaringer ved behov.
-            Målet er at dere opplever lokal forståelse kombinert med internasjonal rekrutteringskapasitet.
+            Vi avklarer truckklasser, språk og sertifikater tidlig, og støtter i dialog om tariff og allmenngjøring der
+            det er relevant. Ta kontakt via{" "}
+            <Link href="/request" className="font-medium text-gold hover:underline">
+              forespørsel
+            </Link>{" "}
+            eller les mer for{" "}
+            <Link href="/for-employers" className="font-medium text-gold hover:underline">
+              arbeidsgivere
+            </Link>
+            .
           </p>
         </div>
-        <section className="mt-10 rounded-xl border border-border bg-surface p-6">
+        <section className="mt-10 rounded-xl border border-border bg-surface p-6 transition-all duration-200 hover:border-[#C9A84C]">
           <h2 className="text-lg font-semibold text-navy">Typiske roller i Bergensregionen</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-text-secondary">
             <li>Maritime sveisere og overflatearbeidere</li>
@@ -56,6 +46,30 @@ export default function BemanningsbyraBergenPage() {
             <li>Byggfag til fortetting i sentrum og i dagligvarekjeder</li>
           </ul>
         </section>
+        <section className="mt-10 grid gap-4 md:grid-cols-3">
+          {[
+            ["Maritim forståelse", "Kandidater vurderes opp mot havn, verft og logistikk i regionen."],
+            ["Dokumentasjon", "Vi arbeider for ryddig papirflyt som tåler innkjøp og revisjon."],
+            ["Lokal + nasjonal", "Basert på vår erfaring kombinerer vi regional innsikt med EU/EEA-sourcing."],
+          ].map(([t, b]) => (
+            <article
+              key={t}
+              className="rounded-xl border border-border bg-white transition-all duration-200 hover:-translate-y-1 hover:border-[#C9A84C]"
+              style={{ padding: "28px 24px" }}
+            >
+              <h3 className="text-base font-semibold text-navy">{t}</h3>
+              <p className="mt-2 text-sm text-text-secondary">{b}</p>
+            </article>
+          ))}
+        </section>
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-navy">Kort FAQ</h2>
+          <p className="mt-3 text-sm text-text-secondary">
+            Dekker dere hele Vestland? — Vi vurderer oppdrag nasjonalt; bergenske prosjekter får lokal kontekst i
+            screening.
+          </p>
+        </section>
+        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[

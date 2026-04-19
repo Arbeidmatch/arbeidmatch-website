@@ -1,5 +1,22 @@
 import Link from "next/link";
+import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
+
+const roleCardClass =
+  "group relative rounded-xl border border-border bg-surface transition-all duration-200 hover:-translate-y-1 hover:border-[#C9A84C]";
+
+function RoleIcon() {
+  return (
+    <svg
+      className="h-5 w-5 shrink-0 text-gold transition-transform duration-200 group-hover:scale-110"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <path d="M12 3v18M8 8h8M8 16h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export default function BemanningByggAnleggNb() {
   return (
@@ -16,30 +33,25 @@ export default function BemanningByggAnleggNb() {
       <div className="mx-auto w-full max-w-content space-y-12 px-4 py-12 md:px-6 md:py-16">
         <section className="max-w-3xl space-y-4 text-[17px] leading-relaxed text-text-secondary">
           <p>
-            Norske bygge- og anleggsprosjekter presses av parallelle utfordringer: stramme fremdriftsplaner, skjerpede
-            HMS-krav og et arbeidsmarked der etterspørselen etter fagarbeidere bygg Norge overstiger tilgangen på
-            raskt tilgjengelig arbeidskraft. Samtidig skal alt arbeid utføres lovlig, med riktige kontrakter,
-            lønnsvilkår og kontrollrutiner som tåler offentlig innsyn. Resultatet er at mange entreprenører og
-            underentreprenører bruker for mye tid på å lete etter riktige folk, i stedet for å lede produksjon.
+            Norske bygge- og anleggsprosjekter må balansere fremdrift, HMS og tilgang på fagarbeidere. ArbeidMatch
+            kobler virksomheter med forhåndsvurderte kandidater fra EU/EØS der dokumentasjon og forventninger er avklart
+            tidlig. Vi tilstreber tydelig dialog om{" "}
+            <Link href="/for-employers" className="font-medium text-gold hover:underline">
+              arbeidsgiverbehov
+            </Link>{" "}
+            og leveranser innenfor gjeldende regelverk.
           </p>
           <p>
-            ArbeidMatch er et bemannings- og rekrutteringsmiljø som kobler norske virksomheter med forhåndsvurderte
-            kandidater fra EU/EØS med relevant erfaring til bygg og anlegg. Vi jobber strukturert med screening,
-            dokumentasjon og forventningsstyring slik at prosjektledere får tydelige profiler: fra betongarbeider og
-            stillasbygger til maler, flislegger og snekker. Målet er ikke «mest mulig CV-er», men riktig match på
-            fag, sikkerhet og gjennomføringsevne.
-          </p>
-          <p>
-            Når dere trenger utenlandske byggearbeidere, er det avgjørende at bemanningen følger norsk regelverk for
-            utleie, skatt og eventuelle tariff-/allmenngjøringskrav. Vi legger vekt på ryddige prosesser og tydelig
-            dialog mellom oppdragsgiver, kandidat og vårt fagteam, slik at dere kan planlegge bemanning uten å
-            kompromisse på kvalitet eller compliance.
-          </p>
-          <p>
-            Rekruttering anlegg krever ofte parallelle disipliner: noen team trenger tung betongkompetanse, andre trenger
-            presisjonsarbeid i tørt bygg. ArbeidMatch prioriterer derfor behovsforståelse foran volum. Vi kartlegger
-            verktøy, sertifikater og erfaring med norsk byggeplasskultur, slik at dere slipper å bruke verdifull
-            produksjonstid på gjentatte intervjuer som ikke leder til oppstart.
+            Når dere trenger utenlandske byggearbeidere, kartlegger vi fag, sertifikater og språkbehov. Målet vårt er
+            riktig match — ikke høyest mulig volum. For autoriserte roller (f.eks. elektriker) viser vi vei til{" "}
+            <Link href="/dsb-support" className="font-medium text-gold hover:underline">
+              DSB-godkjenning
+            </Link>{" "}
+            der det er relevant. Bestill behovsavklaring via{" "}
+            <Link href="/request" className="font-medium text-gold hover:underline">
+              forespørsel
+            </Link>
+            .
           </p>
         </section>
 
@@ -59,64 +71,46 @@ export default function BemanningByggAnleggNb() {
               ["Anleggsarbeider", "Maskinassistert arbeid, rigg og logistikk på anleggsområde."],
               ["Elektriker (autorisasjon)", "Der prosjektet krever dokumentert norsk autorisasjon, avklarer vi krav før presentasjon."],
             ].map(([title, text]) => (
-              <li key={title} className="rounded-xl border border-border bg-surface p-5">
-                <h3 className="text-lg font-semibold text-navy">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-text-secondary">{text}</p>
+              <li key={title} className={`${roleCardClass} p-6 md:p-7`} style={{ padding: "28px 24px" }}>
+                <div className="flex items-start gap-3">
+                  <RoleIcon />
+                  <div>
+                    <h3 className="text-lg font-semibold text-navy">{title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-text-secondary">{text}</p>
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-navy">Slik fungerer prosessen</h2>
-          <ol className="mt-6 space-y-4 text-[17px] leading-relaxed text-text-secondary">
-            <li>
-              <span className="font-semibold text-navy">1. Krav og prosjektforståelse.</span> Vi kartlegger fag,
-              sertifikater, språkbehov, skift og varighet. Dere får en tydelig kravspesifikasjon som styrer sourcing.
-            </li>
-            <li>
-              <span className="font-semibold text-navy">2. Sourcing og kvalitetssikring.</span> Vi kontakter kandidater
-              med dokumentert erfaring, gjennomfører intervjuer og kontroller grunnleggende papirflyt før presentasjon.
-            </li>
-            <li>
-              <span className="font-semibold text-navy">3. Presentasjon og oppstart.</span> Dere møter utvalgte
-              profiler, velger kandidat og planlegger oppstart sammen med oss. Ved behov støtter vi i praktisk
-              onboarding og oppfølging i oppstartsøkten, inkludert avstemming av verktøy, påkledning og
-              sikkerhetsbrief mot deres prosedyre.
-            </li>
-          </ol>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-bold text-navy">Hvorfor velge ArbeidMatch til bemanning av bygg?</h2>
-          <div className="mt-6 space-y-5 text-[17px] leading-relaxed text-text-secondary">
-            <p>
-              <span className="font-semibold text-navy">Faglig tyngde.</span> Vi forstår forskjellen mellom anlegg og
-              boligproduksjon, og vi stiller spørsmål som avdekker reell erfaring – ikke bare titler på CV-en.
-            </p>
-            <p>
-              <span className="font-semibold text-navy">Compliance i praksis.</span> EU arbeidskraft skal inn i norske
-              systemer på riktig måte. Vi veileder i avtalestruktur og dokumentasjon slik at hverdagen blir enklere for
-              prosjektøkonomi og HR.
-            </p>
-            <p>
-              <span className="font-semibold text-navy">Forutsigbar leveranse.</span> Når scope er avklart, jobber vi
-              mot tydelige milepæler. Mange kunder verdsetter vår evne til å korte ned tid fra behov til produksjon.
-            </p>
-            <p>
-              <span className="font-semibold text-navy">Lokal forankring, nasjonal dekning.</span> Vi opererer ut fra
-              Trondheim med leveranser til prosjekter i hele Norge, og koordinerer reise og innkvartering der det er
-              nødvendig.
-            </p>
-            <p>
-              <span className="font-semibold text-navy">Partnerskap, ikke «bulk».</span> Vi bygger tillit gjennom
-              åpenhet om hva som er mulig innenfor gitte rammer – og gjennom å si fra når krav og marked ikke møtes.
-            </p>
-            <p>
-              <span className="font-semibold text-navy">Fagarbeidere bygg Norge.</span> Vi vet at kvalitet måles i
-              millimeter på flis, i forankring på stillas og i herdefenster i betong. Derfor stiller vi presise
-              spørsmål om tidligere prosjektstørrelse, type entreprise og referanser før vi anbefaler kandidat.
-            </p>
+          <h2 className="text-2xl font-bold text-navy">Hvorfor velge ArbeidMatch?</h2>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {[
+              {
+                t: "Faglig tyngde",
+                b: "Vi stiller presise spørsmål om erfaring fra norsk byggeplasskultur og prosjektstørrelse — basert på vår erfaring med rekruttering til bygg.",
+              },
+              {
+                t: "Compliance i praksis",
+                b: "Vi arbeider for å avklare avtaler, dokumentasjon og tariff/allmenngjøring der det inngår i oppdraget — i tråd med gjeldende krav.",
+              },
+              {
+                t: "Forutsigbar leveranse",
+                b: "Med tydelig scope jobber vi mot milepæler dere kan planlegge etter. Målet er færre avbrudd i produksjonstid.",
+              },
+            ].map((u) => (
+              <article key={u.t} className={`${roleCardClass} p-6`} style={{ padding: "28px 24px" }}>
+                <div className="flex items-start gap-3">
+                  <RoleIcon />
+                  <div>
+                    <h3 className="text-base font-semibold text-navy">{u.t}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-text-secondary">{u.b}</p>
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -138,7 +132,7 @@ export default function BemanningByggAnleggNb() {
               },
               {
                 q: "Hva med norsk og HMS?",
-                a: "Vi vurderer språk og erfaring opp mot prosjektets krav. HMS er ikke et tillegg – det er en forutsetning for at bemanningen skal fungere i praksis.",
+                a: "Vi vurderer språk og erfaring opp mot prosjektets krav. HMS er en forutsetning for at bemanningen skal fungere i praksis.",
               },
             ].map((item) => (
               <div key={item.q}>
@@ -148,6 +142,8 @@ export default function BemanningByggAnleggNb() {
             ))}
           </dl>
         </section>
+
+        <BemanningLegalSection />
 
         <SeeAlsoSection
           variant="surface"
@@ -162,10 +158,9 @@ export default function BemanningByggAnleggNb() {
         <section className="rounded-2xl border border-gold/30 bg-navy px-6 py-10 text-center text-white">
           <h2 className="text-2xl font-bold">Klar for trygg bemanning på byggeplassen?</h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-white/80">
-            Send oss kravene deres – vi returnerer med konkrete profiler og en tydelig plan. Med god dokumentasjon og
-            parallelle prosesser jobber vi mot kort leveringstid, ofte innenfor om lag{" "}
-            <span className="font-semibold text-white">2 ukers leveringstid</span> for aktuelle roller der markedet
-            tillater det.
+            Send oss kravene deres — vi returnerer med profiler og en plan. Vi tilstreber kort tid fra avklaring til
+            oppstart der markedet tillater det, ofte i om lag{" "}
+            <span className="font-semibold text-white">2 ukers leveringstid</span> for relevante roller.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -24,14 +25,38 @@ export default function BemanningRenholdPage() {
             hyppige vaktbytter.
           </p>
           <p>
-            Vi avklarer arbeidstid, transport og språkbehov tidlig. Kandidater presenteres med tydelig erfaringsbasis
-            slik at driftsleder slipper å bruke verdifull tid på uforberedte intervjuer.
-          </p>
-          <p>
-            Bemanning renhold skal være forutsigbar: faste team der det er behov, og fleksible vikarer når sykdom eller
-            topper oppstår. Vi hjelper dere å finne riktig balanse.
+            Vi avklarer arbeidstid, transport og språkbehov tidlig. Bemanning renhold skal være forutsigbar: faste team
+            der det er behov, og fleksible vikarer når topper oppstår. Vi hjelper dere å finne riktig balanse og viser vei
+            til{" "}
+            <Link href="/request" className="font-medium text-gold hover:underline">
+              forespørsel
+            </Link>{" "}
+            når dere er klare.
           </p>
         </div>
+        <section className="mt-10 grid gap-4 md:grid-cols-3">
+          {[
+            ["Rutiner og soner", "Avklaring av desinfeksjon, materialbruk og arbeidssted."],
+            ["Trygg bemanning", "Vi tilstreber tydelige forventninger om vakt og transport."],
+            ["Skalerbart", "Fleksibilitet uten å love ubegrenset kapasitet i alle topper."],
+          ].map(([t, b]) => (
+            <article
+              key={t}
+              className="rounded-xl border border-border bg-surface transition-all duration-200 hover:-translate-y-1 hover:border-[#C9A84C]"
+              style={{ padding: "28px 24px" }}
+            >
+              <h3 className="text-base font-semibold text-navy">{t}</h3>
+              <p className="mt-2 text-sm text-text-secondary">{b}</p>
+            </article>
+          ))}
+        </section>
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-navy">Kort FAQ</h2>
+          <p className="mt-3 text-sm text-text-secondary">
+            Kan dere dekke helgevakter? — Avhengig av tilgjengelighet og område; vi avklarer før oppstart.
+          </p>
+        </section>
+        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[

@@ -1,11 +1,5 @@
 import type { Metadata } from "next";
-import AboutHero from "@/components/about/AboutHero";
-import AboutStats from "@/components/about/AboutStats";
-import AboutMission from "@/components/about/AboutMission";
-import AboutCompanyFacts from "@/components/about/AboutCompanyFacts";
-import AboutValues from "@/components/about/AboutValues";
-import AboutTimeline from "@/components/about/AboutTimeline";
-import AboutCta from "@/components/about/AboutCta";
+import AboutUnderConstruction from "@/components/about/AboutUnderConstruction";
 import AboutJsonLd from "@/components/about/AboutJsonLd";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
@@ -19,13 +13,7 @@ export default function AboutPage() {
   return (
     <>
       <AboutJsonLd />
-      <AboutHero />
-      <AboutStats />
-      <AboutMission />
-      <AboutCompanyFacts />
-      <AboutValues />
-      <AboutTimeline />
-      <AboutCta />
+      <AboutUnderConstruction />
     </>
   );
 }

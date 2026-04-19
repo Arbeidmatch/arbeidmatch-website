@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -19,33 +20,23 @@ export default function BemanningsbyraKristiansandPage() {
         </h1>
         <div className="mt-8 max-w-3xl space-y-4 text-[17px] leading-relaxed text-text-secondary">
           <p>
-            Kristiansand og Agder er i praktisk vekst: batteriindustri, etableringer langs E39 og økt lager- og
-            havneaktivitet gir behov for arbeidskraft som både forstår prosess og tåler skift. Samtidig bygges det bolig
-            og næring i bysonen, som krever tradisjonell byggkompetanse i perioder der lokale team er utnyttet.
+            Kristiansand og Agder er i vekst med industri, logistikk og boligbygging som krever arbeidskraft som forstår
+            prosess og skift. ArbeidMatch leverer bemanning Kristiansand med fokus på dokumentasjon, pendling og tydelige
+            forventninger til språk i sikkerhetsbrief. Vi tilstreber ryddig dialog med verksleder og tillitsvalgte.
           </p>
           <p>
-            ArbeidMatch leverer bemanning Kristiansand med fokus på dokumentasjon og pendling: mange kandidater flytter
-            inn til Grimstad eller Arendal for prosjekter langs kysten. Vi avklarer bolig, transport og arbeidstid tidlig,
-            slik at oppdragsgiver får stabile team. Våre profiler hentes fra EU/EEA med erfaring fra industri, logistikk
-            og bygg – avhengig av deres behov.
-          </p>
-          <p>
-            Vekstsektorer i regionen er prosessindustri, elektrifisering og sjømat med økt automasjon. Det øker behovet
-            for elektrohjelp der autorisasjon er avklart, operatører som kan jobbe i batch-produksjon og logistikkfolk som
-            behersker terminalsystemer. Vi stiller spørsmål om reell erfaring, ikke bare «har jobbet på fabrikk».
-          </p>
-          <p>
-            Agder-arbeidslivet er ofte familieorientert og langsiktig. Derfor er det viktig for oss at bemanningen ikke
-            skaper friksjon i lokalmiljøet: vi kommuniserer tydelig om kontraktsformer og forventninger til språk i
-            sikkerhetsbrief. Målet er at både verksleder og tillitsvalgte opplever prosessen som ryddig.
-          </p>
-          <p>
-            ArbeidMatch har nasjonal dekning og støtter Agder-prosjekter med samme metodikk som i større byer: krav først,
-            deretter sourcing, deretter kvalitetssikring før presentasjon. Dere får partner som forstår at avstand til
-            hovedkontor ikke skal bety avstand i oppfølging – digital dialog og planlagte befaringer sørger for det.
+            Vi avklarer bolig, transport og arbeidstid tidlig. Send{" "}
+            <Link href="/request" className="font-medium text-gold hover:underline">
+              forespørsel
+            </Link>{" "}
+            eller les mer for{" "}
+            <Link href="/for-employers" className="font-medium text-gold hover:underline">
+              arbeidsgivere
+            </Link>
+            .
           </p>
         </div>
-        <section className="mt-10 rounded-xl border border-border bg-surface p-6">
+        <section className="mt-10 rounded-xl border border-border bg-surface p-6 transition-all duration-200 hover:border-[#C9A84C]">
           <h2 className="text-lg font-semibold text-navy">Typiske roller i Kristiansand og Agder</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-text-secondary">
             <li>Industrioperatører til prosess og pakking</li>
@@ -54,6 +45,29 @@ export default function BemanningsbyraKristiansandPage() {
             <li>Teknisk assistanse i vedlikeholdsesong</li>
           </ul>
         </section>
+        <section className="mt-10 grid gap-4 md:grid-cols-3">
+          {[
+            ["Reell erfaring", "Vi stiller spørsmål om konkrete prosesser — ikke bare generelle etiketter."],
+            ["Regional logikk", "Pendling og bolig avklares tidlig for stabile team."],
+            ["Digital oppfølging", "Avstand til hovedkontor skal ikke bety avstand i dialog."],
+          ].map(([t, b]) => (
+            <article
+              key={t}
+              className="rounded-xl border border-border bg-white transition-all duration-200 hover:-translate-y-1 hover:border-[#C9A84C]"
+              style={{ padding: "28px 24px" }}
+            >
+              <h3 className="text-base font-semibold text-navy">{t}</h3>
+              <p className="mt-2 text-sm text-text-secondary">{b}</p>
+            </article>
+          ))}
+        </section>
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold text-navy">Kort FAQ</h2>
+          <p className="mt-3 text-sm text-text-secondary">
+            Dekker dere hele Agder? — Ja, med samme metodikk som i større byer — krav først, deretter sourcing.
+          </p>
+        </section>
+        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[

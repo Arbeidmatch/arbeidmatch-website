@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
@@ -24,14 +25,36 @@ export default function BemanningHorecaPage() {
             med hygienestandarder.
           </p>
           <p>
-            Vi kartlegger skift, språk i møte med gjester og interne krav til mattrygghet. Kandidater presenteres med
-            tydelig erfaring fra tilsvarende miljø – fra storkjøkken til boutique-hotell.
-          </p>
-          <p>
-            Målet er at kjøkkensjefer og hotellsjefer får forutsigbar bemanning som kan skaleres opp og ned uten å
-            belaste kjerneteamet unødig.
+            Vi kartlegger skift, språk i møte med gjester og mattrygghet. Kandidater presenteres med tydelig erfaring
+            fra tilsvarende miljø. Målet er forutsigbar bemanning som kan skaleres — uten å love ubegrenset kapasitet i
+            alle topper. Les mer om{" "}
+            <Link href="/for-employers" className="font-medium text-gold hover:underline">
+              arbeidsgiverløsning
+            </Link>{" "}
+            eller send{" "}
+            <Link href="/request" className="font-medium text-gold hover:underline">
+              forespørsel
+            </Link>
+            .
           </p>
         </div>
+        <section className="mt-10 grid gap-4 md:grid-cols-3">
+          {[
+            ["Mattrygghet", "Erfaring fra storkjøkken og hotell — avklart før presentasjon."],
+            ["Skift og språk", "Vi matcher behov mot reell erfaring i gjestemøte."],
+            ["Sesongtopper", "Vi skalerer der markedet tillater — uten absolutte løfter om volum."],
+          ].map(([t, b]) => (
+            <article
+              key={t}
+              className="rounded-xl border border-border bg-surface transition-all duration-200 hover:-translate-y-1 hover:border-[#C9A84C]"
+              style={{ padding: "28px 24px" }}
+            >
+              <h3 className="text-base font-semibold text-navy">{t}</h3>
+              <p className="mt-2 text-sm text-text-secondary">{b}</p>
+            </article>
+          ))}
+        </section>
+        <BemanningLegalSection />
         <SeeAlsoSection
           variant="surface"
           items={[
