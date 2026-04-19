@@ -9,6 +9,7 @@
  */
 
 const ATS_BASE_URL = process.env.ATS_BASE_URL || "https://ats.arbeidmatch.no";
+void ATS_BASE_URL;
 const ATS_API_KEY = process.env.ATS_API_KEY;
 
 export interface ATSCandidate {

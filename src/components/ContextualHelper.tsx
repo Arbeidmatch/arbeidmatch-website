@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 
 const IDLE_MS = 8000;
 const SCROLL_DELTA = 100;
@@ -191,8 +191,8 @@ export default function ContextualHelper() {
   }, [scheduleIdle]);
 
   useEffect(() => {
-    setVisible(false);
     clearTimers();
+    startTransition(() => setVisible(false));
 
     if (!config) {
       return;

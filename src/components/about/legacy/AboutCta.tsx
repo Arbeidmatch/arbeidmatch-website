@@ -1,3 +1,5 @@
+// Kept for future About page redesign.
+
 import Link from "next/link";
 
 export default function AboutCta() {

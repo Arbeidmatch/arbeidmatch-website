@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
@@ -58,7 +58,7 @@ export default function DsbTypeSelector({
 
   useEffect(() => {
     if (!open) {
-      setShowCloseButton(false);
+      startTransition(() => setShowCloseButton(false));
       return;
     }
     const delay = window.setTimeout(() => setShowCloseButton(true), 6000);

@@ -27,14 +27,6 @@ function base64UrlDecode(value: string): string {
 }
 
 function getSecret(): string {
-  console.log(
-    "[notificationToken] secret source:",
-    process.env.EMAIL_VERIFICATION_SECRET
-      ? "EMAIL_VERIFICATION_SECRET"
-      : process.env.CRON_SECRET
-        ? "CRON_SECRET"
-        : "EMPTY - NO SECRET FOUND",
-  );
   const secret = process.env.EMAIL_VERIFICATION_SECRET || process.env.CRON_SECRET || "";
   if (!secret) {
     console.error("[notificationToken] Missing EMAIL_VERIFICATION_SECRET (and CRON_SECRET fallback).");
@@ -54,15 +46,6 @@ function getVerificationSecrets(): string[] {
     return true;
   });
 
-  console.log(
-    "[notificationToken] verification secret sources order:",
-    secrets.map((value) => {
-      if (value === process.env.EMAIL_VERIFICATION_SECRET && value !== "") return "EMAIL_VERIFICATION_SECRET";
-      if (value === process.env.CRON_SECRET && value !== "") return "CRON_SECRET";
-      return "EMPTY";
-    }),
-  );
-
   return secrets;
 }
 
@@ -70,21 +53,7 @@ export function createEligibilityVerificationToken(
   payload: Omit<EligibilityVerificationPayload, "iat" | "exp" | "jti">,
   expiresInSeconds = 24 * 60 * 60,
 ): string {
-  console.log(
-    "[createToken] secret source:",
-    process.env.EMAIL_VERIFICATION_SECRET
-      ? "EMAIL_VERIFICATION_SECRET"
-      : process.env.CRON_SECRET
-        ? "CRON_SECRET"
-        : "EMPTY",
-  );
-  console.log("[createToken] iat:", Date.now());
-  console.log(
-    "[createToken] input:",
-    JSON.stringify({ notifyEmail: payload.notifyEmail, source: payload.source }),
-  );
   const now = Math.floor(Date.now() / 1000);
-  console.log("[createToken] now(sec):", now);
   const fullPayload: EligibilityVerificationPayload = {
     ...payload,
     jti: randomBytes(16).toString("hex"),
@@ -94,7 +63,6 @@ export function createEligibilityVerificationToken(
   const encodedPayload = base64UrlEncode(JSON.stringify(fullPayload));
   const signature = createHmac("sha256", getSecret()).update(encodedPayload).digest("hex");
   const token = `${encodedPayload}.${signature}`;
-  console.log("[createToken] output token prefix:", token.substring(0, 30));
   return token;
 }
 

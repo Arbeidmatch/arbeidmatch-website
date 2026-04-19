@@ -13,18 +13,18 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case "partner.approved":
         // TODO: send approval email to employer
-        console.log("[ATS Webhook] Partner approved:", event.data);
+        void event.data;
         break;
       case "partner.rejected":
         // TODO: send rejection email to employer
-        console.log("[ATS Webhook] Partner rejected:", event.data);
+        void event.data;
         break;
       case "candidate.status_updated":
         // TODO: sync status if needed
-        console.log("[ATS Webhook] Candidate updated:", event.data);
+        void event.data;
         break;
       default:
-        console.log("[ATS Webhook] Unknown event:", event.type);
+        void event.type;
     }
 
     return NextResponse.json({ received: true });

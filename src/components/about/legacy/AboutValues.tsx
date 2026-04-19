@@ -44,6 +44,8 @@ const CARDS = [
   },
 ] as const;
 
+// Kept for future About page redesign.
+
 export default function AboutValues() {
   const [hovered, setHovered] = useState<number | null>(null);
 

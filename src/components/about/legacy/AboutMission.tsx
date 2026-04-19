@@ -1,3 +1,5 @@
+// Kept for future About page redesign.
+
 const BULLETS = [
   "Direkte sourcing fra 30+ EU/EEA-land",
   "Full overholdelse av norsk arbeidslovgivning",

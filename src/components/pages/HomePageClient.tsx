@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   Building2,
@@ -39,7 +39,7 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
   useEffect(() => {
     try {
       const v = window.sessionStorage.getItem("roleSelected");
-      if (v === "employer" || v === "candidate") setSessionRoleBanner(v);
+      if (v === "employer" || v === "candidate") startTransition(() => setSessionRoleBanner(v));
     } catch {
       /* ignore */
     }

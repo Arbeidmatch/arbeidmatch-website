@@ -29,7 +29,7 @@ export function extractToc(markdown: string): TocItem[] {
     if (!m) continue;
     const level = m[1].length === 2 ? 2 : 3;
     const raw = m[2].trim();
-    let base = slugifyHeading(raw) || "section";
+    const base = slugifyHeading(raw) || "section";
     const count = used.get(base) ?? 0;
     used.set(base, count + 1);
     const id = count === 0 ? base : `${base}-${count}`;

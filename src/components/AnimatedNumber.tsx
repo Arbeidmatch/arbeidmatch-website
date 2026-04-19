@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 function easeOutCubic(t: number): number {
   return 1 - (1 - t) ** 3;
@@ -33,11 +33,12 @@ export default function AnimatedNumber({
 
   useLayoutEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches) {
+    if (!mq.matches) return;
+    startTransition(() => {
       setReducedMotion(true);
       setDisplay(safeTarget);
       setRun(true);
-    }
+    });
   }, [safeTarget]);
 
   useEffect(() => {

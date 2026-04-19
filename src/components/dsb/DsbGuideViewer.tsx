@@ -27,6 +27,8 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
   const [activeId, setActiveId] = useState<string | null>(toc[0]?.id ?? null);
   const [protectionMessage, setProtectionMessage] = useState<string | null>(null);
 
+  /* Reset TOC walk cursor before ReactMarkdown renders heading components (same render pass). */
+  // eslint-disable-next-line react-hooks/refs -- cursor must reset synchronously before markdown h2/h3 renderers run
   headingCursorRef.current = 0;
 
   useEffect(() => {

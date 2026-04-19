@@ -85,12 +85,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.75,
     },
-    {
-      url: `${SITE}/premium/browse`,
-      lastModified: primaryLastMod,
-      changeFrequency: "weekly",
-      priority: 0.65,
-    },
     ...PREMIUM_ARTICLE_SLUGS.map((slug) => ({
       url: `${SITE}/premium/article/${slug}`,
       lastModified: primaryLastMod,
@@ -102,12 +96,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: primaryLastMod,
       changeFrequency: "yearly" as const,
       priority: 0.3,
-    },
-    {
-      url: `${SITE}/feedback`,
-      lastModified: stableLastMod,
-      changeFrequency: "monthly",
-      priority: 0.65,
     },
     {
       url: `${SITE}/privacy`,

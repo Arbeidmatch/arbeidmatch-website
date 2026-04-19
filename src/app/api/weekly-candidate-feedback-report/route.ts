@@ -76,13 +76,19 @@ async function buildPdfReport(rows: FeedbackRow[], byPage: Array<{ page: string;
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const cronSecret = process.env.CRON_SECRET;
-    const authHeader = request.headers.get("authorization");
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
+  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = request.headers.get("authorization");
 
+  if (!cronSecret) {
+    console.error("CRON_SECRET not configured");
+    return Response.json({ error: "Server misconfiguration" }, { status: 500 });
+  }
+
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
     const supabase = getSupabaseClient();
     if (!supabase) {
       return NextResponse.json({ success: false, error: "Supabase configuration missing" }, { status: 500 });

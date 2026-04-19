@@ -23,7 +23,12 @@ export async function createDsbGuideStripeCheckout(params: {
     return { ok: false, error: "Database is not configured." };
   }
 
-  console.log("[Verify] Looking up guide in DB...");
+  const euPriceEnv = process.env.STRIPE_PRICE_ID_DSB_EU?.trim();
+  const nonEuPriceEnv = process.env.STRIPE_PRICE_ID_DSB_NON_EU?.trim();
+  if (!euPriceEnv || !nonEuPriceEnv) {
+    throw new Error("Missing Stripe price IDs in environment variables");
+  }
+
   const { data: guide, error: guideError } = await supabase
     .from("dsb_guides")
     .select("slug, stripe_price_id, title")
@@ -33,19 +38,8 @@ export async function createDsbGuideStripeCheckout(params: {
   if (guideError || !guide) {
     return { ok: false, error: "Guide not found." };
   }
-  console.log("[Verify] guide found:", !!guide);
-  console.log("[Verify] stripe price id:", guide.stripe_price_id);
 
   const priceId = resolveStripePriceId(guideSlug, guide.stripe_price_id as string);
-  const expectedPriceId =
-    guideSlug === "eu" ? "price_1TNXG9JOA4NI25QcuBmmDvZ3" : "price_1TNXIwJOA4NI25QcxOP5CSrX";
-  if (priceId !== expectedPriceId) {
-    console.warn("[Verify] Stripe price ID differs from expected:", {
-      guideSlug,
-      expectedPriceId,
-      resolvedPriceId: priceId,
-    });
-  }
   if (!priceId?.startsWith("price_")) {
     return {
       ok: false,
@@ -88,12 +82,6 @@ export async function createDsbGuideStripeCheckout(params: {
   if (appliedCoupon) {
     sessionParams.discounts = [{ coupon: appliedCoupon }];
   }
-
-  console.log("[Checkout] Coupon code received:", couponCode ?? "(none)");
-  console.log(
-    "[Checkout] Discounts applied:",
-    appliedCoupon ? [{ coupon: appliedCoupon }] : "none",
-  );
 
   const session = await stripe.checkout.sessions.create(sessionParams);
 

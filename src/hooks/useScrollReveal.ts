@@ -15,7 +15,6 @@ export type UseScrollRevealOptions = {
 const defaultThreshold = 0.1;
 
 export function useScrollReveal<T extends HTMLElement = HTMLDivElement>({
-  variant: _variant,
   threshold = defaultThreshold,
   rootMargin = "0px 0px -5% 0px",
   once = true,

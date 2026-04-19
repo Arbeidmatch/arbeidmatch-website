@@ -54,9 +54,8 @@ async function getEmailDbRateLimitRetrySeconds(
 }
 
 /** Server-side Turnstile siteverify disabled (Vercel Hobby outbound); widget still gates submit on client. Re-enable when on Pro. */
-async function verifyTurnstileToken(token: string | undefined, _request: NextRequest): Promise<boolean> {
-  console.log("[turnstile] server verification skipped - using client-side only");
-  console.log("[turnstile] client-side verified, token length:", token?.length ?? 0);
+async function verifyTurnstileToken(token: string | undefined): Promise<boolean> {
+  void token;
   return true;
 }
 
@@ -68,25 +67,19 @@ export async function POST(request: NextRequest) {
     }
 
     const turnstileToken = typeof rawData.turnstileToken === "string" ? rawData.turnstileToken : "";
-    const turnstileOk = await verifyTurnstileToken(turnstileToken, request);
-    console.log("[send-eligibility-assistance] turnstile:", { ok: turnstileOk, tokenLength: turnstileToken.length });
+    const turnstileOk = await verifyTurnstileToken(turnstileToken);
     if (!turnstileOk) {
       const body = { success: false, error: "Bot detected" };
-      console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 400, ...body }));
       return NextResponse.json(body, { status: 400 });
     }
 
     const data = sanitizeStringRecord(rawData);
-    console.log("[send-eligibility] called at:", Date.now());
-    console.log("[send-eligibility] email:", data.notifyEmail);
     if (!data.notifyEmail || !data.notifyEmail.includes("@")) {
       const body = { success: false, error: "Valid email is required." };
-      console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 400, ...body }));
       return NextResponse.json(body, { status: 400 });
     }
     if (data.marketingConsent !== "Yes") {
       const body = { success: false, error: "Marketing consent confirmation is required." };
-      console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 400, ...body }));
       return NextResponse.json(body, { status: 400 });
     }
 
@@ -94,24 +87,18 @@ export async function POST(request: NextRequest) {
     const countryTrimmed = data.targetCountry?.trim() ?? "";
     if (!countryTrimmed) {
       const body = { success: false, error: "Target country is required." };
-      console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 400, ...body }));
       return NextResponse.json(body, { status: 400 });
     }
-
-    console.log("[send-eligibility-assistance] request:", { emailTrimmed, countryTrimmed });
 
     const supabase = getSupabaseClient();
     if (supabase) {
       const retryAfter = await getEmailDbRateLimitRetrySeconds(supabase, emailTrimmed);
-      console.log("[send-eligibility-assistance] db rate-limit (seconds to wait, 0=ok):", retryAfter);
       if (retryAfter === null) {
         const body = { success: false, error: "Could not verify request timing. Please try again." };
-        console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 500, ...body }));
         return NextResponse.json(body, { status: 500 });
       }
       if (retryAfter > 0) {
         const body = { success: false, rateLimited: true, retryAfter };
-        console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 429, ...body }));
         return NextResponse.json(body, { status: 429 });
       }
 
@@ -125,13 +112,11 @@ export async function POST(request: NextRequest) {
       if (existingError) {
         console.error("[send-eligibility-assistance] Supabase lookup email+country failed:", existingError.message);
         const body = { success: false, error: "Could not verify registration status. Please try again." };
-        console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 500, ...body }));
         return NextResponse.json(body, { status: 500 });
       }
 
       if (existing?.email_verified === true) {
         const body = { success: true, alreadyRegistered: true };
-        console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 200, ...body }));
         return NextResponse.json(body);
       }
 
@@ -147,7 +132,6 @@ export async function POST(request: NextRequest) {
         if (anyVerifiedError) {
           console.error("[send-eligibility-assistance] Supabase lookup any-verified failed:", anyVerifiedError.message);
           const body = { success: false, error: "Could not verify registration status. Please try again." };
-          console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 500, ...body }));
           return NextResponse.json(body, { status: 500 });
         }
 
@@ -164,11 +148,9 @@ export async function POST(request: NextRequest) {
           if (insertError) {
             console.error("[send-eligibility-assistance] Direct insert failed:", insertError.message);
             const body = { success: false, error: "Could not save registration. Please try again." };
-            console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 500, ...body }));
             return NextResponse.json(body, { status: 500 });
           }
           const body = { success: true, directlyRegistered: true };
-          console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 200, ...body }));
           return NextResponse.json(body);
         }
       }
@@ -226,13 +208,11 @@ If the button does not work, reply to this email for help.`,
     });
 
     const okBody = { success: true, requiresVerification: true };
-    console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 200, ...okBody }));
     return NextResponse.json(okBody);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("[send-eligibility-assistance] catch:", message);
     const body = { success: false, error: message };
-    console.log("[send-eligibility-assistance] response:", JSON.stringify({ status: 500, ...body }));
     return NextResponse.json(body, { status: 500 });
   }
 }

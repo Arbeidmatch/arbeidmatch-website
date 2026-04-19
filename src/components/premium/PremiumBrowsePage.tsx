@@ -33,6 +33,7 @@ export default function PremiumBrowsePage() {
     trialEndsAt?: string | null;
     hasAccess?: boolean;
   } | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     let cancelled = false;
@@ -56,12 +57,18 @@ export default function PremiumBrowsePage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (verify?.status !== "trialing") return;
+    const id = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, [verify?.status, verify?.trialEndsAt]);
+
   const hoursLeft = useMemo(() => {
     if (!verify?.trialEndsAt || verify.status !== "trialing") return null;
-    const ms = new Date(verify.trialEndsAt).getTime() - Date.now();
+    const ms = new Date(verify.trialEndsAt).getTime() - now;
     if (ms <= 0) return 0;
     return Math.ceil(ms / (1000 * 60 * 60));
-  }, [verify]);
+  }, [verify, now]);
 
   const filtered = useMemo(() => {
     return PREMIUM_ARTICLES.filter((a) => {

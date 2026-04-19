@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 
 const CONSENT_KEY = "am_cookie_consent_v1";
 const SESSION_DISMISS_KEY = "am_cookie_banner_dismissed";
@@ -13,9 +13,9 @@ export default function CookieConsent() {
     try {
       if (localStorage.getItem(CONSENT_KEY) === "accepted") return;
       if (sessionStorage.getItem(SESSION_DISMISS_KEY) === "1") return;
-      setVisible(true);
+      startTransition(() => setVisible(true));
     } catch {
-      setVisible(true);
+      startTransition(() => setVisible(true));
     }
   }, []);
 

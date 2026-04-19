@@ -51,10 +51,6 @@ export async function POST(request: NextRequest) {
     const emailRaw = (body.email || "").trim();
 
     const source = escapeHtml(sourceRaw);
-    const purpose = escapeHtml(purposeRaw);
-    const pageUrl = escapeHtml(pageUrlRaw);
-    const note = escapeHtml(noteRaw);
-    const email = escapeHtml(emailRaw);
     const submittedAt = formatEmailTimestampCet();
     const isAnonymous = !emailRaw;
 

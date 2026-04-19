@@ -1,3 +1,5 @@
+// Kept for future About page redesign.
+
 const STATS = [
   { value: "500+", label: "Vellykkede plasseringer" },
   { value: "50+", label: "Aktive norske kunder" },

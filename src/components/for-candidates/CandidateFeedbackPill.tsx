@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import { startTransition, useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import Link from "next/link";
 
 const LS_KEY = "am_feedback_pill_dismissed";
@@ -39,7 +39,7 @@ export default function CandidateFeedbackPill() {
   }, [clearTimer, performDismiss]);
 
   useEffect(() => {
-    setMounted(true);
+    startTransition(() => setMounted(true));
   }, []);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function CandidateFeedbackPill() {
     } catch {
       return;
     }
-    setVisible(true);
+    startTransition(() => setVisible(true));
   }, [mounted]);
 
   useEffect(() => {

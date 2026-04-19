@@ -1,3 +1,5 @@
+// Kept for future About page redesign.
+
 const ROWS = [
   { label: "Selskapsnavn", value: "ArbeidMatch Norge AS" },
   { label: "Organisasjonsnummer", value: "935 667 089 (MVA-registrert)" },

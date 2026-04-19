@@ -1,3 +1,5 @@
+// Kept for future About page redesign.
+
 const MILESTONES = [
   { date: "Mai 2025", text: "Selskapet stiftet i Trondheim" },
   { date: "Juni 2025", text: "Første norske kunde signert" },

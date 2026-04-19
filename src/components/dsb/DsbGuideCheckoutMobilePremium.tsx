@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, startTransition, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import {
@@ -177,7 +177,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
       const code = localStorage.getItem(DSB_DISCOUNT_LS_COUPON)?.trim();
       const g = localStorage.getItem(DSB_DISCOUNT_LS_GUIDE)?.trim();
       if (code && g === cfg.slug) {
-        setAppliedCoupon(code);
+        startTransition(() => setAppliedCoupon(code));
       }
     } catch {
       /* ignore */
@@ -192,7 +192,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
     try {
       localStorage.setItem(DSB_DISCOUNT_LS_COUPON, discountCode);
       localStorage.setItem(DSB_DISCOUNT_LS_GUIDE, variant);
-      setAppliedCoupon(discountCode);
+      startTransition(() => setAppliedCoupon(discountCode));
     } catch {
       /* ignore */
     }
@@ -200,7 +200,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
     url.searchParams.delete("discount");
     const next = url.pathname + (url.searchParams.toString() ? `?${url.searchParams.toString()}` : "");
     window.history.replaceState({}, "", next);
-  }, [cfg.slug]);
+  }, [variant]);
 
   const startConfirmation = (e: FormEvent) => {
     e.preventDefault();

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import WeldingCertGrid from "./WeldingCertGrid";
 
 const GOLD = "#C9A84C";
@@ -14,22 +14,22 @@ export default function WeldingSpecialistsCard() {
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduceMotion(mq.matches);
-    const onChange = () => setReduceMotion(mq.matches);
+    startTransition(() => setReduceMotion(mq.matches));
+    const onChange = () => startTransition(() => setReduceMotion(mq.matches));
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
   useEffect(() => {
     if (reduceMotion) {
-      setVisible(true);
+      startTransition(() => setVisible(true));
       return;
     }
     const el = rootRef.current;
     if (!el) return;
     const obs = new IntersectionObserver(
       ([e]) => {
-        if (e?.isIntersecting) setVisible(true);
+        if (e?.isIntersecting) startTransition(() => setVisible(true));
       },
       { root: null, rootMargin: "0px", threshold: 0.12 },
     );

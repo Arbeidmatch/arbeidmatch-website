@@ -6,8 +6,14 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = request.headers.get("authorization");
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+  if (!cronSecret) {
+    console.error("CRON_SECRET not configured");
+    return Response.json({ error: "Server misconfiguration" }, { status: 500 });
+  }
+
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {

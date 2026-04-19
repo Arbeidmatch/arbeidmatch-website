@@ -1,3 +1,5 @@
+// Kept for future About page redesign.
+
 export default function AboutHero() {
   return (
     <section

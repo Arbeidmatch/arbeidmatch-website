@@ -15,18 +15,11 @@ export default async function DsbSupportVerifyPage({
     const { token } = await searchParams;
     const normalizedToken = token?.trim();
 
-    console.log("[Verify Page] Token received:", !!token);
-    console.log("[Verify Page] Starting verification...");
-
     if (!normalizedToken) {
       redirect("/dsb-support/eu?error=link_expired");
     }
 
     const payload = verifyDsbEmailVerifyToken(normalizedToken);
-    console.log("[Verify Page] Payload decoded:", !!payload);
-    console.log("[Verify Page] Guide slug:", payload?.guide_slug);
-    console.log("[Verify] guide_slug:", payload?.guide_slug);
-    console.log("[Verify Page] Coupon:", payload?.coupon_code);
 
     if (!payload) {
       redirect("/dsb-support/eu?error=link_expired");
@@ -37,8 +30,6 @@ export default async function DsbSupportVerifyPage({
         ? payload.coupon_code.trim()
         : undefined;
 
-    console.log("[Verify] Looking up guide in DB...");
-    console.log("[Verify Page] Creating Stripe session...");
     let result: Awaited<ReturnType<typeof createDsbGuideStripeCheckout>>;
     try {
       result = await createDsbGuideStripeCheckout({
@@ -59,7 +50,6 @@ export default async function DsbSupportVerifyPage({
       redirect("/dsb-support/eu?error=checkout_failed");
     }
 
-    console.log("[Verify Page] Stripe URL:", result.checkoutUrl);
     redirect(result.checkoutUrl);
   } catch (error) {
     if (isRedirectError(error)) {

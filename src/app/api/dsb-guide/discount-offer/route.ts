@@ -92,14 +92,6 @@ export async function POST(request: NextRequest) {
     });
 
     try {
-      console.log("[Discount] Attempting to send email to:", email);
-      console.log("[Discount] SMTP config:", {
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
-        user: process.env.SMTP_USER,
-        hasPass: !!process.env.SMTP_PASS,
-      });
-
       await transporter.sendMail({
         ...mailHeaders(),
         to: email,
@@ -121,8 +113,6 @@ export async function POST(request: NextRequest) {
           ],
         }),
       });
-
-      console.log("[Discount] Email sent successfully");
     } catch (error) {
       console.error("[Discount] Email failed:", error);
       throw error;

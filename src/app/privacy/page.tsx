@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+
+import { nbPageMetadata } from "@/lib/nbPageMetadata";
+
+export const metadata: Metadata = nbPageMetadata(
+  "/privacy",
+  "Privacy Policy | ArbeidMatch",
+  "How ArbeidMatch collects, uses and protects your personal data. GDPR compliant.",
+);
+
 export default function PrivacyPage() {
   return (
     <section className="bg-[#0a0f14] py-12 md:py-20">

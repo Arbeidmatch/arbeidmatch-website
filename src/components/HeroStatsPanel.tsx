@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 
 type Props = {
   candidatesRegisteredToday: number;
@@ -72,7 +72,7 @@ function SmoothNumber({
 
     if (instant) {
       previousTargetRef.current = to;
-      setDisplay(to);
+      startTransition(() => setDisplay(to));
       return;
     }
 
@@ -80,11 +80,11 @@ function SmoothNumber({
     previousTargetRef.current = to;
 
     if (from === to) {
-      setDisplay(to);
+      startTransition(() => setDisplay(to));
       return;
     }
 
-    setTickPulse(true);
+    startTransition(() => setTickPulse(true));
     const pulseTimer = window.setTimeout(() => setTickPulse(false), 400);
     let raf = 0;
     const startAt = performance.now() + delayMs;
@@ -135,11 +135,10 @@ function readVisitsFromStorage(): number {
 /**
  * Hero navy grid: daily signups + static placement stats + active band + persistent total visits.
  */
-export default function HeroStatsPanel({
-  candidatesRegisteredToday: _candidatesRegisteredToday,
-  activeOnSiteNow: _activeOnSiteNow,
-  totalVisits: _totalVisits,
-}: Props) {
+export default function HeroStatsPanel(props: Props) {
+  void props.candidatesRegisteredToday;
+  void props.activeOnSiteNow;
+  void props.totalVisits;
   const panelRef = useRef<HTMLDivElement>(null);
   const activeNowRef = useRef(12);
   const [runNumbers, setRunNumbers] = useState(false);
@@ -164,8 +163,10 @@ export default function HeroStatsPanel({
         const rect = entry.boundingClientRect;
         const vh = window.innerHeight;
         const alreadyInUpperViewport = rect.top >= 0 && rect.top < vh * 0.55;
-        setCountInstant(alreadyInUpperViewport);
-        setRunNumbers(true);
+        startTransition(() => {
+          setCountInstant(alreadyInUpperViewport);
+          setRunNumbers(true);
+        });
         observer.disconnect();
       },
       { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
@@ -176,7 +177,7 @@ export default function HeroStatsPanel({
   }, []);
 
   useEffect(() => {
-    setTotalVisits(readVisitsFromStorage());
+    startTransition(() => setTotalVisits(readVisitsFromStorage()));
   }, []);
 
   useEffect(() => {
@@ -229,14 +230,15 @@ export default function HeroStatsPanel({
       storedDate === todayKey && Number.isFinite(restoredCandidates)
         ? Math.max(baseCandidates, restoredCandidates)
         : baseCandidates;
-    setCandidatesToday(safeCandidates);
     window.localStorage.setItem(STORAGE_CANDIDATES_DATE, todayKey);
     window.localStorage.setItem(STORAGE_CANDIDATES, String(safeCandidates));
-
-    const activeRange = getActiveRangeByHour(now.getHours());
-    const seed = clamp(randomInt(activeRange.min, activeRange.max), ACTIVE_GLOBAL_MIN, ACTIVE_GLOBAL_MAX);
-    setActiveNow(seed);
-    activeNowRef.current = seed;
+    startTransition(() => {
+      setCandidatesToday(safeCandidates);
+      const activeRange = getActiveRangeByHour(now.getHours());
+      const seed = clamp(randomInt(activeRange.min, activeRange.max), ACTIVE_GLOBAL_MIN, ACTIVE_GLOBAL_MAX);
+      setActiveNow(seed);
+      activeNowRef.current = seed;
+    });
   }, []);
 
   useEffect(() => {
