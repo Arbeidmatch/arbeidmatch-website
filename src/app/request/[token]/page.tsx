@@ -3,12 +3,11 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-type TokenData = { company: string; email: string; job_summary: string; org_number?: string };
+type TokenData = { company: string; email: string; job_summary: string; org_number?: string; full_name?: string };
 type CompanyResult = { name: string; orgNumber: string };
 type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 type RequestForm = {
-  full_name: string;
   phonePrefix: "+47" | "+46" | "+45";
   phoneNumber: string;
   hiringType: string;
@@ -290,7 +289,6 @@ const certsByRole: Record<string, string[]> = {
 };
 
 const initialData: RequestForm = {
-  full_name: "",
   phonePrefix: "+47",
   phoneNumber: "",
   hiringType: "",
@@ -556,7 +554,6 @@ export default function DetailedRequestPage() {
   const validateStep = (s: Step): string | null => {
     const phoneDigits = formData.phoneNumber.replace(/\D/g, "");
     if (s === 0) {
-      if (!formData.full_name.trim()) return "full_name";
       if (!formData.phonePrefix || phoneDigits.length < 8) return "phone";
     }
     if (s === 1 && !formData.hiringType) return "hiringType";
@@ -677,6 +674,7 @@ export default function DetailedRequestPage() {
     const payload = {
       ...formData,
       token,
+      full_name: tokenData?.full_name ?? "",
       phone: `${formData.phonePrefix} ${formData.phoneNumber.replace(/\D/g, "")}`,
       company: tokenData?.company ?? "",
       orgNumber: tokenData?.org_number ?? "",
@@ -764,7 +762,7 @@ export default function DetailedRequestPage() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-white">✓</div>
             <h1 className="mt-4 text-3xl font-bold text-navy">Request submitted successfully!</h1>
             <p className="mt-2 text-sm text-text-secondary">
-              Thank you, {formData.full_name || "there"}. We will review your request and be in touch with you soon.
+              Thank you, {tokenData?.full_name || "there"}. We will review your request and be in touch with you soon.
             </p>
             <div className="mx-auto mt-6 max-w-xl rounded-lg border border-border bg-surface p-4 text-left">
               <p className="text-sm font-semibold text-navy">How was your form experience?</p>
@@ -841,8 +839,9 @@ export default function DetailedRequestPage() {
             {step === 0 && (
               <div className="space-y-3">
                 <h2 className={titleClass}>Who should we contact?</h2>
-                <label className={labelClass}>First name last name</label>
-                <input className={`${inputClass} ${invalid("full_name")}`} placeholder="First name last name*" value={formData.full_name} onChange={(e) => updateField("full_name", e.target.value)} ref={(e) => setRef("full_name", e)} />
+                <div className="rounded-md border border-border bg-surface px-3 py-2 text-sm text-navy">
+                  {tokenData?.full_name || "Contact name from previous step"}
+                </div>
                 <label className={labelClass}>Phone</label>
                 <div className="grid grid-cols-[130px_1fr] gap-2">
                   <select

@@ -54,7 +54,8 @@ export default function RequestPage() {
   const [companyQuery, setCompanyQuery] = useState("");
   const [orgNumber, setOrgNumber] = useState("");
   const [partnershipStatus, setPartnershipStatus] = useState<"existing" | "new" | "">("");
-  const [contactName, setContactName] = useState("");
+  const [contactFirstName, setContactFirstName] = useState("");
+  const [contactLastName, setContactLastName] = useState("");
   const [contactRole, setContactRole] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [companyEmail, setCompanyEmail] = useState("");
@@ -121,7 +122,8 @@ export default function RequestPage() {
         companyQuery.trim().length > 1 &&
         companyEmail.trim().length > 3 &&
         companyEmail.includes("@") &&
-        contactName.trim().length > 2 &&
+        contactFirstName.trim().length > 1 &&
+        contactLastName.trim().length > 1 &&
         contactRole.trim().length > 1 &&
         contactPhone.trim().length > 5
       );
@@ -172,11 +174,14 @@ export default function RequestPage() {
       return;
     }
 
+    const fullName = `${contactFirstName} ${contactLastName}`.trim();
     const payload: Record<string, string> = {
       company: companyQuery,
       orgNumber,
       email: companyEmail,
-      full_name: contactName,
+      first_name: contactFirstName.trim(),
+      last_name: contactLastName.trim(),
+      full_name: fullName,
       contactRole,
       phone: contactPhone,
       job_summary: "",
@@ -539,17 +544,30 @@ export default function RequestPage() {
                       />
                     </motion.label>
 
-                    <motion.label variants={fieldItem} className="block">
-                      <span className="mb-1 block text-sm font-medium text-navy">Contact person name*</span>
-                      <input
-                        required
-                        name="full_name"
-                        className={inputClass}
-                        placeholder="First name last name"
-                        value={contactName}
-                        onChange={(event) => setContactName(event.target.value)}
-                      />
-                    </motion.label>
+                    <motion.div variants={fieldItem} className="grid grid-cols-2 gap-3 max-[480px]:grid-cols-1">
+                      <label className="block">
+                        <span className="mb-1 block text-sm font-medium text-navy">First name*</span>
+                        <input
+                          required
+                          name="first_name"
+                          className={inputClass}
+                          placeholder="First name"
+                          value={contactFirstName}
+                          onChange={(event) => setContactFirstName(event.target.value)}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="mb-1 block text-sm font-medium text-navy">Last name*</span>
+                        <input
+                          required
+                          name="last_name"
+                          className={inputClass}
+                          placeholder="Last name"
+                          value={contactLastName}
+                          onChange={(event) => setContactLastName(event.target.value)}
+                        />
+                      </label>
+                    </motion.div>
 
                     <motion.label variants={fieldItem} className="block">
                       <span className="mb-1 block text-sm font-medium text-navy">Contact person role/title*</span>
