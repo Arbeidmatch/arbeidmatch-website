@@ -296,8 +296,8 @@ export default function TradeSpecialistCards() {
 
   return (
     <section className="bg-white py-12 md:py-20">
-      <div className="mx-auto box-border grid w-full max-w-content grid-cols-1 gap-4 px-6 md:grid-cols-2 md:gap-5 md:px-12 lg:px-20">
-        <div ref={ref1} className="min-w-0">
+      <div className="mx-auto box-border grid w-full max-w-[860px] grid-cols-1 gap-6 px-6 md:px-12 lg:px-20">
+        <div ref={ref1} className="mx-auto min-w-0 w-full max-w-[860px]">
           <TradeCardShell
             reducedMotion={reducedMotion}
             reveal={card1}
@@ -382,7 +382,7 @@ export default function TradeSpecialistCards() {
           </TradeCardShell>
         </div>
 
-        <div ref={ref2} className="min-w-0">
+        <div ref={ref2} className="mx-auto min-w-0 w-full max-w-[860px]">
           <TradeCardShell
             reducedMotion={reducedMotion}
             reveal={card2}
