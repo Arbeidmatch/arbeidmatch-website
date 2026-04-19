@@ -29,8 +29,11 @@ const stederLinks = [
 ];
 
 const ressurserLinks: { href: string; label: string; premium?: boolean }[] = [
+  { href: "/electricians-norway", label: "Electricians in Norway" },
+  { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/premium", label: "Premium Guides", premium: true },
   { href: "/about", label: "Om oss" },
+  { href: "/partners", label: "Partners" },
   { href: "/dsb-support", label: "DSB Authorization Guide" },
   { href: "/blog", label: "Blog" },
   { href: "/recruiter-network", label: "Partner Program" },
