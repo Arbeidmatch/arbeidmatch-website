@@ -4,8 +4,14 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 90px;
+  scroll-padding-top: 100px;
   overflow-x: hidden;
+}
+
+@media (max-width: 1023px) {
+  html {
+    scroll-padding-top: 120px;
+  }
 }
 
 body {

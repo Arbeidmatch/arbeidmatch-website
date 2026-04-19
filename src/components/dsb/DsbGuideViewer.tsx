@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { AlertTriangle, ChevronDown, ExternalLink } from "lucide-react";
+import { AlertTriangle, ExternalLink } from "lucide-react";
 import type { TocItem } from "@/lib/dsbGuideMarkdown";
 import type { DsbGuideSlug } from "@/lib/dsbGuideAccess";
 
@@ -56,6 +56,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
   const [activeId, setActiveId] = useState<string>("");
   const [protectionMessage, setProtectionMessage] = useState<string | null>(null);
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
+  const [mobileTocMounted, setMobileTocMounted] = useState(false);
 
   const resolvedToc = useMemo(() => {
     const seen = new Map<string, number>();
@@ -72,6 +73,10 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
     const active = resolvedToc.find((i) => i.id === activeId);
     return active?.text || resolvedToc[0]?.text || "Contents";
   }, [activeId, resolvedToc]);
+  const isLongToc = useMemo(() => {
+    const h3Count = resolvedToc.filter((item) => item.level === 3).length;
+    return resolvedToc.length > 18 || h3Count > 10;
+  }, [resolvedToc]);
 
   // eslint-disable-next-line react-hooks/refs -- reset for markdown render pass
   headingCursorRef.current = 0;
@@ -92,7 +97,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
           }
         });
       },
-      { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+      { rootMargin: "-80px 0px -70% 0px", threshold: 0 },
     );
 
     headings.forEach((h) => observer.observe(h));
@@ -139,6 +144,15 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
     };
   }, []);
 
+  useEffect(() => {
+    if (mobileTocOpen) {
+      setMobileTocMounted(true);
+      return;
+    }
+    const timeout = window.setTimeout(() => setMobileTocMounted(false), reducedMotionEnabled() ? 0 : 250);
+    return () => window.clearTimeout(timeout);
+  }, [mobileTocOpen]);
+
   const scrollToSection = (id: string) => {
     const target = document.getElementById(id);
     if (!target) return;
@@ -183,46 +197,30 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
           </div>
         </header>
 
-        <div className="sticky top-[60px] z-40 mb-4 border-b border-black/10 bg-white px-4 py-3 lg:hidden">
+        <div className="sticky top-[60px] z-40 mb-4 h-11 overflow-hidden border-b border-black/10 bg-white/95 px-4 backdrop-blur lg:hidden">
           <button
             type="button"
             onClick={() => setMobileTocOpen((o) => !o)}
-            className="flex w-full items-center justify-between gap-3"
+            className="flex h-full w-full items-center justify-between gap-3"
           >
-            <span className="truncate text-left text-[13px] font-semibold text-[#0f1923]">{currentSection}</span>
-            <ChevronDown size={16} className={`transition-transform duration-150 ${mobileTocOpen ? "rotate-180" : ""}`} />
+            <span className="flex min-w-0 flex-1 items-center gap-2 truncate text-left">
+              <span className="shrink-0 text-[10px] uppercase tracking-[0.08em] text-[#C9A84C]">Section</span>
+              <span className="truncate text-[13px] font-semibold text-[#0f1923]">{currentSection}</span>
+            </span>
+            <span className="rounded-md border border-black/10 px-2 py-1 text-[12px] text-black/50">All sections</span>
           </button>
-          {mobileTocOpen ? (
-            <div className="absolute left-0 right-0 top-full max-h-[60vh] overflow-y-auto rounded-b-xl border border-black/10 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
-              {resolvedToc.map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollToSection(item.id);
-                    setActiveId(item.id);
-                    setMobileTocOpen(false);
-                  }}
-                  className={`block border-b border-black/5 px-4 py-3 text-[14px] leading-[1.4] ${
-                    item.level === 3 ? "pl-7 text-[13px] text-black/50" : "text-black/70"
-                  } ${activeId === item.id ? "bg-[rgba(201,168,76,0.06)] font-semibold text-[#C9A84C]" : "hover:bg-[rgba(201,168,76,0.06)]"}`}
-                >
-                  {item.text}
-                </a>
-              ))}
-            </div>
-          ) : null}
         </div>
 
-        <div className="relative z-10 lg:mx-auto lg:grid lg:max-w-[1100px] lg:grid-cols-[240px_1fr] lg:items-start lg:gap-12">
-          <aside className="hidden lg:sticky lg:top-20 lg:block lg:max-h-[calc(100vh-120px)] lg:w-[240px] lg:overflow-y-auto">
-            <p className="mb-4 border-b border-black/10 pb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#C9A84C]">
+        <div className="relative z-10 lg:mx-auto lg:grid lg:max-w-[1100px] lg:grid-cols-[220px_1fr] lg:items-start lg:gap-12">
+          <aside className="hidden lg:sticky lg:top-20 lg:block lg:max-h-[calc(100vh-100px)] lg:w-[220px] lg:shrink-0 lg:overflow-visible">
+            <p className="mb-3 border-b border-black/10 pb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#C9A84C]">
               Contents
             </p>
             <nav aria-label="Table of contents">
               <ul className="space-y-1">
-                {resolvedToc.map((item) => (
+                {resolvedToc.map((item) => {
+                  if (isLongToc && item.level === 3) return null;
+                  return (
                   <li key={item.id}>
                     <a
                       href={`#${item.id}`}
@@ -231,8 +229,8 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                         scrollToSection(item.id);
                         setActiveId(item.id);
                       }}
-                      className={`block rounded-md border-l-2 border-l-transparent px-3 py-1.5 text-left no-underline transition-all duration-150 ease-out ${
-                        item.level === 3 ? "pl-6 text-[12px] text-black/45" : "text-[13px] text-black/55"
+                      className={`block max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap rounded-md border-l-2 border-l-transparent px-2 py-1 text-left no-underline transition-all duration-150 ease-out ${
+                        item.level === 3 ? "pl-5 text-[11px] font-normal text-black/40" : "text-[12px] font-medium text-black/50"
                       } ${
                         activeId === item.id
                           ? "border-l-[#C9A84C] bg-[rgba(201,168,76,0.08)] font-semibold text-[#C9A84C]"
@@ -242,7 +240,8 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                       {item.text}
                     </a>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </nav>
             <button
@@ -410,6 +409,28 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                       {sectionModeRef.current === "links" ? <ExternalLink size={16} className="text-[#C9A84C]" aria-hidden /> : null}
                     </a>
                   ),
+                  table: ({ children }) => (
+                    <div className="my-6 overflow-x-auto rounded-xl border border-black/10">
+                      <table className="w-full border-collapse text-[14px]">{children}</table>
+                    </div>
+                  ),
+                  thead: ({ children }) => <thead className="bg-[#0f1923]">{children}</thead>,
+                  th: ({ children }) => (
+                    <th className="whitespace-nowrap px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
+                      {children}
+                    </th>
+                  ),
+                  tbody: ({ children }) => <tbody>{children}</tbody>,
+                  tr: ({ children }) => (
+                    <tr className="border-b border-black/10 transition-colors duration-150 hover:bg-[rgba(201,168,76,0.04)]">
+                      {children}
+                    </tr>
+                  ),
+                  td: ({ children }) => (
+                    <td className="px-4 py-3 align-top text-[14px] leading-[1.6] text-[#374151] [&:first-child]:whitespace-nowrap [&:first-child]:font-bold [&:first-child]:text-[#C9A84C]">
+                      {children}
+                    </td>
+                  ),
                   code: ({ children, ...props }) => (
                     <code className="rounded bg-surface px-1 py-0.5 text-sm text-navy" {...props}>
                       {children}
@@ -432,6 +453,43 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
           </div>
         </div>
       </div>
+      {mobileTocMounted ? (
+        <>
+          <button
+            type="button"
+            aria-label="Close contents"
+            onClick={() => setMobileTocOpen(false)}
+            className={`fixed inset-0 z-[59] bg-black/30 transition-opacity duration-300 lg:hidden ${mobileTocOpen ? "opacity-100" : "opacity-0"}`}
+            style={{ transitionDuration: reducedMotionEnabled() ? "0ms" : undefined }}
+          />
+          <div
+            className={`fixed bottom-0 left-0 right-0 z-[60] max-h-[70vh] overflow-y-auto rounded-t-[20px] bg-white px-0 pb-8 pt-5 transition-transform duration-300 ease-out lg:hidden ${
+              mobileTocOpen ? "translate-y-0" : "translate-y-full"
+            }`}
+            style={{ transitionDuration: reducedMotionEnabled() ? "0ms" : undefined }}
+          >
+            <div className="mx-auto mb-4 h-1 w-10 rounded bg-black/20" />
+            <p className="mb-3 px-5 text-[13px] font-bold text-[#0f1923]">Contents</p>
+            {resolvedToc.map((item) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToSection(item.id);
+                  setActiveId(item.id);
+                  setMobileTocOpen(false);
+                }}
+                className={`block border-b border-black/10 py-3 text-left leading-[1.4] ${
+                  item.level === 3 ? "pl-9 pr-5 text-[14px] text-black/60" : "px-5 text-[15px] text-[#0f1923]"
+                } ${activeId === item.id ? "bg-[rgba(201,168,76,0.06)] font-semibold text-[#C9A84C]" : ""}`}
+              >
+                {item.text}
+              </a>
+            ))}
+          </div>
+        </>
+      ) : null}
       {protectionMessage ? (
         <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/65 px-4">
           <div className="w-full max-w-md rounded-xl border border-gold/30 bg-navy px-6 py-5 text-center">
