@@ -6,7 +6,7 @@ import DsbGuideViewer from "@/components/dsb/DsbGuideViewer";
 import type { TocItem } from "@/lib/dsbGuideMarkdown";
 import type { DsbGuideSlug } from "@/lib/dsbGuideAccess";
 
-const PREVIEW_PASSWORD = process.env.NEXT_PUBLIC_PREVIEW_PASSWORD || "arbeidmatch2026";
+const PREVIEW_PASSWORD = process.env.NEXT_PUBLIC_PREVIEW_PASSWORD || "AM@DSB#Preview!2026$";
 
 type PreviewPayload = {
   success: boolean;
