@@ -614,6 +614,72 @@ textarea.textarea-premium::-webkit-resizer {
   }
 }
 
+/* DSB employer guide + popup — keyframes */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drawCheck {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes rotateClock {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideUpFixed {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dsb-employer-hero-enter {
+  animation: fadeSlideUp 400ms ease-out forwards;
+  opacity: 0;
+}
+
+.dsb-status-x-stroke {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  transition: stroke-dashoffset 300ms ease;
+}
+
+.group:hover .dsb-status-x-stroke {
+  stroke-dashoffset: 0;
+}
+
+.dsb-status-check-draw {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transition: stroke-dashoffset 400ms ease;
+}
+
+.group:hover .dsb-status-check-draw {
+  stroke-dashoffset: 0;
+}
+
 /* ========== Premium animation system (global) ========== */
 @media (prefers-reduced-motion: reduce) {
   *,

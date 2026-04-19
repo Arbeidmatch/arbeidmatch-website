@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import DsbEmployerGuide from "@/components/dsb/DsbEmployerGuide";
 import DsbPillarFromMarkdown from "@/components/dsb/DsbPillarFromMarkdown";
+import DsbRequestPopup from "@/components/dsb/DsbRequestPopup";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 import DsbTypeSelectorLoader from "./DsbTypeSelectorLoader";
@@ -56,6 +58,8 @@ export default function DsbSupportPage() {
           { href: "/bemanningsbyrå-trondheim", label: "Bemanning Trondheim" },
         ]}
       />
+      <DsbEmployerGuide />
+      <DsbRequestPopup />
     </>
   );
 }
