@@ -1,8 +1,8 @@
 import type { DsbDiscountGuideType } from "@/lib/stripeCoupons";
 
 export const DSB_DISCOUNT = {
-  eu: { regular: 29, discounted: 17, save: 12, percentLabel: "41%" },
-  "non-eu": { regular: 39, discounted: 27, save: 12, percentLabel: "31%" },
+  eu: { regular: 15, discounted: 11, save: 4, percentLabel: "27%" },
+  "non-eu": { regular: 39, discounted: 29, save: 10, percentLabel: "26%" },
 } as const;
 
 export function guideLabelForDiscount(guideType: DsbDiscountGuideType): string {

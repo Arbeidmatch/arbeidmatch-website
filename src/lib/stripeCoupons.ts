@@ -8,9 +8,9 @@ function getStripe(): Stripe | null {
   return new Stripe(key);
 }
 
-/** EU: €15 → €11 (−€4). Non-EU: €39 → €27 (−€12). Amounts in EUR cents. */
+/** EU: €15 → €11 (−€4). Non-EU: €39 → €29 (−€10). Amounts in EUR cents. */
 export function getDiscountAmountCents(guideType: DsbDiscountGuideType): number {
-  return guideType === "eu" ? 400 : 1200;
+  return guideType === "eu" ? 400 : 1000;
 }
 
 function randomCouponSuffix(): string {

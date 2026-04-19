@@ -11,9 +11,9 @@ import {
   IconShield,
   type DsbPremiumIconName,
 } from "@/components/dsb/DsbIcons";
-import { DSB_DISCOUNT } from "@/lib/dsbDiscountPricing";
-
 type GuideSlug = "eu" | "non-eu";
+
+const GOLD = "#C9A84C";
 
 type PillDef = { icon: DsbPremiumIconName; text: string };
 type ItemDef = { text: string; icon: DsbPremiumIconName };
@@ -39,7 +39,7 @@ const EU_CONFIG: VariantConfig = {
   badge: "EU/EEA Citizens Only",
   heroEmoji: "🇪🇺",
   title: "Get Your DSB Authorization in Norway",
-  subtitle: "EU/EEA Electricians - €29",
+  subtitle: "EU/EEA Electricians - €15",
   pills: [
     { icon: "clock", text: "2-4 months" },
     { icon: "shield", text: "No visa required" },
@@ -63,7 +63,7 @@ const NON_EU_CONFIG: VariantConfig = {
   badge: "Non-EU Citizens",
   heroEmoji: "🌍",
   title: "DSB Authorization Guide for Non-EU Electricians",
-  subtitle: "Non-EU Electricians - €39",
+  subtitle: "Non-EU Electricians - €29",
   pills: [
     { icon: "clock", text: "6-12 months" },
     { icon: "airplane", text: "Work visa required" },
@@ -165,7 +165,6 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
   };
 
   const spring = [0.16, 1, 0.3, 1] as const;
-  const discountRow = DSB_DISCOUNT[cfg.slug];
 
   return (
     <div className={`dsb-premium-page dsb-mobile-page dsb-premium-page--${cfg.region}`}>
@@ -276,53 +275,70 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
             viewport={{ once: true, amount: 0.05 }}
             transition={{ duration: 0.6, ease: spring }}
           >
-            <p className="dsb-price-card-label">
-              {cfg.region === "eu" ? "EU/EEA Electricians - Launch offer" : "Non-EU Electricians - Launch offer"}
-            </p>
-            <div className="dsb-price-row">
-              <div className="dsb-price-block is-primary">
-                <div className="dsb-price-amount">
-                  <span
-                    style={{
-                      fontSize: 14,
-                      color: "rgba(255,255,255,0.4)",
-                      textDecoration: "line-through",
-                      marginRight: 12,
-                    }}
-                  >
-                    €{discountRow.regular}
-                  </span>
-                  <span className="dsb-price-currency">€</span>
-                  <span className="dsb-price-value">{discountRow.discounted}</span>
+            {cfg.region === "eu" ? (
+              <>
+                <div style={{ fontSize: 48, fontWeight: 800, color: GOLD }}>€15</div>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>EU/EEA Electricians</p>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
+                  One-time payment. Instant access. No subscription.
+                </p>
+                <p className="dsb-price-note" style={{ marginTop: 12 }}>
+                  Prices include VAT where applicable.
+                </p>
+                <ul className="dsb-price-trust">
+                  <li>30-day access</li>
+                  <li>Instant delivery</li>
+                  <li>No subscription</li>
+                </ul>
+              </>
+            ) : (
+              <>
+                <div className="dsb-price-row">
+                  <div className="dsb-price-block is-primary">
+                    <div
+                      className="dsb-price-amount"
+                      style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10 }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 18,
+                          color: "rgba(255,255,255,0.35)",
+                          textDecoration: "line-through",
+                        }}
+                      >
+                        €39
+                      </span>
+                      <span style={{ fontSize: 48, fontWeight: 800, color: GOLD }}>€29</span>
+                    </div>
+                  </div>
                 </div>
-                <span className="dsb-price-meta">
-                  {cfg.region === "eu" ? "EU/EEA Electricians" : "Non-EU Electricians"}
-                </span>
-              </div>
-            </div>
-            <div
-              style={{
-                fontSize: 12,
-                background: "rgba(29,158,117,0.15)",
-                color: "#1D9E75",
-                borderRadius: 20,
-                padding: "3px 10px",
-                fontWeight: 600,
-                display: "inline-block",
-                marginTop: 6,
-              }}
-            >
-              €12 off
-            </div>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 8 }}>
-              Launch discount applied automatically. No code needed.
-            </p>
-            <p className="dsb-price-note">Prices include VAT where applicable.</p>
-            <ul className="dsb-price-trust">
-              <li>30-day access</li>
-              <li>Instant delivery</li>
-              <li>No subscription</li>
-            </ul>
+                <div
+                  style={{
+                    fontSize: 12,
+                    background: "rgba(29,158,117,0.15)",
+                    color: "#1D9E75",
+                    borderRadius: 20,
+                    padding: "3px 12px",
+                    fontWeight: 600,
+                    display: "inline-block",
+                    marginTop: 6,
+                  }}
+                >
+                  €10 off
+                </div>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>
+                  Launch discount applied automatically. No code needed.
+                </p>
+                <p className="dsb-price-note" style={{ marginTop: 8 }}>
+                  Prices include VAT where applicable.
+                </p>
+                <ul className="dsb-price-trust">
+                  <li>30-day access</li>
+                  <li>Instant delivery</li>
+                  <li>No subscription</li>
+                </ul>
+              </>
+            )}
           </motion.div>
 
           <div className="dsb-form-shell">

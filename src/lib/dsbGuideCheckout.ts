@@ -87,32 +87,13 @@ export async function createDsbGuideStripeCheckout(params: {
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
   const stripe = new Stripe(secret);
   const supportPath = guideSlug === "non-eu" ? "non-eu" : "eu";
-  const expiresAtUnix = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
-  const couponName = guideSlug === "eu" ? "DSB EU Guide - Special Offer" : "DSB NON-EU Guide - Special Offer";
 
   let couponId: string | undefined;
-  try {
-    const couponMetadata: Record<string, string> = {
-      guide_type: guideSlug,
-      created_for: normalizedEmail || "stripe_checkout",
-    };
-    if (normalizedEmail) {
-      couponMetadata.email = normalizedEmail;
+  if (guideSlug === "non-eu") {
+    couponId = process.env.STRIPE_DSB_NON_EU_COUPON_ID?.trim() || undefined;
+    if (!couponId) {
+      console.warn("[dsbGuideCheckout] STRIPE_DSB_NON_EU_COUPON_ID not set");
     }
-
-    const coupon = await stripe.coupons.create({
-      amount_off: 1200,
-      currency: "eur",
-      duration: "once",
-      max_redemptions: 1,
-      redeem_by: expiresAtUnix,
-      name: couponName,
-      metadata: couponMetadata,
-    });
-    couponId = coupon.id;
-  } catch (couponErr) {
-    console.error("[dsbGuideCheckout] Coupon create failed, checkout will continue without auto-discount:", errMessage(couponErr));
-    couponId = undefined;
   }
 
   const baseMeta: Record<string, string> = {
