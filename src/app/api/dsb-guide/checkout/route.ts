@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 type Body = {
   guideType?: string;
+  withDiscount?: boolean;
 };
 
 export async function POST(req: NextRequest) {
@@ -19,15 +20,16 @@ export async function POST(req: NextRequest) {
 
     const body = (await req.json()) as Body;
     const guideType = body.guideType?.trim();
+    const withDiscount = body.withDiscount === true;
     guideTypeForNotify = guideType;
 
-    console.log("DSB Checkout request:", { guideType });
+    console.log("DSB Checkout request:", { guideType, withDiscount });
 
     if (guideType !== "eu" && guideType !== "non-eu") {
       return NextResponse.json({ error: "Missing guide type" }, { status: 400 });
     }
 
-    const result = await createDsbGuideStripeCheckout({ guideSlug: guideType });
+    const result = await createDsbGuideStripeCheckout({ guideSlug: guideType, withDiscount });
 
     if (!result.ok) {
       console.error("DSB Checkout failed:", { error: result.error, details: result.details });

@@ -2,264 +2,381 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import type { DsbDiscountGuideType } from "@/lib/stripeCoupons";
-import { DSB_DISCOUNT } from "@/lib/dsbDiscountPricing";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { DSB_DISCOUNT_LS_COUPON, DSB_DISCOUNT_LS_GUIDE } from "@/lib/dsbDiscountStorage";
-
-const SESSION_SHOWN = "am_dsb_exit_popup_shown";
-const LS_COUPON = DSB_DISCOUNT_LS_COUPON;
-const LS_GUIDE = DSB_DISCOUNT_LS_GUIDE;
-
-const POPUP_SECONDS = 10 * 60;
-
-function formatMmSs(totalSec: number): string {
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
+export interface DsbExitDiscountPopupProps {
+  guideType: "eu" | "non-eu";
 }
 
-function hasStoredCoupon(): boolean {
-  try {
-    return Boolean(localStorage.getItem(LS_COUPON)?.trim());
-  } catch {
-    return false;
-  }
-}
+const GOLD = "#C9A84C";
+const CARD_BG = "#0f1923";
+const GREEN = "#1D9E75";
 
-function sessionShown(): boolean {
-  try {
-    return sessionStorage.getItem(SESSION_SHOWN) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function setSessionShown() {
-  try {
-    sessionStorage.setItem(SESSION_SHOWN, "1");
-  } catch {
-    /* ignore */
-  }
-}
-
-type Props = { guideType: DsbDiscountGuideType };
-
-export default function DsbExitDiscountPopup({ guideType }: Props) {
+export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopupProps) {
   const reduceMotion = useReducedMotion();
-  const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [email, setEmail] = useState("");
+  const [shown, setShown] = useState(false);
+  const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [successEmail, setSuccessEmail] = useState("");
-  const [reused, setReused] = useState(false);
-  const [countdown, setCountdown] = useState(POPUP_SECONDS);
-  const openedRef = useRef(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const shownRef = useRef(false);
 
-  const pricing = DSB_DISCOUNT[guideType];
+  const instant = Boolean(reduceMotion);
+
+  const openPopup = useCallback(() => {
+    if (shownRef.current) return;
+    shownRef.current = true;
+    setShown(true);
+    setVisible(true);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const tryOpen = useCallback(() => {
-    if (openedRef.current) return;
-    if (sessionShown()) return;
-    if (hasStoredCoupon()) return;
-    openedRef.current = true;
-    setSessionShown();
-    setOpen(true);
-    setCountdown(POPUP_SECONDS);
+  useEffect(() => {
+    const check = () => setIsMobile(typeof window !== "undefined" && window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
   }, []);
 
   useEffect(() => {
-    if (!open) return;
-    const id = window.setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          setOpen(false);
-          return 0;
-        }
-        return c - 1;
-      });
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, [open]);
+    const handleMouseLeave = (e: MouseEvent) => {
+      if (typeof window === "undefined" || window.innerWidth < 768) return;
+      if (e.clientY <= 0) openPopup();
+    };
+    document.addEventListener("mouseleave", handleMouseLeave);
+    return () => document.removeEventListener("mouseleave", handleMouseLeave);
+  }, [openPopup]);
 
   useEffect(() => {
-    if (hasStoredCoupon() || sessionShown()) return;
+    let lastScrollY = typeof window !== "undefined" ? window.scrollY : 0;
+    let lastScrollTime = Date.now();
 
-    const mobileTimer = window.setTimeout(() => {
-      tryOpen();
-    }, 45_000);
-
-    const onMouseOut = (e: MouseEvent) => {
-      if (typeof window === "undefined") return;
-      if (window.matchMedia("(max-width: 767px)").matches) return;
-      const to = e.relatedTarget as Node | null;
-      if (!to && e.clientY < 24) {
-        tryOpen();
+    const handleScroll = () => {
+      if (typeof window === "undefined" || window.innerWidth >= 768) return;
+      if (shownRef.current) return;
+      const currentY = window.scrollY;
+      const currentTime = Date.now();
+      const deltaY = lastScrollY - currentY;
+      const deltaTime = currentTime - lastScrollTime;
+      if (deltaY > 50 && deltaTime < 300 && currentY < 200) {
+        openPopup();
       }
+      lastScrollY = currentY;
+      lastScrollTime = currentTime;
     };
 
-    document.addEventListener("mouseout", onMouseOut);
-    return () => {
-      window.clearTimeout(mobileTimer);
-      document.removeEventListener("mouseout", onMouseOut);
-    };
-  }, [tryOpen]);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [openPopup]);
 
   useEffect(() => {
-    if (!success || !open) return;
-    const t = window.setTimeout(() => setOpen(false), reused ? 4500 : 3000);
-    return () => window.clearTimeout(t);
-  }, [success, open, reused]);
+    const timer = window.setTimeout(() => {
+      if (!shownRef.current) openPopup();
+    }, 45000);
+    return () => window.clearTimeout(timer);
+  }, [openPopup]);
 
-  const submit = async () => {
+  const handleGetDiscount = async () => {
     setError("");
-    const em = email.trim().toLowerCase();
-    if (!em.includes("@")) {
-      setError("Please enter a valid email.");
-      return;
-    }
     setLoading(true);
     try {
-      const res = await fetch("/api/dsb-guide/discount-offer", {
+      const res = await fetch("/api/dsb-guide/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: em, guide_type: guideType, website: "" }),
+        body: JSON.stringify({ guideType, withDiscount: true }),
       });
-      const data = (await res.json()) as {
-        success?: boolean;
-        error?: string;
-        couponCode?: string;
-        reused?: boolean;
-      };
-      if (!res.ok || !data.success) {
-        setError(data.error || "Something went wrong.");
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (data.url) {
+        window.location.href = data.url;
         return;
       }
-      try {
-        localStorage.setItem(LS_COUPON, data.couponCode || "");
-        localStorage.setItem(LS_GUIDE, guideType);
-      } catch {
-        /* ignore */
-      }
-      setSuccessEmail(em);
-      setReused(Boolean(data.reused));
-      setSuccess(true);
+      setError(data.error || "Could not start checkout. Please try again.");
     } catch {
-      setError("Network error. Please try again.");
+      setError("Could not start checkout. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const close = () => setOpen(false);
+  const close = () => setVisible(false);
+
+  const copy =
+    guideType === "non-eu"
+      ? {
+          title: "Get the Non-EU Guide for €29 instead of €39",
+          body: "Save €10 on your DSB authorization guide. This offer is only available right now.",
+          strike: "€39",
+          price: "€29",
+          badge: "€10 off",
+        }
+      : {
+          title: "Get the EU Guide for €12 instead of €15",
+          body: "Save €3 on your EU guide. This offer is only available right now.",
+          strike: "€15",
+          price: "€12",
+          badge: "€3 off",
+        };
+
+  function renderContent(layout: "desktop" | "mobile") {
+    const titleSize = layout === "mobile" ? 20 : 24;
+    return (
+      <>
+        {layout === "mobile" && (
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={close}
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              width: 36,
+              height: 36,
+              border: "none",
+              background: "transparent",
+              color: "rgba(255,255,255,0.4)",
+              fontSize: 22,
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+        )}
+        <div
+          style={{
+            display: "inline-block",
+            background: "rgba(201,168,76,0.1)",
+            color: GOLD,
+            borderRadius: 20,
+            padding: "4px 14px",
+            fontSize: 11,
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+            fontWeight: 600,
+          }}
+        >
+          Wait! Special offer
+        </div>
+        <h2
+          id="dsb-exit-title"
+          style={{
+            color: "#fff",
+            fontSize: titleSize,
+            fontWeight: 800,
+            marginTop: 16,
+            lineHeight: 1.2,
+            marginBottom: 0,
+            paddingRight: layout === "mobile" ? 40 : 0,
+          }}
+        >
+          {copy.title}
+        </h2>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.6)",
+            fontSize: 14,
+            lineHeight: 1.7,
+            marginTop: 10,
+            marginBottom: 0,
+          }}
+        >
+          {copy.body}
+        </p>
+        <div
+          style={{
+            height: 1,
+            background: "rgba(255,255,255,0.08)",
+            margin: "20px 0",
+          }}
+        />
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 20,
+            flexWrap: "wrap",
+          }}
+        >
+          <span
+            style={{
+              color: "rgba(255,255,255,0.3)",
+              fontSize: 16,
+              textDecoration: "line-through",
+            }}
+          >
+            {copy.strike}
+          </span>
+          <span style={{ color: GOLD, fontSize: 32, fontWeight: 800 }}>{copy.price}</span>
+          <span
+            style={{
+              background: "rgba(29,158,117,0.15)",
+              color: GREEN,
+              fontSize: 11,
+              borderRadius: 20,
+              padding: "3px 10px",
+              fontWeight: 600,
+            }}
+          >
+            {copy.badge}
+          </span>
+        </div>
+        {error ? (
+          <p style={{ color: "#f87171", fontSize: 13, marginBottom: 12 }}>{error}</p>
+        ) : null}
+        <button
+          type="button"
+          onClick={handleGetDiscount}
+          disabled={loading}
+          style={{
+            width: "100%",
+            minHeight: layout === "mobile" ? 52 : undefined,
+            padding: 16,
+            borderRadius: 10,
+            border: "none",
+            background: GOLD,
+            color: "#0f1923",
+            fontWeight: 700,
+            fontSize: 15,
+            cursor: loading ? "wait" : "pointer",
+          }}
+        >
+          {loading ? "Getting your discount..." : "Get my discount now"}
+        </button>
+        <button
+          type="button"
+          onClick={close}
+          style={{
+            display: "block",
+            width: "100%",
+            textAlign: "center",
+            marginTop: 14,
+            fontSize: 13,
+            color: "rgba(255,255,255,0.3)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          No thanks, I&apos;ll pay full price
+        </button>
+      </>
+    );
+  }
 
   if (!mounted) return null;
 
+  const backdropTransition = instant ? { duration: 0 } : { duration: 0.3, ease: "easeOut" as const };
+  const modalTransition = instant ? { duration: 0 } : { duration: 0.3, ease: "easeOut" as const };
+  const sheetTransition = instant ? { duration: 0 } : { duration: 0.35, ease: "easeOut" as const };
+
   const portal = (
     <AnimatePresence>
-      {open && (
+      {visible && shown && (
         <motion.div
-          className="dsb-exit-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="dsb-exit-title"
-          initial={{ opacity: 0 }}
+          role="presentation"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 100,
+            background: isMobile ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.7)",
+            backdropFilter: isMobile ? undefined : "blur(8px)",
+            display: isMobile ? "block" : "flex",
+            alignItems: isMobile ? undefined : "center",
+            justifyContent: isMobile ? undefined : "center",
+            padding: isMobile ? 0 : 16,
+          }}
+          initial={{ opacity: instant ? 1 : 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduceMotion ? 0 : 0.4 }}
+          exit={{ opacity: instant ? 1 : 0 }}
+          transition={backdropTransition}
           onClick={(e) => {
             if (e.target === e.currentTarget) close();
           }}
         >
-          <motion.div
-            className="dsb-exit-sheet dsb-exit-modal-desktop"
-            initial={reduceMotion ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: "100%", scale: 1 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: "100%", scale: 0.96 }}
-            transition={{ duration: reduceMotion ? 0 : 0.5, ease: [0.34, 1.56, 0.64, 1] }}
-          >
-            <button type="button" className="dsb-exit-close dsb-tap-scale" onClick={close} aria-label="Close">
-              ×
-            </button>
-
-            {!success ? (
-              <>
-                <p className="dsb-exit-eyebrow">⚡ Wait - before you go</p>
-                <h2 id="dsb-exit-title" className="dsb-exit-title">
-                  Get {pricing.percentLabel} off today only
-                </h2>
-                <span className="dsb-exit-limited">Limited offer</span>
-
-                <div className="dsb-exit-pricebox">
-                  <div className="dsb-exit-price-row">
-                    <span className="dsb-exit-reg">€{pricing.regular}</span>
-                    <span className="dsb-exit-arrow">→</span>
-                    <span className="dsb-exit-sale">€{pricing.discounted}</span>
-                  </div>
-                  <p className="dsb-exit-countdown-label">Offer closes in</p>
-                  <p className="dsb-exit-countdown">{formatMmSs(countdown)}</p>
-                </div>
-
-                <p className="dsb-exit-lead">
-                  Enter your email for instant access to your exclusive discount code:
-                </p>
-                <input
-                  type="email"
-                  className="dsb-exit-input"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                />
-                {error && <p className="dsb-exit-error">{error}</p>}
-                <button
-                  type="button"
-                  className="dsb-exit-cta dsb-tap-scale"
-                  disabled={loading}
-                  onClick={submit}
-                >
-                  {loading ? <span className="dsb-exit-spinner" aria-hidden /> : `Get My Discount - €${pricing.discounted} →`}
-                </button>
-                <ul className="dsb-exit-trust">
-                  <li>One-time use code</li>
-                  <li>Valid 7 days</li>
-                  <li>Applied at checkout</li>
-                </ul>
-                <button type="button" className="dsb-exit-dismiss dsb-tap-scale" onClick={close}>
-                  No thanks, I&apos;ll pay full price
-                </button>
-              </>
-            ) : (
-              <div className="dsb-exit-success">
-                <div className="dsb-exit-success-icon" aria-hidden>
-                  ✓
-                </div>
-                {reused ? (
-                  <>
-                    <p className="dsb-exit-success-title">You already have an active discount</p>
-                    <p className="dsb-exit-success-copy">
-                      Use the same email at checkout. If you need the code again, check your inbox for{" "}
-                      <strong>{successEmail}</strong>.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className="dsb-exit-success-title">Your discount code has been sent</p>
-                    <p className="dsb-exit-success-copy">
-                      Check your inbox now at <strong>{successEmail}</strong>.
-                    </p>
-                  </>
-                )}
-              </div>
-            )}
-          </motion.div>
+          {isMobile ? (
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="dsb-exit-title"
+              style={{
+                position: "fixed",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: CARD_BG,
+                borderTop: "1px solid rgba(201,168,76,0.2)",
+                borderRadius: "20px 20px 0 0",
+                padding: "24px 20px 32px",
+                maxHeight: "90vh",
+                overflowY: "auto",
+              }}
+              initial={{ y: instant ? 0 : "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: instant ? 0 : "100%" }}
+              transition={sheetTransition}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  width: 40,
+                  height: 4,
+                  background: "rgba(255,255,255,0.2)",
+                  borderRadius: 2,
+                  margin: "0 auto 20px",
+                }}
+              />
+              {renderContent("mobile")}
+            </motion.div>
+          ) : (
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="dsb-exit-title"
+              style={{
+                position: "relative",
+                background: CARD_BG,
+                border: "1px solid rgba(201,168,76,0.3)",
+                borderRadius: 20,
+                padding: 40,
+                maxWidth: 440,
+                width: "90vw",
+                margin: "auto",
+              }}
+              initial={instant ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={instant ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
+              transition={modalTransition}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={close}
+                style={{
+                  position: "absolute",
+                  top: 12,
+                  right: 12,
+                  width: 36,
+                  height: 36,
+                  border: "none",
+                  background: "transparent",
+                  color: "rgba(255,255,255,0.4)",
+                  fontSize: 22,
+                  lineHeight: 1,
+                  cursor: "pointer",
+                }}
+              >
+                ×
+              </button>
+              {renderContent("desktop")}
+            </motion.div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

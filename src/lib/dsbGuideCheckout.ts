@@ -46,16 +46,41 @@ async function getOrCreateNonEuCoupon(stripe: Stripe): Promise<string | undefine
   }
 }
 
+async function getOrCreateEuCoupon(stripe: Stripe): Promise<string | undefined> {
+  try {
+    const coupons = await stripe.coupons.list({ limit: 100 });
+    const existing = coupons.data.find(
+      (c) => c.name === "DSB EU Launch Offer" && c.valid && !c.deleted,
+    );
+    if (existing) return existing.id;
+
+    const coupon = await stripe.coupons.create({
+      amount_off: 300,
+      currency: "eur",
+      duration: "once",
+      name: "DSB EU Launch Offer",
+      metadata: { guide_type: "eu", created_by: "arbeidmatch_auto" },
+    });
+    return coupon.id;
+  } catch (err) {
+    console.error("[dsbGuideCheckout] Could not get/create EU coupon:", err);
+    return undefined;
+  }
+}
+
 export async function createDsbGuideStripeCheckout(params: {
   guideSlug: DsbGuideSlug;
   /** When omitted, Stripe Checkout collects email; webhook fills purchase row. */
   email?: string;
+  /** Exit-intent and similar flows only. Normal checkout omits this or sets false. */
+  withDiscount?: boolean;
 }): Promise<DsbGuideCheckoutResult> {
-  const { guideSlug, email } = params;
+  const { guideSlug, email, withDiscount } = params;
   const normalizedEmail = email?.trim().toLowerCase() ?? "";
 
   console.log("DSB Checkout attempt:", {
     guideType: guideSlug,
+    withDiscount: Boolean(withDiscount),
     hasPriceIdEU: Boolean(process.env.STRIPE_PRICE_ID_DSB_EU?.trim()),
     hasPriceIdNonEU: Boolean(process.env.STRIPE_PRICE_ID_DSB_NON_EU?.trim()),
     hasStripeKey: Boolean(process.env.STRIPE_SECRET_KEY?.trim()),
@@ -110,6 +135,7 @@ export async function createDsbGuideStripeCheckout(params: {
   const baseUrl = getPublicBaseUrl();
   console.log("[dsbGuideCheckout] Checkout request:", {
     guideSlug,
+    withDiscount: Boolean(withDiscount),
     priceId,
     baseUrl,
     hasSiteUrl: Boolean(process.env.NEXT_PUBLIC_SITE_URL?.trim()),
@@ -121,9 +147,14 @@ export async function createDsbGuideStripeCheckout(params: {
   const stripe = new Stripe(secret);
   const supportPath = guideSlug === "non-eu" ? "non-eu" : "eu";
 
-  let couponId: string | undefined;
-  if (guideSlug === "non-eu") {
-    couponId = await getOrCreateNonEuCoupon(stripe);
+  let couponId: string | undefined = undefined;
+
+  if (withDiscount) {
+    if (guideSlug === "non-eu") {
+      couponId = await getOrCreateNonEuCoupon(stripe);
+    } else if (guideSlug === "eu") {
+      couponId = await getOrCreateEuCoupon(stripe);
+    }
   }
 
   const baseMeta: Record<string, string> = {

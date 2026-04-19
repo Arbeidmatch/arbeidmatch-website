@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import DsbExitDiscountPopup from "@/components/dsb/DsbExitDiscountPopup";
 import DsbGuideCheckoutNonEU from "@/components/dsb/DsbGuideCheckoutNonEU";
 
 export const metadata: Metadata = {
@@ -7,5 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function DsbSupportNonEuPage() {
-  return <DsbGuideCheckoutNonEU />;
+  return (
+    <>
+      <DsbGuideCheckoutNonEU />
+      <DsbExitDiscountPopup guideType="non-eu" />
+    </>
+  );
 }
