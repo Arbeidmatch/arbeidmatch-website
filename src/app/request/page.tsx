@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 const PREMIUM_EASE = [0.16, 1, 0.3, 1] as const;
@@ -47,7 +48,6 @@ export default function RequestPage() {
 
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [submitError, setSubmitError] = useState("");
-  const [drawSuccessCheck, setDrawSuccessCheck] = useState(false);
   const [cardError, setCardError] = useState("");
   const [errorShakeKey, setErrorShakeKey] = useState(0);
   const [currentCard, setCurrentCard] = useState(0);
@@ -90,15 +90,6 @@ export default function RequestPage() {
 
   const optionButtonClass = (isSelected: boolean) =>
     `request-option-btn ${isSelected ? "request-option-btn-selected request-option-btn-pulse" : ""}`;
-
-  useEffect(() => {
-    if (status !== "success") {
-      setDrawSuccessCheck(false);
-      return;
-    }
-    const t = window.requestAnimationFrame(() => setDrawSuccessCheck(true));
-    return () => window.cancelAnimationFrame(t);
-  }, [status]);
 
   const validateLeadSource = () => {
     if (howDidYouHear === "Social media" && socialMediaPlatform === "Other" && !socialMediaOther.trim()) {
@@ -215,9 +206,6 @@ export default function RequestPage() {
       }
       if (data.success && data.token) {
         setStatus("success");
-        window.setTimeout(() => {
-          window.location.href = `/request/${data.token}`;
-        }, 700);
         return;
       }
       throw new Error("No token received");
@@ -331,37 +319,68 @@ export default function RequestPage() {
 
   const motionHero = !reduce;
 
+  if (status === "success") {
+    return (
+      <section className="flex min-h-screen flex-col items-center justify-center bg-[#0f1923] px-6 py-10 text-center">
+        <svg width="72" height="72" viewBox="0 0 72 72" aria-hidden>
+          <circle cx="36" cy="36" r="32" fill="none" stroke="rgba(29,158,117,0.2)" strokeWidth="3" />
+          <circle
+            cx="36"
+            cy="36"
+            r="32"
+            fill="none"
+            stroke="#1D9E75"
+            strokeWidth="3"
+            strokeDasharray="201"
+            strokeDashoffset="201"
+            style={{ animation: reduce ? "none" : "drawCircle 600ms ease-out forwards" }}
+          />
+          <path
+            d="M20 36 L31 47 L52 25"
+            fill="none"
+            stroke="#1D9E75"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray="50"
+            strokeDashoffset="50"
+            style={{ animation: reduce ? "none" : "drawCheck 400ms ease-out 500ms forwards" }}
+          />
+        </svg>
+
+        <h1 className="mt-6 text-[28px] font-extrabold text-white">Request received.</h1>
+        <p className="mt-3 max-w-[400px] text-[16px] leading-[1.7] text-white/60">
+          We have received your request and will be in touch within 24 hours. Check your email for confirmation.
+        </p>
+
+        <div className="my-8 h-px w-[60px] bg-white/10" />
+
+        <div className="mx-auto w-full max-w-[360px] rounded-[14px] border border-white/10 bg-white/5 p-6 text-left">
+          <div className="flex items-center justify-between border-b border-white/10 py-2">
+            <span className="text-[11px] uppercase tracking-[0.08em] text-[#C9A84C]">Email</span>
+            <span className="text-[14px] font-medium text-white">{companyEmail || "-"}</span>
+          </div>
+          <div className="flex items-center justify-between py-2">
+            <span className="text-[11px] uppercase tracking-[0.08em] text-[#C9A84C]">Company</span>
+            <span className="text-[14px] font-medium text-white">{companyQuery || "-"}</span>
+          </div>
+        </div>
+
+        <Link
+          href="/"
+          className="mt-8 rounded-[10px] border border-white/20 bg-transparent px-8 py-3.5 text-[14px] text-white transition-colors hover:bg-white/10"
+        >
+          Back to homepage
+        </Link>
+
+        <p className="mt-4 text-[11px] text-white/30">Questions? Contact us at post@arbeidmatch.no</p>
+      </section>
+    );
+  }
+
   return (
     <section className="bg-surface py-12 md:py-20">
       <div className="relative mx-auto w-full max-w-2xl rounded-xl border border-border bg-white p-8 shadow-[0_12px_40px_rgba(13,27,42,0.06)]">
-        {status === "success" && (
-          <motion.div
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-xl bg-white/96 px-6 text-center backdrop-blur-[2px]"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: dur(0.6), ease: PREMIUM_EASE }}
-          >
-            <svg
-              className={`request-success-check mx-auto h-14 w-14 ${drawSuccessCheck ? "is-drawn" : ""}`}
-              viewBox="0 0 56 56"
-              fill="none"
-              aria-hidden
-            >
-              <circle cx="28" cy="28" r="24" stroke="#B8860B" strokeWidth="2" className="opacity-30" />
-              <path
-                d="M16 28l9 9 16-16"
-                fill="none"
-                stroke="#B8860B"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <p className="mt-4 text-lg font-semibold text-navy">You&apos;re all set</p>
-            <p className="mt-2 text-sm text-text-secondary">Taking you to the next step…</p>
-          </motion.div>
-        )}
-
         {motionHero ? (
           <>
             <motion.p
@@ -827,7 +846,7 @@ export default function RequestPage() {
               <button
                 type="button"
                 onClick={prevCard}
-                disabled={currentCard === 0 || status === "submitting" || status === "success"}
+                disabled={currentCard === 0 || status === "submitting"}
                 className="w-full rounded-md border border-navy px-4 py-3 text-sm font-medium text-navy transition-colors duration-200 hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Back
@@ -836,7 +855,7 @@ export default function RequestPage() {
                 <button
                   type="button"
                   onClick={nextCard}
-                  disabled={status === "submitting" || status === "success"}
+                  disabled={status === "submitting"}
                   className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white transition-transform duration-200 hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   Next
@@ -844,7 +863,7 @@ export default function RequestPage() {
               ) : (
                 <button
                   type="submit"
-                  disabled={status === "submitting" || status === "success"}
+                  disabled={status === "submitting"}
                   className="btn-gold-premium relative flex w-full items-center justify-center gap-2 rounded-md bg-gold py-3 text-sm font-semibold text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {status === "submitting" ? (
