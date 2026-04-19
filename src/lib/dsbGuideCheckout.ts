@@ -136,7 +136,6 @@ export async function createDsbGuideStripeCheckout(params: {
     };
 
     if (opts.withCoupon && couponId) {
-      p.allow_promotion_codes = false;
       p.discounts = [{ coupon: couponId }];
     } else {
       p.allow_promotion_codes = true;
