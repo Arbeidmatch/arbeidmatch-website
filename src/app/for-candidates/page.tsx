@@ -40,8 +40,6 @@ export default function ForCandidatesPage() {
         </div>
       </section>
 
-      <CandidateAuthorityDisclaimerBar />
-
       <TradeSpecialistCards />
 
       <section className="bg-surface py-12 md:py-20">
@@ -150,6 +148,10 @@ export default function ForCandidatesPage() {
             </a>
           </ScrollReveal>
         </div>
+      </section>
+
+      <section className="bg-navy">
+        <CandidateAuthorityDisclaimerBar />
       </section>
 
       <PreFooterCrossLinks variant="candidates" />

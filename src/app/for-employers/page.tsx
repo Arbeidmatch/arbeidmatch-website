@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import HowItWorks from "@/components/HowItWorks";
+import HowItWorksInteractive from "@/components/home/HowItWorksInteractive";
 import Testimonials from "@/components/Testimonials";
 import ScrollReveal from "@/components/ScrollReveal";
 import StaggerHero from "@/components/premium/StaggerHero";
@@ -39,7 +39,7 @@ export default function ForEmployersPage() {
         </div>
       </section>
 
-      <HowItWorks />
+      <HowItWorksInteractive />
 
       <section className="bg-white py-10 md:py-12 lg:py-14">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
