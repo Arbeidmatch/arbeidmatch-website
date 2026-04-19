@@ -3,28 +3,33 @@ import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
 import TikTokLiveBanner from "@/components/TikTokLiveBanner";
 import HomePageClient from "@/components/pages/HomePageClient";
-import { getCandidateActivityStats } from "@/lib/candidateActivityStats";
+import HomeFaqJsonLd from "@/components/seo/HomeFaqJsonLd";
 
-/** Refresh candidate activity strip periodically (server-rendered, cached). */
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "EU/EEA Recruitment for Norwegian Employers",
+  title: "Bemanning av EU/EEA-arbeidere Trondheim",
   description:
-    "ArbeidMatch connects Norwegian employers with qualified EU/EEA workers. Fast matching, full compliance, blue-collar specialists.",
+    "Bemanningsbyrå i Trondheim med rekruttering fra EU/EEA til bygg, logistikk og industri. Lovlig bemanning med utenlandske arbeidere – ta kontakt i dag.",
+  openGraph: {
+    title: "Bemanning av EU/EEA-arbeidere Trondheim | ArbeidMatch",
+    description:
+      "Bemanningsbyrå i Trondheim med rekruttering fra EU/EEA til bygg, logistikk og industri. Lovlig bemanning med utenlandske arbeidere – ta kontakt i dag.",
+    locale: "nb_NO",
+  },
+  twitter: {
+    title: "Bemanning av EU/EEA-arbeidere Trondheim | ArbeidMatch",
+    description:
+      "Bemanningsbyrå i Trondheim med rekruttering fra EU/EEA til bygg, logistikk og industri. Lovlig bemanning med utenlandske arbeidere – ta kontakt i dag.",
+  },
 };
 
-export default async function Home() {
-  const candidateActivity = await getCandidateActivityStats();
-
+export default function Home() {
   return (
     <>
+      <HomeFaqJsonLd />
       <TikTokLiveBanner />
-      <HomePageClient
-        candidateActivity={candidateActivity}
-        howItWorksSlot={<HowItWorks />}
-        testimonialsSlot={<Testimonials />}
-      />
+      <HomePageClient howItWorksSlot={<HowItWorks />} testimonialsSlot={<Testimonials />} />
     </>
   );
 }

@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
 import RecruiterNetworkClient from "@/components/recruiter-network/RecruiterNetworkClient";
+import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
-export const metadata: Metadata = {
-  title: "ArbeidMatch Recruiter Network: Build Your Recruitment Business",
-  description:
-    "Join the ArbeidMatch Recruiter Network. Whether you are an influencer, an experienced recruiter or just starting out, we give you everything to succeed.",
-  openGraph: {
-    title: "ArbeidMatch Recruiter Network: Build Your Recruitment Business",
-    description:
-      "Join the ArbeidMatch Recruiter Network. Whether you are an influencer, an experienced recruiter or just starting out, we give you everything to succeed.",
-    url: "https://arbeidmatch.no/recruiter-network",
-  },
-};
+export const metadata: Metadata = nbPageMetadata(
+  "/recruiter-network",
+  "Rekrutteringsnettverk | ArbeidMatch Partner Program",
+  "Bli partner med ArbeidMatch og tjen provisjon på vellykkede plasseringer i Norge. Åpent for rekrutterere og agenter i hele EU/EEA.",
+);
 
 export default function RecruiterNetworkPage() {
   return <RecruiterNetworkClient />;

@@ -1,33 +1,61 @@
+import Link from "next/link";
 import type { Metadata } from "next";
+import DsbPillarFromMarkdown from "@/components/dsb/DsbPillarFromMarkdown";
+import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
+import { nbPageMetadata } from "@/lib/nbPageMetadata";
 import DsbTypeSelectorLoader from "./DsbTypeSelectorLoader";
 
-export const metadata: Metadata = {
-  title: "DSB Authorization Guide for Norway: Choose Your Guide",
-  description: "Choose your EU/EEA or Non-EU DSB authorization guide for Norway.",
-};
+export const metadata: Metadata = nbPageMetadata(
+  "/dsb-support",
+  "DSB-godkjenning elektriker utenlandsk – komplett guide | ArbeidMatch",
+  "Lær om DSB autorisasjon elektriker, dokumentasjon, tidslinje og vanlige avslagsårsaker. Veiledning for arbeidsgivere og kandidater – ta kontakt for støtte.",
+);
 
 export default function DsbSupportPage() {
   return (
     <>
-      <DsbTypeSelectorLoader />
-      <section className="min-h-[70vh] bg-navy py-12 text-white md:py-20">
-        <div className="mx-auto w-full max-w-content px-4 md:px-6">
-          <h1 className="text-center text-3xl font-bold md:text-5xl">Which guide do you need?</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-base leading-[1.6] text-white/80">
-            Choose your correct path to access the right DSB authorization guide.
+      <DsbTypeSelectorLoader disableAutoOpen />
+      <section className="border-b border-border bg-white">
+        <div className="mx-auto w-full max-w-content px-4 py-10 md:px-6 md:py-14">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Fagartikkel</p>
+          <h1 className="mt-3 max-w-4xl text-3xl font-extrabold leading-tight tracking-tight text-navy md:text-4xl">
+            DSB-godkjenning for utenlandske elektrikere i Norge: Komplett guide 2025
+          </h1>
+          <p className="mt-5 max-w-3xl text-lg leading-relaxed text-text-secondary">
+            Arbeidsgivere trenger trygg dokumentasjon før elektrisk arbeid starter. Denne guiden forklarer DSB-godkjenning
+            elektriker utenlandsk i et arbeidsrettet språk, med vekt på prosess, dokumentasjon og realistisk tidsbruk.
           </p>
-          <div className="mx-auto mt-10 grid max-w-4xl gap-6 md:grid-cols-2">
-            <article className="rounded-2xl border border-emerald-300/35 bg-white/5 p-8">
-              <p className="text-sm font-semibold uppercase tracking-wide text-emerald-200">EU/EEA Path</p>
-              <h2 className="mt-3 text-2xl font-bold">I am EU/EEA</h2>
-            </article>
-            <article className="rounded-2xl border border-amber-300/35 bg-white/5 p-8">
-              <p className="text-sm font-semibold uppercase tracking-wide text-amber-200">Non-EU Path</p>
-              <h2 className="mt-3 text-2xl font-bold">I am Non-EU</h2>
-            </article>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/dsb-support/eu"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-semibold text-white hover:bg-gold-hover"
+            >
+              EU/EEA-guide
+            </Link>
+            <Link
+              href="/dsb-support/non-eu"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-navy px-5 py-2.5 text-sm font-semibold text-navy hover:bg-surface"
+            >
+              Utenfor EU/EEA-guide
+            </Link>
+            <Link href="/contact" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-gold underline">
+              Kontakt oss
+            </Link>
           </div>
         </div>
       </section>
+      <section className="bg-surface">
+        <DsbPillarFromMarkdown />
+      </section>
+      <SeeAlsoSection
+        variant="white"
+        items={[
+          { href: "/for-employers", label: "For arbeidsgivere" },
+          { href: "/for-candidates", label: "For kandidater" },
+          { href: "/dsb-checklist", label: "Last ned DSB-sjekkliste" },
+          { href: "/bemanningsbyrå-trondheim", label: "Bemanning Trondheim" },
+        ]}
+      />
     </>
   );
 }

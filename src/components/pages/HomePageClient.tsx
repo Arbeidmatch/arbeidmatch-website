@@ -17,27 +17,18 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import HeroStatsPanel from "@/components/HeroStatsPanel";
+import UnifiedHomeStats from "@/components/UnifiedHomeStats";
 import ScrollReveal, { ScrollRevealGrid } from "@/components/ScrollReveal";
-import type { CandidateActivityStats } from "@/lib/candidateActivityStats";
 
 const HERO_EASE = [0.16, 1, 0.3, 1] as const;
 const HERO_DURATION = 0.8;
 
 type Props = {
-  candidateActivity: CandidateActivityStats;
-  /** Optional strip below hero (omit on home to avoid duplicating hero live stats). */
-  bannerSlot?: ReactNode;
   howItWorksSlot: ReactNode;
   testimonialsSlot: ReactNode;
 };
 
-export default function HomePageClient({
-  candidateActivity,
-  bannerSlot,
-  howItWorksSlot,
-  testimonialsSlot,
-}: Props) {
+export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Props) {
   const reduce = useReducedMotion();
 
   const fade = (delaySec: number) =>
@@ -50,7 +41,7 @@ export default function HomePageClient({
         };
 
   const hero = !reduce ? (
-    <div className="md:col-span-3">
+    <div className="max-w-3xl">
       <motion.p
         className="mb-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#B8860B]"
         {...fade(0)}
@@ -89,20 +80,9 @@ export default function HomePageClient({
           How it works
         </Link>
       </motion.div>
-      <motion.p className="mt-8 text-[13px] leading-relaxed text-[#888888]" {...fade(0.55)}>
-        <span className="inline">500+ placements</span>
-        <span className="mx-2 text-[#cccccc]" aria-hidden>
-          ·
-        </span>
-        <span className="inline">50+ Norwegian clients</span>
-        <span className="mx-2 text-[#cccccc]" aria-hidden>
-          ·
-        </span>
-        <span className="inline">2-week delivery</span>
-      </motion.p>
     </div>
   ) : (
-    <div className="md:col-span-3">
+    <div className="max-w-3xl">
       <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#B8860B]">
         EU/EEA Workforce Solutions · Norway
       </p>
@@ -134,17 +114,6 @@ export default function HomePageClient({
           How it works
         </Link>
       </div>
-      <p className="mt-8 text-[13px] leading-relaxed text-[#888888]">
-        <span className="inline">500+ placements</span>
-        <span className="mx-2 text-[#cccccc]" aria-hidden>
-          ·
-        </span>
-        <span className="inline">50+ Norwegian clients</span>
-        <span className="mx-2 text-[#cccccc]" aria-hidden>
-          ·
-        </span>
-        <span className="inline">2-week delivery</span>
-      </p>
     </div>
   );
 
@@ -157,35 +126,20 @@ export default function HomePageClient({
     [HeartPulse, "Care & Health", "Support workers for care-driven services."],
   ];
 
-  const statsBlock = (
-    <HeroStatsPanel
-      candidatesRegisteredToday={candidateActivity.candidatesRegisteredToday}
-      activeOnSiteNow={candidateActivity.activeOnSiteNow}
-      totalVisits={candidateActivity.totalVisits}
-    />
-  );
-
   return (
     <>
-      <section className="flex min-h-screen items-center bg-white py-12 md:py-20">
-        <div className="mx-auto grid w-full max-w-content gap-10 px-4 md:grid-cols-5 md:px-6">
-          {hero}
+      <section className="flex min-h-screen flex-col justify-center bg-white pt-12 md:pt-20">
+        <div className="mx-auto w-full max-w-content px-4 pb-10 md:px-6 md:pb-14">
           {!reduce ? (
-            <motion.div
-              className="md:col-span-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: HERO_DURATION, delay: 0.2, ease: HERO_EASE }}
-            >
-              {statsBlock}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, ease: "easeOut" }}>
+              {hero}
             </motion.div>
           ) : (
-            <div className="md:col-span-2">{statsBlock}</div>
+            hero
           )}
         </div>
+        <UnifiedHomeStats />
       </section>
-
-      {bannerSlot}
 
       <section className="bg-surface py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
@@ -281,36 +235,23 @@ export default function HomePageClient({
       </section>
 
       <section className="bg-white py-12 md:py-20">
-        <div className="mx-auto grid w-full max-w-content gap-8 px-4 md:grid-cols-2 md:px-6">
-          <ScrollReveal variant="fadeLeft" className="rounded-xl bg-navy p-12">
-            <h2 className="heading-premium-xl mb-8 text-3xl text-white">Why Norwegian companies choose us</h2>
-            <ul className="space-y-4">
-              {[
-                "Pre-screened, fully documented candidates",
-                "Workers delivered within 2 weeks",
-                "Full Norwegian labor law compliance",
-                "Dedicated recruiter per client",
-                "Follow-up after every placement",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-3 text-white">
-                  <CheckCircle2 className="text-gold" size={20} /> {item}
-                </li>
-              ))}
-            </ul>
-          </ScrollReveal>
-          <ScrollReveal variant="fadeRight">
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                ["500+", "Placements completed"],
-                ["50+", "Active Norwegian clients"],
-                ["10+", "EU source countries"],
-                ["98%", "Client satisfaction rate"],
-              ].map(([number, label]) => (
-                <article key={label} className="card-premium rounded-xl border border-border p-8 text-center">
-                  <p className="font-mono text-5xl font-bold text-gold">{number}</p>
-                  <p className="mt-3 text-text-secondary">{label}</p>
-                </article>
-              ))}
+        <div className="mx-auto w-full max-w-content px-4 md:px-6">
+          <ScrollReveal variant="fadeUp">
+            <div className="mx-auto max-w-4xl rounded-xl bg-navy p-10 md:p-12">
+              <h2 className="heading-premium-xl mb-8 text-3xl text-white">Why Norwegian companies choose us</h2>
+              <ul className="space-y-4">
+                {[
+                  "Pre-screened, fully documented candidates",
+                  "Workers delivered within 2 weeks",
+                  "Full Norwegian labor law compliance",
+                  "Dedicated recruiter per client",
+                  "Follow-up after every placement",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-white">
+                    <CheckCircle2 className="text-gold" size={20} /> {item}
+                  </li>
+                ))}
+              </ul>
             </div>
           </ScrollReveal>
         </div>

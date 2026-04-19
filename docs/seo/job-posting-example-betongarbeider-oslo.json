@@ -1,0 +1,45 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "JobPosting",
+  "title": "Betongarbeider til Oslo — søkes erfaren fagarbeider",
+  "description": "<p>Vi rekrutterer for anerkjent entreprenør i Oslo. Du jobber med støping, herding og overflatebehandling på byggeplass. Krav: dokumentert erfaring, gode HMS-rutiner og lagspill.</p><ul><li>Full stilling, prosjektbasert</li><li>Oppstart etter avtale</li></ul>",
+  "datePosted": "2026-04-19",
+  "validThrough": "2026-06-30",
+  "employmentType": "FULL_TIME",
+  "jobLocationType": "ONSITE",
+  "jobLocation": {
+    "@type": "Place",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Oslo",
+      "addressCountry": "NO"
+    }
+  },
+  "applicantLocationRequirements": {
+    "@type": "Country",
+    "name": "EEA"
+  },
+  "identifier": {
+    "@type": "PropertyValue",
+    "name": "RecmanJobId",
+    "value": "AM-2026-18492"
+  },
+  "hiringOrganization": {
+    "@type": "Organization",
+    "name": "ArbeidMatch Norge AS",
+    "sameAs": "https://www.arbeidmatch.no",
+    "logo": "https://www.arbeidmatch.no/logo.png"
+  },
+  "directApply": true,
+  "url": "https://jobs.arbeidmatch.no/jobs/am-2026-18492-betongarbeider-oslo",
+  "baseSalary": {
+    "@type": "MonetaryAmount",
+    "currency": "NOK",
+    "value": {
+      "@type": "QuantitativeValue",
+      "minValue": 220000,
+      "maxValue": 320000,
+      "unitText": "MONTH"
+    }
+  }
+}

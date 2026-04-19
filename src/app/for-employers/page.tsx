@@ -5,12 +5,13 @@ import Testimonials from "@/components/Testimonials";
 import ScrollReveal from "@/components/ScrollReveal";
 import StaggerHero from "@/components/premium/StaggerHero";
 import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
+import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
-export const metadata: Metadata = {
-  title: "For Employers - Find EU/EEA Workers",
-  description:
-    "Request pre-screened EU/EEA candidates for your Norwegian company. Construction, offshore, transport, automotive and more.",
-};
+export const metadata: Metadata = nbPageMetadata(
+  "/for-employers",
+  "Rekruttere EU/EEA-arbeidere til Norge | ArbeidMatch",
+  "Få pre-screene fagarbeidere levert innen 2 uker. ArbeidMatch tilbyr bemanning og rekruttering fra EU/EEA til bygg, logistikk og industri. Kontakt oss i dag.",
+);
 
 export default function ForEmployersPage() {
   return (

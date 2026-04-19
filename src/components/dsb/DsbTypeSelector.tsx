@@ -14,9 +14,15 @@ type DsbTypeSelectorProps = {
   isOpen?: boolean;
   /** Called when the user closes via X; also use for embedded mode from other pages (skip auto redirect). */
   onClose?: () => void;
+  /** Skip delayed auto-open (used on /dsb-support with long-form content). */
+  disableAutoOpen?: boolean;
 };
 
-export default function DsbTypeSelector({ isOpen: isOpenProp, onClose }: DsbTypeSelectorProps = {}) {
+export default function DsbTypeSelector({
+  isOpen: isOpenProp,
+  onClose,
+  disableAutoOpen,
+}: DsbTypeSelectorProps = {}) {
   const router = useRouter();
   const isControlled = isOpenProp !== undefined;
   const [internalOpen, setInternalOpen] = useState(false);
@@ -43,11 +49,12 @@ export default function DsbTypeSelector({ isOpen: isOpenProp, onClose }: DsbType
     }
 
     if (isControlled) return;
+    if (disableAutoOpen) return;
 
     const delay = embedded ? 0 : 1000;
     const timer = window.setTimeout(() => setInternalOpen(true), delay);
     return () => window.clearTimeout(timer);
-  }, [router, isControlled, onClose]);
+  }, [router, isControlled, onClose, disableAutoOpen]);
 
   useEffect(() => {
     if (!open) {

@@ -1,0 +1,48 @@
+{
+  "@context": "https://schema.org/",
+  "@type": "JobPosting",
+  "title": "REPLACE_TITLE",
+  "description": "REPLACE_WITH_HTML_OR_TEXT",
+  "datePosted": "2026-04-19",
+  "validThrough": "2026-12-31",
+  "employmentType": "FULL_TIME",
+  "jobLocationType": "ONSITE",
+  "jobLocation": {
+    "@type": "Place",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "",
+      "addressLocality": "Oslo",
+      "addressRegion": "",
+      "postalCode": "",
+      "addressCountry": "NO"
+    }
+  },
+  "applicantLocationRequirements": {
+    "@type": "Country",
+    "name": "EEA"
+  },
+  "identifier": {
+    "@type": "PropertyValue",
+    "name": "RecmanJobId",
+    "value": "REPLACE_ATS_ID"
+  },
+  "hiringOrganization": {
+    "@type": "Organization",
+    "name": "ArbeidMatch Norge AS",
+    "sameAs": "https://www.arbeidmatch.no",
+    "logo": "https://www.arbeidmatch.no/logo.png"
+  },
+  "directApply": true,
+  "url": "https://jobs.arbeidmatch.no/jobs/REPLACE_SLUG",
+  "baseSalary": {
+    "@type": "MonetaryAmount",
+    "currency": "NOK",
+    "value": {
+      "@type": "QuantitativeValue",
+      "minValue": 0,
+      "maxValue": 0,
+      "unitText": "MONTH"
+    }
+  }
+}

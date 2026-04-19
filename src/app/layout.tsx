@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollProgressBar from "@/components/ScrollProgressBar";
 import CookieConsent from "@/components/CookieConsent";
+import HomeJsonLd from "@/components/seo/HomeJsonLd";
 
 const DeferredAppOverlays = dynamic(() => import("@/components/client/DeferredAppOverlays"), { loading: () => null });
 
@@ -18,13 +19,22 @@ const fontSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://arbeidmatch.no"),
+  metadataBase: new URL("https://www.arbeidmatch.no"),
   title: {
     default: "ArbeidMatch | EU/EEA Recruitment for Norwegian Employers",
     template: "%s | ArbeidMatch",
   },
   description:
     "ArbeidMatch connects Norwegian employers with pre-screened EU/EEA blue-collar workers. Fast, compliant recruitment across construction, offshore, transport and more.",
+  alternates: {
+    languages: {
+      "nb-NO": "https://www.arbeidmatch.no/",
+      en: "https://www.arbeidmatch.no/en",
+      ro: "https://www.arbeidmatch.no/ro",
+      pl: "https://www.arbeidmatch.no/pl",
+      "x-default": "https://www.arbeidmatch.no/",
+    },
+  },
   keywords: [
     "recruitment norway",
     "EU EEA workers norway",
@@ -37,8 +47,8 @@ export const metadata: Metadata = {
   creator: "ArbeidMatch Norge AS",
   openGraph: {
     type: "website",
-    locale: "en_NO",
-    url: "https://arbeidmatch.no",
+    locale: "nb_NO",
+    url: "https://www.arbeidmatch.no",
     siteName: "ArbeidMatch",
     title: "ArbeidMatch | EU/EEA Recruitment for Norwegian Employers",
     description:
@@ -77,7 +87,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`h-full antialiased ${fontSans.variable}`}>
+    <html lang="nb" className={`h-full antialiased ${fontSans.variable}`}>
       <body className="flex min-h-full flex-col font-sans">
         <ScrollProgressBar />
         <Navbar />
@@ -85,37 +95,7 @@ export default function RootLayout({
         <Footer />
         <DeferredAppOverlays />
         <CookieConsent />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "RecruitmentAgency",
-              name: "ArbeidMatch Norge AS",
-              url: "https://arbeidmatch.no",
-              logo: "https://arbeidmatch.no/logo.png",
-              description:
-                "EU/EEA recruitment agency for Norwegian employers. Specialists in blue-collar workers for construction, offshore, transport and more.",
-              address: {
-                "@type": "PostalAddress",
-                streetAddress: "Sverre Svendsens veg 38",
-                addressLocality: "Ranheim",
-                addressRegion: "Trondheim",
-                postalCode: "7056",
-                addressCountry: "NO",
-              },
-              email: "post@arbeidmatch.no",
-              areaServed: "Norway",
-              knowsAbout: [
-                "Construction recruitment",
-                "Offshore recruitment",
-                "EU EEA workers",
-                "Blue collar recruitment Norway",
-              ],
-              sameAs: [],
-            }),
-          }}
-        />
+        <HomeJsonLd />
       </body>
     </html>
   );

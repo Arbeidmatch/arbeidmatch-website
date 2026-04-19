@@ -64,93 +64,132 @@ function IconPlay({ size = 20 }: { size?: number }) {
   );
 }
 
+const tjenesterCol: [string, string][] = [
+  ["Bygg & Anlegg", "/bemanning-bygg-anlegg"],
+  ["Logistikk", "/bemanning-logistikk"],
+  ["Industri", "/bemanning-industri"],
+  ["Renhold", "/bemanning-renhold"],
+  ["HoReCa", "/bemanning-horeca"],
+  ["Helse", "/bemanning-helse"],
+];
+
+const stederCol: [string, string][] = [
+  ["Trondheim", "/bemanningsbyrå-trondheim"],
+  ["Oslo", "/bemanningsbyrå-oslo"],
+  ["Bergen", "/bemanningsbyrå-bergen"],
+  ["Stavanger", "/bemanningsbyrå-stavanger"],
+  ["Kristiansand", "/bemanningsbyrå-kristiansand"],
+];
+
+const ressurserCol: [string, string][] = [
+  ["DSB-godkjenning", "/dsb-support"],
+  ["DSB-sjekkliste", "/dsb-checklist"],
+  ["Blog", "/blog"],
+  ["Guide: ansette EU-arbeidere", "/blog/ansette-utenlandske-arbeidere-lovlig"],
+];
+
+const quickLinks: [string, string][] = [
+  ["For Employers", "/for-employers"],
+  ["For Candidates", "/for-candidates"],
+  ["Request Candidates", "/request"],
+  ["Partners", "/partners"],
+  ["About", "/about"],
+  ["Contact", "/contact"],
+  ["Feedback", "/feedback"],
+  ["Privacy", "/privacy"],
+  ["Terms", "/terms"],
+  ["Recruiter Network", "/recruiter-network"],
+];
+
 export default function Footer() {
   return (
     <footer className="bg-navy text-white">
-      <div className="mx-auto grid w-full max-w-content grid-cols-1 justify-items-center gap-12 px-4 py-14 text-center lg:grid-cols-4 lg:justify-items-stretch lg:gap-10 lg:text-left md:px-6">
-        <div className="w-full max-w-sm space-y-3 lg:max-w-none">
+      <div className="mx-auto grid w-full max-w-content grid-cols-1 justify-items-center gap-12 px-4 py-14 text-center sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 xl:justify-items-stretch xl:gap-8 xl:text-left md:px-6">
+        <div className="w-full max-w-sm space-y-3 sm:col-span-2 xl:col-span-1 xl:max-w-none">
           <p className="text-2xl">
             <span className="font-bold text-[#f5f5f5]">Arbeid</span>
             <span className="font-bold text-[#B8860B]">Match</span>
           </p>
           <p className="text-sm text-white/90">Rekruttering og bemanning · Norway</p>
-          <p className="text-sm text-white/90">Org.nr. 935 667 089 (MVA)</p>
-          <p className="text-sm text-white/90">Sverre Svendsens veg 38, 7056 Ranheim</p>
         </div>
 
-        <div className="w-full max-w-sm space-y-2 lg:max-w-none">
-          {[
-            ["For Employers", "/for-employers"],
-            ["For Candidates", "/for-candidates"],
-            ["Request Candidates", "/request"],
-            ["DSB Support", "/dsb-support"],
-            ["Partners", "/partners"],
-            ["About", "/about"],
-            ["Contact", "/contact"],
-            ["Feedback", "/feedback"],
-            ["Privacy", "/privacy"],
-            ["Terms", "/terms"],
-          ].map(([label, href]) => (
+        <div className="w-full max-w-sm space-y-2 xl:max-w-none">
+          <p className="text-xs font-semibold uppercase tracking-wide text-white/85">Snarveier</p>
+          {quickLinks.map(([label, href]) => (
             <Link key={href} href={href} className="footer-link-premium block text-sm text-white/90">
               {label}
             </Link>
           ))}
-          <p className="pt-4 text-xs font-semibold uppercase tracking-wide text-white/85">Network</p>
-          <Link href="/recruiter-network" className="footer-link-premium block text-sm text-white/90">
-            Recruiter Network
-          </Link>
         </div>
 
-        <div className="w-full max-w-sm space-y-3 lg:max-w-none">
-          <p className="text-xs font-semibold uppercase tracking-wide text-white/85">Resources</p>
-          <Link href="/dsb-support" className="footer-link-premium block text-sm text-white/90">
-            DSB Authorization Guide
-          </Link>
-          <Link href="/dsb-checklist" className="footer-link-premium block text-sm text-white/90">
-            Free DSB Checklist
-          </Link>
-          <p className="text-sm text-white/90">Looking for jobs?</p>
-          <a href="/score" className="block text-xl font-semibold text-gold">
+        <div className="w-full max-w-sm space-y-2 xl:max-w-none">
+          <p className="text-xs font-semibold uppercase tracking-wide text-white/85">Tjenester</p>
+          {tjenesterCol.map(([label, href]) => (
+            <Link key={href} href={href} className="footer-link-premium block text-sm text-white/90">
+              {label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="w-full max-w-sm space-y-2 xl:max-w-none">
+          <p className="text-xs font-semibold uppercase tracking-wide text-white/85">Steder</p>
+          {stederCol.map(([label, href]) => (
+            <Link key={href} href={href} className="footer-link-premium block text-sm text-white/90">
+              {label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="w-full max-w-sm space-y-2 xl:max-w-none">
+          <p className="text-xs font-semibold uppercase tracking-wide text-white/85">Ressurser</p>
+          {ressurserCol.map(([label, href]) => (
+            <Link key={href} href={href} className="footer-link-premium block text-sm text-white/90">
+              {label}
+            </Link>
+          ))}
+          <p className="pt-3 text-sm text-white/90">Looking for jobs?</p>
+          <Link href="/score" className="block text-xl font-semibold text-gold">
             Browse open positions →
-          </a>
-          <a href="mailto:post@arbeidmatch.no" className="footer-link-premium text-sm text-white/90">
+          </Link>
+          <a href="mailto:post@arbeidmatch.no" className="footer-link-premium block text-sm text-white/90">
             post@arbeidmatch.no
           </a>
         </div>
 
-        <div className="flex w-full max-w-sm flex-col items-center gap-4 border-t border-white/10 pt-10 lg:max-w-none lg:border-t-0 lg:pt-0 lg:items-end lg:text-right">
+        <div className="flex w-full max-w-sm flex-col items-center gap-4 border-t border-white/10 pt-10 sm:col-span-2 xl:col-span-1 xl:max-w-none xl:border-t-0 xl:pt-0 xl:items-end xl:text-right">
           <SmartphoneIcon />
           <div className="space-y-2">
             <p className="text-lg font-semibold text-gold">ArbeidMatch App</p>
             <p className="text-sm leading-relaxed text-white/85">Find work. Track your applications. Stay connected.</p>
             <p className="text-xs text-white/55">Available on iOS and Android</p>
           </div>
-          <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center lg:w-full lg:flex-col lg:items-end">
-            <a
-              href="/download"
-              aria-label="Download on the App Store (coming soon)"
-              className="footer-app-store-btn"
-            >
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center xl:w-full xl:flex-col xl:items-end">
+            <Link href="/download" aria-label="Download on the App Store (coming soon)" className="footer-app-store-btn">
               <IconApple size={22} />
               <span className="text-left leading-tight">
                 Download on the <span className="block text-[0.95rem] text-white">App Store</span>
               </span>
-            </a>
-            <a href="/download" aria-label="Get it on Google Play (coming soon)" className="footer-app-store-btn">
+            </Link>
+            <Link href="/download" aria-label="Get it on Google Play (coming soon)" className="footer-app-store-btn">
               <IconPlay size={22} />
               <span className="text-left leading-tight">
                 Get it on <span className="block text-[0.95rem] text-white">Google Play</span>
               </span>
-            </a>
+            </Link>
           </div>
         </div>
       </div>
       <div className="border-t border-white/15">
-        <p className="mx-auto w-full max-w-content px-4 py-4 text-sm text-white/85 md:px-6">
-          © 2026{" "}
-          <span className="font-medium text-[#f5f5f5]">Arbeid</span>
-          <span className="font-medium text-[#B8860B]">Match</span> Norge AS · All rights reserved
-        </p>
+        <div className="mx-auto w-full max-w-content px-4 py-4 md:px-6">
+          <p className="text-sm text-white/85">
+            © 2026{" "}
+            <span className="font-medium text-[#f5f5f5]">Arbeid</span>
+            <span className="font-medium text-[#B8860B]">Match</span> Norge AS · All rights reserved
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-white/55">
+            ArbeidMatch Norge AS · Org.nr. 935 667 089 · Sverre Svendsens veg 38, 7056 Ranheim · post@arbeidmatch.no
+          </p>
+        </div>
       </div>
     </footer>
   );

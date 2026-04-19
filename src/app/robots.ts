@@ -1,12 +1,29 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from "next";
 
+/**
+ * Crawl rules for production. /request is disallowed but may still be linked internally for UX.
+ * Query-string URLs are discouraged for indexing via `/*?` (see also Search Console parameter handling).
+ */
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: ['/request/', '/api/'],
-    },
-    sitemap: 'https://arbeidmatch.no/sitemap.xml',
-  }
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/request", "/request/", "/feedback", "/feedback/", "/admin", "/admin/", "/api/", "/*?"],
+      },
+      {
+        userAgent: "Googlebot",
+        allow: "/",
+        disallow: ["/request", "/request/", "/feedback", "/feedback/", "/admin", "/admin/", "/api/", "/*?"],
+      },
+      {
+        userAgent: "Bingbot",
+        allow: "/",
+        disallow: ["/request", "/request/", "/feedback", "/feedback/", "/admin", "/admin/", "/api/", "/*?"],
+      },
+    ],
+    sitemap: "https://www.arbeidmatch.no/sitemap.xml",
+    host: "https://www.arbeidmatch.no",
+  };
 }
