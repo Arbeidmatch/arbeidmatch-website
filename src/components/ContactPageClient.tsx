@@ -79,8 +79,13 @@ export default function ContactPageClient() {
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
         <div className="mb-8 rounded-r-md border-l-4 border-gold bg-gold/10 p-4 text-navy">
           Looking for a job?{" "}
-          <a href="/score" className="font-semibold text-gold">
-            Let us guide you in 2 minutes →
+          <a
+            href="https://jobs.arbeidmatch.no"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-gold"
+          >
+            Browse open jobs →
           </a>
         </div>
         <div className="grid gap-8 md:grid-cols-2 md:gap-10">

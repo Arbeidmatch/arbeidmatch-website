@@ -29,7 +29,7 @@ const HELPERS: Record<string, HelperConfig> = {
     icon: "⚡",
     title: "Ready to apply?",
     text: "Browse open positions in Norway or get your DSB authorization first.",
-    cta: { label: "See open positions →", href: "/request" },
+    cta: { label: "See open positions →", href: "https://jobs.arbeidmatch.no" },
   },
   "/for-employers": {
     icon: "🤝",
@@ -309,14 +309,24 @@ export default function ContextualHelper() {
               <div>
                 <p className="text-[13px] font-semibold tracking-tight text-white/95 sm:text-sm">{config.title}</p>
                 <p className="mt-2 text-xs leading-relaxed text-white/70 sm:text-[13px]">{config.text}</p>
-                {config.cta && (
-                  <Link
-                    href={config.cta.href}
-                    className="mt-3 inline-block text-xs font-medium text-[#C9A84C] transition-colors hover:text-[#e4c76a] sm:text-[13px]"
-                  >
-                    {config.cta.label}
-                  </Link>
-                )}
+                {config.cta &&
+                  (config.cta.href.startsWith("http") ? (
+                    <a
+                      href={config.cta.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-block text-xs font-medium text-[#C9A84C] transition-colors hover:text-[#e4c76a] sm:text-[13px]"
+                    >
+                      {config.cta.label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={config.cta.href}
+                      className="mt-3 inline-block text-xs font-medium text-[#C9A84C] transition-colors hover:text-[#e4c76a] sm:text-[13px]"
+                    >
+                      {config.cta.label}
+                    </Link>
+                  ))}
               </div>
             </div>
           </div>

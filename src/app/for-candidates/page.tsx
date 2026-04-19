@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CheckCircle2, DollarSign, Factory, HardHat, Home, Hotel, Sparkles, Users } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -29,7 +28,9 @@ export default function ForCandidatesPage() {
               full support.
             </p>
             <a
-              href="/score"
+              href="https://jobs.arbeidmatch.no"
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-gold-premium mt-8 inline-block rounded-md bg-gold px-8 py-4 text-lg font-medium text-white hover:bg-gold-hover"
             >
               Browse open positions
@@ -74,8 +75,10 @@ export default function ForCandidatesPage() {
               [DollarSign, "Logistics & Warehouse"],
             ].map(([Icon, title]) => (
               <ScrollReveal key={title as string} variant="fadeUp">
-                <Link
-                  href="/score"
+                <a
+                  href="https://jobs.arbeidmatch.no"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="industry-card card-premium card-premium-gold group block h-full cursor-pointer rounded-xl border border-border bg-white p-6 no-underline"
                 >
                   <Icon className="text-gold" size={26} />
@@ -83,7 +86,7 @@ export default function ForCandidatesPage() {
                   <span className="mt-3 inline-block text-sm text-gold transition-colors group-hover:text-gold-hover">
                     View jobs →
                   </span>
-                </Link>
+                </a>
               </ScrollReveal>
             ))}
           </div>
@@ -135,7 +138,9 @@ export default function ForCandidatesPage() {
         <div className="space-y-4">
           <ScrollReveal variant="fadeUp">
             <a
-              href="/score"
+              href="https://jobs.arbeidmatch.no"
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-gold-premium inline-block rounded-md bg-gold px-10 py-4 text-lg font-medium text-white hover:bg-gold-hover"
             >
               Browse all open positions

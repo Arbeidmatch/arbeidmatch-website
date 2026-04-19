@@ -167,9 +167,14 @@ export default function Footer() {
             </Link>
           ))}
           <p className="pt-3 text-sm text-white/90">Looking for jobs?</p>
-          <Link href="/score" className="mt-2 inline-flex min-h-[44px] items-center text-xl font-semibold text-gold">
+          <a
+            href="https://jobs.arbeidmatch.no"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex min-h-[44px] items-center text-xl font-semibold text-gold"
+          >
             Browse open positions →
-          </Link>
+          </a>
           <a
             href="mailto:post@arbeidmatch.no"
             className="footer-link-premium mt-1 inline-flex min-h-[44px] items-center text-sm text-white/90"

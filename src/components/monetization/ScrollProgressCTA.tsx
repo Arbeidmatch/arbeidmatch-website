@@ -97,12 +97,23 @@ export default function ScrollProgressCTA({ pathname }: { pathname: string }) {
               ? "Send a staffing request, we source and screen for you."
               : "Browse verified roles and get matched with Norwegian employers."}
           </p>
-          <Link
-            href={isEmployers ? "/request" : "/score"}
-            className="mt-4 flex min-h-[44px] w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#b8923f] to-gold py-2.5 text-sm font-semibold text-[#0a0f14] transition-transform duration-300 ease-premium hover:scale-[1.02]"
-          >
-            {isEmployers ? "Request candidates" : "Browse open roles"}
-          </Link>
+          {isEmployers ? (
+            <Link
+              href="/request"
+              className="mt-4 flex min-h-[44px] w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#b8923f] to-gold py-2.5 text-sm font-semibold text-[#0a0f14] transition-transform duration-300 ease-premium hover:scale-[1.02]"
+            >
+              Request candidates
+            </Link>
+          ) : (
+            <a
+              href="https://jobs.arbeidmatch.no"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 flex min-h-[44px] w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#b8923f] to-gold py-2.5 text-sm font-semibold text-[#0a0f14] transition-transform duration-300 ease-premium hover:scale-[1.02]"
+            >
+              Browse open roles
+            </a>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

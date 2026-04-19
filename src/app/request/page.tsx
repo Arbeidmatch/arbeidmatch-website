@@ -384,8 +384,13 @@ export default function RequestPage() {
               transition={{ duration: dur(0.5), delay: d(0.35), ease: PREMIUM_EASE }}
             >
               Looking for a job?{" "}
-              <a href="/score" className="font-semibold text-gold">
-                Start here →
+              <a
+                href="https://jobs.arbeidmatch.no"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-gold"
+              >
+                Browse open jobs →
               </a>
             </motion.div>
           </>
@@ -398,8 +403,13 @@ export default function RequestPage() {
             <p className="mt-3 text-text-secondary">Fill in your details and we&apos;ll get you started.</p>
             <div className="mt-6 rounded-r-md border-l-4 border-gold bg-gold/10 p-3 text-sm text-navy">
               Looking for a job?{" "}
-              <a href="/score" className="font-semibold text-gold">
-                Start here →
+              <a
+                href="https://jobs.arbeidmatch.no"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-gold"
+              >
+                Browse open jobs →
               </a>
             </div>
           </>

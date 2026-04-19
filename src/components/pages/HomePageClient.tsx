@@ -295,7 +295,12 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
                 <Icon className="shrink-0 text-gold" size={24} strokeWidth={1.75} />
                 <h3 className="mt-4 text-lg font-semibold text-navy">{title}</h3>
                 <p className="mt-2 text-sm text-text-secondary">{text}</p>
-                <a href="/score" className="mt-4 inline-block text-sm text-gold">
+                <a
+                  href="https://jobs.arbeidmatch.no"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-block text-sm text-gold"
+                >
                   View roles →
                 </a>
               </article>
