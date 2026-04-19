@@ -205,7 +205,7 @@ export default function RequestPage() {
         throw new Error(data.error || "Request failed");
       }
       if (data.success && data.token) {
-        setStatus("success");
+        window.location.href = `/request/${data.token}`;
         return;
       }
       throw new Error("No token received");
