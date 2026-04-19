@@ -4,6 +4,7 @@ import Testimonials from "@/components/Testimonials";
 import TikTokLiveBanner from "@/components/TikTokLiveBanner";
 import HomePageClient from "@/components/pages/HomePageClient";
 import HomeFaqJsonLd from "@/components/seo/HomeFaqJsonLd";
+import { getCandidateActivityStats } from "@/lib/candidateActivityStats";
 
 export const revalidate = 60;
 
@@ -24,12 +25,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export default async function Home() {
+  const candidateActivity = await getCandidateActivityStats();
+
   return (
     <>
       <HomeFaqJsonLd />
       <TikTokLiveBanner />
-      <HomePageClient howItWorksSlot={<HowItWorks />} testimonialsSlot={<Testimonials />} />
+      <HomePageClient
+        candidateActivity={candidateActivity}
+        howItWorksSlot={<HowItWorks />}
+        testimonialsSlot={<Testimonials />}
+      />
     </>
   );
 }

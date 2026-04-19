@@ -17,18 +17,20 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import UnifiedHomeStats from "@/components/UnifiedHomeStats";
+import HeroStatsPanel from "@/components/HeroStatsPanel";
 import ScrollReveal, { ScrollRevealGrid } from "@/components/ScrollReveal";
+import type { CandidateActivityStats } from "@/lib/candidateActivityStats";
 
 const HERO_EASE = [0.16, 1, 0.3, 1] as const;
 const HERO_DURATION = 0.8;
 
 type Props = {
+  candidateActivity: CandidateActivityStats;
   howItWorksSlot: ReactNode;
   testimonialsSlot: ReactNode;
 };
 
-export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Props) {
+export default function HomePageClient({ candidateActivity, howItWorksSlot, testimonialsSlot }: Props) {
   const reduce = useReducedMotion();
 
   const fade = (delaySec: number) =>
@@ -41,7 +43,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         };
 
   const hero = !reduce ? (
-    <div className="max-w-3xl">
+    <div className="md:col-span-3">
       <motion.p
         className="mb-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#B8860B]"
         {...fade(0)}
@@ -80,9 +82,20 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           How it works
         </Link>
       </motion.div>
+      <motion.p className="mt-8 text-[13px] leading-relaxed text-[#888888]" {...fade(0.55)}>
+        <span className="inline">500+ placements</span>
+        <span className="mx-2 text-[#cccccc]" aria-hidden>
+          ·
+        </span>
+        <span className="inline">50+ Norwegian clients</span>
+        <span className="mx-2 text-[#cccccc]" aria-hidden>
+          ·
+        </span>
+        <span className="inline">2-week delivery</span>
+      </motion.p>
     </div>
   ) : (
-    <div className="max-w-3xl">
+    <div className="md:col-span-3">
       <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#B8860B]">
         EU/EEA Workforce Solutions · Norway
       </p>
@@ -114,7 +127,26 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           How it works
         </Link>
       </div>
+      <p className="mt-8 text-[13px] leading-relaxed text-[#888888]">
+        <span className="inline">500+ placements</span>
+        <span className="mx-2 text-[#cccccc]" aria-hidden>
+          ·
+        </span>
+        <span className="inline">50+ Norwegian clients</span>
+        <span className="mx-2 text-[#cccccc]" aria-hidden>
+          ·
+        </span>
+        <span className="inline">2-week delivery</span>
+      </p>
     </div>
+  );
+
+  const statsBlock = (
+    <HeroStatsPanel
+      candidatesRegisteredToday={candidateActivity.candidatesRegisteredToday}
+      activeOnSiteNow={candidateActivity.activeOnSiteNow}
+      totalVisits={candidateActivity.totalVisits}
+    />
   );
 
   const industries: [LucideIcon, string, string][] = [
@@ -128,17 +160,22 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
 
   return (
     <>
-      <section className="flex min-h-screen flex-col justify-center bg-white pt-12 md:pt-20">
-        <div className="mx-auto w-full max-w-content px-4 pb-10 md:px-6 md:pb-14">
+      <section className="flex min-h-screen items-center bg-white py-12 md:py-20">
+        <div className="mx-auto grid w-full max-w-content gap-10 px-4 md:grid-cols-5 md:px-6">
+          {hero}
           {!reduce ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, ease: "easeOut" }}>
-              {hero}
+            <motion.div
+              className="md:col-span-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: HERO_DURATION, delay: 0.2, ease: HERO_EASE }}
+            >
+              {statsBlock}
             </motion.div>
           ) : (
-            hero
+            <div className="md:col-span-2">{statsBlock}</div>
           )}
         </div>
-        <UnifiedHomeStats />
       </section>
 
       <section className="bg-surface py-12 md:py-20">
