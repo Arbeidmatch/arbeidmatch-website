@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { startTransition, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, ExternalLink, X } from "lucide-react";
+import { ChevronDown, Crown, ExternalLink, X } from "lucide-react";
 
 const tjenesterLinks = [
   { href: "/bemanning-bygg-anlegg", label: "Bygg & Anlegg" },
@@ -15,7 +15,7 @@ const tjenesterLinks = [
   { href: "/bemanning-renhold", label: "Renhold" },
   { href: "/bemanning-horeca", label: "HoReCa" },
   { href: "/bemanning-helse", label: "Helse" },
-  { href: "/welding-specialists", label: "Welding Specialists" },
+  { href: "/welding-specialists", label: "Sveisespesialister" },
 ];
 
 const stederLinks = [
@@ -26,7 +26,7 @@ const stederLinks = [
 ];
 
 const ressurserLinks: { href: string; label: string; premium?: boolean }[] = [
-  { href: "/premium", label: "ArbeidMatch Premium", premium: true },
+  { href: "/premium", label: "Premium", premium: true },
   { href: "/about", label: "Om oss" },
   { href: "/dsb-support", label: "DSB-godkjenning" },
   { href: "/blog", label: "Blog" },
@@ -44,7 +44,7 @@ const megaAllHrefs = [...tjenesterLinks, ...stederLinks, ...ressurserLinks];
 
 const mobileEmployersLinks = [
   { href: "/for-employers", label: "For arbeidsgivere" },
-  { href: "/welding-specialists", label: "Welding Specialists" },
+  { href: "/welding-specialists", label: "Sveisespesialister" },
   { href: "/bemanning-bygg-anlegg", label: "Bygg og Anlegg" },
   { href: "/bemanning-logistikk", label: "Logistikk" },
   { href: "/bemanning-industri", label: "Industri" },
@@ -54,12 +54,22 @@ const mobileEmployersLinks = [
   { href: "/for-staffing-agencies", label: "For bemanningsbyråer" },
 ] as const;
 
-const mobileCandidatesLinks = [
+type MobileCandidateLink = {
+  href: string;
+  label: string;
+  external?: boolean;
+  premium?: boolean;
+  premiumPromo?: boolean;
+};
+
+const mobileCandidatesLinks: MobileCandidateLink[] = [
   { href: "/for-candidates", label: "Find Work in Norway" },
+  { href: "/electricians-norway", label: "Electricians in Norway" },
+  { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/dsb-support", label: "DSB Authorization Guide" },
-  { href: "/premium", label: "Premium Guides", premium: true },
+  { href: "/premium", label: "Premium Guides", premium: true, premiumPromo: true },
   { href: "https://jobs.arbeidmatch.no", label: "Job Openings", external: true },
-] as const;
+];
 
 const mobileCompanyLinks = [
   { href: "/about", label: "About" },
@@ -97,6 +107,8 @@ function MobileDrawerLink({
   pathname,
   external,
   premium,
+  premiumPromo,
+  isPremiumSubscriber,
   onClose,
 }: {
   href: string;
@@ -104,6 +116,8 @@ function MobileDrawerLink({
   pathname: string;
   external?: boolean;
   premium?: boolean;
+  premiumPromo?: boolean;
+  isPremiumSubscriber?: boolean;
   onClose: () => void;
 }) {
   const active = !external && linkActive(pathname, href);
@@ -111,11 +125,28 @@ function MobileDrawerLink({
     ? "border-l-2 border-l-[#C9A84C] pl-[22px] font-medium text-[#C9A84C]"
     : "border-l-2 border-l-transparent font-normal text-white";
 
+  const promo = Boolean(premiumPromo && premium && !isPremiumSubscriber);
+  const staticDot = Boolean(premium && !promo && !isPremiumSubscriber);
+
   const inner = (
-    <span className="inline-flex items-center gap-2">
-      <span>{children}</span>
-      {premium ? <span className="h-2 w-2 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden /> : null}
-      {external ? <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden /> : null}
+    <span className="inline-flex w-full min-w-0 items-center justify-between gap-2">
+      <span className="inline-flex min-w-0 items-center gap-2">
+        <span className="min-w-0">{children}</span>
+        {external ? <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden /> : null}
+      </span>
+      {promo ? (
+        <span className="inline-flex shrink-0 items-center gap-1.5">
+          <span
+            className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C] motion-reduce:animate-none motion-safe:animate-pulse"
+            aria-hidden
+          />
+          <span className="rounded px-1 py-px text-[9px] font-bold text-[#0f1923]" style={{ background: "#C9A84C" }}>
+            NEW
+          </span>
+        </span>
+      ) : staticDot ? (
+        <span className="h-2 w-2 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
+      ) : null}
     </span>
   );
 
@@ -151,9 +182,20 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     startTransition(() => setMounted(true));
+  }, []);
+
+  useEffect(() => {
+    const read = () => {
+      if (typeof document === "undefined") return;
+      setIsPremium(document.cookie.includes("premium_token"));
+    };
+    read();
+    const id = window.setInterval(read, 2000);
+    return () => window.clearInterval(id);
   }, []);
 
   useEffect(() => {
@@ -247,6 +289,35 @@ export default function Navbar() {
                 </button>
               </div>
 
+              {isPremium ? (
+                <div
+                  className="mx-4 mt-4 rounded-[12px] border p-4"
+                  style={{
+                    background: "rgba(201,168,76,0.08)",
+                    borderColor: "rgba(201,168,76,0.2)",
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <Crown className="h-5 w-5 shrink-0 text-[#C9A84C]" strokeWidth={1.75} aria-hidden />
+                    <span className="text-[13px] font-semibold text-[#C9A84C]">Premium Member</span>
+                  </div>
+                  <Link
+                    href="/premium/browse"
+                    onClick={closeMenu}
+                    className="mt-3 block text-[13px] text-white transition-colors hover:text-white/90"
+                  >
+                    Browse all guides
+                  </Link>
+                  <Link
+                    href="/premium"
+                    onClick={closeMenu}
+                    className="mt-2 block text-[13px] text-white transition-colors hover:text-white/90"
+                  >
+                    My account
+                  </Link>
+                </div>
+              ) : null}
+
               <div className="flex shrink-0 flex-row gap-2 border-b border-white/[0.06] px-6 py-4">
                 <Link
                   href="/for-employers"
@@ -260,26 +331,28 @@ export default function Navbar() {
                   onClick={closeMenu}
                   className="rounded-full border border-white/30 px-4 py-2 text-[13px] font-medium text-white/60"
                 >
-                  Candidate
+                  Job seeker
                 </Link>
               </div>
 
               <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))]">
-                <p className={mobileSectionHeaderClass}>For employers</p>
+                <p className={mobileSectionHeaderClass}>FOR ARBEIDSGIVERE</p>
                 {mobileEmployersLinks.map((item) => (
                   <MobileDrawerLink key={item.href} href={item.href} pathname={pathname} onClose={closeMenu}>
                     {item.label}
                   </MobileDrawerLink>
                 ))}
 
-                <p className={mobileSectionHeaderClass}>For candidates</p>
+                <p className={mobileSectionHeaderClass}>FOR CANDIDATES</p>
                 {mobileCandidatesLinks.map((item) => (
                   <MobileDrawerLink
                     key={item.href}
                     href={item.href}
                     pathname={pathname}
-                    external={"external" in item && item.external}
-                    premium={"premium" in item && item.premium}
+                    external={Boolean(item.external)}
+                    premium={Boolean(item.premium)}
+                    premiumPromo={Boolean(item.premiumPromo)}
+                    isPremiumSubscriber={isPremium}
                     onClose={closeMenu}
                   >
                     {item.label}
@@ -382,12 +455,29 @@ export default function Navbar() {
                               href={item.href}
                               className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
                             >
-                              <span className="inline-flex items-center gap-2">
-                                {item.premium ? (
-                                  <span className="h-2 w-2 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
-                                ) : null}
+                              {item.premium ? (
+                                <span className="inline-flex items-center gap-2 text-gold">
+                                  {!isPremium ? (
+                                    <>
+                                      <span
+                                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C] motion-reduce:animate-none motion-safe:animate-pulse"
+                                        aria-hidden
+                                      />
+                                      <span>{item.label}</span>
+                                      <span
+                                        className="rounded px-1 py-px text-[9px] font-bold text-[#0f1923]"
+                                        style={{ background: "#C9A84C" }}
+                                      >
+                                        NEW
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span>{item.label}</span>
+                                  )}
+                                </span>
+                              ) : (
                                 <span>{item.label}</span>
-                              </span>
+                              )}
                             </Link>
                           </li>
                         ))}

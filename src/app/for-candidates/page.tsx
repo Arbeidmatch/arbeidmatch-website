@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CheckCircle2, DollarSign, Factory, HardHat, Home, Hotel, Sparkles, Users } from "lucide-react";
 import type { Metadata } from "next";
 
-import ForCandidatesDsbSection from "@/components/for-candidates/ForCandidatesDsbSection";
+import TradeSpecialistCards from "@/components/candidates/TradeSpecialistCards";
 import CandidateFeedbackPill from "@/components/for-candidates/CandidateFeedbackPill";
 import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -38,7 +38,7 @@ export default function ForCandidatesPage() {
         </div>
       </section>
 
-      <ForCandidatesDsbSection />
+      <TradeSpecialistCards />
 
       <section className="bg-surface py-12 md:py-20">
         <div className="mx-auto grid w-full max-w-content gap-6 px-4 md:grid-cols-2 md:px-6">

@@ -83,6 +83,8 @@ const stederCol: [string, string][] = [
 
 const ressurserCol: [string, string][] = [
   ["Premium Guides", "/premium"],
+  ["Electricians in Norway", "/electricians-norway"],
+  ["Welding Specialists", "/welding-specialists"],
   ["DSB-godkjenning", "/dsb-support"],
   ["DSB-sjekkliste", "/dsb-checklist"],
   ["Blog", "/blog"],

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Award, FileText, ShieldCheck, Users } from "lucide-react";
+
 import WeldingCertGrid from "./WeldingCertGrid";
 
 const GOLD = "#C9A84C";
@@ -170,6 +172,103 @@ export default function WeldingSpecialistsPage() {
           >
             Read Norwegian staffing regulations at Arbeidstilsynet.no
           </a>
+        </div>
+      </section>
+
+      {/* Authorizations for shipyards */}
+      <section className="px-6 py-16 text-white md:py-20 lg:py-[80px]" style={{ background: "rgba(255,255,255,0.02)" }}>
+        <div className="mx-auto max-w-content">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: GOLD }}>
+            Required certifications
+          </p>
+          <h2 className="mt-3 text-[28px] font-bold text-white">
+            What authorizations do welders need for Norwegian shipyards?
+          </h2>
+          <p className="mt-3 max-w-[800px] text-[15px] font-semibold leading-snug text-white/[0.85]">
+            Certifications required for shipyard and offshore welding in Norway
+          </p>
+          <div className="mt-10 grid gap-6 md:grid-cols-2">
+            <article className="rounded-[16px] border border-white/[0.08] bg-[#0f1923] p-6">
+              <Award className="text-gold" size={28} strokeWidth={1.5} aria-hidden />
+              <h3 className="mt-4 text-lg font-bold text-white">ISO 9606-1 Welder Qualification</h3>
+              <p className="mt-2 text-[14px] leading-[1.75] text-white/[0.65]">
+                The primary international standard for fusion welding qualification. Covers welding of steels and is
+                recognized across Norwegian shipyards and offshore facilities. Must be valid and renewed every 2 years with
+                6-month radiographic testing.
+              </p>
+              <a
+                href="https://www.iso.org/standard/54936.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-block text-[11px] font-medium text-gold underline-offset-4 hover:underline"
+              >
+                ISO.org
+              </a>
+            </article>
+            <article className="rounded-[16px] border border-white/[0.08] bg-[#0f1923] p-6">
+              <ShieldCheck className="text-gold" size={28} strokeWidth={1.5} aria-hidden />
+              <h3 className="mt-4 text-lg font-bold text-white">NORSOK M-101 and DNV Standards</h3>
+              <p className="mt-2 text-[14px] leading-[1.75] text-white/[0.65]">
+                Norwegian shipyards and offshore operators often require compliance with NORSOK M-101 (structural steel
+                fabrication) and DNV rules for ships and offshore structures. These are applied on top of ISO 9606
+                qualification.
+              </p>
+              <a
+                href="https://www.standard.no"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-block text-[11px] font-medium text-gold underline-offset-4 hover:underline"
+              >
+                Standard Norge
+              </a>
+            </article>
+            <article className="rounded-[16px] border border-white/[0.08] bg-[#0f1923] p-6">
+              <FileText className="text-gold" size={28} strokeWidth={1.5} aria-hidden />
+              <h3 className="mt-4 text-lg font-bold text-white">EN ISO 15614 Procedure Qualification</h3>
+              <p className="mt-2 text-[14px] leading-[1.75] text-white/[0.65]">
+                Welding Procedure Specification (WPS) and Procedure Qualification Record (PQR) per EN ISO 15614-1 are
+                required for structural and pressure vessel work at Norwegian facilities. The employer typically provides
+                the WPS.
+              </p>
+            </article>
+            <article className="rounded-[16px] border border-white/[0.08] bg-[#0f1923] p-6">
+              <Users className="text-gold" size={28} strokeWidth={1.5} aria-hidden />
+              <h3 className="mt-4 text-lg font-bold text-white">NDT Operator Certification (if applicable)</h3>
+              <p className="mt-2 text-[14px] leading-[1.75] text-white/[0.65]">
+                For inspection roles, NDT (Non-Destructive Testing) certification per EN ISO 9712 or ASNT is required. Levels
+                II and III are commonly requested for weld inspection at Norwegian shipyards.
+              </p>
+              <a
+                href="https://www.iso.org/standard/75361.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-block text-[11px] font-medium text-gold underline-offset-4 hover:underline"
+              >
+                EN ISO 9712
+              </a>
+            </article>
+          </div>
+          <div
+            className="mt-10 max-w-[800px] rounded-lg border-l-[3px] border-[#C9A84C] px-6 py-5"
+            style={{ background: "rgba(201,168,76,0.06)" }}
+          >
+            <h3 className="text-[15px] font-semibold text-white">Certificate validity is verified before every placement</h3>
+            <p className="mt-2 text-[14px] leading-[1.7] text-white/[0.7]">
+              ArbeidMatch verifies the validity and renewal status of all ISO and welding certifications before presenting a
+              candidate to an employer. Expired certificates cannot be presented.
+            </p>
+          </div>
+          <h3 className="mt-12 text-[20px] font-bold text-white">Transport and accommodation for shipyard placements</h3>
+          <p className="mt-3 max-w-[800px] text-[14px] leading-[1.8] text-white/[0.65]">
+            For most shipyard and offshore welding placements in Norway, employers provide transport from the candidate home
+            country and accommodation at or near the work site. This is standard practice in the Norwegian maritime and
+            offshore sector. Specific arrangements are confirmed during the placement process and documented in the
+            employment contract.
+          </p>
+          <p className="mt-3 max-w-[800px] text-[11px] italic text-white/[0.4]">
+            Accommodation and transport arrangements vary by employer and project. ArbeidMatch confirms specifics during the
+            matching process. This is not a guarantee for all placements.
+          </p>
         </div>
       </section>
 

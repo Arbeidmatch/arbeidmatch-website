@@ -62,6 +62,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      url: `${SITE}/electricians-norway`,
+      lastModified: new Date("2026-04-19"),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: `${SITE}/blog`,
       lastModified: primaryLastMod,
       changeFrequency: "monthly",
