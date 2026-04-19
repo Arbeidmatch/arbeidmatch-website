@@ -261,7 +261,7 @@ function useViewTransition(reducedMotion: boolean) {
 function CardShell({ children, shellMotion }: { children: ReactNode; shellMotion: CSSProperties }) {
   return (
     <div
-      className="relative box-border flex w-full max-w-[560px] flex-col justify-between overflow-hidden"
+      className="relative box-border flex h-full w-full min-w-0 flex-col justify-between overflow-hidden"
       style={{
         minHeight: 320,
         padding: "clamp(28px, 4vw, 40px) clamp(24px, 3vw, 36px)",
@@ -616,11 +616,15 @@ export default function TradeSpecialistCards() {
 
   return (
     <section className="bg-white py-12 md:py-20">
-      <div className="mx-auto flex w-full max-w-[600px] flex-col items-center gap-8 px-6 md:px-12 lg:px-20">
-        <ElectricianCard reducedMotion={reducedMotion} />
-        <WelderCard reducedMotion={reducedMotion} />
+      <div className="mx-auto grid w-full max-w-[1000px] grid-cols-1 gap-6 px-4 md:grid-cols-2">
+        <div className="w-full min-w-0">
+          <ElectricianCard reducedMotion={reducedMotion} />
+        </div>
+        <div className="w-full min-w-0">
+          <WelderCard reducedMotion={reducedMotion} />
+        </div>
       </div>
-      <div className="mx-auto mt-8 max-w-[600px] px-6 text-center md:px-12 lg:px-20">
+      <div className="mx-auto mt-8 max-w-[1000px] px-4 text-center">
         <SourceDisclaimer
           text="Salary ranges are general market estimates based on collective agreements and publicly available sources. Actual pay depends on qualifications, employer, project type, and individual negotiation. ArbeidMatch is not responsible for salary outcomes."
           sourceLabel="Source: Arbeidstilsynet.no"
