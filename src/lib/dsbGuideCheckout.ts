@@ -1,16 +1,14 @@
 import { randomUUID } from "crypto";
 import Stripe from "stripe";
 
-import { validateCouponForCheckout } from "@/lib/dsbDiscountLeads";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { getPublicBaseUrl, resolveStripePriceId, type DsbGuideSlug } from "@/lib/dsbGuideAccess";
 
 export async function createDsbGuideStripeCheckout(params: {
   guideSlug: DsbGuideSlug;
   email: string;
-  couponCode?: string | null;
 }): Promise<{ ok: true; checkoutUrl: string } | { ok: false; error: string }> {
-  const { guideSlug, email, couponCode } = params;
+  const { guideSlug, email } = params;
   const normalizedEmail = email.trim().toLowerCase();
 
   const secret = process.env.STRIPE_SECRET_KEY;
@@ -52,16 +50,23 @@ export async function createDsbGuideStripeCheckout(params: {
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
   const stripe = new Stripe(secret);
   const supportPath = guideSlug === "non-eu" ? "non-eu" : "eu";
+  const expiresAtUnix = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
+  const couponName = guideSlug === "eu" ? "DSB EU Guide - Special Offer" : "DSB NON-EU Guide - Special Offer";
 
-  const trimmedCoupon = couponCode?.trim() || "";
-  let appliedCoupon = "";
-  if (trimmedCoupon) {
-    const ok = await validateCouponForCheckout(supabase, normalizedEmail, guideSlug, trimmedCoupon);
-    if (!ok) {
-      return { ok: false, error: "This discount code is invalid, expired, or does not match this email." };
-    }
-    appliedCoupon = trimmedCoupon;
-  }
+  // One unique Stripe coupon per checkout customer, valid 7 days, one redemption.
+  const coupon = await stripe.coupons.create({
+    amount_off: 1200,
+    currency: "eur",
+    duration: "once",
+    max_redemptions: 1,
+    redeem_by: expiresAtUnix,
+    name: couponName,
+    metadata: {
+      email: normalizedEmail,
+      guide_type: guideSlug,
+      created_for: normalizedEmail,
+    },
+  });
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",
@@ -71,17 +76,14 @@ export async function createDsbGuideStripeCheckout(params: {
     customer_email: normalizedEmail,
     /** Required when using `discounts`; mutual exclusion with customer-entered promotion codes. */
     allow_promotion_codes: false,
+    discounts: [{ coupon: coupon.id }],
     metadata: {
       guide_slug: guideSlug,
       email: normalizedEmail,
       access_token: accessToken,
-      discount_coupon: appliedCoupon,
+      discount_coupon: coupon.id,
     },
   };
-
-  if (appliedCoupon) {
-    sessionParams.discounts = [{ coupon: appliedCoupon }];
-  }
 
   const session = await stripe.checkout.sessions.create(sessionParams);
 

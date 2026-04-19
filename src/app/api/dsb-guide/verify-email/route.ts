@@ -3,7 +3,6 @@ import nodemailer from "nodemailer";
 
 import { getPublicBaseUrl, type DsbGuideSlug } from "@/lib/dsbGuideAccess";
 import { signDsbEmailVerifyToken } from "@/lib/dsbEmailVerifyToken";
-import { validateCouponForCheckout } from "@/lib/dsbDiscountLeads";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import {
@@ -20,7 +19,6 @@ type Body = {
   guide_slug?: string;
   email?: string;
   website?: string;
-  coupon_code?: string;
 };
 
 const VERIFY_LINK_TTL_MS = 30 * 60 * 1000;
@@ -55,22 +53,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Database is not configured." }, { status: 500 });
     }
 
-    let couponInToken: string | undefined;
-    const rawCoupon = typeof body.coupon_code === "string" ? body.coupon_code.trim() : "";
-    if (rawCoupon) {
-      const valid = await validateCouponForCheckout(supabase, email, guideSlug, rawCoupon);
-      if (valid) {
-        couponInToken = rawCoupon;
-      }
-    }
-
     let token: string;
     try {
       token = signDsbEmailVerifyToken({
         email,
         guide_slug: guideSlug,
         expMs: Date.now() + VERIFY_LINK_TTL_MS,
-        ...(couponInToken ? { coupon_code: couponInToken } : {}),
       });
     } catch (e) {
       const message = e instanceof Error ? e.message : "Verification is not configured.";

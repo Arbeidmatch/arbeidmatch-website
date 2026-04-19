@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
-import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
+import { z } from "zod";
 import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { getRateLimitResult, hasHoneypotValue, noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
+import { logApiError } from "@/lib/secureLogger";
 import {
   buildInternalEmailHtml,
   emailDataTable,
@@ -11,14 +13,45 @@ import {
   wrapPremiumEmail,
 } from "@/lib/emailPremiumTemplate";
 
+const requestSchema = z
+  .object({
+    company: z.string().trim().min(2).max(160),
+    email: z.string().trim().email().max(200).optional().or(z.literal("")),
+    full_name: z.string().trim().max(120).optional().or(z.literal("")),
+    phone: z.string().trim().max(40).optional().or(z.literal("")),
+    city: z.string().trim().max(120).optional().or(z.literal("")),
+    position: z.string().trim().max(120).optional().or(z.literal("")),
+    positionOther: z.string().trim().max(120).optional().or(z.literal("")),
+    numberOfPositions: z.string().trim().max(20).optional().or(z.literal("")),
+    startDate: z.string().trim().max(80).optional().or(z.literal("")),
+    startDateOther: z.string().trim().max(80).optional().or(z.literal("")),
+    howDidYouHear: z.string().trim().max(120).optional().or(z.literal("")),
+    socialMediaPlatform: z.string().trim().max(120).optional().or(z.literal("")),
+    socialMediaOther: z.string().trim().max(120).optional().or(z.literal("")),
+    howDidYouHearOther: z.string().trim().max(120).optional().or(z.literal("")),
+    referralCompanyName: z.string().trim().max(160).optional().or(z.literal("")),
+    referralOrgNumber: z.string().trim().max(40).optional().or(z.literal("")),
+    referralEmail: z.string().trim().email().max(200).optional().or(z.literal("")),
+    website: z.string().max(256).optional(),
+    company_website: z.string().max(256).optional(),
+    honeypot: z.string().max(256).optional(),
+  })
+  .passthrough();
+
 export async function POST(request: NextRequest) {
   try {
-    const rawData = (await request.json()) as Record<string, unknown>;
-    if (hasHoneypotValue(rawData)) {
-      return NextResponse.json({ success: true });
+    const rate = getRateLimitResult(request, "send-request-email", 6, 10 * 60 * 1000);
+    if (rate.limited) {
+      return noStoreJson(
+        { success: false, error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+      );
     }
-    if (isRateLimited(request, "send-request-email", 6, 10 * 60 * 1000)) {
-      return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
+    const parsed = await parseJsonBodyWithSchema(request, requestSchema, { maxBytes: 64 * 1024 });
+    if (!parsed.ok) return parsed.response;
+    const rawData = parsed.data as Record<string, unknown>;
+    if (hasHoneypotValue(rawData)) {
+      return noStoreJson({ success: true });
     }
     const data = sanitizeStringRecord(rawData);
 
@@ -48,15 +81,10 @@ export async function POST(request: NextRequest) {
     const referralEmailValue =
       data.howDidYouHear === "Referral from another company" ? data.referralEmail : "";
 
-    const transporter = nodemailer.createTransport({
-      host: "send.one.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: "no-replay@arbeidmatch.no",
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    const transporter = createSmtpTransporter();
+    if (!transporter) {
+      return noStoreJson({ success: false, error: "SMTP is not configured." }, { status: 500 });
+    }
 
     const hasValue = (value?: string) => value !== undefined && value !== null && String(value).trim() !== "";
     const push = (rows: { label: string; value: string }[], label: string, v?: string) => {
@@ -185,10 +213,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ success: true });
+    return noStoreJson({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("send-request-email failed:", error);
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    logApiError("send-request-email", error);
+    return noStoreJson({ success: false, error: "Failed to send email." }, { status: 500 });
   }
 }

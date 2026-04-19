@@ -25,17 +25,11 @@ export default async function DsbSupportVerifyPage({
       redirect("/dsb-support/eu?error=link_expired");
     }
 
-    const couponFromToken =
-      typeof payload.coupon_code === "string" && payload.coupon_code.trim()
-        ? payload.coupon_code.trim()
-        : undefined;
-
     let result: Awaited<ReturnType<typeof createDsbGuideStripeCheckout>>;
     try {
       result = await createDsbGuideStripeCheckout({
         guideSlug: payload.guide_slug,
         email: payload.email,
-        couponCode: couponFromToken,
       });
     } catch (stripeErr) {
       if (isRedirectError(stripeErr)) {

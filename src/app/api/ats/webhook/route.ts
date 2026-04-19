@@ -4,10 +4,53 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+import { noStoreJson } from "@/lib/apiSecurity";
+import { logApiError } from "@/lib/secureLogger";
+
+const DEFAULT_TOLERANCE_SECONDS = 300;
+
+function verifySignature(
+  rawBody: string,
+  signature: string | null,
+  timestamp: string | null,
+  secret: string,
+): boolean {
+  if (!signature || !timestamp) return false;
+  const timestampNum = Number(timestamp);
+  if (!Number.isFinite(timestampNum)) return false;
+
+  const tolerance =
+    Number(process.env.ATS_WEBHOOK_TOLERANCE_SECONDS) || DEFAULT_TOLERANCE_SECONDS;
+  const age = Math.abs(Math.floor(Date.now() / 1000) - timestampNum);
+  if (age > tolerance) return false;
+
+  const expected = createHmac("sha256", secret).update(`${timestamp}.${rawBody}`).digest("hex");
+  const a = Buffer.from(signature);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
+    const secret = process.env.ATS_WEBHOOK_SECRET?.trim();
+    if (!secret) {
+      logApiError("ats/webhook", new Error("missing_ats_webhook_secret"));
+      return noStoreJson({ error: "Webhook not configured." }, { status: 500 });
+    }
+
+    const signature = request.headers.get("x-ats-signature");
+    const timestamp = request.headers.get("x-ats-timestamp");
     const body = await request.text();
+
+    if (!verifySignature(body, signature, timestamp, secret)) {
+      return noStoreJson({ error: "Invalid webhook signature." }, { status: 401 });
+    }
+
     const event = JSON.parse(body) as { type?: string; data?: unknown };
 
     switch (event.type) {
@@ -27,8 +70,9 @@ export async function POST(request: NextRequest) {
         void event.type;
     }
 
-    return NextResponse.json({ received: true });
-  } catch {
-    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    return noStoreJson({ received: true });
+  } catch (error) {
+    logApiError("ats/webhook", error);
+    return noStoreJson({ error: "Invalid payload" }, { status: 400 });
   }
 }

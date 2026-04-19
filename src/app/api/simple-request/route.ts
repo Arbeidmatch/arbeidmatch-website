@@ -1,26 +1,63 @@
-// v2
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
 
-function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import {
+  getRateLimitResult,
+  hasHoneypotValue,
+  noStoreJson,
+  parseJsonBodyWithSchema,
+} from "@/lib/apiSecurity";
+import { logApiError } from "@/lib/secureLogger";
 
-  if (!url || !key) {
-    return null;
-  }
-
-  return createClient(url, key);
-}
+const requestSchema = z
+  .object({
+    full_name: z.string().trim().min(2).max(120),
+    first_name: z.string().trim().max(120).optional(),
+    last_name: z.string().trim().max(120).optional(),
+    company: z.string().trim().min(2).max(160),
+    email: z.string().trim().email().max(200),
+    phone: z.string().trim().min(6).max(40),
+    contactRole: z.string().trim().max(160).optional(),
+    job_summary: z.string().trim().max(1000).optional(),
+    requestedLocation: z.string().trim().max(120).optional(),
+    partnershipStatus: z.string().trim().max(40).optional(),
+    howDidYouHear: z.string().trim().max(120).optional(),
+    socialMediaPlatform: z.string().trim().max(120).optional(),
+    socialMediaOther: z.string().trim().max(120).optional(),
+    howDidYouHearOther: z.string().trim().max(240).optional(),
+    referralCompanyName: z.string().trim().max(160).optional(),
+    referralOrgNumber: z.string().trim().max(40).optional(),
+    referralEmail: z.string().trim().email().max(200).optional().or(z.literal("")),
+    orgNumber: z.string().trim().max(40).optional(),
+    website: z.string().max(256).optional(),
+    company_website: z.string().max(256).optional(),
+    honeypot: z.string().max(256).optional(),
+  })
+  .strict();
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient();
+    const rate = getRateLimitResult(request, "simple-request", 8, 10 * 60 * 1000);
+    if (rate.limited) {
+      return noStoreJson(
+        { success: false, error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+      );
+    }
 
+    const parsed = await parseJsonBodyWithSchema(request, requestSchema, { maxBytes: 16 * 1024 });
+    if (!parsed.ok) return parsed.response;
+
+    if (hasHoneypotValue(parsed.data)) {
+      return noStoreJson({ success: true });
+    }
+
+    const supabase = getSupabaseAdminClient();
     if (!supabase) {
-      return NextResponse.json(
+      return noStoreJson(
         {
           success: false,
           error: "Supabase configuration missing.",
@@ -29,7 +66,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
     const {
       full_name,
       company,
@@ -44,25 +80,7 @@ export async function POST(request: NextRequest) {
       referralOrgNumber,
       referralEmail,
       orgNumber,
-    } = body as {
-      full_name?: string;
-      company?: string;
-      email?: string;
-      phone?: string;
-      job_summary?: string;
-      howDidYouHear?: string;
-      socialMediaPlatform?: string;
-      socialMediaOther?: string;
-      howDidYouHearOther?: string;
-      referralCompanyName?: string;
-      referralOrgNumber?: string;
-      referralEmail?: string;
-      orgNumber?: string;
-    };
-
-    if (!company || !email) {
-      throw new Error("Missing required fields: company and email are required.");
-    }
+    } = parsed.data;
 
     const token = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
@@ -89,10 +107,9 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
-    return NextResponse.json({ success: true, token });
+    return noStoreJson({ success: true, token });
   } catch (error) {
-    console.error("simple-request POST failed:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    logApiError("simple-request", error);
+    return noStoreJson({ success: false, error: "Unable to create request token." }, { status: 500 });
   }
 }

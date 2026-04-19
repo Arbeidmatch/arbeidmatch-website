@@ -6,8 +6,6 @@ export type DsbEmailVerifyPayload = {
   email: string;
   guide_slug: DsbGuideSlug;
   exp: number;
-  /** Exit-intent Stripe coupon, validated server-side before signing. */
-  coupon_code?: string;
 };
 
 function getSecret(): string {
@@ -16,7 +14,7 @@ function getSecret(): string {
 
 /** Signed token: base64url(payload).hmac - valid until `exp` (unix ms). */
 export function signDsbEmailVerifyToken(
-  payload: Omit<DsbEmailVerifyPayload, "exp"> & { expMs: number; coupon_code?: string },
+  payload: Omit<DsbEmailVerifyPayload, "exp"> & { expMs: number },
 ): string {
   const secret = getSecret();
   if (!secret) {
@@ -26,7 +24,6 @@ export function signDsbEmailVerifyToken(
     email: payload.email.trim().toLowerCase(),
     guide_slug: payload.guide_slug,
     exp: payload.expMs,
-    ...(payload.coupon_code ? { coupon_code: payload.coupon_code.trim() } : {}),
   };
   const payloadB64 = Buffer.from(JSON.stringify(body), "utf8").toString("base64url");
   const sig = createHmac("sha256", secret).update(payloadB64).digest("base64url");

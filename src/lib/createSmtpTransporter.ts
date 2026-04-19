@@ -1,15 +1,20 @@
 import nodemailer from "nodemailer";
 
-/** Shared SMTP config (one.com) - requires SMTP_PASS in env. */
+/** Shared SMTP config from env. */
 export function createSmtpTransporter() {
-  if (!process.env.SMTP_PASS) return null;
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !Number.isFinite(port) || !user || !pass) return null;
+
   return nodemailer.createTransport({
-    host: "send.one.com",
-    port: 465,
-    secure: true,
+    host,
+    port,
+    secure: port === 465,
     auth: {
-      user: "no-replay@arbeidmatch.no",
-      pass: process.env.SMTP_PASS,
+      user,
+      pass,
     },
   });
 }

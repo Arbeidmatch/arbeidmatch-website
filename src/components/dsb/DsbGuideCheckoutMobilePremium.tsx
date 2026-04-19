@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, startTransition, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import {
@@ -11,12 +11,7 @@ import {
   IconShield,
   type DsbPremiumIconName,
 } from "@/components/dsb/DsbIcons";
-import DsbExitDiscountPopup from "@/components/dsb/DsbExitDiscountPopup";
 import { DSB_DISCOUNT } from "@/lib/dsbDiscountPricing";
-import {
-  DSB_DISCOUNT_LS_COUPON,
-  DSB_DISCOUNT_LS_GUIDE,
-} from "@/lib/dsbDiscountStorage";
 
 type GuideSlug = "eu" | "non-eu";
 
@@ -44,7 +39,7 @@ const EU_CONFIG: VariantConfig = {
   badge: "EU/EEA Citizens Only",
   heroEmoji: "🇪🇺",
   title: "Get Your DSB Authorization in Norway",
-  subtitle: "EU/EEA Electricians - €15",
+  subtitle: "EU/EEA Electricians - €29",
   pills: [
     { icon: "clock", text: "2–4 months" },
     { icon: "shield", text: "No visa required" },
@@ -159,7 +154,6 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
   const [resendCountdown, setResendCountdown] = useState(0);
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const sectionHeadRef = useRef<HTMLDivElement>(null);
   const headerInView = useInView(sectionHeadRef, { once: true, amount: 0.35 });
@@ -171,36 +165,6 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
     const timer = window.setInterval(() => setResendCountdown((v) => (v > 0 ? v - 1 : 0)), 1000);
     return () => window.clearInterval(timer);
   }, [step, resendCountdown]);
-
-  useEffect(() => {
-    try {
-      const code = localStorage.getItem(DSB_DISCOUNT_LS_COUPON)?.trim();
-      const g = localStorage.getItem(DSB_DISCOUNT_LS_GUIDE)?.trim();
-      if (code && g === cfg.slug) {
-        startTransition(() => setAppliedCoupon(code));
-      }
-    } catch {
-      /* ignore */
-    }
-  }, [cfg.slug]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const discountCode = params.get("discount")?.trim();
-    if (!discountCode) return;
-    try {
-      localStorage.setItem(DSB_DISCOUNT_LS_COUPON, discountCode);
-      localStorage.setItem(DSB_DISCOUNT_LS_GUIDE, variant);
-      startTransition(() => setAppliedCoupon(discountCode));
-    } catch {
-      /* ignore */
-    }
-    const url = new URL(window.location.href);
-    url.searchParams.delete("discount");
-    const next = url.pathname + (url.searchParams.toString() ? `?${url.searchParams.toString()}` : "");
-    window.history.replaceState({}, "", next);
-  }, [variant]);
 
   const startConfirmation = (e: FormEvent) => {
     e.preventDefault();
@@ -225,7 +189,6 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
           guide_slug: cfg.slug,
           email: confirmedEmail,
           website: "",
-          ...(appliedCoupon ? { coupon_code: appliedCoupon } : {}),
         }),
       });
       const data = (await res.json()) as { success?: boolean; error?: string };
@@ -260,7 +223,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
   };
 
   const spring = [0.16, 1, 0.3, 1] as const;
-  const discountRow = appliedCoupon ? DSB_DISCOUNT[cfg.slug] : null;
+  const discountRow = DSB_DISCOUNT[cfg.slug];
 
   return (
     <div className={`dsb-premium-page dsb-mobile-page dsb-premium-page--${cfg.region}`}>
@@ -372,19 +335,46 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
             transition={{ duration: 0.6, ease: spring }}
           >
             <p className="dsb-price-card-label">
-              {cfg.region === "eu" ? "EU/EEA Electricians - €15" : "Non-EU Electricians - €39"}
+              {cfg.region === "eu" ? "EU/EEA Electricians - Launch offer" : "Non-EU Electricians - Launch offer"}
             </p>
             <div className="dsb-price-row">
               <div className="dsb-price-block is-primary">
                 <div className="dsb-price-amount">
+                  <span
+                    style={{
+                      fontSize: 14,
+                      color: "rgba(255,255,255,0.4)",
+                      textDecoration: "line-through",
+                      marginRight: 12,
+                    }}
+                  >
+                    €{discountRow.regular}
+                  </span>
                   <span className="dsb-price-currency">€</span>
-                  <span className="dsb-price-value">{cfg.region === "eu" ? "15" : "39"}</span>
+                  <span className="dsb-price-value">{discountRow.discounted}</span>
                 </div>
                 <span className="dsb-price-meta">
                   {cfg.region === "eu" ? "EU/EEA Electricians" : "Non-EU Electricians"}
                 </span>
               </div>
             </div>
+            <div
+              style={{
+                fontSize: 12,
+                background: "rgba(29,158,117,0.15)",
+                color: "#1D9E75",
+                borderRadius: 20,
+                padding: "3px 10px",
+                fontWeight: 600,
+                display: "inline-block",
+                marginTop: 6,
+              }}
+            >
+              €12 off
+            </div>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 8 }}>
+              Launch discount applied automatically. No code needed.
+            </p>
             <p className="dsb-price-note">Prices include VAT where applicable. You pay after email verification.</p>
             <ul className="dsb-price-trust">
               <li>30-day access</li>
@@ -394,13 +384,6 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
           </motion.div>
 
           <div className="dsb-form-shell">
-            {discountRow && (
-              <div className="dsb-discount-applied">
-                Your discount is applied: <strong>−€{discountRow.save}</strong> (you pay €{discountRow.discounted} at
-                checkout).
-                <div className="dsb-discount-code">{appliedCoupon}</div>
-              </div>
-            )}
             {step === "input" && (
               <form onSubmit={startConfirmation} className="dsb-form-stack">
                 <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
@@ -526,7 +509,6 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
         </div>
       </section>
 
-      <DsbExitDiscountPopup guideType={cfg.slug} />
     </div>
   );
 }
