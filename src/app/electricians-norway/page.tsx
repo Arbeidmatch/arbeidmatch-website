@@ -7,7 +7,7 @@ const SITE = "https://www.arbeidmatch.no";
 export const metadata: Metadata = {
   title: { absolute: "Work as an Electrician in Norway | EU/EEA Guide | ArbeidMatch" },
   description:
-    "EU/EEA electricians: learn what you need to work legally in Norway. DSB authorization, required documents, and job opportunities. Register or get the full guide.",
+    "EU/EEA electricians: learn what you need to work legally in Norway. DSB authorization, required documents, salary ranges, and job opportunities.",
   alternates: {
     canonical: `${SITE}/electricians-norway`,
     languages: {
@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Work as an Electrician in Norway | EU/EEA Guide | ArbeidMatch",
     description:
-      "EU/EEA electricians: learn what you need to work legally in Norway. DSB authorization, required documents, and job opportunities. Register or get the full guide.",
-    locale: "en_US",
+      "EU/EEA electricians: learn what you need to work legally in Norway. DSB authorization, required documents, salary ranges, and job opportunities.",
+    locale: "nb_NO",
     siteName: "ArbeidMatch",
     type: "website",
     url: `${SITE}/electricians-norway`,
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Work as an Electrician in Norway | EU/EEA Guide | ArbeidMatch",
     description:
-      "EU/EEA electricians: learn what you need to work legally in Norway. DSB authorization, required documents, and job opportunities. Register or get the full guide.",
+      "EU/EEA electricians: learn what you need to work legally in Norway. DSB authorization, required documents, salary ranges, and job opportunities.",
   },
 };
 

@@ -37,18 +37,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Service unavailable." }, { status: 503 });
     }
 
-    const { error } = await supabase.from("guide_interest_signups").insert({
-      notify_email: email,
-      target_region: feature,
-      target_country: "feature-waitlist",
-      wants_assistance: `feature-waitlist|feature=${feature}|consent=1`,
-      email_verified: true,
-      verified_at: new Date().toISOString(),
-    });
+    const wants = `feature-waitlist|feature=${feature}|guideWanted=1|consent=1`;
+    const now = new Date().toISOString();
 
-    if (error) {
-      console.error("[feature-waitlist]", error.message);
-      return NextResponse.json({ error: "Could not save signup." }, { status: 500 });
+    const { data: existing } = await supabase
+      .from("guide_interest_signups")
+      .select("id")
+      .eq("notify_email", email)
+      .eq("target_region", feature)
+      .eq("target_country", "feature-waitlist")
+      .maybeSingle();
+
+    if (existing?.id) {
+      await supabase
+        .from("guide_interest_signups")
+        .update({ wants_assistance: wants, verified_at: now })
+        .eq("id", existing.id);
+    } else {
+      const { error } = await supabase.from("guide_interest_signups").insert({
+        notify_email: email,
+        target_region: feature,
+        target_country: "feature-waitlist",
+        wants_assistance: wants,
+        email_verified: true,
+        verified_at: now,
+      });
+      if (error) {
+        return NextResponse.json({ error: "Could not save signup." }, { status: 500 });
+      }
     }
 
     const transporter = createSmtpTransporter();
@@ -57,21 +73,19 @@ export async function POST(request: NextRequest) {
         await transporter.sendMail({
           from: `"ArbeidMatch" <no-replay@arbeidmatch.no>`,
           to: email,
-          subject: `You are on the waitlist for ${feature}`,
-          text: `Hi, you have been added to the waitlist for ${feature} on ArbeidMatch. We will notify you at this email address as soon as it becomes available. You can unsubscribe at any time by replying to this email.
+          subject: "You are on the waitlist",
+          text: `Hi, you have been added to the waitlist for ${feature} on ArbeidMatch. We will notify you at this email when it becomes available. Unsubscribe anytime by replying to this email.
 
 Best regards,
 ArbeidMatch Team`,
         });
-      } catch (e) {
-        console.error("[feature-waitlist] email", e);
+      } catch {
+        /* ignore */
       }
     }
 
     return NextResponse.json({ success: true });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Unknown error";
-    console.error("[feature-waitlist]", message);
+  } catch {
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
   }
 }

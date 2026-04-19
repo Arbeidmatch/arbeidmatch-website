@@ -8,10 +8,18 @@ export const dynamic = "force-dynamic";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
 
-function specialtyLabel(s: string): string {
-  if (s === "electrician") return "electrician";
-  if (s === "welder") return "welder";
-  return s;
+function buildPayload(
+  specialty: string,
+  guideWanted: boolean,
+  featureName: string | undefined,
+): { target_region: string; target_country: string; wants_assistance: string } {
+  const region = specialty.slice(0, 120);
+  const feat = featureName ? `|featureName=${featureName.slice(0, 80)}` : "";
+  return {
+    target_region: region,
+    target_country: "guide-interest",
+    wants_assistance: `guide-interest|specialty=${specialty}|guideWanted=${guideWanted ? "1" : "0"}|consent=1${feat}`,
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -28,12 +36,13 @@ export async function POST(request: NextRequest) {
     const specialty = typeof body.specialty === "string" ? body.specialty.trim().toLowerCase() : "";
     const consent = body.consent === true;
     const guideWanted = body.guideWanted === true;
+    const featureName = typeof body.featureName === "string" ? body.featureName.trim() : undefined;
 
     if (!email || !EMAIL_RE.test(email)) {
       return NextResponse.json({ error: "Valid email is required." }, { status: 400 });
     }
     if (!consent) {
-      return NextResponse.json({ error: "Consent is required." }, { status: 400 });
+      return NextResponse.json({ error: "Consent required" }, { status: 400 });
     }
     if (!specialty) {
       return NextResponse.json({ error: "Specialty is required." }, { status: 400 });
@@ -44,45 +53,66 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Service unavailable." }, { status: 503 });
     }
 
-    const wantsAssistance = `trade-signup|specialty=${specialty}|guideWanted=${guideWanted ? "1" : "0"}|consent=1`;
+    const payload = buildPayload(specialty, guideWanted, featureName);
+    const now = new Date().toISOString();
 
-    const { error } = await supabase.from("guide_interest_signups").insert({
-      notify_email: email,
-      target_region: specialty.slice(0, 120),
-      target_country: "trade-interest",
-      wants_assistance: wantsAssistance,
-      email_verified: true,
-      verified_at: new Date().toISOString(),
-    });
+    const { data: existing } = await supabase
+      .from("guide_interest_signups")
+      .select("id")
+      .eq("notify_email", email)
+      .eq("target_region", payload.target_region)
+      .maybeSingle();
 
-    if (error) {
-      console.error("[guide-interest-signup]", error.message);
-      return NextResponse.json({ error: "Could not save signup." }, { status: 500 });
+    if (existing?.id) {
+      await supabase
+        .from("guide_interest_signups")
+        .update({
+          wants_assistance: payload.wants_assistance,
+          target_country: payload.target_country,
+          verified_at: now,
+        })
+        .eq("id", existing.id);
+    } else {
+      const { error } = await supabase.from("guide_interest_signups").insert({
+        notify_email: email,
+        ...payload,
+        email_verified: true,
+        verified_at: now,
+      });
+      if (error) {
+        return NextResponse.json({ error: "Could not save signup." }, { status: 500 });
+      }
     }
 
     const transporter = createSmtpTransporter();
     if (transporter) {
-      const label = specialtyLabel(specialty);
+      const lines = [
+        "Hi, thank you for registering your interest with ArbeidMatch.",
+        "",
+        `We have noted your profile as: ${specialty}.`,
+        "",
+        "We will contact you personally when we have a matching opportunity in Norway.",
+      ];
+      if (guideWanted) {
+        lines.push("", "We will also notify you when the guide for your profession becomes available.");
+      }
+      lines.push("", "Best regards,", "ArbeidMatch Team", "post@arbeidmatch.no");
+      const bodyText = lines.join("\n");
+
       try {
         await transporter.sendMail({
           from: `"ArbeidMatch" <no-replay@arbeidmatch.no>`,
           to: email,
-          subject: "You are registered. We will be in touch.",
-          text: `Hi, thank you for registering with ArbeidMatch. We have noted your interest as a ${label} looking for work in Norway. We will contact you when we have a matching opportunity. If you requested a guide notification, we will let you know when it becomes available.
-
-Best regards,
-ArbeidMatch Team
-post@arbeidmatch.no`,
+          subject: "You are registered with ArbeidMatch",
+          text: bodyText,
         });
-      } catch (e) {
-        console.error("[guide-interest-signup] email", e);
+      } catch {
+        /* ignore email transport errors */
       }
     }
 
     return NextResponse.json({ success: true });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Unknown error";
-    console.error("[guide-interest-signup]", message);
+  } catch {
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
   }
 }

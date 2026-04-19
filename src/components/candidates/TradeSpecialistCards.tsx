@@ -1,8 +1,9 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Zap } from "lucide-react";
+import { Flame, Zap } from "lucide-react";
 
 const GOLD = "#C9A84C";
 const CARD_BG = "#0f1923";
@@ -19,19 +20,6 @@ function usePrefersReducedMotion(): boolean {
     return () => mq.removeEventListener("change", on);
   }, []);
   return reduced;
-}
-
-function WelderIcon() {
-  return (
-    <svg width={28} height={28} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"
-        fill="none"
-        stroke={GOLD}
-        strokeWidth={1.5}
-      />
-    </svg>
-  );
 }
 
 function TradeCaptureForm({
@@ -66,7 +54,7 @@ function TradeCaptureForm({
           ...(guideWanted ? { guideWanted: true } : {}),
         }),
       });
-      const data = (await res.json()) as { success?: boolean; error?: string };
+      const data = (await res.json()) as { success?: boolean };
       if (!res.ok || !data.success) {
         setStatus("error");
         return;
@@ -99,14 +87,6 @@ function TradeCaptureForm({
         className="w-full rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-[14px] py-2.5 text-[13px] text-white placeholder:text-white/40"
         autoComplete="email"
       />
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        className="mt-2 w-full rounded-[8px] py-2.5 text-[13px] font-semibold text-[#0f1923] transition-opacity duration-200 disabled:opacity-60"
-        style={{ background: GOLD }}
-      >
-        {submitLabel}
-      </button>
       <label className="mt-2 flex cursor-pointer items-start gap-2 text-[11px] text-white/[0.5]">
         <input
           type="checkbox"
@@ -116,8 +96,46 @@ function TradeCaptureForm({
         />
         <span>I agree to receive job-related emails from ArbeidMatch</span>
       </label>
+      <button
+        type="submit"
+        disabled={status === "loading"}
+        className="mt-3 w-full rounded-[8px] py-2.5 text-[13px] font-semibold text-[#0f1923] transition-opacity duration-200 disabled:opacity-60"
+        style={{ background: GOLD }}
+      >
+        {submitLabel}
+      </button>
       {status === "error" ? <p className="mt-2 text-[13px] text-red-400">Something went wrong. Please try again.</p> : null}
     </form>
+  );
+}
+
+function SalaryInfoBox({
+  label,
+  value,
+  note,
+  sourceHref,
+}: {
+  label: string;
+  value: string;
+  note: string;
+  sourceHref: string;
+}) {
+  return (
+    <div className="mt-4 rounded-[8px] px-4 py-3" style={{ background: "rgba(255,255,255,0.03)" }}>
+      <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: GOLD }}>
+        {label}
+      </p>
+      <p className="text-[15px] font-bold text-white">{value}</p>
+      <p className="mt-1 text-[11px] leading-[1.5] text-white/[0.4]">{note}</p>
+      <a
+        href={sourceHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 inline-block text-[10px] font-medium text-gold underline-offset-2 hover:underline"
+      >
+        Source: Arbeidstilsynet.no
+      </a>
+    </div>
   );
 }
 
@@ -127,6 +145,7 @@ function SpecialistCard({
   title,
   body,
   features,
+  salaryBox,
   primaryLabel,
   onPrimary,
   secondaryLabel,
@@ -134,11 +153,12 @@ function SpecialistCard({
   reducedMotion,
   reveal,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   eyebrow: string;
   title: string;
   body: string;
   features: string[];
+  salaryBox: ReactNode;
   primaryLabel: string;
   onPrimary: () => void;
   secondaryLabel: string;
@@ -180,7 +200,10 @@ function SpecialistCard({
         background: CARD_BG,
         borderColor: hovered ? "rgba(201,168,76,0.4)" : "rgba(201,168,76,0.15)",
         ...(reducedMotion
-          ? { transition: "border-color 250ms ease-out, transform 250ms ease-out", transform: hovered ? "translateY(-3px)" : "translateY(0)" }
+          ? {
+              transition: "border-color 250ms ease-out, transform 250ms ease-out",
+              transform: hovered ? "translateY(-3px)" : "translateY(0)",
+            }
           : {}),
       }}
       onMouseMove={handleMouseMove}
@@ -221,7 +244,8 @@ function SpecialistCard({
             </li>
           ))}
         </ul>
-        <div className="mt-7 flex flex-col gap-2.5">
+        {salaryBox}
+        <div className="mt-6 flex flex-col gap-2.5">
           <button
             type="button"
             onClick={onPrimary}
@@ -260,6 +284,9 @@ function SpecialistCard({
     </div>
   );
 }
+
+const ARBEIDSTILSYNET_MIN =
+  "https://www.arbeidstilsynet.no/en/pay-and-engagement-of-employees/pay-and-minimum-rates-of-pay/minimum-wage/";
 
 export default function TradeSpecialistCards() {
   const router = useRouter();
@@ -302,12 +329,20 @@ export default function TradeSpecialistCards() {
             icon={<Zap size={28} color={GOLD} strokeWidth={1.5} />}
             eyebrow="Are you an electrician?"
             title="Work legally in Norway as a qualified electrician"
-            body="To work as an electrician in Norway you need DSB authorization. We help EU/EEA electricians navigate the approval process and connect with Norwegian employers who need your skills."
+            body="To work as an electrician in Norway, you need DSB authorization. We help EU/EEA electricians navigate the approval process and connect with Norwegian employers who need your skills."
             features={[
               "DSB authorization guidance included",
               "Pre-screened job matches in your specialty",
               "Support before and after arrival in Norway",
             ]}
+            salaryBox={
+              <SalaryInfoBox
+                label="Typical salary range"
+                value="260 to 330 NOK per hour"
+                note="Based on collective agreements (tariffavtale). Actual salary depends on DSB authorization level, experience, certifications, and employer. Norwegian employer references are highly valued and can significantly influence your rate."
+                sourceHref={ARBEIDSTILSYNET_MIN}
+              />
+            }
             primaryLabel="Get DSB Authorization Guide"
             onPrimary={() => router.push("/dsb-support")}
             secondaryLabel="Register for job opportunities"
@@ -322,29 +357,42 @@ export default function TradeSpecialistCards() {
           <SpecialistCard
             reducedMotion={reducedMotion}
             reveal={card2}
-            icon={<WelderIcon />}
+            icon={<Flame size={28} color={GOLD} strokeWidth={1.5} />}
             eyebrow="Are you a welder?"
             title="ISO-certified welders wanted for Norwegian shipyards"
-            body="Norwegian shipyards and offshore companies are actively looking for ISO 9606 certified welders. Transport and accommodation are typically provided. We connect certified welders directly with employers."
+            body="Norwegian shipyards and offshore companies are actively looking for ISO 9606 certified welders. Transport and accommodation are typically provided for project placements. We connect certified welders directly with employers."
             features={[
               "ISO 9606 and EN 287 certification required",
               "Free transport and accommodation typically included",
-              "Direct placement at Norwegian shipyards",
+              "Direct placement at Norwegian shipyards and offshore sites",
             ]}
+            salaryBox={
+              <SalaryInfoBox
+                label="Typical salary range"
+                value="280 to 330 NOK per hour"
+                note="Based on market rates for ISO-certified welders at Norwegian shipyards. Salary varies based on certifications held, years of experience, welding processes mastered, and Norwegian employer references. Some projects also include daily allowances. Rotation schedules are typically 4 weeks on, 2 weeks off or 6 weeks on, 2 weeks off."
+                sourceHref={ARBEIDSTILSYNET_MIN}
+              />
+            }
             primaryLabel="View welding opportunities"
             onPrimary={() => router.push("/welding-specialists")}
-            secondaryLabel="Get notified when welder guide is available"
+            secondaryLabel="Get notified when welder guide is ready"
             capture={{
               specialty: "welder",
               guideWanted: true,
               submitLabel: "Notify me when guide is ready",
               successMessage:
                 "Thank you. We will notify you when the welding guide is available and when we have matching opportunities.",
-              successNote: "Your email will only be used for this purpose. Unsubscribe anytime.",
+              successNote: "Your email is used only for this purpose. Unsubscribe anytime.",
             }}
           />
         </div>
       </div>
+      <p className="mx-auto mt-6 max-w-[680px] px-6 text-center text-[12px] italic text-[#6b7280]">
+        Salary ranges shown are general market estimates based on collective agreements and publicly available data from
+        Arbeidstilsynet.no. Actual compensation depends on individual qualifications, employer, project type, and negotiation.
+        ArbeidMatch does not guarantee any specific salary level.
+      </p>
     </section>
   );
 }

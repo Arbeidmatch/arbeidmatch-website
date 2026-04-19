@@ -1,12 +1,13 @@
 "use client";
 
-import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { startTransition, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Crown, ExternalLink, X } from "lucide-react";
+import { ChevronDown, Crown } from "lucide-react";
+
+import MobileDrawerContent from "@/components/MobileDrawerContent";
 
 const tjenesterLinks = [
   { href: "/bemanning-bygg-anlegg", label: "Bygg & Anlegg" },
@@ -26,7 +27,7 @@ const stederLinks = [
 ];
 
 const ressurserLinks: { href: string; label: string; premium?: boolean }[] = [
-  { href: "/premium", label: "Premium", premium: true },
+  { href: "/premium", label: "Premium Guides", premium: true },
   { href: "/about", label: "Om oss" },
   { href: "/dsb-support", label: "DSB-godkjenning" },
   { href: "/blog", label: "Blog" },
@@ -41,42 +42,6 @@ const primaryDesktopLinks = [
 ] as const;
 
 const megaAllHrefs = [...tjenesterLinks, ...stederLinks, ...ressurserLinks];
-
-const mobileEmployersLinks = [
-  { href: "/for-employers", label: "For arbeidsgivere" },
-  { href: "/welding-specialists", label: "Sveisespesialister" },
-  { href: "/bemanning-bygg-anlegg", label: "Bygg og Anlegg" },
-  { href: "/bemanning-logistikk", label: "Logistikk" },
-  { href: "/bemanning-industri", label: "Industri" },
-  { href: "/bemanning-renhold", label: "Renhold" },
-  { href: "/bemanning-horeca", label: "HoReCa" },
-  { href: "/bemanning-helse", label: "Helse" },
-  { href: "/for-staffing-agencies", label: "For bemanningsbyråer" },
-] as const;
-
-type MobileCandidateLink = {
-  href: string;
-  label: string;
-  external?: boolean;
-  premium?: boolean;
-  premiumPromo?: boolean;
-};
-
-const mobileCandidatesLinks: MobileCandidateLink[] = [
-  { href: "/for-candidates", label: "Find Work in Norway" },
-  { href: "/electricians-norway", label: "Electricians in Norway" },
-  { href: "/welding-specialists", label: "Welding Specialists" },
-  { href: "/dsb-support", label: "DSB Authorization Guide" },
-  { href: "/premium", label: "Premium Guides", premium: true, premiumPromo: true },
-  { href: "https://jobs.arbeidmatch.no", label: "Job Openings", external: true },
-];
-
-const mobileCompanyLinks = [
-  { href: "/about", label: "About" },
-  { href: "/blog", label: "Blog" },
-  { href: "/recruiter-network", label: "Partner Program" },
-  { href: "/contact", label: "Contact" },
-] as const;
 
 function linkActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
@@ -95,86 +60,6 @@ const megaLinkClass =
 const megaPanelInnerClass =
   "rounded-2xl border border-black/[0.06] bg-white p-8 shadow-[0_8px_32px_rgba(0,0,0,0.08)]";
 
-const mobileSectionHeaderClass =
-  "px-6 pb-2 pt-4 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#C9A84C]";
-
-const mobileLinkRowBase =
-  "block border-b border-white/[0.04] py-3.5 pl-6 pr-6 text-[15px] text-white transition-colors duration-150";
-
-function MobileDrawerLink({
-  href,
-  children,
-  pathname,
-  external,
-  premium,
-  premiumPromo,
-  isPremiumSubscriber,
-  onClose,
-}: {
-  href: string;
-  children: ReactNode;
-  pathname: string;
-  external?: boolean;
-  premium?: boolean;
-  premiumPromo?: boolean;
-  isPremiumSubscriber?: boolean;
-  onClose: () => void;
-}) {
-  const active = !external && linkActive(pathname, href);
-  const activeClass = active
-    ? "border-l-2 border-l-[#C9A84C] pl-[22px] font-medium text-[#C9A84C]"
-    : "border-l-2 border-l-transparent font-normal text-white";
-
-  const promo = Boolean(premiumPromo && premium && !isPremiumSubscriber);
-  const staticDot = Boolean(premium && !promo && !isPremiumSubscriber);
-
-  const inner = (
-    <span className="inline-flex w-full min-w-0 items-center justify-between gap-2">
-      <span className="inline-flex min-w-0 items-center gap-2">
-        <span className="min-w-0">{children}</span>
-        {external ? <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden /> : null}
-      </span>
-      {promo ? (
-        <span className="inline-flex shrink-0 items-center gap-1.5">
-          <span
-            className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C] motion-reduce:animate-none motion-safe:animate-pulse"
-            aria-hidden
-          />
-          <span className="rounded px-1 py-px text-[9px] font-bold text-[#0f1923]" style={{ background: "#C9A84C" }}>
-            NEW
-          </span>
-        </span>
-      ) : staticDot ? (
-        <span className="h-2 w-2 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
-      ) : null}
-    </span>
-  );
-
-  if (external) {
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`${mobileLinkRowBase} ${activeClass}`}
-        onClick={onClose}
-      >
-        {inner}
-      </a>
-    );
-  }
-
-  return (
-    <Link
-      href={href}
-      className={`${mobileLinkRowBase} ${activeClass}`}
-      onClick={onClose}
-    >
-      {inner}
-    </Link>
-  );
-}
-
 const DRAWER_EASE = [0.32, 0.72, 0, 1] as const;
 
 export default function Navbar() {
@@ -189,13 +74,9 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    const read = () => {
-      if (typeof document === "undefined") return;
-      setIsPremium(document.cookie.includes("premium_token"));
-    };
-    read();
-    const id = window.setInterval(read, 2000);
-    return () => window.clearInterval(id);
+    if (typeof document === "undefined") return;
+    const hasPremium = document.cookie.split(";").some((c) => c.trim().startsWith("premium_token="));
+    setIsPremium(hasPremium);
   }, []);
 
   useEffect(() => {
@@ -274,107 +155,7 @@ export default function Navbar() {
               className="fixed bottom-0 right-0 top-0 flex w-[min(100vw,320px)] flex-col overflow-y-auto bg-[#0a0f19] lg:hidden"
               style={{ zIndex: 50 }}
             >
-              <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-6 py-5">
-                <Link href="/" className="text-xl font-bold" onClick={closeMenu}>
-                  <span className="text-white">Arbeid</span>
-                  <span className="text-[#C9A84C]">Match</span>
-                </Link>
-                <button
-                  type="button"
-                  aria-label="Lukk meny"
-                  className="flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center text-white"
-                  onClick={closeMenu}
-                >
-                  <X className="h-6 w-6" strokeWidth={1.75} />
-                </button>
-              </div>
-
-              {isPremium ? (
-                <div
-                  className="mx-4 mt-4 rounded-[12px] border p-4"
-                  style={{
-                    background: "rgba(201,168,76,0.08)",
-                    borderColor: "rgba(201,168,76,0.2)",
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <Crown className="h-5 w-5 shrink-0 text-[#C9A84C]" strokeWidth={1.75} aria-hidden />
-                    <span className="text-[13px] font-semibold text-[#C9A84C]">Premium Member</span>
-                  </div>
-                  <Link
-                    href="/premium/browse"
-                    onClick={closeMenu}
-                    className="mt-3 block text-[13px] text-white transition-colors hover:text-white/90"
-                  >
-                    Browse all guides
-                  </Link>
-                  <Link
-                    href="/premium"
-                    onClick={closeMenu}
-                    className="mt-2 block text-[13px] text-white transition-colors hover:text-white/90"
-                  >
-                    My account
-                  </Link>
-                </div>
-              ) : null}
-
-              <div className="flex shrink-0 flex-row gap-2 border-b border-white/[0.06] px-6 py-4">
-                <Link
-                  href="/for-employers"
-                  onClick={closeMenu}
-                  className="rounded-full border border-[rgba(201,168,76,0.3)] px-4 py-2 text-[13px] font-medium text-[#C9A84C]"
-                >
-                  Arbeidsgiver
-                </Link>
-                <Link
-                  href="/for-candidates"
-                  onClick={closeMenu}
-                  className="rounded-full border border-white/30 px-4 py-2 text-[13px] font-medium text-white/60"
-                >
-                  Job seeker
-                </Link>
-              </div>
-
-              <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))]">
-                <p className={mobileSectionHeaderClass}>FOR ARBEIDSGIVERE</p>
-                {mobileEmployersLinks.map((item) => (
-                  <MobileDrawerLink key={item.href} href={item.href} pathname={pathname} onClose={closeMenu}>
-                    {item.label}
-                  </MobileDrawerLink>
-                ))}
-
-                <p className={mobileSectionHeaderClass}>FOR CANDIDATES</p>
-                {mobileCandidatesLinks.map((item) => (
-                  <MobileDrawerLink
-                    key={item.href}
-                    href={item.href}
-                    pathname={pathname}
-                    external={Boolean(item.external)}
-                    premium={Boolean(item.premium)}
-                    premiumPromo={Boolean(item.premiumPromo)}
-                    isPremiumSubscriber={isPremium}
-                    onClose={closeMenu}
-                  >
-                    {item.label}
-                  </MobileDrawerLink>
-                ))}
-
-                <p className={mobileSectionHeaderClass}>Locations</p>
-                <div className="grid grid-cols-2 gap-2 px-6 py-2">
-                  {stederLinks.map((item) => (
-                    <MobileDrawerLink key={item.href} href={item.href} pathname={pathname} onClose={closeMenu}>
-                      {item.label}
-                    </MobileDrawerLink>
-                  ))}
-                </div>
-
-                <p className={mobileSectionHeaderClass}>Company</p>
-                {mobileCompanyLinks.map((item) => (
-                  <MobileDrawerLink key={item.href} href={item.href} pathname={pathname} onClose={closeMenu}>
-                    {item.label}
-                  </MobileDrawerLink>
-                ))}
-              </nav>
+              <MobileDrawerContent pathname={pathname} onClose={closeMenu} isPremium={isPremium} />
             </motion.aside>
           </>
         ) : null}
@@ -457,7 +238,12 @@ export default function Navbar() {
                             >
                               {item.premium ? (
                                 <span className="inline-flex items-center gap-2 text-gold">
-                                  {!isPremium ? (
+                                  {isPremium ? (
+                                    <>
+                                      <Crown className="h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={1.75} aria-hidden />
+                                      <span>{item.label}</span>
+                                    </>
+                                  ) : (
                                     <>
                                       <span
                                         className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C] motion-reduce:animate-none motion-safe:animate-pulse"
@@ -465,14 +251,12 @@ export default function Navbar() {
                                       />
                                       <span>{item.label}</span>
                                       <span
-                                        className="rounded px-1 py-px text-[9px] font-bold text-[#0f1923]"
+                                        className="ml-1.5 rounded px-1 py-px text-[9px] font-bold text-[#0f1923]"
                                         style={{ background: "#C9A84C" }}
                                       >
                                         NEW
                                       </span>
                                     </>
-                                  ) : (
-                                    <span>{item.label}</span>
                                   )}
                                 </span>
                               ) : (

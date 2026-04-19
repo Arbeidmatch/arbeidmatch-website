@@ -175,8 +175,8 @@ export default function WeldingSpecialistsPage() {
         </div>
       </section>
 
-      {/* Authorizations for shipyards */}
-      <section className="px-6 py-16 text-white md:py-20 lg:py-[80px]" style={{ background: "rgba(255,255,255,0.02)" }}>
+      {/* Certifications, salary, transport (employer-facing) */}
+      <section className="bg-[#0f1923] px-6 py-16 text-white md:py-20" style={{ padding: "64px 24px" }}>
         <div className="mx-auto max-w-content">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: GOLD }}>
             Required certifications
@@ -184,91 +184,126 @@ export default function WeldingSpecialistsPage() {
           <h2 className="mt-3 text-[28px] font-bold text-white">
             What authorizations do welders need for Norwegian shipyards?
           </h2>
-          <p className="mt-3 max-w-[800px] text-[15px] font-semibold leading-snug text-white/[0.85]">
-            Certifications required for shipyard and offshore welding in Norway
-          </p>
           <div className="mt-10 grid gap-6 md:grid-cols-2">
-            <article className="rounded-[16px] border border-white/[0.08] bg-[#0f1923] p-6">
+            <article className="rounded-[16px] border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-6">
               <Award className="text-gold" size={28} strokeWidth={1.5} aria-hidden />
               <h3 className="mt-4 text-lg font-bold text-white">ISO 9606-1 Welder Qualification</h3>
               <p className="mt-2 text-[14px] leading-[1.75] text-white/[0.65]">
-                The primary international standard for fusion welding qualification. Covers welding of steels and is
-                recognized across Norwegian shipyards and offshore facilities. Must be valid and renewed every 2 years with
-                6-month radiographic testing.
+                The primary international standard for fusion welding qualification tests. Covers welding of steels and is
+                widely recognized at Norwegian shipyards and offshore facilities. Certificates must be valid and are
+                typically renewed every 2 years with 6-month testing intervals.
               </p>
               <a
                 href="https://www.iso.org/standard/54936.html"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-block text-[11px] font-medium text-gold underline-offset-4 hover:underline"
+                className="mt-3 inline-block text-[10px] font-medium text-gold underline-offset-4 hover:underline"
               >
-                ISO.org
+                ISO 9606-1
               </a>
             </article>
-            <article className="rounded-[16px] border border-white/[0.08] bg-[#0f1923] p-6">
+            <article className="rounded-[16px] border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-6">
               <ShieldCheck className="text-gold" size={28} strokeWidth={1.5} aria-hidden />
-              <h3 className="mt-4 text-lg font-bold text-white">NORSOK M-101 and DNV Standards</h3>
+              <h3 className="mt-4 text-lg font-bold text-white">NORSOK and DNV Standards</h3>
               <p className="mt-2 text-[14px] leading-[1.75] text-white/[0.65]">
-                Norwegian shipyards and offshore operators often require compliance with NORSOK M-101 (structural steel
-                fabrication) and DNV rules for ships and offshore structures. These are applied on top of ISO 9606
+                Norwegian shipyards and offshore operators frequently require compliance with NORSOK M-101 (structural steel
+                fabrication) and DNV rules for ships and offshore structures. These apply in addition to ISO 9606 welder
                 qualification.
               </p>
               <a
                 href="https://www.standard.no"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-block text-[11px] font-medium text-gold underline-offset-4 hover:underline"
+                className="mt-3 inline-block text-[10px] font-medium text-gold underline-offset-4 hover:underline"
               >
                 Standard Norge
               </a>
             </article>
-            <article className="rounded-[16px] border border-white/[0.08] bg-[#0f1923] p-6">
+            <article className="rounded-[16px] border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-6">
               <FileText className="text-gold" size={28} strokeWidth={1.5} aria-hidden />
               <h3 className="mt-4 text-lg font-bold text-white">EN ISO 15614 Procedure Qualification</h3>
               <p className="mt-2 text-[14px] leading-[1.75] text-white/[0.65]">
-                Welding Procedure Specification (WPS) and Procedure Qualification Record (PQR) per EN ISO 15614-1 are
-                required for structural and pressure vessel work at Norwegian facilities. The employer typically provides
-                the WPS.
+                Welding Procedure Specifications (WPS) and Procedure Qualification Records (PQR) per EN ISO 15614-1 are
+                required for structural and pressure vessel work. The employer typically provides the applicable WPS for each
+                project.
               </p>
             </article>
-            <article className="rounded-[16px] border border-white/[0.08] bg-[#0f1923] p-6">
+            <article className="rounded-[16px] border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-6">
               <Users className="text-gold" size={28} strokeWidth={1.5} aria-hidden />
-              <h3 className="mt-4 text-lg font-bold text-white">NDT Operator Certification (if applicable)</h3>
+              <h3 className="mt-4 text-lg font-bold text-white">NDT Operator Certification</h3>
               <p className="mt-2 text-[14px] leading-[1.75] text-white/[0.65]">
-                For inspection roles, NDT (Non-Destructive Testing) certification per EN ISO 9712 or ASNT is required. Levels
-                II and III are commonly requested for weld inspection at Norwegian shipyards.
+                For inspection and quality control roles, NDT certification per EN ISO 9712 or ASNT is required. Level II and
+                Level III are commonly requested for weld inspection at Norwegian shipyards and offshore facilities.
               </p>
               <a
                 href="https://www.iso.org/standard/75361.html"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-block text-[11px] font-medium text-gold underline-offset-4 hover:underline"
+                className="mt-3 inline-block text-[10px] font-medium text-gold underline-offset-4 hover:underline"
               >
                 EN ISO 9712
               </a>
             </article>
           </div>
           <div
-            className="mt-10 max-w-[800px] rounded-lg border-l-[3px] border-[#C9A84C] px-6 py-5"
+            className="mt-6 max-w-[800px] rounded-lg border-l-[3px] border-[#C9A84C] px-5 py-4"
             style={{ background: "rgba(201,168,76,0.06)" }}
           >
-            <h3 className="text-[15px] font-semibold text-white">Certificate validity is verified before every placement</h3>
-            <p className="mt-2 text-[14px] leading-[1.7] text-white/[0.7]">
+            <p className="text-[14px] leading-[1.7] text-white/[0.85]">
               ArbeidMatch verifies the validity and renewal status of all ISO and welding certifications before presenting a
-              candidate to an employer. Expired certificates cannot be presented.
+              candidate to an employer. Expired or unverifiable certificates cannot be presented.
             </p>
           </div>
-          <h3 className="mt-12 text-[20px] font-bold text-white">Transport and accommodation for shipyard placements</h3>
+
+          <h3 className="mt-12 text-[22px] font-bold text-white">Salary and working conditions</h3>
+          <div
+            className="mt-4 max-w-[800px] rounded-[14px] border border-white/[0.08] px-6 py-8"
+            style={{ background: "rgba(255,255,255,0.02)" }}
+          >
+            <p className="text-[28px] font-extrabold" style={{ color: GOLD }}>
+              280 to 330 NOK per hour
+            </p>
+            <p className="mt-4 text-[14px] leading-[1.8] text-white/[0.65]">
+              Salary for ISO-certified welders at Norwegian shipyards varies based on certifications held, welding processes
+              mastered, years of experience, and references from previous Norwegian employers. Welders with multiple valid ISO
+              qualifications and demonstrated experience in demanding environments can expect rates toward the upper end of
+              the range.
+            </p>
+            <p className="mt-3 text-[14px] leading-[1.8] text-white/[0.65]">
+              References from previous Norwegian employers and offshore companies are highly valued and can significantly
+              influence placement opportunities and salary negotiation.
+            </p>
+            <p className="mt-3 text-[14px] leading-[1.8] text-white/[0.65]">
+              Rotation schedules at Norwegian shipyards are typically 4 weeks on and 2 weeks home, or 6 weeks on and 2 weeks
+              home. Some projects also include daily allowances.
+            </p>
+          </div>
+
+          <h4 className="mt-8 text-[18px] font-semibold text-white">Transport and accommodation</h4>
           <p className="mt-3 max-w-[800px] text-[14px] leading-[1.8] text-white/[0.65]">
             For most shipyard and offshore welding placements in Norway, employers provide transport from the candidate home
             country and accommodation at or near the work site. This is standard practice in the Norwegian maritime and
             offshore sector. Specific arrangements are confirmed during the placement process and documented in the
             employment contract.
           </p>
-          <p className="mt-3 max-w-[800px] text-[11px] italic text-white/[0.4]">
-            Accommodation and transport arrangements vary by employer and project. ArbeidMatch confirms specifics during the
-            matching process. This is not a guarantee for all placements.
+          <p className="mt-2 max-w-[800px] text-[11px] italic text-white/[0.4]">
+            Transport and accommodation arrangements vary by employer and project. ArbeidMatch confirms specifics during the
+            matching process. This information is provided as general market context and does not constitute a guarantee for
+            any specific placement.
           </p>
+          <p className="mt-4 max-w-[800px] text-[11px] leading-relaxed text-white/[0.35]">
+            Salary data based on market rates observed in Norwegian shipyard and offshore sector job postings, April 2026.
+            Minimum rates per Arbeidstilsynet.no allmenngjøring for maritime construction sector. Actual rates depend on
+            individual employer and project.
+          </p>
+          <a
+            href="https://www.arbeidstilsynet.no/en/pay-and-engagement-of-employees/pay-and-minimum-rates-of-pay/minimum-wage/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-block text-[11px] font-medium text-gold underline-offset-4 hover:underline"
+          >
+            Arbeidstilsynet.no minimum wage
+          </a>
         </div>
       </section>
 
