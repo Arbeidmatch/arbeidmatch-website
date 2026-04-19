@@ -173,10 +173,15 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[13px] text-[#0f1923]/65">
-            <span>Velkommen tilbake, arbeidsgiver.</span>
-            <Link href="/for-employers" className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline">
-              Se ledige kandidater
-            </Link>
+            <span>Welcome back.</span>
+            <a
+              href="https://jobs.arbeidmatch.no"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline"
+            >
+              Browse open positions
+            </a>
           </div>
         </motion.div>
       ) : null}

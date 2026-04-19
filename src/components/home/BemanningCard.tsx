@@ -48,9 +48,9 @@ export default function BemanningCard() {
       };
 
   const points = [
-    "Pre-screenet arbeidskraft fra 30 EU/EEA-land",
-    "Du velger kandidatene, vi håndterer sourcing",
-    "Ingen konkurranse med dine kunder",
+    "Pre-screened candidates from 30 EU/EEA countries",
+    "You choose the candidates, we handle the sourcing",
+    "No competition with your clients",
   ];
 
   return (
@@ -70,17 +70,17 @@ export default function BemanningCard() {
                   color: GOLD,
                 }}
               >
-                For bemanningsbyråer
+                For staffing agencies
               </span>
               <h2
                 className="mt-4 font-extrabold text-white"
                 style={{ fontSize: "clamp(22px, 3vw, 36px)", lineHeight: 1.2 }}
               >
-                Vi er ikke konkurrenten din. Vi er kilden din.
+                We are not your competitor. We are your source.
               </h2>
               <p className="mt-3 max-w-[520px] text-[15px] leading-[1.7]" style={{ color: "rgba(255,255,255,0.6)" }}>
-                ArbeidMatch spesialiserer seg på sourcing og pre-screening av EU/EEA-kandidater. Du beholder
-                kundeforholdet. Vi leverer kandidatene dine raskt og lovlig.
+                ArbeidMatch specializes in sourcing and pre-screening EU/EEA candidates. You keep the client relationship. We
+                supply the candidates.
               </p>
               <ul className="mt-5 space-y-2.5">
                 {points.map((t) => (
@@ -93,16 +93,16 @@ export default function BemanningCard() {
             </div>
             <div className="flex shrink-0 flex-col items-stretch self-center lg:items-center">
               <Link
-                href="/for-staffing-agencies"
+                href="/request"
                 className="inline-flex items-center justify-center whitespace-nowrap rounded-[10px] bg-[#C9A84C] px-8 py-4 text-center text-[15px] font-bold text-[#0f1923] transition-[transform,background-color] duration-200 hover:scale-[1.02] hover:bg-[#b8953f]"
               >
-                Ta kontakt for samarbeid
+                Send us a candidate request
               </Link>
               <Link
                 href="/for-staffing-agencies"
                 className="mt-3 block text-center text-[13px] text-[#C9A84C] underline-offset-4 hover:underline"
               >
-                Les mer om partnerskap
+                Learn more about partnership
               </Link>
             </div>
           </div>
