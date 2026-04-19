@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   Building2,
@@ -17,6 +18,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 import HeroStatsPanel from "@/components/HeroStatsPanel";
+import RoleSelector from "@/components/onboarding/RoleSelector";
 import ScrollReveal, { ScrollRevealGrid } from "@/components/ScrollReveal";
 import type { CandidateActivityStats } from "@/lib/candidateActivityStats";
 
@@ -31,6 +33,16 @@ type Props = {
 
 export default function HomePageClient({ candidateActivity, howItWorksSlot, testimonialsSlot }: Props) {
   const reduce = useReducedMotion();
+  const [sessionRoleBanner, setSessionRoleBanner] = useState<null | "employer" | "candidate">(null);
+
+  useEffect(() => {
+    try {
+      const v = window.sessionStorage.getItem("roleSelected");
+      if (v === "employer" || v === "candidate") setSessionRoleBanner(v);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const fade = (delaySec: number) =>
     reduce
@@ -143,6 +155,7 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
 
   return (
     <>
+      <RoleSelector />
       <section className="flex min-h-screen items-center bg-white py-12 md:py-16 lg:py-[100px]">
         <div className="mx-auto grid w-full max-w-content grid-cols-1 gap-8 px-6 md:grid-cols-2 md:gap-10 md:px-12 lg:gap-12 lg:px-20">
           {hero}
@@ -160,6 +173,42 @@ export default function HomePageClient({ candidateActivity, howItWorksSlot, test
           )}
         </div>
       </section>
+
+      {sessionRoleBanner === "employer" ? (
+        <motion.div
+          className="border-b border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] px-6 py-2.5 md:px-12 lg:px-20"
+          initial={reduce ? false : { opacity: 0, y: -8 }}
+          animate={reduce ? undefined : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[13px] text-[#0f1923]/65">
+            <span>Velkommen tilbake, arbeidsgiver.</span>
+            <Link href="/for-employers" className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline">
+              Se ledige kandidater
+            </Link>
+          </div>
+        </motion.div>
+      ) : null}
+      {sessionRoleBanner === "candidate" ? (
+        <motion.div
+          className="border-b border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] px-6 py-2.5 md:px-12 lg:px-20"
+          initial={reduce ? false : { opacity: 0, y: -8 }}
+          animate={reduce ? undefined : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[13px] text-[#0f1923]/65">
+            <span>Welcome back. Looking for work in Norway?</span>
+            <a
+              href="https://jobs.arbeidmatch.no"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline"
+            >
+              Browse open positions
+            </a>
+          </div>
+        </motion.div>
+      ) : null}
 
       <section className="bg-surface py-12 md:py-16 lg:py-[100px]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">

@@ -1,10 +1,11 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ExternalLink, X } from "lucide-react";
 
 const tjenesterLinks = [
   { href: "/bemanning-bygg-anlegg", label: "Bygg & Anlegg" },
@@ -39,6 +40,31 @@ const primaryDesktopLinks = [
 
 const megaAllHrefs = [...tjenesterLinks, ...stederLinks, ...ressurserLinks];
 
+const mobileEmployersLinks = [
+  { href: "/for-employers", label: "For arbeidsgivere" },
+  { href: "/bemanning-bygg-anlegg", label: "Bygg og Anlegg" },
+  { href: "/bemanning-logistikk", label: "Logistikk" },
+  { href: "/bemanning-industri", label: "Industri" },
+  { href: "/bemanning-renhold", label: "Renhold" },
+  { href: "/bemanning-horeca", label: "HoReCa" },
+  { href: "/bemanning-helse", label: "Helse" },
+  { href: "/for-staffing-agencies", label: "For bemanningsbyråer" },
+] as const;
+
+const mobileCandidatesLinks = [
+  { href: "/for-candidates", label: "Find Work in Norway" },
+  { href: "/dsb-support", label: "DSB Authorization Guide" },
+  { href: "/premium", label: "Premium Guides", premium: true },
+  { href: "https://jobs.arbeidmatch.no", label: "Job Openings", external: true },
+] as const;
+
+const mobileCompanyLinks = [
+  { href: "/about", label: "About" },
+  { href: "/blog", label: "Blog" },
+  { href: "/recruiter-network", label: "Partner Program" },
+  { href: "/contact", label: "Contact" },
+] as const;
+
 function linkActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -56,11 +82,71 @@ const megaLinkClass =
 const megaPanelInnerClass =
   "rounded-2xl border border-black/[0.06] bg-white p-8 shadow-[0_8px_32px_rgba(0,0,0,0.08)]";
 
+const mobileSectionHeaderClass =
+  "px-6 pb-2 pt-4 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#C9A84C]";
+
+const mobileLinkRowBase =
+  "block border-b border-white/[0.04] py-3.5 text-[15px] transition-colors duration-150";
+
+function MobileNavRow({
+  href,
+  children,
+  delaySec,
+  pathname,
+  external,
+  premium,
+  onNavigate,
+}: {
+  href: string;
+  children: ReactNode;
+  delaySec: number;
+  pathname: string;
+  external?: boolean;
+  premium?: boolean;
+  onNavigate: () => void;
+}) {
+  const active = !external && linkActive(pathname, href);
+  const activeClass = active
+    ? "border-l-2 border-l-[#C9A84C] pl-[22px] font-medium text-[#C9A84C]"
+    : "border-l-2 border-l-transparent pl-6 text-white";
+
+  const inner = (
+    <span className="inline-flex items-center gap-2">
+      <span>{children}</span>
+      {premium ? <span className="h-2 w-2 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden /> : null}
+      {external ? <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden /> : null}
+    </span>
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -12 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: delaySec, duration: 0.28, ease: "easeOut" }}
+    >
+      {external ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${mobileLinkRowBase} ${activeClass}`}
+          onClick={onNavigate}
+        >
+          {inner}
+        </a>
+      ) : (
+        <Link href={href} className={`${mobileLinkRowBase} ${activeClass}`} onClick={onNavigate}>
+          {inner}
+        </Link>
+      )}
+    </motion.div>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [mobileSub, setMobileSub] = useState<null | "mer">(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -72,7 +158,6 @@ export default function Navbar() {
   useEffect(() => {
     queueMicrotask(() => {
       setOpen(false);
-      setMobileSub(null);
     });
   }, [pathname]);
 
@@ -111,8 +196,9 @@ export default function Navbar() {
 
   const closeMenu = () => {
     setOpen(false);
-    setMobileSub(null);
   };
+
+  const hamburgerEase = [0.32, 0.72, 0, 1] as const;
 
   return (
     <header className={`sticky top-0 z-[210] transition-colors duration-200 ${headerSurface}`}>
@@ -214,144 +300,153 @@ export default function Navbar() {
           aria-label="Toggle navigation"
           aria-expanded={open}
           onClick={() => setOpen((prev) => !prev)}
-          className="relative flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border border-border text-navy lg:hidden"
+          className="relative flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border-0 bg-transparent lg:hidden"
+          style={{ width: 44, height: 44 }}
         >
           <span className="sr-only">Menu</span>
-          <span className="flex h-4 w-5 flex-col justify-center gap-1.5">
+          <span className="flex h-[14px] w-[22px] flex-col justify-center gap-[5px]">
             <motion.span
-              className="block h-0.5 w-5 rounded-full bg-[#0D1B2A]"
-              animate={open ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="block h-0.5 w-[22px] rounded-[2px] bg-[#C9A84C]"
+              style={{ height: 2 }}
+              animate={open ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
+              transition={{ duration: 0.3, ease: hamburgerEase }}
             />
             <motion.span
-              className="block h-0.5 w-5 rounded-full bg-[#0D1B2A]"
+              className="block h-0.5 w-[22px] rounded-[2px] bg-[#C9A84C]"
+              style={{ height: 2 }}
               animate={open ? { opacity: 0 } : { opacity: 1 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.3, ease: hamburgerEase }}
             />
             <motion.span
-              className="block h-0.5 w-5 rounded-full bg-[#0D1B2A]"
-              animate={open ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="block h-0.5 w-[22px] rounded-[2px] bg-[#C9A84C]"
+              style={{ height: 2 }}
+              animate={open ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
+              transition={{ duration: 0.3, ease: hamburgerEase }}
             />
           </span>
         </button>
       </div>
 
       <AnimatePresence initial={false}>
-        {open && (
-          <>
-            <motion.button
-              type="button"
-              aria-label="Lukk meny"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[200] bg-black/40 lg:hidden"
-              onClick={closeMenu}
-            />
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Navigasjon"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed left-0 right-0 top-[60px] z-[201] flex max-h-[calc(100dvh-60px)] flex-col bg-white shadow-lg md:top-16 md:max-h-[calc(100dvh-4rem)] lg:hidden"
-            >
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-4 pt-2">
-                {primaryDesktopLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={closeMenu}
-                    className={`flex min-h-[44px] items-center rounded-md px-6 py-3 text-[15px] hover:bg-surface ${linkActive(pathname, link.href) ? "font-medium text-navy underline decoration-gold" : "text-[#555555]"}`}
+        {open ? (
+          <motion.div
+            key="mobile-nav"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigasjon"
+            className="fixed inset-0 z-[220] flex flex-col bg-[#0a0f19] lg:hidden"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+          >
+            <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-6 py-5">
+              <Link href="/" className="text-xl font-bold" onClick={closeMenu}>
+                <span className="text-white">Arbeid</span>
+                <span className="text-[#C9A84C]">Match</span>
+              </Link>
+              <button
+                type="button"
+                aria-label="Lukk meny"
+                className="flex h-11 w-11 items-center justify-center text-white"
+                onClick={closeMenu}
+              >
+                <X className="h-6 w-6" strokeWidth={1.75} />
+              </button>
+            </div>
+
+            <div className="flex shrink-0 gap-3 border-b border-white/[0.06] bg-white/[0.02] px-6 py-4">
+              <Link
+                href="/for-employers"
+                onClick={closeMenu}
+                className="rounded-full border border-[rgba(201,168,76,0.3)] px-4 py-2 text-[13px] font-medium text-[#C9A84C]"
+              >
+                Arbeidsgiver
+              </Link>
+              <Link
+                href="/for-candidates"
+                onClick={closeMenu}
+                className="rounded-full border border-white/[0.15] px-4 py-2 text-[13px] font-medium text-white/[0.6]"
+              >
+                Candidate
+              </Link>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-40">
+              <p className={mobileSectionHeaderClass}>For employers</p>
+              {mobileEmployersLinks.map((item, i) => (
+                <MobileNavRow
+                  key={item.href}
+                  href={item.href}
+                  delaySec={0.1 + i * 0.05}
+                  pathname={pathname}
+                  onNavigate={closeMenu}
+                >
+                  {item.label}
+                </MobileNavRow>
+              ))}
+
+              <p className={mobileSectionHeaderClass}>For candidates</p>
+              {mobileCandidatesLinks.map((item, i) => (
+                <MobileNavRow
+                  key={item.href}
+                  href={item.href}
+                  delaySec={0.3 + i * 0.05}
+                  pathname={pathname}
+                  external={"external" in item && item.external}
+                  premium={"premium" in item && item.premium}
+                  onNavigate={closeMenu}
+                >
+                  {item.label}
+                </MobileNavRow>
+              ))}
+
+              <p className={mobileSectionHeaderClass}>Locations</p>
+              <div className="grid grid-cols-2 gap-2 px-6 py-2">
+                {stederLinks.map((item, i) => (
+                  <MobileNavRow
+                    key={item.href}
+                    href={item.href}
+                    delaySec={0.5 + i * 0.05}
+                    pathname={pathname}
+                    onNavigate={closeMenu}
                   >
-                    {link.label}
-                  </Link>
+                    {item.label}
+                  </MobileNavRow>
                 ))}
-
-                <button
-                  type="button"
-                  aria-expanded={mobileSub === "mer"}
-                  onClick={() => setMobileSub((s) => (s === "mer" ? null : "mer"))}
-                  className="flex min-h-[44px] w-full items-center justify-between rounded-md px-6 py-3 text-left text-[15px] text-[#555555] hover:bg-surface"
-                >
-                  Mer
-                  <ChevronDown
-                    className={`h-4 w-4 shrink-0 transition-transform ${mobileSub === "mer" ? "rotate-180" : ""}`}
-                    aria-hidden
-                  />
-                </button>
-                {mobileSub === "mer" && (
-                  <div className="ml-2 flex flex-col gap-4 border-l border-black/10 pl-4 pb-2">
-                    <div>
-                      <p className={megaColLabelClass}>Tjenester</p>
-                      <div className="mt-1 flex flex-col">
-                        {tjenesterLinks.map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={closeMenu}
-                            className="flex min-h-[44px] items-center py-2 pl-2 text-[14px] hover:text-navy"
-                          >
-                            {item.label}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <p className={megaColLabelClass}>Steder</p>
-                      <div className="mt-1 flex flex-col">
-                        {stederLinks.map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={closeMenu}
-                            className="flex min-h-[44px] items-center py-2 pl-2 text-[14px] hover:text-navy"
-                          >
-                            {item.label}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <p className={megaColLabelClass}>Ressurser</p>
-                      <div className="mt-1 flex flex-col">
-                        {ressurserLinks.map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={closeMenu}
-                            className="flex min-h-[44px] items-center py-2 pl-2 text-[14px] hover:text-navy"
-                          >
-                            <span className="inline-flex items-center gap-2">
-                              {item.premium ? (
-                                <span className="h-2 w-2 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
-                              ) : null}
-                              <span>{item.label}</span>
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
-              <div className="shrink-0 border-t border-border bg-white px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden">
-                <Link
-                  href="/request"
-                  onClick={closeMenu}
-                  className="btn-gold-premium flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-center text-sm font-medium text-white hover:bg-gold-hover"
+              <p className={mobileSectionHeaderClass}>Company</p>
+              {mobileCompanyLinks.map((item, i) => (
+                <MobileNavRow
+                  key={item.href}
+                  href={item.href}
+                  delaySec={0.6 + i * 0.05}
+                  pathname={pathname}
+                  onNavigate={closeMenu}
                 >
-                  Request Candidates
-                </Link>
-              </div>
+                  {item.label}
+                </MobileNavRow>
+              ))}
+            </div>
+
+            <motion.div
+              className="fixed bottom-0 left-0 right-0 border-t border-white/[0.06] bg-[#0a0f19] px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6"
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.7, duration: 0.28, ease: "easeOut" }}
+            >
+              <Link
+                href="/request"
+                onClick={closeMenu}
+                className="flex w-full items-center justify-center rounded-[10px] bg-[#C9A84C] py-4 text-[15px] font-bold text-[#0f1923]"
+              >
+                Request Candidates
+              </Link>
+              <p className="mt-3 text-center text-[12px] text-white/[0.3]">post@arbeidmatch.no</p>
             </motion.div>
-          </>
-        )}
+          </motion.div>
+        ) : null}
       </AnimatePresence>
     </header>
   );
