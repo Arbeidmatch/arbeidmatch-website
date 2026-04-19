@@ -13,6 +13,39 @@ function errMessage(err: unknown): string {
   return String(err);
 }
 
+async function getOrCreateNonEuCoupon(stripe: Stripe): Promise<string | undefined> {
+  const existingId = process.env.STRIPE_DSB_NON_EU_COUPON_ID?.trim();
+  if (existingId) return existingId;
+
+  try {
+    const coupons = await stripe.coupons.list({ limit: 100 });
+    const existing = coupons.data.find(
+      (c) => c.name === "DSB Non-EU Launch Offer" && c.valid && !c.deleted,
+    );
+    if (existing) {
+      console.log("[dsbGuideCheckout] Found existing coupon:", existing.id);
+      return existing.id;
+    }
+  } catch (err) {
+    console.error("[dsbGuideCheckout] Could not list coupons:", err);
+  }
+
+  try {
+    const coupon = await stripe.coupons.create({
+      amount_off: 1000,
+      currency: "eur",
+      duration: "once",
+      name: "DSB Non-EU Launch Offer",
+      metadata: { guide_type: "non-eu", created_by: "arbeidmatch_auto" },
+    });
+    console.log("[dsbGuideCheckout] Created new permanent coupon:", coupon.id);
+    return coupon.id;
+  } catch (err) {
+    console.error("[dsbGuideCheckout] Could not create coupon:", err);
+    return undefined;
+  }
+}
+
 export async function createDsbGuideStripeCheckout(params: {
   guideSlug: DsbGuideSlug;
   /** When omitted, Stripe Checkout collects email; webhook fills purchase row. */
@@ -90,10 +123,7 @@ export async function createDsbGuideStripeCheckout(params: {
 
   let couponId: string | undefined;
   if (guideSlug === "non-eu") {
-    couponId = process.env.STRIPE_DSB_NON_EU_COUPON_ID?.trim() || undefined;
-    if (!couponId) {
-      console.warn("[dsbGuideCheckout] STRIPE_DSB_NON_EU_COUPON_ID not set");
-    }
+    couponId = await getOrCreateNonEuCoupon(stripe);
   }
 
   const baseMeta: Record<string, string> = {
