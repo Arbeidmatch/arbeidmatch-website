@@ -96,10 +96,10 @@ export default function HowItWorksInteractive() {
   const gridTransition = reduceMotion ? "" : "md:transition-[grid-template-columns] md:duration-[350ms] md:ease-out";
 
   return (
-    <section id="how-it-works" className="bg-white py-12 md:py-20">
+    <section id="how-it-works" className="bg-[#0D1B2A] py-12 md:py-20">
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-        <h2 className="heading-premium-xl text-center font-display text-4xl text-navy">How we work</h2>
-        <p className="subheading-premium mt-4 text-center">Choose the service that fits your needs.</p>
+        <h2 className="heading-premium-xl text-center font-display text-4xl text-white">How we work</h2>
+        <p className="subheading-premium mt-4 text-center text-white/70">Choose the service that fits your needs.</p>
 
         <div className={`mt-14 grid grid-cols-1 gap-6 ${desktopGridCols(selected, reduceMotion)} ${gridTransition}`}>
           {CARDS.map((card, i) => {
@@ -119,7 +119,7 @@ export default function HowItWorksInteractive() {
                     toggle(i);
                   }
                 }}
-                className={`relative overflow-hidden rounded-2xl border-[0.5px] border-black/[0.08] bg-[rgba(255,255,255,0.98)] px-5 py-6 md:px-7 md:py-8 ${
+                className={`relative overflow-hidden rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-5 py-6 md:px-7 md:py-8 ${
                   reduceMotion ? "cursor-default" : "cursor-pointer"
                 } ${
                   !reduceMotion && !open
@@ -131,8 +131,8 @@ export default function HowItWorksInteractive() {
                   dimOthers ? "md:scale-[0.98] md:opacity-50" : "opacity-100"
                 }`}
                 style={{
-                  borderColor: open ? GOLD : "rgba(0,0,0,0.08)",
-                  borderWidth: open ? "1.5px" : "0.5px",
+                  borderColor: open ? GOLD : "rgba(201,168,76,0.15)",
+                  borderWidth: "1px",
                   transitionProperty: reduceMotion ? "none" : "transform, opacity, border-color, border-width",
                   transitionDuration: reduceMotion ? "0ms" : "350ms",
                   transitionTimingFunction: "ease-out",
@@ -143,8 +143,8 @@ export default function HowItWorksInteractive() {
                     <p className="text-[32px] font-extrabold leading-none" style={{ color: GOLD }}>
                       {card.badge}
                     </p>
-                    <h3 className="mt-3 text-[18px] font-bold text-navy">{card.title}</h3>
-                    <p className="mt-2 text-[14px] leading-snug text-[#6b7280]">{card.subtitle}</p>
+                    <h3 className="mt-3 text-[18px] font-bold text-white">{card.title}</h3>
+                    <p className="mt-2 text-[14px] leading-snug text-white/70">{card.subtitle}</p>
                   </div>
                   <ChevronRight
                     className={`mt-1 h-4 w-4 shrink-0 ${reduceMotion ? "" : "transition-transform duration-300 ease-out"} ${
@@ -178,10 +178,10 @@ export default function HowItWorksInteractive() {
                     <p className="text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: GOLD }}>
                       {card.eyebrow}
                     </p>
-                    <p className="mt-3 text-sm leading-[1.75] text-[#374151]">{card.body}</p>
+                    <p className="mt-3 text-sm leading-[1.75] text-white/70">{card.body}</p>
                     <ul className="mt-4 flex flex-col gap-2.5">
                       {card.steps.map((s) => (
-                        <li key={s} className="flex items-start gap-2.5 text-[13px] leading-snug text-[#374151]">
+                        <li key={s} className="flex items-start gap-2.5 text-[13px] leading-snug text-white/70">
                           <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: GOLD }} />
                           <span>{s}</span>
                         </li>
@@ -189,9 +189,9 @@ export default function HowItWorksInteractive() {
                     </ul>
                     {card.subscriptionNote ? (
                       <div
-                        className="mt-4 rounded-lg border-l-[3px] px-4 py-3 text-[13px] leading-relaxed text-[#374151]"
+                        className="mt-4 rounded-lg border-l-[3px] px-4 py-3 text-[13px] leading-relaxed text-white/70"
                         style={{
-                          background: "rgba(201,168,76,0.06)",
+                          background: "rgba(255,255,255,0.03)",
                           borderLeftColor: GOLD,
                         }}
                       >
@@ -200,14 +200,14 @@ export default function HowItWorksInteractive() {
                     ) : null}
                     <Link
                       href={card.cta.href}
-                      className="mt-5 flex w-full items-center justify-center rounded-lg text-center text-sm font-bold text-[#0f1923] transition-opacity hover:opacity-95"
+                      className="mt-5 flex w-full items-center justify-center rounded-lg text-center text-sm font-bold text-[#0D1B2A] transition-opacity hover:opacity-95"
                       style={{ background: GOLD, padding: "12px 20px" }}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {card.cta.label}
                     </Link>
                     {open && !reduceMotion ? (
-                      <p className="mt-2.5 text-center text-[11px] text-[#9ca3af]">Click to collapse</p>
+                      <p className="mt-2.5 text-center text-[11px] text-white/70">Click to collapse</p>
                     ) : null}
                   </div>
                 </div>

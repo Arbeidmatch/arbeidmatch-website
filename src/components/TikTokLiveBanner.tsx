@@ -78,7 +78,7 @@ export default function TikTokLiveBanner() {
                 LIVE
               </span>
             </span>
-            <span className="mt-0.5 block text-sm text-slate-400">
+            <span className="mt-0.5 block text-sm text-white/70">
               Join us now for tips on working in Scandinavia
             </span>
           </span>

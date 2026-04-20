@@ -213,7 +213,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
                 </ul>
                 <Link
                   href="/for-employers"
-                  className="btn-gold-premium relative mt-7 inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 font-medium text-white hover:bg-gold-hover sm:w-auto"
+                  className="btn-gold-premium relative mt-7 inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 font-medium text-[#0D1B2A] hover:bg-gold-hover sm:w-auto"
                 >
                   Explore employer services →
                 </Link>
