@@ -4,12 +4,13 @@ import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Briefcase, UserCheck } from "lucide-react";
+import { ArrowRight, Briefcase, UserCheck } from "lucide-react";
 
 const GOLD = "#C9A84C";
 const STORAGE_KEY = "roleSelected";
 
-type Glow = { x: number; y: number };
+const cardTransition = "all 0.25s ease";
+const ctaTransition = "all 0.2s ease";
 
 function RoleCard({
   icon,
@@ -18,6 +19,8 @@ function RoleCard({
   features,
   ctaLabel,
   onSelect,
+  entranceDelay,
+  skipMotion,
 }: {
   icon: ReactNode;
   title: string;
@@ -25,120 +28,128 @@ function RoleCard({
   features: string[];
   ctaLabel: string;
   onSelect: () => void;
+  entranceDelay: number;
+  skipMotion: boolean;
 }) {
-  const [glow, setGlow] = useState<Glow>({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
-  const [touchGlow, setTouchGlow] = useState(false);
-  const touchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setGlow({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-  }, []);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const touch = e.touches[0];
-    if (!touch) return;
-    setGlow({ x: touch.clientX - rect.left, y: touch.clientY - rect.top });
-    setTouchGlow(true);
-    if (touchTimer.current) clearTimeout(touchTimer.current);
-    touchTimer.current = setTimeout(() => setTouchGlow(false), 400);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (touchTimer.current) clearTimeout(touchTimer.current);
-    };
-  }, []);
-
-  const glowOpacity = touchGlow ? 0.5 : hovered ? 1 : 0;
+  const [focused, setFocused] = useState(false);
+  const active = hovered || focused;
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onTouchStart={handleTouchStart}
-      onClick={onSelect}
-      className="group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col justify-between overflow-hidden break-words rounded-[20px] border border-white/[0.08] bg-[rgba(255,255,255,0.03)] px-5 py-6 transition-all duration-[250ms] ease-out md:min-h-[420px] md:py-7 lg:px-7 lg:py-9"
-      style={{
-        borderColor: hovered ? "rgba(201,168,76,0.5)" : "rgba(255,255,255,0.08)",
-        transform: hovered ? "scale(1.02)" : "scale(1)",
-        background: hovered ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.03)",
-      }}
+    <motion.div
+      className="flex h-full min-h-0 min-w-0 flex-1"
+      initial={skipMotion ? false : { opacity: 0, y: 32 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={
+        skipMotion
+          ? { duration: 0 }
+          : { duration: 0.5, delay: entranceDelay, ease: "easeOut" }
+      }
     >
       <div
-        className="pointer-events-none absolute inset-0 transition-opacity duration-200"
-        style={{
-          opacity: glowOpacity,
-          background: `radial-gradient(300px circle at ${glow.x}px ${glow.y}px, rgba(201,168,76,0.12), transparent 60%)`,
-        }}
-        aria-hidden
-      />
-      <div className="relative z-[1] flex h-full min-w-0 flex-col">
-        <div>
-        <div
-          className="flex h-14 w-14 items-center justify-center rounded-[14px] border border-[rgba(201,168,76,0.2)] transition-all duration-200"
-          style={{
-            background: hovered ? "rgba(201,168,76,0.2)" : "rgba(201,168,76,0.1)",
-          }}
-        >
-          <span className="transition-transform duration-200 group-hover:scale-110">{icon}</span>
-        </div>
-        <h2 className="mt-5 text-[20px] font-extrabold leading-tight text-white min-[640px]:text-[26px]">{title}</h2>
-        <p className="mt-2.5 text-[13px] leading-[1.65] text-white/[0.55] min-[640px]:text-sm">{subtitle}</p>
-        <div className="my-6 h-px bg-white/[0.06]" />
-        <ul className="flex flex-col gap-2.5">
-          {features.map((f) => (
-            <li key={f} className="flex items-start gap-2.5 text-[13px] text-white/[0.7] min-[640px]:text-sm">
-              <span
-                className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ background: GOLD }}
-                aria-hidden
-              />
-              <span className="min-w-0 break-words">{f}</span>
-            </li>
-          ))}
-        </ul>
-        </div>
-        <button
-          type="button"
-          className="mt-6 box-border block w-full rounded-[10px] px-6 py-3.5 text-sm font-bold transition-colors duration-[180ms] min-[640px]:mt-auto min-[640px]:text-[15px]"
-          style={{
-            display: "block",
-            width: "100%",
-            visibility: "visible",
-            opacity: 1,
-            background: hovered ? "#b8953f" : GOLD,
-            color: "#0D1B2A",
-            fontWeight: 700,
-            borderRadius: 10,
-            padding: "14px 24px",
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
             onSelect();
-          }}
-        >
-          {ctaLabel}
-        </button>
+          }
+        }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        onClick={onSelect}
+        className="group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col justify-between break-words md:min-h-[420px]"
+        style={{
+          borderRadius: 20,
+          padding: "36px 32px",
+          border: active ? `1px solid ${GOLD}` : "1px solid rgba(201,168,76,0.2)",
+          background: active ? "rgba(201,168,76,0.06)" : "rgba(255,255,255,0.04)",
+          boxShadow: active
+            ? "0 0 0 1px rgba(201,168,76,0.4), 0 8px 32px rgba(201,168,76,0.08)"
+            : "none",
+          transition: cardTransition,
+        }}
+      >
+        {active ? (
+          <span
+            className="pointer-events-none absolute right-4 top-4 h-2 w-2 rounded-full md:right-5 md:top-5"
+            style={{ background: GOLD }}
+            aria-hidden
+          />
+        ) : null}
+
+        <div className="relative z-[1] flex h-full min-w-0 flex-col justify-between">
+          <div>
+            <div
+              className="inline-flex items-center justify-center rounded-[14px]"
+              style={{
+                padding: 16,
+                background: "rgba(201,168,76,0.12)",
+                border: "1px solid rgba(201,168,76,0.25)",
+              }}
+            >
+              <span className="flex h-10 w-10 items-center justify-center text-[#C9A84C] [&>svg]:h-10 [&>svg]:w-10">
+                {icon}
+              </span>
+            </div>
+            <h2
+              className="text-white"
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: 800,
+                marginBottom: 8,
+                marginTop: 20,
+              }}
+            >
+              {title}
+            </h2>
+            <p className="text-[13px] leading-[1.65] text-white/[0.55] min-[640px]:text-sm">{subtitle}</p>
+            <div className="my-6 h-px bg-white/[0.06]" />
+            <ul className="flex flex-col gap-2.5">
+              {features.map((f) => (
+                <li key={f} className="flex items-start gap-2.5 text-[13px] text-white/[0.7] min-[640px]:text-sm">
+                  <span
+                    className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{ background: GOLD }}
+                    aria-hidden
+                  />
+                  <span className="min-w-0 break-words">{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <span
+            className="mt-6 flex w-full items-center justify-center gap-2 font-bold min-[640px]:mt-auto"
+            style={{
+              background: active ? "#b8953f" : GOLD,
+              color: "#0D1B2A",
+              fontWeight: 700,
+              borderRadius: 12,
+              padding: "16px 24px",
+              width: "100%",
+              fontSize: 15,
+              letterSpacing: "0.01em",
+              transform: active ? "scale(1.02)" : "scale(1)",
+              transition: ctaTransition,
+              pointerEvents: "none",
+            }}
+            aria-hidden
+          >
+            {ctaLabel}
+            <ArrowRight className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
+          </span>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 export default function RoleSelector() {
   const router = useRouter();
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = Boolean(useReducedMotion());
   const [shouldRender, setShouldRender] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
   const pendingRedirect = useRef<string | null>(null);
@@ -185,6 +196,8 @@ export default function RoleSelector() {
 
   if (!shouldRender) return null;
 
+  const skipEntrance = reduceMotion;
+
   return (
     <AnimatePresence onExitComplete={finishExit}>
       {isOpen ? (
@@ -223,15 +236,16 @@ export default function RoleSelector() {
                 </p>
               </motion.div>
 
-              <div className="flex min-h-0 w-full flex-col gap-6 md:flex-row md:items-stretch md:gap-5">
-                <motion.div
-                  initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-                  animate={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
-                  transition={reduceMotion ? { duration: 0 } : { duration: 0.5, delay: 0, ease: "easeOut" }}
-                  className="flex min-h-0 min-w-0 flex-1"
-                >
+              <div
+                className="w-full rounded-[24px] px-2 py-6 min-[640px]:px-4 min-[640px]:py-8"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at 50% 60%, rgba(201,168,76,0.04) 0%, transparent 70%)",
+                }}
+              >
+                <div className="flex min-h-0 w-full flex-col gap-6 md:flex-row md:items-stretch md:gap-5">
                   <RoleCard
-                    icon={<Briefcase className="h-7 w-7" stroke={GOLD} strokeWidth={1.5} />}
+                    icon={<Briefcase stroke={GOLD} strokeWidth={1.5} />}
                     title="I am an employer"
                     subtitle="Norwegian businesses looking for qualified EU/EEA workers in construction, logistics, industry and more."
                     features={[
@@ -240,17 +254,12 @@ export default function RoleSelector() {
                       "Dedicated recruiter for your business",
                     ]}
                     ctaLabel="Get started"
+                    entranceDelay={skipEntrance ? 0 : 0.1}
+                    skipMotion={skipEntrance}
                     onSelect={() => closeWithOptionalRedirect("employer", "/for-employers")}
                   />
-                </motion.div>
-                <motion.div
-                  initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-                  animate={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
-                  transition={reduceMotion ? { duration: 0 } : { duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="flex min-h-0 min-w-0 flex-1"
-                >
                   <RoleCard
-                    icon={<UserCheck className="h-7 w-7" stroke={GOLD} strokeWidth={1.5} />}
+                    icon={<UserCheck stroke={GOLD} strokeWidth={1.5} />}
                     title="I am looking for work"
                     subtitle="EU/EEA citizens and international workers looking for legal, well-paid jobs in Norway."
                     features={[
@@ -259,9 +268,11 @@ export default function RoleSelector() {
                       "Direct access to active job openings",
                     ]}
                     ctaLabel="Find my job"
+                    entranceDelay={skipEntrance ? 0 : 0.25}
+                    skipMotion={skipEntrance}
                     onSelect={() => closeWithOptionalRedirect("candidate", "/for-candidates")}
                   />
-                </motion.div>
+                </div>
               </div>
 
               <button
