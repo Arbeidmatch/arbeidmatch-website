@@ -87,8 +87,14 @@ function parseNumeric(value?: string) {
 }
 
 const toBool = (val: unknown): boolean | null => {
-  if (val === true || val === "true" || val === "1") return true;
-  if (val === false || val === "false" || val === "0") return false;
+  if (val === true || val === false) return val;
+  if (typeof val !== "string") return null;
+
+  const normalized = val.trim().toLowerCase();
+  if (!normalized) return null;
+
+  if (normalized === "true" || normalized === "1" || normalized === "yes") return true;
+  if (normalized === "false" || normalized === "0" || normalized === "no") return false;
   return null;
 };
 
