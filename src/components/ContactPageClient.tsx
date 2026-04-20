@@ -99,9 +99,10 @@ export default function ContactPageClient() {
             Browse open jobs →
           </a>
         </div>
-        <div className="grid gap-8 md:grid-cols-2 md:gap-10">
+        <div className="grid gap-8 md:grid-cols-2 md:gap-10 md:divide-x md:divide-[rgba(201,168,76,0.08)]">
           <ScrollReveal variant="fadeUp">
           <aside className="text-white">
+            <div className="mb-4 h-[2px] w-10 bg-[#C9A84C]" aria-hidden />
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C9A84C]">Get in touch</p>
             <h1 className="mt-3 text-[28px] font-bold leading-tight md:text-5xl">
               Let&apos;s find your next <em className="not-italic text-[#C9A84C]">great hire.</em>
@@ -146,7 +147,7 @@ export default function ContactPageClient() {
                   ].map((pill) => (
                     <span
                       key={pill}
-                      className="rounded-full border border-[#C9A84C]/45 bg-[#C9A84C]/10 px-3 py-1 text-xs font-medium text-[#C9A84C]"
+                      className="rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[rgba(255,255,255,0.03)] px-3 py-1 text-xs font-medium text-[rgba(255,255,255,0.7)]"
                     >
                       {pill}
                     </span>
@@ -160,7 +161,7 @@ export default function ContactPageClient() {
           <ScrollReveal variant="fadeUp">
           <form
             onSubmit={handleSubmit}
-            className="card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-7 shadow-[var(--shadow-card)] md:p-10"
+            className="card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-7 shadow-[var(--shadow-card)] md:ml-8 md:p-10"
           >
             <h2 className="text-2xl font-bold text-white">Send us a message</h2>
             <p className="mt-2 text-sm text-white/70">
@@ -176,20 +177,20 @@ export default function ContactPageClient() {
                 aria-hidden="true"
               />
               <div className="grid gap-4 sm:grid-cols-2">
-                <label className="form-label-premium text-sm text-white/70">
+                <label className="form-label-premium text-[13px] text-white/70">
                   Your name
                   <input required name="name" className={inputClass} placeholder="Your name" />
                 </label>
-                <label className="form-label-premium text-sm text-white/70">
+                <label className="form-label-premium text-[13px] text-white/70">
                   Company
                   <input required name="company" className={inputClass} placeholder="Company" />
                 </label>
               </div>
-              <label className="form-label-premium text-sm text-white/70">
+              <label className="form-label-premium text-[13px] text-white/70">
                 Work email
                 <input required type="email" name="email" className={inputClass} placeholder="name@company.com" />
               </label>
-              <label className="form-label-premium text-sm text-white/70">
+              <label className="form-label-premium text-[13px] text-white/70">
                 I need
                 <select
                   name="need"
@@ -212,7 +213,7 @@ export default function ContactPageClient() {
                 </select>
               </label>
               {need === "Other" && (
-                <label className="form-label-premium text-sm text-white/70">
+                <label className="form-label-premium text-[13px] text-white/70">
                   Please specify
                   <input
                     required
@@ -223,7 +224,7 @@ export default function ContactPageClient() {
                   />
                 </label>
               )}
-              <label className="form-label-premium text-sm text-white/70">
+              <label className="form-label-premium text-[13px] text-white/70">
                 Message
                 <textarea
                   name="message"
@@ -235,7 +236,7 @@ export default function ContactPageClient() {
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="btn-micro btn-gold-shine w-full rounded-md bg-[#C9A84C] py-3 font-bold text-[#0D1B2A] transition-colors hover:bg-[#d8bc6a]"
+                className="btn-micro btn-gold-shine w-full rounded-[10px] bg-[#C9A84C] py-[14px] font-bold text-[#0D1B2A] transition-colors hover:bg-[#d8bc6a]"
               >
                 {status === "submitting" ? "Sending..." : "Send message →"}
               </button>
@@ -262,8 +263,9 @@ export default function ContactPageClient() {
         </div>
 
         <ScrollReveal variant="fadeUp">
-        <div className="mt-14 border-t border-white/[0.07] pt-12">
+        <div className="mt-14 border-t border-[rgba(201,168,76,0.08)] pt-12">
           <h2 className="heading-premium-xl text-center text-2xl text-white md:text-3xl">Join Our Community</h2>
+          <div className="mx-auto mt-3 h-[2px] w-8 bg-[#C9A84C]" aria-hidden />
           <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-white/70 md:text-base">
             Follow us for job tips, updates and live sessions
           </p>
@@ -272,7 +274,7 @@ export default function ContactPageClient() {
               href="https://www.facebook.com/arbeidmatchNO"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col rounded-xl border border-[rgba(201,168,76,0.3)] bg-transparent p-5 transition hover:border-[#C9A84C] hover:bg-[rgba(255,255,255,0.03)]"
+              className="group flex flex-col rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-5 transition duration-200 hover:border-[rgba(201,168,76,0.35)]"
             >
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(255,255,255,0.05)] text-white">
@@ -280,7 +282,7 @@ export default function ContactPageClient() {
                 </span>
                 <span className="text-lg font-semibold text-white">Facebook</span>
               </div>
-              <span className="mt-5 inline-flex w-fit rounded-md border border-[rgba(201,168,76,0.3)] px-4 py-2 text-sm font-medium text-white transition group-hover:border-[#C9A84C]">
+              <span className="mt-5 inline-flex w-fit rounded-lg border border-[rgba(201,168,76,0.3)] bg-transparent px-5 py-2 text-sm font-medium text-white transition group-hover:border-[#C9A84C]">
                 Follow
               </span>
             </a>
@@ -288,7 +290,7 @@ export default function ContactPageClient() {
               href="https://www.tiktok.com/@arbeidmatch"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col rounded-xl border border-[rgba(201,168,76,0.3)] bg-transparent p-5 transition hover:border-[#C9A84C] hover:bg-[rgba(255,255,255,0.03)]"
+              className="group flex flex-col rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-5 transition duration-200 hover:border-[rgba(201,168,76,0.35)]"
             >
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white">
@@ -296,7 +298,7 @@ export default function ContactPageClient() {
                 </span>
                 <span className="text-lg font-semibold text-white">TikTok</span>
               </div>
-              <span className="mt-5 inline-flex w-fit rounded-md border border-[rgba(201,168,76,0.3)] px-4 py-2 text-sm font-medium text-white transition group-hover:border-[#C9A84C]">
+              <span className="mt-5 inline-flex w-fit rounded-lg border border-[rgba(201,168,76,0.3)] bg-transparent px-5 py-2 text-sm font-medium text-white transition group-hover:border-[#C9A84C]">
                 Join
               </span>
             </a>
@@ -304,7 +306,7 @@ export default function ContactPageClient() {
               href="https://www.youtube.com/@arbeidmatch"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col rounded-xl border border-[rgba(201,168,76,0.3)] bg-transparent p-5 transition hover:border-[#C9A84C] hover:bg-[rgba(255,255,255,0.03)]"
+              className="group flex flex-col rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-5 transition duration-200 hover:border-[rgba(201,168,76,0.35)]"
             >
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(255,255,255,0.05)] text-white">
@@ -312,7 +314,7 @@ export default function ContactPageClient() {
                 </span>
                 <span className="text-lg font-semibold text-white">YouTube</span>
               </div>
-              <span className="mt-5 inline-flex w-fit rounded-md border border-[rgba(201,168,76,0.3)] px-4 py-2 text-sm font-medium text-white transition group-hover:border-[#C9A84C]">
+              <span className="mt-5 inline-flex w-fit rounded-lg border border-[rgba(201,168,76,0.3)] bg-transparent px-5 py-2 text-sm font-medium text-white transition group-hover:border-[#C9A84C]">
                 Subscribe
               </span>
             </a>
