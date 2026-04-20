@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 
 type TokenData = {
@@ -14,296 +14,192 @@ type TokenData = {
 };
 
 type RequestForm = {
-  jobTitle: string;
-  industry: string;
-  numberOfPositions: string;
+  trade: string;
+  tradeOther: string;
+  experience: string;
+  certification: string[];
+  candidates: number;
   contractType: string;
-  hoursUnit: "" | "Per day" | "Per week" | "Per month";
-  hoursAmount: string;
-  salaryType: "" | "Per hour" | "Per month";
-  salaryMin: string;
-  salaryMax: string;
-  overtime: "" | "Yes" | "Occasionally" | "No";
-  rotation: "" | "No rotation" | "4 weeks on 2 home" | "6 weeks on 2 home" | "Other";
-  rotationOther: string;
-  location: string;
+  salary: string;
+  salaryPeriod: "per hour" | "per month";
+  overtime: string;
+  accommodation: string;
+  transport: string;
+  urgency: string;
+  city: string;
+  region: string;
   startDate: string;
-  duration: string;
-  requiredExperience: string;
-  languageRequirements: string[];
-  languageOther: string;
-  accommodation: "" | "Yes" | "No" | "Negotiable";
-  transport: "" | "Yes" | "No" | "Negotiable";
   notes: string;
 };
 
-const TOTAL_CARDS = 5;
-const GOLD = "#C9A84C";
+const TOTAL_STEPS = 6;
 
-const initialData: RequestForm = {
-  jobTitle: "",
-  industry: "",
-  numberOfPositions: "",
+const CITY_OPTIONS = [
+  "Oslo", "Bergen", "Trondheim", "Stavanger", "Kristiansand", "Drammen", "Tromso", "Fredrikstad",
+  "Sandnes", "Sarpsborg", "Bodo", "Sandefjord", "Alesund", "Porsgrunn", "Haugesund", "Arendal",
+  "Tonsberg", "Moss", "Hamar", "Lillehammer", "Molde", "Harstad", "Gjovik", "Halden", "Kongsberg",
+  "Larvik", "Skien", "Horten", "Askoy", "Jessheim", "Alta", "Narvik", "Kongsvinger", "Mo i Rana",
+  "Steinkjer", "Namsos", "Levanger", "Verdal", "Elverum", "Brumunddal", "Ringerike", "Honefoss",
+];
+
+const initialForm: RequestForm = {
+  trade: "",
+  tradeOther: "",
+  experience: "",
+  certification: [],
+  candidates: 1,
   contractType: "",
-  hoursUnit: "",
-  hoursAmount: "",
-  salaryType: "",
-  salaryMin: "",
-  salaryMax: "",
+  salary: "",
+  salaryPeriod: "per hour",
   overtime: "",
-  rotation: "",
-  rotationOther: "",
-  location: "",
-  startDate: "",
-  duration: "",
-  requiredExperience: "",
-  languageRequirements: [],
-  languageOther: "",
   accommodation: "",
   transport: "",
+  urgency: "",
+  city: "",
+  region: "",
+  startDate: "",
   notes: "",
 };
 
+const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]";
 const inputClass =
-  "w-full rounded-[10px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-[rgba(201,168,76,0.5)] focus:bg-white/[0.07] focus:shadow-[0_0_0_3px_rgba(201,168,76,0.08)]";
-const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/50";
-const selectChevron = encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${GOLD}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
-);
-const selectStyle = { backgroundImage: `url("data:image/svg+xml,${selectChevron}")` };
+  "w-full rounded-[12px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[rgba(201,168,76,0.5)]";
 
-function cardIsComplete(formData: RequestForm, cardIndex: number): boolean {
-  if (cardIndex === 1) {
-    return !!(formData.jobTitle.trim() && formData.industry && Number(formData.numberOfPositions) >= 1);
-  }
-  if (cardIndex === 2) {
-    return !!(
-      formData.contractType &&
-      formData.hoursUnit &&
-      formData.hoursAmount &&
-      formData.salaryType &&
-      formData.salaryMin &&
-      formData.salaryMax &&
-      formData.overtime &&
-      formData.rotation &&
-      (formData.rotation !== "Other" || formData.rotationOther.trim())
-    );
-  }
-  if (cardIndex === 3) {
-    return !!(formData.location.trim() && formData.startDate.trim());
-  }
-  if (cardIndex === 4) {
-    return !!(
-      formData.requiredExperience.trim() &&
-      formData.languageRequirements.length > 0 &&
-      (!formData.languageRequirements.includes("Other") || formData.languageOther.trim()) &&
-      formData.accommodation &&
-      formData.transport
-    );
-  }
-  if (cardIndex === 5) return true;
-  return false;
-}
-
-function getCurrentStep(completedCards: number) {
-  if (completedCards >= TOTAL_CARDS) return TOTAL_CARDS;
-  return Math.min(completedCards + 1, TOTAL_CARDS);
-}
-
-function Card({
-  number,
-  title,
-  reducedMotion,
-  delayMs,
-  children,
-}: {
-  number: string;
-  title: string;
-  reducedMotion: boolean;
-  delayMs: number;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      className="group relative mx-auto mb-4 w-full max-w-[720px] overflow-hidden rounded-[20px] border border-[rgba(201,168,76,0.12)] bg-white/[0.03] p-6 transition-all duration-250 hover:border-[rgba(201,168,76,0.3)] hover:bg-white/[0.04] md:p-8"
-      style={{
-        opacity: 1,
-        transform: "translateY(0)",
-        transitionDuration: reducedMotion ? "0ms" : "400ms",
-        transitionTimingFunction: "ease-out",
-        transitionDelay: reducedMotion ? "0ms" : `${delayMs}ms`,
-      }}
-    >
-      <div className="absolute left-0 right-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(201,168,76,0.4),transparent)]" />
-      <div className="mb-6 flex items-center gap-3">
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[rgba(201,168,76,0.1)] text-xs font-bold text-[#C9A84C]">
-          {number}
-        </span>
-        <h2 className="text-base font-bold text-white">{title}</h2>
-      </div>
-      <div className="mb-6 border-b border-white/10" />
-      {children}
-    </div>
-  );
-}
-
-function RadioCard({
-  name,
-  value,
+function OptionCard({
+  label,
+  sublabel,
   selected,
-  onChange,
+  onClick,
+  icon,
 }: {
-  name: string;
-  value: string;
+  label: string;
+  sublabel?: string;
   selected: boolean;
-  onChange: (value: string) => void;
+  onClick: () => void;
+  icon?: React.ReactNode;
 }) {
   return (
-    <label
-      className={`flex cursor-pointer items-center gap-3 rounded-[10px] border px-4 py-3 transition-all duration-180 ${
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center justify-between gap-3 rounded-[12px] border px-4 py-3 text-left transition-all duration-180 ${
         selected
           ? "border-[#C9A84C] bg-[rgba(201,168,76,0.06)] text-[#C9A84C]"
-          : "border-white/10 bg-white/[0.03] text-white/80"
+          : "border-white/10 bg-white/[0.03] text-white hover:border-white/20 hover:bg-white/[0.05]"
       }`}
     >
-      <input type="radio" className="sr-only" name={name} checked={selected} onChange={() => onChange(value)} />
+      <span className="flex items-center gap-3">
+        {icon}
+        <span>
+          <span className="block text-sm font-semibold">{label}</span>
+          {sublabel ? <span className="block text-xs text-white/50">{sublabel}</span> : null}
+        </span>
+      </span>
       <span
-        className={`relative h-[18px] w-[18px] rounded-full border-2 ${
-          selected ? "border-[#C9A84C]" : "border-white/20"
+        className={`flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 ${
+          selected ? "border-[#C9A84C] bg-[#C9A84C]" : "border-white/20"
         }`}
       >
-        {selected && <span className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#C9A84C]" />}
+        {selected ? (
+          <svg viewBox="0 0 20 20" className="h-[10px] w-[10px] text-[#0f1923]" fill="none" stroke="currentColor" strokeWidth="3">
+            <path d="M4 10l4 4 8-8" />
+          </svg>
+        ) : null}
       </span>
-      <span className="text-sm">{value}</span>
-    </label>
+    </button>
   );
 }
 
-export default function DetailedRequestPage() {
-  const { token } = useParams<{ token: string }>();
-  const cardRefs = useRef<Array<HTMLDivElement | null>>([]);
-
-  const [tokenStatus, setTokenStatus] = useState<"checking" | "valid" | "invalid">("checking");
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
-  const [submitError, setSubmitError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [tokenData, setTokenData] = useState<TokenData | null>(null);
-  const [formData, setFormData] = useState<RequestForm>(initialData);
-  const [, setVisibleCards] = useState<number[]>([0, 1, 2, 3, 4]);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
-  const [feedbackNote, setFeedbackNote] = useState("");
-  const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
-
-  const completedCards = useMemo(
-    () => [1, 2, 3, 4, 5].filter((card) => cardIsComplete(formData, card)).length,
-    [formData],
+function ProgressDot({ index, step }: { index: number; step: number }) {
+  const state = index === step ? "active" : index < step ? "completed" : "inactive";
+  return (
+    <span
+      className={`inline-block h-2 w-2 rounded-full transition-all duration-300 ${
+        state === "active"
+          ? "scale-125 bg-[#C9A84C]"
+          : state === "completed"
+            ? "bg-[rgba(201,168,76,0.4)]"
+            : "bg-white/20"
+      }`}
+    />
   );
-  const currentStep = getCurrentStep(completedCards);
-  const progress = (completedCards / TOTAL_CARDS) * 100;
+}
 
-  const updateField = <K extends keyof RequestForm>(key: K, value: RequestForm[K]) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
+export default function RequestTokenPage() {
+  const { token } = useParams<{ token: string }>();
 
-  const toggleLanguage = (lang: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      languageRequirements: prev.languageRequirements.includes(lang)
-        ? prev.languageRequirements.filter((item) => item !== lang)
-        : [...prev.languageRequirements, lang],
-    }));
-  };
+  const [step, setStep] = useState(0);
+  const [animating, setAnimating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [form, setForm] = useState<RequestForm>(initialForm);
+  const [tokenData, setTokenData] = useState<TokenData | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [citySearch, setCitySearch] = useState("");
 
   useEffect(() => {
     setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, []);
 
   useEffect(() => {
-    const verify = async () => {
-      try {
-        const verifyRes = await fetch(`/api/verify-token?token=${token}`).then((r) => r.json());
-        if (!verifyRes.valid) return setTokenStatus("invalid");
-
-        const dataRes = await fetch(`/api/token-data/${token}`).then((r) => r.json());
-        if (!dataRes.success || !dataRes.data) return setTokenStatus("invalid");
-
-        setTokenData(dataRes.data as TokenData);
-        setTokenStatus("valid");
-      } catch {
-        setTokenStatus("invalid");
-      }
-    };
-
-    if (token) void verify();
-    else setTokenStatus("invalid");
+    if (!token) return;
+    void fetch(`/api/token-data/${token}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && data?.data) setTokenData(data.data as TokenData);
+      })
+      .catch(() => null);
   }, [token]);
 
-  useEffect(() => {
+  const goTo = (next: number) => {
+    if (next < 0 || next > TOTAL_STEPS - 1 || animating) return;
     if (reducedMotion) {
-      setVisibleCards([0, 1, 2, 3, 4]);
+      setStep(next);
       return;
     }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const index = cardRefs.current.findIndex((element) => element === entry.target);
-          if (index >= 0) {
-            setVisibleCards((prev) => (prev.includes(index) ? prev : [...prev, index]));
-          }
-        });
-      },
-      { threshold: 0.16 },
-    );
-
-    cardRefs.current.forEach((element) => {
-      if (element) observer.observe(element);
-    });
-
-    return () => observer.disconnect();
-  }, [reducedMotion]);
-
-  const submitFeedback = async () => {
-    if (feedbackScore === null || feedbackStatus === "sending") return;
-    setFeedbackStatus("sending");
-    try {
-      const response = await fetch("/api/confirmation-feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          source: "request-details",
-          purpose: "Employer feedback after detailed request submission",
-          pageUrl: `/request/${token}`,
-          score: feedbackScore,
-          note: feedbackNote.trim(),
-          email: tokenData?.email ?? "",
-          website: "",
-        }),
-      });
-      if (!response.ok) throw new Error("Failed");
-      setFeedbackStatus("sent");
-    } catch {
-      setFeedbackStatus("error");
-    }
+    setAnimating(true);
+    setTimeout(() => {
+      setStep(next);
+      setAnimating(false);
+    }, 180);
   };
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
+  const toggleCert = (value: string) => {
+    setForm((prev) => ({
+      ...prev,
+      certification: prev.certification.includes(value)
+        ? prev.certification.filter((item) => item !== value)
+        : [...prev.certification, value],
+    }));
+  };
 
-    if (completedCards < 4) {
-      setSubmitStatus("error");
-      setSubmitError("Please complete all required fields before submitting.");
-      return;
-    }
+  const filteredCities = useMemo(() => {
+    const query = citySearch.trim().toLowerCase();
+    if (!query) return CITY_OPTIONS;
+    return CITY_OPTIONS.filter((city) => city.toLowerCase().includes(query));
+  }, [citySearch]);
 
+  const isStepValid = (value: number) => {
+    if (value === 0) return !!(form.trade && (form.trade !== "Other" || form.tradeOther.trim()));
+    if (value === 1) return !!(form.experience && form.candidates >= 1);
+    if (value === 2) return !!form.urgency;
+    if (value === 3) return !!form.contractType;
+    if (value === 4) return !!form.city;
+    if (value === 5) return true;
+    return false;
+  };
+
+  const handleNext = () => {
+    if (step < TOTAL_STEPS - 1) goTo(step + 1);
+  };
+
+  const handleSubmit = async (event?: FormEvent) => {
+    event?.preventDefault();
     setSubmitError("");
     setSubmitStatus("idle");
     setIsSubmitting(true);
 
-    const salary = `${formData.salaryType}: ${formData.salaryMin} - ${formData.salaryMax} NOK`;
-    const roleValue = formData.jobTitle.trim() || "General role";
     const payload = {
       token,
       company: tokenData?.company ?? "",
@@ -315,47 +211,47 @@ export default function DetailedRequestPage() {
       phone: tokenData?.phone ?? "",
       job_summary: tokenData?.job_summary ?? "",
       hiringType: "Recruitment of personnel for companies",
-      category: formData.industry,
-      position: roleValue,
-      positionOther: "",
-      numberOfPositions: formData.numberOfPositions,
-      qualification: "Some experience",
-      certifications: "",
+      category: form.trade,
+      position: form.trade === "Other" ? form.tradeOther : form.trade,
+      positionOther: form.trade === "Other" ? form.tradeOther : "",
+      numberOfPositions: String(form.candidates),
+      qualification: form.experience || "No minimum",
+      certifications: form.certification.join(", "),
       certificationsOther: "",
       experience: "",
-      norwegianLevel: formData.languageRequirements.includes("Norwegian") ? "Required" : "Not required",
-      englishLevel: formData.languageRequirements.includes("English") ? "Required" : "Not required",
+      norwegianLevel: "",
+      englishLevel: "",
       driverLicense: "",
       driverLicenseOther: "",
       dNumber: "",
       dNumberOther: "",
-      requirements: formData.requiredExperience,
-      contractType: formData.contractType,
-      salaryPeriod: formData.salaryType,
+      requirements: "",
+      contractType: form.contractType,
+      salaryPeriod: form.salaryPeriod === "per hour" ? "Per hour" : "Per month",
       salaryMode: "Range",
-      salary,
+      salary: form.salary,
       salaryAmount: "",
-      salaryFrom: formData.salaryMin,
-      salaryTo: formData.salaryMax,
-      hoursUnit: formData.hoursUnit,
-      hoursAmount: formData.hoursAmount,
-      overtime: formData.overtime,
+      salaryFrom: "",
+      salaryTo: "",
+      hoursUnit: "",
+      hoursAmount: "",
+      overtime: form.overtime,
       maxOvertimeHours: "",
-      hasRotation: formData.rotation,
+      hasRotation: "",
       rotationWeeksOn: "",
       rotationWeeksOff: "",
       internationalTravel: "",
-      localTravel: formData.transport,
+      localTravel: form.transport,
       localTravelOther: "",
-      accommodation: formData.accommodation,
+      accommodation: form.accommodation,
       accommodationCost: "",
       accommodationOther: "",
       equipment: "",
       equipmentOther: "",
       tools: "",
       toolsOther: "",
-      city: formData.location,
-      startDate: formData.startDate,
+      city: form.city,
+      startDate: form.startDate,
       startDateOther: "",
       howDidYouHear: "",
       socialMediaPlatform: "",
@@ -365,7 +261,7 @@ export default function DetailedRequestPage() {
       referralOrgNumber: "",
       referralEmail: "",
       subscribe: "Yes - send me candidate updates",
-      notes: [formData.duration ? `Duration: ${formData.duration}` : "", formData.notes].filter(Boolean).join("\n"),
+      notes: form.notes,
     };
 
     try {
@@ -386,7 +282,7 @@ export default function DetailedRequestPage() {
       setSubmitStatus("success");
     } catch {
       setSubmitStatus("error");
-      setSubmitError("Failed to send email notifications.");
+      setSubmitError("Could not submit request. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -404,54 +300,6 @@ export default function DetailedRequestPage() {
             <p className="mt-2 text-sm text-white/60">
               Thank you, {tokenData?.full_name || "there"}. We will review your request and be in touch with you soon.
             </p>
-            <div className="mx-auto mt-6 max-w-xl rounded-xl border border-white/10 bg-white/[0.02] p-4 text-left">
-              <p className="text-sm font-semibold text-white">How was your form experience?</p>
-              <p className="mt-1 text-xs text-white/60">Rate from 1 to 10 so we can improve your experience.</p>
-              <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-10">
-                {Array.from({ length: 10 }, (_, index) => index + 1).map((score) => (
-                  <button
-                    key={score}
-                    type="button"
-                    onClick={() => {
-                      setFeedbackScore(score);
-                      if (feedbackStatus !== "idle") setFeedbackStatus("idle");
-                    }}
-                    className={`rounded-md border px-2 py-2 text-sm font-medium transition ${
-                      feedbackScore === score
-                        ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
-                        : "border-white/10 text-white/70 hover:border-white/30"
-                    }`}
-                  >
-                    {score}
-                  </button>
-                ))}
-              </div>
-              <label className="mt-3 block text-xs font-medium text-white/70">What can we improve? (optional)</label>
-              <textarea
-                rows={3}
-                className={`${inputClass} mt-1`}
-                placeholder="Tell us what to change for a smoother experience..."
-                value={feedbackNote}
-                onChange={(e) => {
-                  setFeedbackNote(e.target.value);
-                  if (feedbackStatus !== "idle") setFeedbackStatus("idle");
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => void submitFeedback()}
-                disabled={feedbackScore === null || feedbackStatus === "sending" || feedbackStatus === "sent"}
-                className="mt-3 rounded-[10px] border border-white/20 px-4 py-2 text-sm font-medium text-white transition hover:border-[#C9A84C] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {feedbackStatus === "sending"
-                  ? "Sending feedback..."
-                  : feedbackStatus === "sent"
-                    ? "Feedback sent"
-                    : "Send feedback"}
-              </button>
-              {feedbackStatus === "error" && <p className="mt-2 text-xs text-red-400">Could not send feedback. Please try again.</p>}
-              {feedbackStatus === "sent" && <p className="mt-2 text-xs text-[#7cd6b5]">Thank you! Your feedback was received.</p>}
-            </div>
             <Link
               href="/"
               className="mt-5 inline-flex rounded-[10px] bg-[#C9A84C] px-6 py-2.5 text-sm font-semibold text-[#0a0f18] transition hover:bg-[#b8953f]"
@@ -465,367 +313,413 @@ export default function DetailedRequestPage() {
   }
 
   return (
-    <section className="min-h-screen bg-[#0a0f18] px-4 py-6 md:px-6 md:py-10">
-      <div className="mx-auto mb-10 w-full max-w-[720px]">
-        {tokenStatus === "checking" && (
-          <p className="mb-4 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/70">
-            Verifying token data. You can still complete the request form.
-          </p>
-        )}
-        {tokenStatus === "invalid" && (
-          <p className="mb-4 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-            Link validation failed. You can continue filling the form, but we recommend requesting a new link.
-          </p>
-        )}
-        <p className="mb-6 text-xl font-semibold text-white">
-          <span className="text-[#C9A84C]">ArbeidMatch</span> Norge
+    <div className="min-h-dvh bg-[#0a0f18] text-white">
+      <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-white/10 bg-[rgba(10,15,24,0.95)] px-4 backdrop-blur-[12px] md:h-16 md:px-6">
+        <p className="text-base font-bold">
+          <span className="text-[#C9A84C]">Arbeid</span>Match
         </p>
-        <h1 className="text-[28px] font-extrabold text-white">Candidate Request Details</h1>
-        <p className="mt-2 text-sm text-white/50">Complete all steps to submit your candidate request.</p>
-        <div className="mt-5 h-1 w-full rounded-full bg-white/10">
+        <div className="flex items-center gap-2">
+          {Array.from({ length: TOTAL_STEPS }, (_, index) => (
+            <ProgressDot key={index} index={index} step={step} />
+          ))}
+        </div>
+        <p className="text-xs text-white/40">{`${step + 1} / ${TOTAL_STEPS}`}</p>
+      </header>
+
+      <main className="flex min-h-dvh items-center justify-center px-4 pb-[92px] pt-[72px] md:px-6 md:pb-[92px] md:pt-[80px]">
+        <form onSubmit={handleSubmit} className="w-full max-w-[560px]">
           <div
-            className="h-full rounded-full bg-[linear-gradient(90deg,#C9A84C,#e8c96a)] transition-all duration-[400ms] ease-out"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <p className="mt-2 text-right text-xs text-white/40">{`Step ${currentStep} of ${TOTAL_CARDS}`}</p>
-      </div>
+            key={step}
+            className={`relative overflow-hidden rounded-[24px] border border-[rgba(201,168,76,0.15)] bg-white/[0.03] px-5 py-6 md:px-9 md:py-10 ${
+              animating ? "card-exit" : "card-enter"
+            }`}
+            style={reducedMotion ? { opacity: 1, transform: "translateX(0)" } : undefined}
+          >
+            <div className="absolute left-[10%] right-[10%] top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(201,168,76,0.5),transparent)]" />
 
-      <form onSubmit={handleSubmit}>
-        <div
-          ref={(element) => {
-            cardRefs.current[0] = element;
-          }}
-        >
-          <Card number="01" title="Job Information" reducedMotion={reducedMotion} delayMs={0}>
-            <div className="space-y-4">
-              <div>
-                <label className={labelClass}>Job title / Role</label>
-                <input className={inputClass} value={formData.jobTitle} onChange={(e) => updateField("jobTitle", e.target.value)} />
+            {step === 0 && (
+              <div className="space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 1 of 6</p>
+                <h2 className="text-2xl font-extrabold">What type of worker do you need?</h2>
+                <p className="text-sm text-white/50">Select the primary trade or profession.</p>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {[
+                    "Electrician (DSB authorized)",
+                    "Welder (ISO certified)",
+                    "Construction worker",
+                    "Logistics / Driver",
+                    "Industrial worker",
+                    "Cleaning staff",
+                    "HoReCa / Kitchen",
+                    "Healthcare worker",
+                    "Other",
+                  ].map((option) => (
+                    <OptionCard
+                      key={option}
+                      label={option}
+                      selected={form.trade === option}
+                      onClick={() => setForm((prev) => ({ ...prev, trade: option }))}
+                    />
+                  ))}
+                </div>
+                {form.trade === "Other" && (
+                  <input
+                    className={inputClass}
+                    placeholder="Describe the role"
+                    value={form.tradeOther}
+                    onChange={(e) => setForm((prev) => ({ ...prev, tradeOther: e.target.value }))}
+                  />
+                )}
               </div>
-              <div>
-                <label className={labelClass}>Industry / Sector</label>
-                <select
-                  className={`${inputClass} appearance-none bg-no-repeat pr-10 [background-position:right_14px_center]`}
-                  style={selectStyle}
-                  value={formData.industry}
-                  onChange={(e) => updateField("industry", e.target.value)}
-                >
-                  <option value="">Select industry</option>
-                  <option>Construction</option>
-                  <option>Civil Engineering</option>
-                  <option>Electrical & Mechanical</option>
-                  <option>Industry & Logistics</option>
-                  <option>Cleaning & Facility</option>
-                  <option>Offshore</option>
-                </select>
-              </div>
-              <div>
-                <label className={labelClass}>Number of positions needed</label>
-                <input
-                  type="number"
-                  min={1}
-                  className={inputClass}
-                  value={formData.numberOfPositions}
-                  onChange={(e) => updateField("numberOfPositions", e.target.value)}
-                />
-              </div>
-            </div>
-          </Card>
-        </div>
+            )}
 
-        <div
-          ref={(element) => {
-            cardRefs.current[1] = element;
-          }}
-        >
-          <Card number="02" title="Contract & Pay" reducedMotion={reducedMotion} delayMs={100}>
-            <div className="space-y-4">
-              <div>
-                <label className={labelClass}>Contract type</label>
-                <select
-                  className={`${inputClass} appearance-none bg-no-repeat pr-10 [background-position:right_14px_center]`}
-                  style={selectStyle}
-                  value={formData.contractType}
-                  onChange={(e) => updateField("contractType", e.target.value)}
-                >
-                  <option value="">Select contract type</option>
-                  <option>Permanent employment</option>
-                  <option>Temporary hire</option>
-                  <option>Staffing / Innleie</option>
-                  <option>Project-based</option>
-                </select>
-              </div>
+            {step === 1 && (
+              <div className="space-y-5">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 2 of 6</p>
+                <h2 className="text-2xl font-extrabold">Candidate requirements</h2>
+                <p className="text-sm text-white/50">Tell us what you need from the candidate.</p>
 
-              <div>
-                <label className={labelClass}>Working hours</label>
-                <div className="flex flex-wrap gap-2">
-                  {(["Per day", "Per week", "Per month"] as const).map((unit) => (
+                <div>
+                  <p className={labelClass}>Minimum experience</p>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {["No minimum", "1 to 2 years", "3 to 5 years", "5+ years"].map((option) => (
+                      <OptionCard
+                        key={option}
+                        label={option}
+                        selected={form.experience === option}
+                        onClick={() => setForm((prev) => ({ ...prev, experience: option }))}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className={labelClass}>Certifications required</p>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {[
+                      "None required",
+                      "Trade certificate",
+                      "DSB authorization",
+                      "ISO 9606",
+                      "ATEX/EX",
+                      "NDT Level II",
+                      "Driver's license CE",
+                    ].map((option) => (
+                      <OptionCard
+                        key={option}
+                        label={option}
+                        selected={form.certification.includes(option)}
+                        onClick={() => toggleCert(option)}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className={labelClass}>Number of candidates</p>
+                  <div className="flex items-center gap-3">
                     <button
-                      key={unit}
                       type="button"
-                      onClick={() => updateField("hoursUnit", unit)}
-                      className={`rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-180 ${
-                        formData.hoursUnit === unit
-                          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.12)] text-[#C9A84C]"
-                          : "border-white/10 bg-white/5 text-white/60"
+                      className="h-9 w-9 rounded-lg border border-[#C9A84C] text-[#C9A84C]"
+                      onClick={() =>
+                        setForm((prev) => ({ ...prev, candidates: Math.max(1, prev.candidates - 1) }))
+                      }
+                    >
+                      -
+                    </button>
+                    <span className="min-w-12 text-center text-2xl font-bold">{form.candidates}</span>
+                    <button
+                      type="button"
+                      className="h-9 w-9 rounded-lg border border-[#C9A84C] text-[#C9A84C]"
+                      onClick={() => setForm((prev) => ({ ...prev, candidates: prev.candidates + 1 }))}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 3 of 6</p>
+                <h2 className="text-2xl font-extrabold">How urgent is this request?</h2>
+                <p className="text-sm text-white/50">This helps us prioritize your request.</p>
+                <div className="grid grid-cols-1 gap-3">
+                  {[
+                    { title: "Urgent", sub: "I need candidates within 1 to 2 weeks", icon: "⚡" },
+                    { title: "Normal", sub: "I need candidates within 3 to 4 weeks", icon: "🕒" },
+                    { title: "Planning ahead", sub: "I need candidates in 1 to 3 months", icon: "📅" },
+                    { title: "Not sure yet", sub: "I need help estimating the timeline", icon: "?" },
+                  ].map((item) => (
+                    <OptionCard
+                      key={item.title}
+                      label={item.title}
+                      sublabel={item.sub}
+                      selected={form.urgency === item.title}
+                      onClick={() => setForm((prev) => ({ ...prev, urgency: item.title }))}
+                      icon={<span className="text-lg text-[#C9A84C]">{item.icon}</span>}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-5">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 4 of 6</p>
+                <h2 className="text-2xl font-extrabold">What are you offering?</h2>
+                <p className="text-sm text-white/50">Help candidates understand the conditions.</p>
+
+                <div>
+                  <p className={labelClass}>Contract type</p>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {["Permanent employment", "Temporary hire", "Staffing (innleie)", "Project-based"].map(
+                      (option) => (
+                        <OptionCard
+                          key={option}
+                          label={option}
+                          selected={form.contractType === option}
+                          onClick={() => setForm((prev) => ({ ...prev, contractType: option }))}
+                        />
+                      ),
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <p className={labelClass}>Salary range</p>
+                  <div className="mb-3 flex gap-2">
+                    {(["per hour", "per month"] as const).map((period) => (
+                      <button
+                        key={period}
+                        type="button"
+                        className={`rounded-lg border px-4 py-2 text-sm transition ${
+                          form.salaryPeriod === period
+                            ? "border-[#C9A84C] bg-[rgba(201,168,76,0.12)] text-[#C9A84C]"
+                            : "border-white/10 bg-white/[0.03] text-white/60"
+                        }`}
+                        onClick={() => setForm((prev) => ({ ...prev, salaryPeriod: period }))}
+                      >
+                        {period === "per hour" ? "Per hour" : "Per month"}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="relative">
+                    <input
+                      className={inputClass}
+                      placeholder={
+                        form.salaryPeriod === "per hour" ? "e.g. 280 to 330" : "e.g. 45000 to 55000"
+                      }
+                      value={form.salary}
+                      onChange={(e) => setForm((prev) => ({ ...prev, salary: e.target.value }))}
+                    />
+                    <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-white/40">
+                      NOK
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <p className={labelClass}>Overtime</p>
+                  <div className="flex flex-wrap gap-2">
+                    {["Yes", "Occasionally", "No"].map((option) => (
+                      <OptionCard
+                        key={option}
+                        label={option}
+                        selected={form.overtime === option}
+                        onClick={() => setForm((prev) => ({ ...prev, overtime: option }))}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 4 && (
+              <div className="space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 5 of 6</p>
+                <h2 className="text-2xl font-extrabold">Where will they work?</h2>
+                <p className="text-sm text-white/50">Select the work location in Norway.</p>
+
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
+                  <input
+                    className={`${inputClass} pl-10`}
+                    placeholder="Search city or region..."
+                    value={citySearch}
+                    onChange={(e) => setCitySearch(e.target.value)}
+                  />
+                </div>
+
+                <div className="max-h-[280px] space-y-2 overflow-y-auto pr-1">
+                  {filteredCities.map((city) => (
+                    <button
+                      key={city}
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, city }))}
+                      className={`w-full rounded-lg border px-4 py-2 text-left text-sm transition ${
+                        form.city === city
+                          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.06)] text-[#C9A84C]"
+                          : "border-white/10 bg-white/[0.03] text-white hover:border-white/20"
                       }`}
                     >
-                      {unit}
+                      {city}
                     </button>
                   ))}
                 </div>
-                <input
-                  type="number"
-                  min={1}
-                  placeholder="Hours amount"
-                  className={`${inputClass} mt-3`}
-                  value={formData.hoursAmount}
-                  onChange={(e) => updateField("hoursAmount", e.target.value)}
-                />
-              </div>
 
-              <div>
-                <label className={labelClass}>Salary type</label>
-                <div className="grid gap-2 md:grid-cols-2">
-                  {(["Per hour", "Per month"] as const).map((option) => (
-                    <RadioCard
+                <div className="border-t border-white/10 pt-3">
+                  {["The whole of Norway", "Multiple locations"].map((option) => (
+                    <button
                       key={option}
-                      name="salaryType"
-                      value={option}
-                      selected={formData.salaryType === option}
-                      onChange={(value) => updateField("salaryType", value as RequestForm["salaryType"])}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <div>
-                  <label className={labelClass}>Salary range min (NOK)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    className={inputClass}
-                    value={formData.salaryMin}
-                    onChange={(e) => updateField("salaryMin", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Salary range max (NOK)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    className={inputClass}
-                    value={formData.salaryMax}
-                    onChange={(e) => updateField("salaryMax", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className={labelClass}>Overtime</label>
-                <div className="grid gap-2 md:grid-cols-3">
-                  {(["Yes", "Occasionally", "No"] as const).map((option) => (
-                    <RadioCard
-                      key={option}
-                      name="overtime"
-                      value={option}
-                      selected={formData.overtime === option}
-                      onChange={(value) => updateField("overtime", value as RequestForm["overtime"])}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className={labelClass}>Rotation schedule</label>
-                <div className="grid gap-2 md:grid-cols-2">
-                  {(["No rotation", "4 weeks on 2 home", "6 weeks on 2 home", "Other"] as const).map((option) => (
-                    <RadioCard
-                      key={option}
-                      name="rotation"
-                      value={option}
-                      selected={formData.rotation === option}
-                      onChange={(value) => updateField("rotation", value as RequestForm["rotation"])}
-                    />
-                  ))}
-                </div>
-                {formData.rotation === "Other" && (
-                  <input
-                    className={`${inputClass} mt-3`}
-                    placeholder="Describe other rotation schedule"
-                    value={formData.rotationOther}
-                    onChange={(e) => updateField("rotationOther", e.target.value)}
-                  />
-                )}
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        <div
-          ref={(element) => {
-            cardRefs.current[2] = element;
-          }}
-        >
-          <Card number="03" title="Location & Timeline" reducedMotion={reducedMotion} delayMs={200}>
-            <div className="space-y-4">
-              <div>
-                <label className={labelClass}>Work location in Norway</label>
-                <input
-                  className={inputClass}
-                  placeholder="City or region"
-                  value={formData.location}
-                  onChange={(e) => updateField("location", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Start date</label>
-                <input
-                  className={inputClass}
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => updateField("startDate", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Duration</label>
-                <input
-                  className={inputClass}
-                  placeholder="Expected duration"
-                  value={formData.duration}
-                  onChange={(e) => updateField("duration", e.target.value)}
-                />
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        <div
-          ref={(element) => {
-            cardRefs.current[3] = element;
-          }}
-        >
-          <Card number="04" title="Candidate Requirements" reducedMotion={reducedMotion} delayMs={300}>
-            <div className="space-y-4">
-              <div>
-                <label className={labelClass}>Required experience</label>
-                <textarea
-                  rows={3}
-                  className={inputClass}
-                  placeholder="Describe required skills, certifications, and experience"
-                  value={formData.requiredExperience}
-                  onChange={(e) => updateField("requiredExperience", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Language requirements</label>
-                <div className="grid gap-2 md:grid-cols-3">
-                  {["English", "Norwegian", "Other"].map((language) => (
-                    <label
-                      key={language}
-                      className={`flex cursor-pointer items-center gap-3 rounded-[10px] border px-4 py-3 text-sm transition-all duration-180 ${
-                        formData.languageRequirements.includes(language)
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, city: option }))}
+                      className={`mt-2 w-full rounded-lg border px-4 py-2 text-left text-sm transition ${
+                        form.city === option
                           ? "border-[#C9A84C] bg-[rgba(201,168,76,0.06)] text-[#C9A84C]"
-                          : "border-white/10 bg-white/[0.03] text-white/70"
+                          : "border-white/10 bg-white/[0.03] text-white hover:border-white/20"
                       }`}
                     >
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 accent-[#C9A84C]"
-                        checked={formData.languageRequirements.includes(language)}
-                        onChange={() => toggleLanguage(language)}
-                      />
-                      {language}
-                    </label>
-                  ))}
-                </div>
-                {formData.languageRequirements.includes("Other") && (
-                  <input
-                    className={`${inputClass} mt-3`}
-                    placeholder="Specify other language requirement"
-                    value={formData.languageOther}
-                    onChange={(e) => updateField("languageOther", e.target.value)}
-                  />
-                )}
-              </div>
-              <div>
-                <label className={labelClass}>Accommodation needed</label>
-                <div className="grid gap-2 md:grid-cols-3">
-                  {(["Yes", "No", "Negotiable"] as const).map((option) => (
-                    <RadioCard
-                      key={option}
-                      name="accommodation"
-                      value={option}
-                      selected={formData.accommodation === option}
-                      onChange={(value) => updateField("accommodation", value as RequestForm["accommodation"])}
-                    />
+                      {option}
+                    </button>
                   ))}
                 </div>
               </div>
-              <div>
-                <label className={labelClass}>Transport covered</label>
-                <div className="grid gap-2 md:grid-cols-3">
-                  {(["Yes", "No", "Negotiable"] as const).map((option) => (
-                    <RadioCard
-                      key={option}
-                      name="transport"
-                      value={option}
-                      selected={formData.transport === option}
-                      onChange={(value) => updateField("transport", value as RequestForm["transport"])}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        <div
-          ref={(element) => {
-            cardRefs.current[4] = element;
-          }}
-        >
-          <Card number="05" title="Additional Information" reducedMotion={reducedMotion} delayMs={400}>
-            <div>
-              <label className={labelClass}>Additional notes</label>
-              <textarea
-                rows={4}
-                className={inputClass}
-                placeholder="Any other requirements or information"
-                value={formData.notes}
-                onChange={(e) => updateField("notes", e.target.value)}
-              />
-            </div>
-          </Card>
-        </div>
-
-        <div className="mx-auto w-full max-w-[720px] pt-6">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C9A84C] px-12 py-[18px] text-base font-bold text-[#0a0f18] transition-all duration-200 hover:scale-[1.02] hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {isSubmitting ? (
-              <>
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#0a0f18]/40 border-t-[#0a0f18]" />
-                Submitting...
-              </>
-            ) : (
-              "Submit Candidate Request"
             )}
-          </button>
-          <p className="mt-3 text-center text-xs text-white/30">
-            Your request will be reviewed by our team within 1 to 2 business days.
-          </p>
-          {submitStatus === "error" && (
-            <p className="mt-3 rounded-lg border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              {submitError || "Something went wrong."}
-            </p>
-          )}
+
+            {step === 5 && (
+              <div className="space-y-5">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 6 of 6</p>
+                <h2 className="text-2xl font-extrabold">Final details</h2>
+                <p className="text-sm text-white/50">Almost done. A few last questions.</p>
+
+                <div>
+                  <p className={labelClass}>Accommodation</p>
+                  <div className="flex flex-wrap gap-2">
+                    {["Provided", "Not provided", "Negotiable"].map((option) => (
+                      <OptionCard
+                        key={option}
+                        label={option}
+                        selected={form.accommodation === option}
+                        onClick={() => setForm((prev) => ({ ...prev, accommodation: option }))}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className={labelClass}>Transport</p>
+                  <div className="flex flex-wrap gap-2">
+                    {["Covered", "Not covered", "Negotiable"].map((option) => (
+                      <OptionCard
+                        key={option}
+                        label={option}
+                        selected={form.transport === option}
+                        onClick={() => setForm((prev) => ({ ...prev, transport: option }))}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className={labelClass}>When do they start?</p>
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                    {["As soon as possible", "Within 1 month", "In 2 to 3 months", "Flexible"].map((option) => (
+                      <OptionCard
+                        key={option}
+                        label={option}
+                        selected={form.startDate === option}
+                        onClick={() => setForm((prev) => ({ ...prev, startDate: option }))}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className={labelClass}>Anything else? (optional)</p>
+                  <textarea
+                    rows={3}
+                    className={`${inputClass} resize-none`}
+                    placeholder="Special requirements, shift patterns, language needs..."
+                    value={form.notes}
+                    onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </form>
+      </main>
+
+      <footer className="fixed inset-x-0 bottom-0 z-30 flex h-[72px] items-center justify-between border-t border-white/10 bg-[rgba(10,15,24,0.95)] px-4 md:h-20 md:px-6">
+        <div>
+          {step > 0 ? (
+            <button
+              type="button"
+              onClick={() => goTo(step - 1)}
+              disabled={animating || isSubmitting}
+              className="rounded-[10px] border border-white/20 px-6 py-3 text-sm text-white/60 disabled:opacity-40"
+            >
+              Back
+            </button>
+          ) : null}
         </div>
-      </form>
-    </section>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (step < TOTAL_STEPS - 1) {
+              handleNext();
+            } else {
+              void handleSubmit();
+            }
+          }}
+          disabled={animating || isSubmitting || !isStepValid(step)}
+          className="inline-flex min-w-[150px] items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-8 py-3 text-sm font-bold text-[#0f1923] transition-all duration-200 hover:scale-[1.02] hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {isSubmitting ? (
+            <>
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#0f1923]/40 border-t-[#0f1923]" />
+              Submitting...
+            </>
+          ) : step === TOTAL_STEPS - 1 ? (
+            "Submit Request"
+          ) : (
+            "Continue"
+          )}
+        </button>
+      </footer>
+
+      {submitStatus === "error" && (
+        <div className="fixed bottom-[88px] left-1/2 z-40 w-[min(520px,calc(100%-2rem))] -translate-x-1/2 rounded-[10px] border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {submitError}
+        </div>
+      )}
+
+      <style jsx>{`
+        .card-enter {
+          animation: cardIn ${reducedMotion ? "0ms" : "250ms"} ease-out forwards;
+          animation-delay: ${reducedMotion ? "0ms" : "180ms"};
+          opacity: ${reducedMotion ? "1" : "0"};
+          transform: ${reducedMotion ? "translateX(0)" : "translateX(20px)"};
+        }
+        .card-exit {
+          opacity: ${reducedMotion ? "1" : "0"};
+          transform: ${reducedMotion ? "translateX(0)" : "translateX(-20px)"};
+          transition: all ${reducedMotion ? "0ms" : "180ms"} ease;
+        }
+        @keyframes cardIn {
+          from {
+            opacity: 0;
+            transform: translateX(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
+    </div>
   );
 }
