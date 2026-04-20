@@ -4,6 +4,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
+/**
+ * EXIT INTENT DISCOUNT POPUP
+ * Status: PAUSED
+ * Reason: Influencer campaign in progress
+ * To re-enable: set EXIT_DISCOUNT_ENABLED = true
+ * Last active: April 2026
+ */
+// FEATURE FLAG: Set to true to re-enable exit intent discount popup
+// Currently disabled - influencer campaign pending
+const EXIT_DISCOUNT_ENABLED = false;
+
 export interface DsbExitDiscountPopupProps {
   guideType: "eu" | "non-eu";
 }
@@ -13,6 +24,8 @@ const CARD_BG = "#0f1923";
 const GREEN = "#1D9E75";
 
 export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopupProps) {
+  if (!EXIT_DISCOUNT_ENABLED) return null;
+
   const reduceMotion = useReducedMotion();
   const [mounted, setMounted] = useState(false);
   const [shown, setShown] = useState(false);
