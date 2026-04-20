@@ -50,10 +50,10 @@ function RequirementCard({
   badge: string;
 }) {
   return (
-    <article className="rounded-[20px] border border-black/[0.08] bg-white p-8">
+    <article className="rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-8 text-white">
       <div className="text-gold">{icon}</div>
-      <h3 className="mt-4 text-lg font-bold text-[#0f1923]">{title}</h3>
-      <p className="mt-2 text-[14px] leading-[1.7] text-[#4b5563]">{body}</p>
+      <h3 className="mt-4 text-lg font-bold text-white">{title}</h3>
+      <p className="mt-2 text-[14px] leading-[1.7] text-white/70">{body}</p>
       <span
         className="mt-4 inline-block rounded-full px-3 py-1 text-[11px] font-semibold"
         style={{ background: "rgba(201,168,76,0.1)", color: GOLD }}
@@ -92,12 +92,12 @@ export default function ElectriciansNorwayPage() {
         </div>
       </section>
 
-      <section className="bg-white px-6 py-16" style={{ padding: "64px 24px" }}>
+      <section className="bg-[#0D1B2A] px-6 py-16 text-white" style={{ padding: "64px 24px" }}>
         <div className="mx-auto max-w-content">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: GOLD }}>
             The basics
           </p>
-          <h2 className="mt-2 text-[30px] font-bold text-[#0f1923]">Three things every EU/EEA electrician needs for Norway</h2>
+          <h2 className="mt-2 text-[30px] font-bold text-white">Three things every EU/EEA electrician needs for Norway</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <RequirementCard
               icon={<FileCheck size={32} strokeWidth={1.5} />}
@@ -162,29 +162,29 @@ export default function ElectriciansNorwayPage() {
         </div>
       </section>
 
-      <section className="bg-white px-6 py-16" style={{ padding: "64px 24px" }}>
+      <section className="bg-[#0D1B2A] px-6 py-16 text-white" style={{ padding: "64px 24px" }}>
         <div className="mx-auto max-w-content">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: GOLD }}>
             What to expect
           </p>
-          <h2 className="mt-2 text-[28px] font-bold text-[#0f1923]">Salary ranges for electricians in Norway</h2>
-          <div className="mt-8 rounded-[14px] border border-black/[0.06] bg-[rgba(255,255,255,0.03)] px-6 py-8 md:px-8">
+          <h2 className="mt-2 text-[28px] font-bold text-white">Salary ranges for electricians in Norway</h2>
+          <div className="mt-8 rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-6 py-8 md:px-8">
             <p className="text-[32px] font-extrabold" style={{ color: GOLD }}>
               260 to 330 NOK per hour
             </p>
-            <p className="mt-4 text-[14px] leading-[1.7] text-[#374151]">
+            <p className="mt-4 text-[14px] leading-[1.7] text-white/70">
               Salary for electricians in Norway is governed by collective agreements (tariffavtale) under the allmenngjøring
               system. The electrical sector minimum for qualified workers is set by Tariffnemnda and updated periodically.
             </p>
-            <p className="mt-3 text-[14px] leading-[1.7] text-[#374151]">
+            <p className="mt-3 text-[14px] leading-[1.7] text-white/70">
               Your actual hourly rate depends on: your DSB authorization level, years of experience in Norway, specialized
               certifications (high-voltage, automation, offshore), and references from previous Norwegian employers.
             </p>
-            <p className="mt-3 text-[14px] leading-[1.7] text-[#374151]">
+            <p className="mt-3 text-[14px] leading-[1.7] text-white/70">
               Norwegian employer references are highly valued. A strong recommendation from a previous Norwegian employer can
               significantly improve both your access to better projects and your negotiated rate.
             </p>
-            <p className="mt-3 text-[14px] leading-[1.7] text-[#374151]">
+            <p className="mt-3 text-[14px] leading-[1.7] text-white/70">
               Some positions also include daily allowances and travel reimbursements, particularly for projects requiring you
               to stay away from home.
             </p>
@@ -203,10 +203,10 @@ export default function ElectriciansNorwayPage() {
                 { l: "Accommodation", v: "Often provided", n: "For away-from-home assignments, employer typically covers costs" },
                 { l: "Overtime supplement", v: "Minimum 40%", n: "Per Norwegian Working Environment Act" },
               ].map((row) => (
-                <div key={row.l} className="rounded-lg border border-black/[0.06] bg-white px-4 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-[#6b7280]">{row.l}</p>
-                  <p className="mt-1 text-[15px] font-bold text-[#0f1923]">{row.v}</p>
-                  <p className="mt-1 text-[12px] text-[#6b7280]">{row.n}</p>
+                <div key={row.l} className="rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-white/70">{row.l}</p>
+                  <p className="mt-1 text-[15px] font-bold text-white">{row.v}</p>
+                  <p className="mt-1 text-[12px] text-white/70">{row.n}</p>
                 </div>
               ))}
             </div>
@@ -216,7 +216,7 @@ export default function ElectriciansNorwayPage() {
               sourceLabel="Source: Arbeidstilsynet.no"
               sourceUrl={ARBEIDSTILSYNET_MIN}
             />
-            <p className="mt-2 text-[11px] italic leading-relaxed text-black/[0.4]">
+            <p className="mt-2 text-[11px] italic leading-relaxed text-white/70">
               Additional context may include ERI Economic Research Institute Norway 2026 and NorwayExplained.com. Always
               verify current rates with your employer and the relevant collective agreement.
             </p>
@@ -224,14 +224,13 @@ export default function ElectriciansNorwayPage() {
         </div>
       </section>
 
-      <section className="bg-white px-6 py-16" style={{ padding: "64px 24px" }}>
+      <section className="bg-[#0D1B2A] px-6 py-16 text-white" style={{ padding: "64px 24px" }}>
         <div className="mx-auto max-w-[800px]">
           <div
-            className="rounded-[8px] border-l-[3px] px-6 py-6 md:px-7"
-            style={{ background: "rgba(201,168,76,0.06)", borderLeftColor: GOLD }}
+            className="rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-6 py-6 md:px-7"
           >
-            <h2 className="text-[15px] font-semibold text-[#0f1923]">Want the complete step-by-step DSB process?</h2>
-            <p className="mt-3 text-[14px] leading-[1.7] text-[#374151]">
+            <h2 className="text-[15px] font-semibold text-white">Want the complete step-by-step DSB process?</h2>
+            <p className="mt-3 text-[14px] leading-[1.7] text-white/70">
               The full DSB application process, required documents checklist, common rejection reasons, FSE safety
               requirements, and additional authorizations for datacenter or naval work are covered in our detailed DSB
               Authorization Guide.
