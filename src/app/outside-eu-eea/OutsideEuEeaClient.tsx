@@ -57,16 +57,20 @@ export default function OutsideEuEeaClient() {
     }
     setWaitLoading(true);
     try {
+      const email = waitEmail.trim().toLowerCase();
+      const wants_assistance = "feature-waitlist|feature=non-eu-positions|guideWanted=1|consent=1";
       const res = await fetch("/api/feature-waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: waitEmail.trim().toLowerCase(),
+          email,
           feature: "non-eu-positions",
           consent: true,
+          wants_assistance,
         }),
       });
-      if (!res.ok) {
+      const data = (await res.json()) as { success?: boolean; error?: string };
+      if (!res.ok || !data.success) {
         setWaitMessage("err");
         return;
       }

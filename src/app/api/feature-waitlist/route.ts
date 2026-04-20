@@ -14,7 +14,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
 
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as Record<string, unknown>;
+    const raw = await request.json();
+    if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    }
+    const body = raw as Record<string, unknown>;
     if (hasHoneypotValue(body)) {
       return NextResponse.json({ success: true });
     }
@@ -41,7 +45,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Service unavailable." }, { status: 503 });
     }
 
-    const wants = `feature-waitlist|feature=${feature}|guideWanted=1|consent=1`;
+    const wantsFromBody = body.wants_assistance;
+    const wantsDefault = `feature-waitlist|feature=${feature}|guideWanted=1|consent=1`;
+    /** `wants_assistance` is text in DB. If client omits the field, treat as not provided → use default pipeline string. */
+    const wantsProvided =
+      Object.prototype.hasOwnProperty.call(body, "wants_assistance") &&
+      wantsFromBody !== undefined &&
+      wantsFromBody !== null;
+    const wants: string = wantsProvided
+      ? wantsFromBody === false || wantsFromBody === "false"
+        ? "false"
+        : typeof wantsFromBody === "string" && wantsFromBody.trim().length > 0
+          ? wantsFromBody.trim()
+          : wantsDefault
+      : wantsDefault;
     const now = new Date().toISOString();
 
     const { data: existing } = await supabase
