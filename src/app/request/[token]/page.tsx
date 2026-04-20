@@ -20,6 +20,7 @@ type RequestForm = {
   tradeOther: string;
   experience: string;
   certification: string[];
+  certificationsOther: string;
   candidates: number;
   contractType: string;
   salary: string;
@@ -280,6 +281,7 @@ const initialForm: RequestForm = {
   tradeOther: "",
   experience: "",
   certification: [],
+  certificationsOther: "",
   candidates: 1,
   contractType: "",
   salary: "",
@@ -402,12 +404,17 @@ export default function RequestTokenPage() {
   };
 
   const toggleCert = (value: string) => {
-    setForm((prev) => ({
-      ...prev,
-      certification: prev.certification.includes(value)
+    setForm((prev) => {
+      const exists = prev.certification.includes(value);
+      const nextCertifications = exists
         ? prev.certification.filter((item) => item !== value)
-        : [...prev.certification, value],
-    }));
+        : [...prev.certification, value];
+      return {
+        ...prev,
+        certification: nextCertifications,
+        certificationsOther: nextCertifications.includes("Other") ? prev.certificationsOther : "",
+      };
+    });
   };
 
   const filteredCities = useMemo(() => {
@@ -479,7 +486,7 @@ export default function RequestTokenPage() {
       numberOfPositions: String(form.candidates),
       qualification: form.experience || "No minimum",
       certifications: form.certification.join(", "),
-      certificationsOther: "",
+      certificationsOther: form.certification.includes("Other") ? form.certificationsOther.trim() : "",
       experience: "",
       norwegianLevel: "",
       englishLevel: "",
@@ -683,6 +690,14 @@ export default function RequestTokenPage() {
                       />
                     ))}
                   </div>
+                  {form.certification.includes("Other") && (
+                    <input
+                      className={`${inputClass} mt-3`}
+                      placeholder="Specify other certification or authorization"
+                      value={form.certificationsOther}
+                      onChange={(e) => setForm((prev) => ({ ...prev, certificationsOther: e.target.value }))}
+                    />
+                  )}
                 </div>
 
                 <div>
@@ -919,7 +934,7 @@ export default function RequestTokenPage() {
                 <div>
                   <p className={labelClass}>When do they start?</p>
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                    {["As soon as possible", "Within 1 month", "In 2 to 3 months", "Flexible"].map((option) => (
+                    {["Specific start date", "After notice period", "Flexible start window", "To be agreed"].map((option) => (
                       <OptionCard
                         key={option}
                         label={option}
