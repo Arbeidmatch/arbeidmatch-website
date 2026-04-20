@@ -98,3 +98,20 @@ create index if not exists candidate_feedback_submissions_page_url_idx
 ```
 
 You can also run the same SQL from `supabase/candidate_feedback_submissions.sql`.
+
+## Auto Fix Setup (GitHub Actions)
+
+This repo includes an automatic production error fix workflow in `.github/workflows/auto-fix.yml`.
+
+Manual setup required in GitHub:
+
+1. `Settings -> Secrets and variables -> Actions`
+   - Add `ANTHROPIC_API_KEY` (Anthropic API key)
+   - Add `SLACK_WEBHOOK_URL` (Slack incoming webhook URL)
+   - `GITHUB_TOKEN` is provided automatically by GitHub Actions
+2. `Settings -> General`
+   - Enable `Allow auto-merge`
+3. `Settings -> Branches`
+   - Add a branch protection rule for `main`
+   - Require status check: `npm run build`
+   - Allow auto-merge

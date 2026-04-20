@@ -124,6 +124,7 @@ This is an automated error notification from arbeidmatch.no
     const transporter = createTransporter();
     if (!transporter) {
       console.error("[errorNotifier] SMTP_PASS or transporter missing; cannot send alert.");
+      await createGitHubIssue({ route, errorMessage, errorStack, context });
       return;
     }
 
@@ -135,6 +136,70 @@ This is an automated error notification from arbeidmatch.no
     });
   } catch (notifyErr) {
     console.error("Failed to send error notification:", notifyErr);
+  }
+
+  await createGitHubIssue({ route, errorMessage, errorStack, context });
+}
+
+async function createGitHubIssue({
+  route,
+  errorMessage,
+  errorStack,
+  context,
+}: {
+  route: string;
+  errorMessage: string;
+  errorStack: string;
+  context: Record<string, unknown>;
+}): Promise<string | null> {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPO || "Arbeidmatch/arbeidmatch-website";
+
+  if (!token) return null;
+
+  const body = `## Auto-detected error
+
+**Route:** ${route}
+**Time:** ${new Date().toISOString()}
+**Environment:** Production
+
+## Error message
+\`\`\`
+${errorMessage}
+\`\`\`
+
+## Stack trace
+\`\`\`
+${errorStack}
+\`\`\`
+
+## Context
+\`\`\`json
+${JSON.stringify(context, null, 2)}
+\`\`\`
+
+---
+_This issue was created automatically by errorNotifier.ts_
+_Label: auto-fix-pending_`;
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${repo}/issues`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Accept: "application/vnd.github+json",
+      },
+      body: JSON.stringify({
+        title: `[AUTO] ${route}: ${errorMessage.slice(0, 80)}`,
+        body,
+        labels: ["auto-fix-pending"],
+      }),
+    });
+    const data = (await res.json()) as { number?: number };
+    return data.number ? String(data.number) : null;
+  } catch {
+    return null;
   }
 }
 
