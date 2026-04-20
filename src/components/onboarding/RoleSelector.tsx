@@ -69,7 +69,7 @@ function RoleCard({
       onMouseLeave={() => setHovered(false)}
       onTouchStart={handleTouchStart}
       onClick={onSelect}
-      className="group relative box-border w-full min-w-0 max-w-[400px] cursor-pointer break-words rounded-[20px] border border-white/[0.08] bg-[rgba(255,255,255,0.03)] px-5 py-6 transition-all duration-[250ms] ease-out max-[639px]:max-w-none min-[640px]:flex-1 min-[640px]:py-7 lg:px-7 lg:py-9"
+      className="group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col justify-between overflow-hidden break-words rounded-[20px] border border-white/[0.08] bg-[rgba(255,255,255,0.03)] px-5 py-6 transition-all duration-[250ms] ease-out md:min-h-[420px] md:py-7 lg:px-7 lg:py-9"
       style={{
         borderColor: hovered ? "rgba(201,168,76,0.5)" : "rgba(255,255,255,0.08)",
         transform: hovered ? "scale(1.02)" : "scale(1)",
@@ -84,7 +84,8 @@ function RoleCard({
         }}
         aria-hidden
       />
-      <div className="relative z-[1] min-w-0">
+      <div className="relative z-[1] flex h-full min-w-0 flex-col">
+        <div>
         <div
           className="flex h-14 w-14 items-center justify-center rounded-[14px] border border-[rgba(201,168,76,0.2)] transition-all duration-200"
           style={{
@@ -108,9 +109,10 @@ function RoleCard({
             </li>
           ))}
         </ul>
+        </div>
         <button
           type="button"
-          className="mt-6 box-border block w-full rounded-[10px] px-6 py-3.5 text-sm font-bold transition-colors duration-[180ms] min-[640px]:mt-7 min-[640px]:text-[15px]"
+          className="mt-6 box-border block w-full rounded-[10px] px-6 py-3.5 text-sm font-bold transition-colors duration-[180ms] min-[640px]:mt-auto min-[640px]:text-[15px]"
           style={{
             display: "block",
             width: "100%",
@@ -221,12 +223,12 @@ export default function RoleSelector() {
                 </p>
               </motion.div>
 
-              <div className="flex min-h-0 w-full flex-col gap-4 min-[640px]:flex-row min-[640px]:gap-5">
+              <div className="flex min-h-0 w-full flex-col gap-6 md:flex-row md:items-stretch md:gap-5">
                 <motion.div
                   initial={reduceMotion ? false : { opacity: 0, y: 24 }}
                   animate={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
                   transition={reduceMotion ? { duration: 0 } : { duration: 0.5, delay: 0, ease: "easeOut" }}
-                  className="flex min-h-0 min-w-0 flex-1 justify-center"
+                  className="flex min-h-0 min-w-0 flex-1"
                 >
                   <RoleCard
                     icon={<Briefcase className="h-7 w-7" stroke={GOLD} strokeWidth={1.5} />}
@@ -245,7 +247,7 @@ export default function RoleSelector() {
                   initial={reduceMotion ? false : { opacity: 0, y: 24 }}
                   animate={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
                   transition={reduceMotion ? { duration: 0 } : { duration: 0.5, delay: 0.15, ease: "easeOut" }}
-                  className="flex min-h-0 min-w-0 flex-1 justify-center"
+                  className="flex min-h-0 min-w-0 flex-1"
                 >
                   <RoleCard
                     icon={<UserCheck className="h-7 w-7" stroke={GOLD} strokeWidth={1.5} />}
