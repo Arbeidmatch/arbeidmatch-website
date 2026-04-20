@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import { notifyError } from "@/lib/errorNotifier";
+import { notifySlack } from "@/lib/slackNotifier";
 import {
   buildInternalEmailHtml,
   emailParagraph,
@@ -87,8 +89,18 @@ export async function POST(request: NextRequest) {
       html: wrapPremiumEmail(userInner),
     });
 
+    void notifySlack("contacts", {
+      title: "New Contact Form Submission",
+      fields: {
+        Name: name,
+        Email: email,
+        Message: message.slice(0, 100),
+      },
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
+    await notifyError({ route: "/api/contact", error });
     console.error("contact route error", error);
     return NextResponse.json({ success: false, error: "Could not send message." }, { status: 500 });
   }

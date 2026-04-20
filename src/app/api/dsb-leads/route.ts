@@ -5,6 +5,8 @@ import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { buildDsbChecklistEmailBodyHtml, DSB_CHECKLIST_EMAIL_SUBJECT } from "@/lib/dsbChecklistEmailContent";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { buildInternalEmailHtml, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
+import { notifyError } from "@/lib/errorNotifier";
+import { notifySlack } from "@/lib/slackNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -94,8 +96,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const leadType = source.toLowerCase().includes("non-eu") ? "Non-EU" : "EU";
+    void notifySlack("dsbLeads", {
+      title: "New DSB Lead",
+      fields: {
+        Name: firstName,
+        Email: email,
+        Type: leadType,
+      },
+    });
+
     return NextResponse.json({ success: true });
   } catch (e) {
+    await notifyError({ route: "/api/dsb-leads", error: e });
     const message = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }

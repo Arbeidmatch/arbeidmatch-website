@@ -3,6 +3,8 @@ import nodemailer from "nodemailer";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import { notifyError } from "@/lib/errorNotifier";
+import { notifySlack } from "@/lib/slackNotifier";
 import {
   buildInternalEmailHtml,
   emailDataTable,
@@ -164,8 +166,18 @@ export async function POST(request: NextRequest) {
       html: adminHtml,
     });
 
+    void notifySlack("recruiters", {
+      title: "New Recruiter Application",
+      fields: {
+        Name: full_name,
+        Email: email,
+        Experience: motivation || "Not specified",
+      },
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
+    await notifyError({ route: "/api/recruiter-network/apply", error });
     console.error("recruiter-network apply", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });

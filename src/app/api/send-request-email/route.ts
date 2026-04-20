@@ -5,6 +5,7 @@ import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { getRateLimitResult, hasHoneypotValue, noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
+import { notifySlack } from "@/lib/slackNotifier";
 import {
   emailDataTable,
   emailParagraph,
@@ -266,6 +267,17 @@ export async function POST(request: NextRequest) {
         html: referralHtml,
       });
     }
+
+    void notifySlack("employers", {
+      title: "New Employer Request",
+      fields: {
+        "Company name": data.company || "Not specified",
+        "Contact name": data.full_name || "Not specified",
+        Email: data.email || "Not specified",
+        "Job category": data.category || "Not specified",
+        Location: data.city || "Not specified",
+      },
+    });
 
     return noStoreJson({ success: true });
   } catch (error) {
