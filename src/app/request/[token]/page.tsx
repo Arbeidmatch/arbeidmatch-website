@@ -249,7 +249,7 @@ export default function DetailedRequestPage() {
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-        const index = cardRefs.current.findIndex((element) => element === entry.target);
+          const index = cardRefs.current.findIndex((element) => element === entry.target);
           if (index >= 0) {
             setVisibleCards((prev) => (prev.includes(index) ? prev : [...prev, index]));
           }
@@ -392,25 +392,6 @@ export default function DetailedRequestPage() {
     }
   };
 
-  if (tokenStatus === "checking") {
-    return (
-      <section className="min-h-screen bg-[#0a0f18] px-4 py-10 text-center text-white/70">
-        Verifying your access...
-      </section>
-    );
-  }
-
-  if (tokenStatus === "invalid") {
-    return (
-      <section className="min-h-screen bg-[#0a0f18] px-4 py-10">
-        <div className="mx-auto max-w-2xl text-center">
-          <h1 className="text-2xl font-bold text-white">Link expired or invalid</h1>
-          <p className="mt-2 text-sm text-white/60">Please start a new request.</p>
-        </div>
-      </section>
-    );
-  }
-
   if (submitStatus === "success") {
     return (
       <section className="min-h-screen bg-[#0a0f18] px-4 py-10">
@@ -486,6 +467,16 @@ export default function DetailedRequestPage() {
   return (
     <section className="min-h-screen bg-[#0a0f18] px-4 py-6 md:px-6 md:py-10">
       <div className="mx-auto mb-10 w-full max-w-[720px]">
+        {tokenStatus === "checking" && (
+          <p className="mb-4 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/70">
+            Verifying token data. You can still complete the request form.
+          </p>
+        )}
+        {tokenStatus === "invalid" && (
+          <p className="mb-4 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            Link validation failed. You can continue filling the form, but we recommend requesting a new link.
+          </p>
+        )}
         <p className="mb-6 text-xl font-semibold text-white">
           <span className="text-[#C9A84C]">ArbeidMatch</span> Norge
         </p>
