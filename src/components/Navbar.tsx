@@ -173,9 +173,9 @@ export default function Navbar() {
         className={`sticky top-0 transition-colors duration-200 ${headerSurface} ${isOpen ? "z-30" : "z-[210]"}`}
       >
         <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-4 px-6 md:h-16 md:min-h-[64px] md:px-12 lg:h-[72px] lg:min-h-[72px] lg:gap-10 lg:px-20">
-          <Link href="/" className="block min-h-[44px] shrink-0 text-2xl leading-[44px]">
-            <span className="font-bold text-[#0D1B2A]">Arbeid</span>
-            <span className="font-bold text-[#B8860B]">Match</span>
+          <Link href="/" className="block min-h-[44px] shrink-0 text-2xl leading-[44px] whitespace-nowrap">
+            <span className="font-bold text-[#ffffff]">Arbeid</span>
+            <span className="font-bold text-[#C9A84C]">Match</span>
           </Link>
 
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-10 lg:flex">

@@ -61,7 +61,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         EU/EEA Workforce Solutions · Norway
       </motion.p>
       <motion.h1
-        className="am-h1 mb-6 max-w-full break-words font-sans font-extrabold text-navy sm:max-w-[22ch]"
+        className="am-h1 mb-6 max-w-full break-words font-sans font-extrabold text-white sm:max-w-[22ch]"
         {...fade(0.1)}
       >
         Qualified workers,
@@ -70,7 +70,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         <br />
         Norwegian business.
       </motion.h1>
-      <motion.p className="mb-8 max-w-[480px] leading-[1.6] text-[#555555]" {...fade(0.25)}>
+      <motion.p className="mb-8 max-w-[480px] leading-[1.6] text-white/70" {...fade(0.25)}>
         We source, screen and work to connect you with pre-qualified EU/EEA workers for construction, logistics and industry.
         We source and screen EU/EEA workers for Norwegian businesses. Employers remain responsible for compliance with
         applicable Norwegian labor law and collective agreements.
@@ -78,13 +78,13 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       <motion.div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap" {...fade(0.4)}>
         <Link
           href="/request"
-          className="btn-gold-premium relative inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center rounded-md bg-gold px-6 py-3 font-medium text-white hover:bg-gold-hover sm:w-auto"
+          className="btn-gold-premium relative inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center rounded-md bg-gold px-6 py-3 font-medium text-[#0D1B2A] hover:bg-gold-hover sm:w-auto"
         >
           Request candidates
         </Link>
         <Link
           href="/#how-it-works"
-          className="inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center rounded-md border border-navy px-6 py-3 font-medium text-navy transition-colors hover:bg-surface sm:w-auto"
+          className="inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center rounded-md border border-[rgba(201,168,76,0.3)] px-6 py-3 font-medium text-white transition-colors hover:bg-[rgba(201,168,76,0.08)] sm:w-auto"
         >
           How it works
         </Link>
@@ -95,14 +95,14 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       <p className="am-eyebrow mb-5 font-semibold uppercase tracking-[0.12em] text-[#B8860B]">
         EU/EEA Workforce Solutions · Norway
       </p>
-      <h1 className="am-h1 mb-6 max-w-full break-words font-sans font-extrabold text-navy sm:max-w-[22ch]">
+      <h1 className="am-h1 mb-6 max-w-full break-words font-sans font-extrabold text-white sm:max-w-[22ch]">
         Qualified workers,
         <br />
         delivered to your
         <br />
         Norwegian business.
       </h1>
-      <p className="mb-8 max-w-[480px] leading-[1.6] text-[#555555]">
+      <p className="mb-8 max-w-[480px] leading-[1.6] text-white/70">
         We source, screen and work to connect you with pre-qualified EU/EEA workers for construction, logistics and industry.
         We source and screen EU/EEA workers for Norwegian businesses. Employers remain responsible for compliance with
         applicable Norwegian labor law and collective agreements.
@@ -110,13 +110,13 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Link
           href="/request"
-          className="btn-gold-premium relative inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center rounded-md bg-gold px-6 py-3 font-medium text-white hover:bg-gold-hover sm:w-auto"
+          className="btn-gold-premium relative inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center rounded-md bg-gold px-6 py-3 font-medium text-[#0D1B2A] hover:bg-gold-hover sm:w-auto"
         >
           Request candidates
         </Link>
         <Link
           href="/#how-it-works"
-          className="inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center rounded-md border border-navy px-6 py-3 font-medium text-navy transition-colors hover:bg-surface sm:w-auto"
+          className="inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center rounded-md border border-[rgba(201,168,76,0.3)] px-6 py-3 font-medium text-white transition-colors hover:bg-[rgba(201,168,76,0.08)] sm:w-auto"
         >
           How it works
         </Link>
@@ -136,7 +136,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
   return (
     <>
       <RoleSelector />
-      <section className="flex min-h-screen items-center bg-white py-12 md:py-16 lg:py-[100px]">
+      <section className="flex min-h-screen items-center bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           {hero}
         </div>
@@ -151,7 +151,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[13px] text-[#0f1923]/65">
+          <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[13px] text-white/70">
             <span>Welcome back.</span>
             <a
               href="https://jobs.arbeidmatch.no"
@@ -171,7 +171,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[13px] text-[#0f1923]/65">
+          <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[13px] text-white/70">
             <span>Welcome back. Looking for work in Norway?</span>
             <a
               href="https://jobs.arbeidmatch.no"
@@ -185,20 +185,20 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         </motion.div>
       ) : null}
 
-      <section className="bg-surface py-12 md:py-16 lg:py-[100px]">
+      <section className="bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="am-h2 heading-premium-xl font-sans font-extrabold text-navy">Who are you?</h2>
+            <h2 className="am-h2 heading-premium-xl font-sans font-extrabold text-white">Who are you?</h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp" className="text-center">
-            <p className="mb-14 mt-4 text-text-secondary">Two simple paths. Choose yours.</p>
+            <p className="mb-14 mt-4 text-white/70">Two simple paths. Choose yours.</p>
           </ScrollReveal>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 lg:gap-12">
             <ScrollReveal variant="fadeUp">
-              <article className="who-choice-card card-premium rounded-xl border border-border bg-white p-10">
+              <article className="who-choice-card card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-10">
                 <Building2 className="text-gold" size={32} />
-                <h3 className="mt-4 text-2xl font-semibold text-navy">I&apos;m an employer</h3>
-                <p className="mt-2 text-text-secondary">Norwegian company looking for qualified workers</p>
+                <h3 className="mt-4 text-2xl font-semibold text-white">I&apos;m an employer</h3>
+                <p className="mt-2 text-white/70">Norwegian company looking for qualified workers</p>
                 <ul className="mt-6 space-y-2">
                   {[
                     "Fast candidate delivery",
@@ -206,7 +206,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
                     "Legal and compliant staffing",
                     "Dedicated recruiter support",
                   ].map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-navy">
+                    <li key={item} className="flex items-center gap-2 text-white">
                       <Check size={16} className="text-gold" /> {item}
                     </li>
                   ))}
@@ -220,10 +220,10 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
               </article>
             </ScrollReveal>
             <ScrollReveal variant="fadeUp">
-              <article className="who-choice-card card-premium rounded-xl border border-border bg-white p-10">
+              <article className="who-choice-card card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-10">
                 <User className="text-gold" size={32} />
-                <h3 className="mt-4 text-2xl font-semibold text-navy">I&apos;m a candidate</h3>
-                <p className="mt-2 text-text-secondary">Looking for legal work in Norway</p>
+                <h3 className="mt-4 text-2xl font-semibold text-white">I&apos;m a candidate</h3>
+                <p className="mt-2 text-white/70">Looking for legal work in Norway</p>
                 <ul className="mt-6 space-y-2">
                   {[
                     "Legal employment contracts",
@@ -231,14 +231,14 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
                     "Support before and after arrival",
                     "Direct access to active jobs",
                   ].map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-navy">
+                    <li key={item} className="flex items-center gap-2 text-white">
                       <Check size={16} className="text-gold" /> {item}
                     </li>
                   ))}
                 </ul>
                 <Link
                   href="/for-candidates"
-                  className="mt-7 inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center rounded-md bg-navy px-5 py-2.5 font-medium text-white transition active:scale-[0.98] sm:w-auto"
+                  className="mt-7 inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center rounded-md border border-[rgba(201,168,76,0.3)] bg-transparent px-5 py-2.5 font-medium text-white transition hover:bg-[rgba(201,168,76,0.08)] active:scale-[0.98] sm:w-auto"
                 >
                   Explore candidate path →
                 </Link>
@@ -255,20 +255,20 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
 
       <ScrollReveal variant="fadeIn">{howItWorksSlot}</ScrollReveal>
 
-      <section className="bg-surface py-12 md:py-16 lg:py-[100px]">
+      <section className="bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="am-h2 heading-premium-xl font-sans font-extrabold text-navy">Industries we serve</h2>
+            <h2 className="am-h2 heading-premium-xl font-sans font-extrabold text-white">Industries we serve</h2>
           </ScrollReveal>
           <ScrollRevealGrid
             className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12"
             items={industries}
             itemKey={([, title]) => title}
             renderItem={([Icon, title, text]) => (
-              <article className="card-premium rounded-xl border border-border bg-white p-6 hover:border-gold">
+              <article className="card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-6 hover:border-gold">
                 <Icon className="shrink-0 text-gold" size={24} strokeWidth={1.75} />
-                <h3 className="mt-4 text-lg font-semibold text-navy">{title}</h3>
-                <p className="mt-2 text-sm text-text-secondary">{text}</p>
+                <h3 className="mt-4 text-lg font-semibold text-white">{title}</h3>
+                <p className="mt-2 text-sm text-white/70">{text}</p>
                 <a
                   href="https://jobs.arbeidmatch.no"
                   target="_blank"
@@ -283,10 +283,10 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         </div>
       </section>
 
-      <section className="bg-white py-12 md:py-16 lg:py-[100px]">
+      <section className="bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <div className="mx-auto max-w-4xl rounded-xl bg-navy p-10 md:p-12">
+            <div className="mx-auto max-w-4xl rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-10 md:p-12">
               <h2 className="am-h2 heading-premium-xl mb-6 font-extrabold text-white">
                 Recruitment that works. For everyone.
               </h2>
@@ -322,7 +322,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
 
       <ScrollReveal variant="fadeIn">{testimonialsSlot}</ScrollReveal>
 
-      <section className="bg-surface py-12 md:py-16 lg:py-[100px]">
+      <section className="bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
         <WeldingSpecialistsCard />
       </section>
 
@@ -339,7 +339,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           <ScrollReveal variant="fadeUp">
             <Link
               href="/request"
-              className="btn-gold-premium relative mx-auto inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md bg-gold px-8 py-4 text-lg font-medium text-white hover:bg-gold-hover sm:inline-block sm:w-auto sm:max-w-none"
+              className="btn-gold-premium relative mx-auto inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md bg-gold px-8 py-4 text-lg font-medium text-[#0D1B2A] hover:bg-gold-hover sm:inline-block sm:w-auto sm:max-w-none"
             >
               Request candidates now
             </Link>
