@@ -88,7 +88,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="nb" className={`h-full overflow-x-hidden antialiased ${fontSans.variable}`}>
-      <body className="flex min-h-full flex-col overflow-x-hidden font-sans">
+      <body className="flex min-h-full flex-col overflow-x-hidden bg-[#0D1B2A] font-sans text-white">
         <ScrollProgressBar />
         <Navbar />
         <main className="flex min-w-0 flex-1 flex-col overflow-x-clip">{children}</main>

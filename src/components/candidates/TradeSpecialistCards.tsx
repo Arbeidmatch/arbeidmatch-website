@@ -9,7 +9,6 @@ import { ArrowLeft, ArrowRight, Flame, Zap } from "lucide-react";
 import SourceDisclaimer from "@/components/ui/SourceDisclaimer";
 
 const GOLD = "#C9A84C";
-const CARD_BG = "#0f1923";
 const GREEN = "#1D9E75";
 const BORDER = "rgba(201,168,76,0.15)";
 
@@ -270,9 +269,10 @@ function CardShell({ children, shellMotion }: { children: ReactNode; shellMotion
       style={{
         minHeight: 320,
         padding: "clamp(28px, 4vw, 40px) clamp(24px, 3vw, 36px)",
-        background: CARD_BG,
+        background: "rgba(255,255,255,0.03)",
         border: `1px solid ${BORDER}`,
-        borderRadius: 20,
+        borderRadius: 16,
+        color: "#ffffff",
         ...shellMotion,
       }}
     >
@@ -657,7 +657,7 @@ export default function TradeSpecialistCards() {
   const reducedMotion = usePrefersReducedMotion();
 
   return (
-    <section className="bg-white py-12 md:py-20">
+    <section className="bg-[#0D1B2A] py-12 md:py-20">
       <div className="mx-auto grid w-full max-w-[1000px] grid-cols-1 gap-6 px-4 md:grid-cols-2">
         <div className="w-full min-w-0">
           <ElectricianCard reducedMotion={reducedMotion} />
@@ -671,8 +671,9 @@ export default function TradeSpecialistCards() {
           text="Salary ranges are general market estimates based on collective agreements and publicly available sources. Actual pay depends on qualifications, employer, project type, and individual negotiation. ArbeidMatch is not responsible for salary outcomes."
           sourceLabel="Source: Arbeidstilsynet.no"
           sourceUrl="https://www.arbeidstilsynet.no/en/pay-and-engagement-of-employees/pay-and-minimum-rates-of-pay/minimum-wage/"
+          variant="dark"
         />
-        <p className="mt-2 text-center text-[12px] italic text-[#6b7280]">
+        <p className="mt-2 text-center text-[12px] italic text-white/50">
           Norwegian employer references significantly influence placement opportunities.
         </p>
       </div>

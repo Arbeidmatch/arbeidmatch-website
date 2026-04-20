@@ -17,14 +17,14 @@ export const metadata: Metadata = nbPageMetadata(
 
 export default function ForCandidatesPage() {
   return (
-    <>
-      <section className="bg-white py-12 md:py-20">
+    <div className="bg-[#0D1B2A] text-white">
+      <section className="bg-[#0D1B2A] py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-6 text-center md:px-12 lg:px-20">
           <StaggerHero className="flex flex-col items-center">
-            <h1 className="heading-premium-xl font-display text-4xl text-navy md:text-5xl">
+            <h1 className="heading-premium-xl font-display text-4xl text-white md:text-5xl">
               Find legal, quality jobs in Norway
             </h1>
-            <p className="subtitle-premium mx-auto mt-5 max-w-2xl text-lg">
+            <p className="subtitle-premium mx-auto mt-5 max-w-2xl text-lg text-white/70">
               We connect qualified EU/EEA workers with Norwegian employers. Contract terms and conditions vary by employer
               and role.
             </p>
@@ -42,7 +42,7 @@ export default function ForCandidatesPage() {
 
       <TradeSpecialistCards />
 
-      <section className="bg-surface py-12 md:py-20">
+      <section className="bg-[#0D1B2A] py-12 md:py-20">
         <div className="mx-auto grid w-full max-w-content gap-6 px-4 md:grid-cols-2 md:px-6">
           {[
             [
@@ -55,20 +55,20 @@ export default function ForCandidatesPage() {
             [Users, "Full support", "Dedicated support throughout your entire process"],
           ].map(([Icon, title, text]) => (
             <ScrollReveal key={title as string} variant="fadeUp">
-              <article className="card-premium rounded-xl border border-border bg-white p-8">
+              <article className="card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-8 text-white">
                 <Icon className="text-gold" size={30} />
-                <h3 className="mt-4 text-xl font-semibold text-navy">{title as string}</h3>
-                <p className="mt-2 text-text-secondary">{text as string}</p>
+                <h3 className="mt-4 text-xl font-semibold text-white">{title as string}</h3>
+                <p className="mt-2 text-white/70">{text as string}</p>
               </article>
             </ScrollReveal>
           ))}
         </div>
       </section>
 
-      <section className="bg-white py-12 md:py-20">
+      <section className="bg-[#0D1B2A] py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="heading-premium-xl font-display text-4xl text-navy">Industries hiring now</h2>
+            <h2 className="heading-premium-xl font-display text-4xl text-white">Industries hiring now</h2>
           </ScrollReveal>
           <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
@@ -84,10 +84,10 @@ export default function ForCandidatesPage() {
                   href="https://jobs.arbeidmatch.no"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="industry-card card-premium card-premium-gold group block h-full cursor-pointer rounded-xl border border-border bg-white p-6 no-underline"
+                  className="industry-card card-premium card-premium-gold group block h-full cursor-pointer rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-6 no-underline text-white"
                 >
                   <Icon className="text-gold" size={26} />
-                  <h3 className="mt-4 font-semibold text-navy">{title as string}</h3>
+                  <h3 className="mt-4 font-semibold text-white">{title as string}</h3>
                   <span className="mt-3 inline-block text-sm text-gold transition-colors group-hover:text-gold-hover">
                     View jobs →
                   </span>
@@ -98,10 +98,10 @@ export default function ForCandidatesPage() {
         </div>
       </section>
 
-      <section className="bg-surface py-12 md:py-20">
+      <section className="bg-[#0D1B2A] py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="heading-premium-xl font-display text-4xl text-navy">How to apply</h2>
+            <h2 className="heading-premium-xl font-display text-4xl text-white">How to apply</h2>
           </ScrollReveal>
           <div className="mx-auto mt-10 grid max-w-3xl gap-4">
             {[
@@ -110,7 +110,7 @@ export default function ForCandidatesPage() {
               "Our goal is to contact you within 5 business days",
             ].map((step, i) => (
               <ScrollReveal key={step} variant="fadeUp">
-                <p className="rounded-xl border border-border bg-white p-6 text-lg text-navy">
+                <p className="rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-6 text-lg text-white">
                   <span className="mr-2 font-bold text-gold">{i + 1}.</span>
                   {step}
                 </p>
@@ -139,7 +139,7 @@ export default function ForCandidatesPage() {
         </div>
       </section>
 
-      <section className="bg-white py-12 text-center md:py-20">
+      <section className="bg-[#0D1B2A] py-12 text-center md:py-20">
         <div className="space-y-4">
           <ScrollReveal variant="fadeUp">
             <a
@@ -160,6 +160,6 @@ export default function ForCandidatesPage() {
 
       <PreFooterCrossLinks variant="candidates" />
       <CandidateFeedbackPill />
-    </>
+    </div>
   );
 }
