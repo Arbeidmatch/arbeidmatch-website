@@ -3,6 +3,7 @@ const WEBHOOKS = {
   contacts: process.env.SLACK_WEBHOOK_CONTACTS,
   recruiters: process.env.SLACK_WEBHOOK_RECRUITERS,
   dsbLeads: process.env.SLACK_WEBHOOK_DSB_LEADS,
+  nonEu: process.env.SLACK_WEBHOOK_NON_EU,
   errors: process.env.SLACK_WEBHOOK_URL,
 };
 
