@@ -38,6 +38,7 @@ export default function PremiumArticleClient({ article }: { article: PremiumArti
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
   const [email, setEmail] = useState("");
+  const [reauthError, setReauthError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -66,13 +67,21 @@ export default function PremiumArticleClient({ article }: { article: PremiumArti
   const onReauth = useCallback(async (nextEmail: string) => {
     const e = nextEmail.trim().toLowerCase();
     if (!e) return;
-    await fetch("/api/premium/start-trial", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ email: e }),
-    });
-    window.location.reload();
+    setReauthError("");
+    try {
+      const response = await fetch("/api/premium/start-trial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: e }),
+      });
+      if (!response.ok) {
+        throw new Error("premium-start-trial");
+      }
+      window.location.reload();
+    } catch {
+      setReauthError("Could not refresh access. Please try again.");
+    }
   }, []);
 
   const related = getRelatedArticles(article.slug, 3);
@@ -203,6 +212,11 @@ export default function PremiumArticleClient({ article }: { article: PremiumArti
       </div>
 
       {locked ? <PaywallOverlay email={email} onReauth={onReauth} /> : null}
+      {locked && reauthError ? (
+        <p className="fixed bottom-4 left-1/2 z-[90] -translate-x-1/2 rounded-md border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+          {reauthError}
+        </p>
+      ) : null}
     </div>
   );
 }

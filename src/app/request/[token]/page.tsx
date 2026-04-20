@@ -405,6 +405,7 @@ export default function RequestTokenPage() {
   const [animating, setAnimating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [submitNotice, setSubmitNotice] = useState("");
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [form, setForm] = useState<RequestForm>(initialForm);
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
@@ -501,6 +502,7 @@ export default function RequestTokenPage() {
   const handleSubmit = async (event?: FormEvent) => {
     event?.preventDefault();
     setSubmitError("");
+    setSubmitNotice("");
     setSubmitStatus("idle");
     setIsSubmitting(true);
 
@@ -584,11 +586,18 @@ export default function RequestTokenPage() {
       });
       if (!saveRes.ok) throw new Error("save-employer-request");
 
-      await fetch("/api/send-request-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }).catch(() => null);
+      try {
+        const emailRes = await fetch("/api/send-request-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!emailRes.ok) {
+          throw new Error("send-request-email");
+        }
+      } catch {
+        setSubmitNotice("Request saved, but we could not send the confirmation email right now.");
+      }
 
       await fetch(`/api/verify-token?token=${token}`, { method: "DELETE" }).catch(() => null);
       setSubmitStatus("success");
@@ -612,6 +621,7 @@ export default function RequestTokenPage() {
             <p className="mt-2 text-sm text-white/60">
               Thank you, {tokenData?.full_name || "there"}. We will review your request and be in touch with you soon.
             </p>
+            {submitNotice ? <p className="mt-3 text-xs text-amber-300">{submitNotice}</p> : null}
             <Link
               href="/"
               className="mt-5 inline-flex rounded-[10px] bg-[#C9A84C] px-6 py-2.5 text-sm font-semibold text-[#0a0f18] transition hover:bg-[#b8953f]"

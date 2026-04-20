@@ -3,7 +3,6 @@ import clipboardy from "clipboardy";
 const errorText = process.argv[2];
 
 if (!errorText) {
-  console.log('Usage: npx ts-node src/scripts/parse-error-email.ts "error text"');
   process.exit(1);
 }
 
@@ -22,4 +21,3 @@ Report in Romanian with da/nu table.
 `.trim();
 
 clipboardy.writeSync(prompt);
-console.log("Prompt copied to clipboard. Paste in Cursor.");

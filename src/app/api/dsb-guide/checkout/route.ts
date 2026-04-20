@@ -23,8 +23,6 @@ export async function POST(req: NextRequest) {
     const withDiscount = body.withDiscount === true;
     guideTypeForNotify = guideType;
 
-    console.log("DSB Checkout request:", { guideType, withDiscount });
-
     if (guideType !== "eu" && guideType !== "non-eu") {
       return NextResponse.json({ error: "Missing guide type" }, { status: 400 });
     }

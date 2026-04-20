@@ -21,32 +21,36 @@ const createTokenSchema = z
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const supabase = getSupabaseAdminClient();
-  const token = request.nextUrl.searchParams.get("token");
-  const validToken = token ? z.string().uuid().safeParse(token).success : false;
+  try {
+    const supabase = getSupabaseAdminClient();
+    const token = request.nextUrl.searchParams.get("token");
+    const validToken = token ? z.string().uuid().safeParse(token).success : false;
 
-  if (!validToken || !supabase) {
-    return noStoreJson({ valid: false }, { status: 400 });
+    if (!validToken || !supabase) {
+      return noStoreJson({ valid: false }, { status: 400 });
+    }
+
+    const { data, error } = await supabase
+      .from("request_tokens")
+      .select("id, expires_at, used")
+      .eq("token", token)
+      .single();
+
+    if (error || !data) {
+      return noStoreJson({ valid: false }, { status: 404 });
+    }
+
+    const isExpired = new Date(data.expires_at) < new Date();
+    const isUsed = data.used;
+
+    if (isExpired || isUsed) {
+      return noStoreJson({ valid: false }, { status: 410 });
+    }
+
+    return noStoreJson({ valid: true });
+  } catch {
+    return noStoreJson({ error: "Internal server error" }, { status: 500 });
   }
-
-  const { data, error } = await supabase
-    .from("request_tokens")
-    .select("id, expires_at, used")
-    .eq("token", token)
-    .single();
-
-  if (error || !data) {
-    return noStoreJson({ valid: false }, { status: 404 });
-  }
-
-  const isExpired = new Date(data.expires_at) < new Date();
-  const isUsed = data.used;
-
-  if (isExpired || isUsed) {
-    return noStoreJson({ valid: false }, { status: 410 });
-  }
-
-  return noStoreJson({ valid: true });
 }
 
 export async function POST(request: NextRequest) {

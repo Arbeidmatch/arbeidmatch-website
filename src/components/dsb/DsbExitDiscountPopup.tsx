@@ -24,8 +24,6 @@ const CARD_BG = "#0f1923";
 const GREEN = "#1D9E75";
 
 export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopupProps) {
-  if (!EXIT_DISCOUNT_ENABLED) return null;
-
   const reduceMotion = useReducedMotion();
   const [mounted, setMounted] = useState(false);
   const [shown, setShown] = useState(false);
@@ -282,7 +280,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
     );
   }
 
-  if (!mounted) return null;
+  if (!EXIT_DISCOUNT_ENABLED || !mounted) return null;
 
   const backdropTransition = instant ? { duration: 0 } : { duration: 0.3, ease: "easeOut" as const };
   const modalTransition = instant ? { duration: 0 } : { duration: 0.3, ease: "easeOut" as const };
