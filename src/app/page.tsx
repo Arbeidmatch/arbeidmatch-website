@@ -26,13 +26,13 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   return (
-    <>
+    <div className="bg-[#0D1B2A] text-white">
       <HomeFaqJsonLd />
       <TikTokLiveBanner />
       <HomePageClient
         howItWorksSlot={<HowItWorksInteractive />}
         testimonialsSlot={<Testimonials />}
       />
-    </>
+    </div>
   );
 }

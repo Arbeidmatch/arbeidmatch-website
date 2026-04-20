@@ -59,7 +59,7 @@ function megaHasActive(pathname: string): boolean {
 const megaColLabelClass =
   "am-eyebrow mb-3 font-semibold uppercase tracking-[0.1em] text-[#C9A84C]";
 const megaLinkClass =
-  "flex min-h-[44px] min-w-[44px] items-center rounded-md px-6 py-3 text-[14px] text-navy transition-colors duration-150 hover:bg-black/[0.04] lg:min-h-0 lg:min-w-0 lg:px-3 lg:py-2";
+  "flex min-h-[44px] min-w-[44px] items-center rounded-md px-6 py-3 text-[14px] text-[rgba(255,255,255,0.7)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.03)] hover:text-white lg:min-h-0 lg:min-w-0 lg:px-3 lg:py-2";
 
 const megaPanelInnerClass =
   "rounded-2xl border border-black/[0.06] bg-[#0D1B2A] p-8 shadow-[0_8px_32px_rgba(255,255,255,0.03)]";
@@ -121,7 +121,7 @@ export default function Navbar() {
   }, [isOpen]);
 
   const navItemClass =
-    "shrink-0 text-[15px] font-normal text-[#555555] transition-[color,font-weight] duration-150 hover:font-medium hover:text-[#0D1B2A]";
+    "shrink-0 text-[15px] font-normal text-[rgba(255,255,255,0.7)] transition-[color,font-weight] duration-150 hover:font-medium hover:text-white";
 
   const headerSurface = scrolled
     ? "border-b border-black/[0.06] bg-[#0D1B2A]/95 shadow-[0_1px_0_rgba(255,255,255,0.03)] backdrop-blur-md"
@@ -173,9 +173,9 @@ export default function Navbar() {
         className={`sticky top-0 transition-colors duration-200 ${headerSurface} ${isOpen ? "z-30" : "z-[210]"}`}
       >
         <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-4 px-6 md:h-16 md:min-h-[64px] md:px-12 lg:h-[72px] lg:min-h-[72px] lg:gap-10 lg:px-20">
-          <Link href="/" className="block min-h-[44px] shrink-0 text-2xl leading-[44px] whitespace-nowrap">
-            <span className="font-bold text-[#ffffff]">Arbeid</span>
-            <span className="font-bold text-[#C9A84C]">Match</span>
+          <Link href="/" className="block min-h-[44px] shrink-0 whitespace-nowrap leading-[44px]">
+            <span style={{ color: "#ffffff", fontWeight: 700, fontSize: "1.25rem" }}>Arbeid</span>
+            <span style={{ color: "#C9A84C", fontWeight: 700, fontSize: "1.25rem" }}>Match</span>
           </Link>
 
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-10 lg:flex">
@@ -183,7 +183,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`${navItemClass} ${linkActive(pathname, link.href) ? "font-medium text-[#0D1B2A] underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""}`}
+                className={`${navItemClass} ${linkActive(pathname, link.href) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""}`}
               >
                 {link.label}
               </Link>
@@ -192,7 +192,7 @@ export default function Navbar() {
             <div className="group/mer relative">
               <span
                 className={`inline-flex min-h-[44px] cursor-default items-center gap-1 ${navItemClass} ${
-                  megaHasActive(pathname) ? "font-medium text-[#0D1B2A] underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""
+                  megaHasActive(pathname) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""
                 }`}
               >
                 Mer
