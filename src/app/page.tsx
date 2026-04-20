@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   return (
-    <div className="bg-[#0D1B2A] text-white">
+    <div className="bg-[#0D1B2A] text-white" style={{ background: "#0D1B2A", minHeight: "100vh" }}>
       <HomeFaqJsonLd />
       <TikTokLiveBanner />
       <HomePageClient

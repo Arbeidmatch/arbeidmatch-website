@@ -43,7 +43,7 @@ export default function ForCandidatesPage() {
       <TradeSpecialistCards />
 
       <section className="bg-[#0D1B2A] py-12 md:py-20">
-        <div className="mx-auto grid w-full max-w-content gap-6 px-4 md:grid-cols-2 md:px-6">
+        <div className="mx-auto grid w-full max-w-content grid-cols-1 items-stretch gap-6 px-4 md:grid-cols-2 md:px-6">
           {[
             [
               CheckCircle2,
@@ -55,7 +55,7 @@ export default function ForCandidatesPage() {
             [Users, "Full support", "Dedicated support throughout your entire process"],
           ].map(([Icon, title, text]) => (
             <ScrollReveal key={title as string} variant="fadeUp">
-              <article className="card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-8 text-white">
+              <article className="card-premium flex h-full flex-col rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-8 text-white">
                 <Icon className="text-gold" size={30} />
                 <h3 className="mt-4 text-xl font-semibold text-white">{title as string}</h3>
                 <p className="mt-2 text-white/70">{text as string}</p>

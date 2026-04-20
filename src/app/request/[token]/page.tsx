@@ -412,6 +412,11 @@ export default function RequestTokenPage() {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [citySearch, setCitySearch] = useState("");
 
+  const scrollToTop = () => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   useEffect(() => {
     setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, []);
@@ -430,14 +435,22 @@ export default function RequestTokenPage() {
     if (next < 0 || next > TOTAL_STEPS - 1 || animating) return;
     if (reducedMotion) {
       setStep(next);
+      scrollToTop();
       return;
     }
     setAnimating(true);
     setTimeout(() => {
       setStep(next);
       setAnimating(false);
+      scrollToTop();
     }, 180);
   };
+
+  useEffect(() => {
+    if (submitStatus === "success") {
+      scrollToTop();
+    }
+  }, [submitStatus]);
 
   const toggleCert = (value: string) => {
     setForm((prev) => {

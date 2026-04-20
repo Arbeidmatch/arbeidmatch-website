@@ -31,6 +31,13 @@ function IconTikTok({ className }: { className?: string }) {
 
 const inputClass =
   "w-full rounded-lg border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.05)] px-4 py-3 text-white placeholder:text-[rgba(255,255,255,0.35)] focus:outline-none";
+const inputInlineStyle = {
+  background: "rgba(255,255,255,0.05)",
+  border: "1px solid rgba(201,168,76,0.15)",
+  color: "white",
+  borderRadius: 8,
+  padding: "12px 16px",
+};
 
 export default function ContactPageClient() {
   const [submitted, setSubmitted] = useState(false);
@@ -162,6 +169,11 @@ export default function ContactPageClient() {
           <form
             onSubmit={handleSubmit}
             className="card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-7 shadow-[var(--shadow-card)] md:ml-8 md:p-10"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(201,168,76,0.15)",
+              borderRadius: 16,
+            }}
           >
             <h2 className="text-2xl font-bold text-white">Send us a message</h2>
             <p className="mt-2 text-sm text-white/70">
@@ -179,16 +191,35 @@ export default function ContactPageClient() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="form-label-premium text-[13px] text-white/70">
                   Your name
-                  <input required name="name" className={inputClass} placeholder="Your name" />
+                  <input
+                    required
+                    name="name"
+                    className={inputClass}
+                    placeholder="Your name"
+                    style={inputInlineStyle}
+                  />
                 </label>
                 <label className="form-label-premium text-[13px] text-white/70">
                   Company
-                  <input required name="company" className={inputClass} placeholder="Company" />
+                  <input
+                    required
+                    name="company"
+                    className={inputClass}
+                    placeholder="Company"
+                    style={inputInlineStyle}
+                  />
                 </label>
               </div>
               <label className="form-label-premium text-[13px] text-white/70">
                 Work email
-                <input required type="email" name="email" className={inputClass} placeholder="name@company.com" />
+                <input
+                  required
+                  type="email"
+                  name="email"
+                  className={inputClass}
+                  placeholder="name@company.com"
+                  style={inputInlineStyle}
+                />
               </label>
               <label className="form-label-premium text-[13px] text-white/70">
                 I need
@@ -202,6 +233,7 @@ export default function ContactPageClient() {
                       setNeedOther("");
                     }
                   }}
+                  style={inputInlineStyle}
                 >
                   <option>Qualified workers</option>
                   <option>Skilled tradespeople</option>
@@ -221,6 +253,7 @@ export default function ContactPageClient() {
                     className={inputClass}
                     value={needOther}
                     onChange={(event) => setNeedOther(event.target.value)}
+                    style={inputInlineStyle}
                   />
                 </label>
               )}
@@ -231,12 +264,21 @@ export default function ContactPageClient() {
                   rows={5}
                   className={`${inputClass} min-h-[100px]`}
                   placeholder="Tell us about your needs"
+                  style={inputInlineStyle}
                 />
               </label>
               <button
                 type="submit"
                 disabled={status === "submitting"}
                 className="btn-micro btn-gold-shine w-full rounded-[10px] bg-[#C9A84C] py-[14px] font-bold text-[#0D1B2A] transition-colors hover:bg-[#d8bc6a]"
+                style={{
+                  background: "#C9A84C",
+                  color: "#0D1B2A",
+                  fontWeight: 700,
+                  borderRadius: 10,
+                  padding: "14px",
+                  width: "100%",
+                }}
               >
                 {status === "submitting" ? "Sending..." : "Send message →"}
               </button>

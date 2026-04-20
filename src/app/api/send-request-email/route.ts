@@ -55,10 +55,14 @@ export async function POST(request: NextRequest) {
     }
     const data = sanitizeStringRecord(rawData);
 
+    const categoryValue = data.category || data.industry || "";
+    const numberOfPositionsValue = data.numberOfPositions || data.candidates || "";
+    const contractTypeValue = data.contractType || data.contract_type || "";
+    const cityValue = data.city || data.location || "";
     const selectedPosition =
-      data.position === "Other" ? data.positionOther || "Other" : data.position;
+      data.position === "Other" ? data.positionOther || "Other" : data.position || data.workerType || "";
     const selectedStartDate =
-      data.startDate === "Other" ? data.startDateOther || "Other" : data.startDate;
+      data.startDate === "Other" ? data.startDateOther || "Other" : data.startDate || data.urgency || "";
     const leadSource =
       data.howDidYouHear === "Social media" && data.socialMediaPlatform === "Other"
         ? data.socialMediaOther || "Social media"
@@ -128,7 +132,7 @@ export async function POST(request: NextRequest) {
     };
 
     const companyName = data.company ?? "Unknown company";
-    const cityLabel = data.city || "-";
+    const cityLabel = cityValue || "-";
     const nowLabel = new Date().toISOString();
     const adminUrl = "https://www.arbeidmatch.no/admin";
     const adminBody = `
@@ -146,11 +150,11 @@ export async function POST(request: NextRequest) {
       ${sectionHtml(
         "Position details",
         [
-          rowHtml("Category", data.category),
+          rowHtml("Category", categoryValue),
           rowHtml("Position", selectedPosition),
-          rowHtml("Contract type", data.contractType),
+          rowHtml("Contract type", contractTypeValue),
           rowHtml("Qualification", data.qualification),
-          rowHtml("Candidates needed", data.numberOfPositions),
+          rowHtml("Candidates needed", numberOfPositionsValue),
           rowHtml("Certifications", data.certifications),
           rowHtml("Urgency", selectedStartDate),
         ],
@@ -172,8 +176,8 @@ export async function POST(request: NextRequest) {
       ${sectionHtml(
         "Location",
         [
-          rowHtml("City", data.city),
-          rowHtml("Region", data.localTravelOther || data.city),
+          rowHtml("City", cityValue),
+          rowHtml("Region", data.localTravelOther || cityValue),
           rowHtml("Additional notes", data.notes || data.job_summary || leadSource),
         ],
         32,
@@ -182,8 +186,8 @@ export async function POST(request: NextRequest) {
 
     const employerRows = [
       { label: "Position", value: selectedPosition },
-      { label: "Number of candidates", value: data.numberOfPositions },
-      { label: "Location", value: data.city },
+      { label: "Number of candidates", value: numberOfPositionsValue },
+      { label: "Location", value: cityValue },
       { label: "Preferred start", value: selectedStartDate },
     ].filter((r) => hasValue(r.value));
 
@@ -257,11 +261,11 @@ export async function POST(request: NextRequest) {
     pushSlackField(slackFields, "Contact name", data.full_name);
     pushSlackField(slackFields, "Email", data.email);
     pushSlackField(slackFields, "Phone", data.phone);
-    pushSlackField(slackFields, "Job category", data.category);
+    pushSlackField(slackFields, "Job category", categoryValue);
     pushSlackField(slackFields, "Trade / position", selectedPosition);
-    pushSlackField(slackFields, "Location / city", data.city);
-    pushSlackField(slackFields, "Number of workers needed", data.numberOfPositions);
-    pushSlackField(slackFields, "Contract type", data.contractType);
+    pushSlackField(slackFields, "Location / city", cityValue);
+    pushSlackField(slackFields, "Number of workers needed", numberOfPositionsValue);
+    pushSlackField(slackFields, "Contract type", contractTypeValue);
     pushSlackField(slackFields, "Start date", selectedStartDate);
     pushSlackField(
       slackFields,
@@ -331,6 +335,7 @@ export async function POST(request: NextRequest) {
 
     return noStoreJson({ success: true });
   } catch (error) {
+    console.error("[/api/send-request-email] failed to send email", error);
     logApiError("send-request-email", error);
     await notifyError({
       route: "/api/send-request-email",

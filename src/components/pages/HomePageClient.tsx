@@ -138,7 +138,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
   ];
 
   return (
-    <>
+    <div style={{ background: "#0D1B2A", minHeight: "100vh" }}>
       <RoleSelector />
       <section className="flex items-center bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
@@ -350,6 +350,6 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           </ScrollReveal>
         </div>
       </section>
-    </>
+    </div>
   );
 }
