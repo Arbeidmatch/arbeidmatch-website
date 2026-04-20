@@ -113,14 +113,12 @@ function getCurrentStep(completedCards: number) {
 function Card({
   number,
   title,
-  isVisible,
   reducedMotion,
   delayMs,
   children,
 }: {
   number: string;
   title: string;
-  isVisible: boolean;
   reducedMotion: boolean;
   delayMs: number;
   children: ReactNode;
@@ -129,8 +127,8 @@ function Card({
     <div
       className="group relative mx-auto mb-4 w-full max-w-[720px] overflow-hidden rounded-[20px] border border-[rgba(201,168,76,0.12)] bg-white/[0.03] p-6 transition-all duration-250 hover:border-[rgba(201,168,76,0.3)] hover:bg-white/[0.04] md:p-8"
       style={{
-        opacity: reducedMotion ? 1 : isVisible ? 1 : 0,
-        transform: reducedMotion ? "none" : isVisible ? "translateY(0)" : "translateY(20px)",
+        opacity: 1,
+        transform: "translateY(0)",
         transitionDuration: reducedMotion ? "0ms" : "400ms",
         transitionTimingFunction: "ease-out",
         transitionDelay: reducedMotion ? "0ms" : `${delayMs}ms`,
@@ -191,7 +189,7 @@ export default function DetailedRequestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [formData, setFormData] = useState<RequestForm>(initialData);
-  const [visibleCards, setVisibleCards] = useState<number[]>([]);
+  const [, setVisibleCards] = useState<number[]>([0, 1, 2, 3, 4]);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
   const [feedbackNote, setFeedbackNote] = useState("");
@@ -251,7 +249,7 @@ export default function DetailedRequestPage() {
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-          const index = cardRefs.current.findIndex((element) => element === entry.target);
+        const index = cardRefs.current.findIndex((element) => element === entry.target);
           if (index >= 0) {
             setVisibleCards((prev) => (prev.includes(index) ? prev : [...prev, index]));
           }
@@ -508,7 +506,7 @@ export default function DetailedRequestPage() {
             cardRefs.current[0] = element;
           }}
         >
-          <Card number="01" title="Job Information" isVisible={visibleCards.includes(0)} reducedMotion={reducedMotion} delayMs={0}>
+          <Card number="01" title="Job Information" reducedMotion={reducedMotion} delayMs={0}>
             <div className="space-y-4">
               <div>
                 <label className={labelClass}>Job title / Role</label>
@@ -550,7 +548,7 @@ export default function DetailedRequestPage() {
             cardRefs.current[1] = element;
           }}
         >
-          <Card number="02" title="Contract & Pay" isVisible={visibleCards.includes(1)} reducedMotion={reducedMotion} delayMs={100}>
+          <Card number="02" title="Contract & Pay" reducedMotion={reducedMotion} delayMs={100}>
             <div className="space-y-4">
               <div>
                 <label className={labelClass}>Contract type</label>
@@ -680,7 +678,7 @@ export default function DetailedRequestPage() {
             cardRefs.current[2] = element;
           }}
         >
-          <Card number="03" title="Location & Timeline" isVisible={visibleCards.includes(2)} reducedMotion={reducedMotion} delayMs={200}>
+          <Card number="03" title="Location & Timeline" reducedMotion={reducedMotion} delayMs={200}>
             <div className="space-y-4">
               <div>
                 <label className={labelClass}>Work location in Norway</label>
@@ -718,7 +716,7 @@ export default function DetailedRequestPage() {
             cardRefs.current[3] = element;
           }}
         >
-          <Card number="04" title="Candidate Requirements" isVisible={visibleCards.includes(3)} reducedMotion={reducedMotion} delayMs={300}>
+          <Card number="04" title="Candidate Requirements" reducedMotion={reducedMotion} delayMs={300}>
             <div className="space-y-4">
               <div>
                 <label className={labelClass}>Required experience</label>
@@ -798,7 +796,7 @@ export default function DetailedRequestPage() {
             cardRefs.current[4] = element;
           }}
         >
-          <Card number="05" title="Additional Information" isVisible={visibleCards.includes(4)} reducedMotion={reducedMotion} delayMs={400}>
+          <Card number="05" title="Additional Information" reducedMotion={reducedMotion} delayMs={400}>
             <div>
               <label className={labelClass}>Additional notes</label>
               <textarea
