@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
-import { emailParagraph, formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
+import { formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
-import { buildEmail } from "@/lib/emailTemplate";
+import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTemplate";
 
 type SiteFeedbackPayload = {
   rating?: number;
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     const submittedAt = formatEmailTimestampCet();
 
-    const internalBody = [
+    const internalBody = emailFieldRows([
       { label: "Rating", value: `${rating}/10` },
       { label: "Email", value: emailRaw },
       { label: "Source", value: sourceRaw },
@@ -61,12 +61,7 @@ export async function POST(request: NextRequest) {
       { label: "Category", value: issueCategoryRaw || "-" },
       { label: "Improvement note", value: noteRaw || "-" },
       { label: "Issue details", value: issueDetailsRaw || "-" },
-    ]
-      .map(
-        (row) =>
-          `<div style="padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.08);"><div style="color:rgba(255,255,255,0.5);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">${row.label}</div><div style="color:#ffffff;font-size:15px;font-weight:500;margin-top:4px;">${row.value}</div></div>`,
-      )
-      .join("");
+    ]);
 
     await transporter.sendMail({
       ...mailHeaders(),
@@ -80,9 +75,9 @@ export async function POST(request: NextRequest) {
     });
 
     const userInner = [
-      emailParagraph("Thank you for sharing your feedback with us."),
-      emailParagraph(`We received your rating: <strong>${rating}/10</strong>.`),
-      emailParagraph("Your input helps us improve the candidate and employer experience."),
+      emailBodyParagraph("Thank you for sharing your feedback with us."),
+      emailBodyParagraph(`We received your rating: <strong>${rating}/10</strong>.`),
+      emailBodyParagraph("Your input helps us improve the candidate and employer experience."),
     ].join("");
 
     await transporter.sendMail({

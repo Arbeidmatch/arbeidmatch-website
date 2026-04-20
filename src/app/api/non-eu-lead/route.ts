@@ -2,10 +2,9 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 
 import { buildNonEuLeadEmail } from "@/lib/emails/nonEuLeadEmail";
-import { buildEmail } from "@/lib/emailTemplate";
+import { buildEmail, emailFieldRows } from "@/lib/emailTemplate";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
-import { escapeHtml } from "@/lib/htmlSanitizer";
 import {
   getRateLimitResult,
   hasHoneypotValue,
@@ -74,15 +73,17 @@ export async function POST(request: NextRequest) {
       html: buildNonEuLeadEmail(firstName),
     });
 
-    const safeFirst = escapeHtml(firstName);
-    const safeEmail = escapeHtml(emailLower);
     await transporter.sendMail({
       ...mailHeaders(),
       to: "post@arbeidmatch.no",
       subject: `New Non-EU Lead: ${firstName} ${emailLower}`,
       html: buildEmail({
         title: "New Non-EU Lead",
-        body: `<p style="margin:0;">Name: ${safeFirst}<br/>Email: ${safeEmail}</p>`,
+        preheader: "Internal lead notification",
+        body: emailFieldRows([
+          { label: "Name", value: firstName },
+          { label: "Email", value: emailLower },
+        ]),
       }),
     });
 

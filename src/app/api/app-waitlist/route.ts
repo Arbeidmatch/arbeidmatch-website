@@ -5,12 +5,8 @@ import { isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
-import { buildEmail } from "@/lib/emailTemplate";
-import {
-  emailParagraph,
-  inDevelopmentBadgeStatic,
-  mailHeaders,
-} from "@/lib/emailPremiumTemplate";
+import { buildEmail, emailBodyParagraph } from "@/lib/emailTemplate";
+import { mailHeaders } from "@/lib/emailPremiumTemplate";
 
 export const dynamic = "force-dynamic";
 
@@ -53,12 +49,12 @@ export async function POST(request: NextRequest) {
     if (transporter) {
       try {
         const inner = [
-          emailParagraph("Hi there,"),
-          emailParagraph(
+          emailBodyParagraph("Hi there,"),
+          emailBodyParagraph(
             "You are on the list. We will notify you as soon as the ArbeidMatch app is available on iOS and Android.",
           ),
-          `<div style="text-align:center;margin:8px 0 20px;">${inDevelopmentBadgeStatic()}</div>`,
-          emailParagraph("We are building something great and you will be among the first to know."),
+          `<p style="text-align:center;margin:8px 0 20px;"><span style="display:inline-block;padding:8px 14px;border-radius:999px;border:1px solid rgba(184,134,11,0.45);background:rgba(184,134,11,0.1);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#C9A84C;">In Development</span></p>`,
+          emailBodyParagraph("We are building something great and you will be among the first to know."),
         ].join("");
         await transporter.sendMail({
           ...mailHeaders(),

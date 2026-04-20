@@ -4,12 +4,8 @@ import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
-import { buildEmail } from "@/lib/emailTemplate";
-import {
-  emailParagraph,
-  mailHeaders,
-  premiumCtaButton,
-} from "@/lib/emailPremiumTemplate";
+import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTemplate";
+import { mailHeaders, premiumCtaButton } from "@/lib/emailPremiumTemplate";
 
 type ContactPayload = {
   name?: string;
@@ -69,18 +65,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const internalBody = [
+    const internalBody = emailFieldRows([
       { label: "Name", value: name },
       { label: "Company", value: company },
       { label: "Email", value: email },
       { label: "Request type", value: need },
       { label: "Message", value: message },
-    ]
-      .map(
-        (row) =>
-          `<div style="padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.08);"><div style="color:rgba(255,255,255,0.5);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">${row.label}</div><div style="color:#ffffff;font-size:15px;font-weight:500;margin-top:4px;">${row.value}</div></div>`,
-      )
-      .join("");
+    ]);
 
     await transporter.sendMail({
       ...mailHeaders(),
@@ -96,10 +87,10 @@ export async function POST(request: NextRequest) {
     const safeName = escapeHtml(name);
     const safeNeed = escapeHtml(need);
     const userInner = [
-      emailParagraph(`Hi ${safeName},`),
-      emailParagraph("Thank you for contacting us. We received your message and will respond shortly."),
-      emailParagraph(`<strong>Request type:</strong> ${safeNeed}`),
-      `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</div>`,
+      emailBodyParagraph(`Hi ${safeName},`),
+      emailBodyParagraph("Thank you for contacting us. We received your message and will respond shortly."),
+      emailBodyParagraph(`<strong>Request type:</strong> ${safeNeed}`),
+      `<p style="margin:8px 0 0;text-align:center;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</p>`,
     ].join("");
 
     await transporter.sendMail({

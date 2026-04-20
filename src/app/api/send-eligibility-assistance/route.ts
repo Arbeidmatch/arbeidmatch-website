@@ -3,16 +3,10 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
-import {
-  emailDataTable,
-  emailParagraph,
-  emailSupportAfterCta,
-  mailHeaders,
-  premiumCtaButton,
-} from "@/lib/emailPremiumTemplate";
+import { mailHeaders, premiumCtaButton } from "@/lib/emailPremiumTemplate";
 import { createEligibilityVerificationToken } from "@/lib/notificationToken";
 import { notifyError } from "@/lib/errorNotifier";
-import { buildEmail } from "@/lib/emailTemplate";
+import { buildEmail, emailBodyParagraph, emailBodySupportHint, emailFieldRows } from "@/lib/emailTemplate";
 
 export const dynamic = "force-dynamic";
 
@@ -179,18 +173,18 @@ export async function POST(request: NextRequest) {
     const verificationUrl = `${baseUrl}/api/verify-notification-email?token=${encodeURIComponent(token)}`;
 
     const candidateInner = [
-      emailParagraph(
+      emailBodyParagraph(
         "Please verify your email address to confirm consent and activate your notification subscription.",
       ),
-      emailDataTable([
+      emailFieldRows([
         { label: "Target region", value: data.targetRegion || "-" },
         { label: "Target country", value: data.targetCountry || "-" },
         { label: "Notification email", value: emailTrimmed },
         { label: "Marketing consent", value: data.marketingConsent || "No" },
       ]),
-      `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton(verificationUrl, "Verify email and activate notifications")}</div>`,
-      emailSupportAfterCta(),
-      `<div style="text-align:center;margin:16px 0 0;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</div>`,
+      `<p style="margin:8px 0 0;text-align:center;">${premiumCtaButton(verificationUrl, "Verify email and activate notifications")}</p>`,
+      emailBodySupportHint(),
+      `<p style="margin:16px 0 0;text-align:center;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</p>`,
     ].join("");
 
     await transporter.sendMail({

@@ -5,12 +5,8 @@ import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
-import { buildEmail } from "@/lib/emailTemplate";
-import {
-  emailDataTable,
-  emailParagraph,
-  mailHeaders,
-} from "@/lib/emailPremiumTemplate";
+import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTemplate";
+import { mailHeaders } from "@/lib/emailPremiumTemplate";
 
 const PARTNER_TYPES = new Set(["influencer", "recruiter", "learner"]);
 const HAS_COMPANY = new Set(["yes", "want_setup", "not_yet"]);
@@ -117,17 +113,17 @@ export async function POST(request: NextRequest) {
 
     const safeName = escapeHtml(full_name);
     const applicantHtml = [
-      emailParagraph(`Hi ${safeName},`),
-      emailParagraph("Thank you for applying to the ArbeidMatch Recruiter Network."),
-      emailDataTable([
+      emailBodyParagraph(`Hi ${safeName},`),
+      emailBodyParagraph("Thank you for applying to the ArbeidMatch Recruiter Network."),
+      emailFieldRows([
         { label: "Name", value: full_name },
         { label: "Country", value: country },
         { label: "Region", value: region },
         { label: "Partner type", value: typeLabel },
         { label: "Monthly reach", value: String(monthly_reach) },
       ]),
-      emailParagraph("Our team will review your application and contact you within 48 hours."),
-      emailParagraph("We look forward to potentially building together."),
+      emailBodyParagraph("Our team will review your application and contact you within 48 hours."),
+      emailBodyParagraph("We look forward to potentially building together."),
     ].join("");
 
     const internalRows = [
@@ -142,12 +138,7 @@ export async function POST(request: NextRequest) {
       { label: "Motivation", value: motivation || "None provided" },
     ];
 
-    const adminBody = internalRows
-      .map(
-        (row) =>
-          `<div style="padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.08);"><div style="color:rgba(255,255,255,0.5);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">${row.label}</div><div style="color:#ffffff;font-size:15px;font-weight:500;margin-top:4px;">${row.value}</div></div>`,
-      )
-      .join("");
+    const adminBody = emailFieldRows(internalRows);
 
     await transporter.sendMail({
       ...mailHeaders(),

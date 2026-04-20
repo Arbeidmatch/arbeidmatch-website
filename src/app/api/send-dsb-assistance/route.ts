@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
-import { emailParagraph, mailHeaders, premiumCtaButton } from "@/lib/emailPremiumTemplate";
+import { mailHeaders, premiumCtaButton } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
-import { buildEmail } from "@/lib/emailTemplate";
+import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTemplate";
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,17 +35,12 @@ export async function POST(request: NextRequest) {
     });
 
     const ref = `DSB-${Date.now()}`;
-    const internalBody = [
+    const internalBody = emailFieldRows([
       { label: "Email", value: data.email },
       { label: "Consent", value: data.consent },
       { label: "Source", value: "/dsb-assistance" },
       { label: "Reference", value: ref },
-    ]
-      .map(
-        (row) =>
-          `<div style="padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.08);"><div style="color:rgba(255,255,255,0.5);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">${row.label}</div><div style="color:#ffffff;font-size:15px;font-weight:500;margin-top:4px;">${row.value}</div></div>`,
-      )
-      .join("");
+    ]);
 
     await transporter.sendMail({
       ...mailHeaders(),
@@ -59,11 +54,11 @@ export async function POST(request: NextRequest) {
     });
 
     const userInner = [
-      emailParagraph("Thank you for your request."),
-      emailParagraph("We registered your interest in DSB support for electricians."),
-      emailParagraph("As soon as this assistance option becomes active, we will contact you with details by email."),
-      emailParagraph(`<strong>Registered email:</strong> ${data.email}`),
-      `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</div>`,
+      emailBodyParagraph("Thank you for your request."),
+      emailBodyParagraph("We registered your interest in DSB support for electricians."),
+      emailBodyParagraph("As soon as this assistance option becomes active, we will contact you with details by email."),
+      emailBodyParagraph(`<strong>Registered email:</strong> ${data.email}`),
+      `<p style="margin:8px 0 0;text-align:center;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</p>`,
     ].join("");
 
     await transporter.sendMail({

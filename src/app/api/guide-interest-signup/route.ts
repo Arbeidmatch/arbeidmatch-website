@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
+import { escapeHtml } from "@/lib/htmlSanitizer";
 import { buildEmail } from "@/lib/emailTemplate";
 
 export const dynamic = "force-dynamic";
@@ -101,14 +102,15 @@ export async function POST(request: NextRequest) {
       const bodyText = lines.join("\n");
 
       try {
+        const safeSpecialty = escapeHtml(specialty);
         const htmlBody = [
-          `<p style="margin:0 0 16px;">Hi, thank you for registering your interest with ArbeidMatch.</p>`,
-          `<p style="margin:0 0 16px;">We have noted your profile as: <strong>${specialty}</strong>.</p>`,
-          `<p style="margin:0 0 16px;">We will contact you personally when we have a matching opportunity in Norway.</p>`,
+          `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">Hi, thank you for registering your interest with ArbeidMatch.</p>`,
+          `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">We have noted your profile as: <strong>${safeSpecialty}</strong>.</p>`,
+          `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">We will contact you personally when we have a matching opportunity in Norway.</p>`,
           guideWanted
-            ? `<p style="margin:0 0 16px;">We will also notify you when the guide for your profession becomes available.</p>`
+            ? `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">We will also notify you when the guide for your profession becomes available.</p>`
             : "",
-          `<p style="margin:0;">Best regards,<br/>ArbeidMatch Team<br/>post@arbeidmatch.no</p>`,
+          `<p style="margin:0;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">Best regards,<br/>ArbeidMatch Team<br/>post@arbeidmatch.no</p>`,
         ]
           .filter(Boolean)
           .join("");
