@@ -173,7 +173,7 @@ export default function Navbar() {
         className={`sticky top-0 transition-colors duration-200 ${headerSurface} ${isOpen ? "z-30" : "z-[210]"}`}
       >
         <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-4 px-6 md:h-16 md:min-h-[64px] md:px-12 lg:h-[72px] lg:min-h-[72px] lg:gap-10 lg:px-20">
-          <Link href="/" className="block min-h-[44px] shrink-0 whitespace-nowrap leading-[44px]">
+          <Link href="/" className="block min-h-[44px] min-w-fit shrink-0 whitespace-nowrap leading-[44px]">
             <span style={{ color: "#ffffff", fontWeight: 700, fontSize: "1.25rem" }}>Arbeid</span>
             <span style={{ color: "#C9A84C", fontWeight: 700, fontSize: "1.25rem" }}>Match</span>
           </Link>

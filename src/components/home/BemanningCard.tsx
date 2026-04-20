@@ -54,11 +54,16 @@ export default function BemanningCard() {
   ];
 
   return (
-    <section className="bg-white px-6 pb-10 pt-0 md:px-12 md:pb-12 lg:px-20">
+    <section className="bg-[#0D1B2A] px-6 pb-10 pt-0 md:px-12 md:pb-12 lg:px-20">
       <div ref={ref} className="mx-auto w-full max-w-[1100px]" style={motion}>
         <div
           className="rounded-[20px] border px-7 py-7 md:px-12 md:py-12"
-          style={{ background: NAVY, borderColor: "rgba(201,168,76,0.3)", borderWidth: 1, borderStyle: "solid" }}
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            borderColor: "rgba(201,168,76,0.15)",
+            borderWidth: 1,
+            borderStyle: "solid",
+          }}
         >
           <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0 flex-1">

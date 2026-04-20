@@ -19,20 +19,20 @@ export const metadata: Metadata = nbPageMetadata(
 
 export default function ForEmployersPage() {
   return (
-    <>
-      <section className="bg-white py-12 md:py-16 lg:py-[100px]">
+    <div className="bg-[#0D1B2A] text-white">
+      <section className="bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
         <div className="mx-auto w-full max-w-content px-6 text-center md:px-12 lg:px-20">
           <StaggerHero className="flex flex-col items-center">
-            <h1 className="heading-premium-xl font-display text-4xl text-navy md:text-5xl">
+            <h1 className="heading-premium-xl font-display text-4xl text-white md:text-5xl">
               Qualified EU/EEA workforce for Norwegian businesses
             </h1>
-            <p className="subtitle-premium mx-auto mt-5 max-w-2xl text-lg">
+            <p className="subtitle-premium mx-auto mt-5 max-w-2xl text-lg text-white/70">
               We help employers in construction, logistics and industry secure reliable workers quickly, legally and with
               full support.
             </p>
             <Link
               href="/request"
-              className="btn-gold-premium mt-8 inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md bg-gold px-8 py-3 font-medium text-white hover:bg-gold-hover sm:mx-auto sm:w-auto sm:max-w-none"
+              className="btn-gold-premium mt-8 inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md bg-gold px-8 py-3 font-medium text-[#0D1B2A] hover:bg-gold-hover sm:mx-auto sm:w-auto sm:max-w-none"
             >
               Request candidates
             </Link>
@@ -42,19 +42,19 @@ export default function ForEmployersPage() {
 
       <HowItWorksInteractive />
 
-      <section className="bg-white py-10 md:py-12 lg:py-14">
+      <section className="bg-[#0D1B2A] py-10 md:py-12 lg:py-14">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <BemanningLegalSection />
         </div>
       </section>
 
-      <section className="bg-surface py-12 md:py-16 lg:py-[100px]">
+      <section className="bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
         <OurServicesSection />
       </section>
 
       <ForEmployersExtendedServices />
 
-      <section className="bg-surface py-12 md:py-16 lg:py-[100px]">
+      <section className="bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
         <WeldingSpecialistsCard />
       </section>
 
@@ -73,7 +73,7 @@ export default function ForEmployersPage() {
           <ScrollReveal variant="fadeUp">
             <Link
               href="/request"
-              className="btn-gold-premium mt-8 inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md bg-gold px-8 py-3 font-medium text-white hover:bg-gold-hover sm:mx-auto sm:w-auto sm:max-w-none"
+              className="btn-gold-premium mt-8 inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md bg-gold px-8 py-3 font-medium text-[#0D1B2A] hover:bg-gold-hover sm:mx-auto sm:w-auto sm:max-w-none"
             >
               Request candidates
             </Link>
@@ -82,6 +82,6 @@ export default function ForEmployersPage() {
       </section>
 
       <PreFooterCrossLinks variant="employers" />
-    </>
+    </div>
   );
 }
