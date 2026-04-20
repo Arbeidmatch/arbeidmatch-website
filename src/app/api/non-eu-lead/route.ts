@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
 
     return noStoreJson({ success: true });
   } catch (error) {
+    console.error("[non-eu-lead] detailed error:", JSON.stringify(error, null, 2), (error as Error)?.message, (error as Error)?.stack);
     logApiError("non-eu-lead", error);
     await notifyError({ route: "/api/non-eu-lead", error });
     return noStoreJson({ success: false, error: "Could not complete signup." }, { status: 500 });
