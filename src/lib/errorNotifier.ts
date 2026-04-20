@@ -21,14 +21,40 @@ export interface ErrorNotificationParams {
   context?: Record<string, unknown>;
 }
 
+function serializeUnknownError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object") {
+    try {
+      return JSON.stringify(error, null, 2);
+    } catch {
+      return Object.prototype.toString.call(error);
+    }
+  }
+  return String(error);
+}
+
+function extractUnknownStack(error: unknown): string {
+  if (error instanceof Error) return error.stack || "No stack trace";
+  if (error && typeof error === "object") {
+    try {
+      const text = JSON.stringify(error, null, 2);
+      return text || "No stack trace";
+    } catch {
+      return "No stack trace";
+    }
+  }
+  return "No stack trace";
+}
+
 export async function notifyError({ route, error, context = {} }: ErrorNotificationParams): Promise<void> {
   if (process.env.NODE_ENV !== "production") {
     console.error(`[DEV ERROR] ${route}:`, error, context);
     return;
   }
 
-  const errorMessage = error instanceof Error ? error.message : String(error);
-  const errorStack = error instanceof Error ? error.stack || "No stack trace" : "No stack trace";
+  const errorMessage = serializeUnknownError(error);
+  const errorStack = extractUnknownStack(error);
   const timestamp = new Date().toISOString();
 
   const contextLines = Object.entries(context)
