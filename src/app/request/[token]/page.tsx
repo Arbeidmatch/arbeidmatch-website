@@ -610,26 +610,72 @@ export default function RequestTokenPage() {
   };
 
   if (submitStatus === "success") {
+    const successCompanyName = tokenData?.company?.trim() || "your company";
+    const successAnimationStyle = reducedMotion
+      ? undefined
+      : ({ animation: "successFadeIn 0.4s ease forwards", opacity: 0 } as const);
+
     return (
-      <section className="min-h-screen bg-[#0a0f18] px-4 py-10">
-        <div className="mx-auto w-full max-w-2xl text-center">
-          <div className="rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-white/[0.03] p-6">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#C9A84C] text-3xl font-bold text-[#0a0f18]">
-              ✓
-            </div>
-            <h1 className="mt-4 text-3xl font-bold text-white">Request submitted successfully!</h1>
-            <p className="mt-2 text-sm text-white/60">
-              Thank you, {tokenData?.full_name || "there"}. We will review your request and be in touch with you soon.
+      <section className="min-h-screen bg-[#0D1B2A] px-4 py-10">
+        <div className="mx-auto flex min-h-[80vh] w-full max-w-2xl items-center justify-center text-center">
+          <div style={successAnimationStyle}>
+            <div className="mx-auto h-[2px] w-[60px] bg-[#C9A84C]" />
+            <svg
+              className="mx-auto mt-6 h-12 w-12"
+              viewBox="0 0 48 48"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden
+            >
+              <path
+                d="M10 25L20 35L38 14"
+                stroke="#C9A84C"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <h1 className="mt-6 text-[2rem] font-bold tracking-[-0.02em] text-white">Request Received</h1>
+            <p className="mt-3 text-base font-normal text-[#C9A84C]">
+              Thank you, {successCompanyName}. We will be in touch within 1 business day.
             </p>
             {submitNotice ? <p className="mt-3 text-xs text-amber-300">{submitNotice}</p> : null}
+
+            <div className="mx-auto mt-8 w-[320px] border-t border-[rgba(201,168,76,0.15)]" />
+
+            <div className="mt-8 space-y-3 text-sm text-white">
+              <p>Your request has been reviewed by our team</p>
+              <p>We will match your requirements with available candidates</p>
+              <p>You will receive a shortlist within 3-5 business days</p>
+            </div>
+
+            <div className="mx-auto mt-8 w-[320px] border-t border-[rgba(201,168,76,0.15)]" />
+
+            <p className="mt-8 text-sm text-white">
+              Questions? Contact us at{" "}
+              <a href="mailto:post@arbeidmatch.no" className="text-[#C9A84C] hover:underline">
+                post@arbeidmatch.no
+              </a>
+            </p>
+
             <Link
               href="/"
-              className="mt-5 inline-flex rounded-[10px] bg-[#C9A84C] px-6 py-2.5 text-sm font-semibold text-[#0a0f18] transition hover:bg-[#b8953f]"
+              className="mt-7 inline-flex rounded-[8px] border border-[rgba(201,168,76,0.3)] px-7 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#C9A84C]"
             >
               Back to home
             </Link>
           </div>
         </div>
+        <style jsx>{`
+          @keyframes successFadeIn {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+        `}</style>
       </section>
     );
   }
