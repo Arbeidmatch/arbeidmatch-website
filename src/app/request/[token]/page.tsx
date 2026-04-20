@@ -326,7 +326,7 @@ export default function RequestTokenPage() {
         <p className="text-xs text-white/40">{`${step + 1} / ${TOTAL_STEPS}`}</p>
       </header>
 
-      <main className="flex min-h-dvh items-center justify-center px-4 pb-[92px] pt-[72px] md:px-6 md:pb-[92px] md:pt-[80px]">
+      <main className="flex min-h-dvh items-center justify-center px-4 pt-[72px] md:px-6 md:pt-[80px]">
         <form onSubmit={handleSubmit} className="w-full max-w-[560px]">
           <div
             key={step}
@@ -648,48 +648,52 @@ export default function RequestTokenPage() {
                 </div>
               </div>
             )}
+
+            <div
+              className={`mt-6 flex w-full items-center gap-3 border-t border-white/10 pt-5 ${
+                step > 0 ? "justify-between" : "justify-end"
+              }`}
+            >
+              <div>
+                {step > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => goTo(step - 1)}
+                    disabled={animating || isSubmitting}
+                    className="rounded-[10px] border border-white/20 px-6 py-3 text-sm text-white/60 disabled:opacity-40"
+                  >
+                    Back
+                  </button>
+                ) : null}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (step < TOTAL_STEPS - 1) {
+                    handleNext();
+                  } else {
+                    void handleSubmit();
+                  }
+                }}
+                disabled={animating || isSubmitting || !isStepValid(step)}
+                className="inline-flex min-w-[150px] items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-7 py-3 text-sm font-bold text-[#0f1923] transition-all duration-200 hover:scale-[1.02] hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#0f1923]/40 border-t-[#0f1923]" />
+                    Submitting...
+                  </>
+                ) : step === TOTAL_STEPS - 1 ? (
+                  "Submit Request"
+                ) : (
+                  "Continue"
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </main>
-
-      <footer className="fixed inset-x-0 bottom-0 z-30 flex h-[72px] items-center justify-between border-t border-white/10 bg-[rgba(10,15,24,0.95)] px-4 md:h-20 md:px-6">
-        <div>
-          {step > 0 ? (
-            <button
-              type="button"
-              onClick={() => goTo(step - 1)}
-              disabled={animating || isSubmitting}
-              className="rounded-[10px] border border-white/20 px-6 py-3 text-sm text-white/60 disabled:opacity-40"
-            >
-              Back
-            </button>
-          ) : null}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            if (step < TOTAL_STEPS - 1) {
-              handleNext();
-            } else {
-              void handleSubmit();
-            }
-          }}
-          disabled={animating || isSubmitting || !isStepValid(step)}
-          className="inline-flex min-w-[150px] items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-8 py-3 text-sm font-bold text-[#0f1923] transition-all duration-200 hover:scale-[1.02] hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {isSubmitting ? (
-            <>
-              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#0f1923]/40 border-t-[#0f1923]" />
-              Submitting...
-            </>
-          ) : step === TOTAL_STEPS - 1 ? (
-            "Submit Request"
-          ) : (
-            "Continue"
-          )}
-        </button>
-      </footer>
 
       {submitStatus === "error" && (
         <div className="fixed bottom-[88px] left-1/2 z-40 w-[min(520px,calc(100%-2rem))] -translate-x-1/2 rounded-[10px] border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
