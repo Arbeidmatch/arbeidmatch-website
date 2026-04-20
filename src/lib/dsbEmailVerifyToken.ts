@@ -8,18 +8,24 @@ export type DsbEmailVerifyPayload = {
   exp: number;
 };
 
-function getSecret(): string {
-  return (process.env.DSB_EMAIL_VERIFY_SECRET || process.env.STRIPE_SECRET_KEY || "").trim();
+function getSecretOrThrow(): string {
+  const secret = process.env.DSB_EMAIL_VERIFY_SECRET?.trim();
+  if (!secret) {
+    throw new Error("DSB_EMAIL_VERIFY_SECRET is not configured");
+  }
+  return secret;
+}
+
+function getSecretForVerify(): string | null {
+  const secret = process.env.DSB_EMAIL_VERIFY_SECRET?.trim();
+  return secret || null;
 }
 
 /** Signed token: base64url(payload).hmac - valid until `exp` (unix ms). */
 export function signDsbEmailVerifyToken(
   payload: Omit<DsbEmailVerifyPayload, "exp"> & { expMs: number },
 ): string {
-  const secret = getSecret();
-  if (!secret) {
-    throw new Error("DSB_EMAIL_VERIFY_SECRET or STRIPE_SECRET_KEY is required for email verification.");
-  }
+  const secret = getSecretOrThrow();
   const body: DsbEmailVerifyPayload = {
     email: payload.email.trim().toLowerCase(),
     guide_slug: payload.guide_slug,
@@ -31,7 +37,7 @@ export function signDsbEmailVerifyToken(
 }
 
 export function verifyDsbEmailVerifyToken(token: string): DsbEmailVerifyPayload | null {
-  const secret = getSecret();
+  const secret = getSecretForVerify();
   if (!secret) return null;
   const parts = token.trim().split(".");
   if (parts.length !== 2) return null;

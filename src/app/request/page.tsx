@@ -126,6 +126,10 @@ export default function RequestPage() {
     return validateLeadSource();
   };
 
+  const isLastStep = currentCard === maxCard;
+  const primaryNavDisabled =
+    status === "submitting" || !validateCurrentCard() || (isLastStep && !gdprConsent);
+
   const bumpError = (message: string) => {
     setCardError(message);
     setErrorShakeKey((k) => k + 1);
@@ -901,16 +905,16 @@ export default function RequestPage() {
                 <button
                   type="button"
                   onClick={nextCard}
-                  disabled={status === "submitting"}
-                  className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white transition-transform duration-200 hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+                  disabled={primaryNavDisabled}
+                  className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white transition-transform duration-200 hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Next
                 </button>
               ) : (
                 <button
                   type="submit"
-                  disabled={status === "submitting"}
-                  className="btn-gold-premium relative flex w-full items-center justify-center gap-2 rounded-md bg-gold py-3 text-sm font-semibold text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+                  disabled={primaryNavDisabled}
+                  className="btn-gold-premium relative flex w-full items-center justify-center gap-2 rounded-md bg-gold py-3 text-sm font-semibold text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {status === "submitting" ? (
                     <>

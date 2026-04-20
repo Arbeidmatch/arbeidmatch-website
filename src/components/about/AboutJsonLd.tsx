@@ -1,10 +1,10 @@
 const schema = {
   "@context": "https://schema.org",
   "@type": "AboutPage",
-  name: "Om ArbeidMatch Norge AS",
+  name: "About ArbeidMatch Norge AS",
   url: "https://www.arbeidmatch.no/about",
   description:
-    "ArbeidMatch Norge AS er et norsk bemanningsbyrå spesialisert på rekruttering av EU/EEA-arbeidere til norske bedrifter innen bygg, logistikk og industri.",
+    "ArbeidMatch connects qualified EU/EEA workers with Norwegian employers in construction, logistics, industry and more. Based in Trondheim, Norway.",
   publisher: {
     "@type": "Organization",
     name: "ArbeidMatch Norge AS",

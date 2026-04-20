@@ -11,6 +11,7 @@ type TokenData = {
   org_number?: string;
   full_name?: string;
   phone?: string;
+  gdpr_consent?: boolean;
 };
 
 type RequestForm = {
@@ -409,6 +410,7 @@ export default function RequestTokenPage() {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [form, setForm] = useState<RequestForm>(initialForm);
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
+  const [tokenGate, setTokenGate] = useState<"loading" | "ready" | "blocked" | "error">("loading");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [citySearch, setCitySearch] = useState("");
 
@@ -426,9 +428,21 @@ export default function RequestTokenPage() {
     void fetch(`/api/token-data/${token}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data?.success && data?.data) setTokenData(data.data as TokenData);
+        if (!data?.success || !data?.data) {
+          setTokenGate("error");
+          return;
+        }
+        const row = data.data as TokenData;
+        if (row.gdpr_consent !== true) {
+          setTokenGate("blocked");
+          return;
+        }
+        setTokenData(row);
+        setTokenGate("ready");
       })
-      .catch(() => null);
+      .catch(() => {
+        setTokenGate("error");
+      });
   }, [token]);
 
   const goTo = (next: number) => {
@@ -689,6 +703,47 @@ export default function RequestTokenPage() {
             }
           }
         `}</style>
+      </section>
+    );
+  }
+
+  if (tokenGate === "loading") {
+    return (
+      <section className="min-h-dvh bg-[#0D1B2A] px-4 py-20 text-center text-white">
+        <p className="text-[rgba(255,255,255,0.65)]">Loading…</p>
+      </section>
+    );
+  }
+
+  if (tokenGate === "blocked") {
+    return (
+      <section className="min-h-dvh bg-[#0D1B2A] px-4 py-16 text-white">
+        <div className="mx-auto max-w-lg rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-8 py-10 text-center">
+          <div className="mx-auto h-[2px] w-10 bg-[#C9A84C]" aria-hidden />
+          <p className="mt-6 text-lg font-medium text-white">Please complete the initial request form first.</p>
+          <Link
+            href="/request"
+            className="mt-8 inline-flex min-h-[44px] items-center justify-center rounded-[10px] bg-[#C9A84C] px-8 py-3 text-sm font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
+          >
+            Go to request form
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  if (tokenGate === "error") {
+    return (
+      <section className="min-h-dvh bg-[#0D1B2A] px-4 py-16 text-white">
+        <div className="mx-auto max-w-lg rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-8 py-10 text-center">
+          <p className="text-lg text-[rgba(255,255,255,0.85)]">We could not load this request link.</p>
+          <Link
+            href="/request"
+            className="mt-8 inline-flex min-h-[44px] items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] px-8 py-3 text-sm font-semibold text-white transition-colors hover:border-[#C9A84C]"
+          >
+            Start from the request form
+          </Link>
+        </div>
       </section>
     );
   }

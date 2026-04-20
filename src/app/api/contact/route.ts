@@ -19,6 +19,16 @@ type ContactPayload = {
   message?: string;
 };
 
+function getSmtpConfig(): { host: string; port: number; user: string; pass: string } | null {
+  const host = process.env.SMTP_HOST?.trim();
+  const user = process.env.SMTP_USER?.trim();
+  const pass = process.env.SMTP_PASS;
+  const port = Number(process.env.SMTP_PORT) || 465;
+  if (!host || !user || !pass) return null;
+  if (!Number.isFinite(port)) return null;
+  return { host, port, user, pass };
+}
+
 export async function POST(request: NextRequest) {
   try {
     const rawBody = (await request.json()) as Record<string, unknown>;
@@ -40,17 +50,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Please fill in all required fields." }, { status: 400 });
     }
 
+    const smtp = getSmtpConfig();
+    if (!smtp) {
+      return NextResponse.json({ success: false, error: "SMTP not configured" }, { status: 500 });
+    }
+
     const isSupportRequest = need === "Support";
     const supportRecipient = process.env.SUPPORT_EMAIL || "support@arbeidmatch.no";
     const recipient = isSupportRequest ? supportRecipient : "post@arbeidmatch.no";
 
     const transporter = nodemailer.createTransport({
-      host: "send.one.com",
-      port: 465,
-      secure: true,
+      host: smtp.host,
+      port: smtp.port,
+      secure: smtp.port === 465,
       auth: {
-        user: "no-replay@arbeidmatch.no",
-        pass: process.env.SMTP_PASS,
+        user: smtp.user,
+        pass: smtp.pass,
       },
     });
 

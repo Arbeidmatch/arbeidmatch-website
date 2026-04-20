@@ -22,7 +22,9 @@ const requestSchema = z
     role: z.string().trim().max(160).optional(),
     job_summary: z.string().trim().max(1000).optional().default("General hiring inquiry"),
     org_number: z.string().trim().max(40).optional(),
-    gdprConsent: z.boolean().optional(),
+    gdprConsent: z
+      .boolean()
+      .refine((val) => val === true, { message: "GDPR consent required" }),
     requestedLocation: z.string().trim().max(120).optional(),
     partnershipStatus: z.string().trim().max(40).optional(),
     howDidYouHear: z.string().trim().max(120).optional(),
@@ -102,6 +104,7 @@ export async function POST(request: NextRequest) {
       phone,
       org_number: org_number ?? orgNumber,
       job_summary,
+      gdpr_consent: true,
       how_did_you_hear: howDidYouHear,
       social_media_platform: socialMediaPlatform,
       how_did_you_hear_other: howDidYouHearOther || socialMediaOther,

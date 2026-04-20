@@ -28,6 +28,8 @@ create index if not exists request_tokens_token_idx on public.request_tokens (to
 create index if not exists request_tokens_expires_used_idx on public.request_tokens (expires_at, used);
 create index if not exists request_tokens_email_idx on public.request_tokens (lower(email));
 
+alter table public.request_tokens add column if not exists gdpr_consent boolean not null default false;
+
 create table if not exists public.employer_requests (
   id uuid primary key default gen_random_uuid(),
   token_id uuid references public.request_tokens (token),
