@@ -88,6 +88,10 @@ export async function POST(request: NextRequest) {
     }
 
     const hasValue = (value?: string) => value !== undefined && value !== null && String(value).trim() !== "";
+    const pushSlackField = (fields: Record<string, string>, label: string, value?: string) => {
+      if (!hasValue(value)) return;
+      fields[label] = String(value).trim();
+    };
 
     const normalizeFieldValue = (value?: string) => {
       if (value === undefined || value === null) return null;
@@ -268,15 +272,81 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const slackFields: Record<string, string> = {};
+    pushSlackField(slackFields, "Company name", data.company);
+    pushSlackField(slackFields, "Contact name", data.full_name);
+    pushSlackField(slackFields, "Email", data.email);
+    pushSlackField(slackFields, "Phone", data.phone);
+    pushSlackField(slackFields, "Job category", data.category);
+    pushSlackField(slackFields, "Trade / position", selectedPosition);
+    pushSlackField(slackFields, "Location / city", data.city);
+    pushSlackField(slackFields, "Number of workers needed", data.numberOfPositions);
+    pushSlackField(slackFields, "Contract type", data.contractType);
+    pushSlackField(slackFields, "Start date", selectedStartDate);
+    pushSlackField(
+      slackFields,
+      "Duration / rotation",
+      [data.hasRotation, data.rotationWeeksOn, data.rotationWeeksOff].filter(hasValue).join(" | "),
+    );
+    pushSlackField(slackFields, "Salary", data.salary);
+    pushSlackField(slackFields, "Accommodation", data.accommodation);
+    pushSlackField(slackFields, "D-number status", data.dNumber || data.dNumberOther);
+    pushSlackField(
+      slackFields,
+      "Language requirements",
+      [data.norwegianLevel, data.englishLevel].filter(hasValue).join(" | "),
+    );
+    pushSlackField(slackFields, "Driver's license", data.driverLicense || data.driverLicenseOther);
+    pushSlackField(slackFields, "How did you hear about us", leadSource);
+
+    const coveredKeys = new Set([
+      "company",
+      "full_name",
+      "email",
+      "phone",
+      "category",
+      "position",
+      "positionOther",
+      "city",
+      "numberOfPositions",
+      "contractType",
+      "startDate",
+      "startDateOther",
+      "hasRotation",
+      "rotationWeeksOn",
+      "rotationWeeksOff",
+      "salary",
+      "accommodation",
+      "dNumber",
+      "dNumberOther",
+      "norwegianLevel",
+      "englishLevel",
+      "driverLicense",
+      "driverLicenseOther",
+      "howDidYouHear",
+      "socialMediaPlatform",
+      "socialMediaOther",
+      "howDidYouHearOther",
+      "referralCompanyName",
+      "referralOrgNumber",
+      "referralEmail",
+      "website",
+      "company_website",
+      "honeypot",
+    ]);
+
+    for (const [key, value] of Object.entries(data)) {
+      if (coveredKeys.has(key) || !hasValue(value)) continue;
+      const label = key
+        .replace(/([a-z])([A-Z])/g, "$1 $2")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+      pushSlackField(slackFields, label, value);
+    }
+
     void notifySlack("employers", {
       title: "New Employer Request",
-      fields: {
-        "Company name": data.company || "Not specified",
-        "Contact name": data.full_name || "Not specified",
-        Email: data.email || "Not specified",
-        "Job category": data.category || "Not specified",
-        Location: data.city || "Not specified",
-      },
+      fields: slackFields,
     });
 
     return noStoreJson({ success: true });
