@@ -6,7 +6,6 @@ import { getRateLimitResult, hasHoneypotValue, noStoreJson, parseJsonBodyWithSch
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import {
-  buildInternalEmailHtml,
   emailDataTable,
   emailParagraph,
   mailHeaders,
@@ -88,71 +87,125 @@ export async function POST(request: NextRequest) {
     }
 
     const hasValue = (value?: string) => value !== undefined && value !== null && String(value).trim() !== "";
-    const push = (rows: { label: string; value: string }[], label: string, v?: string) => {
-      if (!hasValue(v)) return;
-      rows.push({ label, value: String(v).trim() });
+
+    const normalizeFieldValue = (value?: string) => {
+      if (value === undefined || value === null) return null;
+      const text = String(value).trim();
+      return text ? text : "";
     };
 
-    const adminRows: { label: string; value: string }[] = [];
-    push(adminRows, "Company", data.company);
-    push(adminRows, "Org.nr.", data.orgNumber);
-    push(adminRows, "Email", data.email);
-    push(adminRows, "Full name", data.full_name);
-    push(adminRows, "Phone", data.phone);
-    push(adminRows, "Hiring type", data.hiringType);
-    push(adminRows, "Category", data.category);
-    push(adminRows, "Position", selectedPosition);
-    push(adminRows, "Initial summary", data.job_summary);
-    push(adminRows, "Qualification", data.qualification);
-    push(adminRows, "Candidates needed", data.numberOfPositions);
-    push(adminRows, "Experience", data.experience);
-    push(adminRows, "Norwegian level", data.norwegianLevel);
-    push(adminRows, "English level", data.englishLevel);
-    push(adminRows, "Certifications", data.certifications);
-    push(adminRows, "Certifications (other)", data.certificationsOther);
-    push(adminRows, "Driver license", data.driverLicense);
-    push(adminRows, "Driver license (other)", data.driverLicenseOther);
-    push(adminRows, "D-number", data.dNumber);
-    push(adminRows, "D-number (other)", data.dNumberOther);
-    push(adminRows, "Deal breakers", data.requirements);
-    push(adminRows, "Contract type", data.contractType);
-    push(adminRows, "Salary", data.salary);
-    push(adminRows, "Hours unit", data.hoursUnit);
-    push(adminRows, "Hours amount", data.hoursAmount);
-    push(adminRows, "Overtime", data.overtime);
-    push(adminRows, "Max overtime/week", data.maxOvertimeHours);
-    push(adminRows, "Has rotation", data.hasRotation);
-    push(adminRows, "Rotation weeks on", data.rotationWeeksOn);
-    push(adminRows, "Rotation weeks off", data.rotationWeeksOff);
-    push(adminRows, "International travel", data.internationalTravel);
-    push(adminRows, "Local travel", data.localTravel);
-    push(adminRows, "Local travel (other)", data.localTravelOther);
-    push(adminRows, "Accommodation", data.accommodation);
-    push(adminRows, "Accommodation cost", data.accommodationCost);
-    push(adminRows, "Accommodation (other)", data.accommodationOther);
-    push(adminRows, "Equipment", data.equipment);
-    push(adminRows, "Equipment (other)", data.equipmentOther);
-    push(adminRows, "Tools", data.tools);
-    push(adminRows, "Tools (other)", data.toolsOther);
-    push(adminRows, "City", data.city);
-    push(adminRows, "Start date", selectedStartDate);
-    push(adminRows, "How did you hear (resolved)", leadSource);
-    push(adminRows, "Subscribe", data.subscribe);
-    push(adminRows, "Notes", data.notes);
-    push(adminRows, "How did you hear (raw)", data.howDidYouHear);
-    push(adminRows, "Social media platform", socialMediaPlatformValue);
-    push(adminRows, "Social media other", socialMediaOtherValue);
-    push(adminRows, "How did you hear (other)", howDidYouHearOtherValue);
-    push(adminRows, "Referral company", referralCompanyValue);
-    push(adminRows, "Referral company org.nr", referralOrgNumberValue);
-    push(adminRows, "Referral contact email", referralEmailValue);
+    const renderValue = (value: string, isEmail = false) => {
+      if (!value) {
+        return '<span style="color: rgba(255,255,255,0.3); font-style: italic;">Not specified</span>';
+      }
+      const safe = escapeHtml(value);
+      if (isEmail) {
+        return `<a href="mailto:${safe}" style="color: #C9A84C; text-decoration: none;">${safe}</a>`;
+      }
+      return safe;
+    };
+
+    const rowHtml = (label: string, rawValue?: string, isEmail = false) => {
+      const normalized = normalizeFieldValue(rawValue);
+      if (normalized === null) return "";
+      return `<div style="display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="color: rgba(255,255,255,0.4); font-size: 13px; line-height: 1.5;">${escapeHtml(label)}</div>
+        <div style="color: #ffffff; font-size: 13px; font-weight: 500; line-height: 1.5; text-align: right; max-width: 60%;">${renderValue(normalized, isEmail)}</div>
+      </div>`;
+    };
+
+    const sectionHtml = (title: string, rows: string[], marginTop = 0) => {
+      const visibleRows = rows.filter(Boolean);
+      if (!visibleRows.length) return "";
+      return `<div style="margin-top: ${marginTop}px;">
+        <div style="color:#C9A84C;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:16px;">${escapeHtml(title)}</div>
+        ${visibleRows.join("")}
+      </div>`;
+    };
 
     const companyName = data.company ?? "Unknown company";
     const cityLabel = data.city || "-";
-    const adminHtml = buildInternalEmailHtml({
-      title: `New candidate request: ${companyName} from ${cityLabel}`,
-      rows: adminRows,
-    });
+    const nowLabel = new Date().toISOString();
+    const adminUrl = "https://www.arbeidmatch.no/admin";
+    const adminHtml = `
+      <div style="margin:0;padding:24px;background:#0a0f18;font-family:system-ui,-apple-system,sans-serif;">
+        <div style="max-width:600px;margin:0 auto;width:100%;">
+          <div style="background:#0f1923;border-bottom:3px solid #C9A84C;padding:32px 40px;">
+            <div style="font-size:24px;font-weight:800;line-height:1.2;">
+              <span style="color:#C9A84C;">Arbeid</span><span style="color:#ffffff;">Match</span>
+            </div>
+            <div style="margin-top:8px;color:rgba(255,255,255,0.5);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;">
+              New Candidate Request
+            </div>
+          </div>
+          <div style="background:linear-gradient(135deg,#C9A84C 0%,#b8953f 100%);padding:24px 40px;">
+            <div style="color:#0f1923;font-size:22px;font-weight:800;line-height:1.3;">${escapeHtml(companyName)}</div>
+            <div style="margin-top:4px;color:rgba(15,25,35,0.6);font-size:13px;">${escapeHtml(nowLabel)}</div>
+          </div>
+          <div style="background:#0f1923;padding:40px;">
+            ${sectionHtml(
+              "Contact details",
+              [
+                rowHtml("Company", data.company),
+                rowHtml("Org.nr", data.orgNumber),
+                rowHtml("Email", data.email, true),
+                rowHtml("Full name", data.full_name),
+                rowHtml("Phone", data.phone),
+              ],
+              0,
+            )}
+            ${sectionHtml(
+              "Position details",
+              [
+                rowHtml("Category", data.category),
+                rowHtml("Position", selectedPosition),
+                rowHtml("Contract type", data.contractType),
+                rowHtml("Qualification", data.qualification),
+                rowHtml("Candidates needed", data.numberOfPositions),
+                rowHtml("Certifications", data.certifications),
+                rowHtml("Urgency", selectedStartDate),
+              ],
+              32,
+            )}
+            ${sectionHtml(
+              "Conditions offered",
+              [
+                rowHtml("Salary", data.salary),
+                rowHtml("Salary period", data.salaryPeriod),
+                rowHtml("Overtime", data.overtime),
+                rowHtml("Accommodation", data.accommodation),
+                rowHtml("Transport", data.internationalTravel || data.localTravel),
+                rowHtml("Rotation", data.hasRotation),
+                rowHtml("Start date", selectedStartDate),
+              ],
+              32,
+            )}
+            ${sectionHtml(
+              "Location",
+              [
+                rowHtml("City", data.city),
+                rowHtml("Region", data.localTravelOther || data.city),
+                rowHtml("Additional notes", data.notes || data.job_summary || leadSource),
+              ],
+              32,
+            )}
+            <div style="margin-top:32px;text-align:center;">
+              <a href="${adminUrl}" style="display:inline-block;background:#C9A84C;color:#0f1923;font-weight:800;border-radius:8px;padding:14px 40px;text-decoration:none;">
+                View Full Request in Admin
+              </a>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.06);padding:24px 40px;">
+            <div style="color:rgba(255,255,255,0.3);font-size:11px;line-height:1.8;">
+              ArbeidMatch Norge AS. post@arbeidmatch.no. +47 96 73 47 30
+              <br />
+              This email was generated automatically. Do not reply directly.
+            </div>
+            <div style="margin-top:10px;color:#C9A84C;font-size:13px;font-weight:700;">ArbeidMatch</div>
+          </div>
+        </div>
+      </div>
+    `;
 
     const employerRows = [
       { label: "Position", value: selectedPosition },
