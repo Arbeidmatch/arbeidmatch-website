@@ -36,6 +36,8 @@ export default function ContactPageClient() {
   const [submitted, setSubmitted] = useState(false);
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [need, setNeed] = useState("Qualified workers");
+  const [needOther, setNeedOther] = useState("");
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -45,10 +47,16 @@ export default function ContactPageClient() {
       name: String(formData.get("name") || ""),
       company: String(formData.get("company") || ""),
       email: String(formData.get("email") || ""),
-      need: String(formData.get("need") || ""),
+      need: need === "Other" ? needOther.trim() : need,
       message: String(formData.get("message") || ""),
       website: String(formData.get("website") || ""),
     };
+
+    if (need === "Other" && !needOther.trim()) {
+      setStatus("error");
+      setErrorMessage("Please specify what you need.");
+      return;
+    }
 
     setStatus("submitting");
     setErrorMessage("");
@@ -65,6 +73,8 @@ export default function ContactPageClient() {
       }
       setSubmitted(true);
       form.reset();
+      setNeed("Qualified workers");
+      setNeedOther("");
     } catch (error) {
       setSubmitted(false);
       setStatus("error");
@@ -178,7 +188,17 @@ export default function ContactPageClient() {
               </label>
               <label className="form-label-premium text-sm text-navy">
                 I need
-                <select name="need" className={inputClass}>
+                <select
+                  name="need"
+                  className={inputClass}
+                  value={need}
+                  onChange={(event) => {
+                    setNeed(event.target.value);
+                    if (event.target.value !== "Other") {
+                      setNeedOther("");
+                    }
+                  }}
+                >
                   <option>Qualified workers</option>
                   <option>Skilled tradespeople</option>
                   <option>Engineers & Technical</option>
@@ -188,6 +208,18 @@ export default function ContactPageClient() {
                   <option>Other</option>
                 </select>
               </label>
+              {need === "Other" && (
+                <label className="form-label-premium text-sm text-navy">
+                  Please specify
+                  <input
+                    required
+                    name="needOther"
+                    className={inputClass}
+                    value={needOther}
+                    onChange={(event) => setNeedOther(event.target.value)}
+                  />
+                </label>
+              )}
               <label className="form-label-premium text-sm text-navy">
                 Message
                 <textarea name="message" rows={5} className={`${inputClass} min-h-[100px]`} />

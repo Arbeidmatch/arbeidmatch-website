@@ -12,6 +12,7 @@ export default function FeedbackPageClient() {
   const [note, setNote] = useState("");
   const [siteRelated, setSiteRelated] = useState<"Yes" | "No" | "">("");
   const [issueCategory, setIssueCategory] = useState("");
+  const [issueCategoryOther, setIssueCategoryOther] = useState("");
   const [issueDetails, setIssueDetails] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -35,6 +36,10 @@ export default function FeedbackPageClient() {
       setErrorMessage("Please select what your feedback is mainly about.");
       return;
     }
+    if (needsFollowupQuestions && issueCategory === "Other" && !issueCategoryOther.trim()) {
+      setErrorMessage("Please specify the category.");
+      return;
+    }
 
     setErrorMessage("");
     setStatus("submitting");
@@ -48,7 +53,7 @@ export default function FeedbackPageClient() {
           email: email.trim(),
           note: note.trim(),
           siteRelated,
-          issueCategory,
+          issueCategory: issueCategory === "Other" ? issueCategoryOther.trim() : issueCategory,
           issueDetails: issueDetails.trim(),
           source: "site-feedback-page",
           website: "",
@@ -180,7 +185,12 @@ export default function FeedbackPageClient() {
                   <select
                     className={inputClass}
                     value={issueCategory}
-                    onChange={(event) => setIssueCategory(event.target.value)}
+                    onChange={(event) => {
+                      setIssueCategory(event.target.value);
+                      if (event.target.value !== "Other") {
+                        setIssueCategoryOther("");
+                      }
+                    }}
                   >
                     <option value="">Select a category</option>
                     <option>Website usability</option>
@@ -191,6 +201,18 @@ export default function FeedbackPageClient() {
                     <option>Other</option>
                   </select>
                 </label>
+
+                {issueCategory === "Other" && (
+                  <label className="form-label-premium block text-sm text-navy">
+                    Please specify category*
+                    <input
+                      required
+                      className={inputClass}
+                      value={issueCategoryOther}
+                      onChange={(event) => setIssueCategoryOther(event.target.value)}
+                    />
+                  </label>
+                )}
 
                 <label className="form-label-premium block text-sm text-navy">
                   Tell us what happened (optional)
