@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { buildInternalEmailHtml, emailParagraph, formatEmailTimestampCet, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
+import { notifyError } from "@/lib/errorNotifier";
 
 type SiteFeedbackPayload = {
   rating?: number;
@@ -84,6 +85,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    await notifyError({ route: "/api/site-feedback", error });
     console.error("site-feedback error", error);
     return NextResponse.json({ success: false, error: "Failed to send feedback." }, { status: 500 });
   }

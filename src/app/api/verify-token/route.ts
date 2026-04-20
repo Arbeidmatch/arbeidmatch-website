@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { getRateLimitResult, noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
+import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 
 const createTokenSchema = z
@@ -48,7 +49,8 @@ export async function GET(request: NextRequest) {
     }
 
     return noStoreJson({ valid: true });
-  } catch {
+  } catch (error) {
+    await notifyError({ route: "/api/verify-token", error });
     return noStoreJson({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -96,6 +98,7 @@ export async function POST(request: NextRequest) {
     return noStoreJson({ success: true, token });
   } catch (error) {
     logApiError("verify-token/post", error);
+    await notifyError({ route: "/api/verify-token", error });
     return noStoreJson({ success: false, error: "Unable to create token." }, { status: 500 });
   }
 }
@@ -126,6 +129,7 @@ export async function DELETE(request: NextRequest) {
     return noStoreJson({ success: true });
   } catch (error) {
     logApiError("verify-token/delete", error);
+    await notifyError({ route: "/api/verify-token", error });
     return noStoreJson({ success: false, error: "Unable to update token." }, { status: 500 });
   }
 }

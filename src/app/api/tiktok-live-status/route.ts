@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
+import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ export async function GET() {
     const live = raw === "true" || raw === "1" || raw === "yes";
     return NextResponse.json({ live });
   } catch (e) {
+    await notifyError({ route: "/api/tiktok-live-status", error: e });
     console.error("[tiktok-live-status]", e);
     return NextResponse.json({ live: false });
   }

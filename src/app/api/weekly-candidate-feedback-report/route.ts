@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { buildInternalEmailHtml, formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
+import { notifyError } from "@/lib/errorNotifier";
 
 type FeedbackRow = {
   source: string | null;
@@ -194,6 +195,7 @@ export async function GET(request: NextRequest) {
       pdfFilename: filename,
     });
   } catch (error) {
+    await notifyError({ route: "/api/weekly-candidate-feedback-report", error });
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }

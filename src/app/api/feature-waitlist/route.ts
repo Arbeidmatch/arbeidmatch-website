@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
+import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -85,7 +86,8 @@ ArbeidMatch Team`,
     }
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    await notifyError({ route: "/api/feature-waitlist", error });
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
   }
 }

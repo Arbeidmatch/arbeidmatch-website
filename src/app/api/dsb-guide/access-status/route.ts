@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPurchaseStatusByToken } from "@/lib/dsbGuideAccess";
+import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,8 @@ export async function GET(request: NextRequest) {
 
     const { status, guide_slug } = await getPurchaseStatusByToken(token);
     return NextResponse.json({ status, guide_slug });
-  } catch {
+  } catch (error) {
+    await notifyError({ route: "/api/dsb-guide/access-status", error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

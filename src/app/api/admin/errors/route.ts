@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { noStoreJson } from "@/lib/apiSecurity";
+import { notifyError } from "@/lib/errorNotifier";
 
 type ErrorStatus = "open" | "fixed" | "all";
 
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
 
     return noStoreJson({ errors: data || [] });
   } catch (error) {
+    await notifyError({ route: "/api/admin/errors", error });
     return noStoreJson({ error: "Unexpected admin errors API failure." }, { status: 500 });
   }
 }

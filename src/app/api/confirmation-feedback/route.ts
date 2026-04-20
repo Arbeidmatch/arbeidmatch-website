@@ -4,6 +4,7 @@ import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { escapeHtml } from "@/lib/htmlSanitizer";
 import { buildInternalEmailHtml, emailParagraph, formatEmailTimestampCet, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
+import { notifyError } from "@/lib/errorNotifier";
 
 type FeedbackPayload = {
   source?: string;
@@ -120,6 +121,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    await notifyError({ route: "/api/confirmation-feedback", error });
     console.error("confirmation-feedback error", error);
     return NextResponse.json({ success: false, error: "Could not send feedback." }, { status: 500 });
   }

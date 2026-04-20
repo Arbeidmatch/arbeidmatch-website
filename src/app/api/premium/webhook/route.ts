@@ -8,6 +8,7 @@ import {
   updateSubscriberBySubscriptionId,
 } from "@/lib/premium/subscribers";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
+import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +81,7 @@ export async function POST(request: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig, whSecret);
   } catch (err) {
+    await notifyError({ route: "/api/premium/webhook", error: err });
     const message = err instanceof Error ? err.message : "Invalid signature";
     console.error("[premium/webhook] verify", message);
     return NextResponse.json({ error: message }, { status: 400 });
@@ -115,6 +117,7 @@ export async function POST(request: NextRequest) {
         break;
     }
   } catch (e) {
+    await notifyError({ route: "/api/premium/webhook", error: e });
     console.error("[premium/webhook] handler", e);
     return NextResponse.json({ received: true, error: "handler_failed" }, { status: 500 });
   }

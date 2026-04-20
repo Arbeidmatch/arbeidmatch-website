@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 
 import { getRateLimitResult, noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
+import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import { buildPreviewCookieValue, previewCookieName, verifyPreviewPassword } from "@/lib/previewAuth";
 
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     logApiError("dsb-preview/unlock", error);
+    await notifyError({ route: "/api/dsb-preview/unlock", error });
     return noStoreJson({ success: false, error: "Unable to unlock preview." }, { status: 500 });
   }
 }

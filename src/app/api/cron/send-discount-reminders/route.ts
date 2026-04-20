@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendPendingReminders } from "@/lib/sendDiscountReminder";
+import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ export async function POST(request: NextRequest) {
     const result = await sendPendingReminders();
     return NextResponse.json({ success: true, ...result });
   } catch (e) {
+    await notifyError({ route: "/api/cron/send-discount-reminders", error: e });
     const message = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }

@@ -7,6 +7,7 @@ import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { createDiscountCoupon } from "@/lib/stripeCoupons";
 import type { DsbDiscountGuideType } from "@/lib/stripeCoupons";
+import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -125,6 +126,7 @@ export async function POST(request: NextRequest) {
       reused: false,
     });
   } catch (e) {
+    await notifyError({ route: "/api/dsb-guide/discount-offer", error: e });
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[discount-offer]", message);
     return NextResponse.json({ success: false, error: message }, { status: 500 });

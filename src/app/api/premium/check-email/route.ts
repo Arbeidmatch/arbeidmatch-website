@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { computeHasAccess, fetchSubscriberByEmail } from "@/lib/premium/subscribers";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { isRateLimited } from "@/lib/requestProtection";
+import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ export async function POST(request: NextRequest) {
       hasAccess,
     });
   } catch (e) {
+    await notifyError({ route: "/api/premium/check-email", error: e });
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[premium/check-email]", message);
     return NextResponse.json({ error: message }, { status: 500 });

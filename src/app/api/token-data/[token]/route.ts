@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { noStoreJson } from "@/lib/apiSecurity";
 import { logApiError } from "@/lib/secureLogger";
+import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export async function GET(
     return noStoreJson({ success: true, data });
   } catch (error) {
     logApiError("token-data", error);
+    await notifyError({ route: "/api/token-data/[token]", error });
     return noStoreJson({ success: false, error: "Could not fetch token data." }, { status: 500 });
   }
 }

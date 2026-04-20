@@ -3,6 +3,7 @@ import Stripe from "stripe";
 
 import { getPublicBaseUrl } from "@/lib/premium/stripeEnv";
 import { isRateLimited } from "@/lib/requestProtection";
+import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ checkoutUrl: session.url });
   } catch (e) {
+    await notifyError({ route: "/api/premium/create-checkout", error: e });
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[premium/create-checkout]", message);
     return NextResponse.json({ error: message }, { status: 500 });

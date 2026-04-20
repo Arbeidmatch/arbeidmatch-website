@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { noStoreJson } from "@/lib/apiSecurity";
+import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 
 const DEFAULT_TOLERANCE_SECONDS = 300;
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
     return noStoreJson({ received: true });
   } catch (error) {
     logApiError("ats/webhook", error);
+    await notifyError({ route: "/api/ats/webhook", error });
     return noStoreJson({ error: "Invalid payload" }, { status: 400 });
   }
 }

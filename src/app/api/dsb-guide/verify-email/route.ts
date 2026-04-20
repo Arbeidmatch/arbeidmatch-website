@@ -5,6 +5,7 @@ import { getPublicBaseUrl, type DsbGuideSlug } from "@/lib/dsbGuideAccess";
 import { signDsbEmailVerifyToken } from "@/lib/dsbEmailVerifyToken";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
+import { notifyError } from "@/lib/errorNotifier";
 import {
   emailParagraph,
   emailSupportAfterCta,
@@ -125,6 +126,7 @@ If you cannot use the button, reply to this email for assistance.`,
 
     return NextResponse.json({ success: true });
   } catch (e) {
+    await notifyError({ route: "/api/dsb-guide/verify-email", error: e });
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[dsb-guide/verify-email]", message);
     return NextResponse.json({ success: false, error: message }, { status: 500 });

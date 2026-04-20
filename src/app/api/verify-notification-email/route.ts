@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { verifyEligibilityVerificationToken } from "@/lib/notificationToken";
 import { buildInternalEmailHtml, emailParagraph, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
+import { notifyError } from "@/lib/errorNotifier";
 
 function getSupabaseClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -199,6 +200,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("[verify-notification-email] Verification flow failed:", message);
+    await notifyError({ route: "/api/verify-notification-email", error });
     void sendErrorReport(request, token, classifyVerificationError(error), message);
     const failedUrl = request.nextUrl.clone();
     failedUrl.pathname = "/eligibility-assistance";

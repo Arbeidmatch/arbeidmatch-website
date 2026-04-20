@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyPremiumJwt } from "@/lib/premium/jwt";
 import { computeHasAccess, fetchSubscriberByEmail } from "@/lib/premium/subscribers";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
+import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
       email,
     });
   } catch (e) {
+    await notifyError({ route: "/api/premium/verify", error: e });
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[premium/verify]", message);
     return NextResponse.json({ error: message }, { status: 500 });

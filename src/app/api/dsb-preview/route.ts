@@ -4,6 +4,7 @@ import { extractToc, readDsbGuideMarkdown } from "@/lib/dsbGuideMarkdown";
 import type { DsbGuideSlug } from "@/lib/dsbGuideAccess";
 import { noStoreJson } from "@/lib/apiSecurity";
 import { isPreviewAuthorized } from "@/lib/previewAuth";
+import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
     return noStoreJson({ success: true, slug, markdown, toc });
   } catch (error) {
     logApiError("dsb-preview", error);
+    await notifyError({ route: "/api/dsb-preview", error });
     return noStoreJson({ success: false, error: "Could not load guide preview." }, { status: 500 });
   }
 }

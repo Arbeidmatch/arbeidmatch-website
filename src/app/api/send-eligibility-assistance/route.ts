@@ -12,6 +12,7 @@ import {
   wrapPremiumEmail,
 } from "@/lib/emailPremiumTemplate";
 import { createEligibilityVerificationToken } from "@/lib/notificationToken";
+import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -210,6 +211,7 @@ If the button does not work, reply to this email for help.`,
     const okBody = { success: true, requiresVerification: true };
     return NextResponse.json(okBody);
   } catch (error) {
+    await notifyError({ route: "/api/send-eligibility-assistance", error });
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("[send-eligibility-assistance] catch:", message);
     const body = { success: false, error: message };

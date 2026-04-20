@@ -4,6 +4,7 @@ import { hasHoneypotValue } from "@/lib/requestProtection";
 import { isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { notifyError } from "@/lib/errorNotifier";
 import {
   emailParagraph,
   inDevelopmentBadgeStatic,
@@ -79,6 +80,7 @@ Visit https://arbeidmatch.no`,
 
     return NextResponse.json({ success: true });
   } catch (e) {
+    await notifyError({ route: "/api/app-waitlist", error: e });
     const message = e instanceof Error ? e.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }

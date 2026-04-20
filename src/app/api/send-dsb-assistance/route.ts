@@ -3,6 +3,7 @@ import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { buildInternalEmailHtml, emailParagraph, mailHeaders, premiumCtaButton, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
+import { notifyError } from "@/lib/errorNotifier";
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    await notifyError({ route: "/api/send-dsb-assistance", error });
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
