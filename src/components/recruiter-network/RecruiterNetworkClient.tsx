@@ -124,6 +124,11 @@ export default function RecruiterNetworkClient() {
   const [successEmail, setSuccessEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [motivation, setMotivation] = useState("");
+  const [form, setForm] = useState({
+    country: "",
+    city: "",
+    businessType: "",
+  });
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -224,6 +229,48 @@ export default function RecruiterNetworkClient() {
     "Genuine interest in building something long-term",
   ] as const;
 
+  const norwegianCities = [
+    "Oslo", "Bergen", "Trondheim", "Stavanger", "Kristiansand",
+    "Drammen", "Tromso", "Fredrikstad", "Sandnes", "Sarpsborg",
+    "Bodo", "Sandefjord", "Alesund", "Porsgrunn", "Haugesund",
+    "Arendal", "Tonsberg", "Moss", "Hamar", "Lillehammer",
+    "Molde", "Harstad", "Gjovik", "Halden", "Kongsberg",
+    "Larvik", "Skien", "Horten", "Alta", "Narvik",
+    "Mo i Rana", "Steinkjer", "Levanger", "Elverum",
+    "Whole of Norway",
+  ] as const;
+
+  const swedishCities = [
+    "Stockholm", "Gothenburg", "Malmo", "Uppsala", "Vasteras",
+    "Orebro", "Linkoping", "Helsingborg", "Jonkoping", "Norrkoping",
+    "Lund", "Umea", "Gavle", "Boras", "Sodertalje",
+    "Eskilstuna", "Halmstad", "Vaxjo", "Karlstad", "Sundsvall",
+    "Whole of Sweden",
+  ] as const;
+
+  const danishCities = [
+    "Copenhagen", "Aarhus", "Odense", "Aalborg", "Esbjerg",
+    "Horsens", "Randers", "Kolding", "Vejle", "Herning",
+    "Silkeborg", "Frederiksberg", "Naestved", "Slagelse", "Hillerod",
+    "Whole of Denmark",
+  ] as const;
+
+  const cityOptions =
+    form.country === "Norway"
+      ? norwegianCities
+      : form.country === "Sweden"
+        ? swedishCities
+        : form.country === "Denmark"
+          ? danishCities
+          : [];
+
+  const mapBusinessTypeToHasCompany = (value: string) => {
+    if (!value) return "";
+    if (value === "no_business") return "not_yet";
+    if (value === "freelancer_platform") return "want_setup";
+    return "yes";
+  };
+
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
@@ -238,12 +285,13 @@ export default function RecruiterNetworkClient() {
       const payload = {
         full_name: String(fd.get("full_name") || "").trim(),
         email: String(fd.get("email") || "").trim(),
-        country: String(fd.get("country") || "").trim(),
-        region: String(fd.get("region") || "").trim(),
+        country: form.country || String(fd.get("country") || "").trim(),
+        region: form.city || String(fd.get("region") || "").trim(),
         partner_type: String(fd.get("partner_type") || "").trim(),
         social_url: String(fd.get("social_url") || "").trim(),
         monthly_reach: String(fd.get("monthly_reach") || "").trim(),
-        has_company: String(fd.get("has_company") || "").trim(),
+        has_company: mapBusinessTypeToHasCompany(form.businessType),
+        business_type: form.businessType,
         motivation: String(fd.get("motivation") || "").trim(),
         gdpr_consent: fd.get("gdpr_consent") === "on",
       };
@@ -260,6 +308,7 @@ export default function RecruiterNetworkClient() {
       }
       setSuccessEmail(payload.email);
       e.currentTarget.reset();
+      setForm({ country: "", city: "", businessType: "" });
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -510,7 +559,7 @@ export default function RecruiterNetworkClient() {
               Ready to build with us?
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-center text-white/60">
-              Tell us about yourself. We respond within 48 hours.
+              Tell us about yourself. We typically respond within 1 to 2 business days.
             </p>
           </Reveal>
 
@@ -533,7 +582,7 @@ export default function RecruiterNetworkClient() {
                 </div>
                 <p className="text-lg font-semibold text-white">Thank you! Your application is under review.</p>
                 <p className="mt-3 text-sm leading-relaxed text-white/65">
-                  We will contact you at <span className="text-[#B8860B]">{successEmail}</span> within 48 hours.
+                  We will contact you at <span className="text-[#B8860B]">{successEmail}</span> within 1 to 2 business days.
                 </p>
               </motion.div>
             ) : (
@@ -553,17 +602,175 @@ export default function RecruiterNetworkClient() {
                   <input name="email" type="email" required className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
+                  <label
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: "rgba(255,255,255,0.5)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      display: "block",
+                      marginBottom: 8,
+                    }}
+                  >
                     Country *
                   </label>
-                  <input name="country" required className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm" />
+                  <select
+                    value={form.country}
+                    onChange={(e) => setForm({ ...form, country: e.target.value, city: "" })}
+                    required
+                    style={{
+                      width: "100%",
+                      background: "rgba(255,255,255,0.06)",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      borderRadius: 10,
+                      padding: "12px 16px",
+                      color: form.country ? "white" : "rgba(255,255,255,0.3)",
+                      fontSize: 14,
+                      outline: "none",
+                      appearance: "none",
+                    }}
+                  >
+                    <option value="" disabled>
+                      Select your country
+                    </option>
+                    <option value="Norway">Norway</option>
+                    <option value="Sweden">Sweden</option>
+                    <option value="Denmark">Denmark</option>
+                    <option value="Other">Other Nordic / European country</option>
+                  </select>
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
-                    Region / City you want to cover *
+                    Area you want to cover *
                   </label>
-                  <input name="region" required className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm" />
+                  <p className="mb-2 text-xs text-white/40">
+                    Select the city or region where you will recruit candidates.
+                  </p>
+                  {form.country === "Other" ? (
+                    <input
+                      name="region"
+                      value={form.city}
+                      onChange={(e) => setForm({ ...form, city: e.target.value })}
+                      required
+                      placeholder="Enter your city or region"
+                      className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm"
+                    />
+                  ) : (
+                    <select
+                      name="region"
+                      value={form.city}
+                      onChange={(e) => setForm({ ...form, city: e.target.value })}
+                      required
+                      style={{
+                        width: "100%",
+                        background: "rgba(255,255,255,0.06)",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: 10,
+                        padding: "12px 16px",
+                        color: form.city ? "white" : "rgba(255,255,255,0.3)",
+                        fontSize: 14,
+                        outline: "none",
+                        appearance: "none",
+                      }}
+                    >
+                      <option value="" disabled>
+                        Select city or region
+                      </option>
+                      {cityOptions.map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
+
+                <fieldset>
+                  <legend className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-[#C9A84C]">
+                    How do you invoice?
+                  </legend>
+                  <p className="mb-3 text-xs text-white/40">
+                    We work with invoicing only. Select how you prefer to invoice.
+                  </p>
+                  <div className="space-y-2.5">
+                    {[
+                      {
+                        value: "company",
+                        title: "Registered company (AS, ENK, or equivalent)",
+                        subtitle: "I invoice through my own registered business",
+                      },
+                      {
+                        value: "sole_trader",
+                        title: "Sole trader / Self-employed (ENK)",
+                        subtitle: "I am self-employed and invoice under my personal business number",
+                      },
+                      {
+                        value: "freelancer_platform",
+                        title: "Freelancer via invoicing platform",
+                        subtitle: "I use a platform such as Factofly, Frilansfinans, or similar to invoice",
+                      },
+                      {
+                        value: "no_business",
+                        title: "I do not have a business yet",
+                        subtitle: "I am interested but need to set up invoicing first. We can help guide you.",
+                      },
+                    ].map((option) => {
+                      const checked = form.businessType === option.value;
+                      return (
+                        <label
+                          key={option.value}
+                          className="flex cursor-pointer items-start gap-3 rounded-[10px] border p-[14px_16px]"
+                          style={{
+                            background: checked ? "rgba(201,168,76,0.06)" : "rgba(255,255,255,0.03)",
+                            borderColor: checked ? "#C9A84C" : "rgba(255,255,255,0.08)",
+                            transition: "all 180ms",
+                          }}
+                        >
+                          <input
+                            type="radio"
+                            name="business_type"
+                            value={option.value}
+                            checked={checked}
+                            onChange={(e) => setForm({ ...form, businessType: e.target.value })}
+                            required
+                            className="sr-only"
+                          />
+                          <span
+                            style={{
+                              width: 18,
+                              height: 18,
+                              borderRadius: "50%",
+                              border: `2px solid ${checked ? "#C9A84C" : "rgba(255,255,255,0.2)"}`,
+                              marginTop: 2,
+                              position: "relative",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {checked ? (
+                              <span
+                                style={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: "50%",
+                                  background: "#C9A84C",
+                                  position: "absolute",
+                                  left: "50%",
+                                  top: "50%",
+                                  transform: "translate(-50%, -50%)",
+                                }}
+                              />
+                            ) : null}
+                          </span>
+                          <span>
+                            <span className="block text-sm font-semibold text-white">{option.title}</span>
+                            <span className="block text-xs text-white/50">{option.subtitle}</span>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
 
                 <fieldset>
                   <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">
@@ -609,23 +816,7 @@ export default function RecruiterNetworkClient() {
                   />
                 </div>
 
-                <fieldset>
-                  <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">
-                    Do you have ENK or AS? *
-                  </legend>
-                  <div className="space-y-2 text-sm text-white/85">
-                    {[
-                      ["yes", "Yes"],
-                      ["want_setup", "No but I want to set one up"],
-                      ["not_yet", "Not yet"],
-                    ].map(([value, label]) => (
-                      <label key={value} className="flex cursor-pointer items-center gap-2">
-                        <input type="radio" name="has_company" value={value} required className="accent-[#B8860B]" />
-                        {label}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
+                <input type="hidden" name="has_company" value={mapBusinessTypeToHasCompany(form.businessType)} />
 
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
