@@ -165,7 +165,6 @@ const WORKER_TYPES_BY_INDUSTRY: Record<string, string[]> = {
     "Bartender",
     "Hotel receptionist",
     "Pastry chef",
-    "Housekeeping staff",
     "Other",
   ],
   Healthcare: [
