@@ -62,6 +62,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       </motion.p>
       <motion.h1
         className="am-h1 mb-6 max-w-full break-words font-sans font-extrabold text-white sm:max-w-[22ch]"
+        style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)" }}
         {...fade(0.1)}
       >
         Qualified workers,
@@ -95,7 +96,10 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       <p className="am-eyebrow mb-5 font-semibold uppercase tracking-[0.12em] text-[#B8860B]">
         EU/EEA Workforce Solutions · Norway
       </p>
-      <h1 className="am-h1 mb-6 max-w-full break-words font-sans font-extrabold text-white sm:max-w-[22ch]">
+      <h1
+        className="am-h1 mb-6 max-w-full break-words font-sans font-extrabold text-white sm:max-w-[22ch]"
+        style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)" }}
+      >
         Qualified workers,
         <br />
         delivered to your
@@ -136,7 +140,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
   return (
     <>
       <RoleSelector />
-      <section className="flex min-h-screen items-center bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
+      <section className="flex items-center bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           {hero}
         </div>

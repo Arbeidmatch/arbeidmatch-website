@@ -30,7 +30,7 @@ function IconTikTok({ className }: { className?: string }) {
 }
 
 const inputClass =
-  "input-premium premium-dsb-input select-premium textarea-premium w-full rounded-md border border-[rgba(255,255,255,0.35)] bg-[rgba(255,255,255,0.03)] px-4 py-3 text-navy focus:outline-none";
+  "w-full rounded-lg border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.05)] px-4 py-3 text-white placeholder:text-[rgba(255,255,255,0.35)] focus:outline-none";
 
 export default function ContactPageClient() {
   const [submitted, setSubmitted] = useState(false);
@@ -88,7 +88,7 @@ export default function ContactPageClient() {
   return (
     <section className="bg-[#0D1B2A] py-16">
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
-        <div className="mb-8 rounded-r-md border-l-4 border-gold bg-gold/10 p-4 text-navy">
+        <div className="mb-8 rounded-r-md border-l-4 border-gold bg-gold/10 p-4 text-white/70">
           Looking for a job?{" "}
           <a
             href="https://jobs.arbeidmatch.no"
@@ -158,9 +158,12 @@ export default function ContactPageClient() {
           </ScrollReveal>
 
           <ScrollReveal variant="fadeUp">
-          <form onSubmit={handleSubmit} className="card-premium rounded-2xl border border-white/10 bg-white p-7 shadow-[var(--shadow-card)] md:p-10">
-            <h2 className="text-2xl font-bold text-navy">Send us a message</h2>
-            <p className="mt-2 text-sm text-text-secondary">
+          <form
+            onSubmit={handleSubmit}
+            className="card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-7 shadow-[var(--shadow-card)] md:p-10"
+          >
+            <h2 className="text-2xl font-bold text-white">Send us a message</h2>
+            <p className="mt-2 text-sm text-white/70">
               Employers and partners only. Job seekers, please complete the work readiness check first.
             </p>
             <div className="mt-6 space-y-4">
@@ -173,20 +176,20 @@ export default function ContactPageClient() {
                 aria-hidden="true"
               />
               <div className="grid gap-4 sm:grid-cols-2">
-                <label className="form-label-premium text-sm text-navy">
+                <label className="form-label-premium text-sm text-white/70">
                   Your name
-                  <input required name="name" className={inputClass} />
+                  <input required name="name" className={inputClass} placeholder="Your name" />
                 </label>
-                <label className="form-label-premium text-sm text-navy">
+                <label className="form-label-premium text-sm text-white/70">
                   Company
-                  <input required name="company" className={inputClass} />
+                  <input required name="company" className={inputClass} placeholder="Company" />
                 </label>
               </div>
-              <label className="form-label-premium text-sm text-navy">
+              <label className="form-label-premium text-sm text-white/70">
                 Work email
-                <input required type="email" name="email" className={inputClass} />
+                <input required type="email" name="email" className={inputClass} placeholder="name@company.com" />
               </label>
-              <label className="form-label-premium text-sm text-navy">
+              <label className="form-label-premium text-sm text-white/70">
                 I need
                 <select
                   name="need"
@@ -209,7 +212,7 @@ export default function ContactPageClient() {
                 </select>
               </label>
               {need === "Other" && (
-                <label className="form-label-premium text-sm text-navy">
+                <label className="form-label-premium text-sm text-white/70">
                   Please specify
                   <input
                     required
@@ -220,14 +223,19 @@ export default function ContactPageClient() {
                   />
                 </label>
               )}
-              <label className="form-label-premium text-sm text-navy">
+              <label className="form-label-premium text-sm text-white/70">
                 Message
-                <textarea name="message" rows={5} className={`${inputClass} min-h-[100px]`} />
+                <textarea
+                  name="message"
+                  rows={5}
+                  className={`${inputClass} min-h-[100px]`}
+                  placeholder="Tell us about your needs"
+                />
               </label>
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="btn-micro btn-gold-shine w-full rounded-md bg-[#0D1B2A] py-3 font-medium text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0D1B2A]"
+                className="btn-micro btn-gold-shine w-full rounded-md bg-[#C9A84C] py-3 font-bold text-[#0D1B2A] transition-colors hover:bg-[#d8bc6a]"
               >
                 {status === "submitting" ? "Sending..." : "Send message →"}
               </button>
@@ -239,7 +247,7 @@ export default function ContactPageClient() {
                 .
               </p>
               {submitted && (
-                <div className="rounded-md border border-gold/40 bg-gold/10 p-4 text-navy">
+                <div className="rounded-md border border-gold/40 bg-gold/10 p-4 text-white/80">
                   Thank you! We will typically be in touch within 1 to 2 business days.
                 </div>
               )}
@@ -264,15 +272,15 @@ export default function ContactPageClient() {
               href="https://www.facebook.com/arbeidmatchNO"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col rounded-xl border border-[#1D9E75]/40 bg-[#1D9E75]/10 p-5 transition hover:border-[#1D9E75] hover:bg-[#1D9E75]/15"
+              className="group flex flex-col rounded-xl border border-[rgba(201,168,76,0.3)] bg-transparent p-5 transition hover:border-[#C9A84C] hover:bg-[rgba(255,255,255,0.03)]"
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1D9E75] text-white">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(255,255,255,0.05)] text-white">
                   <IconFacebook className="h-6 w-6" />
                 </span>
                 <span className="text-lg font-semibold text-white">Facebook</span>
               </div>
-              <span className="mt-5 inline-flex w-fit rounded-md bg-[#1D9E75] px-4 py-2 text-sm font-medium text-white transition group-hover:bg-[#1D9E75]">
+              <span className="mt-5 inline-flex w-fit rounded-md border border-[rgba(201,168,76,0.3)] px-4 py-2 text-sm font-medium text-white transition group-hover:border-[#C9A84C]">
                 Follow
               </span>
             </a>
@@ -280,7 +288,7 @@ export default function ContactPageClient() {
               href="https://www.tiktok.com/@arbeidmatch"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col rounded-xl border border-red-500/45 bg-black/60 p-5 transition hover:border-red-500 hover:bg-black/80"
+              className="group flex flex-col rounded-xl border border-[rgba(201,168,76,0.3)] bg-transparent p-5 transition hover:border-[#C9A84C] hover:bg-[rgba(255,255,255,0.03)]"
             >
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white">
@@ -288,7 +296,7 @@ export default function ContactPageClient() {
                 </span>
                 <span className="text-lg font-semibold text-white">TikTok</span>
               </div>
-              <span className="mt-5 inline-flex w-fit rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition group-hover:bg-red-700">
+              <span className="mt-5 inline-flex w-fit rounded-md border border-[rgba(201,168,76,0.3)] px-4 py-2 text-sm font-medium text-white transition group-hover:border-[#C9A84C]">
                 Join
               </span>
             </a>
@@ -296,38 +304,18 @@ export default function ContactPageClient() {
               href="https://www.youtube.com/@arbeidmatch"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col rounded-xl border border-[#E24B4A]/45 bg-[#E24B4A]/10 p-5 transition hover:border-[#E24B4A] hover:bg-[#E24B4A]/15"
+              className="group flex flex-col rounded-xl border border-[rgba(201,168,76,0.3)] bg-transparent p-5 transition hover:border-[#C9A84C] hover:bg-[rgba(255,255,255,0.03)]"
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E24B4A] text-white">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(255,255,255,0.05)] text-white">
                   <IconYoutube className="h-6 w-6" />
                 </span>
                 <span className="text-lg font-semibold text-white">YouTube</span>
               </div>
-              <span className="mt-5 inline-flex w-fit rounded-md bg-[#E24B4A] px-4 py-2 text-sm font-medium text-white transition group-hover:bg-[#E24B4A]">
+              <span className="mt-5 inline-flex w-fit rounded-md border border-[rgba(201,168,76,0.3)] px-4 py-2 text-sm font-medium text-white transition group-hover:border-[#C9A84C]">
                 Subscribe
               </span>
             </a>
-          </div>
-        </div>
-        </ScrollReveal>
-
-        <ScrollReveal variant="fadeUp">
-        <div className="mt-12 border-t border-white/[0.07] pt-6">
-          <div className="grid gap-5 text-center sm:grid-cols-3">
-            <div>
-              <p className="text-2xl font-bold text-[#C9A84C]">500+</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.12em] text-white/55">Candidates placed</p>
-              <p className="mt-2 text-[10px] leading-snug text-white/40">(based on internal records, updated periodically)</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-[#C9A84C]">EU/EEA</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.12em] text-white/55">Countries covered</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold leading-snug text-[#C9A84C] md:text-xl">Typically within a few business days</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.12em] text-white/55">First response timing</p>
-            </div>
           </div>
         </div>
         </ScrollReveal>
