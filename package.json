@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "fix-error": "ts-node src/scripts/parse-error-email.ts"
+    "fix-error": "ts-node src/scripts/parse-error-email.ts",
+    "test:save-request-bools": "node src/scripts/validate-save-employer-request-booleans.mjs"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.5.0",

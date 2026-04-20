@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
@@ -47,7 +47,7 @@ const requestSchema = z
     salaryTo: z.string().trim().max(40).optional().or(z.literal("")),
     hoursUnit: z.string().trim().max(60).optional().or(z.literal("")),
     hoursAmount: z.string().trim().max(10).optional().or(z.literal("")),
-    overtime: z.string().trim().max(60).optional().or(z.literal("")),
+    overtime: z.union([z.boolean(), z.string().trim().max(60), z.literal(""), z.null()]).optional(),
     maxOvertimeHours: z.string().trim().max(10).optional().or(z.literal("")),
     hasRotation: z.string().trim().max(20).optional().or(z.literal("")),
     rotationWeeksOn: z.string().trim().max(20).optional().or(z.literal("")),
@@ -86,8 +86,18 @@ function parseNumeric(value?: string) {
   return Number.isFinite(num) ? num : null;
 }
 
+const toBool = (val: unknown): boolean | null => {
+  if (val === true || val === "true" || val === "1") return true;
+  if (val === false || val === "false" || val === "0") return false;
+  return null;
+};
+
+const hasNonEmptyString = (val: unknown): val is string =>
+  typeof val === "string" && val.trim().length > 0;
+
 export async function POST(request: NextRequest) {
   let companySnapshot = "unknown";
+  let normalizedBooleanFields: string[] = [];
   try {
     const rate = getRateLimitResult(request, "save-employer-request", 8, 10 * 60 * 1000);
     if (rate.limited) {
@@ -114,6 +124,31 @@ export async function POST(request: NextRequest) {
 
     const payload = parsed.data;
     companySnapshot = payload.company?.trim() || "unknown";
+    normalizedBooleanFields = [];
+    const parsedHasRotation = toBool(payload.hasRotation);
+    if (hasNonEmptyString(payload.hasRotation) && parsedHasRotation === null) {
+      normalizedBooleanFields.push("hasRotation");
+    }
+
+    const parsedSubscribe = toBool(payload.subscribe);
+    if (hasNonEmptyString(payload.subscribe) && parsedSubscribe === null) {
+      normalizedBooleanFields.push("subscribe");
+    }
+
+    const parsedOvertime = toBool(payload.overtime);
+    if (hasNonEmptyString(payload.overtime) && parsedOvertime === null) {
+      normalizedBooleanFields.push("overtime");
+    }
+
+    const parsedInternationalTravel = toBool(payload.internationalTravel);
+    if (hasNonEmptyString(payload.internationalTravel) && parsedInternationalTravel === null) {
+      normalizedBooleanFields.push("internationalTravel");
+    }
+
+    const parsedAccommodation = toBool(payload.accommodation);
+    if (hasNonEmptyString(payload.accommodation) && parsedAccommodation === null) {
+      normalizedBooleanFields.push("accommodation");
+    }
 
     const { error } = await supabase.from("employer_requests").insert({
       token_id:                      payload.token,
@@ -143,20 +178,20 @@ export async function POST(request: NextRequest) {
       // Legacy fields retained as nullable to avoid breaking existing downstream consumers.
       paslag_percent:                null,
       salary:                        payload.salary,
-      full_time:                     null,
+      full_time:                     toBool(null),
       hours_unit:                    payload.hoursUnit,
       hours_amount:                  parseNumeric(payload.hoursAmount),
-      overtime:                      payload.overtime,
+      overtime:                      parsedOvertime,
       max_overtime_hours:            parseNumeric(payload.maxOvertimeHours),
-      has_rotation:                  payload.hasRotation,
+      has_rotation:                  parsedHasRotation,
       rotation_weeks_on:             parseNumeric(payload.rotationWeeksOn),
       rotation_weeks_off:            parseNumeric(payload.rotationWeeksOff),
       accommodation_cost:            payload.accommodationCost,
-      international_travel:          payload.internationalTravel,
-      international_travel_coverage: null,
+      international_travel:          parsedInternationalTravel,
+      international_travel_coverage: toBool(null),
       local_travel:                  payload.localTravel,
       local_travel_other:            payload.localTravelOther || null,
-      accommodation:                 payload.accommodation,
+      accommodation:                 parsedAccommodation,
       accommodation_other:           payload.accommodationOther || null,
       equipment:                     payload.equipment,
       equipment_other:               payload.equipmentOther || null,
@@ -171,7 +206,7 @@ export async function POST(request: NextRequest) {
       referral_company_name:         payload.referralCompanyName || null,
       referral_org_number:           payload.referralOrgNumber || null,
       referral_email:                payload.referralEmail || null,
-      subscribe:                     payload.subscribe,
+      subscribe:                     parsedSubscribe,
       notes:                         payload.notes || null,
     });
 
@@ -181,13 +216,16 @@ export async function POST(request: NextRequest) {
 
     return noStoreJson({ success: true });
   } catch (error) {
-    logApiError("save-employer-request", error);
+    logApiError("save-employer-request", error, {
+      normalized_boolean_fields_count: normalizedBooleanFields.length,
+    });
     await notifyError({
       route: "/api/save-employer-request",
       error,
       context: {
         company: companySnapshot,
         timestamp: new Date().toISOString(),
+        normalizedBooleanFields,
       },
     });
     return noStoreJson({ success: false, error: "Could not save employer request." }, { status: 500 });
