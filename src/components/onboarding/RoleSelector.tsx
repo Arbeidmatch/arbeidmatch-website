@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Briefcase, UserCheck } from "lucide-react";
 
 const GOLD = "#C9A84C";
@@ -17,7 +17,6 @@ function RoleCard({
   subtitle,
   features,
   ctaLabel,
-  ctaVariant,
   onSelect,
 }: {
   icon: ReactNode;
@@ -25,7 +24,6 @@ function RoleCard({
   subtitle: string;
   features: string[];
   ctaLabel: string;
-  ctaVariant: "gold" | "outline";
   onSelect: () => void;
 }) {
   const [glow, setGlow] = useState<Glow>({ x: 0, y: 0 });
@@ -71,7 +69,7 @@ function RoleCard({
       onMouseLeave={() => setHovered(false)}
       onTouchStart={handleTouchStart}
       onClick={onSelect}
-      className="group relative box-border w-full min-w-0 max-w-[400px] cursor-pointer overflow-hidden break-words rounded-[20px] border border-white/[0.08] bg-[rgba(255,255,255,0.03)] px-5 py-6 transition-all duration-[250ms] ease-out max-[639px]:max-w-none min-[640px]:flex-1 min-[640px]:py-7 lg:px-7 lg:py-9"
+      className="group relative box-border w-full min-w-0 max-w-[400px] cursor-pointer break-words rounded-[20px] border border-white/[0.08] bg-[rgba(255,255,255,0.03)] px-5 py-6 transition-all duration-[250ms] ease-out max-[639px]:max-w-none min-[640px]:flex-1 min-[640px]:py-7 lg:px-7 lg:py-9"
       style={{
         borderColor: hovered ? "rgba(201,168,76,0.5)" : "rgba(255,255,255,0.08)",
         transform: hovered ? "scale(1.02)" : "scale(1)",
@@ -112,23 +110,18 @@ function RoleCard({
         </ul>
         <button
           type="button"
-          className={
-            ctaVariant === "gold"
-              ? "mt-6 box-border w-full rounded-[10px] py-3 px-5 text-sm font-bold transition-colors duration-[180ms] min-[640px]:mt-7 min-[640px]:py-3.5 min-[640px]:text-[15px]"
-              : "mt-6 box-border w-full rounded-[10px] border py-3 px-5 text-sm font-bold transition-all duration-[180ms] min-[640px]:mt-7 min-[640px]:py-3.5 min-[640px]:text-[15px]"
-          }
-          style={
-            ctaVariant === "gold"
-              ? {
-                  background: hovered ? "#b8953f" : GOLD,
-                  color: "#0f1923",
-                }
-              : {
-                  background: hovered ? "rgba(201,168,76,0.1)" : "transparent",
-                  borderColor: hovered ? GOLD : "rgba(201,168,76,0.5)",
-                  color: GOLD,
-                }
-          }
+          className="mt-6 box-border block w-full rounded-[10px] px-6 py-3.5 text-sm font-bold transition-colors duration-[180ms] min-[640px]:mt-7 min-[640px]:text-[15px]"
+          style={{
+            display: "block",
+            width: "100%",
+            visibility: "visible",
+            opacity: 1,
+            background: hovered ? "#b8953f" : GOLD,
+            color: "#0D1B2A",
+            fontWeight: 700,
+            borderRadius: 10,
+            padding: "14px 24px",
+          }}
           onClick={(e) => {
             e.stopPropagation();
             onSelect();
@@ -143,6 +136,7 @@ function RoleCard({
 
 export default function RoleSelector() {
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const [shouldRender, setShouldRender] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
   const pendingRedirect = useRef<string | null>(null);
@@ -229,29 +223,28 @@ export default function RoleSelector() {
 
               <div className="flex min-h-0 w-full flex-col gap-4 min-[640px]:flex-row min-[640px]:gap-5">
                 <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, delay: 0.3, ease: "easeOut" }}
+                  initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+                  animate={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+                  transition={reduceMotion ? { duration: 0 } : { duration: 0.5, delay: 0, ease: "easeOut" }}
                   className="flex min-h-0 min-w-0 flex-1 justify-center"
                 >
                   <RoleCard
                     icon={<Briefcase className="h-7 w-7" stroke={GOLD} strokeWidth={1.5} />}
-                    title="Jeg er arbeidsgiver"
-                    subtitle="Norske bedrifter som trenger kvalifiserte EU/EEA-arbeidere innen bygg, logistikk, industri og mer."
+                    title="I am an employer"
+                    subtitle="Norwegian businesses looking for qualified EU/EEA workers in construction, logistics, industry and more."
                     features={[
-                      "Pre-screena kandidater levert innen 2 uker",
-                      "Full overholdelse av norsk arbeidsrett",
-                      "Dedikert rekrutterer for din bedrift",
+                      "Pre-screened candidates delivered within 2 weeks",
+                      "Full compliance with Norwegian labor law",
+                      "Dedicated recruiter for your business",
                     ]}
-                    ctaLabel="Kom i gang"
-                    ctaVariant="gold"
+                    ctaLabel="Get started"
                     onSelect={() => closeWithOptionalRedirect("employer", "/for-employers")}
                   />
                 </motion.div>
                 <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, delay: 0.45, ease: "easeOut" }}
+                  initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+                  animate={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+                  transition={reduceMotion ? { duration: 0 } : { duration: 0.5, delay: 0.15, ease: "easeOut" }}
                   className="flex min-h-0 min-w-0 flex-1 justify-center"
                 >
                   <RoleCard
@@ -264,7 +257,6 @@ export default function RoleSelector() {
                       "Direct access to active job openings",
                     ]}
                     ctaLabel="Find my job"
-                    ctaVariant="outline"
                     onSelect={() => closeWithOptionalRedirect("candidate", "/for-candidates")}
                   />
                 </motion.div>
