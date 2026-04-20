@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { getSupabaseServiceClient } from "@/lib/supabaseService";
 
 function createTransporter() {
   const pass = process.env.SMTP_PASS;
@@ -19,6 +20,8 @@ export interface ErrorNotificationParams {
   route: string;
   error: unknown;
   context?: Record<string, unknown>;
+  fixApplied?: string;
+  fixCommit?: string;
 }
 
 function serializeUnknownError(error: unknown): string {
@@ -47,7 +50,13 @@ function extractUnknownStack(error: unknown): string {
   return "No stack trace";
 }
 
-export async function notifyError({ route, error, context = {} }: ErrorNotificationParams): Promise<void> {
+export async function notifyError({
+  route,
+  error,
+  context = {},
+  fixApplied,
+  fixCommit,
+}: ErrorNotificationParams): Promise<void> {
   if (process.env.NODE_ENV !== "production") {
     console.error(`[DEV ERROR] ${route}:`, error, context);
     return;
@@ -56,10 +65,36 @@ export async function notifyError({ route, error, context = {} }: ErrorNotificat
   const errorMessage = serializeUnknownError(error);
   const errorStack = extractUnknownStack(error);
   const timestamp = new Date().toISOString();
+  const status = fixApplied ? "fixed" : "open";
+  const resolvedAt = fixApplied ? timestamp : null;
 
   const contextLines = Object.entries(context)
     .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
     .join("\n");
+
+  try {
+    const supabase = getSupabaseServiceClient();
+    if (supabase) {
+      const { error: insertError } = await supabase.from("error_log").insert({
+        route,
+        error_message: errorMessage,
+        error_stack: errorStack,
+        context,
+        fix_applied: fixApplied ?? null,
+        fix_commit: fixCommit ?? null,
+        status,
+        resolved_at: resolvedAt,
+        environment: process.env.NODE_ENV || "unknown",
+      });
+      if (insertError) {
+        console.error("[errorNotifier] Failed to insert error_log row:", insertError);
+      }
+    } else {
+      console.error("[errorNotifier] Supabase client missing; cannot persist error_log row.");
+    }
+  } catch (persistErr) {
+    console.error("[errorNotifier] Unexpected error while persisting error_log:", persistErr);
+  }
 
   const emailBody = `
 ArbeidMatch - Error Notification
@@ -100,5 +135,32 @@ This is an automated error notification from arbeidmatch.no
     });
   } catch (notifyErr) {
     console.error("Failed to send error notification:", notifyErr);
+  }
+}
+
+export async function markErrorFixed(route: string, fixApplied: string, fixCommit?: string): Promise<void> {
+  try {
+    const supabase = getSupabaseServiceClient();
+    if (!supabase) {
+      console.error("[errorNotifier] Supabase client missing; cannot mark error as fixed.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("error_log")
+      .update({
+        status: "fixed",
+        resolved_at: new Date().toISOString(),
+        fix_applied: fixApplied,
+        fix_commit: fixCommit ?? null,
+      })
+      .eq("route", route)
+      .eq("status", "open");
+
+    if (error) {
+      console.error("[errorNotifier] Failed to update fixed error_log rows:", error);
+    }
+  } catch (updateErr) {
+    console.error("[errorNotifier] Unexpected error while marking error fixed:", updateErr);
   }
 }

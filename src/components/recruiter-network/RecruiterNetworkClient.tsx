@@ -628,17 +628,25 @@ export default function RecruiterNetworkClient() {
                     value={form.country}
                     onChange={(e) => setForm({ ...form, country: e.target.value, city: "" })}
                     required
-                    className={`w-full appearance-none rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none ${
+                    className={`w-full appearance-none rounded-[10px] border border-white/25 bg-[#0f1923] px-[18px] py-[14px] text-[15px] focus:border-[#C9A84C] focus:bg-[#0f1923] focus:outline-none ${
                       form.country ? "text-white" : "text-white/45"
                     }`}
                   >
-                    <option value="" disabled>
+                    <option value="" disabled className="bg-white text-[#0f1923]">
                       Select your country
                     </option>
-                    <option value="Norway">Norway</option>
-                    <option value="Sweden">Sweden</option>
-                    <option value="Denmark">Denmark</option>
-                    <option value="Other">Other Nordic / European country</option>
+                    <option value="Norway" className="bg-white text-[#0f1923]">
+                      Norway
+                    </option>
+                    <option value="Sweden" className="bg-white text-[#0f1923]">
+                      Sweden
+                    </option>
+                    <option value="Denmark" className="bg-white text-[#0f1923]">
+                      Denmark
+                    </option>
+                    <option value="Other" className="bg-white text-[#0f1923]">
+                      Other Nordic / European country
+                    </option>
                   </select>
                 </div>
                 <div>
@@ -667,11 +675,11 @@ export default function RecruiterNetworkClient() {
                         form.city ? "text-white" : "text-white/45"
                       }`}
                     >
-                      <option value="" disabled>
+                      <option value="" disabled className="bg-white text-[#0f1923]">
                         Select city or region
                       </option>
                       {cityOptions.map((city) => (
-                        <option key={city} value={city}>
+                        <option key={city} value={city} className="bg-white text-[#0f1923]">
                           {city}
                         </option>
                       ))}
