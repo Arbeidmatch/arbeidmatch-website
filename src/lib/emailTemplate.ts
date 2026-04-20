@@ -1,28 +1,23 @@
 import { escapeHtml } from "@/lib/htmlSanitizer";
 
-/**
- * Standard label/value row for transactional emails (inline styles for client compatibility).
- * Single block: label + value as stacked <p> tags (no div-inside-div for text).
- */
+/** Label + value as two stacked <p> tags only (no wrapper). */
 export function buildEmailFieldRow(label: string, valueHtml: string): string {
-  return `<div style="border-bottom:1px solid rgba(201,168,76,0.06);padding-bottom:12px;margin-bottom:12px;">
-  <p style="margin:0 0 3px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.4);">${label}</p>
-  <p style="margin:0;font-size:14px;font-weight:500;color:#ffffff;line-height:1.5;">${valueHtml}</p>
-</div>`;
+  return `<p style="margin:0 0 3px 0;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.4);">${label}</p>
+<p style="margin:0 0 16px 0;font-size:14px;font-weight:500;color:#ffffff;">${valueHtml}</p>`;
 }
 
-/** Label/value rows for dark `buildEmail` bodies; labels and values are HTML-escaped. */
+/** Label/value rows for `buildEmail` bodies; labels and values are HTML-escaped. */
 export function emailFieldRows(rows: { label: string; value: string }[]): string {
   return rows.map((r) => buildEmailFieldRow(escapeHtml(r.label), escapeHtml(r.value))).join("");
 }
 
-/** Paragraph for dark-card transactional emails (replaces premium `emailParagraph` which uses dark text). */
-export function emailBodyParagraph(html: string): string {
-  return `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">${html}</p>`;
+/** Paragraph for dark `buildEmail` bodies. */
+export function emailBodyParagraph(text: string): string {
+  return `<p style="margin:0 0 16px 0;font-size:14px;line-height:1.7;color:rgba(255,255,255,0.8);">${text}</p>`;
 }
 
 export function emailBodySupportHint(): string {
-  return `<p style="margin:20px 0 0;line-height:1.65;font-size:13px;color:rgba(255,255,255,0.55);">${escapeHtml(
+  return `<p style="margin:16px 0 0;line-height:1.65;font-size:13px;color:rgba(255,255,255,0.55);">${escapeHtml(
     "If the button does not work, reply to this email and we will help you on business days.",
   )}</p>`;
 }
@@ -37,42 +32,61 @@ export function buildEmail(options: {
 }): string {
   const { title, preheader, body, ctaText, ctaUrl, footerNote } = options;
   const safeTitle = escapeHtml(title);
-  const safePreheader = preheader ? escapeHtml(preheader) : "";
-  const safeFooterNote = footerNote ? escapeHtml(footerNote) : "";
+  const preheaderBlock = preheader
+    ? `<p style="margin:0 0 24px 0;font-size:13px;color:#C9A84C;">${escapeHtml(preheader)}</p>`
+    : '<div style="margin-bottom:24px;"></div>';
 
-  const ctaHtml =
+  const ctaBlock =
     ctaText && ctaUrl
-      ? `<p style="margin:24px 0 0;text-align:center;"><a href="${escapeHtml(ctaUrl)}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-weight:700;font-size:13px;padding:12px 28px;border-radius:8px;text-decoration:none;">${escapeHtml(
-          ctaText,
-        )}</a></p>`
+      ? `
+    <div style="margin-top:28px;text-align:center;">
+      <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-weight:700;font-size:13px;padding:12px 28px;border-radius:8px;text-decoration:none;">${escapeHtml(ctaText)}</a>
+    </div>`
       : "";
-  const footerNoteHtml = safeFooterNote
-    ? `<p style="margin:8px 0 0;color:rgba(255,255,255,0.2);font-size:11px;line-height:1.5;">${safeFooterNote}</p>`
+
+  const footerNoteBlock = footerNote
+    ? `<p style="margin:8px 0 0 0;font-size:11px;color:rgba(255,255,255,0.2);">${escapeHtml(footerNote)}</p>`
     : "";
 
-  return `<!doctype html>
+  return `<!DOCTYPE html>
 <html>
-  <body style="margin:0;padding:24px;background:#0D1B2A;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
-    <div style="max-width:600px;margin:0 auto;">
-      <div style="padding:24px 40px 0;">
-        <p style="margin:0;font-size:18px;font-weight:700;line-height:1.2;">
-          <span style="color:#ffffff;">Arbeid</span><span style="color:#C9A84C;">Match</span>
-        </p>
-        <div style="width:32px;height:2px;background:#C9A84C;margin-top:6px;margin-bottom:24px;"></div>
-      </div>
-      <div style="background:#111e2e;border:1px solid rgba(201,168,76,0.15);border-radius:12px;padding:32px;font-size:14px;line-height:1.8;color:rgba(255,255,255,0.92);">
-        <p style="margin:0 0 6px;font-size:22px;font-weight:700;color:#ffffff;">${safeTitle}</p>
-        ${safePreheader ? `<p style="margin:0 0 28px;font-size:13px;color:#C9A84C;">${safePreheader}</p>` : ""}
-        ${body}
-        ${ctaHtml}
-      </div>
-      <div style="padding:16px 32px;border-top:1px solid rgba(201,168,76,0.1);margin-top:20px;">
-        <p style="margin:0 0 4px;color:rgba(255,255,255,0.35);font-size:11px;line-height:1.7;">ArbeidMatch Norge AS | Org.nr 935 667 089 MVA</p>
-        <p style="margin:0 0 4px;color:rgba(255,255,255,0.35);font-size:11px;line-height:1.7;">Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway</p>
-        <p style="margin:0;color:rgba(255,255,255,0.35);font-size:11px;line-height:1.7;">post@arbeidmatch.no | arbeidmatch.no</p>
-        ${footerNoteHtml}
-      </div>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
+<body style="margin:0;padding:0;background:#0D1B2A;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+
+  <!-- Single outer container -->
+  <div style="max-width:560px;margin:0 auto;padding:32px 24px;">
+
+    <!-- Logo -->
+    <div style="margin-bottom:24px;">
+      <span style="font-size:18px;font-weight:700;color:#ffffff;">Arbeid</span><span style="font-size:18px;font-weight:700;color:#C9A84C;">Match</span>
+      <div style="width:32px;height:2px;background:#C9A84C;margin-top:6px;"></div>
     </div>
-  </body>
+
+    <!-- Title -->
+    <p style="margin:0 0 4px 0;font-size:20px;font-weight:700;color:#ffffff;">${safeTitle}</p>
+    
+    <!-- Preheader if provided -->
+    ${preheaderBlock}
+
+    <!-- Divider -->
+    <div style="height:1px;background:rgba(201,168,76,0.15);margin-bottom:24px;"></div>
+
+    <!-- Body content injected directly — NO wrapper -->
+    ${body}
+
+    <!-- CTA if provided -->
+    ${ctaBlock}
+
+    <!-- Divider -->
+    <div style="height:1px;background:rgba(201,168,76,0.08);margin-top:32px;margin-bottom:20px;"></div>
+
+    <!-- Footer -->
+    <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">ArbeidMatch Norge AS | Org.nr 935 667 089 MVA</p>
+    <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway</p>
+    <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">post@arbeidmatch.no | arbeidmatch.no</p>
+    ${footerNoteBlock}
+
+  </div>
+</body>
 </html>`;
 }
