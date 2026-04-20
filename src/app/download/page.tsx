@@ -63,19 +63,19 @@ export default function DownloadPage() {
   };
 
   return (
-    <div className="relative isolate min-h-[calc(100vh-4rem)] overflow-hidden bg-[#06090e] text-white">
+    <div className="relative isolate min-h-[calc(100vh-4rem)] overflow-hidden bg-[#0a0f18] text-white">
       <div
         className="pointer-events-none absolute inset-0 opacity-90"
         style={{
           background:
-            "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,168,76,0.14), transparent 55%), radial-gradient(ellipse 60% 40% at 100% 100%, rgba(13,27,42,0.5), transparent), linear-gradient(180deg, #0a0c14 0%, #06090e 50%, #05070b 100%)",
+            "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,168,76,0.15), transparent 55%), radial-gradient(ellipse 60% 40% at 100% 100%, #0D1B2A, transparent), linear-gradient(180deg, #0a0f18 0%, #0a0f18 50%, #0a0f18 100%)",
         }}
       />
       <div className="relative mx-auto flex w-full max-w-content flex-col items-center px-4 py-12 md:px-6 md:py-20">
         <motion.div
           animate={reduce ? undefined : { y: [0, -10, 0] }}
           transition={reduce ? undefined : { duration: 3, repeat: Infinity, ease: [0.42, 0, 0.58, 1] }}
-          className="mb-8 flex h-20 w-20 items-center justify-center rounded-2xl border border-gold/35 bg-[#111320]/90 text-gold shadow-[0_12px_40px_rgba(0,0,0,0.45)]"
+          className="mb-8 flex h-20 w-20 items-center justify-center rounded-2xl border border-gold/35 bg-[#111e2e]/90 text-gold shadow-[0_12px_40px_#0a0f18]"
           aria-hidden
         >
           <Smartphone className="h-10 w-10" strokeWidth={1.25} />
@@ -121,7 +121,7 @@ export default function DownloadPage() {
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.22, ease: [0.16, 1, 0.3, 1] }}
           onSubmit={onSubmit}
-          className="mt-10 w-full max-w-md rounded-2xl border border-white/10 bg-[#111320]/85 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-md md:p-8"
+          className="mt-10 w-full max-w-md rounded-2xl border border-white/10 bg-[#111e2e]/85 p-6 shadow-[0_20px_60px_#0a0f18] backdrop-blur-md md:p-8"
         >
           <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
           <p className="text-center text-sm font-semibold text-white">Join the waitlist</p>
@@ -137,14 +137,14 @@ export default function DownloadPage() {
               autoComplete="email"
             />
           </label>
-          {error && <p className="mt-2 text-center text-sm text-red-400">{error}</p>}
+          {error && <p className="mt-2 text-center text-sm text-[#E24B4A]">{error}</p>}
           {status === "success" && (
-            <p className="mt-2 text-center text-sm text-emerald-300">You&apos;re on the list. We&apos;ll be in touch.</p>
+            <p className="mt-2 text-center text-sm text-[#1D9E75]">You&apos;re on the list. We&apos;ll be in touch.</p>
           )}
           <button
             type="submit"
             disabled={status === "loading" || status === "success"}
-            className="btn-gold-premium mt-5 w-full rounded-lg bg-gradient-to-r from-[#b8923f] via-gold to-[#d4b45c] py-3 text-sm font-semibold text-[#0a0f14] shadow-[0_8px_28px_rgba(201,168,76,0.35)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-gold-premium mt-5 w-full rounded-lg bg-gradient-to-r from-[#b8953f] via-gold to-[#C9A84C] py-3 text-sm font-semibold text-[#0a0f18] shadow-[0_8px_28px_rgba(201,168,76,0.35)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {status === "loading" ? (
               <span className="inline-flex items-center justify-center gap-2">
@@ -166,7 +166,7 @@ export default function DownloadPage() {
             title="Coming soon"
             className="store-badge-disabled flex flex-1 cursor-not-allowed items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left opacity-55"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[rgba(255,255,255,0.03)]">
               <IconApple size={22} />
             </span>
             <span className="text-[11px] leading-tight text-white/45">
@@ -179,7 +179,7 @@ export default function DownloadPage() {
             title="Coming soon"
             className="store-badge-disabled flex flex-1 cursor-not-allowed items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left opacity-55"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[rgba(255,255,255,0.03)]">
               <IconPlay size={22} />
             </span>
             <span className="text-[11px] leading-tight text-white/45">

@@ -77,7 +77,7 @@ export default function DsbRequestPopup() {
         {open && (
           <motion.div
             role="presentation"
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-[4px] md:p-6"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-[#0a0f18] p-4 backdrop-blur-[4px] md:p-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

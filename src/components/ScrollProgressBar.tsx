@@ -32,7 +32,7 @@ export default function ScrollProgressBar() {
       aria-label="Page scroll progress"
     >
       <div
-        className="h-full bg-gradient-to-r from-[#B8860B] via-amber-400 to-[#C9A84C] transition-[width] duration-150 ease-out"
+        className="h-full bg-gradient-to-r from-[#C9A84C] via-[#C9A84C] to-[#C9A84C] transition-[width] duration-150 ease-out"
         style={{ width: `${p}%` }}
       />
     </div>

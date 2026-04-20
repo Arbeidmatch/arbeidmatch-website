@@ -211,7 +211,7 @@ function cardBaseClass(hover: boolean) {
     "rounded-[14px] border-[0.5px] border-white/[0.08] bg-white/[0.04] transition-[border-color,transform] duration-200";
   const pad = "p-5 md:p-7 md:px-6";
   const hov = hover
-    ? "md:hover:-translate-y-0.5 md:hover:border-[rgba(201,168,76,0.4)]"
+    ? "md:hover:-translate-y-0.5 md:hover:border-[rgba(201,168,76,0.15)]"
     : "";
   return `${base} ${pad} ${hov}`;
 }
@@ -222,7 +222,7 @@ function LegalDisclaimer() {
       className="mb-10 md:mb-12 rounded-[10px] border-l-[3px] border-solid pl-5 pr-5 py-5 md:pl-6 md:pr-6 md:py-5"
       style={{
         borderLeftColor: GOLD,
-        backgroundColor: "rgba(201,168,76,0.06)",
+        backgroundColor: "rgba(201,168,76,0.08)",
       }}
       role="region"
       aria-label="Important legal notice"
@@ -240,7 +240,7 @@ function LegalDisclaimer() {
           </p>
           <p
             className="mt-3 text-[13px] leading-[1.7]"
-            style={{ color: "rgba(255,255,255,0.65)" }}
+            style={{ color: "rgba(255,255,255,0.7)" }}
           >
             The information in this guide is based on publicly available regulations from the Norwegian Directorate for
             Civil Protection (DSB), the Norwegian Maritime Authority (NMA), and official Norwegian law as of April 2026.
@@ -434,7 +434,7 @@ function TabApproval({ tabActive }: { tabActive: boolean }) {
             <p className="mt-4 text-[15px] font-semibold text-white">No Application Submitted</p>
             <span
               className="mt-2 inline-block rounded-[20px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em]"
-              style={{ background: "rgba(226,75,74,0.12)", color: "#E24B4A" }}
+              style={{ background: "rgba(226,75,74,0.1)", color: "#E24B4A" }}
             >
               Not Legal
             </span>
@@ -454,7 +454,7 @@ function TabApproval({ tabActive }: { tabActive: boolean }) {
             <p className="mt-4 text-[15px] font-semibold text-white">Application Submitted, Awaiting Decision</p>
             <span
               className="mt-2 inline-block rounded-[20px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em]"
-              style={{ background: "rgba(201,168,76,0.12)", color: GOLD }}
+              style={{ background: "rgba(201,168,76,0.1)", color: GOLD }}
             >
               Pending, DSB responds within 1 month
             </span>
@@ -475,7 +475,7 @@ function TabApproval({ tabActive }: { tabActive: boolean }) {
             <p className="mt-4 text-[15px] font-semibold text-white">Temporary Approval Active</p>
             <span
               className="mt-2 inline-block rounded-[20px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em]"
-              style={{ background: "rgba(29,158,117,0.12)", color: "#1D9E75" }}
+              style={{ background: "rgba(29,158,117,0.1)", color: "#1D9E75" }}
             >
               Legal, max 12 months
             </span>
@@ -661,7 +661,7 @@ function TabDocuments() {
 
       <div
         className="mt-8 rounded-[10px] border-l-[3px] border-solid pl-5 pr-5 py-5 md:pl-6 md:pr-6"
-        style={{ borderLeftColor: GOLD, backgroundColor: "rgba(201,168,76,0.06)" }}
+        style={{ borderLeftColor: GOLD, backgroundColor: "rgba(201,168,76,0.08)" }}
       >
         <p className="text-[13px] leading-[1.7] text-white/65">
           All documents must be submitted in PDF format. Documents in languages other than English, Swedish or Danish must

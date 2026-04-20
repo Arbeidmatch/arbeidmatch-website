@@ -62,7 +62,7 @@ const megaLinkClass =
   "flex min-h-[44px] min-w-[44px] items-center rounded-md px-6 py-3 text-[14px] text-navy transition-colors duration-150 hover:bg-black/[0.04] lg:min-h-0 lg:min-w-0 lg:px-3 lg:py-2";
 
 const megaPanelInnerClass =
-  "rounded-2xl border border-black/[0.06] bg-white p-8 shadow-[0_8px_32px_rgba(0,0,0,0.08)]";
+  "rounded-2xl border border-black/[0.06] bg-[#0D1B2A] p-8 shadow-[0_8px_32px_rgba(255,255,255,0.03)]";
 
 const DRAWER_EASE = [0.32, 0.72, 0, 1] as const;
 
@@ -124,8 +124,8 @@ export default function Navbar() {
     "shrink-0 text-[15px] font-normal text-[#555555] transition-[color,font-weight] duration-150 hover:font-medium hover:text-[#0D1B2A]";
 
   const headerSurface = scrolled
-    ? "border-b border-black/[0.06] bg-white/95 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-md"
-    : "border-b border-black/[0.06] bg-white/90 backdrop-blur-sm";
+    ? "border-b border-black/[0.06] bg-[#0D1B2A]/95 shadow-[0_1px_0_rgba(255,255,255,0.03)] backdrop-blur-md"
+    : "border-b border-black/[0.06] bg-[#0D1B2A]/90 backdrop-blur-sm";
 
   const closeMenu = () => setIsOpen(false);
 
@@ -143,7 +143,7 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/50 lg:hidden"
+              className="fixed inset-0 #0a0f18 lg:hidden"
               style={{ zIndex: 40 }}
               onClick={closeMenu}
             />

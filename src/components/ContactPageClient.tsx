@@ -30,7 +30,7 @@ function IconTikTok({ className }: { className?: string }) {
 }
 
 const inputClass =
-  "input-premium premium-dsb-input select-premium textarea-premium w-full rounded-md border border-[#E8E8E5] bg-[#F7F7F5] px-4 py-3 text-navy focus:outline-none";
+  "input-premium premium-dsb-input select-premium textarea-premium w-full rounded-md border border-[rgba(255,255,255,0.35)] bg-[rgba(255,255,255,0.03)] px-4 py-3 text-navy focus:outline-none";
 
 export default function ContactPageClient() {
   const [submitted, setSubmitted] = useState(false);
@@ -231,7 +231,7 @@ export default function ContactPageClient() {
               >
                 {status === "submitting" ? "Sending..." : "Send message →"}
               </button>
-              <p style={{ fontSize: 11, color: "rgba(0,0,0,0.4)", marginTop: 8 }}>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>
                 By submitting this form you agree to our{" "}
                 <Link href="/privacy" className="text-[#C9A84C]">
                   Privacy Policy
@@ -264,15 +264,15 @@ export default function ContactPageClient() {
               href="https://www.facebook.com/arbeidmatchNO"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col rounded-xl border border-[#1877F2]/40 bg-[#1877F2]/10 p-5 transition hover:border-[#1877F2] hover:bg-[#1877F2]/15"
+              className="group flex flex-col rounded-xl border border-[#1D9E75]/40 bg-[#1D9E75]/10 p-5 transition hover:border-[#1D9E75] hover:bg-[#1D9E75]/15"
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1877F2] text-white">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1D9E75] text-white">
                   <IconFacebook className="h-6 w-6" />
                 </span>
                 <span className="text-lg font-semibold text-white">Facebook</span>
               </div>
-              <span className="mt-5 inline-flex w-fit rounded-md bg-[#1877F2] px-4 py-2 text-sm font-medium text-white transition group-hover:bg-[#1666d4]">
+              <span className="mt-5 inline-flex w-fit rounded-md bg-[#1D9E75] px-4 py-2 text-sm font-medium text-white transition group-hover:bg-[#1D9E75]">
                 Follow
               </span>
             </a>
@@ -296,15 +296,15 @@ export default function ContactPageClient() {
               href="https://www.youtube.com/@arbeidmatch"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex flex-col rounded-xl border border-[#FF0000]/45 bg-[#FF0000]/10 p-5 transition hover:border-[#FF0000] hover:bg-[#FF0000]/15"
+              className="group flex flex-col rounded-xl border border-[#E24B4A]/45 bg-[#E24B4A]/10 p-5 transition hover:border-[#E24B4A] hover:bg-[#E24B4A]/15"
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FF0000] text-white">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#E24B4A] text-white">
                   <IconYoutube className="h-6 w-6" />
                 </span>
                 <span className="text-lg font-semibold text-white">YouTube</span>
               </div>
-              <span className="mt-5 inline-flex w-fit rounded-md bg-[#FF0000] px-4 py-2 text-sm font-medium text-white transition group-hover:bg-[#e60000]">
+              <span className="mt-5 inline-flex w-fit rounded-md bg-[#E24B4A] px-4 py-2 text-sm font-medium text-white transition group-hover:bg-[#E24B4A]">
                 Subscribe
               </span>
             </a>

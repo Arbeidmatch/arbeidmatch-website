@@ -323,7 +323,7 @@ export default function RequestPage() {
     return (
       <section className="flex min-h-screen flex-col items-center justify-center bg-[#0f1923] px-6 py-10 text-center">
         <svg width="72" height="72" viewBox="0 0 72 72" aria-hidden>
-          <circle cx="36" cy="36" r="32" fill="none" stroke="rgba(29,158,117,0.2)" strokeWidth="3" />
+          <circle cx="36" cy="36" r="32" fill="none" stroke="#1D9E75" strokeWidth="3" />
           <circle
             cx="36"
             cy="36"
@@ -872,7 +872,7 @@ export default function RequestPage() {
                 htmlFor="gdpr-consent"
                 style={{
                   fontSize: 12,
-                  color: "rgba(0,0,0,0.55)",
+                  color: "#0a0f18",
                   lineHeight: 1.6,
                   cursor: "pointer",
                 }}

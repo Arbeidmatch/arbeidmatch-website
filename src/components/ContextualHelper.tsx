@@ -279,7 +279,7 @@ export default function ContextualHelper() {
           className="pointer-events-auto fixed right-6 z-[96] w-[calc(100vw-48px)] max-w-[320px] max-sm:bottom-20 sm:bottom-[100px] sm:w-[280px]"
         >
           <div
-            className="relative rounded-2xl border border-[rgba(184,134,11,0.2)] p-5 text-left shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_1px_rgba(184,134,11,0.1)]"
+            className="relative rounded-2xl border border-[rgba(201,168,76,0.15)] p-5 text-left shadow-[0_20px_60px_rgba(0,0,0,0.4),0_0_0_1px_rgba(201,168,76,0.1)]"
             style={{
               background: "rgba(16, 18, 30, 0.95)",
               backdropFilter: "blur(20px)",
@@ -309,14 +309,14 @@ export default function ContextualHelper() {
                       href={config.cta.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-3 inline-block text-xs font-medium text-[#C9A84C] transition-colors hover:text-[#e4c76a] sm:text-[13px]"
+                      className="mt-3 inline-block text-xs font-medium text-[#C9A84C] transition-colors hover:text-[#C9A84C] sm:text-[13px]"
                     >
                       {config.cta.label}
                     </a>
                   ) : (
                     <Link
                       href={config.cta.href}
-                      className="mt-3 inline-block text-xs font-medium text-[#C9A84C] transition-colors hover:text-[#e4c76a] sm:text-[13px]"
+                      className="mt-3 inline-block text-xs font-medium text-[#C9A84C] transition-colors hover:text-[#C9A84C] sm:text-[13px]"
                     >
                       {config.cta.label}
                     </Link>

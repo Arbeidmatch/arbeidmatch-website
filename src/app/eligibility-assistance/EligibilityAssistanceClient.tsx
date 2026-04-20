@@ -12,7 +12,7 @@ const needsTurnstile = Boolean(TURNSTILE_SITE_KEY);
 const inputClass =
   "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
 const selectedOptionBadge = (
-  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700">
+  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[rgba(29,158,117,0.1)] text-xs font-bold text-[#1D9E75]">
     <span role="img" aria-label="Selected">
       ✓
     </span>
@@ -301,7 +301,7 @@ export function EligibilityAssistanceClient() {
             </p>
             <Link
               href="/"
-              className="mt-6 inline-flex rounded-md bg-[#0D1B2A] px-6 py-3 text-sm font-medium text-white hover:bg-[#122845]"
+              className="mt-6 inline-flex rounded-md bg-[#0D1B2A] px-6 py-3 text-sm font-medium text-white hover:bg-[#111e2e]"
             >
               Back to home
             </Link>
@@ -316,7 +316,7 @@ export function EligibilityAssistanceClient() {
       <section className="bg-surface py-10">
         <div className="mx-auto w-full max-w-2xl px-4">
           <div className="rounded-xl bg-white p-8 text-center shadow-[0_10px_30px_rgba(13,27,42,0.08)]">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-3xl text-sky-700">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[rgba(255,255,255,0.1)] text-3xl text-[#1D9E75]">
               ℹ
             </div>
             <h1 className="mt-4 text-3xl font-bold text-navy">
@@ -328,7 +328,7 @@ export function EligibilityAssistanceClient() {
             <button
               type="button"
               onClick={resetForAnotherCountry}
-              className="mt-6 inline-flex rounded-md bg-[#0D1B2A] px-6 py-3 text-sm font-medium text-white hover:bg-[#122845]"
+              className="mt-6 inline-flex rounded-md bg-[#0D1B2A] px-6 py-3 text-sm font-medium text-white hover:bg-[#111e2e]"
             >
               Apply for another country
             </button>
@@ -366,8 +366,8 @@ export function EligibilityAssistanceClient() {
                     }}
                     className={`rounded-md border px-2 py-2 text-sm font-medium transition ${
                       feedbackScore === score
-                        ? "border-green-500 bg-green-50 text-green-700"
-                        : "border-border text-navy hover:border-green-400"
+                        ? "border-[#1D9E75] bg-[rgba(29,158,117,0.1)] text-[#1D9E75]"
+                        : "border-border text-navy hover:border-[#1D9E75]"
                     }`}
                   >
                     {score}
@@ -389,7 +389,7 @@ export function EligibilityAssistanceClient() {
                 type="button"
                 onClick={() => void submitFeedback()}
                 disabled={feedbackScore === null || feedbackStatus === "sending" || feedbackStatus === "sent"}
-                className="mt-3 rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#122845] disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-3 rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#111e2e] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {feedbackStatus === "sending"
                   ? "Sending feedback..."
@@ -398,10 +398,10 @@ export function EligibilityAssistanceClient() {
                     : "Send feedback"}
               </button>
               {feedbackStatus === "error" && (
-                <p className="mt-2 text-xs text-red-600">Could not send feedback. Please try again.</p>
+                <p className="mt-2 text-xs text-[#E24B4A]">Could not send feedback. Please try again.</p>
               )}
               {feedbackStatus === "sent" && (
-                <p className="mt-2 text-xs text-green-700">Thank you! Your feedback was received.</p>
+                <p className="mt-2 text-xs text-[#1D9E75]">Thank you! Your feedback was received.</p>
               )}
             </div>
             <Link
@@ -420,26 +420,26 @@ export function EligibilityAssistanceClient() {
     <section className="bg-surface py-12">
       <div className="mx-auto w-full max-w-2xl px-4 md:px-6">
         {verificationStatus === "success" && (
-          <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+          <div className="mb-4 rounded-md border border-[#1D9E75] bg-[rgba(29,158,117,0.1)] p-3 text-sm text-[#1D9E75]">
             Your email is verified. You are now registered for notifications.
           </div>
         )}
         {verificationStatus === "invalid" && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">
-            <h2 className="text-lg font-semibold text-red-800">Verification Failed</h2>
+          <div className="mb-4 rounded-xl border border-[#E24B4A] bg-[rgba(226,75,74,0.1)] p-5 text-[#E24B4A]">
+            <h2 className="text-lg font-semibold text-[#E24B4A]">Verification Failed</h2>
             <p className="mt-2 text-sm">
               We could not verify your email. This link may have expired or already been used.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <a
                 href="mailto:post@arbeidmatch.no"
-                className="inline-flex rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+                className="inline-flex rounded-md border border-[#E24B4A] bg-white px-4 py-2 text-sm font-medium text-[#E24B4A] hover:bg-[rgba(226,75,74,0.1)]"
               >
                 Contact Support
               </a>
               <Link
                 href="/eligibility-assistance"
-                className="inline-flex rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#122845]"
+                className="inline-flex rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#111e2e]"
               >
                 Try Again
               </Link>
@@ -447,21 +447,21 @@ export function EligibilityAssistanceClient() {
           </div>
         )}
         {verificationStatus === "error" && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">
-            <h2 className="text-lg font-semibold text-red-800">Verification Failed</h2>
+          <div className="mb-4 rounded-xl border border-[#E24B4A] bg-[rgba(226,75,74,0.1)] p-5 text-[#E24B4A]">
+            <h2 className="text-lg font-semibold text-[#E24B4A]">Verification Failed</h2>
             <p className="mt-2 text-sm">
               We could not verify your email. This link may have expired or already been used.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <a
                 href="mailto:post@arbeidmatch.no"
-                className="inline-flex rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+                className="inline-flex rounded-md border border-[#E24B4A] bg-white px-4 py-2 text-sm font-medium text-[#E24B4A] hover:bg-[rgba(226,75,74,0.1)]"
               >
                 Contact Support
               </a>
               <Link
                 href="/eligibility-assistance"
-                className="inline-flex rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#122845]"
+                className="inline-flex rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#111e2e]"
               >
                 Try Again
               </Link>
@@ -501,8 +501,8 @@ export function EligibilityAssistanceClient() {
                   }}
                   className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
                     wantsAssistance === value
-                      ? "border-green-500 bg-green-50"
-                      : "border-border hover:border-green-400"
+                      ? "border-[#1D9E75] bg-[rgba(29,158,117,0.1)]"
+                      : "border-border hover:border-[#1D9E75]"
                   }`}
                 >
                   <span className="flex items-center justify-between gap-3">
@@ -552,8 +552,8 @@ export function EligibilityAssistanceClient() {
                     }}
                     className={`block w-full rounded-md border px-4 py-3 text-left text-navy ${
                       targetRegion === region
-                        ? "border-green-500 bg-green-50"
-                        : "border-border hover:border-green-400"
+                        ? "border-[#1D9E75] bg-[rgba(29,158,117,0.1)]"
+                        : "border-border hover:border-[#1D9E75]"
                     }`}
                   >
                     <span className="flex items-center justify-between gap-3">
@@ -677,7 +677,7 @@ export function EligibilityAssistanceClient() {
           )}
 
           {stepError && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <div className="rounded-md border border-[#E24B4A] bg-[rgba(226,75,74,0.1)] p-3 text-sm text-[#E24B4A]">
               {stepError}
             </div>
           )}
@@ -699,7 +699,7 @@ export function EligibilityAssistanceClient() {
           )}
 
           {status === "error" && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-4 text-red-700">
+            <div className="rounded-md border border-[#E24B4A] bg-[rgba(226,75,74,0.1)] p-4 text-[#E24B4A]">
               Something went wrong. Please try again or email support@arbeidmatch.no.
             </div>
           )}

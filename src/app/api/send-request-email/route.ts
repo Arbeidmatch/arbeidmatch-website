@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
 
     const renderValue = (value: string, isEmail = false) => {
       if (!value) {
-        return '<span style="color: rgba(255,255,255,0.3); font-style: italic;">Not specified</span>';
+        return '<span style="color: rgba(255,255,255,0.35); font-style: italic;">Not specified</span>';
       }
       const safe = escapeHtml(value);
       if (isEmail) {
@@ -112,8 +112,8 @@ export async function POST(request: NextRequest) {
     const rowHtml = (label: string, rawValue?: string, isEmail = false) => {
       const normalized = normalizeFieldValue(rawValue);
       if (normalized === null) return "";
-      return `<div style="display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
-        <div style="color: rgba(255,255,255,0.4); font-size: 13px; line-height: 1.5;">${escapeHtml(label)}</div>
+      return `<div style="display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
+        <div style="color: rgba(255,255,255,0.5); font-size: 13px; line-height: 1.5;">${escapeHtml(label)}</div>
         <div style="color: #ffffff; font-size: 13px; font-weight: 500; line-height: 1.5; text-align: right; max-width: 60%;">${renderValue(normalized, isEmail)}</div>
       </div>`;
     };

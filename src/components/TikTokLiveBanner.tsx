@@ -74,7 +74,7 @@ export default function TikTokLiveBanner() {
                 We&apos;re LIVE on TikTok!
               </span>
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-red-400">
-                <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+                <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#E24B4A] shadow-[0_0_8px_#E24B4A]" />
                 LIVE
               </span>
             </span>

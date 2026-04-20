@@ -141,10 +141,10 @@ function InlineSignup({
                 </span>
               </label>
               {clientError === "email" ? (
-                <p className="mt-2 text-[13px] text-red-400">Please enter a valid email address.</p>
+                <p className="mt-2 text-[13px] text-[#E24B4A]">Please enter a valid email address.</p>
               ) : null}
               {clientError === "consent" ? (
-                <p className="mt-2 text-[13px] text-red-400">Please accept to continue.</p>
+                <p className="mt-2 text-[13px] text-[#E24B4A]">Please accept to continue.</p>
               ) : null}
               <button
                 type="submit"
@@ -155,7 +155,7 @@ function InlineSignup({
                 {status === "loading" ? "Sending..." : "Submit"}
               </button>
               {status === "error" ? (
-                <p className="mt-2 text-[13px] text-red-400">Something went wrong. Please try again.</p>
+                <p className="mt-2 text-[13px] text-[#E24B4A]">Something went wrong. Please try again.</p>
               ) : null}
             </form>
           )}
@@ -321,8 +321,8 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
               onClick={() => navigate("certified", "forward")}
               className="flex w-full items-center justify-between rounded-[10px] border px-5 py-3.5 text-left text-[14px] font-semibold"
               style={{
-                background: "rgba(29,158,117,0.12)",
-                borderColor: "rgba(29,158,117,0.4)",
+                background: "rgba(29,158,117,0.1)",
+                borderColor: "#1D9E75",
                 color: GREEN,
               }}
             >
@@ -335,7 +335,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
               className="flex w-full items-center justify-between rounded-[10px] border px-5 py-3.5 text-left text-[14px] font-semibold"
               style={{
                 background: "rgba(201,168,76,0.08)",
-                borderColor: "rgba(201,168,76,0.25)",
+                borderColor: "rgba(201,168,76,0.15)",
                 color: GOLD,
               }}
             >
@@ -359,7 +359,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
             </button>
             <span
               className="mb-4 inline-block rounded-[20px] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]"
-              style={{ background: "rgba(29,158,117,0.12)", color: GREEN }}
+              style={{ background: "rgba(29,158,117,0.1)", color: GREEN }}
             >
               DSB Authorized
             </span>
@@ -388,7 +388,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
                 width: "100%",
                 textAlign: "center",
                 background: "transparent",
-                border: "1px solid rgba(29,158,117,0.35)",
+                border: "1px solid #1D9E75",
                 color: "#1D9E75",
                 fontWeight: 600,
                 fontSize: 14,
@@ -430,7 +430,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
           <div
             style={{
               margin: "20px 0",
-              borderTop: "1px solid rgba(255,255,255,0.08)",
+              borderTop: "1px solid rgba(255,255,255,0.03)",
             }}
           />
           <div className="flex flex-col gap-[10px]">
@@ -438,11 +438,11 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
               type="button"
               onClick={() => router.push("/dsb-support/eu")}
               className="flex w-full items-center justify-between rounded-[10px] border px-5 py-4 text-left transition-all duration-200 ease-out hover:bg-[rgba(201,168,76,0.15)] hover:border-[rgba(201,168,76,0.5)]"
-              style={{ background: "rgba(201,168,76,0.08)", borderColor: "rgba(201,168,76,0.25)" }}
+              style={{ background: "rgba(201,168,76,0.08)", borderColor: "rgba(201,168,76,0.15)" }}
             >
               <span className="flex flex-col items-start gap-[2px]">
                 <span style={{ color: GOLD, fontSize: 14, fontWeight: 600 }}>I am from EU / EEA</span>
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>
+                <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>
                   Austria, Romania, Poland, Germany and more
                 </span>
               </span>
@@ -454,11 +454,11 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
               type="button"
               onClick={() => router.push("/dsb-support/non-eu")}
               className="flex w-full items-center justify-between rounded-[10px] border px-5 py-4 text-left transition-all duration-200 ease-out hover:bg-[rgba(201,168,76,0.12)] hover:border-[rgba(201,168,76,0.4)]"
-              style={{ background: "rgba(201,168,76,0.06)", borderColor: "rgba(201,168,76,0.2)" }}
+              style={{ background: "rgba(201,168,76,0.06)", borderColor: "rgba(201,168,76,0.15)" }}
             >
               <span className="flex flex-col items-start gap-[2px]">
                 <span style={{ color: GOLD, fontSize: 14, fontWeight: 600 }}>I am from outside EU / EEA</span>
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>
+                <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>
                   Philippines, India, Ukraine, Brazil and more
                 </span>
               </span>
@@ -520,8 +520,8 @@ function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
               onClick={() => navigate("certified", "forward")}
               className="flex w-full items-center justify-between rounded-[10px] border px-5 py-3.5 text-left text-[14px] font-semibold"
               style={{
-                background: "rgba(29,158,117,0.12)",
-                borderColor: "rgba(29,158,117,0.4)",
+                background: "rgba(29,158,117,0.1)",
+                borderColor: "#1D9E75",
                 color: GREEN,
               }}
             >
@@ -534,7 +534,7 @@ function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
               className="flex w-full items-center justify-between rounded-[10px] border px-5 py-3.5 text-left text-[14px] font-semibold"
               style={{
                 background: "rgba(201,168,76,0.08)",
-                borderColor: "rgba(201,168,76,0.25)",
+                borderColor: "rgba(201,168,76,0.15)",
                 color: GOLD,
               }}
             >
@@ -558,7 +558,7 @@ function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
             </button>
             <span
               className="mb-4 inline-block rounded-[20px] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]"
-              style={{ background: "rgba(29,158,117,0.12)", color: GREEN }}
+              style={{ background: "rgba(29,158,117,0.1)", color: GREEN }}
             >
               ISO Certified
             </span>
@@ -591,7 +591,7 @@ function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
                 width: "100%",
                 textAlign: "center",
                 background: "transparent",
-                border: "1px solid rgba(29,158,117,0.35)",
+                border: "1px solid #1D9E75",
                 color: "#1D9E75",
                 fontWeight: 600,
                 fontSize: 14,
@@ -635,7 +635,7 @@ function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
               type="button"
               onClick={() => setFormNoIso((o) => !o)}
               className="w-full rounded-[10px] border py-3.5 text-[14px] font-bold"
-              style={{ borderColor: "rgba(201,168,76,0.3)", color: GOLD, background: "transparent" }}
+              style={{ borderColor: "rgba(201,168,76,0.15)", color: GOLD, background: "transparent" }}
             >
               Notify me when the guide is ready
             </button>

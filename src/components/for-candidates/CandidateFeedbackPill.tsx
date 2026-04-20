@@ -101,7 +101,7 @@ export default function CandidateFeedbackPill() {
           <Link
             href="/feedback"
             title="Share feedback about your candidate experience"
-            className="candidate-feedback-pill-link rounded-full border border-[rgba(184,134,11,0.2)] bg-[rgba(10,12,20,0.8)] px-4 py-2 text-center text-[12px] leading-[1.4] text-[#888] transition-colors hover:text-gold"
+            className="candidate-feedback-pill-link rounded-full border border-[rgba(201,168,76,0.15)] bg-[#0a0f18] px-4 py-2 text-center text-[12px] leading-[1.4] text-[rgba(255,255,255,0.5)] transition-colors hover:text-gold"
           >
             Share feedback about your candidate experience
           </Link>

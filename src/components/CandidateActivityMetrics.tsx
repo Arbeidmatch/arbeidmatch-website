@@ -23,7 +23,7 @@ export default function CandidateActivityMetrics({ stats }: Props) {
             i > 0 ? "mt-6 border-t border-white/10 pt-6 md:mt-0 md:border-l md:border-t-0 md:pl-10 md:pt-0" : ""
           }`}
         >
-          <dt className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">{item.label}</dt>
+          <dt className="text-[11px] font-medium uppercase tracking-[0.18em] text-[rgba(255,255,255,0.5)]">{item.label}</dt>
           <dd className="text-3xl font-bold tabular-nums tracking-tight text-[#f59e0b] md:text-4xl">
             <AnimatedNumber value={item.value} durationMs={2000} />
           </dd>

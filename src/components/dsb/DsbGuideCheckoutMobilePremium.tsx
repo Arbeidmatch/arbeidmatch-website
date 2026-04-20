@@ -279,7 +279,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
               <>
                 <div style={{ fontSize: 48, fontWeight: 800, color: GOLD }}>€15</div>
                 <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>EU/EEA Electricians</p>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>
                   One-time payment. Instant access. No subscription.
                 </p>
                 <p className="dsb-price-note" style={{ marginTop: 12 }}>
@@ -295,7 +295,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
               <>
                 <div style={{ fontSize: 48, fontWeight: 800, color: GOLD }}>€39</div>
                 <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>Non-EU Electricians</p>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>
                   One-time payment. Instant access. No subscription.
                 </p>
                 <p className="dsb-price-note" style={{ marginTop: 12 }}>
@@ -332,7 +332,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
               <p
                 style={{
                   fontSize: 12,
-                  color: "rgba(255,255,255,0.4)",
+                  color: "rgba(255,255,255,0.5)",
                   marginTop: 8,
                   textAlign: "center",
                 }}

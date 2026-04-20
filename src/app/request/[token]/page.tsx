@@ -357,7 +357,7 @@ function OptionCard({
       onClick={onClick}
       className={`flex w-full items-center justify-between gap-3 rounded-[12px] border px-4 py-3 text-left transition-all duration-180 ${
         selected
-          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.06)] text-[#C9A84C]"
+          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
           : "border-white/10 bg-white/[0.03] text-white hover:border-white/20 hover:bg-white/[0.05]"
       }`}
     >
@@ -877,7 +877,7 @@ export default function RequestTokenPage() {
                         type="button"
                         className={`rounded-lg border px-4 py-2 text-sm transition ${
                           form.salaryPeriod === period
-                            ? "border-[#C9A84C] bg-[rgba(201,168,76,0.12)] text-[#C9A84C]"
+                            ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]"
                             : "border-white/10 bg-white/[0.03] text-white/60"
                         }`}
                         onClick={() => setForm((prev) => ({ ...prev, salaryPeriod: period }))}
@@ -941,7 +941,7 @@ export default function RequestTokenPage() {
                       onClick={() => toggleLocation(city)}
                       className={`w-full rounded-lg border px-4 py-2 text-left text-sm transition ${
                         form.locations.includes(city)
-                          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.06)] text-[#C9A84C]"
+                          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
                           : "border-white/10 bg-white/[0.03] text-white hover:border-white/20"
                       }`}
                     >

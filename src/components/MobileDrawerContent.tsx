@@ -214,7 +214,7 @@ export default function MobileDrawerContent({
             margin: "12px 16px",
             padding: "14px 16px",
             background: "rgba(201,168,76,0.08)",
-            borderColor: "rgba(201,168,76,0.2)",
+            borderColor: "rgba(201,168,76,0.15)",
           }}
         >
           <div className="flex items-center gap-2">
@@ -236,7 +236,7 @@ export default function MobileDrawerContent({
                 type="button"
                 onClick={pickEmployer}
                 className="flex-1 rounded-full border py-2 text-[13px] font-medium text-[#C9A84C]"
-                style={{ borderColor: "rgba(201,168,76,0.45)" }}
+                style={{ borderColor: "rgba(201,168,76,0.15)" }}
               >
                 Arbeidsgiver
               </button>
@@ -316,7 +316,7 @@ export default function MobileDrawerContent({
           <>
             <div
               className="flex items-center justify-between border-b border-white/[0.06] px-6 py-3"
-              style={{ background: "rgba(201,168,76,0.06)" }}
+              style={{ background: "rgba(201,168,76,0.08)" }}
             >
               <span className="inline-flex items-center gap-2 text-[12px] font-medium" style={{ color: GOLD }}>
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
@@ -374,7 +374,7 @@ export default function MobileDrawerContent({
           <>
             <div
               className="flex items-center justify-between border-b border-white/[0.06] px-6 py-3"
-              style={{ background: "rgba(201,168,76,0.06)" }}
+              style={{ background: "rgba(201,168,76,0.08)" }}
             >
               <span className="inline-flex items-center gap-2 text-[12px] font-medium" style={{ color: GOLD }}>
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />

@@ -238,7 +238,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                       } ${
                         activeId === item.id
                           ? "border-l-[#C9A84C] bg-[rgba(201,168,76,0.08)] font-semibold text-[#C9A84C]"
-                          : "hover:border-l-[rgba(201,168,76,0.4)] hover:bg-[rgba(201,168,76,0.06)] hover:text-[#0f1923]"
+                          : "hover:border-l-[rgba(201,168,76,0.15)] hover:bg-[rgba(201,168,76,0.08)] hover:text-[#0f1923]"
                       }`}
                     >
                       {item.text}
@@ -286,7 +286,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                       return (
                         <h2
                           id={id}
-                          className="scroll-mt-24 mb-3 mt-8 flex items-center gap-4 rounded-[12px] border border-black/10 border-l-[3px] border-l-[#C9A84C] bg-[#f9f8f5] px-6 py-5 text-[17px] font-bold leading-[1.3] text-[#0f1923]"
+                          className="scroll-mt-24 mb-3 mt-8 flex items-center gap-4 rounded-[12px] border border-black/10 border-l-[3px] border-l-[#C9A84C] bg-[rgba(255,255,255,0.03)] px-6 py-5 text-[17px] font-bold leading-[1.3] text-[#0f1923]"
                           {...props}
                         >
                           <span className="flex h-8 min-h-[32px] w-8 min-w-[32px] items-center justify-center rounded-full bg-[rgba(201,168,76,0.12)] text-sm font-bold text-[#C9A84C]">
@@ -325,7 +325,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                       return (
                         <h3
                           id={id}
-                          className="scroll-mt-24 mb-3 mt-6 flex items-center gap-4 rounded-[12px] border border-black/10 border-l-[3px] border-l-[#C9A84C] bg-[#f9f8f5] px-6 py-5 text-[17px] font-bold leading-[1.3] text-[#0f1923]"
+                          className="scroll-mt-24 mb-3 mt-6 flex items-center gap-4 rounded-[12px] border border-black/10 border-l-[3px] border-l-[#C9A84C] bg-[rgba(255,255,255,0.03)] px-6 py-5 text-[17px] font-bold leading-[1.3] text-[#0f1923]"
                           {...props}
                         >
                           <span className="flex h-8 min-h-[32px] w-8 min-w-[32px] items-center justify-center rounded-full bg-[rgba(201,168,76,0.12)] text-sm font-bold text-[#C9A84C]">
@@ -337,16 +337,16 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                     }
 
                     return (
-                      <h3 id={id} className="scroll-mt-24 mb-2 mt-6 text-[17px] font-semibold text-[#374151]" {...props}>
+                      <h3 id={id} className="scroll-mt-24 mb-2 mt-6 text-[17px] font-semibold text-[rgba(255,255,255,0.7)]" {...props}>
                         {children}
                       </h3>
                     );
                   },
                   p: ({ children, ...props }) => (
                     <p
-                      className={`mb-4 max-w-[680px] text-[15px] leading-[1.8] text-[#374151] ${
+                      className={`mb-4 max-w-[680px] text-[15px] leading-[1.8] text-[rgba(255,255,255,0.7)] ${
                         sectionModeRef.current === "disclaimer"
-                          ? "my-5 rounded-xl border border-[rgba(226,75,74,0.2)] border-l-4 border-l-[#E24B4A] bg-[rgba(226,75,74,0.06)] px-6 py-5 text-[13px] leading-[1.7] text-[#374151]"
+                          ? "my-5 rounded-xl border border-[rgba(226,75,74,0.1)] border-l-4 border-l-[#E24B4A] bg-[rgba(226,75,74,0.1)] px-6 py-5 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.7)]"
                           : ""
                       }`}
                       {...props}
@@ -366,7 +366,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                   ),
                   li: ({ children, ...props }) => (
                     <li
-                      className={`mb-1 mt-1 text-[15px] leading-[1.7] text-[#374151] ${
+                      className={`mb-1 mt-1 text-[15px] leading-[1.7] text-[rgba(255,255,255,0.7)] ${
                         sectionModeRef.current === "links" ? "p-0" : "relative pl-4"
                       }`}
                       {...props}
@@ -379,7 +379,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                   ),
                   blockquote: ({ children, ...props }) => (
                     <blockquote
-                      className="my-5 rounded-r-lg border-l-[3px] border-l-[#C9A84C] bg-[rgba(201,168,76,0.06)] px-5 py-4 text-[14px] leading-[1.65] text-[#374151]"
+                      className="my-5 rounded-r-lg border-l-[3px] border-l-[#C9A84C] bg-[rgba(201,168,76,0.08)] px-5 py-4 text-[14px] leading-[1.65] text-[rgba(255,255,255,0.7)]"
                       {...props}
                     >
                       {children}
@@ -398,7 +398,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                       style={{
                         color: "#C9A84C",
                         textDecoration: "underline",
-                        textDecorationColor: "rgba(201,168,76,0.4)",
+                        textDecorationColor: "rgba(201,168,76,0.15)",
                         fontWeight: 500,
                         transition: "color 150ms",
                       }}
@@ -429,12 +429,12 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                   ),
                   tbody: ({ children }) => <tbody>{children}</tbody>,
                   tr: ({ children }) => (
-                    <tr className="border-b border-black/10 transition-colors duration-150 hover:bg-[rgba(201,168,76,0.04)]">
+                    <tr className="border-b border-black/10 transition-colors duration-150 hover:bg-[rgba(201,168,76,0.08)]">
                       {children}
                     </tr>
                   ),
                   td: ({ children }) => (
-                    <td className="px-4 py-3 align-top text-[14px] leading-[1.6] text-[#374151] [&:first-child]:whitespace-nowrap [&:first-child]:font-bold [&:first-child]:text-[#C9A84C]">
+                    <td className="px-4 py-3 align-top text-[14px] leading-[1.6] text-[rgba(255,255,255,0.7)] [&:first-child]:whitespace-nowrap [&:first-child]:font-bold [&:first-child]:text-[#C9A84C]">
                       {children}
                     </td>
                   ),
@@ -489,7 +489,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                 }}
                 className={`block border-b border-black/10 py-3 text-left leading-[1.4] ${
                   item.level === 3 ? "pl-9 pr-5 text-[14px] text-black/60" : "px-5 text-[15px] text-[#0f1923]"
-                } ${activeId === item.id ? "bg-[rgba(201,168,76,0.06)] font-semibold text-[#C9A84C]" : ""}`}
+                } ${activeId === item.id ? "bg-[rgba(201,168,76,0.08)] font-semibold text-[#C9A84C]" : ""}`}
               >
                 {item.text}
               </a>
@@ -506,7 +506,7 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
       ) : null}
       <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-3 bg-[rgba(15,25,35,0.95)] px-6 py-2 backdrop-blur">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M12 2l8 3v6c0 5-3.4 9.7-8 11-4.6-1.3-8-6-8-11V5l8-3Z" stroke="rgba(255,255,255,0.4)" strokeWidth="1.6" />
+          <path d="M12 2l8 3v6c0 5-3.4 9.7-8 11-4.6-1.3-8-6-8-11V5l8-3Z" stroke="rgba(255,255,255,0.5)" strokeWidth="1.6" />
         </svg>
         <p className="text-center text-[11px] italic text-white/40">
           This guide is for informational purposes only. Always verify current requirements directly with DSB.no before

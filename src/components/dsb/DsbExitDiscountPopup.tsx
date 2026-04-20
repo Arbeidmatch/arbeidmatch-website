@@ -149,7 +149,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
               height: 36,
               border: "none",
               background: "transparent",
-              color: "rgba(255,255,255,0.4)",
+              color: "rgba(255,255,255,0.5)",
               fontSize: 22,
               cursor: "pointer",
             }}
@@ -188,7 +188,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
         </h2>
         <p
           style={{
-            color: "rgba(255,255,255,0.6)",
+            color: "rgba(255,255,255,0.7)",
             fontSize: 14,
             lineHeight: 1.7,
             marginTop: 10,
@@ -200,7 +200,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
         <div
           style={{
             height: 1,
-            background: "rgba(255,255,255,0.08)",
+            background: "rgba(255,255,255,0.03)",
             margin: "20px 0",
           }}
         />
@@ -216,7 +216,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
         >
           <span
             style={{
-              color: "rgba(255,255,255,0.3)",
+              color: "rgba(255,255,255,0.35)",
               fontSize: 16,
               textDecoration: "line-through",
             }}
@@ -226,7 +226,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
           <span style={{ color: GOLD, fontSize: 32, fontWeight: 800 }}>{copy.price}</span>
           <span
             style={{
-              background: "rgba(29,158,117,0.15)",
+              background: "rgba(29,158,117,0.1)",
               color: GREEN,
               fontSize: 11,
               borderRadius: 20,
@@ -238,7 +238,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
           </span>
         </div>
         {error ? (
-          <p style={{ color: "#f87171", fontSize: 13, marginBottom: 12 }}>{error}</p>
+          <p style={{ color: "#E24B4A", fontSize: 13, marginBottom: 12 }}>{error}</p>
         ) : null}
         <button
           type="button"
@@ -268,7 +268,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
             textAlign: "center",
             marginTop: 14,
             fontSize: 13,
-            color: "rgba(255,255,255,0.3)",
+            color: "rgba(255,255,255,0.35)",
             background: "none",
             border: "none",
             cursor: "pointer",
@@ -295,7 +295,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
             position: "fixed",
             inset: 0,
             zIndex: 100,
-            background: isMobile ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.7)",
+            background: isMobile ? "rgba(0,0,0,0.5)" : "#0a0f18",
             backdropFilter: isMobile ? undefined : "blur(8px)",
             display: isMobile ? "block" : "flex",
             alignItems: isMobile ? undefined : "center",
@@ -321,7 +321,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
                 right: 0,
                 bottom: 0,
                 background: CARD_BG,
-                borderTop: "1px solid rgba(201,168,76,0.2)",
+                borderTop: "1px solid rgba(201,168,76,0.15)",
                 borderRadius: "20px 20px 0 0",
                 padding: "24px 20px 32px",
                 maxHeight: "90vh",
@@ -337,7 +337,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
                 style={{
                   width: 40,
                   height: 4,
-                  background: "rgba(255,255,255,0.2)",
+                  background: "rgba(255,255,255,0.35)",
                   borderRadius: 2,
                   margin: "0 auto 20px",
                 }}
@@ -352,7 +352,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
               style={{
                 position: "relative",
                 background: CARD_BG,
-                border: "1px solid rgba(201,168,76,0.3)",
+                border: "1px solid rgba(201,168,76,0.15)",
                 borderRadius: 20,
                 padding: 40,
                 maxWidth: 440,
@@ -377,7 +377,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
                   height: 36,
                   border: "none",
                   background: "transparent",
-                  color: "rgba(255,255,255,0.4)",
+                  color: "rgba(255,255,255,0.5)",
                   fontSize: 22,
                   lineHeight: 1,
                   cursor: "pointer",

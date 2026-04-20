@@ -96,7 +96,7 @@ export default function OurServicesSection() {
       </h2>
       <p
         className="mx-auto mb-14 max-w-[720px] text-center text-base leading-snug md:mb-[56px]"
-        style={{ color: "rgba(0,0,0,0.5)" }}
+        style={{ color: "rgba(255,255,255,0.5)" }}
       >
         Everything you need to find, hire, and onboard qualified EU/EEA workers.
       </p>
@@ -108,7 +108,7 @@ export default function OurServicesSection() {
           return (
             <article
               key={item.title}
-              className="group rounded-2xl border-[0.5px] border-black/[0.08] bg-white px-7 py-8 transition-[border-color,transform] duration-[220ms] ease-out hover:-translate-y-1 hover:border-[rgba(201,168,76,0.5)]"
+              className="group rounded-2xl border-[0.5px] border-[rgba(255,255,255,0.35)] bg-[#0D1B2A] px-7 py-8 transition-[border-color,transform] duration-[220ms] ease-out hover:-translate-y-1 hover:border-[rgba(201,168,76,0.15)]"
             >
               <div
                 className="flex flex-col"

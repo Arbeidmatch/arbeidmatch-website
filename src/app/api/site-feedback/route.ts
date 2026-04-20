@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     ]
       .map(
         (row) =>
-          `<div style="padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.08);"><div style="color:rgba(255,255,255,0.5);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">${row.label}</div><div style="color:#fff;font-size:15px;font-weight:500;margin-top:4px;">${row.value}</div></div>`,
+          `<div style="padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.08);"><div style="color:rgba(255,255,255,0.5);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">${row.label}</div><div style="color:#ffffff;font-size:15px;font-weight:500;margin-top:4px;">${row.value}</div></div>`,
       )
       .join("");
 
