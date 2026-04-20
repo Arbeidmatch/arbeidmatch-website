@@ -30,6 +30,7 @@ const stederLinks = [
 
 const ressurserLinks: { href: string; label: string; premium?: boolean }[] = [
   { href: "/electricians-norway", label: "Electricians in Norway" },
+  { href: "/outside-eu-eea", label: "Non-EU Workers" },
   { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/premium", label: "Premium Guides", premium: true },
   { href: "/about", label: "Om oss" },

@@ -5,7 +5,7 @@ import { FormEvent, useState } from "react";
 import { Check, Clock, Wrench } from "lucide-react";
 
 const cardClass =
-  "rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-6 md:p-8";
+  "rounded-2xl border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.05)] p-6 md:p-8";
 const inputClass =
   "w-full rounded-lg border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.05)] px-4 py-3 text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.4)] focus:outline-none";
 
@@ -141,10 +141,7 @@ export default function OutsideEuEeaClient() {
       {/* Lead magnet */}
       <section className="border-y border-[rgba(201,168,76,0.12)] bg-[#0a0f18] px-4 py-14 md:py-20">
         <div className="mx-auto w-full max-w-2xl px-4 md:px-6">
-          <div
-            className="rounded-2xl border border-[rgba(201,168,76,0.35)] p-6 md:p-10"
-            style={{ background: "rgba(201,168,76,0.04)" }}
-          >
+          <div className="rounded-2xl border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.05)] p-6 md:p-10">
             <h2 className="text-center text-2xl font-extrabold text-white md:text-3xl">Get your free Norway Work Guide</h2>
             <p className="mx-auto mt-4 max-w-xl text-center text-[rgba(255,255,255,0.7)]">
               We&apos;ll send you a practical overview of work permits, required documents, and first steps — straight to

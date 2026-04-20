@@ -39,6 +39,7 @@ const stederLinks: { href: string; label: string }[] = [
 const candidateFindWork: { href: string; label: string; external?: boolean }[] = [
   { href: "/for-candidates", label: "Find Work in Norway" },
   { href: "/electricians-norway", label: "Electricians in Norway" },
+  { href: "/outside-eu-eea", label: "Non-EU Workers" },
   { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "https://jobs.arbeidmatch.no", label: "Browse Open Jobs", external: true },
 ];
