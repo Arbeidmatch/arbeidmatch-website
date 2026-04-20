@@ -586,27 +586,36 @@ export default function RecruiterNetworkClient() {
                 </p>
               </motion.div>
             ) : (
-              <form onSubmit={onSubmit} className="rn-card-net space-y-5 p-8 md:p-10">
+              <form onSubmit={onSubmit} className="rn-card-net space-y-6 border border-white/15 bg-white/[0.05] p-7 md:p-10">
                 <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
                     Full name *
                   </label>
-                  <input name="full_name" required className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm" />
+                  <input
+                    name="full_name"
+                    required
+                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                  />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
                     Email address *
                   </label>
-                  <input name="email" type="email" required className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm" />
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                  />
                 </div>
                 <div>
                   <label
                     style={{
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: 600,
-                      color: "rgba(255,255,255,0.5)",
+                      color: "rgba(255,255,255,0.7)",
                       textTransform: "uppercase",
                       letterSpacing: "0.08em",
                       display: "block",
@@ -619,17 +628,9 @@ export default function RecruiterNetworkClient() {
                     value={form.country}
                     onChange={(e) => setForm({ ...form, country: e.target.value, city: "" })}
                     required
-                    style={{
-                      width: "100%",
-                      background: "rgba(255,255,255,0.06)",
-                      border: "1px solid rgba(255,255,255,0.12)",
-                      borderRadius: 10,
-                      padding: "12px 16px",
-                      color: form.country ? "white" : "rgba(255,255,255,0.3)",
-                      fontSize: 14,
-                      outline: "none",
-                      appearance: "none",
-                    }}
+                    className={`w-full appearance-none rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none ${
+                      form.country ? "text-white" : "text-white/45"
+                    }`}
                   >
                     <option value="" disabled>
                       Select your country
@@ -641,7 +642,7 @@ export default function RecruiterNetworkClient() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
                     Area you want to cover *
                   </label>
                   <p className="mb-2 text-xs text-white/40">
@@ -654,7 +655,7 @@ export default function RecruiterNetworkClient() {
                       onChange={(e) => setForm({ ...form, city: e.target.value })}
                       required
                       placeholder="Enter your city or region"
-                      className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm"
+                      className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
                     />
                   ) : (
                     <select
@@ -662,17 +663,9 @@ export default function RecruiterNetworkClient() {
                       value={form.city}
                       onChange={(e) => setForm({ ...form, city: e.target.value })}
                       required
-                      style={{
-                        width: "100%",
-                        background: "rgba(255,255,255,0.06)",
-                        border: "1px solid rgba(255,255,255,0.12)",
-                        borderRadius: 10,
-                        padding: "12px 16px",
-                        color: form.city ? "white" : "rgba(255,255,255,0.3)",
-                        fontSize: 14,
-                        outline: "none",
-                        appearance: "none",
-                      }}
+                      className={`w-full appearance-none rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none ${
+                        form.city ? "text-white" : "text-white/45"
+                      }`}
                     >
                       <option value="" disabled>
                         Select city or region
@@ -687,7 +680,7 @@ export default function RecruiterNetworkClient() {
                 </div>
 
                 <fieldset>
-                  <legend className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-[#C9A84C]">
+                  <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
                     How do you invoice?
                   </legend>
                   <p className="mb-3 text-xs text-white/40">
@@ -722,8 +715,8 @@ export default function RecruiterNetworkClient() {
                           key={option.value}
                           className="flex cursor-pointer items-start gap-3 rounded-[10px] border p-[14px_16px]"
                           style={{
-                            background: checked ? "rgba(201,168,76,0.06)" : "rgba(255,255,255,0.03)",
-                            borderColor: checked ? "#C9A84C" : "rgba(255,255,255,0.08)",
+                            background: checked ? "rgba(201,168,76,0.10)" : "rgba(255,255,255,0.06)",
+                            borderColor: checked ? "#C9A84C" : "rgba(255,255,255,0.18)",
                             transition: "all 180ms",
                           }}
                         >
@@ -773,7 +766,7 @@ export default function RecruiterNetworkClient() {
                 </fieldset>
 
                 <fieldset>
-                  <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">
+                  <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
                     Which path fits you best? *
                   </legend>
                   <div className="space-y-2 text-sm text-white/85">
@@ -791,7 +784,7 @@ export default function RecruiterNetworkClient() {
                 </fieldset>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
                     Social media or professional profile link *
                   </label>
                   <input
@@ -799,11 +792,11 @@ export default function RecruiterNetworkClient() {
                     type="url"
                     required
                     placeholder="https://"
-                    className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm"
+                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
                     Monthly reach / visitors *
                   </label>
                   <input
@@ -812,14 +805,14 @@ export default function RecruiterNetworkClient() {
                     inputMode="numeric"
                     required
                     placeholder="e.g. 150,000"
-                    className="rn-input input-premium input-premium--dark w-full px-4 py-3 text-sm"
+                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
                   />
                 </div>
 
                 <input type="hidden" name="has_company" value={mapBusinessTypeToHasCompany(form.businessType)} />
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/50">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
                     Tell us why you want to join
                   </label>
                   <textarea
@@ -829,7 +822,7 @@ export default function RecruiterNetworkClient() {
                     placeholder="What drives you? What is your market? What makes you the right partner?"
                     value={motivation}
                     onChange={(ev) => setMotivation(ev.target.value)}
-                    className="rn-input input-premium input-premium--dark textarea-premium w-full resize-y px-4 py-3 text-sm"
+                    className="rn-input input-premium input-premium--dark textarea-premium w-full resize-y rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
                   />
                   <p className="mt-1 text-right text-[11px] text-white/40">{motivation.length}/500</p>
                 </div>
