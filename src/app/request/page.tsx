@@ -170,18 +170,16 @@ export default function RequestPage() {
       return;
     }
 
-    const fullName = `${contactFirstName} ${contactLastName}`.trim();
-    const payload: Record<string, string> = {
+    const payload = {
       company: companyQuery,
-      orgNumber,
+      org_number: orgNumber,
       email: companyEmail,
       first_name: contactFirstName.trim(),
       last_name: contactLastName.trim(),
-      full_name: fullName,
-      contactRole,
+      role: contactRole.trim(),
       phone: contactPhone,
-      job_summary: "",
-      requested_location: "",
+      gdprConsent,
+      job_summary: "General hiring inquiry",
       partnershipStatus,
       howDidYouHear,
       socialMediaPlatform: howDidYouHear === "Social media" ? socialMediaPlatform : "",
@@ -199,10 +197,7 @@ export default function RequestPage() {
       const response = await fetch("/api/simple-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...payload,
-          requestedLocation: "",
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = (await response.json()) as { success?: boolean; token?: string; error?: string };

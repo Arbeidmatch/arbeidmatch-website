@@ -13,14 +13,16 @@ import { logApiError } from "@/lib/secureLogger";
 
 const requestSchema = z
   .object({
-    full_name: z.string().trim().min(2).max(120),
-    first_name: z.string().trim().max(120).optional(),
-    last_name: z.string().trim().max(120).optional(),
+    full_name: z.string().trim().min(2).max(120).optional(),
+    first_name: z.string().trim().min(1).max(120),
+    last_name: z.string().trim().min(1).max(120),
     company: z.string().trim().min(2).max(160),
     email: z.string().trim().email().max(200),
     phone: z.string().trim().min(6).max(40),
-    contactRole: z.string().trim().max(160).optional(),
-    job_summary: z.string().trim().max(1000).optional(),
+    role: z.string().trim().max(160).optional(),
+    job_summary: z.string().trim().max(1000).optional().default("General hiring inquiry"),
+    org_number: z.string().trim().max(40).optional(),
+    gdprConsent: z.boolean().optional(),
     requestedLocation: z.string().trim().max(120).optional(),
     partnershipStatus: z.string().trim().max(40).optional(),
     howDidYouHear: z.string().trim().max(120).optional(),
@@ -70,6 +72,8 @@ export async function POST(request: NextRequest) {
 
     const {
       full_name,
+      first_name,
+      last_name,
       company,
       email,
       phone,
@@ -81,21 +85,23 @@ export async function POST(request: NextRequest) {
       referralCompanyName,
       referralOrgNumber,
       referralEmail,
+      org_number,
       orgNumber,
     } = parsed.data;
     companySnapshot = company?.trim() || "unknown";
+    const resolvedFullName = full_name?.trim() || `${first_name} ${last_name}`.trim();
 
     const token = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     const { error } = await supabase.from("request_tokens").insert({
       token,
-      full_name,
+      full_name: resolvedFullName,
       company,
       email,
       phone,
-      org_number: orgNumber,
-      job_summary: job_summary?.trim() || "General hiring inquiry",
+      org_number: org_number ?? orgNumber,
+      job_summary,
       how_did_you_hear: howDidYouHear,
       social_media_platform: socialMediaPlatform,
       how_did_you_hear_other: howDidYouHearOther || socialMediaOther,
