@@ -5,12 +5,11 @@ import { isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
+import { buildEmail } from "@/lib/emailTemplate";
 import {
   emailParagraph,
   inDevelopmentBadgeStatic,
   mailHeaders,
-  premiumCtaButton,
-  wrapPremiumEmail,
 } from "@/lib/emailPremiumTemplate";
 
 export const dynamic = "force-dynamic";
@@ -60,7 +59,6 @@ export async function POST(request: NextRequest) {
           ),
           `<div style="text-align:center;margin:8px 0 20px;">${inDevelopmentBadgeStatic()}</div>`,
           emailParagraph("We are building something great and you will be among the first to know."),
-          `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no", "Visit ArbeidMatch")}</div>`,
         ].join("");
         await transporter.sendMail({
           ...mailHeaders(),
@@ -71,7 +69,13 @@ export async function POST(request: NextRequest) {
 You are on the ArbeidMatch app waitlist. We will notify you when the app is available on iOS and Android.
 
 Visit https://arbeidmatch.no`,
-          html: wrapPremiumEmail(inner),
+          html: buildEmail({
+            title: "You are on the ArbeidMatch App waitlist",
+            preheader: "We will notify you when the app is available",
+            body: inner,
+            ctaText: "Visit ArbeidMatch",
+            ctaUrl: "https://arbeidmatch.no",
+          }),
         });
       } catch (e) {
         console.error("[app-waitlist] confirmation email", e);

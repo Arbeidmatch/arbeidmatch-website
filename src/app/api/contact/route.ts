@@ -4,12 +4,11 @@ import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
+import { buildEmail } from "@/lib/emailTemplate";
 import {
-  buildInternalEmailHtml,
   emailParagraph,
   mailHeaders,
   premiumCtaButton,
-  wrapPremiumEmail,
 } from "@/lib/emailPremiumTemplate";
 
 type ContactPayload = {
@@ -55,22 +54,28 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const internalHtml = buildInternalEmailHtml({
-      title: `${isSupportRequest ? "Support request" : "Contact message"}: ${name} from ${company}`,
-      rows: [
-        { label: "Name", value: name },
-        { label: "Company", value: company },
-        { label: "Email", value: email },
-        { label: "Request type", value: need },
-        { label: "Message", value: message },
-      ],
-    });
+    const internalBody = [
+      { label: "Name", value: name },
+      { label: "Company", value: company },
+      { label: "Email", value: email },
+      { label: "Request type", value: need },
+      { label: "Message", value: message },
+    ]
+      .map(
+        (row) =>
+          `<div style="padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.08);"><div style="color:rgba(255,255,255,0.5);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">${row.label}</div><div style="color:#fff;font-size:15px;font-weight:500;margin-top:4px;">${row.value}</div></div>`,
+      )
+      .join("");
 
     await transporter.sendMail({
       ...mailHeaders(),
       to: recipient,
       subject: `${isSupportRequest ? "Support request" : "New contact message"}: ${name} from ${company}`,
-      html: internalHtml,
+      html: buildEmail({
+        title: `${isSupportRequest ? "Support request" : "Contact message"}: ${name} from ${company}`,
+        preheader: "New inbound contact form submission",
+        body: internalBody,
+      }),
     });
 
     const safeName = escapeHtml(name);
@@ -86,7 +91,11 @@ export async function POST(request: NextRequest) {
       ...mailHeaders(),
       to: email,
       subject: "We received your message - ArbeidMatch",
-      html: wrapPremiumEmail(userInner),
+      html: buildEmail({
+        title: "We received your message",
+        preheader: "Our team will respond shortly",
+        body: userInner,
+      }),
     });
 
     void notifySlack("contacts", {

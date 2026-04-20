@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
-import { buildInternalEmailHtml, emailParagraph, mailHeaders, premiumCtaButton, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
+import { emailParagraph, mailHeaders, premiumCtaButton } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
+import { buildEmail } from "@/lib/emailTemplate";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,21 +35,27 @@ export async function POST(request: NextRequest) {
     });
 
     const ref = `DSB-${Date.now()}`;
-    const internalHtml = buildInternalEmailHtml({
-      title: `New DSB assistance interest: ${data.email}`,
-      rows: [
-        { label: "Email", value: data.email },
-        { label: "Consent", value: data.consent },
-        { label: "Source", value: "/dsb-assistance" },
-        { label: "Reference", value: ref },
-      ],
-    });
+    const internalBody = [
+      { label: "Email", value: data.email },
+      { label: "Consent", value: data.consent },
+      { label: "Source", value: "/dsb-assistance" },
+      { label: "Reference", value: ref },
+    ]
+      .map(
+        (row) =>
+          `<div style="padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.08);"><div style="color:rgba(255,255,255,0.5);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">${row.label}</div><div style="color:#fff;font-size:15px;font-weight:500;margin-top:4px;">${row.value}</div></div>`,
+      )
+      .join("");
 
     await transporter.sendMail({
       ...mailHeaders(),
       to: "post@arbeidmatch.no",
       subject: `New DSB assistance interest: ${data.email}`,
-      html: internalHtml,
+      html: buildEmail({
+        title: `New DSB assistance interest: ${data.email}`,
+        preheader: "Internal DSB assistance lead",
+        body: internalBody,
+      }),
     });
 
     const userInner = [
@@ -63,7 +70,11 @@ export async function POST(request: NextRequest) {
       ...mailHeaders(),
       to: data.email,
       subject: "DSB support notification registered | ArbeidMatch",
-      html: wrapPremiumEmail(userInner),
+      html: buildEmail({
+        title: "DSB support notification registered",
+        preheader: "We registered your DSB assistance interest",
+        body: userInner,
+      }),
     });
 
     return NextResponse.json({ success: true });

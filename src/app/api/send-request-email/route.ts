@@ -6,12 +6,11 @@ import { getRateLimitResult, hasHoneypotValue, noStoreJson, parseJsonBodyWithSch
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import { notifySlack } from "@/lib/slackNotifier";
+import { buildEmail } from "@/lib/emailTemplate";
 import {
   emailDataTable,
   emailParagraph,
   mailHeaders,
-  premiumCtaButton,
-  wrapPremiumEmail,
 } from "@/lib/emailPremiumTemplate";
 
 const requestSchema = z
@@ -132,84 +131,53 @@ export async function POST(request: NextRequest) {
     const cityLabel = data.city || "-";
     const nowLabel = new Date().toISOString();
     const adminUrl = "https://www.arbeidmatch.no/admin";
-    const adminHtml = `
-      <div style="margin:0;padding:24px;background:#0a0f18;font-family:system-ui,-apple-system,sans-serif;">
-        <div style="max-width:600px;margin:0 auto;width:100%;">
-          <div style="background:#0f1923;border-bottom:3px solid #C9A84C;padding:32px 40px;">
-            <div style="font-size:24px;font-weight:800;line-height:1.2;">
-              <span style="color:#C9A84C;">Arbeid</span><span style="color:#ffffff;">Match</span>
-            </div>
-            <div style="margin-top:8px;color:rgba(255,255,255,0.5);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;">
-              New Candidate Request
-            </div>
-          </div>
-          <div style="background:linear-gradient(135deg,#C9A84C 0%,#b8953f 100%);padding:24px 40px;">
-            <div style="color:#0f1923;font-size:22px;font-weight:800;line-height:1.3;">${escapeHtml(companyName)}</div>
-            <div style="margin-top:4px;color:rgba(15,25,35,0.6);font-size:13px;">${escapeHtml(nowLabel)}</div>
-          </div>
-          <div style="background:#0f1923;padding:40px;">
-            ${sectionHtml(
-              "Contact details",
-              [
-                rowHtml("Company", data.company),
-                rowHtml("Org.nr", data.orgNumber),
-                rowHtml("Email", data.email, true),
-                rowHtml("Full name", data.full_name),
-                rowHtml("Phone", data.phone),
-              ],
-              0,
-            )}
-            ${sectionHtml(
-              "Position details",
-              [
-                rowHtml("Category", data.category),
-                rowHtml("Position", selectedPosition),
-                rowHtml("Contract type", data.contractType),
-                rowHtml("Qualification", data.qualification),
-                rowHtml("Candidates needed", data.numberOfPositions),
-                rowHtml("Certifications", data.certifications),
-                rowHtml("Urgency", selectedStartDate),
-              ],
-              32,
-            )}
-            ${sectionHtml(
-              "Conditions offered",
-              [
-                rowHtml("Salary", data.salary),
-                rowHtml("Salary period", data.salaryPeriod),
-                rowHtml("Overtime", data.overtime),
-                rowHtml("Accommodation", data.accommodation),
-                rowHtml("Transport", data.internationalTravel || data.localTravel),
-                rowHtml("Rotation", data.hasRotation),
-                rowHtml("Start date", selectedStartDate),
-              ],
-              32,
-            )}
-            ${sectionHtml(
-              "Location",
-              [
-                rowHtml("City", data.city),
-                rowHtml("Region", data.localTravelOther || data.city),
-                rowHtml("Additional notes", data.notes || data.job_summary || leadSource),
-              ],
-              32,
-            )}
-            <div style="margin-top:32px;text-align:center;">
-              <a href="${adminUrl}" style="display:inline-block;background:#C9A84C;color:#0f1923;font-weight:800;border-radius:8px;padding:14px 40px;text-decoration:none;">
-                View Full Request in Admin
-              </a>
-            </div>
-          </div>
-          <div style="background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.06);padding:24px 40px;">
-            <div style="color:rgba(255,255,255,0.3);font-size:11px;line-height:1.8;">
-              ArbeidMatch Norge AS. post@arbeidmatch.no. +47 96 73 47 30
-              <br />
-              This email was generated automatically. Do not reply directly.
-            </div>
-            <div style="margin-top:10px;color:#C9A84C;font-size:13px;font-weight:700;">ArbeidMatch</div>
-          </div>
-        </div>
-      </div>
+    const adminBody = `
+      ${sectionHtml(
+        "Contact details",
+        [
+          rowHtml("Company", data.company),
+          rowHtml("Org.nr", data.orgNumber),
+          rowHtml("Email", data.email, true),
+          rowHtml("Full name", data.full_name),
+          rowHtml("Phone", data.phone),
+        ],
+        0,
+      )}
+      ${sectionHtml(
+        "Position details",
+        [
+          rowHtml("Category", data.category),
+          rowHtml("Position", selectedPosition),
+          rowHtml("Contract type", data.contractType),
+          rowHtml("Qualification", data.qualification),
+          rowHtml("Candidates needed", data.numberOfPositions),
+          rowHtml("Certifications", data.certifications),
+          rowHtml("Urgency", selectedStartDate),
+        ],
+        32,
+      )}
+      ${sectionHtml(
+        "Conditions offered",
+        [
+          rowHtml("Salary", data.salary),
+          rowHtml("Salary period", data.salaryPeriod),
+          rowHtml("Overtime", data.overtime),
+          rowHtml("Accommodation", data.accommodation),
+          rowHtml("Transport", data.internationalTravel || data.localTravel),
+          rowHtml("Rotation", data.hasRotation),
+          rowHtml("Start date", selectedStartDate),
+        ],
+        32,
+      )}
+      ${sectionHtml(
+        "Location",
+        [
+          rowHtml("City", data.city),
+          rowHtml("Region", data.localTravelOther || data.city),
+          rowHtml("Additional notes", data.notes || data.job_summary || leadSource),
+        ],
+        32,
+      )}
     `;
 
     const employerRows = [
@@ -228,19 +196,22 @@ export async function POST(request: NextRequest) {
       emailParagraph("1. We review your request"),
       emailParagraph("2. We match suitable candidates"),
       emailParagraph("3. We contact you within 24 hours"),
-      `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</div>`,
       emailParagraph("<strong>Contact:</strong> post@arbeidmatch.no · +47 967 34 730"),
     ]
       .filter(Boolean)
       .join("");
 
-    const employerHtml = wrapPremiumEmail(employerInner);
-
     await transporter.sendMail({
       ...mailHeaders(),
       to: "post@arbeidmatch.no",
       subject: `New candidate request: ${companyName} from ${cityLabel}`,
-      html: adminHtml,
+      html: buildEmail({
+        title: `New candidate request: ${companyName} from ${cityLabel}`,
+        preheader: nowLabel,
+        body: adminBody,
+        ctaText: "View Full Request in Admin",
+        ctaUrl: adminUrl,
+      }),
     });
 
     if (data.email) {
@@ -248,7 +219,13 @@ export async function POST(request: NextRequest) {
         ...mailHeaders(),
         to: data.email,
         subject: `Thank you for your request | ${data.company ?? "ArbeidMatch"}`,
-        html: employerHtml,
+        html: buildEmail({
+          title: "Thank you for your request",
+          preheader: "We will get back to you within 24 hours",
+          body: employerInner,
+          ctaText: "Share feedback",
+          ctaUrl: "https://arbeidmatch.no/feedback",
+        }),
       });
     }
 
@@ -260,15 +237,18 @@ export async function POST(request: NextRequest) {
           `We received a request from <strong>${safeRefCo}</strong> and they mentioned your recommendation.`,
         ),
         emailParagraph("We appreciate your trust. If we can support your hiring needs in the future, we would be happy to help."),
-        `<div style="text-align:center;margin:8px 0 0;">${premiumCtaButton("https://arbeidmatch.no/contact", "Contact us")}</div>`,
       ].join("");
-      const referralHtml = wrapPremiumEmail(referralInner);
-
       await transporter.sendMail({
         ...mailHeaders(),
         to: data.referralEmail,
         subject: "Thank you for the referral - ArbeidMatch Norge",
-        html: referralHtml,
+        html: buildEmail({
+          title: "Thank you for the referral",
+          preheader: "We appreciate your recommendation",
+          body: referralInner,
+          ctaText: "Contact us",
+          ctaUrl: "https://arbeidmatch.no/contact",
+        }),
       });
     }
 

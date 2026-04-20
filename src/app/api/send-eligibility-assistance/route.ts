@@ -9,10 +9,10 @@ import {
   emailSupportAfterCta,
   mailHeaders,
   premiumCtaButton,
-  wrapPremiumEmail,
 } from "@/lib/emailPremiumTemplate";
 import { createEligibilityVerificationToken } from "@/lib/notificationToken";
 import { notifyError } from "@/lib/errorNotifier";
+import { buildEmail } from "@/lib/emailTemplate";
 
 export const dynamic = "force-dynamic";
 
@@ -205,7 +205,11 @@ Target region: ${data.targetRegion || "-"}
 Target country: ${data.targetCountry || "-"}
 
 If the button does not work, reply to this email for help.`,
-      html: wrapPremiumEmail(candidateInner),
+      html: buildEmail({
+        title: "Verify your email for notifications",
+        preheader: "Confirm consent and activate your subscription",
+        body: candidateInner,
+      }),
     });
 
     const okBody = { success: true, requiresVerification: true };

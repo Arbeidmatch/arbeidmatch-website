@@ -4,9 +4,10 @@ import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { buildDsbChecklistEmailBodyHtml, DSB_CHECKLIST_EMAIL_SUBJECT } from "@/lib/dsbChecklistEmailContent";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
-import { buildInternalEmailHtml, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
+import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
+import { buildEmail } from "@/lib/emailTemplate";
 
 export const dynamic = "force-dynamic";
 
@@ -70,26 +71,36 @@ export async function POST(request: NextRequest) {
           ...mailHeaders(),
           to: email,
           subject: DSB_CHECKLIST_EMAIL_SUBJECT,
-          html: wrapPremiumEmail(buildDsbChecklistEmailBodyHtml(firstName)),
+          html: buildEmail({
+            title: DSB_CHECKLIST_EMAIL_SUBJECT,
+            preheader: "Your DSB checklist is ready",
+            body: buildDsbChecklistEmailBodyHtml(firstName),
+          }),
         });
       } catch (e) {
         console.error("[dsb-leads] user email", e);
       }
 
       try {
-        const internalHtml = buildInternalEmailHtml({
-          title: `New DSB checklist lead: ${firstName}`,
-          rows: [
-            { label: "First name", value: firstName },
-            { label: "Email", value: email },
-            { label: "Source", value: source },
-          ],
-        });
+        const internalBody = [
+          { label: "First name", value: firstName },
+          { label: "Email", value: email },
+          { label: "Source", value: source },
+        ]
+          .map(
+            (row) =>
+              `<div style="padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.08);"><div style="color:rgba(255,255,255,0.5);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">${row.label}</div><div style="color:#fff;font-size:15px;font-weight:500;margin-top:4px;">${row.value}</div></div>`,
+          )
+          .join("");
         await transporter.sendMail({
           ...mailHeaders(),
           to: "post@arbeidmatch.no",
           subject: `New DSB checklist lead: ${firstName}`,
-          html: internalHtml,
+          html: buildEmail({
+            title: `New DSB checklist lead: ${firstName}`,
+            preheader: "Internal lead notification",
+            body: internalBody,
+          }),
         });
       } catch (e) {
         console.error("[dsb-leads] notify email", e);

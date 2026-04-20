@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
+import { buildEmail } from "@/lib/emailTemplate";
 
 export const dynamic = "force-dynamic";
 
@@ -100,11 +101,27 @@ export async function POST(request: NextRequest) {
       const bodyText = lines.join("\n");
 
       try {
+        const htmlBody = [
+          `<p style="margin:0 0 16px;">Hi, thank you for registering your interest with ArbeidMatch.</p>`,
+          `<p style="margin:0 0 16px;">We have noted your profile as: <strong>${specialty}</strong>.</p>`,
+          `<p style="margin:0 0 16px;">We will contact you personally when we have a matching opportunity in Norway.</p>`,
+          guideWanted
+            ? `<p style="margin:0 0 16px;">We will also notify you when the guide for your profession becomes available.</p>`
+            : "",
+          `<p style="margin:0;">Best regards,<br/>ArbeidMatch Team<br/>post@arbeidmatch.no</p>`,
+        ]
+          .filter(Boolean)
+          .join("");
         await transporter.sendMail({
           from: `"ArbeidMatch" <no-replay@arbeidmatch.no>`,
           to: email,
           subject: "You are registered with ArbeidMatch",
           text: bodyText,
+          html: buildEmail({
+            title: "You are registered with ArbeidMatch",
+            preheader: "We will notify you when opportunities match your profile",
+            body: htmlBody,
+          }),
         });
       } catch {
         /* ignore email transport errors */

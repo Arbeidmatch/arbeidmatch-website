@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
-import { buildInternalEmailHtml, emailParagraph, formatEmailTimestampCet, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
+import { emailParagraph, formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
+import { buildEmail } from "@/lib/emailTemplate";
 
 type SiteFeedbackPayload = {
   rating?: number;
@@ -51,22 +52,30 @@ export async function POST(request: NextRequest) {
 
     const submittedAt = formatEmailTimestampCet();
 
+    const internalBody = [
+      { label: "Rating", value: `${rating}/10` },
+      { label: "Email", value: emailRaw },
+      { label: "Source", value: sourceRaw },
+      { label: "Submitted (CET)", value: submittedAt },
+      { label: "Related to website", value: siteRelatedRaw || "-" },
+      { label: "Category", value: issueCategoryRaw || "-" },
+      { label: "Improvement note", value: noteRaw || "-" },
+      { label: "Issue details", value: issueDetailsRaw || "-" },
+    ]
+      .map(
+        (row) =>
+          `<div style="padding:12px 0;border-bottom:1px solid rgba(201,168,76,0.08);"><div style="color:rgba(255,255,255,0.5);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">${row.label}</div><div style="color:#fff;font-size:15px;font-weight:500;margin-top:4px;">${row.value}</div></div>`,
+      )
+      .join("");
+
     await transporter.sendMail({
       ...mailHeaders(),
       to: "post@arbeidmatch.no",
       subject: `New site feedback: ${rating}/10 from ${emailRaw}`,
-      html: buildInternalEmailHtml({
+      html: buildEmail({
         title: `New site feedback: ${rating}/10 from ${emailRaw}`,
-        rows: [
-          { label: "Rating", value: `${rating}/10` },
-          { label: "Email", value: emailRaw },
-          { label: "Source", value: sourceRaw },
-          { label: "Submitted (CET)", value: submittedAt },
-          { label: "Related to website", value: siteRelatedRaw || "-" },
-          { label: "Category", value: issueCategoryRaw || "-" },
-          { label: "Improvement note", value: noteRaw || "-" },
-          { label: "Issue details", value: issueDetailsRaw || "-" },
-        ],
+        preheader: "Internal site feedback notification",
+        body: internalBody,
       }),
     });
 
@@ -80,7 +89,11 @@ export async function POST(request: NextRequest) {
       ...mailHeaders(),
       to: emailRaw,
       subject: "Thank you for your feedback - ArbeidMatch",
-      html: wrapPremiumEmail(userInner),
+      html: buildEmail({
+        title: "Thank you for your feedback",
+        preheader: "Your feedback helps us improve",
+        body: userInner,
+      }),
     });
 
     return NextResponse.json({ success: true });

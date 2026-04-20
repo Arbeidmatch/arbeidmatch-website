@@ -4,6 +4,7 @@ import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { notifyError } from "@/lib/errorNotifier";
+import { buildEmail } from "@/lib/emailTemplate";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +80,11 @@ export async function POST(request: NextRequest) {
 
 Best regards,
 ArbeidMatch Team`,
+          html: buildEmail({
+            title: "You are on the waitlist",
+            preheader: "Your feature waitlist registration is confirmed",
+            body: `<p style="margin:0 0 16px;">Hi, you have been added to the waitlist for <strong>${feature}</strong> on ArbeidMatch.</p><p style="margin:0 0 16px;">We will notify you at this email when it becomes available.</p><p style="margin:0;">Unsubscribe anytime by replying to this email.<br/><br/>Best regards,<br/>ArbeidMatch Team</p>`,
+          }),
         });
       } catch {
         /* ignore */
