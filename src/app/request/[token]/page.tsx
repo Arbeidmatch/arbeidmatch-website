@@ -14,6 +14,8 @@ type TokenData = {
 };
 
 type RequestForm = {
+  industry: string;
+  workerType: string;
   trade: string;
   tradeOther: string;
   experience: string;
@@ -24,9 +26,12 @@ type RequestForm = {
   salaryPeriod: "per hour" | "per month";
   overtime: string;
   accommodation: string;
-  transport: string;
+  accommodationSupport: string;
+  internationalTransport: string;
+  localTransport: string;
   urgency: string;
   city: string;
+  locations: string[];
   region: string;
   startDate: string;
   notes: string;
@@ -42,7 +47,61 @@ const CITY_OPTIONS = [
   "Steinkjer", "Namsos", "Levanger", "Verdal", "Elverum", "Brumunddal", "Ringerike", "Honefoss",
 ];
 
+const INDUSTRY_OPTIONS = [
+  "Electrical",
+  "Welding and Metal",
+  "Construction",
+  "Logistics",
+  "Industry and Production",
+  "Cleaning",
+  "HoReCa",
+  "Healthcare",
+  "Other",
+];
+
+const WORKER_TYPES_BY_INDUSTRY: Record<string, string[]> = {
+  Electrical: ["Electrician (DSB authorized)", "Electrical installer", "Industrial electrician"],
+  "Welding and Metal": ["Welder (ISO certified)", "Pipe welder", "Plate welder"],
+  Construction: ["Construction worker", "Carpenter", "Concrete worker"],
+  Logistics: ["Logistics / Driver", "Warehouse operator", "Forklift operator"],
+  "Industry and Production": ["Industrial worker", "CNC operator", "Assembly worker"],
+  Cleaning: ["Cleaning staff", "Industrial cleaner", "Facility cleaner"],
+  HoReCa: ["HoReCa / Kitchen", "Chef", "Kitchen assistant"],
+  Healthcare: ["Healthcare worker", "Nurse assistant", "Caregiver"],
+  Other: ["Other"],
+};
+
+const CERTIFICATIONS_BY_WORKER_TYPE: Record<string, string[]> = {
+  "Electrician (DSB authorized)": ["DSB authorization", "Trade certificate"],
+  "Electrical installer": ["DSB authorization", "Trade certificate"],
+  "Industrial electrician": ["DSB authorization", "Trade certificate"],
+  "Welder (ISO certified)": ["ISO 9606", "NDT Level II"],
+  "Pipe welder": ["ISO 9606", "NDT Level II"],
+  "Plate welder": ["ISO 9606", "NDT Level II"],
+  "Construction worker": ["Trade certificate"],
+  Carpenter: ["Trade certificate"],
+  "Concrete worker": ["Trade certificate"],
+  "Logistics / Driver": ["Driver's license CE"],
+  "Warehouse operator": ["Forklift certificate"],
+  "Forklift operator": ["Forklift certificate"],
+  "Industrial worker": ["ATEX/EX"],
+  "CNC operator": ["Trade certificate"],
+  "Assembly worker": ["None required"],
+  "Cleaning staff": ["None required"],
+  "Industrial cleaner": ["None required"],
+  "Facility cleaner": ["None required"],
+  "HoReCa / Kitchen": ["Food safety certificate"],
+  Chef: ["Food safety certificate"],
+  "Kitchen assistant": ["Food safety certificate"],
+  "Healthcare worker": ["Healthcare authorization"],
+  "Nurse assistant": ["Healthcare authorization"],
+  Caregiver: ["Healthcare authorization"],
+  Other: ["None required"],
+};
+
 const initialForm: RequestForm = {
+  industry: "",
+  workerType: "",
   trade: "",
   tradeOther: "",
   experience: "",
@@ -53,9 +112,12 @@ const initialForm: RequestForm = {
   salaryPeriod: "per hour",
   overtime: "",
   accommodation: "",
-  transport: "",
+  accommodationSupport: "",
+  internationalTransport: "",
+  localTransport: "",
   urgency: "",
   city: "",
+  locations: [],
   region: "",
   startDate: "",
   notes: "",
@@ -180,13 +242,39 @@ export default function RequestTokenPage() {
     return CITY_OPTIONS.filter((city) => city.toLowerCase().includes(query));
   }, [citySearch]);
 
+  const workerTypeOptions = useMemo(() => {
+    if (!form.industry) return [];
+    return WORKER_TYPES_BY_INDUSTRY[form.industry] || [];
+  }, [form.industry]);
+
+  const certificationOptions = useMemo(() => {
+    if (!form.workerType) return [];
+    return CERTIFICATIONS_BY_WORKER_TYPE[form.workerType] || ["None required"];
+  }, [form.workerType]);
+
+  const toggleLocation = (value: string) => {
+    setForm((prev) => {
+      const exists = prev.locations.includes(value);
+      const nextLocations = exists ? prev.locations.filter((item) => item !== value) : [...prev.locations, value];
+      return {
+        ...prev,
+        locations: nextLocations,
+        city: nextLocations.join(", "),
+      };
+    });
+  };
+
   const isStepValid = (value: number) => {
-    if (value === 0) return !!(form.trade && (form.trade !== "Other" || form.tradeOther.trim()));
-    if (value === 1) return !!(form.experience && form.candidates >= 1);
+    if (value === 0) return !!form.industry;
+    if (value === 1) return !!(form.workerType && form.experience && form.candidates >= 1);
     if (value === 2) return !!form.urgency;
-    if (value === 3) return !!form.contractType;
-    if (value === 4) return !!form.city;
-    if (value === 5) return true;
+    if (value === 3) return !!(form.contractType && form.salary.trim());
+    if (value === 4) return form.locations.length > 0;
+    if (value === 5) {
+      if (!form.accommodation) return false;
+      if (form.accommodation === "Not provided" && !form.accommodationSupport) return false;
+      return !!(form.internationalTransport && form.localTransport);
+    }
     return false;
   };
 
@@ -211,9 +299,9 @@ export default function RequestTokenPage() {
       phone: tokenData?.phone ?? "",
       job_summary: tokenData?.job_summary ?? "",
       hiringType: "Recruitment of personnel for companies",
-      category: form.trade,
-      position: form.trade === "Other" ? form.tradeOther : form.trade,
-      positionOther: form.trade === "Other" ? form.tradeOther : "",
+      category: form.industry,
+      position: form.workerType === "Other" ? form.tradeOther : form.workerType,
+      positionOther: form.workerType === "Other" ? form.tradeOther : "",
       numberOfPositions: String(form.candidates),
       qualification: form.experience || "No minimum",
       certifications: form.certification.join(", "),
@@ -240,17 +328,20 @@ export default function RequestTokenPage() {
       hasRotation: "",
       rotationWeeksOn: "",
       rotationWeeksOff: "",
-      internationalTravel: "",
-      localTravel: form.transport,
+      internationalTravel: form.internationalTransport,
+      localTravel: form.localTransport,
       localTravelOther: "",
-      accommodation: form.accommodation,
+      accommodation:
+        form.accommodation === "Not provided" && form.accommodationSupport
+          ? `${form.accommodation} (${form.accommodationSupport})`
+          : form.accommodation,
       accommodationCost: "",
-      accommodationOther: "",
+      accommodationOther: form.accommodationSupport,
       equipment: "",
       equipmentOther: "",
       tools: "",
       toolsOther: "",
-      city: form.city,
+      city: form.locations.join(", "),
       startDate: form.startDate,
       startDateOther: "",
       howDidYouHear: "",
@@ -340,29 +431,50 @@ export default function RequestTokenPage() {
             {step === 0 && (
               <div className="space-y-4">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 1 of 6</p>
-                <h2 className="text-2xl font-extrabold">What type of worker do you need?</h2>
-                <p className="text-sm text-white/50">Select the primary trade or profession.</p>
+                <h2 className="text-2xl font-extrabold">Which industry is this request for?</h2>
+                <p className="text-sm text-white/50">Select the primary industry first.</p>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  {[
-                    "Electrician (DSB authorized)",
-                    "Welder (ISO certified)",
-                    "Construction worker",
-                    "Logistics / Driver",
-                    "Industrial worker",
-                    "Cleaning staff",
-                    "HoReCa / Kitchen",
-                    "Healthcare worker",
-                    "Other",
-                  ].map((option) => (
+                  {INDUSTRY_OPTIONS.map((option) => (
                     <OptionCard
                       key={option}
                       label={option}
-                      selected={form.trade === option}
-                      onClick={() => setForm((prev) => ({ ...prev, trade: option }))}
+                      selected={form.industry === option}
+                      onClick={() =>
+                        setForm((prev) => ({
+                          ...prev,
+                          industry: option,
+                          workerType: "",
+                          tradeOther: "",
+                          certification: [],
+                        }))
+                      }
                     />
                   ))}
                 </div>
-                {form.trade === "Other" && (
+              </div>
+            )}
+
+            {step === 1 && (
+              <div className="space-y-5">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 2 of 6</p>
+                <h2 className="text-2xl font-extrabold">Worker type and requirements</h2>
+                <p className="text-sm text-white/50">Worker roles and certifications depend on selected industry.</p>
+
+                <div>
+                  <p className={labelClass}>Worker type</p>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {workerTypeOptions.map((option) => (
+                      <OptionCard
+                        key={option}
+                        label={option}
+                        selected={form.workerType === option}
+                        onClick={() => setForm((prev) => ({ ...prev, workerType: option, certification: [] }))}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {form.workerType === "Other" && (
                   <input
                     className={inputClass}
                     placeholder="Describe the role"
@@ -370,14 +482,6 @@ export default function RequestTokenPage() {
                     onChange={(e) => setForm((prev) => ({ ...prev, tradeOther: e.target.value }))}
                   />
                 )}
-              </div>
-            )}
-
-            {step === 1 && (
-              <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 2 of 6</p>
-                <h2 className="text-2xl font-extrabold">Candidate requirements</h2>
-                <p className="text-sm text-white/50">Tell us what you need from the candidate.</p>
 
                 <div>
                   <p className={labelClass}>Minimum experience</p>
@@ -396,15 +500,7 @@ export default function RequestTokenPage() {
                 <div>
                   <p className={labelClass}>Certifications required</p>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {[
-                      "None required",
-                      "Trade certificate",
-                      "DSB authorization",
-                      "ISO 9606",
-                      "ATEX/EX",
-                      "NDT Level II",
-                      "Driver's license CE",
-                    ].map((option) => (
+                    {certificationOptions.map((option) => (
                       <OptionCard
                         key={option}
                         label={option}
@@ -540,7 +636,7 @@ export default function RequestTokenPage() {
               <div className="space-y-4">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 5 of 6</p>
                 <h2 className="text-2xl font-extrabold">Where will they work?</h2>
-                <p className="text-sm text-white/50">Select the work location in Norway.</p>
+                <p className="text-sm text-white/50">Select one or multiple work locations in Norway.</p>
 
                 <div className="relative">
                   <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
@@ -557,31 +653,17 @@ export default function RequestTokenPage() {
                     <button
                       key={city}
                       type="button"
-                      onClick={() => setForm((prev) => ({ ...prev, city }))}
+                      onClick={() => toggleLocation(city)}
                       className={`w-full rounded-lg border px-4 py-2 text-left text-sm transition ${
-                        form.city === city
+                        form.locations.includes(city)
                           ? "border-[#C9A84C] bg-[rgba(201,168,76,0.06)] text-[#C9A84C]"
                           : "border-white/10 bg-white/[0.03] text-white hover:border-white/20"
                       }`}
                     >
-                      {city}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="border-t border-white/10 pt-3">
-                  {["The whole of Norway", "Multiple locations"].map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => setForm((prev) => ({ ...prev, city: option }))}
-                      className={`mt-2 w-full rounded-lg border px-4 py-2 text-left text-sm transition ${
-                        form.city === option
-                          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.06)] text-[#C9A84C]"
-                          : "border-white/10 bg-white/[0.03] text-white hover:border-white/20"
-                      }`}
-                    >
-                      {option}
+                      <span className="flex items-center justify-between">
+                        <span>{city}</span>
+                        {form.locations.includes(city) ? <span>✓</span> : null}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -597,26 +679,64 @@ export default function RequestTokenPage() {
                 <div>
                   <p className={labelClass}>Accommodation</p>
                   <div className="flex flex-wrap gap-2">
-                    {["Provided", "Not provided", "Negotiable"].map((option) => (
+                    {["Provided", "Not provided"].map((option) => (
                       <OptionCard
                         key={option}
                         label={option}
                         selected={form.accommodation === option}
-                        onClick={() => setForm((prev) => ({ ...prev, accommodation: option }))}
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            accommodation: option,
+                            accommodationSupport: option === "Not provided" ? prev.accommodationSupport : "",
+                          }))
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {form.accommodation === "Not provided" && (
+                  <div>
+                    <p className={labelClass}>If not provided, can you help candidate find accommodation?</p>
+                    <div className="flex flex-wrap gap-2">
+                      {["Can help candidate find accommodation", "Cannot help candidate find accommodation"].map(
+                        (option) => (
+                          <OptionCard
+                            key={option}
+                            label={option}
+                            selected={form.accommodationSupport === option}
+                            onClick={() => setForm((prev) => ({ ...prev, accommodationSupport: option }))}
+                          />
+                        ),
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <p className={labelClass}>International transport</p>
+                  <div className="flex flex-wrap gap-2">
+                    {["Covered", "Not covered", "Negotiable"].map((option) => (
+                      <OptionCard
+                        key={option}
+                        label={option}
+                        selected={form.internationalTransport === option}
+                        onClick={() => setForm((prev) => ({ ...prev, internationalTransport: option }))}
                       />
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <p className={labelClass}>Transport</p>
+                  <p className={labelClass}>Local transport</p>
                   <div className="flex flex-wrap gap-2">
                     {["Covered", "Not covered", "Negotiable"].map((option) => (
                       <OptionCard
                         key={option}
                         label={option}
-                        selected={form.transport === option}
-                        onClick={() => setForm((prev) => ({ ...prev, transport: option }))}
+                        selected={form.localTransport === option}
+                        onClick={() => setForm((prev) => ({ ...prev, localTransport: option }))}
                       />
                     ))}
                   </div>
