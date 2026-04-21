@@ -35,7 +35,7 @@ function RoleCard({
 
   return (
     <motion.div
-      className="flex h-full min-h-0 min-w-0 flex-1"
+      className="flex h-full min-h-0 min-w-0 w-full flex-1"
       initial={skipMotion ? false : { opacity: 0, y: 32 }}
       animate={{ opacity: 1, y: 0 }}
       transition={
@@ -58,10 +58,10 @@ function RoleCard({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onClick={onSelect}
-        className="role-card group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col break-words md:min-h-[420px]"
+        className="role-card group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col break-words"
         style={{
-          borderRadius: 20,
-          padding: "20px 16px",
+          borderRadius: 16,
+          padding: "28px 24px",
           border: active ? "1px solid rgba(201,168,76,0.4)" : "1px solid rgba(201,168,76,0.2)",
           background: active ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.04)",
           boxShadow: active
@@ -79,56 +79,40 @@ function RoleCard({
           />
         ) : null}
 
-        <div className="relative z-[1] flex h-full min-w-0 flex-col">
-          <div className="flex flex-col">
-              <div
-                className="inline-flex items-center justify-center rounded-[14px] p-3 min-[640px]:p-4"
-                style={{
-                  background: "rgba(201,168,76,0.12)",
-                  border: "1px solid rgba(201,168,76,0.25)",
-                }}
-              >
-                <span className="flex h-9 w-9 items-center justify-center text-[#C9A84C] min-[640px]:h-10 min-[640px]:w-10 [&>svg]:h-9 [&>svg]:w-9 min-[640px]:[&>svg]:h-10 min-[640px]:[&>svg]:w-10">
-                {icon}
-              </span>
-            </div>
-            <h2
-              className="text-white"
-              style={{
-                fontSize: "clamp(1rem, 4vw, 1.5rem)",
-                fontWeight: 800,
-                marginBottom: 8,
-                marginTop: 16,
-              }}
-            >
-              {title}
-            </h2>
-            <p className="line-clamp-2 flex-grow text-[12px] leading-[1.5] text-white/[0.55] min-[640px]:line-clamp-none min-[640px]:text-sm min-[640px]:leading-[1.65]">
-              {subtitle}
-            </p>
-          </div>
-
-          <span
-            className="mt-auto flex w-full items-center justify-center gap-2 font-bold"
-            style={{
-              background: active ? "#b8953f" : GOLD,
-              color: "#0D1B2A",
-              fontWeight: 700,
-              borderRadius: 12,
-              padding: "10px 12px",
-              width: "100%",
-              fontSize: 13,
-              letterSpacing: "0.01em",
-              transform: active ? "scale(1.02)" : "scale(1)",
-              transition: ctaTransition,
-              pointerEvents: "none",
-            }}
-            aria-hidden
-          >
-            {ctaLabel}
-            <ArrowRight className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
-          </span>
-        </div>
+        <span className="relative z-[1] flex h-10 w-10 items-center justify-center text-[#C9A84C] [&>svg]:h-10 [&>svg]:w-10">
+          {icon}
+        </span>
+        <h2
+          className="mt-4 text-white"
+          style={{
+            fontSize: "clamp(1rem, 4vw, 1.5rem)",
+            fontWeight: 800,
+            marginBottom: 8,
+          }}
+        >
+          {title}
+        </h2>
+        <p className="flex-grow text-[14px] leading-[1.6] text-white/[0.55]">{subtitle}</p>
+        <span
+          className="mt-auto flex w-full items-center justify-center gap-2 whitespace-nowrap font-bold"
+          style={{
+            background: active ? "#b8953f" : GOLD,
+            color: "#0D1B2A",
+            fontWeight: 700,
+            borderRadius: 12,
+            padding: "10px 12px",
+            width: "100%",
+            fontSize: 13,
+            letterSpacing: "0.01em",
+            transform: active ? "scale(1.02)" : "scale(1)",
+            transition: ctaTransition,
+            pointerEvents: "none",
+          }}
+          aria-hidden
+        >
+          {ctaLabel}
+          <ArrowRight className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
+        </span>
       </div>
     </motion.div>
   );
@@ -230,7 +214,7 @@ export default function RoleSelector() {
                     "radial-gradient(ellipse at 50% 60%, rgba(201,168,76,0.04) 0%, transparent 70%)",
                 }}
               >
-                <div className="flex min-h-0 w-full flex-row items-stretch gap-3 min-[640px]:gap-5">
+                <div className="flex min-h-0 w-full flex-col gap-3 md:flex-row md:items-stretch md:gap-5">
                   <RoleCard
                     icon={<Briefcase stroke={GOLD} strokeWidth={1.5} />}
                     title="I am an employer"
@@ -277,7 +261,12 @@ export default function RoleSelector() {
             }
             @media (min-width: 640px) {
               .role-card {
-                padding: 36px 32px !important;
+                min-height: 420px;
+              }
+            }
+            @media (max-width: 767px) {
+              .role-card {
+                min-height: 45vh;
               }
             }
           `}</style>
