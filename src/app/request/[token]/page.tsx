@@ -517,6 +517,8 @@ export default function RequestTokenPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIndustry, setSelectedIndustry] = useState<string>("");
   const [roleQuery, setRoleQuery] = useState("");
+  const [selectedCheckRole, setSelectedCheckRole] = useState("");
+  const [isDesktopCheckFlow, setIsDesktopCheckFlow] = useState(false);
   const [searchMessageIndex, setSearchMessageIndex] = useState(0);
   const [checkCount, setCheckCount] = useState(0);
   const [showInstantPanel, setShowInstantPanel] = useState(false);
@@ -533,6 +535,15 @@ export default function RequestTokenPage() {
 
   useEffect(() => {
     setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(min-width: 768px)");
+    const apply = () => setIsDesktopCheckFlow(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
   }, []);
 
   useEffect(() => {
@@ -1038,6 +1049,7 @@ export default function RequestTokenPage() {
                           onClick={() => {
                             setSelectedIndustry(industry);
                             setRoleQuery("");
+                            setSelectedCheckRole("");
                           }}
                           className={`cursor-pointer rounded-[12px] border bg-[rgba(255,255,255,0.04)] px-5 py-4 text-left transition-all duration-200 ease-in-out hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.07)] ${
                             selectedIndustry === industry
@@ -1059,6 +1071,7 @@ export default function RequestTokenPage() {
                           onClick={() => {
                             setSelectedIndustry("");
                             setRoleQuery("");
+                            setSelectedCheckRole("");
                           }}
                           className="inline-flex items-center justify-center text-[#C9A84C]"
                           aria-label="Clear selected industry"
@@ -1066,28 +1079,58 @@ export default function RequestTokenPage() {
                           <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                      <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.4)]">Type to search or select from the list</p>
-                      <input
-                        value={roleQuery}
-                        onChange={(event) => setRoleQuery(event.target.value)}
-                        placeholder="Search for a role..."
-                        className="mt-4 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
-                      />
-                      {filteredRoles.length > 0 ? (
-                        <div className="mt-4 flex flex-wrap gap-[10px]">
-                          {filteredRoles.map((role) => (
-                            <button
-                              key={role}
-                              type="button"
-                              onClick={() => void runCandidateSearch(role)}
-                              className="inline-flex cursor-pointer rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[10px] text-[14px] text-[rgba(255,255,255,0.8)] transition-all duration-200 ease-in-out hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.08)] hover:text-white"
-                            >
-                              {role}
-                            </button>
-                          ))}
+                      {isDesktopCheckFlow && selectedCheckRole ? (
+                        <div className="mt-4">
+                          <div className="flex justify-center">
+                            <span className="inline-flex rounded-[20px] border border-[#C9A84C] bg-[rgba(201,168,76,0.12)] px-[18px] py-[10px] text-[14px] text-[#C9A84C]">
+                              {selectedCheckRole}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => void runCandidateSearch(selectedCheckRole)}
+                            className="mx-auto mt-4 block rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A]"
+                          >
+                            Check availability
+                          </button>
                         </div>
                       ) : (
-                        <p className="mt-4 text-sm text-[rgba(255,255,255,0.4)]">No roles found. Try a different search.</p>
+                        <>
+                          <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.4)]">Type to search or select from the list</p>
+                          <input
+                            value={roleQuery}
+                            onChange={(event) => setRoleQuery(event.target.value)}
+                            placeholder="Search for a role..."
+                            className="mt-4 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                          />
+                          {filteredRoles.length > 0 ? (
+                            <div className="mt-4 flex flex-wrap gap-[10px]">
+                              {filteredRoles.map((role) => (
+                                <button
+                                  key={role}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isDesktopCheckFlow) {
+                                      setSelectedCheckRole(role);
+                                      setRoleQuery(role);
+                                      return;
+                                    }
+                                    void runCandidateSearch(role);
+                                  }}
+                                  className={`inline-flex cursor-pointer rounded-[20px] border px-[18px] py-[10px] text-[14px] transition-all duration-200 ease-in-out ${
+                                    selectedCheckRole === role
+                                      ? "border-[#C9A84C] bg-[rgba(201,168,76,0.12)] text-[#C9A84C]"
+                                      : "border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] text-[rgba(255,255,255,0.8)] hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.08)] hover:text-white"
+                                  }`}
+                                >
+                                  {role}
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="mt-4 text-sm text-[rgba(255,255,255,0.4)]">No roles found. Try a different search.</p>
+                          )}
+                        </>
                       )}
                     </>
                   )}
