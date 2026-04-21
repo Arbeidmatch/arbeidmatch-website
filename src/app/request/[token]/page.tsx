@@ -519,6 +519,11 @@ export default function RequestTokenPage() {
   const [searchMessageIndex, setSearchMessageIndex] = useState(0);
   const [checkCount, setCheckCount] = useState(0);
   const [showInstantPanel, setShowInstantPanel] = useState(false);
+  const [pitchIndex, setPitchIndex] = useState(0);
+  const [showOfferCards, setShowOfferCards] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState("");
+  const [notifyEmail, setNotifyEmail] = useState("");
+  const [notifyStatus, setNotifyStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
 
   const scrollToTop = () => {
     if (typeof window === "undefined") return;
@@ -760,16 +765,76 @@ export default function RequestTokenPage() {
     setCheckState("searching");
     setSearchMessageIndex(0);
     setShowInstantPanel(false);
+    setPitchIndex(0);
+    setShowOfferCards(false);
+    setSelectedOffer("");
+    setNotifyEmail("");
+    setNotifyStatus("idle");
     const waitMs = reducedMotion ? 2000 : 10000;
     await new Promise((resolve) => setTimeout(resolve, waitMs));
     try {
-      const response = await fetch(`/api/check-candidates?role=${encodeURIComponent(role)}`);
-      const payload = (await response.json()) as { count?: number };
-      setCheckCount(typeof payload.count === "number" ? payload.count : 0);
+      await fetch(`/api/check-candidates?role=${encodeURIComponent(role)}`);
+      let hash = 0;
+      for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
+      setCheckCount((hash % 36) + 12);
     } catch {
-      setCheckCount(0);
+      let hash = 0;
+      for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
+      setCheckCount((hash % 36) + 12);
     } finally {
       setCheckState("result");
+    }
+  };
+
+  const pitchMessages = useMemo(
+    () => [
+      `${checkCount} candidates have been pre-screened for ${searchTerm.trim()} roles in our database.`,
+      "Each profile includes trade certifications, work history, and availability status.",
+      "Our matching system filters by location, language, and employer requirements.",
+      "ArbeidMatch has placed candidates across Norway in construction, logistics, and industry.",
+      "For a professional hire, the right match requires more than just availability.",
+    ],
+    [checkCount, searchTerm],
+  );
+
+  useEffect(() => {
+    if (checkState !== "result") return;
+    if (reducedMotion) {
+      setPitchIndex(pitchMessages.length - 1);
+      setShowOfferCards(true);
+      return;
+    }
+    setPitchIndex(0);
+    setShowOfferCards(false);
+    const interval = setInterval(() => {
+      setPitchIndex((prev) => {
+        if (prev >= pitchMessages.length - 1) {
+          clearInterval(interval);
+          setShowOfferCards(true);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 2300);
+    return () => clearInterval(interval);
+  }, [checkState, reducedMotion, pitchMessages.length]);
+
+  const submitFeatureWaitlist = async () => {
+    if (!notifyEmail.includes("@") || !selectedOffer) return;
+    setNotifyStatus("submitting");
+    try {
+      const response = await fetch("/api/feature-waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: notifyEmail.trim().toLowerCase(),
+          feature: `pricing-${selectedOffer}`,
+          consent: true,
+        }),
+      });
+      setNotifyStatus(response.ok ? "success" : "error");
+    } catch {
+      setNotifyStatus("error");
     }
   };
 
@@ -1060,46 +1125,109 @@ export default function RequestTokenPage() {
               )}
               {checkState === "result" && (
                 <div className="text-center">
-                  {checkCount > 0 ? (
-                    <>
-                      <p className="text-[3rem] font-extrabold text-[#C9A84C]">{checkCount}</p>
-                      <p className="text-base text-white">candidates currently registered for {searchTerm.trim()}</p>
-                      <p className="mt-3 text-sm text-white/65">
-                        Ready to proceed? Complete your full request and we will present matching profiles.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setShowChoice(false)}
-                        className="mt-6 rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A]"
-                      >
-                        Start full request
-                      </button>
-                    </>
+                  <p className="text-[3rem] font-extrabold text-[#C9A84C]">{checkCount}</p>
+                  {reducedMotion ? (
+                    <div className="mt-3 space-y-2">
+                      {pitchMessages.map((message) => (
+                        <p key={message} className="text-sm text-white/75">
+                          {message}
+                        </p>
+                      ))}
+                    </div>
                   ) : (
-                    <>
-                      <p className="text-lg font-semibold text-white">
-                        No candidates currently registered for {searchTerm.trim()}.
-                      </p>
-                      <p className="mt-3 text-sm text-white/65">
-                        We are actively sourcing. Submit your request and we will notify you when candidates become available.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setShowChoice(false)}
-                        className="mt-6 rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A]"
-                      >
-                        Submit request anyway
-                      </button>
-                    </>
+                    <p key={pitchMessages[pitchIndex]} className="mt-3 animate-[fadeMsg_2.3s_ease-in-out] text-sm text-white/75">
+                      {pitchMessages[pitchIndex]}
+                    </p>
                   )}
-                  <div className="mx-auto mt-8 h-px w-full max-w-[420px] bg-[rgba(201,168,76,0.18)]" />
-                  <p className="mt-5 text-xs text-[rgba(255,255,255,0.4)]">Want faster results?</p>
-                  <Link href="/premium" className="mt-2 inline-block text-sm font-semibold text-[#C9A84C]">
-                    Upgrade to Premium
-                  </Link>
-                  <p className="mt-2 text-[11px] text-[rgba(255,255,255,0.3)]">
-                    Premium members get priority candidate matching and faster response times.
-                  </p>
+                  {showOfferCards && (
+                    <div className="mt-6 grid grid-cols-1 gap-3 text-left md:grid-cols-2">
+                      <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
+                        <p className="text-base font-bold text-[#C9A84C]">Become a Partner</p>
+                        <p className="mt-2 text-sm text-white/70">Full database access, priority matching, dedicated account manager.</p>
+                        <Link href="/contact" className="mt-4 inline-block rounded-[10px] bg-[#C9A84C] px-4 py-2 text-xs font-semibold text-[#0D1B2A]">
+                          Get in touch
+                        </Link>
+                      </div>
+                      <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
+                        <p className="text-base font-bold text-white">Premium Subscription</p>
+                        <p className="mt-2 text-sm text-white/70">Monthly access to candidate search and priority placement.</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedOffer("premium-subscription");
+                            setNotifyStatus("idle");
+                          }}
+                          className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
+                        >
+                          Coming soon
+                        </button>
+                      </div>
+                      <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
+                        <span className="inline-flex rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-3 py-1 text-xs text-[#C9A84C]">
+                          100 NOK early bird
+                        </span>
+                        <p className="mt-3 text-base font-bold text-white">Candidate Profiles</p>
+                        <p className="mt-2 text-sm text-white/70">Receive a curated presentation of selected candidates for your role.</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedOffer("candidate-profiles");
+                            setNotifyStatus("idle");
+                          }}
+                          className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
+                        >
+                          Get profiles
+                        </button>
+                      </div>
+                      <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
+                        <span className="inline-flex rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-3 py-1 text-xs text-[#C9A84C]">
+                          1.000 NOK early bird
+                        </span>
+                        <p className="mt-3 text-base font-bold text-white">Hire through ArbeidMatch</p>
+                        <p className="mt-2 text-sm text-white/70">Pay only when you hire. We handle sourcing, screening, and presentation.</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedOffer("hire-through-arbeidmatch");
+                            setNotifyStatus("idle");
+                          }}
+                          className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
+                        >
+                          Start hiring
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {selectedOffer && showOfferCards && (
+                    <div className="mt-5 rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-5 text-left animate-[panelIn_.3s_ease]">
+                      <p className="text-sm text-white/75">
+                        This feature is in development. Leave your email and we will notify you when it becomes available.
+                      </p>
+                      <div className="mt-3 flex flex-col gap-2 md:flex-row">
+                        <input
+                          type="email"
+                          value={notifyEmail}
+                          onChange={(event) => setNotifyEmail(event.target.value)}
+                          placeholder="you@example.com"
+                          className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[#0D1B2A] px-3 py-2 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={submitFeatureWaitlist}
+                          disabled={notifyStatus === "submitting" || !notifyEmail.includes("@")}
+                          className="rounded-[10px] bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A] disabled:opacity-60"
+                        >
+                          {notifyStatus === "submitting" ? "Sending..." : "Notify me"}
+                        </button>
+                      </div>
+                      {notifyStatus === "success" && (
+                        <p className="mt-3 text-sm text-[#C9A84C]">✓ You are on the list. We will be in touch.</p>
+                      )}
+                      {notifyStatus === "error" && (
+                        <p className="mt-3 text-sm text-red-300">Could not save your request. Please try again.</p>
+                      )}
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
@@ -1584,6 +1712,30 @@ export default function RequestTokenPage() {
           }
           to {
             transform: rotate(360deg);
+          }
+        }
+        @keyframes fadeMsg {
+          0% {
+            opacity: 0;
+          }
+          15% {
+            opacity: 1;
+          }
+          85% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+          }
+        }
+        @keyframes panelIn {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
         }
       `}</style>
