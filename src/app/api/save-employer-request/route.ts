@@ -1,13 +1,8 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
-import {
-  getRateLimitResult,
-  hasHoneypotValue,
-  noStoreJson,
-  parseJsonBodyWithSchema,
-} from "@/lib/apiSecurity";
+import { getRateLimitResult, hasHoneypotValue, noStoreJson } from "@/lib/apiSecurity";
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 
@@ -113,8 +108,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const parsed = await parseJsonBodyWithSchema(request, requestSchema, { maxBytes: 64 * 1024 });
-    if (!parsed.ok) return parsed.response;
+    const contentType = request.headers.get("content-type") || "";
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return noStoreJson(
+        { success: false, error: "Content-Type must be application/json." },
+        { status: 415 },
+      );
+    }
+
+    const maxBytes = 64 * 1024;
+    const contentLengthHeader = request.headers.get("content-length");
+    if (contentLengthHeader) {
+      const contentLength = Number(contentLengthHeader);
+      if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+        return noStoreJson({ success: false, error: "Payload too large." }, { status: 413 });
+      }
+    }
+
+    const rawText = await request.text();
+    if (Buffer.byteLength(rawText, "utf8") > maxBytes) {
+      return noStoreJson({ success: false, error: "Payload too large." }, { status: 413 });
+    }
+
+    let parsedJson: unknown;
+    try {
+      parsedJson = JSON.parse(rawText);
+    } catch {
+      return noStoreJson({ success: false, error: "Invalid JSON payload." }, { status: 400 });
+    }
+
+    const parsed = requestSchema.safeParse(parsedJson);
+    if (!parsed.success) {
+      await notifyError({
+        route: "/api/save-employer-request",
+        error: new Error(JSON.stringify(parsed.error.flatten())),
+      });
+      return NextResponse.json(
+        { error: "Invalid request payload", details: parsed.error.flatten() },
+        { status: 400 },
+      );
+    }
 
     if (hasHoneypotValue(parsed.data)) {
       return noStoreJson({ success: true });
