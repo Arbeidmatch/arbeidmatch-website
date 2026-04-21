@@ -133,7 +133,7 @@ export async function parseJsonBodyWithSchema<T extends ZodType>(
     return {
       ok: false,
       response: noStoreJson(
-        { success: false, error: "Invalid request payload." },
+        { error: "Invalid request payload", details: parsed.error.flatten() },
         { status: 400 },
       ),
     };
