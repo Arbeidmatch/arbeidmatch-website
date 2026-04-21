@@ -360,94 +360,156 @@ export default function RequestPage() {
       </div>
 
       {showNonPartnerOptions && (
-        <div className="mx-auto mt-6 w-full max-w-[980px]">
-          <button
-            type="button"
-            onClick={backToRoleSearch}
-            className="mb-4 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
-          >
-            <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
-            Back
-          </button>
-          <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
+        <div className="mx-auto flex min-h-[70vh] w-full flex-col items-center justify-center">
+          <div className="w-full max-w-[980px]">
+            <button
+              type="button"
+              onClick={backToRoleSearch}
+              className="mb-6 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
+            >
+              <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
+              Back
+            </button>
+          </div>
+          <div className="non-partner-cards mx-auto w-full max-w-[900px]">
             <div
-              className="flex h-full flex-col justify-between rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[28px_24px] transition-all duration-[250ms] hover:border-[rgba(201,168,76,0.4)] hover:bg-[rgba(201,168,76,0.06)]"
+              className="non-partner-card flex h-full flex-col justify-between rounded-[20px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[32px_28px]"
               style={{ animation: "optionIn .3s ease forwards", animationDelay: "0ms", opacity: 0, transform: "translateY(20px)" }}
             >
               <div>
-                <Users className="h-5 w-5 text-[#C9A84C]" />
-                <p className="mt-3 text-base font-bold text-[#ffffff]">Become a Partner</p>
-                <p className="mt-2 text-sm text-[rgba(255,255,255,0.55)]">Priority access and full support from our team.</p>
+                <Users className="h-7 w-7 text-[#C9A84C]" />
+                <p className="mt-3 text-[18px] font-bold text-[#ffffff]">Become a Partner</p>
+                <p className="mb-4 mt-1 text-[12px] text-[rgba(255,255,255,0.45)]">For companies hiring regularly</p>
+                <div className="space-y-2 text-sm text-[rgba(255,255,255,0.72)]">
+                  <p className="flex items-start gap-2">
+                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
+                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
+                    </svg>
+                    Full access to candidate profiles
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
+                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
+                    </svg>
+                    Dedicated account support
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
+                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
+                    </svg>
+                    Priority candidate matching
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
+                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
+                    </svg>
+                    No per-search fees
+                  </p>
+                </div>
               </div>
-              <Link href="/contact" className="mt-6 inline-flex rounded-[10px] bg-[#C9A84C] px-4 py-2 text-xs font-semibold text-[#0D1B2A]">
+              <Link
+                href="mailto:post@arbeidmatch.no"
+                className="mt-6 inline-flex w-full items-center justify-center rounded-[10px] bg-[#C9A84C] px-4 py-3 text-sm font-bold text-[#0D1B2A]"
+              >
                 Contact us
               </Link>
             </div>
             <div
-              className="flex h-full flex-col justify-between rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[28px_24px] transition-all duration-[250ms] hover:border-[rgba(201,168,76,0.4)] hover:bg-[rgba(201,168,76,0.06)]"
+              className="non-partner-card flex h-full flex-col justify-between rounded-[20px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[32px_28px]"
               style={{ animation: "optionIn .3s ease forwards", animationDelay: "80ms", opacity: 0, transform: "translateY(20px)" }}
             >
               <div>
-                <Star className="h-5 w-5 text-[#C9A84C]" />
-                <p className="mt-3 text-base font-bold text-[#ffffff]">Premium Subscription</p>
-                <p className="mt-2 text-sm text-[rgba(255,255,255,0.55)]">Monthly access to candidate profile tools.</p>
+                <Star className="h-7 w-7 text-[#C9A84C]" />
+                <p className="mt-3 text-[18px] font-bold text-[#ffffff]">Premium Subscription</p>
+                <p className="mb-4 mt-1 text-[12px] text-[rgba(255,255,255,0.45)]">For growing companies</p>
+                <div className="space-y-2 text-sm text-[rgba(255,255,255,0.72)]">
+                  <p className="flex items-start gap-2">
+                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
+                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
+                    </svg>
+                    Monthly access to all profiles
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
+                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
+                    </svg>
+                    Advanced role filtering
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
+                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
+                    </svg>
+                    Candidate availability alerts
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
+                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
+                    </svg>
+                    Cancel anytime
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  setSelectedOffer("premium-subscription");
-                  setNotifyStatus("idle");
-                }}
-                className="mt-6 rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
+                disabled
+                className="mt-6 w-full cursor-default rounded-[10px] border border-[rgba(201,168,76,0.3)] bg-transparent px-4 py-3 text-sm font-semibold text-[rgba(255,255,255,0.6)]"
               >
                 Coming soon
               </button>
             </div>
             <div
-              className="flex h-full flex-col justify-between rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[28px_24px] transition-all duration-[250ms] hover:border-[rgba(201,168,76,0.4)] hover:bg-[rgba(201,168,76,0.06)]"
+              className="non-partner-card flex h-full flex-col justify-between rounded-[20px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[32px_28px]"
               style={{ animation: "optionIn .3s ease forwards", animationDelay: "160ms", opacity: 0, transform: "translateY(20px)" }}
             >
               <div>
-                <Clock3 className="h-5 w-5 text-[#C9A84C]" />
-                <p className="mt-3 text-base font-bold text-[#ffffff]">Pay per use</p>
-                <p className="mt-2 text-sm text-[rgba(255,255,255,0.55)]">
-                  Flexible access with no subscription. Pricing details will be announced soon.
-                </p>
+                <Clock3 className="h-7 w-7 text-[#C9A84C]" />
+                <p className="mt-3 text-[18px] font-bold text-[#ffffff]">Pay per use</p>
+                <p className="mb-4 mt-1 text-[12px] text-[rgba(255,255,255,0.45)]">For occasional hiring needs</p>
+                <div className="space-y-2 text-sm text-[rgba(255,255,255,0.72)]">
+                  <p className="flex items-start gap-2">
+                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
+                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
+                    </svg>
+                    Access profiles when you need them
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
+                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
+                    </svg>
+                    No subscription required
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
+                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
+                    </svg>
+                    Simple and flexible
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
+                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
+                    </svg>
+                    Pricing announced soon
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 disabled
-                className="mt-6 rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.12)] px-4 py-2 text-xs font-semibold text-[rgba(201,168,76,0.7)]"
+                className="mt-6 w-full cursor-default rounded-[10px] border border-[rgba(201,168,76,0.3)] bg-transparent px-4 py-3 text-sm font-semibold text-[rgba(255,255,255,0.6)]"
               >
                 Coming soon
               </button>
             </div>
           </div>
-
-          {selectedOffer && (
-            <div className="mx-auto mt-4 max-w-[520px]">
-              <input
-                type="email"
-                value={notifyEmail}
-                onChange={(event) => setNotifyEmail(event.target.value)}
-                placeholder="you@company.com"
-                className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[#0D1B2A] px-3 py-2 text-sm text-white placeholder:text-white/45 focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={submitFeatureWaitlist}
-                disabled={notifyStatus === "submitting" || !notifyEmail.includes("@")}
-                className="mt-2 w-full rounded-[10px] bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A] disabled:opacity-60"
-              >
-                {notifyStatus === "submitting" ? "Sending..." : "Notify me"}
-              </button>
-            </div>
-          )}
-
-          <p className="mt-6 text-center text-sm text-white/65">Already a partner but not recognized?</p>
+          <div className="mt-4 flex items-center justify-center gap-2 md:hidden">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#C9A84C]" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[rgba(201,168,76,0.35)]" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[rgba(201,168,76,0.35)]" />
+          </div>
+          <p className="mt-7 text-center text-[13px] text-[rgba(255,255,255,0.4)]">Already a partner but not recognized?</p>
           <Link
             href="/contact?subject=Partner%20verification%20issue"
-            className="mx-auto mt-2 inline-flex rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
+            className="mx-auto mt-2 inline-flex text-[13px] text-[rgba(201,168,76,0.7)] underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
           >
             Contact Support
           </Link>
@@ -474,6 +536,34 @@ export default function RequestPage() {
         .result-cta-secondary:hover {
           border-color: rgba(201, 168, 76, 0.5);
           color: #ffffff;
+        }
+        .non-partner-cards {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 20px;
+          margin: 0 auto;
+        }
+        .non-partner-card {
+          transition: border-color 220ms ease, background 220ms ease;
+        }
+        @media (max-width: 767px) {
+          .non-partner-cards {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 16px;
+            padding: 0 24px;
+            max-width: 100%;
+            scrollbar-width: none;
+          }
+          .non-partner-cards::-webkit-scrollbar {
+            display: none;
+          }
+          .non-partner-card {
+            width: 80vw;
+            flex-shrink: 0;
+            scroll-snap-align: center;
+          }
         }
         .spinner-arc {
           width: 20px;
@@ -525,6 +615,11 @@ export default function RequestPage() {
           }
           .partner-form-enter {
             animation: partnerFormIn 300ms ease both;
+          }
+          .non-partner-card:hover {
+            border-color: rgba(201, 168, 76, 0.45);
+            background: rgba(201, 168, 76, 0.05);
+            transform: translateY(-4px);
           }
         }
       `}</style>
