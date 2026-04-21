@@ -61,7 +61,7 @@ function RoleCard({
         className="role-card group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col break-words"
         style={{
           borderRadius: 20,
-          padding: "28px 24px",
+          padding: "20px 18px",
           border: active ? "1px solid rgba(201,168,76,0.4)" : "1px solid rgba(201,168,76,0.2)",
           background: active
             ? "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)"
@@ -86,41 +86,45 @@ function RoleCard({
           style={{ background: "rgba(201,168,76,0.4)" }}
           aria-hidden
         />
-        <span className="relative z-[1] mb-5 flex h-12 w-12 items-center justify-center text-[#C9A84C] [filter:drop-shadow(0_0_8px_rgba(201,168,76,0.3))] [&>svg]:h-12 [&>svg]:w-12">
+        <span className="relative z-[1] mb-3 flex h-8 w-8 items-center justify-center text-[#C9A84C] [filter:drop-shadow(0_0_8px_rgba(201,168,76,0.3))] [&>svg]:h-8 [&>svg]:w-8 md:mb-5 md:h-12 md:w-12 md:[&>svg]:h-12 md:[&>svg]:w-12">
           {icon}
         </span>
         <h2
           className="text-white"
           style={{
-            fontSize: "1.25rem",
+            fontSize: "1.1rem",
             fontWeight: 800,
-            marginBottom: 10,
+            marginBottom: 6,
             letterSpacing: "-0.02em",
           }}
         >
           {title}
         </h2>
-        <p className="mb-6 flex-grow text-[14px] leading-[1.7] text-white/[0.6]">{subtitle}</p>
-        <span
-          className="mt-auto flex w-full items-center justify-center gap-2 whitespace-nowrap font-bold"
+        <p className="mb-3 flex-grow overflow-hidden text-[12px] leading-[1.5] text-white/[0.6] role-subtitle md:mb-0 md:text-[14px] md:leading-[1.7]">
+          {subtitle}
+        </p>
+        <div className="mt-auto pt-0 md:pt-5">
+          <span
+            className="flex w-full items-center justify-center gap-2 whitespace-nowrap font-bold"
           style={{
             background: active ? "#b8953f" : GOLD,
             color: "#0D1B2A",
             fontWeight: 700,
             borderRadius: 12,
-            padding: "14px 24px",
+            padding: "11px 16px",
             width: "100%",
-            fontSize: 14,
+            fontSize: 13,
             letterSpacing: "0.01em",
             transform: active ? "translateY(-1px)" : "translateY(0)",
             transition: ctaTransition,
             pointerEvents: "none",
           }}
           aria-hidden
-        >
-          {ctaLabel}
-          <ArrowRight className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
-        </span>
+          >
+            {ctaLabel}
+            <ArrowRight className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
+          </span>
+        </div>
       </div>
     </motion.div>
   );
@@ -197,32 +201,32 @@ export default function RoleSelector() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="flex h-full max-h-[100dvh] w-full min-h-0 flex-col items-center justify-center overflow-hidden p-2 min-[640px]:max-h-[100vh] min-[640px]:p-4"
+            className="flex h-[100dvh] w-full min-h-0 flex-col items-center justify-center overflow-hidden p-4 min-[640px]:h-full min-[640px]:max-h-[100vh] min-[640px]:p-4"
           >
-            <div className="mx-auto box-border flex w-full max-w-[860px] min-h-0 max-h-[calc(100dvh-32px)] flex-col gap-4 overflow-y-auto overflow-x-hidden px-4 py-4 min-[640px]:gap-5 min-[640px]:px-6 min-[640px]:py-6">
+            <div className="mx-auto box-border flex h-full w-full max-w-[860px] min-h-0 flex-col overflow-hidden px-0 py-0 min-[640px]:max-h-[calc(100dvh-32px)] min-[640px]:gap-5 min-[640px]:overflow-y-auto min-[640px]:overflow-x-hidden min-[640px]:px-6 min-[640px]:py-6">
               <motion.div
-                className="shrink-0 text-center max-[639px]:mb-4 min-[640px]:mb-6"
+                className="shrink-0 text-center mb-3 min-[640px]:mb-6"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.2, ease: "easeOut" }}
               >
-                <p className="text-[18px] font-bold min-[640px]:text-[22px]">
+                <p className="text-[1.3rem] font-bold min-[640px]:text-[22px]">
                   <span style={{ color: GOLD }}>Arbeid</span>
                   <span className="text-white">Match</span>
                 </p>
-                <p className="mt-2 text-[13px] text-white/[0.6] min-[640px]:text-[15px]">
+                <p className="mt-1 text-[13px] text-white/[0.6] min-[640px]:mt-2 min-[640px]:text-[15px]">
                   Who are you? Choose your path.
                 </p>
               </motion.div>
 
               <div
-                className="mx-auto w-full max-w-[800px] rounded-[24px] px-2 py-6 min-[640px]:px-4 min-[640px]:py-8"
+                className="mx-auto flex min-h-0 w-full max-w-[800px] flex-1 overflow-hidden rounded-[24px] px-0 py-0 min-[640px]:px-4 min-[640px]:py-8"
                 style={{
                   background:
                     "radial-gradient(ellipse at 50% 50%, rgba(201,168,76,0.05) 0%, transparent 70%)",
                 }}
               >
-                <div className="flex min-h-0 w-full flex-col gap-3 md:flex-row md:items-stretch md:gap-5">
+                <div className="flex min-h-0 w-full flex-1 flex-col gap-[10px] overflow-hidden md:grid md:grid-cols-2 md:items-stretch md:gap-5">
                   <RoleCard
                     icon={<Briefcase stroke={GOLD} strokeWidth={1.5} />}
                     title="I am an employer"
@@ -246,7 +250,7 @@ export default function RoleSelector() {
 
               <button
                 type="button"
-                className="mt-8 shrink-0 cursor-pointer pt-1 text-center text-[13px] text-white/[0.3] transition-colors hover:text-white/60"
+                className="mt-2 shrink-0 cursor-pointer pt-1 text-center text-[12px] text-white/[0.3] transition-colors hover:text-white/60 md:mt-8 md:text-[13px]"
                 onClick={() => closeWithOptionalRedirect("skipped", null)}
               >
                 Continue without selecting
@@ -275,12 +279,36 @@ export default function RoleSelector() {
             }
             @media (max-width: 767px) {
               .role-card {
-                min-height: auto;
+                min-height: 0;
+                flex: 1 1 0%;
               }
             }
             @media (min-width: 768px) {
               .role-card h2 {
                 font-size: 1.5rem !important;
+                min-height: 3.5rem;
+              }
+              .role-subtitle {
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+              }
+              .role-card > span:first-of-type {
+                height: 48px;
+                align-items: center;
+              }
+              .role-card > div:last-of-type > span {
+                padding: 14px 24px !important;
+                width: 100%;
+              }
+            }
+            @media (max-width: 767px) {
+              .role-subtitle {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
               }
             }
           `}</style>
