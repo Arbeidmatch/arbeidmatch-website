@@ -1146,6 +1146,7 @@ export default function RequestTokenPage() {
               {checkState === "result" && (
                 <div className="text-center">
                   <p className="text-[3rem] font-extrabold text-[#C9A84C]">{checkCount}</p>
+                  <p className="mt-1 text-sm text-white/65">candidates registered for {searchTerm.trim()}</p>
                   {reducedMotion ? (
                     <div className="mt-3 space-y-2">
                       {pitchMessages.map((message) => (
@@ -1159,71 +1160,86 @@ export default function RequestTokenPage() {
                       {pitchMessages[pitchIndex]}
                     </p>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCheckState("idle");
+                      setSearchTerm("");
+                      setCheckCount(0);
+                    }}
+                    className="mx-auto mt-4 block cursor-pointer text-center text-[13px] text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.7)]"
+                  >
+                    Search another role
+                  </button>
                   {showOfferCards && (
-                    <div className="mt-6 grid grid-cols-1 gap-3 text-left md:grid-cols-2">
-                      <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
-                        <p className="text-base font-bold text-[#C9A84C]">Become a Partner</p>
-                        <p className="mt-2 text-sm text-white/70">Full database access, priority matching, dedicated account manager.</p>
-                        <Link
-                          href="/contact"
-                          onClick={() => trackEvent("pricing_partner_click")}
-                          className="mt-4 inline-block rounded-[10px] bg-[#C9A84C] px-4 py-2 text-xs font-semibold text-[#0D1B2A]"
-                        >
-                          Get in touch
-                        </Link>
+                    <>
+                      <div className="mx-auto mt-6 h-px w-[200px] bg-[rgba(201,168,76,0.1)]" />
+                      <p className="mt-6 text-center text-[1.1rem] font-bold text-white">Ready to move forward?</p>
+                      <div className="mt-6 grid grid-cols-1 gap-3 text-left md:grid-cols-2">
+                        <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
+                          <p className="text-base font-bold text-[#C9A84C]">Become a Partner</p>
+                          <p className="mt-2 text-sm text-white/70">Full database access, priority matching, dedicated account manager.</p>
+                          <Link
+                            href="/contact"
+                            onClick={() => trackEvent("pricing_partner_click")}
+                            className="mt-4 inline-block rounded-[10px] bg-[#C9A84C] px-4 py-2 text-xs font-semibold text-[#0D1B2A]"
+                          >
+                            Get in touch
+                          </Link>
+                        </div>
+                        <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
+                          <p className="text-base font-bold text-white">Premium Subscription</p>
+                          <p className="mt-2 text-sm text-white/70">Monthly access to candidate search and priority placement.</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              trackEvent("pricing_premium_click");
+                              setSelectedOffer("premium-subscription");
+                              setNotifyStatus("idle");
+                            }}
+                            className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
+                          >
+                            Coming soon
+                          </button>
+                        </div>
+                        <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
+                          <span className="inline-flex rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-3 py-1 text-xs text-[#C9A84C]">
+                            100 NOK early bird
+                          </span>
+                          <p className="mt-3 text-base font-bold text-white">Candidate Profiles</p>
+                          <p className="mt-2 text-sm text-white/70">Receive a curated presentation of selected candidates for your role.</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              trackEvent("pricing_profiles_click", { price: "100 NOK" });
+                              setSelectedOffer("candidate-profiles");
+                              setNotifyStatus("idle");
+                            }}
+                            className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
+                          >
+                            Get profiles
+                          </button>
+                        </div>
+                        <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
+                          <span className="inline-flex rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-3 py-1 text-xs text-[#C9A84C]">
+                            1.000 NOK early bird
+                          </span>
+                          <p className="mt-3 text-base font-bold text-white">Hire through ArbeidMatch</p>
+                          <p className="mt-2 text-sm text-white/70">Pay only when you hire. We handle sourcing, screening, and presentation.</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              trackEvent("pricing_hire_click", { price: "1000 NOK" });
+                              setSelectedOffer("hire-through-arbeidmatch");
+                              setNotifyStatus("idle");
+                            }}
+                            className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
+                          >
+                            Start hiring
+                          </button>
+                        </div>
                       </div>
-                      <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
-                        <p className="text-base font-bold text-white">Premium Subscription</p>
-                        <p className="mt-2 text-sm text-white/70">Monthly access to candidate search and priority placement.</p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            trackEvent("pricing_premium_click");
-                            setSelectedOffer("premium-subscription");
-                            setNotifyStatus("idle");
-                          }}
-                          className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
-                        >
-                          Coming soon
-                        </button>
-                      </div>
-                      <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
-                        <span className="inline-flex rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-3 py-1 text-xs text-[#C9A84C]">
-                          100 NOK early bird
-                        </span>
-                        <p className="mt-3 text-base font-bold text-white">Candidate Profiles</p>
-                        <p className="mt-2 text-sm text-white/70">Receive a curated presentation of selected candidates for your role.</p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            trackEvent("pricing_profiles_click", { price: "100 NOK" });
-                            setSelectedOffer("candidate-profiles");
-                            setNotifyStatus("idle");
-                          }}
-                          className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
-                        >
-                          Get profiles
-                        </button>
-                      </div>
-                      <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
-                        <span className="inline-flex rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-3 py-1 text-xs text-[#C9A84C]">
-                          1.000 NOK early bird
-                        </span>
-                        <p className="mt-3 text-base font-bold text-white">Hire through ArbeidMatch</p>
-                        <p className="mt-2 text-sm text-white/70">Pay only when you hire. We handle sourcing, screening, and presentation.</p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            trackEvent("pricing_hire_click", { price: "1000 NOK" });
-                            setSelectedOffer("hire-through-arbeidmatch");
-                            setNotifyStatus("idle");
-                          }}
-                          className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
-                        >
-                          Start hiring
-                        </button>
-                      </div>
-                    </div>
+                    </>
                   )}
                   {selectedOffer && showOfferCards && (
                     <div className="mt-5 rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-5 text-left animate-[panelIn_.3s_ease]">
@@ -1255,17 +1271,6 @@ export default function RequestTokenPage() {
                       )}
                     </div>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCheckState("idle");
-                      setSearchTerm("");
-                      setCheckCount(0);
-                    }}
-                    className="mt-6 text-sm text-white/70 underline underline-offset-4"
-                  >
-                    Search another role
-                  </button>
                 </div>
               )}
             </div>
