@@ -3,6 +3,16 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import {
+  Bolt,
+  Factory,
+  HardHat,
+  HeartPulse,
+  LucideIcon,
+  Sparkles,
+  Truck,
+  X,
+} from "lucide-react";
 
 type TokenData = {
   company: string;
@@ -339,6 +349,79 @@ const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.08em]
 const inputClass =
   "w-full rounded-[12px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[rgba(201,168,76,0.5)]";
 
+const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: LucideIcon; roles: string[] }> = [
+  {
+    industry: "Construction & Civil",
+    icon: HardHat,
+    roles: [
+      "Site Manager",
+      "Carpenter",
+      "Bricklayer",
+      "Concrete Worker",
+      "Scaffolder",
+      "Painter",
+      "Roofer",
+      "Demolition Worker",
+      "Civil Engineer",
+      "Surveyor",
+    ],
+  },
+  {
+    industry: "Electrical & Technical",
+    icon: Bolt,
+    roles: [
+      "Electrician",
+      "DSB Authorized Electrician",
+      "Plumber",
+      "HVAC Technician",
+      "Automation Engineer",
+      "Instrumentation Tech",
+      "Cable Layer",
+      "Welder",
+      "Pipefitter",
+    ],
+  },
+  {
+    industry: "Logistics & Transport",
+    icon: Truck,
+    roles: [
+      "Truck Driver",
+      "Forklift Operator",
+      "Warehouse Worker",
+      "Logistics Coordinator",
+      "Bus Driver",
+      "Heavy Vehicle Driver",
+      "Crane Operator",
+      "Port Worker",
+    ],
+  },
+  {
+    industry: "Industry & Production",
+    icon: Factory,
+    roles: [
+      "Machine Operator",
+      "CNC Operator",
+      "Steel Worker",
+      "Insulation Worker",
+      "Quality Inspector",
+      "Maintenance Technician",
+      "Production Worker",
+      "Offshore Worker",
+      "Mechanic",
+    ],
+  },
+  {
+    industry: "Cleaning & Facility",
+    icon: Sparkles,
+    roles: ["Cleaner", "Facility Manager", "Window Cleaner", "Industrial Cleaner", "Waste Handler"],
+  },
+  {
+    industry: "Hospitality & Healthcare",
+    icon: HeartPulse,
+    roles: ["Kitchen Staff", "Chef", "Hotel Staff", "Healthcare Assistant", "Care Worker", "Cook"],
+  },
+];
+
 function OptionCard({
   label,
   sublabel,
@@ -414,26 +497,6 @@ export default function RequestTokenPage() {
     "Finalizing results...",
     "Almost ready...",
   ] as const;
-  const CHECK_ROLES = [
-    "Electrician",
-    "Welder",
-    "Carpenter",
-    "Plumber",
-    "Construction Worker",
-    "Painter",
-    "Scaffolder",
-    "Crane Operator",
-    "Machine Operator",
-    "Logistics Driver",
-    "Forklift Operator",
-    "Cleaner",
-    "Kitchen Staff",
-    "Healthcare Assistant",
-    "Offshore Worker",
-    "Mechanic",
-    "Steel Worker",
-    "Insulation Worker",
-  ] as const;
 
   const [step, setStep] = useState(0);
   const [animating, setAnimating] = useState(false);
@@ -451,6 +514,8 @@ export default function RequestTokenPage() {
   const [choiceMode, setChoiceMode] = useState<"cards" | "check">("cards");
   const [checkState, setCheckState] = useState<"idle" | "searching" | "result">("idle");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedIndustry, setSelectedIndustry] = useState<string>("");
+  const [roleQuery, setRoleQuery] = useState("");
   const [searchMessageIndex, setSearchMessageIndex] = useState(0);
   const [checkCount, setCheckCount] = useState(0);
 
@@ -706,6 +771,19 @@ export default function RequestTokenPage() {
     }
   };
 
+  const filteredRoles = useMemo(() => {
+    if (!selectedIndustry) return [];
+    const group = CHECK_ROLE_GROUPS.find((item) => item.industry === selectedIndustry);
+    if (!group) return [];
+    const query = roleQuery.trim().toLowerCase();
+    if (!query) return group.roles.slice(0, 8);
+    const startsWith = group.roles.filter((role) => role.toLowerCase().startsWith(query));
+    const contains = group.roles.filter(
+      (role) => role.toLowerCase().includes(query) && !role.toLowerCase().startsWith(query),
+    );
+    return [...startsWith, ...contains].slice(0, 8);
+  }, [roleQuery, selectedIndustry]);
+
   if (submitStatus === "success") {
     const successCompanyName = tokenData?.company?.trim() || "your company";
     const successAnimationStyle = reducedMotion
@@ -866,27 +944,69 @@ export default function RequestTokenPage() {
             <div className="rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-9">
               {checkState === "idle" && (
                 <>
-                  <h2 className="text-2xl font-bold">Which role are you looking for?</h2>
-                  <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.4)]">Select a role to check availability</p>
-                  <div className="mt-5 flex flex-wrap gap-[10px]">
-                    {CHECK_ROLES.map((role) => {
-                      const selected = searchTerm === role;
-                      return (
+                  <h2 className="text-2xl font-bold">What role are you looking for?</h2>
+                  {!selectedIndustry ? (
+                    <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+                      {CHECK_ROLE_GROUPS.map(({ industry, icon: Icon }) => (
                         <button
-                          key={role}
+                          key={industry}
                           type="button"
-                          onClick={() => void runCandidateSearch(role)}
-                          className={`inline-flex cursor-pointer rounded-[20px] border px-[18px] py-[10px] text-[14px] transition-all duration-200 ease-in-out ${
-                            selected
-                              ? "border-[#C9A84C] bg-[rgba(201,168,76,0.12)] font-semibold text-white"
-                              : "border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] text-[rgba(255,255,255,0.8)] hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.08)] hover:text-white"
+                          onClick={() => {
+                            setSelectedIndustry(industry);
+                            setRoleQuery("");
+                          }}
+                          className={`cursor-pointer rounded-[12px] border bg-[rgba(255,255,255,0.04)] px-5 py-4 text-left transition-all duration-200 ease-in-out hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.07)] ${
+                            selectedIndustry === industry
+                              ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)]"
+                              : "border-[rgba(201,168,76,0.2)]"
                           }`}
                         >
-                          {role}
+                          <Icon className="mb-2 h-5 w-5 text-[#C9A84C]" />
+                          <p className="text-sm font-semibold text-white">{industry}</p>
                         </button>
-                      );
-                    })}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#C9A84C] bg-[rgba(201,168,76,0.08)] px-3 py-1 text-xs font-semibold text-[#C9A84C]">
+                        <span>{selectedIndustry}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedIndustry("");
+                            setRoleQuery("");
+                          }}
+                          className="inline-flex items-center justify-center text-[#C9A84C]"
+                          aria-label="Clear selected industry"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.4)]">Type to search or select from the list</p>
+                      <input
+                        value={roleQuery}
+                        onChange={(event) => setRoleQuery(event.target.value)}
+                        placeholder="Search for a role..."
+                        className="mt-4 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                      />
+                      {filteredRoles.length > 0 ? (
+                        <div className="mt-4 flex flex-wrap gap-[10px]">
+                          {filteredRoles.map((role) => (
+                            <button
+                              key={role}
+                              type="button"
+                              onClick={() => void runCandidateSearch(role)}
+                              className="inline-flex cursor-pointer rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[10px] text-[14px] text-[rgba(255,255,255,0.8)] transition-all duration-200 ease-in-out hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.08)] hover:text-white"
+                            >
+                              {role}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-4 text-sm text-[rgba(255,255,255,0.4)]">No roles found. Try a different search.</p>
+                      )}
+                    </>
+                  )}
                 </>
               )}
               {checkState === "searching" && (
