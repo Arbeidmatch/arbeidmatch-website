@@ -659,14 +659,14 @@ export default function RequestTokenPage() {
       if (form.workerType === "Other" && !form.tradeOther.trim()) return false;
       return !!(form.workerType && form.experience && form.candidates >= 1);
     }
-    if (value === 2) return !!form.urgency;
-    if (value === 3) return !!(form.contractType && form.salary.trim());
-    if (value === 4) return form.locations.length > 0;
-    if (value === 5) {
+    if (value === 2) return !!(form.contractType && form.salary.trim());
+    if (value === 3) return form.locations.length > 0;
+    if (value === 4) {
       if (!form.accommodation) return false;
       if (form.accommodation === "Not provided" && !form.accommodationSupport) return false;
       return !!(form.internationalTransport && form.localTransport);
     }
+    if (value === 5) return !!form.urgency;
     return false;
   };
 
@@ -1572,33 +1572,8 @@ export default function RequestTokenPage() {
             )}
 
             {step === 2 && (
-              <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 3 of 6</p>
-                <h2 className="text-2xl font-extrabold">How urgent is this request?</h2>
-                <p className="text-sm text-white/50">This helps us prioritize your request.</p>
-                <div className="grid grid-cols-1 gap-3">
-                  {[
-                    { title: "Urgent", sub: "I need candidates within 1 to 2 weeks", icon: "⚡" },
-                    { title: "Normal", sub: "I need candidates within 3 to 4 weeks", icon: "🕒" },
-                    { title: "Planning ahead", sub: "I need candidates in 1 to 3 months", icon: "📅" },
-                    { title: "Not sure yet", sub: "I need help estimating the timeline", icon: "?" },
-                  ].map((item) => (
-                    <OptionCard
-                      key={item.title}
-                      label={item.title}
-                      sublabel={item.sub}
-                      selected={form.urgency === item.title}
-                      onClick={() => setForm((prev) => ({ ...prev, urgency: item.title }))}
-                      icon={<span className="text-lg text-[#C9A84C]">{item.icon}</span>}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {step === 3 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 4 of 6</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 3 of 6</p>
                 <h2 className="text-2xl font-extrabold">What are you offering?</h2>
                 <p className="text-sm text-white/50">Help candidates understand the conditions.</p>
 
@@ -1667,9 +1642,9 @@ export default function RequestTokenPage() {
               </div>
             )}
 
-            {step === 4 && (
+            {step === 3 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 5 of 6</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 4 of 6</p>
                 <h2 className="text-2xl font-extrabold">Where will they work?</h2>
                 <p className="text-sm text-white/50">Select one or multiple work locations in Norway.</p>
 
@@ -1705,9 +1680,9 @@ export default function RequestTokenPage() {
               </div>
             )}
 
-            {step === 5 && (
+            {step === 4 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 6 of 6</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 5 of 6</p>
                 <h2 className="text-2xl font-extrabold">Final details</h2>
                 <p className="text-sm text-white/50">Almost done. A few last questions.</p>
 
@@ -1800,6 +1775,31 @@ export default function RequestTokenPage() {
                     value={form.notes}
                     onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
                   />
+                </div>
+              </div>
+            )}
+
+            {step === 5 && (
+              <div className="space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 6 of 6</p>
+                <h2 className="text-2xl font-extrabold">What is your hiring priority?</h2>
+                <p className="text-sm text-white/50">Final step: we use this to prioritize delivery and response time.</p>
+                <div className="grid grid-cols-1 gap-3">
+                  {[
+                    { title: "Urgent", sub: "I need candidates within 1 to 2 weeks", icon: "⚡" },
+                    { title: "Normal", sub: "I need candidates within 3 to 4 weeks", icon: "🕒" },
+                    { title: "Planning ahead", sub: "I need candidates in 1 to 3 months", icon: "📅" },
+                    { title: "Not sure yet", sub: "I need help estimating the timeline", icon: "?" },
+                  ].map((item) => (
+                    <OptionCard
+                      key={item.title}
+                      label={item.title}
+                      sublabel={item.sub}
+                      selected={form.urgency === item.title}
+                      onClick={() => setForm((prev) => ({ ...prev, urgency: item.title }))}
+                      icon={<span className="text-lg text-[#C9A84C]">{item.icon}</span>}
+                    />
+                  ))}
                 </div>
               </div>
             )}
