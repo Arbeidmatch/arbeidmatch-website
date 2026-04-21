@@ -690,7 +690,7 @@ export default function RequestTokenPage() {
       full_name: tokenData?.full_name ?? "Contact person",
       phonePrefix: "",
       phoneNumber: "",
-      phone: tokenData?.phone ?? "",
+      phone: tokenData?.phone && tokenData.phone.trim().length >= 6 ? tokenData.phone.trim() : "N/A N/A",
       job_summary: tokenData?.job_summary ?? "",
       hiringType: "Recruitment of personnel for companies",
       category: form.industry,
@@ -724,12 +724,11 @@ export default function RequestTokenPage() {
             ? false
             : null,
       maxOvertimeHours: "",
-      hasRotation: null,
+      hasRotation: "",
       rotationWeeksOn: "",
       rotationWeeksOff: "",
-      internationalTravel:
-        form.internationalTransport === "Yes" ? true : form.internationalTransport === "No" ? false : null,
-      localTravel: form.localTransport === "Covered" ? true : form.localTransport === "Not covered" ? false : null,
+      internationalTravel: form.internationalTransport ?? "",
+      localTravel: form.localTransport ?? "",
       localTravelOther: "",
       accommodation: form.accommodation ?? "",
       accommodationCost: "",
@@ -748,7 +747,7 @@ export default function RequestTokenPage() {
       referralCompanyName: "",
       referralOrgNumber: "",
       referralEmail: "",
-      subscribe: true,
+      subscribe: "Yes - send me candidate updates",
       notes: form.notes,
     };
 
