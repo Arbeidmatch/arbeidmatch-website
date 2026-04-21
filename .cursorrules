@@ -126,6 +126,12 @@ PROMPT CURSOR:
 5. npm run build (max 3 incercari)
 6. git add . && git commit && git push
 7. Raport in romana
+8. Dupa fiecare task completat, actualizeaza automat sectiunea ## TASKURI PENDING din acest fisier:
+   - Muta taskul din lista in care era intr-o sectiune ## COMPLETAT cu data
+   - Daca taskul a creat functionalitate noua, adaug-o la ## CONTEXT PROIECT
+   - Daca au aparut taskuri noi in timpul implementarii, adaug-le la prioritatea corecta
+   
+   Aceasta actualizare este parte din Definition of Done. Build-ul nu se considera complet fara ea.
 
 ## COMMIT FORMAT
 
