@@ -71,6 +71,7 @@ export default function RequestPage() {
   const [resultAction, setResultAction] = useState<"none" | "partner" | "non_partner">("none");
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [partnerIssueStatus, setPartnerIssueStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [isLoadingExit, setIsLoadingExit] = useState(false);
   const hasMountedHistoryGuard = useRef(false);
 
   const filteredRoles = useMemo(() => {
@@ -127,6 +128,7 @@ export default function RequestPage() {
     event.preventDefault();
     if (!accessEmail.includes("@")) return;
     setAccessStatus("submitting");
+    setIsLoadingExit(false);
     try {
       const response = await fetch("/api/verify-partner", {
         method: "POST",
@@ -134,15 +136,23 @@ export default function RequestPage() {
         body: JSON.stringify({ email: accessEmail.trim().toLowerCase() }),
       });
       const data = (await response.json()) as VerifyPartnerResponse;
+      let nextStatus: "partner" | "non_partner";
       if (response.ok && data.verified) {
         setCompanyName(data.company_name || "your company");
-        setAccessStatus("partner");
-        return;
+        nextStatus = "partner";
+      } else {
+        setPartnerIssueStatus("idle");
+        nextStatus = "non_partner";
       }
-      setPartnerIssueStatus("idle");
-      setAccessStatus("non_partner");
+      setIsLoadingExit(true);
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      setAccessStatus(nextStatus);
+      setIsLoadingExit(false);
     } catch {
+      setIsLoadingExit(true);
+      await new Promise((resolve) => setTimeout(resolve, 200));
       setAccessStatus("error");
+      setIsLoadingExit(false);
     }
   };
 
@@ -511,7 +521,26 @@ export default function RequestPage() {
               Enter your company email to verify your partner status. We will send you a secure access link valid for 14 days.
             </p>
 
-            {accessStatus !== "partner" ? (
+            {accessStatus === "submitting" ? (
+              <div className={`loading-screen mt-6 text-center ${isLoadingExit ? "loading-exit" : ""}`}>
+                <svg viewBox="0 0 64 64" className="loading-shield mx-auto h-12 w-12 text-[#C9A84C]" fill="none" aria-hidden>
+                  <path d="M32 8 14 15v13c0 13 8.2 24.8 18 28 9.8-3.2 18-15 18-28V15L32 8Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path className="shield-check" d="m24 33 6 6 11-12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <p className="mt-5 text-[17px] font-bold text-white">
+                  Verifying your access
+                  <span className="dot dot-1">.</span>
+                  <span className="dot dot-2">.</span>
+                  <span className="dot dot-3">.</span>
+                </p>
+                <p className="mt-2 text-[13px] leading-[1.6] text-[rgba(255,255,255,0.45)]">
+                  We are checking your company credentials against our partner registry.
+                </p>
+                <div className="mt-6 h-[2px] w-full rounded-full bg-[rgba(255,255,255,0.08)]">
+                  <div className="loading-progress-fill h-full rounded-full bg-[#C9A84C]" />
+                </div>
+              </div>
+            ) : accessStatus !== "partner" ? (
               <>
                 <div className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(201,168,76,0.06)] px-4 py-3">
                   <p className="flex items-start gap-2 text-[12px] leading-[1.5] text-[rgba(255,255,255,0.5)]">
@@ -532,16 +561,10 @@ export default function RequestPage() {
                   />
                   <button
                     type="submit"
-                    disabled={accessStatus === "submitting" || !accessEmail.includes("@")}
+                    disabled={!accessEmail.includes("@")}
                     className="result-cta-primary mt-3 w-full rounded-[12px] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
                   >
-                    {accessStatus === "submitting" ? (
-                      <svg className="spinner-arc mx-auto" viewBox="0 0 24 24" aria-hidden>
-                        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="46 18" />
-                      </svg>
-                    ) : (
-                      "Send access link"
-                    )}
+                    Send access link
                   </button>
                 </form>
               </>
@@ -696,6 +719,65 @@ export default function RequestPage() {
             transform: translate(-50%, -50%) scale(1);
           }
         }
+        @keyframes drawCheck {
+          from {
+            stroke-dashoffset: 100;
+          }
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+        @keyframes shieldPulse {
+          0% {
+            opacity: 0.6;
+          }
+          50% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0.6;
+          }
+        }
+        @keyframes dotPulse {
+          0%,
+          100% {
+            opacity: 0.2;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+        @keyframes progressFill {
+          from {
+            width: 0%;
+          }
+          to {
+            width: 90%;
+          }
+        }
+        .shield-check {
+          stroke-dasharray: 100;
+          stroke-dashoffset: 0;
+        }
+        .dot {
+          display: inline-block;
+          opacity: 0.2;
+        }
+        .dot-1,
+        .dot-2,
+        .dot-3 {
+          margin-left: 1px;
+        }
+        .loading-progress-fill {
+          width: 60%;
+        }
+        .loading-screen {
+          opacity: 1;
+          transition: opacity 200ms ease;
+        }
+        .loading-screen.loading-exit {
+          opacity: 0;
+        }
         @media (prefers-reduced-motion: no-preference) {
           .result-zero {
             animation: resultIn 400ms ease-out both;
@@ -719,6 +801,26 @@ export default function RequestPage() {
           }
           .partner-modal {
             animation: partnerModalIn 280ms ease both;
+          }
+          .loading-shield {
+            animation: shieldPulse 2s ease-in-out infinite;
+          }
+          .shield-check {
+            stroke-dashoffset: 100;
+            animation: drawCheck 1.2s ease-in-out infinite alternate;
+          }
+          .dot-1 {
+            animation: dotPulse 1s ease-in-out 0s infinite;
+          }
+          .dot-2 {
+            animation: dotPulse 1s ease-in-out 0.3s infinite;
+          }
+          .dot-3 {
+            animation: dotPulse 1s ease-in-out 0.6s infinite;
+          }
+          .loading-progress-fill {
+            width: 0%;
+            animation: progressFill 3s ease-out forwards;
           }
         }
       `}</style>
