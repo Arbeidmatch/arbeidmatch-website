@@ -564,13 +564,23 @@ export default function RequestPage() {
                       <button
                         type="button"
                         onClick={() => {
+                          setResultAction("none");
+                          router.push("/become-a-partner");
+                        }}
+                        className="result-cta-primary w-full rounded-[10px] px-4 py-[13px] text-[15px] font-bold text-[#0D1B2A]"
+                      >
+                        Request partner access
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
                           setNotFoundExiting(true);
                           setTimeout(() => {
                             setPartnerModalView("feedback_form");
                             setNotFoundExiting(false);
                           }, 150);
                         }}
-                        className="w-full rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[13px] text-[15px] text-[rgba(255,255,255,0.6)]"
+                        className="mt-[10px] w-full rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[13px] text-[15px] text-[rgba(255,255,255,0.6)]"
                       >
                         Report a problem
                       </button>
