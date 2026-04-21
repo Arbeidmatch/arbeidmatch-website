@@ -371,57 +371,6 @@ export default function RequestPage() {
               Search another role
             </button>
 
-            {resultAction === "partner" && (
-              <div className="partner-form-enter mx-auto mt-8 max-w-[520px] text-left">
-                <h2 className="text-center text-[1.1rem] font-bold text-white">Want to find the right candidate?</h2>
-                {accessStatus !== "partner" ? (
-                  <>
-                    <form onSubmit={verifyAccess} className="mt-4">
-                      <input
-                        type="email"
-                        value={accessEmail}
-                        onChange={(event) => setAccessEmail(event.target.value)}
-                        placeholder="Enter your company email"
-                        className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
-                      />
-                      <button
-                        type="submit"
-                        disabled={accessStatus === "submitting" || !accessEmail.includes("@")}
-                        className="result-cta-primary mt-3 w-full rounded-[12px] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
-                      >
-                        {accessStatus === "submitting" ? (
-                          <svg className="spinner-arc mx-auto" viewBox="0 0 24 24" aria-hidden>
-                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="46 18" />
-                          </svg>
-                        ) : (
-                          "Send access link"
-                        )}
-                      </button>
-                    </form>
-                    <p className="mt-3 text-center text-xs text-white/45">
-                      We will verify your partner status and send a secure link to your email.
-                    </p>
-                  </>
-                ) : (
-                  <div className="partner-success-enter mt-5 text-center">
-                    <svg className="mx-auto h-6 w-6 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
-                      <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <p className="mt-3 text-[18px] font-bold text-white">Check your inbox</p>
-                    <p className="mt-2 text-sm text-[rgba(255,255,255,0.6)]">
-                      A secure access link has been sent to {accessEmail}. The link is valid for 14 days.
-                    </p>
-                    <p className="mt-3 text-xs text-[rgba(255,255,255,0.35)]">
-                      Can&apos;t find the email? Check your spam folder or contact post@arbeidmatch.no
-                    </p>
-                  </div>
-                )}
-
-                {accessStatus === "error" && (
-                  <p className="mt-4 text-sm text-red-300">Could not check access right now. Please try again.</p>
-                )}
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -618,6 +567,84 @@ export default function RequestPage() {
         </>
       )}
 
+      {resultAction === "partner" && (
+        <>
+          <div className="partner-modal-backdrop fixed inset-0 z-[9998] bg-[rgba(0,0,0,0.75)] backdrop-blur-[6px]" />
+          <div className="partner-modal fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10">
+            <button
+              type="button"
+              onClick={() => setResultAction("none")}
+              aria-label="Close partner verification modal"
+              className="absolute right-4 top-4 text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.8)]"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
+                <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </button>
+
+            <svg className="mx-auto h-7 w-7 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M12 3 5 6v5c0 4.6 3.1 8.9 7 10 3.9-1.1 7-5.4 7-10V6l-7-3Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M9.5 12.2 11.2 14l3.3-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <p className="mt-[14px] text-center text-[20px] font-bold text-white">Partner Verification</p>
+            <p className="mt-2 text-center text-sm leading-[1.6] text-[rgba(255,255,255,0.55)]">
+              Enter your company email to verify your partner status. We will send you a secure access link valid for 14 days.
+            </p>
+
+            {accessStatus !== "partner" ? (
+              <>
+                <div className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(201,168,76,0.06)] px-4 py-3">
+                  <p className="flex items-start gap-2 text-[12px] leading-[1.5] text-[rgba(255,255,255,0.5)]">
+                    <svg viewBox="0 0 24 24" className="mt-[2px] h-[14px] w-[14px] shrink-0 text-[#C9A84C]" fill="none" aria-hidden>
+                      <path d="M12 16v-4m0-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                    </svg>
+                    Use your official company email (e.g. yourname@company.no). Personal email addresses will not be recognized.
+                  </p>
+                </div>
+
+                <form onSubmit={verifyAccess} className="mt-5">
+                  <input
+                    type="email"
+                    value={accessEmail}
+                    onChange={(event) => setAccessEmail(event.target.value)}
+                    placeholder="yourname@company.no"
+                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={accessStatus === "submitting" || !accessEmail.includes("@")}
+                    className="result-cta-primary mt-3 w-full rounded-[12px] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
+                  >
+                    {accessStatus === "submitting" ? (
+                      <svg className="spinner-arc mx-auto" viewBox="0 0 24 24" aria-hidden>
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="46 18" />
+                      </svg>
+                    ) : (
+                      "Send access link"
+                    )}
+                  </button>
+                </form>
+              </>
+            ) : (
+              <div className="partner-success-enter mt-6 text-center">
+                <svg className="mx-auto h-6 w-6 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <p className="mt-3 text-[18px] font-bold text-white">Check your inbox</p>
+                <p className="mt-2 text-sm text-[rgba(255,255,255,0.6)]">
+                  A secure access link has been sent to {accessEmail}. The link is valid for 14 days.
+                </p>
+                <p className="mt-3 text-xs text-[rgba(255,255,255,0.35)]">
+                  Can&apos;t find the email? Check your spam folder or contact post@arbeidmatch.no
+                </p>
+              </div>
+            )}
+
+            {accessStatus === "error" && <p className="mt-4 text-sm text-red-300">Could not check access right now. Please try again.</p>}
+          </div>
+        </>
+      )}
+
       <style jsx>{`
         .result-zero {
           background: linear-gradient(135deg, #c9a84c, #f0d080);
@@ -731,6 +758,24 @@ export default function RequestPage() {
             transform: translate(-50%, -50%) scale(1);
           }
         }
+        @keyframes modalBackdropIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        @keyframes partnerModalIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.96);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+          }
+        }
         @media (prefers-reduced-motion: no-preference) {
           .result-zero {
             animation: resultIn 400ms ease-out both;
@@ -748,6 +793,12 @@ export default function RequestPage() {
           }
           .leave-dialog {
             animation: leaveDialogIn 250ms ease both;
+          }
+          .partner-modal-backdrop {
+            animation: modalBackdropIn 200ms ease both;
+          }
+          .partner-modal {
+            animation: partnerModalIn 280ms ease both;
           }
         }
       `}</style>
