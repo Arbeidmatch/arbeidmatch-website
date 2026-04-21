@@ -531,7 +531,7 @@ export default function RequestPage() {
                   A secure access link has been sent to {accessEmail}. The link is valid for 14 days.
                 </p>
                 <p className="mt-3 text-xs text-[rgba(255,255,255,0.35)]">
-                  Can&apos;t find the email? Check your spam folder or contact post@arbeidmatch.no
+                  Emails are usually delivered within a few seconds, but may occasionally take up to 5 minutes. In the meantime, you can close this window and continue browsing. Check your spam folder if nothing arrives.
                 </p>
               </div>
             )}
