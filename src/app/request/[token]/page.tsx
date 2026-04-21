@@ -518,6 +518,7 @@ export default function RequestTokenPage() {
   const [roleQuery, setRoleQuery] = useState("");
   const [searchMessageIndex, setSearchMessageIndex] = useState(0);
   const [checkCount, setCheckCount] = useState(0);
+  const [showInstantPanel, setShowInstantPanel] = useState(false);
 
   const scrollToTop = () => {
     if (typeof window === "undefined") return;
@@ -758,7 +759,8 @@ export default function RequestTokenPage() {
     if (roleInput !== undefined) setSearchTerm(roleInput);
     setCheckState("searching");
     setSearchMessageIndex(0);
-    const waitMs = reducedMotion ? 2000 : 7000;
+    setShowInstantPanel(false);
+    const waitMs = reducedMotion ? 2000 : 10000;
     await new Promise((resolve) => setTimeout(resolve, waitMs));
     try {
       const response = await fetch(`/api/check-candidates?role=${encodeURIComponent(role)}`);
@@ -1011,8 +1013,49 @@ export default function RequestTokenPage() {
               )}
               {checkState === "searching" && (
                 <div className="flex flex-col items-center py-10 text-center">
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
+                  <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
                   <span className={`h-12 w-12 rounded-full border-[3px] border-[rgba(201,168,76,0.2)] border-t-[#C9A84C] ${reducedMotion ? "" : "animate-[spin_1s_linear_infinite]"}`} />
                   <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
+                  <div className="mx-auto mt-5 h-px w-[120px] bg-[rgba(201,168,76,0.1)]" />
+                  <p className="mt-5 text-center text-[12px] text-[rgba(255,255,255,0.35)]">This search takes a moment.</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowInstantPanel(true)}
+                    className="mt-2 cursor-pointer text-[13px] font-semibold text-[#C9A84C] underline"
+                  >
+                    Get instant results
+                  </button>
+                  {showInstantPanel && (
+                    <div className="relative mt-4 w-full rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-5 text-left">
+                      <button
+                        type="button"
+                        onClick={() => setShowInstantPanel(false)}
+                        className="absolute right-4 top-4 text-white/60"
+                        aria-label="Close instant search panel"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                      <p className="text-[15px] font-bold text-white">Instant candidate search</p>
+                      <p className="mt-2 text-sm leading-relaxed text-white/70">
+                        Instant search is available for ArbeidMatch partners and Premium members. Partners get priority access to our full candidate database with real-time results.
+                      </p>
+                      <div className="mt-4 flex gap-3">
+                        <Link
+                          href="/contact"
+                          className="rounded-[10px] bg-[#C9A84C] px-4 py-2 text-xs font-semibold text-[#0D1B2A]"
+                        >
+                          Become a Partner
+                        </Link>
+                        <Link
+                          href="/premium"
+                          className="rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
+                        >
+                          Upgrade to Premium
+                        </Link>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               {checkState === "result" && (
