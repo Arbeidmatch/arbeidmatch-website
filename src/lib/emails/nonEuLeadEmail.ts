@@ -30,6 +30,7 @@ export function buildNonEuLeadEmail(firstName: string, unsubscribeToken?: string
     emailBodyParagraph(
       "If you are an electrician specifically, we also have a dedicated authorization guide. Just mention it in your reply.",
     ),
+    `<p style="font-size:12px;color:rgba(255,255,255,0.4);">We are also working on a complete Norway Work Guide for non-EU workers. When it is ready, you will be among the first to receive it.</p>`,
   ].join("");
 
   return buildEmail({

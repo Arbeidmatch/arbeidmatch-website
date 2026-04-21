@@ -84,11 +84,8 @@ export function buildEmail(options: {
     <!-- Footer -->
     <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">ArbeidMatch Norge AS | Org.nr 935 667 089 MVA</p>
     <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway</p>
-    <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">post@arbeidmatch.no | arbeidmatch.no</p>
+    <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">post@arbeidmatch.no | arbeidmatch.no${unsubscribeToken ? ` | <a href="https://arbeidmatch.no/api/unsubscribe?token=${escapeHtml(unsubscribeToken)}" style="color:rgba(255,255,255,0.2);text-decoration:none;">unsubscribe</a>` : ""}</p>
     ${footerNoteBlock}
-    ${unsubscribeToken ? `<p style="margin:16px 0 0 0;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">
-<a href="https://arbeidmatch.no/api/unsubscribe?token=${escapeHtml(unsubscribeToken)}" style="color:rgba(255,255,255,0.25);text-decoration:underline;">Unsubscribe</a>
-</p>` : ""}
 
   </div>
 </body>
