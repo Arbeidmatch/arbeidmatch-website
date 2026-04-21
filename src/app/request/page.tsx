@@ -70,6 +70,7 @@ export default function RequestPage() {
   const [notifyStatus, setNotifyStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [resultAction, setResultAction] = useState<"none" | "partner" | "non_partner">("none");
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [partnerIssueStatus, setPartnerIssueStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const hasMountedHistoryGuard = useRef(false);
 
   const filteredRoles = useMemo(() => {
@@ -138,6 +139,7 @@ export default function RequestPage() {
         setAccessStatus("partner");
         return;
       }
+      setPartnerIssueStatus("idle");
       setAccessStatus("non_partner");
     } catch {
       setAccessStatus("error");
@@ -193,6 +195,24 @@ export default function RequestPage() {
   };
 
   const showNonPartnerOptions = accessStatus === "non_partner";
+
+  const reportPartnerIssue = async () => {
+    if (!accessEmail.includes("@") || partnerIssueStatus === "submitting" || partnerIssueStatus === "success") return;
+    setPartnerIssueStatus("submitting");
+    try {
+      const response = await fetch("/api/partner-issue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: accessEmail.trim().toLowerCase(),
+          message: "User reports their email was not recognized. Please verify manually.",
+        }),
+      });
+      setPartnerIssueStatus(response.ok ? "success" : "error");
+    } catch {
+      setPartnerIssueStatus("error");
+    }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -386,45 +406,49 @@ export default function RequestPage() {
             We could not find a partner account linked to this email address. This could be a mistake, we are happy to check for you.
           </p>
           <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
-          <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="flex h-full flex-col rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[24px_20px] text-left">
-              <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#C9A84C]" fill="none" aria-hidden>
-                <path d="M6.6 10.8a15.7 15.7 0 0 0 6.6 6.6l2.2-2.2a1.2 1.2 0 0 1 1.2-.3c1 .3 2.2.5 3.4.5a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.8 21 3 13.2 3 4a1 1 0 0 1 1-1h3.4a1 1 0 0 1 1 1c0 1.2.2 2.4.5 3.4a1.2 1.2 0 0 1-.3 1.2l-2 2.2Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <p className="mt-2.5 text-[15px] font-semibold text-white">Call us</p>
-              <p className="mt-1.5 text-[13px] text-[rgba(255,255,255,0.5)]">Speak directly with our team and we will verify your status on the spot.</p>
-              <Link href="tel:+4796734730" className="mt-4 inline-flex items-center justify-center rounded-[10px] bg-[#C9A84C] px-5 py-2.5 text-sm font-bold text-[#0D1B2A]">
-                +47 96 73 47 30
-              </Link>
-            </div>
-            <div className="flex h-full flex-col rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[24px_20px] text-left">
-              <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#C9A84C]" fill="none" aria-hidden>
-                <path d="M12 3 4 7v6c0 4 3.2 7.8 8 9 4.8-1.2 8-5 8-9V7l-8-4Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M8.5 12.5h7m-7-3h7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-              </svg>
-              <p className="mt-2.5 text-[15px] font-semibold text-white">Report an issue</p>
-              <p className="mt-1.5 text-[13px] text-[rgba(255,255,255,0.5)]">If you believe this is an error, let us know and we will investigate immediately.</p>
-              <Link
-                href="mailto:post@arbeidmatch.no?subject=Partner%20verification%20issue"
-                className="mt-4 inline-flex items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.3)] bg-transparent px-5 py-2.5 text-sm font-semibold text-[#C9A84C]"
-              >
-                Send feedback
-              </Link>
-            </div>
-          </div>
-          <p className="mt-6 text-[12px] text-[rgba(255,255,255,0.3)]">
-            You can also try a different email address.{" "}
+          <div className="w-full">
             <button
               type="button"
               onClick={() => {
-                setAccessStatus("idle");
-                setResultAction("partner");
+                setResultAction("none");
+                resetToFirstStep();
               }}
-              className="text-[#C9A84C] underline underline-offset-2 transition-colors hover:text-[#d8bb69]"
+              className="w-full rounded-[10px] bg-[#C9A84C] px-4 py-[13px] text-[15px] font-bold text-[#0D1B2A]"
             >
-              Try again
+              Request partner access
             </button>
-          </p>
+            <button
+              type="button"
+              onClick={() => void reportPartnerIssue()}
+              disabled={partnerIssueStatus === "submitting" || partnerIssueStatus === "success"}
+              className="mt-3 w-full rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[13px] text-[15px] text-[rgba(255,255,255,0.6)] disabled:opacity-60"
+            >
+              {partnerIssueStatus === "submitting" ? (
+                <svg className="spinner-arc mx-auto" viewBox="0 0 24 24" aria-hidden>
+                  <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="46 18" />
+                </svg>
+              ) : (
+                "Report a problem"
+              )}
+            </button>
+            {partnerIssueStatus === "success" && (
+              <p className="mt-3 text-center text-[13px] text-[rgba(255,255,255,0.45)]">Report sent. We will check and get back to you.</p>
+            )}
+            {partnerIssueStatus === "error" && (
+              <p className="mt-3 text-center text-[13px] text-[rgba(255,255,255,0.45)]">Something went wrong. Please try again.</p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setAccessStatus("idle");
+              setPartnerIssueStatus("idle");
+              setResultAction("partner");
+            }}
+            className="mt-6 text-center text-[12px] text-[rgba(201,168,76,0.5)] underline underline-offset-2"
+          >
+            Try a different email
+          </button>
         </div>
       )}
 
