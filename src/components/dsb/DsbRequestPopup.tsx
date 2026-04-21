@@ -40,7 +40,7 @@ function IconClose() {
 
 const CHECKS = [
   "Pre-screened for DSB documentation",
-  "We support the application process with DSB",
+  "Guide-based support for preparing documents before DSB submission",
   "Delivery within 2 to 4 weeks after approval",
 ] as const;
 
@@ -111,7 +111,8 @@ export default function DsbRequestPopup() {
               </h3>
               <p className="mt-3 text-[15px] leading-[1.7] text-white/[0.65]">
                 ArbeidMatch has access to pre-screened EU/EEA electricians with DSB approval or an active application. We
-                support the full process, from sourcing to start-up.
+                support sourcing and practical preparation, while official DSB processing and decisions are handled directly
+                by DSB.
               </p>
               <ul className="mt-8 space-y-3">
                 {CHECKS.map((line) => (

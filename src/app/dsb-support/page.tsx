@@ -56,6 +56,10 @@ export default function DsbSupportPage() {
             Employers need reliable documentation before electrical work starts. This guide explains DSB authorisation for
             foreign electricians in practical terms, with emphasis on process, documentation, and realistic timelines.
           </p>
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-text-secondary">
+            ArbeidMatch is a private recruitment and guidance company. We do not process DSB applications and we are not an
+            official Norwegian authority. Official application processing and decisions are handled only by DSB.
+          </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/dsb-support/eu"
