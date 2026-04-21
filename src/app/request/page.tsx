@@ -396,7 +396,10 @@ export default function RequestPage() {
                 type="button"
                 onClick={() => {
                   setResultAction("non_partner");
-                  setAccessStatus("non_partner");
+                  setAccessStatus("idle");
+                  setSelectedOffer("");
+                  setNotifyEmail("");
+                  setNotifyStatus("idle");
                 }}
                 className="result-cta-secondary rounded-[12px] border border-[rgba(201,168,76,0.25)] bg-transparent px-9 py-4 text-[15px] font-medium text-[rgba(255,255,255,0.7)]"
               >
@@ -416,59 +419,90 @@ export default function RequestPage() {
       </div>
 
       {showNonPartnerOptions && (
-        <div className="mx-auto flex min-h-[60vh] w-full max-w-[480px] flex-col items-center justify-center px-6 py-10 text-center">
-          <svg viewBox="0 0 24 24" className="h-12 w-12 text-[#C9A84C]" fill="none" aria-hidden>
-            <path d="M12 3 5 6v5c0 4.6 3.1 8.9 7 10 3.9-1.1 7-5.4 7-10V6l-7-3Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="m9 9 6 6m0-6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-          <h2 className="mt-5 text-[22px] font-bold text-white">No partner account found</h2>
-          <p className="mt-3 text-[15px] leading-[1.7] text-[rgba(255,255,255,0.55)]">
-            We could not find a partner account linked to this email address. This could be a mistake, we are happy to check for you.
-          </p>
+        <div className="mx-auto flex min-h-[60vh] w-full max-w-[980px] flex-col items-center justify-center px-6 py-10 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Choose access option</p>
+          <h2 className="mt-3 text-[24px] font-bold text-white">How would you like to continue?</h2>
+          <p className="mt-2 text-[15px] text-[rgba(255,255,255,0.55)]">Select the option that fits your hiring needs.</p>
           <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
-          <div className="w-full">
+
+          <div className="non-partner-cards w-full max-w-[980px]">
+            <button
+              type="button"
+              onClick={() => router.push("/become-a-partner")}
+              className="non-partner-card rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] p-6 text-left"
+            >
+              <Users className="h-5 w-5 text-[#C9A84C]" />
+              <p className="mt-4 text-[18px] font-bold text-white">Become a Partner</p>
+              <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
+                Get access to partner-only candidate tools and direct hiring support.
+              </p>
+            </button>
+
             <button
               type="button"
               onClick={() => {
-                setResultAction("none");
-                router.push("/become-a-partner");
+                setSelectedOffer("premium");
+                setNotifyStatus("idle");
               }}
-              className="w-full rounded-[10px] bg-[#C9A84C] px-4 py-[13px] text-[15px] font-bold text-[#0D1B2A]"
+              className="non-partner-card rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] p-6 text-left"
             >
-              Request partner access
+              <Star className="h-5 w-5 text-[#C9A84C]" />
+              <p className="mt-4 text-[18px] font-bold text-white">Premium Subscription</p>
+              <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
+                Best for ongoing hiring with priority support and expanded matching.
+              </p>
             </button>
+
             <button
               type="button"
-              onClick={() => void reportPartnerIssue()}
-              disabled={partnerIssueStatus === "submitting" || partnerIssueStatus === "success"}
-              className="mt-3 w-full rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[13px] text-[15px] text-[rgba(255,255,255,0.6)] disabled:opacity-60"
+              onClick={() => {
+                setSelectedOffer("pay-per-use");
+                setNotifyStatus("idle");
+              }}
+              className="non-partner-card rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] p-6 text-left"
             >
-              {partnerIssueStatus === "submitting" ? (
-                <svg className="spinner-arc mx-auto" viewBox="0 0 24 24" aria-hidden>
-                  <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="46 18" />
-                </svg>
-              ) : (
-                "Report a problem"
-              )}
+              <Clock3 className="h-5 w-5 text-[#C9A84C]" />
+              <p className="mt-4 text-[18px] font-bold text-white">Pay per use</p>
+              <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
+                Flexible access when you need candidates without a long-term commitment.
+              </p>
             </button>
-            {partnerIssueStatus === "success" && (
-              <p className="mt-3 text-center text-[13px] text-[rgba(255,255,255,0.45)]">Report sent. We will check and get back to you.</p>
-            )}
-            {partnerIssueStatus === "error" && (
-              <p className="mt-3 text-center text-[13px] text-[rgba(255,255,255,0.45)]">Something went wrong. Please try again.</p>
-            )}
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setAccessStatus("idle");
-              setPartnerIssueStatus("idle");
-              setResultAction("partner");
-            }}
-            className="mt-6 text-center text-[12px] text-[rgba(201,168,76,0.5)] underline underline-offset-2"
-          >
-            Try a different email
-          </button>
+
+          {selectedOffer && (
+            <div className="mt-6 w-full max-w-[520px] rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] p-5 text-left">
+              <p className="text-[14px] text-[rgba(255,255,255,0.65)]">Get notified when this option is available.</p>
+              <div className="mt-3 flex flex-col gap-[10px] sm:flex-row">
+                <input
+                  type="email"
+                  value={notifyEmail}
+                  onChange={(event) => setNotifyEmail(event.target.value)}
+                  placeholder="yourname@company.no"
+                  className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => void submitFeatureWaitlist()}
+                  disabled={!notifyEmail.includes("@") || notifyStatus === "submitting"}
+                  className="result-cta-primary rounded-[10px] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] disabled:opacity-60"
+                >
+                  {notifyStatus === "submitting" ? "Sending..." : "Notify me"}
+                </button>
+              </div>
+              {notifyStatus === "success" && <p className="mt-3 text-[13px] text-[rgba(255,255,255,0.5)]">Thanks. We will notify you by email.</p>}
+              {notifyStatus === "error" && <p className="mt-3 text-[13px] text-[rgba(255,255,255,0.5)]">Could not save your request. Please try again.</p>}
+            </div>
+          )}
+
+          <div className="mt-5 w-full max-w-[320px]">
+            <button
+              type="button"
+              onClick={() => setResultAction("none")}
+              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[13px] text-[15px] text-[rgba(255,255,255,0.6)]"
+            >
+              Back
+            </button>
+          </div>
         </div>
       )}
 
