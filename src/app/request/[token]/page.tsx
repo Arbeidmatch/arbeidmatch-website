@@ -27,6 +27,13 @@ type TokenData = {
 };
 
 type RequestForm = {
+  companyName: string;
+  orgNumber: string;
+  contactFirstName: string;
+  contactLastName: string;
+  roleInCompany: string;
+  contactEmail: string;
+  contactPhone: string;
   industry: string;
   workerType: string;
   trade: string;
@@ -46,12 +53,24 @@ type RequestForm = {
   urgency: string;
   city: string;
   locations: string[];
-  region: string;
+  startDateMode: "Immediate" | "Specific start date";
   startDate: string;
-  notes: string;
+  salaryMin: string;
+  salaryMax: string;
+  qualification: string;
+  driverLicenseRequired: "Yes" | "No";
+  tradeCertificatePreferred: "Yes" | "No";
+  jaguarLandRoverPreferred: "Yes" | "No";
+  customerCommunicationRequired: "Yes" | "No";
+  diagnosticsExperienceRequired: "Yes" | "No";
+  workTasks: string[];
+  personalQualities: string[];
+  offerItems: string[];
+  additionalNotes: string;
+  subscribeUpdates: boolean;
 };
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 8;
 
 const CITY_OPTIONS = [
   "Oslo", "Bergen", "Trondheim", "Stavanger", "Kristiansand", "Drammen", "Tromso", "Fredrikstad",
@@ -323,29 +342,81 @@ const CERTIFICATIONS_BY_WORKER_TYPE: Record<string, string[]> = {
 };
 
 const initialForm: RequestForm = {
-  industry: "",
-  workerType: "",
+  companyName: "PEOPLE AS",
+  orgNumber: "918882324",
+  contactFirstName: "Arild",
+  contactLastName: "Salomon",
+  roleInCompany: "Contact person",
+  contactEmail: "as@people.no",
+  contactPhone: "+4793007732",
+  industry: "Industry and Production",
+  workerType: "mechanics for auto industry",
   trade: "",
   tradeOther: "",
-  experience: "",
+  experience: "3 to 5 years",
   certification: [],
   certificationsOther: "",
-  candidates: 1,
-  contractType: "",
-  salary: "",
+  candidates: 2,
+  contractType: "Permanent employment",
+  salary: "250-300",
   salaryPeriod: "per hour",
   overtime: "",
-  accommodation: "",
-  accommodationSupport: "",
-  internationalTransport: "",
-  localTransport: "",
-  urgency: "",
-  city: "",
-  locations: [],
-  region: "",
+  accommodation: "Not provided",
+  accommodationSupport: "Can help candidate find accommodation",
+  internationalTransport: "Not covered",
+  localTransport: "Not covered",
+  urgency: "Specific start date",
+  city: "Oslo",
+  locations: ["Oslo"],
+  startDateMode: "Specific start date",
   startDate: "",
-  notes: "",
+  salaryMin: "250",
+  salaryMax: "300",
+  qualification: "3 to 5 years",
+  driverLicenseRequired: "Yes",
+  tradeCertificatePreferred: "Yes",
+  jaguarLandRoverPreferred: "Yes",
+  customerCommunicationRequired: "Yes",
+  diagnosticsExperienceRequired: "Yes",
+  workTasks: [
+    "Service and repair",
+    "Advanced diagnostics and electronics",
+    "Documentation according to manufacturer requirements",
+    "Customer handover and dialogue",
+    "Maintain tidy and safe workshop",
+  ],
+  personalQualities: ["Accurate", "Quality-conscious", "Solution-oriented", "Independent", "Team player", "Service-minded", "Clear communicator"],
+  offerItems: ["Brand-new workshop", "New equipment", "Competitive terms", "Professional development", "Training opportunities", "Small highly skilled team"],
+  additionalNotes: "",
+  subscribeUpdates: true,
 };
+
+const WORK_TASK_OPTIONS = [
+  "Service and repair",
+  "Advanced diagnostics and electronics",
+  "Documentation according to manufacturer requirements",
+  "Customer handover and dialogue",
+  "Maintain tidy and safe workshop",
+] as const;
+
+const PERSONAL_QUALITY_OPTIONS = [
+  "Accurate",
+  "Quality-conscious",
+  "Solution-oriented",
+  "Independent",
+  "Team player",
+  "Service-minded",
+  "Clear communicator",
+] as const;
+
+const OFFER_OPTIONS = [
+  "Brand-new workshop",
+  "New equipment",
+  "Competitive terms",
+  "Professional development",
+  "Training opportunities",
+  "Small highly skilled team",
+] as const;
 
 const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]";
 const inputClass =
@@ -575,6 +646,17 @@ export default function RequestTokenPage() {
   }, [token]);
 
   useEffect(() => {
+    if (!tokenData) return;
+    setForm((prev) => ({
+      ...prev,
+      companyName: tokenData.company?.trim() || prev.companyName,
+      orgNumber: tokenData.org_number?.trim() || prev.orgNumber,
+      contactEmail: tokenData.email?.trim().toLowerCase() || prev.contactEmail,
+      contactPhone: tokenData.phone?.trim() || prev.contactPhone,
+    }));
+  }, [tokenData]);
+
+  useEffect(() => {
     if (startWizard) {
       setShowChoice(false);
       setShowCheckFlow(false);
@@ -653,20 +735,73 @@ export default function RequestTokenPage() {
     });
   };
 
+  const toggleItem = (field: "workTasks" | "personalQualities" | "offerItems", value: string) => {
+    setForm((prev) => {
+      const exists = prev[field].includes(value);
+      return {
+        ...prev,
+        [field]: exists ? prev[field].filter((item) => item !== value) : [...prev[field], value],
+      };
+    });
+  };
+
+  const generatedNotes = useMemo(() => {
+    const sections = [
+      "About the Position",
+      "The garage is relocating to Kaldbakken in August and establishing a brand-new, modern workshop.",
+      "",
+      "Work Tasks",
+      ...form.workTasks.map((item) => `- ${item}`),
+      "",
+      "Requirements",
+      `- Qualification: ${form.qualification}`,
+      `- Driver license required: ${form.driverLicenseRequired}`,
+      `- Trade certificate preferred: ${form.tradeCertificatePreferred}`,
+      `- Jaguar or Land Rover experience preferred: ${form.jaguarLandRoverPreferred}`,
+      `- Customer communication required: ${form.customerCommunicationRequired}`,
+      `- Diagnostics and electronics experience required: ${form.diagnosticsExperienceRequired}`,
+      "",
+      "Personal Qualities",
+      ...form.personalQualities.map((item) => `- ${item}`),
+      "",
+      "We Offer",
+      ...form.offerItems.map((item) => `- ${item}`),
+    ];
+    if (form.additionalNotes.trim()) {
+      sections.push("", "Additional Notes", form.additionalNotes.trim());
+    }
+    return sections.join("\n");
+  }, [form.additionalNotes, form.diagnosticsExperienceRequired, form.driverLicenseRequired, form.jaguarLandRoverPreferred, form.offerItems, form.personalQualities, form.qualification, form.tradeCertificatePreferred, form.workTasks, form.customerCommunicationRequired]);
+
   const isStepValid = (value: number) => {
-    if (value === 0) return !!form.industry;
+    if (value === 0) {
+      return (
+        form.companyName.trim().length >= 2 &&
+        form.orgNumber.trim().length >= 9 &&
+        form.contactFirstName.trim().length >= 1 &&
+        form.contactLastName.trim().length >= 1 &&
+        form.contactEmail.includes("@") &&
+        form.contactPhone.trim().length >= 6
+      );
+    }
     if (value === 1) {
-      if (form.workerType === "Other" && !form.tradeOther.trim()) return false;
-      return !!(form.workerType && form.experience && form.candidates >= 1);
+      return (
+        !!form.industry &&
+        !!form.workerType.trim() &&
+        form.candidates >= 1 &&
+        !!form.contractType &&
+        form.locations.length > 0 &&
+        (form.startDateMode === "Immediate" || form.startDate.trim().length > 0)
+      );
     }
-    if (value === 2) return !!form.urgency;
-    if (value === 3) return !!(form.contractType && form.salary.trim());
-    if (value === 4) return form.locations.length > 0;
-    if (value === 5) {
-      if (!form.accommodation) return false;
-      if (form.accommodation === "Not provided" && !form.accommodationSupport) return false;
-      return !!(form.internationalTransport && form.localTransport);
+    if (value === 2) {
+      return !!form.salaryMin.trim() && !!form.salaryMax.trim() && !!form.accommodation && !!form.localTransport && !!form.internationalTransport;
     }
+    if (value === 3) return !!form.qualification;
+    if (value === 4) return form.workTasks.length > 0;
+    if (value === 5) return form.personalQualities.length > 0;
+    if (value === 6) return form.offerItems.length > 0;
+    if (value === 7) return true;
     return false;
   };
 
@@ -684,37 +819,41 @@ export default function RequestTokenPage() {
 
     const payload = {
       token,
-      company: tokenData?.company ?? "",
-      orgNumber: tokenData?.org_number ?? "",
-      email: tokenData?.email ?? "",
-      full_name: tokenData?.full_name ?? "Contact person",
+      company: form.companyName.trim(),
+      orgNumber: form.orgNumber.trim(),
+      email: form.contactEmail.trim().toLowerCase(),
+      full_name: `${form.contactFirstName.trim()} ${form.contactLastName.trim()}`.trim(),
       phonePrefix: "",
       phoneNumber: "",
-      phone: tokenData?.phone && tokenData.phone.trim().length >= 6 ? tokenData.phone.trim() : "N/A N/A",
-      job_summary: tokenData?.job_summary ?? "",
+      phone: form.contactPhone.trim(),
+      job_summary: "General hiring inquiry",
       hiringType: "Recruitment of personnel for companies",
       category: form.industry,
-      position: form.workerType === "Other" ? form.tradeOther : form.workerType,
-      positionOther: form.workerType === "Other" ? form.tradeOther : "",
+      position: form.workerType.trim(),
+      positionOther: "",
       numberOfPositions: String(form.candidates),
-      qualification: form.experience || "No minimum",
-      certifications: form.certification.join(", "),
+      qualification: form.qualification,
+      certifications: [
+        `Role in company: ${form.roleInCompany.trim() || "Contact person"}`,
+        `Trade certificate preferred: ${form.tradeCertificatePreferred}`,
+        `Jaguar or Land Rover preferred: ${form.jaguarLandRoverPreferred}`,
+      ].join(", "),
       certificationsOther: form.certification.includes("Other") ? form.certificationsOther.trim() : "",
       experience: "",
       norwegianLevel: "",
       englishLevel: "",
-      driverLicense: "",
+      driverLicense: form.driverLicenseRequired,
       driverLicenseOther: "",
       dNumber: "",
       dNumberOther: "",
-      requirements: "",
+      requirements: generatedNotes,
       contractType: form.contractType,
-      salaryPeriod: form.salaryPeriod === "per hour" ? "Per hour" : "Per month",
+      salaryPeriod: "Per hour",
       salaryMode: "Range",
-      salary: form.salary,
+      salary: `${form.salaryMin.trim()}-${form.salaryMax.trim()}`,
       salaryAmount: "",
-      salaryFrom: "",
-      salaryTo: "",
+      salaryFrom: form.salaryMin.trim(),
+      salaryTo: form.salaryMax.trim(),
       hoursUnit: "",
       hoursAmount: "",
       overtime:
@@ -738,7 +877,7 @@ export default function RequestTokenPage() {
       tools: "",
       toolsOther: "",
       city: form.locations.join(", "),
-      startDate: form.startDate,
+      startDate: form.startDateMode === "Immediate" ? "Immediate" : form.startDate,
       startDateOther: "",
       howDidYouHear: "",
       socialMediaPlatform: "",
@@ -747,8 +886,8 @@ export default function RequestTokenPage() {
       referralCompanyName: "",
       referralOrgNumber: "",
       referralEmail: "",
-      subscribe: "Yes - send me candidate updates",
-      notes: form.notes,
+      subscribe: form.subscribeUpdates ? "Yes - send me candidate updates" : "",
+      notes: generatedNotes,
     };
 
     try {
@@ -1452,253 +1591,183 @@ export default function RequestTokenPage() {
 
             {step === 0 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 1 of 6</p>
-                <h2 className="text-2xl font-extrabold">Which industry is this request for?</h2>
-                <p className="text-sm text-white/50">Select the primary industry first.</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 1 of 8</p>
+                <h2 className="text-2xl font-extrabold">Company and contact</h2>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  {INDUSTRY_OPTIONS.map((option) => (
-                    <OptionCard
-                      key={option}
-                      label={option}
-                      className="md:h-[52px] md:items-center"
-                      labelClassName="md:text-[13px] md:whitespace-nowrap"
-                      selected={form.industry === option}
-                      onClick={() =>
-                        setForm((prev) => ({
-                          ...prev,
-                          industry: option,
-                          workerType: "",
-                          tradeOther: "",
-                          certification: [],
-                        }))
-                      }
-                    />
-                  ))}
+                  <input className={inputClass} value={form.companyName} onChange={(e) => setForm((p) => ({ ...p, companyName: e.target.value }))} placeholder="Company name" />
+                  <input className={inputClass} value={form.orgNumber} onChange={(e) => setForm((p) => ({ ...p, orgNumber: e.target.value }))} placeholder="Org number" />
+                  <input className={inputClass} value={form.contactFirstName} onChange={(e) => setForm((p) => ({ ...p, contactFirstName: e.target.value }))} placeholder="First name" />
+                  <input className={inputClass} value={form.contactLastName} onChange={(e) => setForm((p) => ({ ...p, contactLastName: e.target.value }))} placeholder="Last name" />
+                  <input className={inputClass} value={form.roleInCompany} onChange={(e) => setForm((p) => ({ ...p, roleInCompany: e.target.value }))} placeholder="Role in company" />
+                  <input className={inputClass} value={form.contactPhone} onChange={(e) => setForm((p) => ({ ...p, contactPhone: e.target.value }))} placeholder="Phone" />
+                  <input className={`${inputClass} md:col-span-2`} type="email" value={form.contactEmail} onChange={(e) => setForm((p) => ({ ...p, contactEmail: e.target.value }))} placeholder="Email" />
                 </div>
-                {!form.industry && (
-                  <p className="mb-2 text-right text-[12px] text-[rgba(255,255,255,0.4)]">Select an industry to continue</p>
-                )}
               </div>
             )}
 
             {step === 1 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 2 of 6</p>
-                <h2 className="text-2xl font-extrabold">Worker type and requirements</h2>
-                <p className="text-sm text-white/50">Worker roles and certifications depend on selected industry.</p>
-
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 2 of 8</p>
+                <h2 className="text-2xl font-extrabold">Job basics</h2>
                 <div>
-                  <p className={labelClass}>Worker type</p>
+                  <p className={labelClass}>Job category</p>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {workerTypeOptions.map((option) => (
-                      <OptionCard
-                        key={option}
-                        label={option}
-                        selected={form.workerType === option}
-                        onClick={() => setForm((prev) => ({ ...prev, workerType: option, certification: [] }))}
-                      />
+                    {INDUSTRY_OPTIONS.map((option) => (
+                      <OptionCard key={option} label={option} selected={form.industry === option} onClick={() => setForm((p) => ({ ...p, industry: option }))} />
                     ))}
                   </div>
                 </div>
-
-                {form.workerType === "Other" && (
-                  <input
-                    className={inputClass}
-                    placeholder="Describe the role"
-                    value={form.tradeOther}
-                    onChange={(e) => setForm((prev) => ({ ...prev, tradeOther: e.target.value }))}
-                  />
-                )}
-
                 <div>
-                  <p className={labelClass}>Minimum experience</p>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {["No minimum", "1 to 2 years", "3 to 5 years", "5+ years"].map((option) => (
-                      <OptionCard
-                        key={option}
-                        label={option}
-                        selected={form.experience === option}
-                        onClick={() => setForm((prev) => ({ ...prev, experience: option }))}
-                      />
+                  <p className={labelClass}>Trade or position</p>
+                  <input className={inputClass} value={form.workerType} onChange={(e) => setForm((p) => ({ ...p, workerType: e.target.value }))} placeholder="mechanics for auto industry" />
+                </div>
+                <div>
+                  <p className={labelClass}>Location</p>
+                  <input className={inputClass} value={citySearch} onChange={(e) => setCitySearch(e.target.value)} placeholder="Search city" />
+                  <div className="mt-2 flex max-h-[150px] flex-wrap gap-2 overflow-auto">
+                    {filteredCities.slice(0, 10).map((city) => (
+                      <button key={city} type="button" onClick={() => toggleLocation(city)} className={`rounded-full border px-3 py-1 text-xs ${form.locations.includes(city) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}>
+                        {city}
+                      </button>
                     ))}
                   </div>
                 </div>
-
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div>
+                    <p className={labelClass}>Number of workers</p>
+                    <div className="flex items-center gap-3">
+                      <button type="button" className="h-9 w-9 rounded-lg border border-[#C9A84C] text-[#C9A84C]" onClick={() => setForm((p) => ({ ...p, candidates: Math.max(1, p.candidates - 1) }))}>-</button>
+                      <span className="min-w-12 text-center text-2xl font-bold">{form.candidates}</span>
+                      <button type="button" className="h-9 w-9 rounded-lg border border-[#C9A84C] text-[#C9A84C]" onClick={() => setForm((p) => ({ ...p, candidates: p.candidates + 1 }))}>+</button>
+                    </div>
+                  </div>
+                  <div>
+                    <p className={labelClass}>Contract type</p>
+                    <div className="space-y-2">
+                      {["Permanent employment", "Temporary hire", "Project-based"].map((option) => (
+                        <OptionCard key={option} label={option} selected={form.contractType === option} onClick={() => setForm((p) => ({ ...p, contractType: option }))} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
                 <div>
-                  <p className={labelClass}>Certifications required</p>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {certificationOptions.map((option) => (
-                      <OptionCard
-                        key={option}
-                        label={option}
-                        selected={form.certification.includes(option)}
-                        onClick={() => toggleCert(option)}
-                      />
+                  <p className={labelClass}>Start date</p>
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    {(["Immediate", "Specific start date"] as const).map((mode) => (
+                      <button key={mode} type="button" className={`rounded-lg border px-4 py-2 text-sm ${form.startDateMode === mode ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`} onClick={() => setForm((p) => ({ ...p, startDateMode: mode }))}>
+                        {mode}
+                      </button>
                     ))}
                   </div>
-                  {form.certification.includes("Other") && (
-                    <input
-                      className={`${inputClass} mt-3`}
-                      placeholder="Specify other certification or authorization"
-                      value={form.certificationsOther}
-                      onChange={(e) => setForm((prev) => ({ ...prev, certificationsOther: e.target.value }))}
-                    />
-                  )}
-                </div>
-
-                <div>
-                  <p className={labelClass}>Number of candidates</p>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      className="h-9 w-9 rounded-lg border border-[#C9A84C] text-[#C9A84C]"
-                      onClick={() =>
-                        setForm((prev) => ({ ...prev, candidates: Math.max(1, prev.candidates - 1) }))
-                      }
-                    >
-                      -
-                    </button>
-                    <span className="min-w-12 text-center text-2xl font-bold">{form.candidates}</span>
-                    <button
-                      type="button"
-                      className="h-9 w-9 rounded-lg border border-[#C9A84C] text-[#C9A84C]"
-                      onClick={() => setForm((prev) => ({ ...prev, candidates: prev.candidates + 1 }))}
-                    >
-                      +
-                    </button>
-                  </div>
+                  {form.startDateMode === "Specific start date" ? (
+                    <input type="date" className={inputClass} value={form.startDate} onChange={(e) => setForm((p) => ({ ...p, startDate: e.target.value }))} />
+                  ) : null}
                 </div>
               </div>
             )}
 
             {step === 2 && (
-              <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 3 of 6</p>
-                <h2 className="text-2xl font-extrabold">How urgent is this request?</h2>
-                <p className="text-sm text-white/50">This helps us prioritize your request.</p>
-                <div className="grid grid-cols-1 gap-3">
-                  {[
-                    { title: "Urgent", sub: "I need candidates within 1 to 2 weeks", icon: "⚡" },
-                    { title: "Normal", sub: "I need candidates within 3 to 4 weeks", icon: "🕒" },
-                    { title: "Planning ahead", sub: "I need candidates in 1 to 3 months", icon: "📅" },
-                    { title: "Not sure yet", sub: "I need help estimating the timeline", icon: "?" },
-                  ].map((item) => (
-                    <OptionCard
-                      key={item.title}
-                      label={item.title}
-                      sublabel={item.sub}
-                      selected={form.urgency === item.title}
-                      onClick={() => setForm((prev) => ({ ...prev, urgency: item.title }))}
-                      icon={<span className="text-lg text-[#C9A84C]">{item.icon}</span>}
-                    />
-                  ))}
+              <div className="space-y-5">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 3 of 8</p>
+                <h2 className="text-2xl font-extrabold">Salary and conditions</h2>
+                <div className="grid grid-cols-2 gap-3">
+                  <input className={inputClass} value={form.salaryMin} onChange={(e) => setForm((p) => ({ ...p, salaryMin: e.target.value }))} placeholder="Salary min" />
+                  <input className={inputClass} value={form.salaryMax} onChange={(e) => setForm((p) => ({ ...p, salaryMax: e.target.value }))} placeholder="Salary max" />
+                </div>
+                <div>
+                  <p className={labelClass}>Accommodation</p>
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                    {["Provided", "Not provided"].map((option) => (
+                      <OptionCard key={option} label={option} selected={form.accommodation === option} onClick={() => setForm((p) => ({ ...p, accommodation: option }))} />
+                    ))}
+                  </div>
+                </div>
+                {form.accommodation === "Not provided" ? (
+                  <input className={inputClass} value={form.accommodationSupport} onChange={(e) => setForm((p) => ({ ...p, accommodationSupport: e.target.value }))} placeholder="Accommodation helper note" />
+                ) : null}
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div>
+                    <p className={labelClass}>Local travel</p>
+                    <div className="flex gap-2">
+                      {["Covered", "Not covered"].map((opt) => (
+                        <button key={opt} type="button" className={`rounded-lg border px-4 py-2 text-sm ${form.localTransport === opt ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`} onClick={() => setForm((p) => ({ ...p, localTransport: opt }))}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className={labelClass}>International travel</p>
+                    <div className="flex gap-2">
+                      {["Covered", "Not covered"].map((opt) => (
+                        <button key={opt} type="button" className={`rounded-lg border px-4 py-2 text-sm ${form.internationalTransport === opt ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`} onClick={() => setForm((p) => ({ ...p, internationalTransport: opt }))}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between rounded-[10px] border border-[rgba(201,168,76,0.2)] px-4 py-3">
+                  <p className="text-sm text-white/80">Subscribe to candidate updates</p>
+                  <button type="button" className={`h-7 w-12 rounded-full p-1 ${form.subscribeUpdates ? "bg-[#C9A84C]" : "bg-white/20"}`} onClick={() => setForm((p) => ({ ...p, subscribeUpdates: !p.subscribeUpdates }))}>
+                    <span className={`block h-5 w-5 rounded-full bg-white transition ${form.subscribeUpdates ? "translate-x-5" : "translate-x-0"}`} />
+                  </button>
                 </div>
               </div>
             )}
 
             {step === 3 && (
-              <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 4 of 6</p>
-                <h2 className="text-2xl font-extrabold">What are you offering?</h2>
-                <p className="text-sm text-white/50">Help candidates understand the conditions.</p>
-
+              <div className="space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 4 of 8</p>
+                <h2 className="text-2xl font-extrabold">Requirements</h2>
                 <div>
-                  <p className={labelClass}>Contract type</p>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {["Permanent employment", "Temporary hire", "Staffing (innleie)", "Project-based"].map(
-                      (option) => (
-                        <OptionCard
-                          key={option}
-                          label={option}
-                          selected={form.contractType === option}
-                          onClick={() => setForm((prev) => ({ ...prev, contractType: option }))}
-                        />
-                      ),
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <p className={labelClass}>Salary range</p>
-                  <div className="mb-3 flex gap-2">
-                    {(["per hour", "per month"] as const).map((period) => (
-                      <button
-                        key={period}
-                        type="button"
-                        className={`rounded-lg border px-4 py-2 text-sm transition ${
-                          form.salaryPeriod === period
-                            ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]"
-                            : "border-white/10 bg-white/[0.03] text-white/60"
-                        }`}
-                        onClick={() => setForm((prev) => ({ ...prev, salaryPeriod: period }))}
-                      >
-                        {period === "per hour" ? "Per hour" : "Per month"}
-                      </button>
+                  <p className={labelClass}>Qualification</p>
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                    {["No minimum", "1 to 2 years", "3 to 5 years", "5+ years"].map((opt) => (
+                      <OptionCard key={opt} label={opt} selected={form.qualification === opt} onClick={() => setForm((p) => ({ ...p, qualification: opt }))} />
                     ))}
                   </div>
-                  <div className="relative">
-                    <input
-                      className={inputClass}
-                      placeholder={
-                        form.salaryPeriod === "per hour" ? "e.g. 280 to 330" : "e.g. 45000 to 55000"
-                      }
-                      value={form.salary}
-                      onChange={(e) => setForm((prev) => ({ ...prev, salary: e.target.value }))}
-                    />
-                    <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-white/40">
-                      NOK
-                    </span>
-                  </div>
                 </div>
-
-                <div>
-                  <p className={labelClass}>Overtime</p>
-                  <div className="flex flex-wrap gap-2">
-                    {["Yes", "Occasionally", "No"].map((option) => (
-                      <OptionCard
-                        key={option}
-                        label={option}
-                        selected={form.overtime === option}
-                        onClick={() => setForm((prev) => ({ ...prev, overtime: option }))}
-                      />
-                    ))}
-                  </div>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {[
+                    { label: "Driver license required", key: "driverLicenseRequired" as const },
+                    { label: "Trade certificate preferred", key: "tradeCertificatePreferred" as const },
+                    { label: "Jaguar or Land Rover preferred", key: "jaguarLandRoverPreferred" as const },
+                    { label: "Customer communication required", key: "customerCommunicationRequired" as const },
+                    { label: "Diagnostics and electronics required", key: "diagnosticsExperienceRequired" as const },
+                  ].map(({ label, key }) => (
+                    <div key={key}>
+                      <p className={labelClass}>{label}</p>
+                      <div className="flex gap-2">
+                        {(["Yes", "No"] as const).map((value) => (
+                          <button
+                            key={value}
+                            type="button"
+                            className={`rounded-lg border px-4 py-2 text-sm ${
+                              form[key] === value
+                                ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]"
+                                : "border-white/20 text-white/60"
+                            }`}
+                            onClick={() => setForm((p) => ({ ...p, [key]: value }))}
+                          >
+                            {value}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
             {step === 4 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 5 of 6</p>
-                <h2 className="text-2xl font-extrabold">Where will they work?</h2>
-                <p className="text-sm text-white/50">Select one or multiple work locations in Norway.</p>
-
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
-                  <input
-                    className={`${inputClass} pl-10`}
-                    placeholder="Search city or region..."
-                    value={citySearch}
-                    onChange={(e) => setCitySearch(e.target.value)}
-                  />
-                </div>
-
-                <div className="max-h-[280px] space-y-2 overflow-y-auto pr-1">
-                  {filteredCities.map((city) => (
-                    <button
-                      key={city}
-                      type="button"
-                      onClick={() => toggleLocation(city)}
-                      className={`w-full rounded-lg border px-4 py-2 text-left text-sm transition ${
-                        form.locations.includes(city)
-                          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
-                          : "border-white/10 bg-white/[0.03] text-white hover:border-white/20"
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>{city}</span>
-                        {form.locations.includes(city) ? <span>✓</span> : null}
-                      </span>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 5 of 8</p>
+                <h2 className="text-2xl font-extrabold">Work tasks</h2>
+                <div className="flex flex-wrap gap-2">
+                  {WORK_TASK_OPTIONS.map((task) => (
+                    <button key={task} type="button" onClick={() => toggleItem("workTasks", task)} className={`rounded-full border px-4 py-2 text-sm ${form.workTasks.includes(task) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}>
+                      {task}
                     </button>
                   ))}
                 </div>
@@ -1706,100 +1775,43 @@ export default function RequestTokenPage() {
             )}
 
             {step === 5 && (
-              <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 6 of 6</p>
-                <h2 className="text-2xl font-extrabold">Final details</h2>
-                <p className="text-sm text-white/50">Almost done. A few last questions.</p>
-
-                <div>
-                  <p className={labelClass}>Accommodation</p>
-                  <div className="flex flex-wrap gap-2">
-                    {["Provided", "Not provided"].map((option) => (
-                      <OptionCard
-                        key={option}
-                        label={option}
-                        selected={form.accommodation === option}
-                        onClick={() =>
-                          setForm((prev) => ({
-                            ...prev,
-                            accommodation: option,
-                            accommodationSupport: option === "Not provided" ? prev.accommodationSupport : "",
-                          }))
-                        }
-                      />
-                    ))}
-                  </div>
+              <div className="space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 6 of 8</p>
+                <h2 className="text-2xl font-extrabold">Personal qualities</h2>
+                <div className="flex flex-wrap gap-2">
+                  {PERSONAL_QUALITY_OPTIONS.map((item) => (
+                    <button key={item} type="button" onClick={() => toggleItem("personalQualities", item)} className={`rounded-full border px-4 py-2 text-sm ${form.personalQualities.includes(item) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}>
+                      {item}
+                    </button>
+                  ))}
                 </div>
+              </div>
+            )}
 
-                {form.accommodation === "Not provided" && (
-                  <div>
-                    <p className={labelClass}>If not provided, can you help candidate find accommodation?</p>
-                    <div className="flex flex-wrap gap-2">
-                      {["Can help candidate find accommodation", "Cannot help candidate find accommodation"].map(
-                        (option) => (
-                          <OptionCard
-                            key={option}
-                            label={option}
-                            selected={form.accommodationSupport === option}
-                            onClick={() => setForm((prev) => ({ ...prev, accommodationSupport: option }))}
-                          />
-                        ),
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <p className={labelClass}>International transport</p>
-                  <div className="flex flex-wrap gap-2">
-                    {["Covered", "Not covered", "Negotiable"].map((option) => (
-                      <OptionCard
-                        key={option}
-                        label={option}
-                        selected={form.internationalTransport === option}
-                        onClick={() => setForm((prev) => ({ ...prev, internationalTransport: option }))}
-                      />
-                    ))}
-                  </div>
+            {step === 6 && (
+              <div className="space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 7 of 8</p>
+                <h2 className="text-2xl font-extrabold">We offer</h2>
+                <div className="flex flex-wrap gap-2">
+                  {OFFER_OPTIONS.map((item) => (
+                    <button key={item} type="button" onClick={() => toggleItem("offerItems", item)} className={`rounded-full border px-4 py-2 text-sm ${form.offerItems.includes(item) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}>
+                      {item}
+                    </button>
+                  ))}
                 </div>
+              </div>
+            )}
 
-                <div>
-                  <p className={labelClass}>Local transport</p>
-                  <div className="flex flex-wrap gap-2">
-                    {["Covered", "Not covered", "Negotiable"].map((option) => (
-                      <OptionCard
-                        key={option}
-                        label={option}
-                        selected={form.localTransport === option}
-                        onClick={() => setForm((prev) => ({ ...prev, localTransport: option }))}
-                      />
-                    ))}
-                  </div>
+            {step === 7 && (
+              <div className="space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 8 of 8</p>
+                <h2 className="text-2xl font-extrabold">Final notes preview</h2>
+                <div className="rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-4">
+                  <pre className="whitespace-pre-wrap text-sm text-white/75">{generatedNotes}</pre>
                 </div>
-
                 <div>
-                  <p className={labelClass}>When do they start?</p>
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                    {["Specific start date", "After notice period", "Flexible start window", "To be agreed"].map((option) => (
-                      <OptionCard
-                        key={option}
-                        label={option}
-                        selected={form.startDate === option}
-                        onClick={() => setForm((prev) => ({ ...prev, startDate: option }))}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className={labelClass}>Anything else? (optional)</p>
-                  <textarea
-                    rows={3}
-                    className={`${inputClass} resize-none`}
-                    placeholder="Special requirements, shift patterns, language needs..."
-                    value={form.notes}
-                    onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
-                  />
+                  <p className={labelClass}>Additional notes (optional)</p>
+                  <textarea rows={4} className={`${inputClass} resize-none`} value={form.additionalNotes} onChange={(e) => setForm((p) => ({ ...p, additionalNotes: e.target.value }))} />
                 </div>
               </div>
             )}
@@ -1825,11 +1837,6 @@ export default function RequestTokenPage() {
               <button
                 type="button"
                 onClick={() => {
-                  if (step === 1 && form.workerType === "Other" && !form.tradeOther.trim()) {
-                    setSubmitStatus("error");
-                    setSubmitError("Please specify the trade type.");
-                    return;
-                  }
                   if (step < TOTAL_STEPS - 1) {
                     handleNext();
                   } else {
