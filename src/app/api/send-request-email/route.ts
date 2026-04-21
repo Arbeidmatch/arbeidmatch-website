@@ -196,12 +196,12 @@ export async function POST(request: NextRequest) {
       .join("");
     const employerInner = [
       emailBodyParagraph(`Thank you for your request, <strong>${safeCo}</strong>.`),
-      emailBodyParagraph("We have received your candidate request and will get back to you within 1 to 2 business days."),
+      emailBodyParagraph("We have received your candidate request and will contact you as soon as possible."),
       employerRowsHtml,
       emailBodyParagraph("<strong>What happens next</strong>"),
       emailBodyParagraph("1. We review your request."),
       emailBodyParagraph("2. We match suitable candidates."),
-      emailBodyParagraph("3. We contact you within 1 to 2 business days."),
+      emailBodyParagraph("3. We contact you as soon as possible."),
       emailBodyParagraph("<strong>Contact:</strong> post@arbeidmatch.no | +47 967 34 730"),
     ]
       .filter(Boolean)
@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
         subject: `Thank you for your request | ${data.company ?? "ArbeidMatch"}`,
         html: buildEmail({
           title: "Thank you for your request",
-          preheader: "We will get back to you within 24 hours",
+          preheader: "We will contact you as soon as possible",
           body: employerInner,
           ctaText: "Share feedback",
           ctaUrl: "https://arbeidmatch.no/feedback",
