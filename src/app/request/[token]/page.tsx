@@ -933,16 +933,16 @@ export default function RequestTokenPage() {
             </svg>
             <h1 className="mt-6 text-[2rem] font-bold tracking-[-0.02em] text-white">Request Received</h1>
             <p className="mt-3 text-base font-normal text-[#C9A84C]">
-              Thank you, {successCompanyName}. We will be in touch within 1 business day.
+              Thank you, {successCompanyName}. We have received your request.
             </p>
             {submitNotice ? <p className="mt-3 text-xs text-amber-300">{submitNotice}</p> : null}
 
             <div className="mx-auto mt-8 w-[320px] border-t border-[rgba(201,168,76,0.15)]" />
 
             <div className="mt-8 space-y-3 text-sm text-white">
-              <p>Your request has been reviewed by our team</p>
-              <p>We will match your requirements with available candidates</p>
-              <p>You will receive a shortlist within 3-5 business days</p>
+              <p>Our team will now review your request details.</p>
+              <p>We will validate requirements and matching availability.</p>
+              <p>We will return to you as soon as possible with next steps.</p>
             </div>
 
             <div className="mx-auto mt-8 w-[320px] border-t border-[rgba(201,168,76,0.15)]" />
