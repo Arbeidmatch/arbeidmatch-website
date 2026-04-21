@@ -57,7 +57,6 @@ export default function RequestPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchMessageIndex, setSearchMessageIndex] = useState(0);
   const [checkCount, setCheckCount] = useState(0);
-  const [pitchIndex, setPitchIndex] = useState(0);
   const [showAccessCheck, setShowAccessCheck] = useState(false);
 
   const [accessEmail, setAccessEmail] = useState("");
@@ -81,17 +80,6 @@ export default function RequestPage() {
     return [...startsWith, ...contains].slice(0, 8);
   }, [roleQuery, selectedIndustry]);
 
-  const pitchMessages = useMemo(
-    () => [
-      `${checkCount} candidate profiles are currently registered for ${searchTerm.trim()} roles.`,
-      "Each profile includes practical role history and availability signals.",
-      "This gives you an early view before moving into partner access.",
-      "If you need structured support, partner access unlocks full request handling.",
-      "You can continue below based on your company access status.",
-    ],
-    [checkCount, searchTerm],
-  );
-
   useEffect(() => {
     if (checkState !== "searching") return;
     const interval = setInterval(() => {
@@ -99,23 +87,6 @@ export default function RequestPage() {
     }, 1000);
     return () => clearInterval(interval);
   }, [checkState]);
-
-  useEffect(() => {
-    if (checkState !== "result") return;
-    setPitchIndex(0);
-    setShowAccessCheck(false);
-    const interval = setInterval(() => {
-      setPitchIndex((prev) => {
-        if (prev >= pitchMessages.length - 1) {
-          clearInterval(interval);
-          setShowAccessCheck(true);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 2300);
-    return () => clearInterval(interval);
-  }, [checkState, pitchMessages.length]);
 
   const runCandidateSearch = async (roleInput: string) => {
     const role = roleInput.trim();
@@ -131,6 +102,7 @@ export default function RequestPage() {
     let hash = 0;
     for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
     setCheckCount((hash % 36) + 12);
+    setShowAccessCheck(true);
     setCheckState("result");
   };
 
@@ -272,22 +244,17 @@ export default function RequestPage() {
 
         {checkState === "result" && (
           <div className="text-center">
-            {showAccessCheck && (
-              <button
-                type="button"
-                onClick={backToRoleSearch}
-                className="mb-4 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
-              >
-                <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
-                Back
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={backToRoleSearch}
+              className="mb-4 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
+            >
+              <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
+              Back
+            </button>
             <p className="text-[3rem] font-extrabold text-[#C9A84C]">0</p>
             <p className="mt-1 text-sm text-white/65">
               This feature is currently in development. At this stage, only our partners can submit candidate requests.
-            </p>
-            <p key={pitchMessages[pitchIndex]} className="mt-3 animate-[fadeMsg_2.3s_ease-in-out] text-sm text-white/75">
-              {pitchMessages[pitchIndex]}
             </p>
             <button
               type="button"
@@ -297,8 +264,7 @@ export default function RequestPage() {
               Search another role
             </button>
 
-            {showAccessCheck && (
-              <div className="mx-auto mt-8 max-w-[520px] text-left">
+            <div className="mx-auto mt-8 max-w-[520px] text-left">
                 <h2 className="text-center text-[1.1rem] font-bold text-white">Want to find the right candidate?</h2>
                 <form onSubmit={verifyAccess} className="mt-4">
                   <input
@@ -342,8 +308,7 @@ export default function RequestPage() {
                 {accessStatus === "error" && (
                   <p className="mt-4 text-sm text-red-300">Could not check access right now. Please try again.</p>
                 )}
-              </div>
-            )}
+            </div>
           </div>
         )}
       </div>
