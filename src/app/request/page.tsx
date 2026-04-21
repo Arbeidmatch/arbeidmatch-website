@@ -209,7 +209,7 @@ export default function RequestPage() {
     setResultAction("none");
   };
 
-  const showNonPartnerOptions = accessStatus === "non_partner" && resultAction !== "partner";
+  const showNonPartnerOptions = accessStatus === "non_partner" && resultAction === "non_partner";
 
   const reportPartnerIssue = async () => {
     if (!accessEmail.includes("@") || partnerIssueStatus === "submitting") return;
