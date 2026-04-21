@@ -560,14 +560,14 @@ export default function RequestPage() {
                     </svg>
                     <p className="mt-3 text-[18px] font-bold text-white">No partner account found</p>
                     <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.5)]">Tell us what happened and we will look into it right away.</p>
-                    <div className="mt-5">
+                    <div className="mt-5 flex flex-col gap-[10px]">
                       <button
                         type="button"
                         onClick={() => {
                           setResultAction("none");
                           router.push("/become-a-partner");
                         }}
-                        className="result-cta-primary w-full rounded-[10px] px-4 py-[13px] text-[15px] font-bold text-[#0D1B2A]"
+                        className="w-full rounded-[10px] bg-[linear-gradient(135deg,#C9A84C,#b8953f)] px-4 py-[13px] text-[15px] font-bold text-[#0D1B2A]"
                       >
                         Request partner access
                       </button>
@@ -580,7 +580,7 @@ export default function RequestPage() {
                             setNotFoundExiting(false);
                           }, 150);
                         }}
-                        className="mt-[10px] w-full rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[13px] text-[15px] text-[rgba(255,255,255,0.6)]"
+                        className="w-full rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[13px] text-[15px] text-[rgba(255,255,255,0.6)]"
                       >
                         Report a problem
                       </button>
