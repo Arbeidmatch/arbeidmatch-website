@@ -15,6 +15,7 @@ import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
 import { logApiError } from "@/lib/secureLogger";
+import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -66,12 +67,15 @@ export async function POST(request: NextRequest) {
       throw insertError;
     }
 
-    await transporter.sendMail({
-      ...mailHeaders(),
-      to: emailLower,
-      subject: "Your free Norway work guide — ArbeidMatch",
-      html: buildNonEuLeadEmail(firstName),
-    });
+    if (!(await isUnsubscribed(emailLower))) {
+      const unsubToken = await getOrCreateSubscription(emailLower, "non-eu-lead");
+      await transporter.sendMail({
+        ...mailHeaders(),
+        to: emailLower,
+        subject: "Your free Norway work guide — ArbeidMatch",
+        html: buildNonEuLeadEmail(firstName, unsubToken),
+      });
+    }
 
     await transporter.sendMail({
       ...mailHeaders(),

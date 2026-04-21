@@ -6,6 +6,7 @@ import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
 import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTemplate";
 import { mailHeaders, premiumCtaButton } from "@/lib/emailPremiumTemplate";
+import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 type ContactPayload = {
   name?: string;
@@ -93,16 +94,20 @@ export async function POST(request: NextRequest) {
       `<p style="margin:8px 0 0;text-align:center;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</p>`,
     ].join("");
 
-    await transporter.sendMail({
-      ...mailHeaders(),
-      to: email,
-      subject: "We received your message - ArbeidMatch",
-      html: buildEmail({
-        title: "We received your message",
-        preheader: "Our team will respond shortly",
-        body: userInner,
-      }),
-    });
+    if (!(await isUnsubscribed(email))) {
+      const unsubToken = await getOrCreateSubscription(email, "contact");
+      await transporter.sendMail({
+        ...mailHeaders(),
+        to: email,
+        subject: "We received your message - ArbeidMatch",
+        html: buildEmail({
+          title: "We received your message",
+          preheader: "Our team will respond shortly",
+          body: userInner,
+          unsubscribeToken: unsubToken,
+        }),
+      });
+    }
 
     void notifySlack("contacts", {
       title: "New Contact Form Submission",

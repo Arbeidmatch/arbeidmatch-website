@@ -2,7 +2,7 @@ import { buildEmail, emailBodyParagraph } from "@/lib/emailTemplate";
 import { escapeHtml } from "@/lib/htmlSanitizer";
 
 /** Lead magnet HTML for non-EU candidates who request the free overview. */
-export function buildNonEuLeadEmail(firstName: string): string {
+export function buildNonEuLeadEmail(firstName: string, unsubscribeToken?: string): string {
   const name = escapeHtml(firstName);
   const li = "margin-bottom:8px;font-size:13px;line-height:1.9;color:rgba(255,255,255,0.85);";
   const heading = "margin:0 0 10px;font-size:15px;font-weight:600;color:#C9A84C;";
@@ -37,6 +37,7 @@ ${section3}`;
     title: "Your free Norway work guide is here",
     preheader: "Everything you need to know before applying",
     body,
+    unsubscribeToken,
     footerNote:
       "ArbeidMatch is a private recruitment agency, not an official Norwegian authority. Always verify requirements with UDI.no and Arbeidstilsynet.no.",
   });

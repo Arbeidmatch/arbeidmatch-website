@@ -29,8 +29,9 @@ export function buildEmail(options: {
   ctaText?: string;
   ctaUrl?: string;
   footerNote?: string;
+  unsubscribeToken?: string;
 }): string {
-  const { title, preheader, body, ctaText, ctaUrl, footerNote } = options;
+  const { title, preheader, body, ctaText, ctaUrl, footerNote, unsubscribeToken } = options;
   const safeTitle = escapeHtml(title);
   const preheaderBlock = preheader
     ? `<p style="margin:0 0 24px 0;font-size:13px;color:#C9A84C;">${escapeHtml(preheader)}</p>`
@@ -85,6 +86,9 @@ export function buildEmail(options: {
     <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway</p>
     <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">post@arbeidmatch.no | arbeidmatch.no</p>
     ${footerNoteBlock}
+    ${unsubscribeToken ? `<p style="margin:16px 0 0 0;text-align:center;font-size:11px;color:rgba(255,255,255,0.2);">
+<a href="https://arbeidmatch.no/api/unsubscribe?token=${escapeHtml(unsubscribeToken)}" style="color:rgba(255,255,255,0.25);text-decoration:underline;">Unsubscribe</a>
+</p>` : ""}
 
   </div>
 </body>
