@@ -10,3 +10,6 @@ create table if not exists public.email_subscriptions (
 
 create index if not exists email_subscriptions_email_idx on public.email_subscriptions(email);
 create index if not exists email_subscriptions_token_idx on public.email_subscriptions(unsubscribe_token);
+
+grant all privileges on public.email_subscriptions to service_role;
+grant all privileges on public.email_subscriptions to postgres;
