@@ -21,7 +21,7 @@ export default function PartnerSessionPage() {
         const response = await fetch(`/api/verify-partner-session?token=${encodeURIComponent(session_token)}`);
         const data = (await response.json()) as SessionCheck;
         if (response.ok && data.valid && data.request_token) {
-          router.replace(`/request/partner/${session_token}/candidates`);
+          router.replace(`/request/${data.request_token}?start=wizard`);
           return;
         }
         if (data.reason === "expired") {
