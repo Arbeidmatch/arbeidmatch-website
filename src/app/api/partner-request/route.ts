@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { buildInternalEmailHtml, mailHeaders } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
@@ -43,6 +45,45 @@ async function sendSlackPartnerRequest(payload: SlackBlocksPayload) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
+  });
+}
+
+async function sendInternalPartnerRequestEmail(input: {
+  companyName: string;
+  email: string;
+  orgNumber: string;
+  phone: string;
+  contact: string;
+  requestId: string;
+}) {
+  const transporter = createSmtpTransporter();
+  if (!transporter) return;
+
+  const html = buildInternalEmailHtml({
+    title: "New Partner Request",
+    rows: [
+      { label: "Company", value: input.companyName },
+      { label: "Email", value: input.email },
+      { label: "Org Number", value: input.orgNumber },
+      { label: "Phone", value: input.phone },
+      { label: "Contact", value: input.contact },
+      { label: "Request ID", value: input.requestId },
+    ],
+  });
+
+  await transporter.sendMail({
+    ...mailHeaders(),
+    to: "post@arbeidmatch.no",
+    subject: `New Partner Request: ${input.companyName}`,
+    text:
+      `New partner request received.\n` +
+      `Company: ${input.companyName}\n` +
+      `Email: ${input.email}\n` +
+      `Org Number: ${input.orgNumber}\n` +
+      `Phone: ${input.phone}\n` +
+      `Contact: ${input.contact}\n` +
+      `Request ID: ${input.requestId}`,
+    html,
   });
 }
 
@@ -170,6 +211,15 @@ export async function POST(request: NextRequest) {
           ],
         },
       ],
+    });
+
+    await sendInternalPartnerRequestEmail({
+      companyName: parsed.data.companyName,
+      email,
+      orgNumber: parsed.data.orgNumber,
+      phone: parsed.data.phone,
+      contact: contactLabel,
+      requestId,
     });
 
     return NextResponse.json({ success: true });
