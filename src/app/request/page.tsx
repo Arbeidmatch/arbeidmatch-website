@@ -376,159 +376,55 @@ export default function RequestPage() {
       </div>
 
       {showNonPartnerOptions && (
-        <div className="mx-auto flex w-full flex-col items-center justify-center px-6 py-10">
-          <div className="w-full max-w-[980px]">
-            <button
-              type="button"
-              onClick={backToRoleSearch}
-              className="mb-6 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
-            >
-              <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
-              Back
-            </button>
-          </div>
-          <div className="non-partner-cards mx-auto w-full max-w-[900px]">
-            <div
-              className="non-partner-card flex h-full flex-col justify-between rounded-[20px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[32px_28px]"
-              style={{ animation: "optionIn .3s ease forwards", animationDelay: "0ms", opacity: 0, transform: "translateY(20px)" }}
-            >
-              <div>
-                <Users className="h-7 w-7 text-[#C9A84C]" />
-                <p className="mt-3 text-[18px] font-bold text-[#ffffff]">Become a Partner</p>
-                <p className="mb-4 mt-1 text-[12px] text-[rgba(255,255,255,0.45)]">For companies hiring regularly</p>
-                <div className="space-y-2 text-sm text-[rgba(255,255,255,0.72)]">
-                  <p className="flex items-start gap-2">
-                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
-                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
-                    </svg>
-                    Full access to candidate profiles
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
-                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
-                    </svg>
-                    Dedicated account support
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
-                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
-                    </svg>
-                    Priority candidate matching
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
-                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
-                    </svg>
-                    No per-search fees
-                  </p>
-                </div>
-              </div>
-              <Link
-                href="mailto:post@arbeidmatch.no"
-                className="mt-6 inline-flex w-full items-center justify-center rounded-[10px] bg-[#C9A84C] px-4 py-3 text-sm font-bold text-[#0D1B2A]"
-              >
-                Contact us
+        <div className="mx-auto flex min-h-[60vh] w-full max-w-[480px] flex-col items-center justify-center px-6 py-10 text-center">
+          <svg viewBox="0 0 24 24" className="h-12 w-12 text-[#C9A84C]" fill="none" aria-hidden>
+            <path d="M12 3 5 6v5c0 4.6 3.1 8.9 7 10 3.9-1.1 7-5.4 7-10V6l-7-3Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="m9 9 6 6m0-6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+          <h2 className="mt-5 text-[22px] font-bold text-white">No partner account found</h2>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[rgba(255,255,255,0.55)]">
+            We could not find a partner account linked to this email address. This could be a mistake, we are happy to check for you.
+          </p>
+          <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
+          <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="flex h-full flex-col rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[24px_20px] text-left">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#C9A84C]" fill="none" aria-hidden>
+                <path d="M6.6 10.8a15.7 15.7 0 0 0 6.6 6.6l2.2-2.2a1.2 1.2 0 0 1 1.2-.3c1 .3 2.2.5 3.4.5a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.8 21 3 13.2 3 4a1 1 0 0 1 1-1h3.4a1 1 0 0 1 1 1c0 1.2.2 2.4.5 3.4a1.2 1.2 0 0 1-.3 1.2l-2 2.2Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <p className="mt-2.5 text-[15px] font-semibold text-white">Call us</p>
+              <p className="mt-1.5 text-[13px] text-[rgba(255,255,255,0.5)]">Speak directly with our team and we will verify your status on the spot.</p>
+              <Link href="tel:+4796734730" className="mt-4 inline-flex items-center justify-center rounded-[10px] bg-[#C9A84C] px-5 py-2.5 text-sm font-bold text-[#0D1B2A]">
+                +47 96 73 47 30
               </Link>
             </div>
-            <div
-              className="non-partner-card flex h-full flex-col justify-between rounded-[20px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[32px_28px]"
-              style={{ animation: "optionIn .3s ease forwards", animationDelay: "80ms", opacity: 0, transform: "translateY(20px)" }}
-            >
-              <div>
-                <Star className="h-7 w-7 text-[#C9A84C]" />
-                <p className="mt-3 text-[18px] font-bold text-[#ffffff]">Premium Subscription</p>
-                <p className="mb-4 mt-1 text-[12px] text-[rgba(255,255,255,0.45)]">For growing companies</p>
-                <div className="space-y-2 text-sm text-[rgba(255,255,255,0.72)]">
-                  <p className="flex items-start gap-2">
-                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
-                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
-                    </svg>
-                    Monthly access to all profiles
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
-                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
-                    </svg>
-                    Advanced role filtering
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
-                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
-                    </svg>
-                    Candidate availability alerts
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
-                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
-                    </svg>
-                    Cancel anytime
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                disabled
-                className="mt-6 w-full cursor-default rounded-[10px] border border-[rgba(201,168,76,0.3)] bg-transparent px-4 py-3 text-sm font-semibold text-[rgba(255,255,255,0.6)]"
+            <div className="flex h-full flex-col rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[24px_20px] text-left">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#C9A84C]" fill="none" aria-hidden>
+                <path d="M12 3 4 7v6c0 4 3.2 7.8 8 9 4.8-1.2 8-5 8-9V7l-8-4Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M8.5 12.5h7m-7-3h7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+              <p className="mt-2.5 text-[15px] font-semibold text-white">Report an issue</p>
+              <p className="mt-1.5 text-[13px] text-[rgba(255,255,255,0.5)]">If you believe this is an error, let us know and we will investigate immediately.</p>
+              <Link
+                href="mailto:post@arbeidmatch.no?subject=Partner%20verification%20issue"
+                className="mt-4 inline-flex items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.3)] bg-transparent px-5 py-2.5 text-sm font-semibold text-[#C9A84C]"
               >
-                Coming soon
-              </button>
-            </div>
-            <div
-              className="non-partner-card flex h-full flex-col justify-between rounded-[20px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-[32px_28px]"
-              style={{ animation: "optionIn .3s ease forwards", animationDelay: "160ms", opacity: 0, transform: "translateY(20px)" }}
-            >
-              <div>
-                <Clock3 className="h-7 w-7 text-[#C9A84C]" />
-                <p className="mt-3 text-[18px] font-bold text-[#ffffff]">Pay per use</p>
-                <p className="mb-4 mt-1 text-[12px] text-[rgba(255,255,255,0.45)]">For occasional hiring needs</p>
-                <div className="space-y-2 text-sm text-[rgba(255,255,255,0.72)]">
-                  <p className="flex items-start gap-2">
-                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
-                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
-                    </svg>
-                    Access profiles when you need them
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
-                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
-                    </svg>
-                    No subscription required
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
-                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
-                    </svg>
-                    Simple and flexible
-                  </p>
-                  <p className="flex items-start gap-2">
-                    <svg viewBox="0 0 20 20" className="mt-[2px] h-[14px] w-[14px] text-[#C9A84C]" aria-hidden>
-                      <path fill="currentColor" d="M7.8 14.5 3.6 10.3l1.4-1.4 2.8 2.8 7.2-7.2 1.4 1.4-8.6 8.6Z" />
-                    </svg>
-                    Pricing announced soon
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                disabled
-                className="mt-6 w-full cursor-default rounded-[10px] border border-[rgba(201,168,76,0.3)] bg-transparent px-4 py-3 text-sm font-semibold text-[rgba(255,255,255,0.6)]"
-              >
-                Coming soon
-              </button>
+                Send feedback
+              </Link>
             </div>
           </div>
-          <div className="mt-4 flex items-center justify-center gap-2 md:hidden">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#C9A84C]" />
-            <span className="h-1.5 w-1.5 rounded-full bg-[rgba(201,168,76,0.35)]" />
-            <span className="h-1.5 w-1.5 rounded-full bg-[rgba(201,168,76,0.35)]" />
-          </div>
-          <p className="mt-7 text-center text-[13px] text-[rgba(255,255,255,0.4)]">Already a partner but not recognized?</p>
-          <Link
-            href="/contact?subject=Partner%20verification%20issue"
-            className="mx-auto mt-2 inline-flex text-[13px] text-[rgba(201,168,76,0.7)] underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
-          >
-            Contact Support
-          </Link>
+          <p className="mt-6 text-[12px] text-[rgba(255,255,255,0.3)]">
+            You can also try a different email address.{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setAccessStatus("idle");
+                setResultAction("partner");
+              }}
+              className="text-[#C9A84C] underline underline-offset-2 transition-colors hover:text-[#d8bb69]"
+            >
+              Try again
+            </button>
+          </p>
         </div>
       )}
 
@@ -567,7 +463,7 @@ export default function RequestPage() {
         </>
       )}
 
-      {resultAction === "partner" && (
+      {resultAction === "partner" && accessStatus !== "non_partner" && (
         <>
           <div className="partner-modal-backdrop fixed inset-0 z-[9998] bg-[rgba(0,0,0,0.75)] backdrop-blur-[6px]" />
           <div className="partner-modal fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10">
