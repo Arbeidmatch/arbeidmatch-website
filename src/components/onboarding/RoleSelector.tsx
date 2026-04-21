@@ -83,23 +83,25 @@ function RoleCard({
           style={{ background: "rgba(201,168,76,0.4)" }}
           aria-hidden
         />
-        <span className="relative z-[1] mb-3 flex h-8 w-8 items-center justify-center text-[#C9A84C] [filter:drop-shadow(0_0_8px_rgba(201,168,76,0.3))] [&>svg]:h-8 [&>svg]:w-8 md:mb-5 md:h-12 md:w-12 md:[&>svg]:h-12 md:[&>svg]:w-12">
-          {icon}
-        </span>
-        <h2
-          className="text-white"
-          style={{
-            fontSize: "1.1rem",
-            fontWeight: 800,
-            marginBottom: 6,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {title}
-        </h2>
-        <p className="mb-3 flex-grow overflow-hidden text-[12px] leading-[1.5] text-white/[0.6] role-subtitle md:mb-0 md:flex-grow-0 md:text-[14px] md:leading-[1.7]">
-          {subtitle}
-        </p>
+        <div className="flex flex-1 flex-col">
+          <span className="relative z-[1] mb-3 flex h-8 w-8 items-center justify-center text-[#C9A84C] [&>svg]:h-8 [&>svg]:w-8 md:mb-5 md:h-12 md:w-12 md:[&>svg]:h-12 md:[&>svg]:w-12">
+            {icon}
+          </span>
+          <h2
+            className="text-white"
+            style={{
+              fontSize: "1.1rem",
+              fontWeight: 800,
+              marginBottom: 6,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {title}
+          </h2>
+          <p className="mb-3 overflow-hidden text-[12px] leading-[1.5] text-white/[0.6] role-subtitle md:mb-0 md:text-[14px] md:leading-[1.7]">
+            {subtitle}
+          </p>
+        </div>
         <div className="mt-auto pt-0 md:mt-6 md:pt-0">
           <span
             className="flex w-full items-center justify-center gap-2 whitespace-nowrap font-bold"
@@ -274,11 +276,6 @@ export default function RoleSelector() {
                 padding: 32px 28px !important;
               }
             }
-            @media (max-width: 767px) {
-              .role-card {
-                min-height: auto;
-              }
-            }
             @media (min-width: 768px) {
               .role-card h2 {
                 font-size: 1.5rem !important;
@@ -288,6 +285,7 @@ export default function RoleSelector() {
                 -webkit-line-clamp: 3;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
+                min-height: 72px;
               }
               .role-card > span:first-of-type {
                 height: 48px;
@@ -304,6 +302,7 @@ export default function RoleSelector() {
                 -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
+                min-height: 36px;
               }
             }
           `}</style>
