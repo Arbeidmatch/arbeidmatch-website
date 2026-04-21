@@ -9,7 +9,7 @@ import { ArrowRight, Briefcase, UserCheck } from "lucide-react";
 const GOLD = "#C9A84C";
 const STORAGE_KEY = "roleSelected";
 
-const cardTransition = "all 0.25s ease";
+const cardTransition = "all 0.3s ease";
 const ctaTransition = "all 0.2s ease";
 
 function RoleCard({
@@ -60,15 +60,17 @@ function RoleCard({
         onClick={onSelect}
         className="role-card group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col break-words"
         style={{
-          borderRadius: 16,
+          borderRadius: 20,
           padding: "28px 24px",
           border: active ? "1px solid rgba(201,168,76,0.4)" : "1px solid rgba(201,168,76,0.2)",
-          background: active ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.04)",
+          background: active
+            ? "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)"
+            : "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
           boxShadow: active
             ? "0 0 0 1px rgba(201,168,76,0.4), 0 8px 32px rgba(201,168,76,0.08)"
             : "none",
           transition: cardTransition,
-          animation: skipMotion ? "none" : "goldPulse 2s ease-in-out infinite alternate",
+          animation: skipMotion ? "none" : "goldPulse 3s ease-in-out infinite alternate",
         }}
       >
         {active ? (
@@ -79,20 +81,26 @@ function RoleCard({
           />
         ) : null}
 
-        <span className="relative z-[1] flex h-10 w-10 items-center justify-center text-[#C9A84C] [&>svg]:h-10 [&>svg]:w-10">
+        <div
+          className="pointer-events-none absolute left-6 right-6 top-0 h-[2px]"
+          style={{ background: "rgba(201,168,76,0.4)" }}
+          aria-hidden
+        />
+        <span className="relative z-[1] mb-5 flex h-12 w-12 items-center justify-center text-[#C9A84C] [filter:drop-shadow(0_0_8px_rgba(201,168,76,0.3))] [&>svg]:h-12 [&>svg]:w-12">
           {icon}
         </span>
         <h2
-          className="mt-4 text-white"
+          className="text-white"
           style={{
-            fontSize: "clamp(1rem, 4vw, 1.5rem)",
+            fontSize: "1.25rem",
             fontWeight: 800,
-            marginBottom: 8,
+            marginBottom: 10,
+            letterSpacing: "-0.02em",
           }}
         >
           {title}
         </h2>
-        <p className="flex-grow text-[14px] leading-[1.6] text-white/[0.55]">{subtitle}</p>
+        <p className="mb-6 flex-grow text-[14px] leading-[1.7] text-white/[0.6]">{subtitle}</p>
         <span
           className="mt-auto flex w-full items-center justify-center gap-2 whitespace-nowrap font-bold"
           style={{
@@ -100,11 +108,11 @@ function RoleCard({
             color: "#0D1B2A",
             fontWeight: 700,
             borderRadius: 12,
-            padding: "10px 12px",
+            padding: "14px 24px",
             width: "100%",
-            fontSize: 13,
+            fontSize: 14,
             letterSpacing: "0.01em",
-            transform: active ? "scale(1.02)" : "scale(1)",
+            transform: active ? "translateY(-1px)" : "translateY(0)",
             transition: ctaTransition,
             pointerEvents: "none",
           }}
@@ -208,10 +216,10 @@ export default function RoleSelector() {
               </motion.div>
 
               <div
-                className="w-full rounded-[24px] px-2 py-6 min-[640px]:px-4 min-[640px]:py-8"
+                className="mx-auto w-full max-w-[800px] rounded-[24px] px-2 py-6 min-[640px]:px-4 min-[640px]:py-8"
                 style={{
                   background:
-                    "radial-gradient(ellipse at 50% 60%, rgba(201,168,76,0.04) 0%, transparent 70%)",
+                    "radial-gradient(ellipse at 50% 50%, rgba(201,168,76,0.05) 0%, transparent 70%)",
                 }}
               >
                 <div className="flex min-h-0 w-full flex-col gap-3 md:flex-row md:items-stretch md:gap-5">
@@ -238,7 +246,7 @@ export default function RoleSelector() {
 
               <button
                 type="button"
-                className="shrink-0 cursor-pointer pt-1 text-center text-[12px] text-white/[0.3] transition-colors hover:text-white/50 max-[639px]:mt-4 min-[640px]:mt-2 min-[640px]:text-[13px]"
+                className="mt-8 shrink-0 cursor-pointer pt-1 text-center text-[13px] text-white/[0.3] transition-colors hover:text-white/60"
                 onClick={() => closeWithOptionalRedirect("skipped", null)}
               >
                 Continue without selecting
@@ -248,10 +256,10 @@ export default function RoleSelector() {
           <style jsx>{`
             @keyframes goldPulse {
               from {
-                border-color: rgba(201, 168, 76, 0.2);
+                border-color: rgba(201, 168, 76, 0.15);
               }
               to {
-                border-color: rgba(201, 168, 76, 0.5);
+                border-color: rgba(201, 168, 76, 0.35);
               }
             }
             @media (prefers-reduced-motion: reduce) {
@@ -262,11 +270,17 @@ export default function RoleSelector() {
             @media (min-width: 640px) {
               .role-card {
                 min-height: 420px;
+                padding: 36px 32px !important;
               }
             }
             @media (max-width: 767px) {
               .role-card {
-                min-height: 45vh;
+                min-height: auto;
+              }
+            }
+            @media (min-width: 768px) {
+              .role-card h2 {
+                font-size: 1.5rem !important;
               }
             }
           `}</style>
