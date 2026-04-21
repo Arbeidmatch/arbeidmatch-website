@@ -23,9 +23,9 @@ export function buildNonEuLeadEmail(firstName: string, unsubscribeToken?: string
 </ul>`;
 
   const ctaUrl = "https://arbeidmatch.no/dsb-support/non-eu";
-  const section3 = `<p style="${heading}">Want the complete step-by-step guide?</p>
-<p style="margin:0 0 16px;font-size:13px;line-height:1.8;color:rgba(255,255,255,0.8);">Our Non-EU Norway Work Guide covers everything: documents, DSB authorization, tax registration, banking, accommodation.</p>
-<a href="${escapeHtml(ctaUrl)}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-weight:700;font-size:13px;padding:12px 28px;border-radius:8px;text-decoration:none;">Get the Full Guide — 39 EUR</a>`;
+  const section3 = `<p style="${heading}">Working as an electrician in Norway?</p>
+<p style="margin:0 0 16px;font-size:13px;line-height:1.8;color:rgba(255,255,255,0.8);">Our DSB Authorization Guide covers the complete process for non-EU electricians seeking DSB approval to work legally in Norway.</p>
+<a href="${escapeHtml(ctaUrl)}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-weight:700;font-size:13px;padding:12px 28px;border-radius:8px;text-decoration:none;">Get the DSB Authorization Guide — 39 EUR</a>`;
 
   const body = `${emailBodyParagraph(`Hi ${name},`)}
 ${emailBodyParagraph("Here is a practical overview to help you prepare before you apply.")}
