@@ -401,6 +401,15 @@ function ProgressDot({ index, step }: { index: number; step: number }) {
 
 export default function RequestTokenPage() {
   const { token } = useParams<{ token: string }>();
+  const SEARCH_MESSAGES = [
+    "Connecting to candidate database...",
+    "Searching registered profiles...",
+    "Matching role requirements...",
+    "Analyzing availability...",
+    "Cross-referencing location data...",
+    "Finalizing results...",
+    "Almost ready...",
+  ] as const;
 
   const [step, setStep] = useState(0);
   const [animating, setAnimating] = useState(false);
@@ -413,6 +422,12 @@ export default function RequestTokenPage() {
   const [tokenGate, setTokenGate] = useState<"loading" | "ready" | "blocked" | "error">("loading");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [citySearch, setCitySearch] = useState("");
+  const [showChoice, setShowChoice] = useState(true);
+  const [choiceMode, setChoiceMode] = useState<"cards" | "check">("cards");
+  const [checkState, setCheckState] = useState<"idle" | "searching" | "result">("idle");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchMessageIndex, setSearchMessageIndex] = useState(0);
+  const [checkCount, setCheckCount] = useState(0);
 
   const scrollToTop = () => {
     if (typeof window === "undefined") return;
@@ -639,6 +654,32 @@ export default function RequestTokenPage() {
     }
   };
 
+  useEffect(() => {
+    if (checkState !== "searching") return;
+    const interval = setInterval(() => {
+      setSearchMessageIndex((prev) => (prev + 1) % SEARCH_MESSAGES.length);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [checkState, SEARCH_MESSAGES.length]);
+
+  const runCandidateSearch = async () => {
+    const role = searchTerm.trim();
+    if (role.length < 2) return;
+    setCheckState("searching");
+    setSearchMessageIndex(0);
+    const waitMs = reducedMotion ? 2000 : 7000;
+    await new Promise((resolve) => setTimeout(resolve, waitMs));
+    try {
+      const response = await fetch(`/api/check-candidates?role=${encodeURIComponent(role)}`);
+      const payload = (await response.json()) as { count?: number };
+      setCheckCount(typeof payload.count === "number" ? payload.count : 0);
+    } catch {
+      setCheckCount(0);
+    } finally {
+      setCheckState("result");
+    }
+  };
+
   if (submitStatus === "success") {
     const successCompanyName = tokenData?.company?.trim() || "your company";
     const successAnimationStyle = reducedMotion
@@ -748,6 +789,136 @@ export default function RequestTokenPage() {
           </Link>
         </div>
       </section>
+    );
+  }
+
+  if (showChoice) {
+    return (
+      <div className="min-h-dvh bg-[#0a0f18] px-4 py-10 text-white md:px-6">
+        <div className="mx-auto w-full max-w-[980px]">
+          {choiceMode === "cards" ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-9 transition-colors hover:border-[rgba(201,168,76,0.45)]">
+                <svg className="mb-5 h-9 w-9 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M7 3h7l5 5v13H7V3Z" stroke="currentColor" strokeWidth="1.8" />
+                  <path d="M14 3v5h5M10 12h6M10 16h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+                <h2 className="text-2xl font-bold">I know what I need</h2>
+                <p className="mt-3 text-sm text-white/65">
+                  Submit your full requirements and we will match you with the right candidates.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowChoice(false)}
+                  className="mt-6 rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A]"
+                >
+                  Start request
+                </button>
+              </div>
+              <div className="rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-9 transition-colors hover:border-[rgba(201,168,76,0.45)]">
+                <svg className="mb-5 h-9 w-9 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.8" />
+                  <path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+                <h2 className="text-2xl font-bold">Check candidate availability</h2>
+                <p className="mt-3 text-sm text-white/65">
+                  See how many candidates we have registered for a specific role before committing.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setChoiceMode("check")}
+                  className="mt-6 rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A]"
+                >
+                  Check now
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-9">
+              {checkState === "idle" && (
+                <>
+                  <h2 className="text-2xl font-bold">Which role are you looking for?</h2>
+                  <input
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="e.g. Electrician, Welder, Carpenter..."
+                    className="mt-5 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={runCandidateSearch}
+                    disabled={searchTerm.trim().length < 2}
+                    className="mt-5 rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-50"
+                  >
+                    Search candidates
+                  </button>
+                </>
+              )}
+              {checkState === "searching" && (
+                <div className="flex flex-col items-center py-10 text-center">
+                  <span className={`h-12 w-12 rounded-full border-[3px] border-[rgba(201,168,76,0.2)] border-t-[#C9A84C] ${reducedMotion ? "" : "animate-[spin_1s_linear_infinite]"}`} />
+                  <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
+                </div>
+              )}
+              {checkState === "result" && (
+                <div className="text-center">
+                  {checkCount > 0 ? (
+                    <>
+                      <p className="text-[3rem] font-extrabold text-[#C9A84C]">{checkCount}</p>
+                      <p className="text-base text-white">candidates currently registered for {searchTerm.trim()}</p>
+                      <p className="mt-3 text-sm text-white/65">
+                        Ready to proceed? Complete your full request and we will present matching profiles.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowChoice(false)}
+                        className="mt-6 rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A]"
+                      >
+                        Start full request
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-lg font-semibold text-white">
+                        No candidates currently registered for {searchTerm.trim()}.
+                      </p>
+                      <p className="mt-3 text-sm text-white/65">
+                        We are actively sourcing. Submit your request and we will notify you when candidates become available.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowChoice(false)}
+                        className="mt-6 rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A]"
+                      >
+                        Submit request anyway
+                      </button>
+                    </>
+                  )}
+                  <div className="mx-auto mt-8 h-px w-full max-w-[420px] bg-[rgba(201,168,76,0.18)]" />
+                  <p className="mt-5 text-xs text-[rgba(255,255,255,0.4)]">Want faster results?</p>
+                  <Link href="/premium" className="mt-2 inline-block text-sm font-semibold text-[#C9A84C]">
+                    Upgrade to Premium
+                  </Link>
+                  <p className="mt-2 text-[11px] text-[rgba(255,255,255,0.3)]">
+                    Premium members get priority candidate matching and faster response times.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCheckState("idle");
+                      setSearchTerm("");
+                      setCheckCount(0);
+                    }}
+                    className="mt-6 text-sm text-white/70 underline underline-offset-4"
+                  >
+                    Search another role
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     );
   }
 
@@ -1202,6 +1373,14 @@ export default function RequestTokenPage() {
           to {
             opacity: 1;
             transform: translateX(0);
+          }
+        }
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
           }
         }
       `}</style>
