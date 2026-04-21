@@ -30,8 +30,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ valid: false, reason: "expired" });
     }
 
-    await supabase.from("partner_sessions").update({ used: true }).eq("id", data.id);
-
     return NextResponse.json({
       valid: true,
       request_token: data.request_token,
