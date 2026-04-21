@@ -6,11 +6,9 @@ import { getRateLimitResult, hasHoneypotValue, noStoreJson, parseJsonBodyWithSch
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import { notifySlack } from "@/lib/slackNotifier";
-import { buildEmail } from "@/lib/emailTemplate";
+import { buildEmail, buildEmailFieldRow, emailBodyParagraph } from "@/lib/emailTemplate";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 import {
-  emailDataTable,
-  emailParagraph,
   mailHeaders,
 } from "@/lib/emailPremiumTemplate";
 
@@ -193,15 +191,18 @@ export async function POST(request: NextRequest) {
     ].filter((r) => hasValue(r.value));
 
     const safeCo = escapeHtml(data.company || "team");
+    const employerRowsHtml = employerRows
+      .map((row) => buildEmailFieldRow(escapeHtml(row.label), escapeHtml(row.value)))
+      .join("");
     const employerInner = [
-      emailParagraph(`Thank you for your request, <strong>${safeCo}</strong>!`),
-      emailParagraph("We have received your candidate request and will get back to you within 24 hours."),
-      employerRows.length ? emailDataTable(employerRows) : "",
-      emailParagraph("<strong>What happens next</strong>"),
-      emailParagraph("1. We review your request"),
-      emailParagraph("2. We match suitable candidates"),
-      emailParagraph("3. We contact you within 24 hours"),
-      emailParagraph("<strong>Contact:</strong> post@arbeidmatch.no · +47 967 34 730"),
+      emailBodyParagraph(`Thank you for your request, <strong>${safeCo}</strong>.`),
+      emailBodyParagraph("We have received your candidate request and will get back to you within 1 to 2 business days."),
+      employerRowsHtml,
+      emailBodyParagraph("<strong>What happens next</strong>"),
+      emailBodyParagraph("1. We review your request."),
+      emailBodyParagraph("2. We match suitable candidates."),
+      emailBodyParagraph("3. We contact you within 1 to 2 business days."),
+      emailBodyParagraph("<strong>Contact:</strong> post@arbeidmatch.no | +47 967 34 730"),
     ]
       .filter(Boolean)
       .join("");
@@ -240,11 +241,11 @@ export async function POST(request: NextRequest) {
       const referralUnsubToken = await getOrCreateSubscription(data.referralEmail, "employer-request");
       const safeRefCo = escapeHtml(data.company || "-");
       const referralInner = [
-        emailParagraph("Thank you for recommending ArbeidMatch!"),
-        emailParagraph(
+        emailBodyParagraph("Thank you for recommending ArbeidMatch!"),
+        emailBodyParagraph(
           `We received a request from <strong>${safeRefCo}</strong> and they mentioned your recommendation.`,
         ),
-        emailParagraph("We appreciate your trust. If we can support your hiring needs in the future, we would be happy to help."),
+        emailBodyParagraph("We appreciate your trust. If we can support your hiring needs in the future, we would be happy to help."),
       ].join("");
       await transporter.sendMail({
         ...mailHeaders(),
