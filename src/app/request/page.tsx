@@ -364,7 +364,7 @@ export default function RequestPage() {
       </div>
 
       {showNonPartnerOptions && (
-        <div className="mx-auto flex min-h-[70vh] w-full flex-col items-center justify-center">
+        <div className="mx-auto flex w-full flex-col items-center justify-center px-6 py-10">
           <div className="w-full max-w-[980px]">
             <button
               type="button"
