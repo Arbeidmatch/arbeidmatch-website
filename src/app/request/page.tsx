@@ -68,6 +68,7 @@ export default function RequestPage() {
   const [selectedOffer, setSelectedOffer] = useState("");
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifyStatus, setNotifyStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [resultAction, setResultAction] = useState<"none" | "partner" | "non_partner">("none");
 
   const filteredRoles = useMemo(() => {
     if (!selectedIndustry) return [];
@@ -100,6 +101,7 @@ export default function RequestPage() {
     setSelectedOffer("");
     setNotifyEmail("");
     setNotifyStatus("idle");
+    setResultAction("none");
     await new Promise((resolve) => setTimeout(resolve, 10000));
     let hash = 0;
     for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
@@ -158,6 +160,7 @@ export default function RequestPage() {
     setSelectedOffer("");
     setNotifyEmail("");
     setNotifyStatus("idle");
+    setResultAction("none");
   };
 
   const showNonPartnerOptions = accessStatus === "non_partner";
@@ -165,7 +168,11 @@ export default function RequestPage() {
   return (
     <section className="min-h-dvh bg-[#0a0f18] px-4 py-10 text-white md:px-6">
       <div
-        className={`mx-auto w-full max-w-[980px] rounded-[16px] border border-[rgba(201,168,76,0.15)] border-t-2 border-t-[rgba(201,168,76,0.4)] bg-[rgba(255,255,255,0.03)] p-9 transition-all duration-300 ${
+        className={`mx-auto w-full rounded-[16px] p-9 transition-all duration-300 ${
+          checkState === "result"
+            ? "max-w-[680px] border border-transparent bg-transparent"
+            : "max-w-[980px] border border-[rgba(201,168,76,0.15)] border-t-2 border-t-[rgba(201,168,76,0.4)] bg-[rgba(255,255,255,0.03)]"
+        } ${
           showNonPartnerOptions ? "pointer-events-none translate-y-2 opacity-0" : "translate-y-0 opacity-100"
         }`}
       >
@@ -255,7 +262,7 @@ export default function RequestPage() {
         )}
 
         {checkState === "result" && (
-          <div className="text-center">
+          <div className="relative text-center">
             <button
               type="button"
               onClick={backToRoleSearch}
@@ -264,19 +271,45 @@ export default function RequestPage() {
               <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
               Back
             </button>
-            <p className="text-[3rem] font-extrabold text-[#C9A84C]">0</p>
-            <p className="mt-1 text-sm text-white/65">
-              This feature is currently in development. At this stage, only our partners can submit candidate requests.
-            </p>
+            <div className="pointer-events-none absolute left-1/2 top-[120px] h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(201,168,76,0.08)_0%,transparent_70%)]" />
+            <p className="result-zero relative z-[1] text-[96px] font-extrabold leading-none text-transparent">0</p>
+            <p className="mt-3 text-[12px] uppercase tracking-[0.15em] text-[rgba(201,168,76,0.7)]">{searchTerm.trim() || "ROLE"}</p>
+            <div className="mx-auto mt-3 inline-flex rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.06)] px-3 py-1 text-[11px] text-[rgba(255,255,255,0.6)]">
+              Feature in development. Partner access only.
+            </div>
+            <div className="mx-auto my-8 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
+            <div className="mx-auto grid w-full max-w-[560px] grid-cols-1 gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setResultAction("partner");
+                  setAccessStatus("idle");
+                }}
+                className="result-cta-primary rounded-[12px] px-9 py-4 text-[15px] font-bold text-[#0D1B2A]"
+              >
+                I am a partner
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setResultAction("non_partner");
+                  setAccessStatus("non_partner");
+                }}
+                className="result-cta-secondary rounded-[12px] border border-[rgba(201,168,76,0.25)] bg-transparent px-9 py-4 text-[15px] font-medium text-[rgba(255,255,255,0.7)]"
+              >
+                I am not a partner
+              </button>
+            </div>
             <button
               type="button"
               onClick={backToRoleSearch}
-              className="mx-auto mt-4 block cursor-pointer text-center text-[13px] text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.7)]"
+              className="mx-auto mt-4 block cursor-pointer text-center text-[13px] text-[rgba(201,168,76,0.6)] underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
             >
               Search another role
             </button>
 
-            <div className="mx-auto mt-8 max-w-[520px] text-left">
+            {resultAction === "partner" && (
+              <div className="partner-form-enter mx-auto mt-8 max-w-[520px] text-left">
                 <h2 className="text-center text-[1.1rem] font-bold text-white">Want to find the right candidate?</h2>
                 <form onSubmit={verifyAccess} className="mt-4">
                   <input
@@ -284,12 +317,12 @@ export default function RequestPage() {
                     value={accessEmail}
                     onChange={(event) => setAccessEmail(event.target.value)}
                     placeholder="Enter your company email"
-                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
                   />
                   <button
                     type="submit"
                     disabled={accessStatus === "submitting" || !accessEmail.includes("@")}
-                    className="mt-3 w-full rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
+                    className="result-cta-primary mt-3 w-full rounded-[12px] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
                   >
                     {accessStatus === "submitting" ? (
                       <svg className="spinner-arc mx-auto" viewBox="0 0 24 24" aria-hidden>
@@ -301,7 +334,7 @@ export default function RequestPage() {
                   </button>
                 </form>
                 <p className="mt-3 text-center text-xs text-white/45">
-                  We will check if you have partner access or show you available options.
+                  We will verify your partner status and send a secure link to your email.
                 </p>
 
                 {accessStatus === "partner" && (
@@ -320,7 +353,8 @@ export default function RequestPage() {
                 {accessStatus === "error" && (
                   <p className="mt-4 text-sm text-red-300">Could not check access right now. Please try again.</p>
                 )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -421,6 +455,26 @@ export default function RequestPage() {
       )}
 
       <style jsx>{`
+        .result-zero {
+          background: linear-gradient(135deg, #c9a84c, #f0d080);
+          -webkit-background-clip: text;
+          background-clip: text;
+        }
+        .result-cta-primary {
+          background: linear-gradient(135deg, #c9a84c, #b8953f);
+          transition: filter 200ms ease, transform 200ms ease;
+        }
+        .result-cta-secondary {
+          transition: border-color 200ms ease, color 200ms ease;
+        }
+        .result-cta-primary:hover {
+          filter: brightness(1.08);
+          transform: scale(1.02);
+        }
+        .result-cta-secondary:hover {
+          border-color: rgba(201, 168, 76, 0.5);
+          color: #ffffff;
+        }
         .spinner-arc {
           width: 20px;
           height: 20px;
@@ -443,6 +497,34 @@ export default function RequestPage() {
           to {
             opacity: 1;
             transform: translateY(0);
+          }
+        }
+        @keyframes resultIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes partnerFormIn {
+          from {
+            opacity: 0;
+            transform: translateY(16px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @media (prefers-reduced-motion: no-preference) {
+          .result-zero {
+            animation: resultIn 400ms ease-out both;
+          }
+          .partner-form-enter {
+            animation: partnerFormIn 300ms ease both;
           }
         }
       `}</style>
