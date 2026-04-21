@@ -264,6 +264,8 @@ export default function RequestPage() {
       if (!response.ok || !data.success) {
         if (data.reason === "personal_email") {
           setPartnerApplicationError("Please use your company email address.");
+        } else if (data.reason === "table_missing") {
+          setPartnerApplicationError("Partner applications are temporarily unavailable. Please try again shortly.");
         } else {
           setPartnerApplicationError("Could not start partner application right now.");
         }

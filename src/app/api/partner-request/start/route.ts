@@ -24,7 +24,7 @@ function getDomain(email: string): string {
   return email.split("@")[1]?.toLowerCase().trim() || "";
 }
 
-function buildStartEmailHtml(applicationUrl: string) {
+function buildStartEmailHtml(applicationUrl: string, unsubscribeUrl: string) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,7 +55,20 @@ function buildStartEmailHtml(applicationUrl: string) {
                 </a>
               </div>
               <p style="margin:0;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.35);">
-                This link is personal. If you did not request this, you can ignore this email.
+                This link is confidential and intended only for your company account.
+              </p>
+              <p style="margin:10px 0 0;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.35);">
+                For security reasons, this link is valid for 30 minutes.
+              </p>
+              <p style="margin:10px 0 0;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.35);">
+                Source website: <a href="https://arbeidmatch.no" style="color:rgba(201,168,76,0.8);text-decoration:none;">arbeidmatch.no</a>
+              </p>
+              <p style="margin:14px 0 0;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.35);">
+                If you did not request this, you can ignore this email.
+              </p>
+              <p style="margin:10px 0 0;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.35);">
+                To stop receiving emails from us, click
+                <a href="${unsubscribeUrl}" style="color:rgba(201,168,76,0.8);text-decoration:none;"> Unsubscribe</a>.
               </p>
             </td>
           </tr>
@@ -98,6 +111,7 @@ export async function POST(request: NextRequest) {
     }
 
     const applicationUrl = `https://arbeidmatch.no/become-a-partner?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
+    const unsubscribeUrl = "mailto:post@arbeidmatch.no?subject=Unsubscribe%20from%20ArbeidMatch%20emails";
 
     const transporter = createSmtpTransporter();
     if (transporter) {
@@ -105,13 +119,29 @@ export async function POST(request: NextRequest) {
         ...mailHeaders(),
         to: email,
         subject: "Complete your ArbeidMatch partner application",
-        text: `Complete your application here: ${applicationUrl}`,
-        html: buildStartEmailHtml(applicationUrl),
+        text:
+          `Complete your application here: ${applicationUrl}\n\n` +
+          `This link is confidential and valid for 30 minutes.\n` +
+          `Source website: https://arbeidmatch.no\n\n` +
+          `If you did not request this email, ignore it.\n` +
+          `To stop receiving emails, unsubscribe here: ${unsubscribeUrl}`,
+        html: buildStartEmailHtml(applicationUrl, unsubscribeUrl),
       });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: string }).code === "PGRST205"
+    ) {
+      return NextResponse.json(
+        { success: false, reason: "table_missing", error: "Partner requests table is not configured." },
+        { status: 503 },
+      );
+    }
     await notifyError({ route: "/api/partner-request/start", error });
     return NextResponse.json({ success: false, error: "Could not start partner request." }, { status: 500 });
   }

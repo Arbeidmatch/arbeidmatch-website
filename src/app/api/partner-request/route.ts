@@ -19,7 +19,10 @@ const partnerRequestSchema = z.object({
   companyName: z.string().trim().min(2).max(160),
   orgNumber: z.string().trim().min(2).max(40),
   phone: z.string().trim().min(6).max(40),
-  fullName: z.string().trim().min(2).max(120),
+  fullName: z.string().trim().min(2).max(120).optional(),
+  firstName: z.string().trim().min(1).max(80).optional(),
+  lastName: z.string().trim().min(1).max(80).optional(),
+  role: z.string().trim().max(120).optional(),
   gdprConsent: z.literal(true),
   token: z.string().uuid().optional(),
 });
@@ -62,6 +65,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Supabase configuration missing" }, { status: 500 });
     }
 
+    const resolvedFullName =
+      parsed.data.fullName?.trim() ||
+      [parsed.data.firstName?.trim(), parsed.data.lastName?.trim()].filter(Boolean).join(" ").trim();
+    if (!resolvedFullName) {
+      return NextResponse.json({ success: false, error: "Invalid request payload" }, { status: 400 });
+    }
+
+    const contactLabel = parsed.data.role?.trim() ? `${resolvedFullName} (${parsed.data.role.trim()})` : resolvedFullName;
+
     let requestId = "";
     if (parsed.data.token) {
       const { data: existing, error: existingError } = await supabase
@@ -83,7 +95,7 @@ export async function POST(request: NextRequest) {
             company_name: parsed.data.companyName,
             org_number: parsed.data.orgNumber,
             phone: parsed.data.phone,
-            full_name: parsed.data.fullName,
+            full_name: contactLabel,
             gdpr_consent: parsed.data.gdprConsent,
             status: "pending",
           })
@@ -103,7 +115,7 @@ export async function POST(request: NextRequest) {
           company_name: parsed.data.companyName,
           org_number: parsed.data.orgNumber,
           phone: parsed.data.phone,
-          full_name: parsed.data.fullName,
+          full_name: contactLabel,
           gdpr_consent: parsed.data.gdprConsent,
           status: "pending",
         })
@@ -129,7 +141,7 @@ export async function POST(request: NextRequest) {
             { type: "mrkdwn", text: `*Email:*\n${email}` },
             { type: "mrkdwn", text: `*Org Number:*\n${parsed.data.orgNumber}` },
             { type: "mrkdwn", text: `*Phone:*\n${parsed.data.phone}` },
-            { type: "mrkdwn", text: `*Contact:*\n${parsed.data.fullName}` },
+            { type: "mrkdwn", text: `*Contact:*\n${contactLabel}` },
           ],
         },
         {
@@ -162,6 +174,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: string }).code === "PGRST205"
+    ) {
+      return NextResponse.json(
+        { success: false, reason: "table_missing", error: "Partner requests table is not configured." },
+        { status: 503 },
+      );
+    }
     await notifyError({ route: "/api/partner-request", error });
     return NextResponse.json({ success: false, error: "Could not submit partner request." }, { status: 500 });
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type Props = {
   initialEmail: string;
@@ -23,9 +23,15 @@ function hasFreeDomain(email: string): boolean {
 }
 
 export default function BecomePartnerClient({ initialEmail, token }: Props) {
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [orgNumber, setOrgNumber] = useState("");
+  const [companyQuery, setCompanyQuery] = useState("");
+  const [companySuggestions, setCompanySuggestions] = useState<Array<{ name: string; orgNumber: string }>>([]);
+  const [companyLookupStatus, setCompanyLookupStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [phone, setPhone] = useState("");
   const [gdprConsent, setGdprConsent] = useState(false);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -36,13 +42,54 @@ export default function BecomePartnerClient({ initialEmail, token }: Props) {
       initialEmail.includes("@") &&
       !hasFreeDomain(initialEmail) &&
       token.length > 0 &&
-      fullName.trim().length >= 2 &&
+      firstName.trim().length >= 1 &&
+      lastName.trim().length >= 1 &&
+      role.trim().length >= 2 &&
       companyName.trim().length >= 2 &&
-      orgNumber.trim().length >= 2 &&
+      orgNumber.trim().length >= 9 &&
       phone.trim().length >= 6 &&
       gdprConsent
     );
-  }, [companyName, fullName, gdprConsent, initialEmail, orgNumber, phone, token.length]);
+  }, [companyName, firstName, gdprConsent, initialEmail, lastName, orgNumber, phone, role, token.length]);
+
+  useEffect(() => {
+    if (companyQuery.trim().length < 2) {
+      setCompanySuggestions([]);
+      setCompanyLookupStatus("idle");
+      return;
+    }
+
+    const controller = new AbortController();
+    const run = async () => {
+      setCompanyLookupStatus("loading");
+      try {
+        const response = await fetch(`/api/brreg/search?q=${encodeURIComponent(companyQuery.trim())}`, {
+          signal: controller.signal,
+        });
+        const data = (await response.json()) as {
+          success?: boolean;
+          companies?: Array<{ name: string; orgNumber: string }>;
+        };
+        if (!response.ok || !data.success) {
+          setCompanyLookupStatus("error");
+          setCompanySuggestions([]);
+          return;
+        }
+        setCompanySuggestions(data.companies ?? []);
+        setCompanyLookupStatus("idle");
+      } catch {
+        if (controller.signal.aborted) return;
+        setCompanyLookupStatus("error");
+        setCompanySuggestions([]);
+      }
+    };
+
+    const timeout = window.setTimeout(run, 200);
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [companyQuery]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -59,7 +106,9 @@ export default function BecomePartnerClient({ initialEmail, token }: Props) {
           companyName: companyName.trim(),
           orgNumber: orgNumber.trim(),
           phone: phone.trim(),
-          fullName: fullName.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          role: role.trim(),
           gdprConsent,
           token,
         }),
@@ -127,24 +176,50 @@ export default function BecomePartnerClient({ initialEmail, token }: Props) {
             />
           </div>
 
-          <div>
-            <label className="mb-1.5 block text-[12px] text-[rgba(255,255,255,0.45)]">Full name</label>
-            <input
-              type="text"
-              value={fullName}
-              onChange={(event) => setFullName(event.target.value)}
-              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
-            />
-          </div>
-
-          <div>
+          <div className="relative">
             <label className="mb-1.5 block text-[12px] text-[rgba(255,255,255,0.45)]">Company name</label>
             <input
               type="text"
-              value={companyName}
-              onChange={(event) => setCompanyName(event.target.value)}
+              value={companyQuery}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => {
+                window.setTimeout(() => setShowSuggestions(false), 120);
+              }}
+              onChange={(event) => {
+                setCompanyQuery(event.target.value);
+                setCompanyName(event.target.value);
+                setOrgNumber("");
+                setShowSuggestions(true);
+              }}
+              placeholder="Search company in Bronnoysund register..."
               className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
             />
+            {showSuggestions && companySuggestions.length > 0 ? (
+              <div className="absolute z-20 mt-1 w-full rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-[#102033] p-1">
+                {companySuggestions.map((company) => (
+                  <button
+                    key={`${company.orgNumber}-${company.name}`}
+                    type="button"
+                    onMouseDown={() => {
+                      setCompanyName(company.name);
+                      setOrgNumber(company.orgNumber);
+                      setCompanyQuery(company.name);
+                      setShowSuggestions(false);
+                    }}
+                    className="w-full rounded-[8px] px-3 py-2 text-left transition-colors hover:bg-[rgba(201,168,76,0.1)]"
+                  >
+                    <p className="text-[13px] font-semibold text-white">{company.name}</p>
+                    <p className="text-[12px] text-[rgba(255,255,255,0.55)]">Org: {company.orgNumber}</p>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {companyLookupStatus === "loading" ? (
+              <p className="mt-1 text-[12px] text-[rgba(255,255,255,0.45)]">Searching register...</p>
+            ) : null}
+            {companyLookupStatus === "error" ? (
+              <p className="mt-1 text-[12px] text-[rgba(255,255,255,0.45)]">Could not load register results. Please try again.</p>
+            ) : null}
           </div>
 
           <div>
@@ -152,7 +227,37 @@ export default function BecomePartnerClient({ initialEmail, token }: Props) {
             <input
               type="text"
               value={orgNumber}
-              onChange={(event) => setOrgNumber(event.target.value)}
+              readOnly
+              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-[rgba(255,255,255,0.7)]"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-[12px] text-[rgba(255,255,255,0.45)]">First name</label>
+            <input
+              type="text"
+              value={firstName}
+              onChange={(event) => setFirstName(event.target.value)}
+              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-[12px] text-[rgba(255,255,255,0.45)]">Last name</label>
+            <input
+              type="text"
+              value={lastName}
+              onChange={(event) => setLastName(event.target.value)}
+              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-[12px] text-[rgba(255,255,255,0.45)]">Role in company</label>
+            <input
+              type="text"
+              value={role}
+              onChange={(event) => setRole(event.target.value)}
               className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
             />
           </div>
