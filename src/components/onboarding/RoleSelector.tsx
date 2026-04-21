@@ -35,7 +35,7 @@ function RoleCard({
 
   return (
     <motion.div
-      className="flex h-full min-h-0 min-w-0 w-full flex-1"
+      className="flex h-full min-h-0 min-w-0 w-full flex-1 md:h-auto md:max-w-[340px] md:flex-none"
       initial={skipMotion ? false : { opacity: 0, y: 32 }}
       animate={{ opacity: 1, y: 0 }}
       transition={
@@ -58,7 +58,7 @@ function RoleCard({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onClick={onSelect}
-        className="role-card group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col break-words"
+        className="role-card group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col break-words md:h-auto"
         style={{
           borderRadius: 20,
           padding: "20px 18px",
@@ -100,10 +100,10 @@ function RoleCard({
         >
           {title}
         </h2>
-        <p className="mb-3 flex-grow overflow-hidden text-[12px] leading-[1.5] text-white/[0.6] role-subtitle md:mb-0 md:text-[14px] md:leading-[1.7]">
+        <p className="mb-3 flex-grow overflow-hidden text-[12px] leading-[1.5] text-white/[0.6] role-subtitle md:mb-0 md:flex-grow-0 md:text-[14px] md:leading-[1.7]">
           {subtitle}
         </p>
-        <div className="mt-auto pt-0 md:pt-5">
+        <div className="mt-auto pt-0 md:mt-6 md:pt-0">
           <span
             className="flex w-full items-center justify-center gap-2 whitespace-nowrap font-bold"
           style={{
@@ -226,7 +226,7 @@ export default function RoleSelector() {
                     "radial-gradient(ellipse at 50% 50%, rgba(201,168,76,0.05) 0%, transparent 70%)",
                 }}
               >
-                <div className="flex min-h-0 w-full flex-1 flex-col gap-[10px] overflow-hidden md:grid md:grid-cols-2 md:items-stretch md:gap-5">
+                <div className="flex min-h-0 w-full flex-1 flex-col gap-[10px] overflow-hidden md:flex-row md:items-start md:justify-center md:gap-5">
                   <RoleCard
                     icon={<Briefcase stroke={GOLD} strokeWidth={1.5} />}
                     title="I am an employer"
@@ -273,7 +273,6 @@ export default function RoleSelector() {
             }
             @media (min-width: 640px) {
               .role-card {
-                min-height: 420px;
                 padding: 36px 32px !important;
               }
             }
@@ -286,7 +285,6 @@ export default function RoleSelector() {
             @media (min-width: 768px) {
               .role-card h2 {
                 font-size: 1.5rem !important;
-                min-height: 3.5rem;
               }
               .role-subtitle {
                 display: -webkit-box;
