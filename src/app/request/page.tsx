@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Bolt, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
 
 type VerifyPartnerResponse = {
@@ -69,6 +69,8 @@ export default function RequestPage() {
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifyStatus, setNotifyStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [resultAction, setResultAction] = useState<"none" | "partner" | "non_partner">("none");
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const hasMountedHistoryGuard = useRef(false);
 
   const filteredRoles = useMemo(() => {
     if (!selectedIndustry) return [];
@@ -82,6 +84,16 @@ export default function RequestPage() {
     );
     return [...startsWith, ...contains].slice(0, 8);
   }, [roleQuery, selectedIndustry]);
+
+  const isPastFirstStep = useMemo(() => {
+    if (checkState !== "idle") return true;
+    if (selectedIndustry.trim()) return true;
+    if (roleQuery.trim()) return true;
+    if (searchTerm.trim()) return true;
+    if (resultAction !== "none") return true;
+    if (accessStatus === "non_partner") return true;
+    return false;
+  }, [accessStatus, checkState, resultAction, roleQuery, searchTerm, selectedIndustry]);
 
   useEffect(() => {
     if (checkState !== "searching") return;
@@ -163,7 +175,58 @@ export default function RequestPage() {
     setResultAction("none");
   };
 
+  const resetToFirstStep = () => {
+    setCheckState("idle");
+    setSelectedIndustry("");
+    setRoleQuery("");
+    setSearchTerm("");
+    setSearchMessageIndex(0);
+    setCheckCount(0);
+    setShowAccessCheck(false);
+    setAccessEmail("");
+    setAccessStatus("idle");
+    setCompanyName("");
+    setSelectedOffer("");
+    setNotifyEmail("");
+    setNotifyStatus("idle");
+    setResultAction("none");
+  };
+
   const showNonPartnerOptions = accessStatus === "non_partner";
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (hasMountedHistoryGuard.current) return;
+    window.history.pushState({ requestFlowGuard: true }, "", window.location.href);
+    hasMountedHistoryGuard.current = true;
+  }, []);
+
+  useEffect(() => {
+    const onDocumentClick = (event: MouseEvent) => {
+      if (!isPastFirstStep) return;
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      const anchor = target.closest("a[href]") as HTMLAnchorElement | null;
+      if (!anchor) return;
+      const href = anchor.getAttribute("href") || "";
+      if (!href.startsWith("/")) return;
+      event.preventDefault();
+      setShowLeaveDialog(true);
+    };
+
+    const onPopState = () => {
+      if (!isPastFirstStep) return;
+      setShowLeaveDialog(true);
+      window.history.pushState({ requestFlowGuard: true }, "", window.location.href);
+    };
+
+    document.addEventListener("click", onDocumentClick, true);
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      document.removeEventListener("click", onDocumentClick, true);
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [isPastFirstStep]);
 
   return (
     <section className="min-h-dvh bg-[#0a0f18] px-4 py-10 text-white md:px-6">
@@ -520,6 +583,41 @@ export default function RequestPage() {
         </div>
       )}
 
+      {showLeaveDialog && (
+        <>
+          <div className="fixed inset-0 z-[9998] bg-[rgba(0,0,0,0.7)] backdrop-blur-[4px]" />
+          <div className="leave-dialog fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10">
+            <svg viewBox="0 0 24 24" className="mx-auto h-6 w-6 text-[#C9A84C]" fill="none" aria-hidden>
+              <path d="M12 3v10m0 8h.01M5.2 20h13.6a1.2 1.2 0 0 0 1.04-1.8L13.04 5.4a1.2 1.2 0 0 0-2.08 0L4.16 18.2A1.2 1.2 0 0 0 5.2 20Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <p className="mt-4 text-center text-[20px] font-bold text-white">Leave current search?</p>
+            <p className="mt-2 text-center text-sm leading-[1.6] text-[rgba(255,255,255,0.55)]">
+              You are in the middle of a candidate request. If you leave now, your progress will be lost.
+            </p>
+            <div className="mt-7 flex flex-col gap-[10px]">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLeaveDialog(false);
+                  resetToFirstStep();
+                  router.push("/request");
+                }}
+                className="result-cta-primary w-full rounded-[12px] px-4 py-[14px] text-[15px] font-bold text-[#0D1B2A]"
+              >
+                Yes, start over
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowLeaveDialog(false)}
+                className="w-full rounded-[12px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[14px] text-[15px] text-[rgba(255,255,255,0.7)]"
+              >
+                Continue my search
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       <style jsx>{`
         .result-zero {
           background: linear-gradient(135deg, #c9a84c, #f0d080);
@@ -623,6 +721,16 @@ export default function RequestPage() {
             transform: translateY(0);
           }
         }
+        @keyframes leaveDialogIn {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.96);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+          }
+        }
         @media (prefers-reduced-motion: no-preference) {
           .result-zero {
             animation: resultIn 400ms ease-out both;
@@ -637,6 +745,9 @@ export default function RequestPage() {
             border-color: rgba(201, 168, 76, 0.45);
             background: rgba(201, 168, 76, 0.05);
             transform: translateY(-4px);
+          }
+          .leave-dialog {
+            animation: leaveDialogIn 250ms ease both;
           }
         }
       `}</style>
