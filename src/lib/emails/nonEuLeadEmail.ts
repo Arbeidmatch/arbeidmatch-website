@@ -4,39 +4,40 @@ import { escapeHtml } from "@/lib/htmlSanitizer";
 /** Lead magnet HTML for non-EU candidates who request the free overview. */
 export function buildNonEuLeadEmail(firstName: string, unsubscribeToken?: string): string {
   const name = escapeHtml(firstName);
-  const li = "margin-bottom:8px;font-size:13px;line-height:1.9;color:rgba(255,255,255,0.85);";
   const heading = "margin:0 0 10px;font-size:15px;font-weight:600;color:#C9A84C;";
-
-  const section1 = `<p style="${heading}">What you need to work in Norway legally</p>
-<ul style="margin:0 0 20px;padding-left:20px;">
-<li style="${li}">Work permit (<em>oppholdstillatelse</em>) is required before arrival in most cases.</li>
-<li style="${li}">Applications are handled via <a href="https://www.udi.no" style="color:#C9A84C;">UDI.no</a> (Norwegian Directorate of Immigration).</li>
-<li style="${li}">Processing time is typically <strong>3–6 months</strong>.</li>
-<li style="margin-bottom:0;font-size:13px;line-height:1.9;color:rgba(255,255,255,0.85);">You usually need a <strong>job offer</strong> before you can apply.</li>
-</ul>`;
-
-  const section2 = `<p style="${heading}">The most common path for non-EU workers</p>
-<ul style="margin:0 0 20px;padding-left:20px;">
-<li style="${li}"><strong>Skilled worker permit</strong> (<em>fagarbeider</em>)</li>
-<li style="${li}"><strong>Seasonal worker permit</strong></li>
-<li style="margin-bottom:0;font-size:13px;line-height:1.9;color:rgba(255,255,255,0.85);"><strong>Specialist permit</strong> for trades (electricians, welders, and similar)</li>
-</ul>`;
-
-  const section3 = `<p style="${heading}">Working as an electrician in Norway?</p>
-<p style="margin:0 0 16px;font-size:13px;line-height:1.8;color:rgba(255,255,255,0.8);">If you need a clear step-by-step guide for DSB authorization — the process required for non-EU electricians to work legally in Norway — reply to this email and we will send it to you.</p>`;
-
-  const body = `${emailBodyParagraph(`Hi ${name},`)}
-${emailBodyParagraph("Here is a practical overview to help you prepare before you apply.")}
-${section1}
-${section2}
-${section3}`;
+  const body = [
+    emailBodyParagraph(`Hi ${name},`),
+    emailBodyParagraph(
+      "Most non-EU workers who want to work in Norway focus on finding a job first. That is actually the last step, not the first.",
+    ),
+    emailBodyParagraph(
+      "Before a Norwegian employer can legally hire you, several things need to be in place. Most people only discover this after they have already made plans, spent money, or turned down other opportunities.",
+    ),
+    `<p style="${heading}">What most guides leave out</p>`,
+    emailBodyParagraph(
+      "There is a specific sequence to the process. Doing things in the wrong order does not just slow you down. It can disqualify your application entirely or cost you months of waiting.",
+    ),
+    emailBodyParagraph(
+      "The sequence depends on your trade, your country of origin, and the type of employer you are targeting. There is no single answer that works for everyone.",
+    ),
+    emailBodyParagraph(
+      "ArbeidMatch works with Norwegian employers in construction, logistics, and industry. We see which candidates get placed quickly and which ones get stuck. The difference is almost always preparation, not qualifications.",
+    ),
+    `<p style="${heading}">Want to know where to start?</p>`,
+    emailBodyParagraph(
+      "Reply to this email with your trade and country of origin. We will tell you what the first step looks like for your specific situation. No cost, no obligation.",
+    ),
+    emailBodyParagraph(
+      "If you are an electrician specifically, we also have a dedicated authorization guide. Just mention it in your reply.",
+    ),
+  ].join("");
 
   return buildEmail({
-    title: "Your free Norway work guide is here",
-    preheader: "Everything you need to know before applying",
+    title: "You asked about working in Norway",
+    preheader: "Here is what most people get wrong before they start",
     body,
     unsubscribeToken,
     footerNote:
-      "ArbeidMatch is a private recruitment agency, not an official Norwegian authority. Always verify requirements with UDI.no and Arbeidstilsynet.no.",
+      "ArbeidMatch Norge AS is a private recruitment agency, not an official Norwegian authority. Information shared is general guidance only.",
   });
 }
