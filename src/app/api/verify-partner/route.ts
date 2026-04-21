@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { buildEmail } from "@/lib/emailTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
-import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 const schema = z.object({
   email: z.string().email(),
@@ -20,8 +20,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ verified: false }, { status: 400 });
     }
 
-    const supabase = getSupabaseAdminClient();
-    if (!supabase) return NextResponse.json({ verified: false }, { status: 500 });
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } },
+    );
 
     const email = parsed.data.email.trim().toLowerCase();
     const domain = email.split("@")[1]?.toLowerCase();
