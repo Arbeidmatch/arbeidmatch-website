@@ -431,7 +431,7 @@ export default function RequestPage() {
               type="button"
               onClick={() => {
                 setResultAction("none");
-                resetToFirstStep();
+                router.push("/contact");
               }}
               className="w-full rounded-[10px] bg-[#C9A84C] px-4 py-[13px] text-[15px] font-bold text-[#0D1B2A]"
             >
