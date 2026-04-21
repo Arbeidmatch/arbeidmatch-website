@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Bolt, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
 
@@ -51,6 +52,7 @@ const SEARCH_MESSAGES = [
 ];
 
 export default function RequestPage() {
+  const router = useRouter();
   const [checkState, setCheckState] = useState<"idle" | "searching" | "result">("idle");
   const [selectedIndustry, setSelectedIndustry] = useState("");
   const [roleQuery, setRoleQuery] = useState("");
@@ -169,6 +171,16 @@ export default function RequestPage() {
       >
         {checkState === "idle" && (
           <>
+            {!selectedIndustry && (
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="mb-4 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
+              >
+                <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
+                Back
+              </button>
+            )}
             <h1 className="text-2xl font-bold">Check candidate availability</h1>
             {!selectedIndustry ? (
               <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
