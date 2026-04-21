@@ -724,16 +724,14 @@ export default function RequestTokenPage() {
             ? false
             : null,
       maxOvertimeHours: "",
-      hasRotation: "",
+      hasRotation: null,
       rotationWeeksOn: "",
       rotationWeeksOff: "",
-      internationalTravel: form.internationalTransport,
-      localTravel: form.localTransport,
+      internationalTravel:
+        form.internationalTransport === "Yes" ? true : form.internationalTransport === "No" ? false : null,
+      localTravel: form.localTransport === "Covered" ? true : form.localTransport === "Not covered" ? false : null,
       localTravelOther: "",
-      accommodation:
-        form.accommodation === "Not provided" && form.accommodationSupport
-          ? `${form.accommodation} (${form.accommodationSupport})`
-          : form.accommodation,
+      accommodation: form.accommodation ?? "",
       accommodationCost: "",
       accommodationOther: form.accommodationSupport,
       equipment: "",
@@ -750,7 +748,7 @@ export default function RequestTokenPage() {
       referralCompanyName: "",
       referralOrgNumber: "",
       referralEmail: "",
-      subscribe: "Yes - send me candidate updates",
+      subscribe: true,
       notes: form.notes,
     };
 
