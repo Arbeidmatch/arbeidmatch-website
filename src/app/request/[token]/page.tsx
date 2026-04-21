@@ -755,7 +755,7 @@ export default function RequestTokenPage() {
     );
   }
 
-  if (tokenGate === "loading") {
+  if (!showChoice && tokenGate === "loading") {
     return (
       <section className="min-h-dvh bg-[#0D1B2A] px-4 py-20 text-center text-white">
         <p className="text-[rgba(255,255,255,0.65)]">Loading…</p>
@@ -763,7 +763,7 @@ export default function RequestTokenPage() {
     );
   }
 
-  if (tokenGate === "blocked") {
+  if (!showChoice && tokenGate === "blocked") {
     return (
       <section className="min-h-dvh bg-[#0D1B2A] px-4 py-16 text-white">
         <div className="mx-auto max-w-lg rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-8 py-10 text-center">
@@ -780,7 +780,7 @@ export default function RequestTokenPage() {
     );
   }
 
-  if (tokenGate === "error") {
+  if (!showChoice && tokenGate === "error") {
     return (
       <section className="min-h-dvh bg-[#0D1B2A] px-4 py-16 text-white">
         <div className="mx-auto max-w-lg rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-8 py-10 text-center">
