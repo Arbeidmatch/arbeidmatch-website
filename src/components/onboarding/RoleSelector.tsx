@@ -10,8 +10,8 @@ import { trackEvent } from "@/lib/analytics";
 const GOLD = "#C9A84C";
 const STORAGE_KEY = "roleSelected";
 
-const cardTransition = "all 0.3s ease";
-const ctaTransition = "all 0.2s ease";
+const cardTransition = "all 220ms ease";
+const ctaTransition = "all 220ms ease";
 
 function RoleCard({
   icon,
@@ -36,7 +36,7 @@ function RoleCard({
 
   return (
     <motion.div
-      className="flex h-full min-h-0 min-w-0 w-full flex-1 md:h-auto md:max-w-[340px] md:flex-none"
+      className="h-full min-h-0 min-w-0 w-full"
       initial={skipMotion ? false : { opacity: 0, y: 32 }}
       animate={{ opacity: 1, y: 0 }}
       transition={
@@ -59,19 +59,15 @@ function RoleCard({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onClick={onSelect}
-        className="role-card group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col break-words md:h-auto"
+        className="role-card group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col break-words"
         style={{
           borderRadius: 20,
-          padding: "20px 18px",
-          border: active ? "1px solid rgba(201,168,76,0.4)" : "1px solid rgba(201,168,76,0.2)",
-          background: active
-            ? "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)"
-            : "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)",
-          boxShadow: active
-            ? "0 0 0 1px rgba(201,168,76,0.4), 0 8px 32px rgba(201,168,76,0.08)"
-            : "none",
+          padding: "32px 28px",
+          borderTop: active ? "2px solid rgba(201,168,76,0.4)" : "2px solid rgba(201,168,76,0.35)",
+          border: active ? "1px solid rgba(201,168,76,0.4)" : "1px solid rgba(201,168,76,0.15)",
+          background: active ? "rgba(201,168,76,0.05)" : "rgba(255,255,255,0.04)",
           transition: cardTransition,
-          animation: skipMotion ? "none" : "goldPulse 3s ease-in-out infinite alternate",
+          transform: active && !skipMotion ? "translateY(-3px)" : "translateY(0)",
         }}
       >
         {active ? (
@@ -108,15 +104,15 @@ function RoleCard({
           <span
             className="flex w-full items-center justify-center gap-2 whitespace-nowrap font-bold"
           style={{
-            background: active ? "#b8953f" : GOLD,
+            background: GOLD,
             color: "#0D1B2A",
             fontWeight: 700,
-            borderRadius: 12,
-            padding: "11px 16px",
+            borderRadius: 10,
+            padding: "14px 20px",
+            minHeight: 48,
             width: "100%",
             fontSize: 13,
             letterSpacing: "0.01em",
-            transform: active ? "translateY(-1px)" : "translateY(0)",
             transition: ctaTransition,
             pointerEvents: "none",
           }}
@@ -227,7 +223,7 @@ export default function RoleSelector() {
                     "radial-gradient(ellipse at 50% 50%, rgba(201,168,76,0.05) 0%, transparent 70%)",
                 }}
               >
-                <div className="flex min-h-0 w-full flex-1 flex-col gap-[10px] overflow-hidden md:flex-row md:items-start md:justify-center md:gap-5">
+                <div className="grid min-h-0 w-full flex-1 grid-cols-1 items-stretch gap-5 overflow-hidden md:grid-cols-2">
                   <RoleCard
                     icon={<Briefcase stroke={GOLD} strokeWidth={1.5} />}
                     title="I am an employer"
@@ -268,28 +264,19 @@ export default function RoleSelector() {
             </div>
           </motion.div>
           <style jsx>{`
-            @keyframes goldPulse {
-              from {
-                border-color: rgba(201, 168, 76, 0.15);
-              }
-              to {
-                border-color: rgba(201, 168, 76, 0.35);
-              }
-            }
             @media (prefers-reduced-motion: reduce) {
               .role-card {
-                animation: none !important;
+                transform: none !important;
               }
             }
             @media (min-width: 640px) {
               .role-card {
-                padding: 36px 32px !important;
+                padding: 32px 28px !important;
               }
             }
             @media (max-width: 767px) {
               .role-card {
-                min-height: 0;
-                flex: 1 1 0%;
+                min-height: auto;
               }
             }
             @media (min-width: 768px) {
@@ -307,7 +294,7 @@ export default function RoleSelector() {
                 align-items: center;
               }
               .role-card > div:last-of-type > span {
-                padding: 14px 24px !important;
+                padding: 14px 20px !important;
                 width: 100%;
               }
             }
