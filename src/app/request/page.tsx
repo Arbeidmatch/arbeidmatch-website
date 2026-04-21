@@ -51,6 +51,8 @@ const SEARCH_MESSAGES = [
   "Finalizing profile count...",
 ];
 
+const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "live.com", "msn.com"]);
+
 export default function RequestPage() {
   const router = useRouter();
   const [checkState, setCheckState] = useState<"idle" | "searching" | "result">("idle");
@@ -76,6 +78,10 @@ export default function RequestPage() {
   const [feedbackEmail, setFeedbackEmail] = useState("");
   const [partnerIssueMessage, setPartnerIssueMessage] = useState("");
   const [notFoundExiting, setNotFoundExiting] = useState(false);
+  const [showPartnerApplicationModal, setShowPartnerApplicationModal] = useState(false);
+  const [partnerApplicationEmail, setPartnerApplicationEmail] = useState("");
+  const [partnerApplicationStatus, setPartnerApplicationStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [partnerApplicationError, setPartnerApplicationError] = useState("");
   const hasMountedHistoryGuard = useRef(false);
 
   const filteredRoles = useMemo(() => {
@@ -232,6 +238,42 @@ export default function RequestPage() {
       }
     } catch {
       setPartnerIssueStatus("error");
+    }
+  };
+
+  const startPartnerApplication = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const email = partnerApplicationEmail.trim().toLowerCase();
+    const domain = email.split("@")[1]?.trim() || "";
+    if (!email.includes("@") || !domain) return;
+    if (FREE_EMAIL_DOMAINS.has(domain)) {
+      setPartnerApplicationError("Please use your company email address.");
+      setPartnerApplicationStatus("error");
+      return;
+    }
+
+    setPartnerApplicationStatus("submitting");
+    setPartnerApplicationError("");
+    try {
+      const response = await fetch("/api/partner-request/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = (await response.json()) as { success?: boolean; reason?: string };
+      if (!response.ok || !data.success) {
+        if (data.reason === "personal_email") {
+          setPartnerApplicationError("Please use your company email address.");
+        } else {
+          setPartnerApplicationError("Could not start partner application right now.");
+        }
+        setPartnerApplicationStatus("error");
+        return;
+      }
+      setPartnerApplicationStatus("success");
+    } catch {
+      setPartnerApplicationStatus("error");
+      setPartnerApplicationError("Could not start partner application right now.");
     }
   };
 
@@ -429,7 +471,12 @@ export default function RequestPage() {
           <div className="non-partner-cards w-full max-w-[980px]">
             <button
               type="button"
-              onClick={() => router.push("/become-a-partner")}
+              onClick={() => {
+                setPartnerApplicationEmail(accessEmail.trim().toLowerCase());
+                setPartnerApplicationStatus("idle");
+                setPartnerApplicationError("");
+                setShowPartnerApplicationModal(true);
+              }}
               className="non-partner-card rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] p-6 text-left"
             >
               <Users className="h-5 w-5 text-[#C9A84C]" />
@@ -752,6 +799,67 @@ export default function RequestPage() {
             )}
 
             {accessStatus === "error" && <p className="mt-4 text-sm text-red-300">Could not check access right now. Please try again.</p>}
+          </div>
+        </>
+      )}
+
+      {showPartnerApplicationModal && (
+        <>
+          <div className="partner-modal-backdrop fixed inset-0 z-[9998] bg-[rgba(0,0,0,0.75)] backdrop-blur-[6px]" />
+          <div className="partner-modal fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10">
+            <button
+              type="button"
+              onClick={() => setShowPartnerApplicationModal(false)}
+              aria-label="Close partner application modal"
+              className="absolute right-4 top-4 text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.8)]"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
+                <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </button>
+
+            {partnerApplicationStatus === "success" ? (
+              <div className="text-center">
+                <svg className="mx-auto h-7 w-7 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <p className="mt-4 text-[20px] font-bold text-white">Check your inbox</p>
+                <p className="mt-2 text-[14px] leading-[1.6] text-[rgba(255,255,255,0.55)]">
+                  We sent a link to complete your application.
+                </p>
+                <p className="mt-2 text-[13px] leading-[1.6] text-[rgba(255,255,255,0.45)]">{partnerApplicationEmail}</p>
+                <p className="mt-4 text-[12px] text-[rgba(255,255,255,0.35)]">Emails may take up to 5 minutes.</p>
+              </div>
+            ) : (
+              <>
+                <svg viewBox="0 0 24 24" className="mx-auto h-7 w-7 text-[#C9A84C]" fill="none" aria-hidden>
+                  <path d="M3 20h18M5.5 20V8.5L12 4l6.5 4.5V20M9 20v-4h6v4M9 10h.01M15 10h.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <p className="mt-[14px] text-center text-[20px] font-bold text-white">Partner Application</p>
+                <p className="mt-2 text-center text-[14px] leading-[1.6] text-[rgba(255,255,255,0.55)]">
+                  Enter your company email to get started. Personal email addresses will not be accepted.
+                </p>
+                <form onSubmit={startPartnerApplication} className="mt-5">
+                  <input
+                    type="email"
+                    value={partnerApplicationEmail}
+                    onChange={(event) => setPartnerApplicationEmail(event.target.value)}
+                    placeholder="you@company.no"
+                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
+                  />
+                  {partnerApplicationError ? (
+                    <p className="mt-3 text-[13px] text-red-300">{partnerApplicationError}</p>
+                  ) : null}
+                  <button
+                    type="submit"
+                    disabled={!partnerApplicationEmail.includes("@") || partnerApplicationStatus === "submitting"}
+                    className="result-cta-primary mt-3 w-full rounded-[12px] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
+                  >
+                    {partnerApplicationStatus === "submitting" ? "Sending..." : "Continue"}
+                  </button>
+                </form>
+              </>
+            )}
           </div>
         </>
       )}
