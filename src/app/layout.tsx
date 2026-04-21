@@ -93,7 +93,7 @@ export default function RootLayout({
         <BetaBanner />
         <ScrollProgressBar />
         <Navbar />
-        <main className="flex min-w-0 flex-1 flex-col overflow-x-clip">{children}</main>
+        <main className="flex min-w-0 flex-1 flex-col overflow-x-clip pb-[40px]">{children}</main>
         <Footer />
         <DeferredAppOverlays />
         <CookieConsent />

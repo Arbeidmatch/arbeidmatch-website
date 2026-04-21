@@ -5,7 +5,7 @@ import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { buildEmail } from "@/lib/emailTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
-import { getSupabaseServiceClient } from "@/lib/supabaseService";
+import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 const schema = z.object({
   email: z.string().email(),
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ verified: false }, { status: 400 });
     }
 
-    const supabase = getSupabaseServiceClient();
+    const supabase = getSupabaseAdminClient();
     if (!supabase) return NextResponse.json({ verified: false }, { status: 500 });
 
     const email = parsed.data.email.trim().toLowerCase();
