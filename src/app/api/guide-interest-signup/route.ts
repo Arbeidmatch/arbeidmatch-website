@@ -6,6 +6,7 @@ import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { escapeHtml } from "@/lib/htmlSanitizer";
 import { buildEmail } from "@/lib/emailTemplate";
 import { notifyError } from "@/lib/errorNotifier";
+import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +104,10 @@ export async function POST(request: NextRequest) {
       const bodyText = lines.join("\n");
 
       try {
+        if (await isUnsubscribed(email)) {
+          return NextResponse.json({ success: true });
+        }
+        const unsubToken = await getOrCreateSubscription(email, "guide-interest");
         const safeSpecialty = escapeHtml(specialty);
         const htmlBody = [
           `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">Hi, thank you for registering your interest with ArbeidMatch.</p>`,
@@ -124,6 +129,7 @@ export async function POST(request: NextRequest) {
             title: "You are registered with ArbeidMatch",
             preheader: "We will notify you when opportunities match your profile",
             body: htmlBody,
+            unsubscribeToken: unsubToken,
           }),
         });
       } catch {

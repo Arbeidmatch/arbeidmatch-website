@@ -7,6 +7,7 @@ import { notifyError } from "@/lib/errorNotifier";
 import { escapeHtml } from "@/lib/htmlSanitizer";
 import { buildEmail } from "@/lib/emailTemplate";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -89,6 +90,10 @@ export async function POST(request: NextRequest) {
     const transporter = createSmtpTransporter();
     if (transporter) {
       try {
+        if (await isUnsubscribed(email)) {
+          return NextResponse.json({ success: true });
+        }
+        const unsubToken = await getOrCreateSubscription(email, "feature-waitlist");
         await transporter.sendMail({
           ...mailHeaders(),
           to: email,
@@ -103,6 +108,7 @@ ArbeidMatch Team`,
             body: `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">Hi, you have been added to the waitlist for <strong>${escapeHtml(
               feature,
             )}</strong> on ArbeidMatch.</p><p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">We will notify you at this email when it becomes available.</p><p style="margin:0;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">Unsubscribe anytime by replying to this email.<br/><br/>Best regards,<br/>ArbeidMatch Team</p>`,
+            unsubscribeToken: unsubToken,
           }),
         });
       } catch {
