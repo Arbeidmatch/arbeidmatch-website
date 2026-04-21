@@ -54,13 +54,11 @@ export default function RequestPage() {
   const [currentCard, setCurrentCard] = useState(0);
   const [companyQuery, setCompanyQuery] = useState("");
   const [orgNumber, setOrgNumber] = useState("");
-  const [partnershipStatus, setPartnershipStatus] = useState<"existing" | "new" | "">("");
   const [contactFirstName, setContactFirstName] = useState("");
   const [contactLastName, setContactLastName] = useState("");
   const [contactRole, setContactRole] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [companyEmail, setCompanyEmail] = useState("");
-  const [engagementModel, setEngagementModel] = useState("Occasional candidate requests");
   const [howDidYouHear, setHowDidYouHear] = useState("Referral from another company");
   const [socialMediaPlatform, setSocialMediaPlatform] = useState("Facebook");
   const [socialMediaOther, setSocialMediaOther] = useState("");
@@ -76,22 +74,11 @@ export default function RequestPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [gdprConsent, setGdprConsent] = useState(false);
 
-  const maxCard = partnershipStatus === "new" ? 3 : 1;
+  const maxCard = 1;
   const progress = ((currentCard + 1) / (maxCard + 1)) * 100;
-  const isAutoAdvanceCard = currentCard === 0 || (partnershipStatus === "new" && currentCard === 2);
+  const isAutoAdvanceCard = false;
 
   const inputClass = "request-premium-input input-premium";
-
-  const selectedOptionBadge = (
-    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gold/15 text-xs font-bold text-gold">
-      <span role="img" aria-label="Selected">
-        ✓
-      </span>
-    </span>
-  );
-
-  const optionButtonClass = (isSelected: boolean) =>
-    `request-option-btn ${isSelected ? "request-option-btn-selected request-option-btn-pulse" : ""}`;
 
   const validateLeadSource = () => {
     if (howDidYouHear === "Social media" && socialMediaPlatform === "Other" && !socialMediaOther.trim()) {
@@ -108,9 +95,6 @@ export default function RequestPage() {
 
   const validateCurrentCard = () => {
     if (currentCard === 0) {
-      return Boolean(partnershipStatus);
-    }
-    if (currentCard === 1) {
       return (
         companyQuery.trim().length > 1 &&
         companyEmail.trim().length > 3 &&
@@ -120,9 +104,6 @@ export default function RequestPage() {
         contactRole.trim().length > 1 &&
         contactPhone.trim().length > 5
       );
-    }
-    if (partnershipStatus === "new" && currentCard === 2) {
-      return Boolean(engagementModel);
     }
     return validateLeadSource();
   };
@@ -149,11 +130,6 @@ export default function RequestPage() {
     setCardError("");
     if (currentCard > 0) setCurrentCard((prev) => prev - 1);
   };
-  const goToNextCard = () => {
-    setCardError("");
-    if (currentCard < maxCard) setCurrentCard((prev) => prev + 1);
-  };
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!validateCurrentCard()) {
@@ -169,12 +145,6 @@ export default function RequestPage() {
     setSubmitError("");
     setStatus("submitting");
 
-    if (!partnershipStatus) {
-      setSubmitError("Please select your partnership status.");
-      setStatus("error");
-      return;
-    }
-
     const payload = {
       company: companyQuery,
       org_number: orgNumber,
@@ -185,7 +155,6 @@ export default function RequestPage() {
       phone: contactPhone,
       gdprConsent,
       job_summary: "General hiring inquiry",
-      partnershipStatus,
       howDidYouHear,
       socialMediaPlatform: howDidYouHear === "Social media" ? socialMediaPlatform : "",
       socialMediaOther:
@@ -469,47 +438,6 @@ export default function RequestPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={reduce ? undefined : { opacity: 0, y: -10 }}
                   transition={{ duration: dur(0.35), ease: PREMIUM_EASE }}
-                  className="space-y-2"
-                >
-                  <legend className="px-1 text-sm font-medium text-navy">
-                    Quick question: Is your company already a partner with ArbeidMatch?
-                  </legend>
-                  {[
-                    ["new", "No, we are not a partner yet"],
-                    ["existing", "Yes, we are already a partner"],
-                  ].map(([value, label], i) => (
-                    <motion.button
-                      key={value}
-                      type="button"
-                      initial={reduce ? false : { opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: dur(0.45),
-                        delay: d(0.3 + i * 0.1),
-                        ease: PREMIUM_EASE,
-                      }}
-                      onClick={() => {
-                        setPartnershipStatus(value as "existing" | "new");
-                        goToNextCard();
-                      }}
-                      className={optionButtonClass(partnershipStatus === value)}
-                    >
-                      <span className="flex items-center justify-between gap-3">
-                        <span>{label}</span>
-                        {partnershipStatus === value && selectedOptionBadge}
-                      </span>
-                    </motion.button>
-                  ))}
-                </motion.fieldset>
-              )}
-
-              {currentCard === 1 && (
-                <motion.div
-                  key="card-1"
-                  initial={reduce ? false : { opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduce ? undefined : { opacity: 0, y: -10 }}
-                  transition={{ duration: dur(0.35), ease: PREMIUM_EASE }}
                   className="space-y-4"
                 >
                   <h2 className="text-sm font-semibold text-navy">Company and Contact Details</h2>
@@ -619,52 +547,10 @@ export default function RequestPage() {
                       />
                     </motion.label>
                   </motion.div>
-                </motion.div>
+                </motion.fieldset>
               )}
 
-              {partnershipStatus === "new" && currentCard === 2 && (
-                <motion.div
-                  key="card-2"
-                  initial={reduce ? false : { opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduce ? undefined : { opacity: 0, y: -10 }}
-                  transition={{ duration: dur(0.35), ease: PREMIUM_EASE }}
-                  className="space-y-3"
-                >
-                  <h2 className="text-sm font-semibold text-navy">Collaboration Type</h2>
-                  <p className="text-sm font-medium text-navy">What type of collaboration are you looking for?</p>
-                  {[
-                    "Occasional candidate requests",
-                    "Volume-based engagement",
-                    "Quality-focused engagement",
-                  ].map((option, i) => (
-                    <motion.button
-                      key={option}
-                      type="button"
-                      initial={reduce ? false : { opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: dur(0.4),
-                        delay: d(0.08 + i * 0.06),
-                        ease: PREMIUM_EASE,
-                      }}
-                      onClick={() => {
-                        setEngagementModel(option);
-                        goToNextCard();
-                      }}
-                      className={optionButtonClass(engagementModel === option)}
-                    >
-                      <span className="flex items-center justify-between gap-3">
-                        <span>{option}</span>
-                        {engagementModel === option && selectedOptionBadge}
-                      </span>
-                    </motion.button>
-                  ))}
-                </motion.div>
-              )}
-
-              {(partnershipStatus === "existing" && currentCard === 2) ||
-              (partnershipStatus === "new" && currentCard === 3) ? (
+              {currentCard === 1 ? (
                 <motion.div
                   key="card-lead"
                   initial={reduce ? false : { opacity: 0, y: 14 }}

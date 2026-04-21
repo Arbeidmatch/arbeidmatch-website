@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   Bolt,
   Factory,
@@ -10,6 +10,7 @@ import {
   HeartPulse,
   LucideIcon,
   Sparkles,
+  Star,
   Truck,
   X,
 } from "lucide-react";
@@ -489,6 +490,7 @@ function ProgressDot({ index, step }: { index: number; step: number }) {
 
 export default function RequestTokenPage() {
   const { token } = useParams<{ token: string }>();
+  const searchParams = useSearchParams();
   const SEARCH_MESSAGES = [
     "Connecting to candidate database...",
     "Searching registered profiles...",
@@ -513,6 +515,9 @@ export default function RequestTokenPage() {
   const [showChoice, setShowChoice] = useState(true);
   const [showCheckFlow, setShowCheckFlow] = useState(false);
   const [choiceMode, setChoiceMode] = useState<"cards" | "check">("cards");
+  const [partnerFlowVisible, setPartnerFlowVisible] = useState(false);
+  const [partnerEmail, setPartnerEmail] = useState("");
+  const [partnerStatus, setPartnerStatus] = useState<"idle" | "submitting" | "verified" | "not_found" | "error">("idle");
   const [checkState, setCheckState] = useState<"idle" | "searching" | "result">("idle");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIndustry, setSelectedIndustry] = useState<string>("");
@@ -567,6 +572,13 @@ export default function RequestTokenPage() {
         setTokenGate("error");
       });
   }, [token]);
+
+  useEffect(() => {
+    if (searchParams.get("start") === "wizard") {
+      setShowChoice(false);
+      setShowCheckFlow(false);
+    }
+  }, [searchParams]);
 
   const goTo = (next: number) => {
     if (next < 0 || next > TOTAL_STEPS - 1 || animating) return;
@@ -862,6 +874,26 @@ export default function RequestTokenPage() {
     }
   };
 
+  const verifyPartner = async () => {
+    if (!partnerEmail.includes("@") || !token) return;
+    setPartnerStatus("submitting");
+    try {
+      const response = await fetch("/api/verify-partner", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: partnerEmail.trim().toLowerCase(), token }),
+      });
+      const data = (await response.json()) as { verified?: boolean };
+      if (response.ok && data.verified) {
+        setPartnerStatus("verified");
+        return;
+      }
+      setPartnerStatus("not_found");
+    } catch {
+      setPartnerStatus("error");
+    }
+  };
+
   const filteredRoles = useMemo(() => {
     if (!selectedIndustry) return [];
     const group = CHECK_ROLE_GROUPS.find((item) => item.industry === selectedIndustry);
@@ -992,7 +1024,24 @@ export default function RequestTokenPage() {
       <div className="min-h-dvh bg-[#0a0f18] px-4 py-10 text-white md:px-6">
         <div className="mx-auto w-full max-w-[980px]">
           {!showCheckFlow ? (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-9 transition-colors hover:border-[rgba(201,168,76,0.45)]">
+                <Star className="mb-5 h-9 w-9 text-[#C9A84C]" />
+                <h2 className="text-2xl font-bold">I am an ArbeidMatch Partner</h2>
+                <p className="mt-3 text-sm text-white/65">
+                  Existing partners get priority access and dedicated support.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPartnerFlowVisible(true);
+                    setPartnerStatus("idle");
+                  }}
+                  className="mt-6 rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A]"
+                >
+                  Continue as partner
+                </button>
+              </div>
               <div className="rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-9 transition-colors hover:border-[rgba(201,168,76,0.45)]">
                 <svg className="mb-5 h-9 w-9 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M7 3h7l5 5v13H7V3Z" stroke="currentColor" strokeWidth="1.8" />
@@ -1000,7 +1049,7 @@ export default function RequestTokenPage() {
                 </svg>
                 <h2 className="text-2xl font-bold">I know what I need</h2>
                 <p className="mt-3 text-sm text-white/65">
-                  Submit your full requirements and we will match you with the right candidates.
+                  Submit your full candidate requirements directly.
                 </p>
                 <button
                   type="button"
@@ -1018,9 +1067,9 @@ export default function RequestTokenPage() {
                   <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.8" />
                   <path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                 </svg>
-                <h2 className="text-2xl font-bold">Check candidate availability</h2>
+                <h2 className="text-2xl font-bold">Check availability first</h2>
                 <p className="mt-3 text-sm text-white/65">
-                  See how many candidates we have registered for a specific role before committing.
+                  See how many candidates we have for a specific role.
                 </p>
                 <button
                   type="button"
@@ -1034,6 +1083,45 @@ export default function RequestTokenPage() {
                   Check now
                 </button>
               </div>
+              {partnerFlowVisible && (
+                <div className="md:col-span-3 rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-9">
+                  <p className="text-sm font-semibold text-white">Enter your company email</p>
+                  <div className="mt-3 flex flex-col gap-3 md:flex-row">
+                    <input
+                      type="email"
+                      value={partnerEmail}
+                      onChange={(event) => setPartnerEmail(event.target.value)}
+                      placeholder="you@company.com"
+                      className="w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void verifyPartner()}
+                      disabled={partnerStatus === "submitting" || !partnerEmail.includes("@")}
+                      className="rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
+                    >
+                      {partnerStatus === "submitting" ? "Verifying..." : "Verify partnership"}
+                    </button>
+                  </div>
+                  {partnerStatus === "verified" && (
+                    <p className="mt-4 text-sm text-[#C9A84C]">
+                      Welcome back! A secure link has been sent to {partnerEmail}. Check your inbox to continue your request.
+                    </p>
+                  )}
+                  {partnerStatus === "not_found" && (
+                    <p className="mt-4 text-sm text-white/75">
+                      We could not find a partner account for this email.{" "}
+                      <Link href="/contact" className="text-[#C9A84C] underline">
+                        Contact us
+                      </Link>{" "}
+                      to become a partner.
+                    </p>
+                  )}
+                  {partnerStatus === "error" && (
+                    <p className="mt-4 text-sm text-red-300">Could not verify partnership right now. Please try again.</p>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className="rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-9">
