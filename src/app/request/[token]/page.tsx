@@ -345,12 +345,16 @@ function OptionCard({
   selected,
   onClick,
   icon,
+  className,
+  labelClassName,
 }: {
   label: string;
   sublabel?: string;
   selected: boolean;
   onClick: () => void;
   icon?: React.ReactNode;
+  className?: string;
+  labelClassName?: string;
 }) {
   return (
     <button
@@ -360,12 +364,12 @@ function OptionCard({
         selected
           ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
           : "border-white/10 bg-white/[0.03] text-white hover:border-white/20 hover:bg-white/[0.05]"
-      }`}
+      } ${className || ""}`}
     >
       <span className="flex items-center gap-3">
         {icon}
         <span>
-          <span className="block text-sm font-semibold">{label}</span>
+          <span className={`block text-sm font-semibold ${labelClassName || ""}`}>{label}</span>
           {sublabel ? <span className="block text-xs text-white/50">{sublabel}</span> : null}
         </span>
       </span>
@@ -957,6 +961,8 @@ export default function RequestTokenPage() {
                     <OptionCard
                       key={option}
                       label={option}
+                      className="md:h-[52px] md:items-center"
+                      labelClassName="md:text-[13px] md:whitespace-nowrap"
                       selected={form.industry === option}
                       onClick={() =>
                         setForm((prev) => ({
@@ -970,6 +976,9 @@ export default function RequestTokenPage() {
                     />
                   ))}
                 </div>
+                {!form.industry && (
+                  <p className="mb-2 text-right text-[12px] text-[rgba(255,255,255,0.4)]">Select an industry to continue</p>
+                )}
               </div>
             )}
 
