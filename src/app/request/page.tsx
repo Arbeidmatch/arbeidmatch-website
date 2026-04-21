@@ -73,6 +73,7 @@ export default function RequestPage() {
   const [partnerIssueStatus, setPartnerIssueStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [isLoadingExit, setIsLoadingExit] = useState(false);
   const [partnerModalView, setPartnerModalView] = useState<"not_found" | "feedback_form" | "feedback_success">("not_found");
+  const [feedbackEmail, setFeedbackEmail] = useState("");
   const [partnerIssueMessage, setPartnerIssueMessage] = useState("");
   const [notFoundExiting, setNotFoundExiting] = useState(false);
   const hasMountedHistoryGuard = useRef(false);
@@ -212,14 +213,14 @@ export default function RequestPage() {
   const showNonPartnerOptions = accessStatus === "non_partner" && resultAction === "non_partner";
 
   const reportPartnerIssue = async () => {
-    if (!accessEmail.includes("@") || partnerIssueStatus === "submitting") return;
+    if (!feedbackEmail.includes("@") || partnerIssueStatus === "submitting") return;
     setPartnerIssueStatus("submitting");
     try {
       const response = await fetch("/api/partner-issue", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: accessEmail.trim().toLowerCase(),
+          email: feedbackEmail.trim().toLowerCase(),
           message: partnerIssueMessage.trim(),
         }),
       });
@@ -610,6 +611,7 @@ export default function RequestPage() {
                         onClick={() => {
                           setNotFoundExiting(true);
                           setTimeout(() => {
+                            setFeedbackEmail(accessEmail);
                             setPartnerModalView("feedback_form");
                             setNotFoundExiting(false);
                           }, 150);
@@ -646,12 +648,21 @@ export default function RequestPage() {
                     <p className="mt-1.5 text-center text-[13px] text-[rgba(255,255,255,0.5)]">
                       Tell us what happened and we will look into it right away.
                     </p>
+                    <label className="mt-5 block text-[12px] text-[rgba(255,255,255,0.45)]">Your email</label>
+                    <input
+                      type="email"
+                      value={feedbackEmail}
+                      onChange={(event) => setFeedbackEmail(event.target.value)}
+                      placeholder="your@company.no"
+                      className="mt-1.5 mb-3 w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+                    />
+                    <label className="block text-[12px] text-[rgba(255,255,255,0.45)]">Describe the issue</label>
                     <textarea
                       rows={4}
                       value={partnerIssueMessage}
                       onChange={(event) => setPartnerIssueMessage(event.target.value)}
                       placeholder="Describe the issue. For example: I work at Company X and my email should be registered."
-                      className="mt-5 w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+                      className="mt-1.5 w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
                     />
                     <button
                       type="button"
