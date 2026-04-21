@@ -7,6 +7,7 @@ import { mailHeaders, premiumCtaButton } from "@/lib/emailPremiumTemplate";
 import { createEligibilityVerificationToken } from "@/lib/notificationToken";
 import { notifyError } from "@/lib/errorNotifier";
 import { buildEmail, emailBodyParagraph, emailBodySupportHint, emailFieldRows } from "@/lib/emailTemplate";
+import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -187,11 +188,13 @@ export async function POST(request: NextRequest) {
       `<p style="margin:16px 0 0;text-align:center;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</p>`,
     ].join("");
 
-    await transporter.sendMail({
-      ...mailHeaders(),
-      to: emailTrimmed,
-      subject: "Verify your email for notifications | ArbeidMatch",
-      text: `Please verify your email to activate notifications.
+    if (!(await isUnsubscribed(emailTrimmed))) {
+      const unsubToken = await getOrCreateSubscription(emailTrimmed, "eligibility-assistance");
+      await transporter.sendMail({
+        ...mailHeaders(),
+        to: emailTrimmed,
+        subject: "Verify your email for notifications | ArbeidMatch",
+        text: `Please verify your email to activate notifications.
 
 Open the HTML version of this message and use the verify button.
 
@@ -199,12 +202,14 @@ Target region: ${data.targetRegion || "-"}
 Target country: ${data.targetCountry || "-"}
 
 If the button does not work, reply to this email for help.`,
-      html: buildEmail({
-        title: "Verify your email for notifications",
-        preheader: "Confirm consent and activate your subscription",
-        body: candidateInner,
-      }),
-    });
+        html: buildEmail({
+          title: "Verify your email for notifications",
+          preheader: "Confirm consent and activate your subscription",
+          body: candidateInner,
+          unsubscribeToken: unsubToken,
+        }),
+      });
+    }
 
     const okBody = { success: true, requiresVerification: true };
     return NextResponse.json(okBody);

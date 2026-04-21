@@ -7,6 +7,7 @@ import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
 import { buildEmail, emailBodyParagraph } from "@/lib/emailTemplate";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,10 @@ export async function POST(request: NextRequest) {
     const transporter = createSmtpTransporter();
     if (transporter) {
       try {
+        if (await isUnsubscribed(email)) {
+          return NextResponse.json({ success: true });
+        }
+        const unsubToken = await getOrCreateSubscription(email, "app-waitlist");
         const inner = [
           emailBodyParagraph("Hi there,"),
           emailBodyParagraph(
@@ -71,6 +76,7 @@ Visit https://arbeidmatch.no`,
             body: inner,
             ctaText: "Visit ArbeidMatch",
             ctaUrl: "https://arbeidmatch.no",
+            unsubscribeToken: unsubToken,
           }),
         });
       } catch (e) {

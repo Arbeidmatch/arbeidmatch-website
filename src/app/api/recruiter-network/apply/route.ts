@@ -7,6 +7,7 @@ import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
 import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTemplate";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 const PARTNER_TYPES = new Set(["influencer", "recruiter", "learner"]);
 const HAS_COMPANY = new Set(["yes", "want_setup", "not_yet"]);
@@ -140,18 +141,22 @@ export async function POST(request: NextRequest) {
 
     const adminBody = emailFieldRows(internalRows);
 
-    await transporter.sendMail({
-      ...mailHeaders(),
-      to: email,
-      subject: "We received your application - ArbeidMatch Recruiter Network",
-      html: buildEmail({
-        title: "We received your application",
-        preheader: "ArbeidMatch Recruiter Network",
-        body: applicantHtml,
-        ctaText: "Visit ArbeidMatch",
-        ctaUrl: "https://arbeidmatch.no",
-      }),
-    });
+    if (!(await isUnsubscribed(email))) {
+      const unsubToken = await getOrCreateSubscription(email, "recruiter-apply");
+      await transporter.sendMail({
+        ...mailHeaders(),
+        to: email,
+        subject: "We received your application - ArbeidMatch Recruiter Network",
+        html: buildEmail({
+          title: "We received your application",
+          preheader: "ArbeidMatch Recruiter Network",
+          body: applicantHtml,
+          ctaText: "Visit ArbeidMatch",
+          ctaUrl: "https://arbeidmatch.no",
+          unsubscribeToken: unsubToken,
+        }),
+      });
+    }
 
     await transporter.sendMail({
       ...mailHeaders(),

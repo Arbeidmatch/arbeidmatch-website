@@ -5,6 +5,7 @@ import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { mailHeaders, premiumCtaButton } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTemplate";
+import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,16 +62,20 @@ export async function POST(request: NextRequest) {
       `<p style="margin:8px 0 0;text-align:center;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</p>`,
     ].join("");
 
-    await transporter.sendMail({
-      ...mailHeaders(),
-      to: data.email,
-      subject: "DSB support notification registered | ArbeidMatch",
-      html: buildEmail({
-        title: "DSB support notification registered",
-        preheader: "We registered your DSB assistance interest",
-        body: userInner,
-      }),
-    });
+    if (!(await isUnsubscribed(data.email))) {
+      const unsubToken = await getOrCreateSubscription(data.email, "dsb-assistance");
+      await transporter.sendMail({
+        ...mailHeaders(),
+        to: data.email,
+        subject: "DSB support notification registered | ArbeidMatch",
+        html: buildEmail({
+          title: "DSB support notification registered",
+          preheader: "We registered your DSB assistance interest",
+          body: userInner,
+          unsubscribeToken: unsubToken,
+        }),
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -7,6 +7,7 @@ import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import { notifySlack } from "@/lib/slackNotifier";
 import { buildEmail } from "@/lib/emailTemplate";
+import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 import {
   emailDataTable,
   emailParagraph,
@@ -218,7 +219,8 @@ export async function POST(request: NextRequest) {
       }),
     });
 
-    if (data.email) {
+    if (data.email && !(await isUnsubscribed(data.email))) {
+      const unsubToken = await getOrCreateSubscription(data.email, "employer-request");
       await transporter.sendMail({
         ...mailHeaders(),
         to: data.email,
@@ -229,11 +231,13 @@ export async function POST(request: NextRequest) {
           body: employerInner,
           ctaText: "Share feedback",
           ctaUrl: "https://arbeidmatch.no/feedback",
+          unsubscribeToken: unsubToken,
         }),
       });
     }
 
-    if (data.referralEmail) {
+    if (data.referralEmail && !(await isUnsubscribed(data.referralEmail))) {
+      const referralUnsubToken = await getOrCreateSubscription(data.referralEmail, "employer-request");
       const safeRefCo = escapeHtml(data.company || "-");
       const referralInner = [
         emailParagraph("Thank you for recommending ArbeidMatch!"),
@@ -252,6 +256,7 @@ export async function POST(request: NextRequest) {
           body: referralInner,
           ctaText: "Contact us",
           ctaUrl: "https://arbeidmatch.no/contact",
+          unsubscribeToken: referralUnsubToken,
         }),
       });
     }

@@ -8,6 +8,7 @@ import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
 import { buildEmail, emailFieldRows } from "@/lib/emailTemplate";
+import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -67,16 +68,20 @@ export async function POST(request: NextRequest) {
     const transporter = createSmtpTransporter();
     if (transporter) {
       try {
-        await transporter.sendMail({
-          ...mailHeaders(),
-          to: email,
-          subject: DSB_CHECKLIST_EMAIL_SUBJECT,
-          html: buildEmail({
-            title: DSB_CHECKLIST_EMAIL_SUBJECT,
-            preheader: "Your DSB checklist is ready",
-            body: buildDsbChecklistEmailBodyHtml(firstName),
-          }),
-        });
+        if (!(await isUnsubscribed(email))) {
+          const unsubToken = await getOrCreateSubscription(email, "dsb-lead");
+          await transporter.sendMail({
+            ...mailHeaders(),
+            to: email,
+            subject: DSB_CHECKLIST_EMAIL_SUBJECT,
+            html: buildEmail({
+              title: DSB_CHECKLIST_EMAIL_SUBJECT,
+              preheader: "Your DSB checklist is ready",
+              body: buildDsbChecklistEmailBodyHtml(firstName),
+              unsubscribeToken: unsubToken,
+            }),
+          });
+        }
       } catch (e) {
         console.error("[dsb-leads] user email", e);
       }
