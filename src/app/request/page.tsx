@@ -490,7 +490,18 @@ export default function RequestPage() {
                   {notifyStatus === "submitting" ? "Sending..." : "Notify me"}
                 </button>
               </div>
-              {notifyStatus === "success" && <p className="mt-3 text-[13px] text-[rgba(255,255,255,0.5)]">Thanks. We will notify you by email.</p>}
+              {notifyStatus === "success" && (
+                <div className="waitlist-success-card mt-4">
+                  <svg viewBox="0 0 24 24" className="mx-auto h-7 w-7 text-[#C9A84C]" fill="none" aria-hidden>
+                    <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <p className="mt-[14px] text-[18px] font-bold text-white">We have got you covered.</p>
+                  <p className="mt-2 text-[14px] leading-[1.7] text-[rgba(255,255,255,0.55)]">
+                    You will be among the first to know when this launches. We are building something worth waiting for.
+                  </p>
+                  <p className="mt-4 text-[12px] text-[rgba(255,255,255,0.3)]">We will reach out directly when access becomes available.</p>
+                </div>
+              )}
               {notifyStatus === "error" && <p className="mt-3 text-[13px] text-[rgba(255,255,255,0.5)]">Could not save your request. Please try again.</p>}
             </div>
           )}
@@ -942,6 +953,16 @@ export default function RequestPage() {
         .not-found-panel.not-found-exit {
           opacity: 0;
         }
+        .waitlist-success-card {
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(201, 168, 76, 0.2);
+          border-top: 2px solid rgba(201, 168, 76, 0.4);
+          border-radius: 16px;
+          padding: 32px 28px;
+          max-width: 420px;
+          margin: 0 auto;
+          text-align: center;
+        }
         @media (prefers-reduced-motion: no-preference) {
           .result-zero {
             animation: resultIn 400ms ease-out both;
@@ -969,6 +990,9 @@ export default function RequestPage() {
           .not-found-panel {
             animation: notFoundIn 250ms ease both;
           }
+          .waitlist-success-card {
+            animation: waitlistSuccessIn 300ms ease both;
+          }
           .loading-shield {
             animation: shieldPulse 2s ease-in-out infinite;
           }
@@ -991,6 +1015,16 @@ export default function RequestPage() {
           }
         }
         @keyframes notFoundIn {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes waitlistSuccessIn {
           from {
             opacity: 0;
             transform: translateY(8px);

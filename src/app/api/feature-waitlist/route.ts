@@ -4,10 +4,8 @@ import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { notifyError } from "@/lib/errorNotifier";
-import { escapeHtml } from "@/lib/htmlSanitizer";
-import { buildEmail } from "@/lib/emailTemplate";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
-import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
+import { isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -93,7 +91,6 @@ export async function POST(request: NextRequest) {
         if (await isUnsubscribed(email)) {
           return NextResponse.json({ success: true });
         }
-        const unsubToken = await getOrCreateSubscription(email, "feature-waitlist");
         await transporter.sendMail({
           ...mailHeaders(),
           to: email,
@@ -102,14 +99,34 @@ export async function POST(request: NextRequest) {
 
 Best regards,
 ArbeidMatch Team`,
-          html: buildEmail({
-            title: "You are on the waitlist",
-            preheader: "Your feature waitlist registration is confirmed",
-            body: `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">Hi, you have been added to the waitlist for <strong>${escapeHtml(
-              feature,
-            )}</strong> on ArbeidMatch.</p><p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">We will notify you at this email when it becomes available.</p><p style="margin:0;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">Unsubscribe anytime by replying to this email.<br/><br/>Best regards,<br/>ArbeidMatch Team</p>`,
-            unsubscribeToken: unsubToken,
-          }),
+          html: `
+            <div style="background:#0D1B2A;max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,system-ui,sans-serif;">
+              <div style="background:#0a0f18;padding:32px 36px;text-align:center;">
+                <span style="color:#ffffff;font-weight:700;font-size:24px;">Arbeid</span><span style="color:#C9A84C;font-weight:700;font-size:24px;">Match</span>
+                <div style="width:60px;height:2px;background:#C9A84C;margin:12px auto 0;"></div>
+              </div>
+              <div style="padding:40px 36px;background:#0D1B2A;">
+                <p style="margin:0 0 10px 0;font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.12em;">YOU ARE ON THE LIST</p>
+                <h1 style="font-size:26px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 16px 0;">We have got you covered.</h1>
+                <p style="margin:0 0 24px 0;font-size:15px;color:rgba(255,255,255,0.6);line-height:1.7;">
+                  You will be among the first to know when this feature launches. We are building something worth waiting for.
+                </p>
+                <div style="width:60px;height:1px;background:#C9A84C;margin:0 0 24px 0;"></div>
+                <p style="font-size:13px;color:rgba(255,255,255,0.35);line-height:1.6;margin:0;">
+                  No action needed. We will reach out directly when access becomes available for your account.
+                </p>
+              </div>
+              <div style="background:#0a0f18;padding:24px 36px;text-align:center;">
+                <p style="font-size:11px;color:rgba(255,255,255,0.25);line-height:1.8;margin:0;">
+                  ArbeidMatch Norge AS | Org.nr 935 667 089 MVA<br />
+                  Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway<br />
+                  <a href="mailto:post@arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">post@arbeidmatch.no</a>
+                  <span> | </span>
+                  <a href="https://arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">arbeidmatch.no</a>
+                </p>
+              </div>
+            </div>
+          `,
         });
       } catch {
         /* ignore */
