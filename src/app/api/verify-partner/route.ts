@@ -35,9 +35,12 @@ export async function POST(request: NextRequest) {
       .select("id, company_name, domain")
       .eq("domain", domain)
       .eq("active", true)
-      .single();
+      .maybeSingle();
 
     if (partnerError) {
+      if (partnerError.code === "PGRST116") {
+        return NextResponse.json({ verified: false, reason: "not_found" }, { status: 200 });
+      }
       if (partnerError.code === "42P01") {
         return NextResponse.json({ verified: false });
       }
@@ -45,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!partner) {
-      return NextResponse.json({ verified: false });
+      return NextResponse.json({ verified: false, reason: "not_found" }, { status: 200 });
     }
 
     let requestToken = parsed.data.token;
@@ -134,6 +137,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ verified: true, company_name: partner.company_name });
   } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: string }).code === "PGRST116"
+    ) {
+      return NextResponse.json({ verified: false, reason: "not_found" }, { status: 200 });
+    }
     await notifyError({ route: "/api/verify-partner", error });
     return NextResponse.json({ verified: false }, { status: 500 });
   }
