@@ -685,7 +685,7 @@ export default function RequestPage() {
                 </svg>
                 <p className="mt-3 text-[18px] font-bold text-white">Check your inbox</p>
                 <p className="mt-2 text-sm text-[rgba(255,255,255,0.6)]">
-                  A secure access link has been sent to {accessEmail}. The link is valid for 14 days.
+                  A secure access link has been sent to {accessEmail}. The link is valid for 30 minutes.
                 </p>
                 <p className="mt-3 text-xs text-[rgba(255,255,255,0.35)]">
                   Emails are usually delivered within a few seconds, but may occasionally take up to 5 minutes. In the meantime, you can close this window and continue browsing. Check your spam folder if nothing arrives.

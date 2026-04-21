@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     const sessionToken = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
     const { error: sessionError } = await supabase.from("partner_sessions").insert({
       email,
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
               <p style="margin:0 0 10px 0;font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.12em;">YOU ARE VERIFIED AS A PARTNER</p>
               <h1 style="font-size:26px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 16px 0;">Your secure access link is ready.</h1>
               <p style="margin:0 0 32px 0;font-size:15px;color:rgba(255,255,255,0.6);line-height:1.7;">
-                Click the button below to access candidate profiles. Your link is personal and valid for 14 days from the moment it was generated.
+                Click the button below to access candidate profiles. Your link is personal and valid for 30 minutes from the moment it was generated.
               </p>
               <div style="text-align:center;margin-bottom:32px;">
                 <a href="${secureUrl}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-weight:700;font-size:15px;padding:16px 40px;border-radius:10px;text-decoration:none;">Access Candidate Profiles</a>
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       ...mailHeaders(),
       to: email,
       subject: "Your ArbeidMatch secure access link",
-      text: `Here is your secure link to access candidate profiles and submit requests: ${secureUrl}\n\nThis link is valid for 14 days and is linked to your partner account.`,
+      text: `Here is your secure link to access candidate profiles and submit requests: ${secureUrl}\n\nThis link is valid for 30 minutes and is linked to your partner account.`,
       html,
     });
 
