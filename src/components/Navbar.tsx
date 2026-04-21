@@ -70,6 +70,7 @@ const DRAWER_EASE = [0.32, 0.72, 0, 1] as const;
 export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMegaOpen, setIsMegaOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
@@ -93,6 +94,7 @@ export default function Navbar() {
 
   useEffect(() => {
     startTransition(() => setIsOpen(false));
+    startTransition(() => setIsMegaOpen(false));
   }, [pathname]);
 
   useEffect(() => {
@@ -129,6 +131,7 @@ export default function Navbar() {
     : "border-b border-black/[0.06] bg-[#0D1B2A]/90 backdrop-blur-sm";
 
   const closeMenu = () => setIsOpen(false);
+  const closeMegaMenu = () => setIsMegaOpen(false);
 
   const mobilePortal =
     mounted &&
@@ -194,7 +197,11 @@ export default function Navbar() {
               </Link>
             ))}
 
-            <div className="group/mer relative">
+            <div
+              className="relative"
+              onMouseEnter={() => setIsMegaOpen(true)}
+              onMouseLeave={closeMegaMenu}
+            >
               <span
                 className={`inline-flex min-h-[44px] cursor-default items-center gap-1 ${navItemClass} ${
                   megaHasActive(pathname) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""
@@ -203,7 +210,11 @@ export default function Navbar() {
                 Mer
                 <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
               </span>
-              <div className="pointer-events-none invisible absolute left-1/2 top-full z-[130] w-[min(920px,calc(100vw-2rem))] -translate-x-1/2 pt-3 opacity-0 transition-[opacity,transform,visibility] duration-[180ms] ease-out translate-y-[-6px] group-hover/mer:pointer-events-auto group-hover/mer:visible group-hover/mer:translate-y-0 group-hover/mer:opacity-100">
+              <div
+                className={`absolute left-1/2 top-full z-[130] w-[min(920px,calc(100vw-2rem))] -translate-x-1/2 pt-3 transition-[opacity,transform,visibility] duration-[180ms] ease-out ${
+                  isMegaOpen ? "pointer-events-auto visible translate-y-0 opacity-100" : "pointer-events-none invisible -translate-y-[6px] opacity-0"
+                }`}
+              >
                 <div className={megaPanelInnerClass}>
                   <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-10">
                     <div>
@@ -212,6 +223,7 @@ export default function Navbar() {
                         <li>
                           <Link
                             href={tjenesterStaffingLink.href}
+                            onClick={closeMegaMenu}
                             className={`${megaLinkClass} ${linkActive(pathname, tjenesterStaffingLink.href) ? "font-medium text-gold" : ""}`}
                           >
                             {tjenesterStaffingLink.label}
@@ -222,6 +234,7 @@ export default function Navbar() {
                           <li key={item.href}>
                             <Link
                               href={item.href}
+                              onClick={closeMegaMenu}
                               className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
                             >
                               {item.label}
@@ -237,6 +250,7 @@ export default function Navbar() {
                           <li key={item.href}>
                             <Link
                               href={item.href}
+                              onClick={closeMegaMenu}
                               className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
                             >
                               {item.label}
@@ -252,6 +266,7 @@ export default function Navbar() {
                           <li key={item.href}>
                             <Link
                               href={item.href}
+                              onClick={closeMegaMenu}
                               className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
                             >
                               {item.premium ? (
