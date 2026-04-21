@@ -414,6 +414,26 @@ export default function RequestTokenPage() {
     "Finalizing results...",
     "Almost ready...",
   ] as const;
+  const CHECK_ROLES = [
+    "Electrician",
+    "Welder",
+    "Carpenter",
+    "Plumber",
+    "Construction Worker",
+    "Painter",
+    "Scaffolder",
+    "Crane Operator",
+    "Machine Operator",
+    "Logistics Driver",
+    "Forklift Operator",
+    "Cleaner",
+    "Kitchen Staff",
+    "Healthcare Assistant",
+    "Offshore Worker",
+    "Mechanic",
+    "Steel Worker",
+    "Insulation Worker",
+  ] as const;
 
   const [step, setStep] = useState(0);
   const [animating, setAnimating] = useState(false);
@@ -427,6 +447,7 @@ export default function RequestTokenPage() {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [showChoice, setShowChoice] = useState(true);
+  const [showCheckFlow, setShowCheckFlow] = useState(false);
   const [choiceMode, setChoiceMode] = useState<"cards" | "check">("cards");
   const [checkState, setCheckState] = useState<"idle" | "searching" | "result">("idle");
   const [searchTerm, setSearchTerm] = useState("");
@@ -666,9 +687,10 @@ export default function RequestTokenPage() {
     return () => clearInterval(interval);
   }, [checkState, SEARCH_MESSAGES.length]);
 
-  const runCandidateSearch = async () => {
-    const role = searchTerm.trim();
+  const runCandidateSearch = async (roleInput?: string) => {
+    const role = (roleInput ?? searchTerm).trim();
     if (role.length < 2) return;
+    if (roleInput !== undefined) setSearchTerm(roleInput);
     setCheckState("searching");
     setSearchMessageIndex(0);
     const waitMs = reducedMotion ? 2000 : 7000;
@@ -800,7 +822,7 @@ export default function RequestTokenPage() {
     return (
       <div className="min-h-dvh bg-[#0a0f18] px-4 py-10 text-white md:px-6">
         <div className="mx-auto w-full max-w-[980px]">
-          {choiceMode === "cards" ? (
+          {!showCheckFlow ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-9 transition-colors hover:border-[rgba(201,168,76,0.45)]">
                 <svg className="mb-5 h-9 w-9 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -830,7 +852,10 @@ export default function RequestTokenPage() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => setChoiceMode("check")}
+                  onClick={() => {
+                    setShowCheckFlow(true);
+                    setChoiceMode("check");
+                  }}
                   className="mt-6 rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A]"
                 >
                   Check now
@@ -842,20 +867,26 @@ export default function RequestTokenPage() {
               {checkState === "idle" && (
                 <>
                   <h2 className="text-2xl font-bold">Which role are you looking for?</h2>
-                  <input
-                    value={searchTerm}
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                    placeholder="e.g. Electrician, Welder, Carpenter..."
-                    className="mt-5 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={runCandidateSearch}
-                    disabled={searchTerm.trim().length < 2}
-                    className="mt-5 rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-50"
-                  >
-                    Search candidates
-                  </button>
+                  <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.4)]">Select a role to check availability</p>
+                  <div className="mt-5 flex flex-wrap gap-[10px]">
+                    {CHECK_ROLES.map((role) => {
+                      const selected = searchTerm === role;
+                      return (
+                        <button
+                          key={role}
+                          type="button"
+                          onClick={() => void runCandidateSearch(role)}
+                          className={`inline-flex cursor-pointer rounded-[20px] border px-[18px] py-[10px] text-[14px] transition-all duration-200 ease-in-out ${
+                            selected
+                              ? "border-[#C9A84C] bg-[rgba(201,168,76,0.12)] font-semibold text-white"
+                              : "border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] text-[rgba(255,255,255,0.8)] hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.08)] hover:text-white"
+                          }`}
+                        >
+                          {role}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </>
               )}
               {checkState === "searching" && (
