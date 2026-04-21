@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { buildEmail } from "@/lib/emailTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
@@ -23,12 +24,15 @@ export async function POST(request: NextRequest) {
     if (!supabase) return NextResponse.json({ verified: false }, { status: 500 });
 
     const email = parsed.data.email.trim().toLowerCase();
+    const domain = email.split("@")[1]?.toLowerCase();
+    if (!domain) return NextResponse.json({ verified: false });
+
     const { data: partner, error: partnerError } = await supabase
       .from("partners")
-      .select("email, active")
-      .eq("email", email)
+      .select("id, company_name, domain")
+      .eq("domain", domain)
       .eq("active", true)
-      .maybeSingle();
+      .single();
 
     if (partnerError) {
       if (partnerError.code === "42P01") {
@@ -61,15 +65,24 @@ export async function POST(request: NextRequest) {
     const transporter = createSmtpTransporter();
     if (!transporter) return NextResponse.json({ verified: true });
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://arbeidmatch.no";
-    const secureUrl = `${baseUrl}/request/partner/${sessionToken}`;
+    const secureUrl = `https://arbeidmatch.no/request/partner/${sessionToken}`;
+    const html = buildEmail({
+      title: "Secure Request Link",
+      preheader: "Your link expires in 1 hour",
+      body: [
+        "<p>Hello,</p>",
+        "<p>Here is your secure link to submit a candidate request. This link expires in 1 hour and can only be used once.</p>",
+        `<a href="${secureUrl}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none;">Continue your request</a>`,
+        '<p style="font-size:12px;color:rgba(255,255,255,0.4);">If you did not request this link, ignore this email.</p>',
+      ].join(""),
+    });
 
     await transporter.sendMail({
       ...mailHeaders(),
       to: email,
-      subject: "Your secure partner access link",
-      text: `Use this secure link to continue your request: ${secureUrl}\n\nThis link expires in 1 hour.`,
-      html: `<p style="margin:0 0 12px;">Use this secure link to continue your request:</p><p style="margin:0 0 16px;"><a href="${secureUrl}" style="color:#C9A84C;">${secureUrl}</a></p><p style="margin:0;color:#666;">This link expires in 1 hour.</p>`,
+      subject: "Your ArbeidMatch partner request link",
+      text: `Here is your secure link to submit a candidate request: ${secureUrl}\n\nThis link expires in 1 hour and can only be used once.`,
+      html,
     });
 
     return NextResponse.json({ verified: true });
