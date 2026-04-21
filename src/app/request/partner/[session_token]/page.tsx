@@ -48,12 +48,14 @@ export default function PartnerSessionPage() {
     return (
       <section className="min-h-screen bg-[#0D1B2A] px-4 py-20 text-white">
         <div className="mx-auto max-w-xl rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-8 text-center">
-          <h1 className="text-2xl font-bold text-white">This link has expired. Please request a new one.</h1>
+          <h1 className="text-2xl font-bold text-white">
+            This link has expired. Partner links are valid for 14 days. Request a new one below.
+          </h1>
           <Link
             href="/request"
             className="mx-auto mt-6 inline-flex rounded-[10px] bg-[#C9A84C] px-6 py-3 text-sm font-bold text-[#0D1B2A]"
           >
-            Back to request
+            Request new link
           </Link>
         </div>
       </section>

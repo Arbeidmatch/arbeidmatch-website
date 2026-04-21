@@ -491,6 +491,7 @@ function ProgressDot({ index, step }: { index: number; step: number }) {
 export default function RequestTokenPage() {
   const { token } = useParams<{ token: string }>();
   const searchParams = useSearchParams();
+  const startWizard = searchParams.get("start") === "wizard";
   const SEARCH_MESSAGES = [
     "Connecting to candidate database...",
     "Searching registered profiles...",
@@ -512,7 +513,7 @@ export default function RequestTokenPage() {
   const [tokenGate, setTokenGate] = useState<"loading" | "ready" | "blocked" | "error">("loading");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [citySearch, setCitySearch] = useState("");
-  const [showChoice, setShowChoice] = useState(true);
+  const [showChoice, setShowChoice] = useState(!startWizard);
   const [showCheckFlow, setShowCheckFlow] = useState(false);
   const [choiceMode, setChoiceMode] = useState<"cards" | "check">("cards");
   const [partnerFlowVisible, setPartnerFlowVisible] = useState(false);
@@ -574,11 +575,11 @@ export default function RequestTokenPage() {
   }, [token]);
 
   useEffect(() => {
-    if (searchParams.get("start") === "wizard") {
+    if (startWizard) {
       setShowChoice(false);
       setShowCheckFlow(false);
     }
-  }, [searchParams]);
+  }, [startWizard]);
 
   const goTo = (next: number) => {
     if (next < 0 || next > TOTAL_STEPS - 1 || animating) return;
@@ -974,6 +975,22 @@ export default function RequestTokenPage() {
             }
           }
         `}</style>
+      </section>
+    );
+  }
+
+  if (!startWizard) {
+    return (
+      <section className="min-h-dvh bg-[#0D1B2A] px-4 py-16 text-white">
+        <div className="mx-auto max-w-lg rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-8 py-10 text-center">
+          <p className="text-lg text-[rgba(255,255,255,0.85)]">Please start your request from our website.</p>
+          <Link
+            href="/request"
+            className="mt-8 inline-flex min-h-[44px] items-center justify-center rounded-[10px] bg-[#C9A84C] px-8 py-3 text-sm font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
+          >
+            Start here
+          </Link>
+        </div>
       </section>
     );
   }

@@ -9,7 +9,7 @@ import { getSupabaseServiceClient } from "@/lib/supabaseService";
 
 const schema = z.object({
   email: z.string().email(),
-  token: z.string().uuid(),
+  token: z.string().uuid().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -45,13 +45,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ verified: false });
     }
 
+    let requestToken = parsed.data.token;
+    if (!requestToken) {
+      requestToken = crypto.randomUUID();
+      const requestExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+      const { error: requestTokenError } = await supabase.from("request_tokens").insert({
+        token: requestToken,
+        full_name: "Partner Contact",
+        company: partner.company_name || domain,
+        email,
+        phone: "N/A",
+        job_summary: "Partner candidate request",
+        gdpr_consent: true,
+        expires_at: requestExpiresAt,
+        used: false,
+      });
+      if (requestTokenError) {
+        throw requestTokenError;
+      }
+    }
+
     const sessionToken = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
     const { error: sessionError } = await supabase.from("partner_sessions").insert({
       email,
       session_token: sessionToken,
-      request_token: parsed.data.token,
+      request_token: requestToken,
       expires_at: expiresAt,
     });
 
@@ -67,25 +87,25 @@ export async function POST(request: NextRequest) {
 
     const secureUrl = `https://arbeidmatch.no/request/partner/${sessionToken}`;
     const html = buildEmail({
-      title: "Secure Request Link",
-      preheader: "Your link expires in 1 hour",
+      title: "Secure Partner Access",
+      preheader: "Your link is valid for 14 days",
       body: [
-        "<p>Hello,</p>",
-        "<p>Here is your secure link to submit a candidate request. This link expires in 1 hour and can only be used once.</p>",
-        `<a href="${secureUrl}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none;">Continue your request</a>`,
-        '<p style="font-size:12px;color:rgba(255,255,255,0.4);">If you did not request this link, ignore this email.</p>',
+        "<p>Here is your secure link to access candidate profiles and submit requests.</p>",
+        "<p>This link is valid for 14 days and is linked to your partner account.</p>",
+        `<a href="${secureUrl}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none;">Access Candidate Profiles</a>`,
+        '<p style="font-size:12px;color:rgba(255,255,255,0.4);">If you did not request this link, please contact us at post@arbeidmatch.no</p>',
       ].join(""),
     });
 
     await transporter.sendMail({
       ...mailHeaders(),
       to: email,
-      subject: "Your ArbeidMatch partner request link",
-      text: `Here is your secure link to submit a candidate request: ${secureUrl}\n\nThis link expires in 1 hour and can only be used once.`,
+      subject: "Your ArbeidMatch secure access link",
+      text: `Here is your secure link to access candidate profiles and submit requests: ${secureUrl}\n\nThis link is valid for 14 days and is linked to your partner account.`,
       html,
     });
 
-    return NextResponse.json({ verified: true });
+    return NextResponse.json({ verified: true, company_name: partner.company_name });
   } catch (error) {
     await notifyError({ route: "/api/verify-partner", error });
     return NextResponse.json({ verified: false }, { status: 500 });

@@ -1,833 +1,391 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { trackEvent } from "@/lib/analytics";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Bolt, Factory, HardHat, HeartPulse, Search, Sparkles, Star, Truck } from "lucide-react";
 
-const PREMIUM_EASE = [0.16, 1, 0.3, 1] as const;
-
-function useIsMobileWidth(): boolean {
-  const [m, setM] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 768px)");
-    const fn = () => setM(mq.matches);
-    fn();
-    mq.addEventListener("change", fn);
-    return () => mq.removeEventListener("change", fn);
-  }, []);
-  return m;
-}
-
-type CompanyResult = {
-  name: string;
-  orgNumber: string;
+type VerifyPartnerResponse = {
+  verified?: boolean;
+  company_name?: string;
 };
 
-const fieldContainer = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06, delayChildren: 0.04 },
+const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: typeof HardHat; roles: string[] }> = [
+  {
+    industry: "Construction & Civil",
+    icon: HardHat,
+    roles: ["Site Manager", "Carpenter", "Bricklayer", "Concrete Worker", "Scaffolder", "Painter", "Roofer", "Civil Engineer"],
   },
-};
-
-const fieldItem = {
-  hidden: { opacity: 0, y: 12 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.38, ease: PREMIUM_EASE },
+  {
+    industry: "Electrical & Technical",
+    icon: Bolt,
+    roles: ["Electrician", "DSB Authorized Electrician", "Plumber", "HVAC Technician", "Automation Engineer", "Welder", "Pipefitter"],
   },
-};
+  {
+    industry: "Logistics & Transport",
+    icon: Truck,
+    roles: ["Truck Driver", "Forklift Operator", "Warehouse Worker", "Logistics Coordinator", "Bus Driver", "Crane Operator"],
+  },
+  {
+    industry: "Industry & Production",
+    icon: Factory,
+    roles: ["Machine Operator", "CNC Operator", "Steel Worker", "Insulation Worker", "Quality Inspector", "Production Worker"],
+  },
+  {
+    industry: "Cleaning & Facility",
+    icon: Sparkles,
+    roles: ["Cleaner", "Facility Manager", "Window Cleaner", "Industrial Cleaner", "Waste Handler"],
+  },
+  {
+    industry: "Hospitality & Healthcare",
+    icon: HeartPulse,
+    roles: ["Kitchen Staff", "Chef", "Hotel Staff", "Healthcare Assistant", "Care Worker", "Cook"],
+  },
+];
+
+const SEARCH_MESSAGES = [
+  "Connecting to candidate database...",
+  "Searching registered profiles...",
+  "Analyzing role relevance...",
+  "Reviewing availability...",
+  "Finalizing profile count...",
+];
 
 export default function RequestPage() {
-  const reduce = useReducedMotion();
-  const isMobile = useIsMobileWidth();
-  const d = (sec: number) => (reduce ? 0 : isMobile ? sec * 0.7 : sec);
-  const dur = (sec: number) => (reduce ? 0.01 : isMobile ? sec * 0.7 : sec);
+  const [checkState, setCheckState] = useState<"idle" | "searching" | "result">("idle");
+  const [selectedIndustry, setSelectedIndustry] = useState("");
+  const [roleQuery, setRoleQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchMessageIndex, setSearchMessageIndex] = useState(0);
+  const [checkCount, setCheckCount] = useState(0);
+  const [pitchIndex, setPitchIndex] = useState(0);
+  const [showAccessCheck, setShowAccessCheck] = useState(false);
 
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [submitError, setSubmitError] = useState("");
-  const [cardError, setCardError] = useState("");
-  const [errorShakeKey, setErrorShakeKey] = useState(0);
-  const [currentCard, setCurrentCard] = useState(0);
-  const [companyQuery, setCompanyQuery] = useState("");
-  const [orgNumber, setOrgNumber] = useState("");
-  const [contactFirstName, setContactFirstName] = useState("");
-  const [contactLastName, setContactLastName] = useState("");
-  const [contactRole, setContactRole] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [companyEmail, setCompanyEmail] = useState("");
-  const [howDidYouHear, setHowDidYouHear] = useState("Referral from another company");
-  const [socialMediaPlatform, setSocialMediaPlatform] = useState("Facebook");
-  const [socialMediaOther, setSocialMediaOther] = useState("");
-  const [howDidYouHearOther, setHowDidYouHearOther] = useState("");
-  const [referralCompanyName, setReferralCompanyName] = useState("");
-  const [referralOrgNumber, setReferralOrgNumber] = useState("");
-  const [referralEmail, setReferralEmail] = useState("");
-  const [referralCompanyResults, setReferralCompanyResults] = useState<CompanyResult[]>([]);
-  const [isSearchingReferralCompanies, setIsSearchingReferralCompanies] = useState(false);
-  const [hasSearchedReferral, setHasSearchedReferral] = useState(false);
-  const [companyResults, setCompanyResults] = useState<CompanyResult[]>([]);
-  const [isSearchingCompanies, setIsSearchingCompanies] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [gdprConsent, setGdprConsent] = useState(false);
+  const [accessEmail, setAccessEmail] = useState("");
+  const [accessStatus, setAccessStatus] = useState<"idle" | "submitting" | "partner" | "non_partner" | "error">("idle");
+  const [companyName, setCompanyName] = useState("");
 
-  const maxCard = 1;
-  const progress = ((currentCard + 1) / (maxCard + 1)) * 100;
-  const isAutoAdvanceCard = false;
+  const [selectedOffer, setSelectedOffer] = useState("");
+  const [notifyEmail, setNotifyEmail] = useState("");
+  const [notifyStatus, setNotifyStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
 
-  const inputClass = "request-premium-input input-premium";
+  const filteredRoles = useMemo(() => {
+    if (!selectedIndustry) return [];
+    const group = CHECK_ROLE_GROUPS.find((item) => item.industry === selectedIndustry);
+    if (!group) return [];
+    const query = roleQuery.trim().toLowerCase();
+    if (!query) return group.roles.slice(0, 8);
+    const startsWith = group.roles.filter((role) => role.toLowerCase().startsWith(query));
+    const contains = group.roles.filter(
+      (role) => role.toLowerCase().includes(query) && !role.toLowerCase().startsWith(query),
+    );
+    return [...startsWith, ...contains].slice(0, 8);
+  }, [roleQuery, selectedIndustry]);
 
-  const validateLeadSource = () => {
-    if (howDidYouHear === "Social media" && socialMediaPlatform === "Other" && !socialMediaOther.trim()) {
-      return false;
-    }
-    if (howDidYouHear === "Other" && !howDidYouHearOther.trim()) {
-      return false;
-    }
-    if (howDidYouHear === "Referral from another company" && !referralCompanyName.trim()) {
-      return false;
-    }
-    return true;
+  const pitchMessages = useMemo(
+    () => [
+      `${checkCount} candidate profiles are currently registered for ${searchTerm.trim()} roles.`,
+      "Each profile includes practical role history and availability signals.",
+      "This gives you an early view before moving into partner access.",
+      "If you need structured support, partner access unlocks full request handling.",
+      "You can continue below based on your company access status.",
+    ],
+    [checkCount, searchTerm],
+  );
+
+  useEffect(() => {
+    if (checkState !== "searching") return;
+    const interval = setInterval(() => {
+      setSearchMessageIndex((prev) => (prev + 1) % SEARCH_MESSAGES.length);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [checkState]);
+
+  useEffect(() => {
+    if (checkState !== "result") return;
+    setPitchIndex(0);
+    setShowAccessCheck(false);
+    const interval = setInterval(() => {
+      setPitchIndex((prev) => {
+        if (prev >= pitchMessages.length - 1) {
+          clearInterval(interval);
+          setShowAccessCheck(true);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 2300);
+    return () => clearInterval(interval);
+  }, [checkState, pitchMessages.length]);
+
+  const runCandidateSearch = async (roleInput: string) => {
+    const role = roleInput.trim();
+    if (role.length < 2) return;
+    setSearchTerm(role);
+    setCheckState("searching");
+    setSearchMessageIndex(0);
+    setAccessStatus("idle");
+    setSelectedOffer("");
+    setNotifyEmail("");
+    setNotifyStatus("idle");
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+    let hash = 0;
+    for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
+    setCheckCount((hash % 36) + 12);
+    setCheckState("result");
   };
 
-  const validateCurrentCard = () => {
-    if (currentCard === 0) {
-      return (
-        companyQuery.trim().length > 1 &&
-        companyEmail.trim().length > 3 &&
-        companyEmail.includes("@") &&
-        contactFirstName.trim().length > 1 &&
-        contactLastName.trim().length > 1 &&
-        contactRole.trim().length > 1 &&
-        contactPhone.trim().length > 5
-      );
-    }
-    return validateLeadSource();
-  };
-
-  const isLastStep = currentCard === maxCard;
-  const primaryNavDisabled =
-    status === "submitting" || !validateCurrentCard() || (isLastStep && !gdprConsent);
-
-  const bumpError = (message: string) => {
-    setCardError(message);
-    setErrorShakeKey((k) => k + 1);
-  };
-
-  const nextCard = () => {
-    if (!validateCurrentCard()) {
-      bumpError("Please complete the required fields in this card before continuing.");
-      return;
-    }
-    setCardError("");
-    if (currentCard < maxCard) setCurrentCard((prev) => prev + 1);
-  };
-
-  const prevCard = () => {
-    setCardError("");
-    if (currentCard > 0) setCurrentCard((prev) => prev - 1);
-  };
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const verifyAccess = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!validateCurrentCard()) {
-      bumpError("Please complete the required fields in this card before sending.");
-      return;
-    }
-    if (currentCard === maxCard && !gdprConsent) {
-      bumpError("Please accept the Privacy Policy to continue.");
-      return;
-    }
-
-    setCardError("");
-    setSubmitError("");
-    setStatus("submitting");
-
-    const payload = {
-      company: companyQuery,
-      org_number: orgNumber,
-      email: companyEmail,
-      first_name: contactFirstName.trim(),
-      last_name: contactLastName.trim(),
-      role: contactRole.trim(),
-      phone: contactPhone,
-      gdprConsent,
-      job_summary: "General hiring inquiry",
-      howDidYouHear,
-      socialMediaPlatform: howDidYouHear === "Social media" ? socialMediaPlatform : "",
-      socialMediaOther:
-        howDidYouHear === "Social media" && socialMediaPlatform === "Other" ? socialMediaOther : "",
-      howDidYouHearOther: howDidYouHear === "Other" ? howDidYouHearOther : "",
-      referralCompanyName:
-        howDidYouHear === "Referral from another company" ? referralCompanyName : "",
-      referralOrgNumber:
-        howDidYouHear === "Referral from another company" ? referralOrgNumber : "",
-      referralEmail: howDidYouHear === "Referral from another company" ? referralEmail : "",
-    };
-
+    if (!accessEmail.includes("@")) return;
+    setAccessStatus("submitting");
     try {
-      const response = await fetch("/api/simple-request", {
+      const response = await fetch("/api/verify-partner", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ email: accessEmail.trim().toLowerCase() }),
       });
-
-      const data = (await response.json()) as { success?: boolean; token?: string; error?: string };
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Request failed");
-      }
-      if (data.success && data.token) {
-        trackEvent("employer_request_started", { company: companyQuery.trim() || "unknown" });
-        window.location.href = `/request/${data.token}`;
+      const data = (await response.json()) as VerifyPartnerResponse;
+      if (response.ok && data.verified) {
+        setCompanyName(data.company_name || "your company");
+        setAccessStatus("partner");
         return;
       }
-      throw new Error("No token received");
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "Request failed");
-      setStatus("error");
+      setAccessStatus("non_partner");
+    } catch {
+      setAccessStatus("error");
     }
   };
 
-  useEffect(() => {
-    if (orgNumber.trim()) {
-      setCompanyResults([]);
-      setHasSearched(false);
-      return;
+  const submitFeatureWaitlist = async () => {
+    if (!notifyEmail.includes("@") || !selectedOffer) return;
+    setNotifyStatus("submitting");
+    try {
+      const response = await fetch("/api/feature-waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: notifyEmail.trim().toLowerCase(),
+          feature: `pricing-${selectedOffer}`,
+          consent: true,
+        }),
+      });
+      setNotifyStatus(response.ok ? "success" : "error");
+    } catch {
+      setNotifyStatus("error");
     }
-
-    if (companyQuery.trim().length < 2) {
-      setCompanyResults([]);
-      setHasSearched(false);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      try {
-        setIsSearchingCompanies(true);
-        const response = await fetch(
-          `https://data.brreg.no/enhetsregisteret/api/enheter?navn=${encodeURIComponent(
-            companyQuery,
-          )}&size=10`,
-        );
-        const data = (await response.json()) as {
-          _embedded?: { enheter?: Array<{ navn?: string; organisasjonsnummer?: string }> };
-        };
-        const results =
-          data._embedded?.enheter?.map((item) => ({
-            name: item.navn ?? "",
-            orgNumber: item.organisasjonsnummer ?? "",
-          })) ?? [];
-        setCompanyResults(results);
-      } catch {
-        setCompanyResults([]);
-      } finally {
-        setHasSearched(true);
-        setIsSearchingCompanies(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [companyQuery, orgNumber]);
-
-  const onCompanyPick = (item: CompanyResult) => {
-    setCompanyQuery(item.name);
-    setOrgNumber(item.orgNumber);
-    setCompanyResults([]);
-    setHasSearched(false);
   };
-
-  useEffect(() => {
-    if (referralOrgNumber.trim()) {
-      setReferralCompanyResults([]);
-      setHasSearchedReferral(false);
-      return;
-    }
-
-    if (howDidYouHear !== "Referral from another company") {
-      setReferralCompanyResults([]);
-      setHasSearchedReferral(false);
-      return;
-    }
-
-    if (referralCompanyName.trim().length < 2) {
-      setReferralCompanyResults([]);
-      setHasSearchedReferral(false);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      try {
-        setIsSearchingReferralCompanies(true);
-        const response = await fetch(
-          `https://data.brreg.no/enhetsregisteret/api/enheter?navn=${encodeURIComponent(
-            referralCompanyName,
-          )}&size=10`,
-        );
-        const data = (await response.json()) as {
-          _embedded?: { enheter?: Array<{ navn?: string; organisasjonsnummer?: string }> };
-        };
-        const results =
-          data._embedded?.enheter?.map((item) => ({
-            name: item.navn ?? "",
-            orgNumber: item.organisasjonsnummer ?? "",
-          })) ?? [];
-        setReferralCompanyResults(results);
-      } catch {
-        setReferralCompanyResults([]);
-      } finally {
-        setHasSearchedReferral(true);
-        setIsSearchingReferralCompanies(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [howDidYouHear, referralCompanyName, referralOrgNumber]);
-
-  const onReferralCompanyPick = (item: CompanyResult) => {
-    setReferralCompanyName(item.name);
-    setReferralOrgNumber(item.orgNumber);
-    setReferralCompanyResults([]);
-    setHasSearchedReferral(false);
-  };
-
-  const motionHero = !reduce;
-
-  if (status === "success") {
-    return (
-      <section className="flex min-h-screen flex-col items-center justify-center bg-[#0f1923] px-6 py-10 text-center">
-        <svg width="72" height="72" viewBox="0 0 72 72" aria-hidden>
-          <circle cx="36" cy="36" r="32" fill="none" stroke="#1D9E75" strokeWidth="3" />
-          <circle
-            cx="36"
-            cy="36"
-            r="32"
-            fill="none"
-            stroke="#1D9E75"
-            strokeWidth="3"
-            strokeDasharray="201"
-            strokeDashoffset="201"
-            style={{ animation: reduce ? "none" : "drawCircle 600ms ease-out forwards" }}
-          />
-          <path
-            d="M20 36 L31 47 L52 25"
-            fill="none"
-            stroke="#1D9E75"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="50"
-            strokeDashoffset="50"
-            style={{ animation: reduce ? "none" : "drawCheck 400ms ease-out 500ms forwards" }}
-          />
-        </svg>
-
-        <h1 className="mt-6 text-[28px] font-extrabold text-white">Request received.</h1>
-        <p className="mt-3 max-w-[400px] text-[16px] leading-[1.7] text-white/60">
-          We have received your request and will typically be in touch within 1 to 2 business days. Check your email for
-          confirmation.
-        </p>
-
-        <div className="my-8 h-px w-[60px] bg-white/10" />
-
-        <div className="mx-auto w-full max-w-[360px] rounded-[14px] border border-white/10 bg-white/5 p-6 text-left">
-          <div className="flex items-center justify-between border-b border-white/10 py-2">
-            <span className="text-[11px] uppercase tracking-[0.08em] text-[#C9A84C]">Email</span>
-            <span className="text-[14px] font-medium text-white">{companyEmail || "-"}</span>
-          </div>
-          <div className="flex items-center justify-between py-2">
-            <span className="text-[11px] uppercase tracking-[0.08em] text-[#C9A84C]">Company</span>
-            <span className="text-[14px] font-medium text-white">{companyQuery || "-"}</span>
-          </div>
-        </div>
-
-        <Link
-          href="/"
-          className="mt-8 rounded-[10px] border border-white/20 bg-transparent px-8 py-3.5 text-[14px] text-white transition-colors hover:bg-white/10"
-        >
-          Back to homepage
-        </Link>
-
-        <p className="mt-4 text-[11px] text-white/30">Questions? Contact us at post@arbeidmatch.no</p>
-      </section>
-    );
-  }
 
   return (
-    <section className="bg-surface py-12 md:py-20">
-      <div className="relative mx-auto w-full max-w-2xl rounded-xl border border-border bg-white p-8 shadow-[0_12px_40px_rgba(13,27,42,0.06)]">
-        {motionHero ? (
+    <section className="min-h-dvh bg-[#0a0f18] px-4 py-10 text-white md:px-6">
+      <div className="mx-auto w-full max-w-[980px] rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-9">
+        {checkState === "idle" && (
           <>
-            <motion.p
-              className="inline-block rounded-full border border-gold/35 bg-gold/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gold"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: dur(0.55), delay: d(0.05), ease: PREMIUM_EASE }}
-            >
-              For Norwegian employers only
-            </motion.p>
-            <motion.h1
-              className="mt-4 text-3xl font-bold text-navy"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: dur(0.7), delay: d(0.1), ease: PREMIUM_EASE }}
-            >
-              Request Candidates
-            </motion.h1>
-            <motion.p
-              className="mt-3 text-text-secondary"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: dur(0.55), delay: d(0.25), ease: PREMIUM_EASE }}
-            >
-              Fill in your details and we&apos;ll get you started.
-            </motion.p>
-            <motion.div
-              className="mt-6 rounded-r-md border-l-4 border-gold bg-gold/10 p-3 text-sm text-navy"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: dur(0.5), delay: d(0.35), ease: PREMIUM_EASE }}
-            >
-              Looking for a job?{" "}
-              <a
-                href="https://jobs.arbeidmatch.no"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-gold"
-              >
-                Browse open jobs →
-              </a>
-            </motion.div>
-          </>
-        ) : (
-          <>
-            <p className="inline-block rounded-full border border-gold/35 bg-gold/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gold">
-              For Norwegian employers only
-            </p>
-            <h1 className="mt-4 text-3xl font-bold text-navy">Request Candidates</h1>
-            <p className="mt-3 text-text-secondary">Fill in your details and we&apos;ll get you started.</p>
-            <div className="mt-6 rounded-r-md border-l-4 border-gold bg-gold/10 p-3 text-sm text-navy">
-              Looking for a job?{" "}
-              <a
-                href="https://jobs.arbeidmatch.no"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-gold"
-              >
-                Browse open jobs →
-              </a>
-            </div>
+            <h1 className="text-2xl font-bold">Check candidate availability</h1>
+            {!selectedIndustry ? (
+              <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+                {CHECK_ROLE_GROUPS.map(({ industry, icon: Icon }) => (
+                  <button
+                    key={industry}
+                    type="button"
+                    onClick={() => {
+                      setSelectedIndustry(industry);
+                      setRoleQuery("");
+                    }}
+                    className="cursor-pointer rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-5 py-4 text-left transition-all duration-200 ease-in-out hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.07)]"
+                  >
+                    <Icon className="mb-2 h-5 w-5 text-[#C9A84C]" />
+                    <p className="text-sm font-semibold text-white">{industry}</p>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#C9A84C] bg-[rgba(201,168,76,0.08)] px-3 py-1 text-xs font-semibold text-[#C9A84C]">
+                  <span>{selectedIndustry}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedIndustry("");
+                      setRoleQuery("");
+                    }}
+                    className="inline-flex items-center justify-center text-[#C9A84C]"
+                    aria-label="Clear selected industry"
+                  >
+                    <span className="text-sm">x</span>
+                  </button>
+                </div>
+                <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.4)]">Type to search or select from the list</p>
+                <input
+                  value={roleQuery}
+                  onChange={(event) => setRoleQuery(event.target.value)}
+                  placeholder="Search for a role..."
+                  className="mt-4 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                />
+                {filteredRoles.length > 0 ? (
+                  <div className="mt-4 flex flex-wrap gap-[10px]">
+                    {filteredRoles.map((role) => (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => void runCandidateSearch(role)}
+                        className="inline-flex cursor-pointer rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[10px] text-[14px] text-[rgba(255,255,255,0.8)] transition-all duration-200 ease-in-out hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.08)] hover:text-white"
+                      >
+                        {role}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-4 text-sm text-[rgba(255,255,255,0.4)]">No roles found. Try a different search.</p>
+                )}
+              </>
+            )}
           </>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-surface">
-            <div
-              className="request-progress-fill h-full bg-gold"
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            />
+        {checkState === "searching" && (
+          <div className="flex flex-col items-center py-10 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
+            <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
+            <span className="h-12 w-12 rounded-full border-[3px] border-[rgba(201,168,76,0.2)] border-t-[#C9A84C] animate-[spin_1s_linear_infinite]" />
+            <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
           </div>
+        )}
 
-          <div className="mt-8 min-h-[120px]">
-            <AnimatePresence mode="wait">
-              {currentCard === 0 && (
-                <motion.fieldset
-                  key="card-0"
-                  initial={reduce ? false : { opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduce ? undefined : { opacity: 0, y: -10 }}
-                  transition={{ duration: dur(0.35), ease: PREMIUM_EASE }}
-                  className="space-y-4"
-                >
-                  <h2 className="text-sm font-semibold text-navy">Company and Contact Details</h2>
-                  <motion.div className="space-y-4" variants={fieldContainer} initial="hidden" animate="show">
-                    <motion.label variants={fieldItem} className="relative block">
-                      <span className="mb-1 block text-sm font-medium text-navy">Company name*</span>
-                      <input
-                        required
-                        name="company"
-                        className={inputClass}
-                        placeholder="Hansen AS"
-                        value={companyQuery}
-                        onChange={(event) => {
-                          setCompanyQuery(event.target.value);
-                          setOrgNumber("");
-                        }}
-                        autoComplete="off"
-                      />
-                      <input type="hidden" name="orgNumber" value={orgNumber} />
-                      {(isSearchingCompanies ||
-                        companyResults.length > 0 ||
-                        (hasSearched && companyQuery.trim().length >= 2)) && (
-                        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-border bg-white shadow-[0_8px_24px_rgba(13,27,42,0.12)]">
-                          {isSearchingCompanies && (
-                            <p className="px-3 py-2 text-sm text-text-secondary">Searching...</p>
-                          )}
-                          {!isSearchingCompanies &&
-                            companyResults.map((item) => (
-                              <button
-                                key={`${item.orgNumber}-${item.name}`}
-                                type="button"
-                                onClick={() => onCompanyPick(item)}
-                                className="block w-full border-b border-border px-3 py-2 text-left last:border-b-0 hover:bg-gold/10"
-                              >
-                                <span className="block text-sm font-medium text-navy">{item.name}</span>
-                                <span className="block text-xs text-gold">Org.nr. {item.orgNumber}</span>
-                              </button>
-                            ))}
-                          {!isSearchingCompanies && hasSearched && companyResults.length === 0 && (
-                            <p className="px-3 py-2 text-sm text-text-secondary">
-                              No company found. You can still continue.
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </motion.label>
-
-                    <motion.label variants={fieldItem} className="block">
-                      <span className="mb-1 block text-sm font-medium text-navy">Contact person email*</span>
-                      <input
-                        required
-                        name="email"
-                        type="email"
-                        className={inputClass}
-                        placeholder="post@company.no"
-                        value={companyEmail}
-                        onChange={(event) => setCompanyEmail(event.target.value)}
-                      />
-                    </motion.label>
-
-                    <motion.div variants={fieldItem} className="grid grid-cols-2 gap-3 max-[480px]:grid-cols-1">
-                      <label className="block">
-                        <span className="mb-1 block text-sm font-medium text-navy">First name*</span>
-                        <input
-                          required
-                          name="first_name"
-                          className={inputClass}
-                          placeholder="First name"
-                          value={contactFirstName}
-                          onChange={(event) => setContactFirstName(event.target.value)}
-                        />
-                      </label>
-                      <label className="block">
-                        <span className="mb-1 block text-sm font-medium text-navy">Last name*</span>
-                        <input
-                          required
-                          name="last_name"
-                          className={inputClass}
-                          placeholder="Last name"
-                          value={contactLastName}
-                          onChange={(event) => setContactLastName(event.target.value)}
-                        />
-                      </label>
-                    </motion.div>
-
-                    <motion.label variants={fieldItem} className="block">
-                      <span className="mb-1 block text-sm font-medium text-navy">Contact person role/title*</span>
-                      <input
-                        required
-                        name="contact_role"
-                        className={inputClass}
-                        placeholder="E.g. HR Manager, Site Manager"
-                        value={contactRole}
-                        onChange={(event) => setContactRole(event.target.value)}
-                      />
-                    </motion.label>
-
-                    <motion.label variants={fieldItem} className="block">
-                      <span className="mb-1 block text-sm font-medium text-navy">Contact phone number*</span>
-                      <input
-                        required
-                        name="phone"
-                        className={inputClass}
-                        placeholder="+47 900 00 000"
-                        value={contactPhone}
-                        onChange={(event) => setContactPhone(event.target.value)}
-                      />
-                    </motion.label>
-                  </motion.div>
-                </motion.fieldset>
-              )}
-
-              {currentCard === 1 ? (
-                <motion.div
-                  key="card-lead"
-                  initial={reduce ? false : { opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduce ? undefined : { opacity: 0, y: -10 }}
-                  transition={{ duration: dur(0.35), ease: PREMIUM_EASE }}
-                  className="space-y-4"
-                >
-                  <h2 className="text-sm font-semibold text-navy">How did you hear about us?</h2>
-                  <motion.div
-                    variants={fieldContainer}
-                    initial="hidden"
-                    animate="show"
-                    className="space-y-4"
-                  >
-                    <motion.label variants={fieldItem} className="block">
-                      <span className="sr-only">How did you hear about us?</span>
-                      <select
-                        name="howDidYouHear"
-                        className={inputClass}
-                        value={howDidYouHear}
-                        onChange={(event) => {
-                          setHowDidYouHear(event.target.value);
-                          setSocialMediaOther("");
-                          setHowDidYouHearOther("");
-                          if (event.target.value !== "Referral from another company") {
-                            setReferralCompanyName("");
-                            setReferralOrgNumber("");
-                            setReferralEmail("");
-                          }
-                        }}
-                      >
-                        {[
-                          "Referral from another company",
-                          "Referral from a friend",
-                          "Google search",
-                          "Social media",
-                          "Other",
-                        ].map((item) => (
-                          <option key={item} value={item}>
-                            {item}
-                          </option>
-                        ))}
-                      </select>
-                    </motion.label>
-
-                    {howDidYouHear === "Social media" && (
-                      <motion.label variants={fieldItem} className="block">
-                        <span className="mb-1 block text-sm font-medium text-navy">Social media platform</span>
-                        <select
-                          name="socialMediaPlatform"
-                          className={inputClass}
-                          value={socialMediaPlatform}
-                          onChange={(event) => {
-                            setSocialMediaPlatform(event.target.value);
-                            setSocialMediaOther("");
-                          }}
-                        >
-                          {[
-                            "Facebook",
-                            "Instagram",
-                            "LinkedIn",
-                            "TikTok",
-                            "YouTube",
-                            "Twitter/X",
-                            "Snapchat",
-                            "Pinterest",
-                            "Reddit",
-                            "WhatsApp",
-                            "Other",
-                          ].map((platform) => (
-                            <option key={platform} value={platform}>
-                              {platform}
-                            </option>
-                          ))}
-                        </select>
-                      </motion.label>
-                    )}
-
-                    {howDidYouHear === "Social media" && socialMediaPlatform === "Other" && (
-                      <motion.label variants={fieldItem} className="block">
-                        <span className="mb-1 block text-sm font-medium text-navy">Other social media platform</span>
-                        <input
-                          name="socialMediaOther"
-                          className={inputClass}
-                          value={socialMediaOther}
-                          onChange={(event) => setSocialMediaOther(event.target.value)}
-                          required
-                        />
-                      </motion.label>
-                    )}
-
-                    {howDidYouHear === "Other" && (
-                      <motion.label variants={fieldItem} className="block">
-                        <span className="mb-1 block text-sm font-medium text-navy">Please specify</span>
-                        <input
-                          name="howDidYouHearOther"
-                          className={inputClass}
-                          value={howDidYouHearOther}
-                          onChange={(event) => setHowDidYouHearOther(event.target.value)}
-                          required
-                        />
-                      </motion.label>
-                    )}
-
-                    {howDidYouHear === "Referral from another company" && (
-                      <motion.div variants={fieldItem} className="space-y-4">
-                        <label className="relative block">
-                          <span className="mb-1 block text-sm font-medium text-navy">Referring company</span>
-                          <input
-                            name="referralCompanyName"
-                            className={inputClass}
-                            value={referralCompanyName}
-                            onChange={(event) => {
-                              setReferralCompanyName(event.target.value);
-                              setReferralOrgNumber("");
-                            }}
-                            autoComplete="off"
-                            required
-                          />
-                          <input type="hidden" name="referralOrgNumber" value={referralOrgNumber} />
-                          {(isSearchingReferralCompanies ||
-                            referralCompanyResults.length > 0 ||
-                            (hasSearchedReferral && referralCompanyName.trim().length >= 2)) && (
-                            <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border border-border bg-white shadow-[0_8px_24px_rgba(13,27,42,0.12)]">
-                              {isSearchingReferralCompanies && (
-                                <p className="px-3 py-2 text-sm text-text-secondary">Searching...</p>
-                              )}
-                              {!isSearchingReferralCompanies &&
-                                referralCompanyResults.map((item) => (
-                                  <button
-                                    key={`${item.orgNumber}-${item.name}-referral`}
-                                    type="button"
-                                    onClick={() => onReferralCompanyPick(item)}
-                                    className="block w-full border-b border-border px-3 py-2 text-left last:border-b-0 hover:bg-gold/10"
-                                  >
-                                    <span className="block text-sm font-medium text-navy">{item.name}</span>
-                                    <span className="block text-xs text-gold">Org.nr. {item.orgNumber}</span>
-                                  </button>
-                                ))}
-                              {!isSearchingReferralCompanies &&
-                                hasSearchedReferral &&
-                                referralCompanyResults.length === 0 && (
-                                  <p className="px-3 py-2 text-sm text-text-secondary">
-                                    No company found. You can still continue.
-                                  </p>
-                                )}
-                            </div>
-                          )}
-                        </label>
-
-                        <label className="block">
-                          <span className="mb-1 block text-sm font-medium text-navy">
-                            Contact email at referring company (optional)
-                          </span>
-                          <input
-                            name="referralEmail"
-                            type="email"
-                            className={inputClass}
-                            value={referralEmail}
-                            onChange={(event) => setReferralEmail(event.target.value)}
-                          />
-                        </label>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </div>
-
-          {cardError && (
-            <motion.div
-              key={errorShakeKey}
-              className="request-error-shake rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25 }}
-            >
-              {cardError}
-            </motion.div>
-          )}
-
-          {currentCard === maxCard && !isAutoAdvanceCard ? (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 10,
-                marginTop: 16,
-                marginBottom: 8,
+        {checkState === "result" && (
+          <div className="text-center">
+            <p className="text-[3rem] font-extrabold text-[#C9A84C]">{checkCount}</p>
+            <p className="mt-1 text-sm text-white/65">candidate profiles registered for {searchTerm.trim()}</p>
+            <p key={pitchMessages[pitchIndex]} className="mt-3 animate-[fadeMsg_2.3s_ease-in-out] text-sm text-white/75">
+              {pitchMessages[pitchIndex]}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setCheckState("idle");
+                setSearchTerm("");
+                setCheckCount(0);
+                setShowAccessCheck(false);
+                setSelectedIndustry("");
+                setRoleQuery("");
               }}
+              className="mx-auto mt-4 block cursor-pointer text-center text-[13px] text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.7)]"
             >
-              <input
-                type="checkbox"
-                id="gdpr-consent"
-                checked={gdprConsent}
-                onChange={(e) => {
-                  setGdprConsent(e.target.checked);
-                  if (e.target.checked) setCardError("");
-                }}
-                style={{
-                  marginTop: 3,
-                  accentColor: "#C9A84C",
-                  minWidth: 16,
-                  height: 16,
-                  cursor: "pointer",
-                }}
-              />
-              <label
-                htmlFor="gdpr-consent"
-                style={{
-                  fontSize: 12,
-                  color: "#0a0f18",
-                  lineHeight: 1.6,
-                  cursor: "pointer",
-                }}
-              >
-                I agree that ArbeidMatch Norge AS may process the information I have provided in order to respond to my
-                request. I have read and accept the{" "}
-                <Link href="/privacy" className="text-gold underline">
-                  Privacy Policy
-                </Link>
-                .
-              </label>
-            </div>
-          ) : null}
+              Search another role
+            </button>
 
-          {!isAutoAdvanceCard && (
-            <div className="flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={prevCard}
-                disabled={currentCard === 0 || status === "submitting"}
-                className="w-full rounded-md border border-navy px-4 py-3 text-sm font-medium text-navy transition-colors duration-200 hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Back
-              </button>
-              {currentCard < maxCard ? (
-                <button
-                  type="button"
-                  onClick={nextCard}
-                  disabled={primaryNavDisabled}
-                  className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white transition-transform duration-200 hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Next
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={primaryNavDisabled}
-                  className="btn-gold-premium relative flex w-full items-center justify-center gap-2 rounded-md bg-gold py-3 text-sm font-semibold text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {status === "submitting" ? (
-                    <>
-                      <span className="request-submit-spinner shrink-0" aria-hidden />
-                      <span>Submitting...</span>
-                    </>
-                  ) : (
-                    "Continue to candidate details"
-                  )}
-                </button>
-              )}
-            </div>
-          )}
+            {showAccessCheck && (
+              <div className="mx-auto mt-8 max-w-[520px] text-left">
+                <h2 className="text-center text-[1.1rem] font-bold text-white">Want to find the right candidate?</h2>
+                <form onSubmit={verifyAccess} className="mt-4">
+                  <input
+                    type="email"
+                    value={accessEmail}
+                    onChange={(event) => setAccessEmail(event.target.value)}
+                    placeholder="Enter your company email"
+                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={accessStatus === "submitting" || !accessEmail.includes("@")}
+                    className="mt-3 w-full rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
+                  >
+                    {accessStatus === "submitting" ? "Checking..." : "Check access"}
+                  </button>
+                </form>
+                <p className="mt-3 text-center text-xs text-white/45">
+                  We will check if you have partner access or show you available options.
+                </p>
 
-          {status === "error" && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: dur(0.35), ease: PREMIUM_EASE }}
-              className="rounded-md border border-red-200 bg-red-50 p-4 text-red-700"
-            >
-              {submitError || "Something went wrong. Please email post@arbeidmatch.no"}
-            </motion.div>
-          )}
-        </form>
+                {accessStatus === "partner" && (
+                  <div className="mt-5 rounded-[16px] border border-[rgba(29,158,117,0.45)] bg-[rgba(29,158,117,0.12)] p-5 text-center">
+                    <p className="text-2xl text-[#1D9E75]">✓</p>
+                    <p className="mt-2 text-sm font-semibold text-white">Welcome back, {companyName}! You have partner access.</p>
+                    <p className="mt-2 text-sm text-white/75">
+                      We are sending a secure link to {accessEmail}. Check your inbox to continue.
+                    </p>
+                    <Link href="/contact" className="mt-3 inline-block text-xs text-[#C9A84C] underline">
+                      Not your account? Contact support
+                    </Link>
+                  </div>
+                )}
+
+                {accessStatus === "non_partner" && (
+                  <div className="mt-6">
+                    <div className="grid grid-cols-1 gap-3 text-left md:grid-cols-3">
+                      <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-5">
+                        <p className="text-base font-bold text-[#C9A84C]">Become a Partner</p>
+                        <p className="mt-2 text-sm text-white/70">Priority access and full support from our team.</p>
+                        <Link href="/contact" className="mt-4 inline-block rounded-[10px] bg-[#C9A84C] px-4 py-2 text-xs font-semibold text-[#0D1B2A]">
+                          Contact us
+                        </Link>
+                      </div>
+                      <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-5">
+                        <p className="text-base font-bold text-white">Premium Subscription</p>
+                        <p className="mt-2 text-sm text-white/70">Monthly access to candidate profile tools.</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedOffer("premium-subscription");
+                            setNotifyStatus("idle");
+                          }}
+                          className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
+                        >
+                          Coming soon
+                        </button>
+                      </div>
+                      <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-5">
+                        <p className="text-base font-bold text-white">Pay per use</p>
+                        <p className="mt-2 text-sm text-white/70">Profiles 100 NOK / Hire 1000 NOK.</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedOffer("pay-per-use");
+                            setNotifyStatus("idle");
+                          }}
+                          className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
+                        >
+                          Coming soon
+                        </button>
+                      </div>
+                    </div>
+
+                    {selectedOffer && (
+                      <div className="mt-4 rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-4">
+                        <input
+                          type="email"
+                          value={notifyEmail}
+                          onChange={(event) => setNotifyEmail(event.target.value)}
+                          placeholder="you@company.com"
+                          className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[#0D1B2A] px-3 py-2 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={submitFeatureWaitlist}
+                          disabled={notifyStatus === "submitting" || !notifyEmail.includes("@")}
+                          className="mt-2 w-full rounded-[10px] bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A] disabled:opacity-60"
+                        >
+                          {notifyStatus === "submitting" ? "Sending..." : "Notify me"}
+                        </button>
+                      </div>
+                    )}
+
+                    <p className="mt-4 text-center text-sm text-white/65">Already a partner but not recognized?</p>
+                    <Link
+                      href="/contact?subject=Partner%20verification%20issue"
+                      className="mx-auto mt-2 inline-flex rounded-[10px] border border-[rgba(201,168,76,0.35)] px-4 py-2 text-xs font-semibold text-white"
+                    >
+                      Contact Support
+                    </Link>
+                  </div>
+                )}
+
+                {accessStatus === "error" && (
+                  <p className="mt-4 text-sm text-red-300">Could not check access right now. Please try again.</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
