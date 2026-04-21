@@ -100,34 +100,32 @@ export async function POST(request: NextRequest) {
       title: "Your secure access link is ready.",
       preheader: "Partner verification completed. Secure access link inside.",
       body: `
-        <div style="margin:0;padding:0;background:#0D1B2A;">
-          <div style="max-width:600px;margin:0 auto;background:#0D1B2A;">
-            <div style="background:#0a0f18;padding:32px;text-align:center;">
-              <span style="font-size:24px;font-weight:700;color:#ffffff;line-height:1.2;">Arbeid</span><span style="font-size:24px;font-weight:700;color:#C9A84C;line-height:1.2;">Match</span>
-            </div>
-            <div style="width:60px;height:2px;background:#C9A84C;margin:0 auto;"></div>
-            <div style="padding:40px 36px;background:#0D1B2A;">
-              <p style="margin:0 0 8px 0;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);">You are verified as a partner.</p>
-              <h1 style="margin:0 0 16px 0;font-size:26px;font-weight:700;line-height:1.3;color:#ffffff;">Your secure access link is ready.</h1>
-              <p style="margin:0 0 32px 0;font-size:15px;line-height:1.7;color:rgba(255,255,255,0.6);">
+        <div style="background:#0D1B2A;max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;">
+          <div style="background:#0a0f18;padding:32px 36px;text-align:center;">
+            <span style="color:#ffffff;font-weight:700;font-size:24px;">Arbeid</span><span style="color:#C9A84C;font-weight:700;font-size:24px;">Match</span>
+            <div style="width:60px;height:2px;background:#C9A84C;margin:12px auto 0;"></div>
+          </div>
+          <div style="padding:40px 36px;background:#0D1B2A;">
+              <p style="margin:0 0 10px 0;font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.12em;">YOU ARE VERIFIED AS A PARTNER</p>
+              <h1 style="font-size:26px;font-weight:700;color:#ffffff;line-height:1.3;margin:0 0 16px 0;">Your secure access link is ready.</h1>
+              <p style="margin:0 0 32px 0;font-size:15px;color:rgba(255,255,255,0.6);line-height:1.7;">
                 Click the button below to access candidate profiles. Your link is personal and valid for 14 days from the moment it was generated.
               </p>
-              <div style="text-align:left;">
+              <div style="text-align:center;margin-bottom:32px;">
                 <a href="${secureUrl}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-weight:700;font-size:15px;padding:16px 40px;border-radius:10px;text-decoration:none;">Access Candidate Profiles</a>
               </div>
-              <p style="margin:32px 0 0 0;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.3);">
-                🔒 This link is linked to your partner account. Do not share it with others. If you did not request this, contact post@arbeidmatch.no immediately.
+              <p style="font-size:12px;color:rgba(255,255,255,0.3);line-height:1.6;margin:32px 0 0 0;">
+                This link is linked to your partner account. Do not share it with others. If you did not request this, contact post@arbeidmatch.no immediately.
               </p>
-            </div>
-            <div style="background:#0a0f18;padding:24px 36px;text-align:center;">
-              <p style="margin:0 0 6px 0;font-size:11px;color:rgba(255,255,255,0.25);">ArbeidMatch Norge AS | Org.nr 935 667 089 MVA</p>
-              <p style="margin:0 0 8px 0;font-size:11px;color:rgba(255,255,255,0.25);">Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway</p>
-              <p style="margin:0;font-size:11px;">
-                <a href="mailto:post@arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">post@arbeidmatch.no</a>
-                <span style="color:rgba(255,255,255,0.25);"> | </span>
-                <a href="https://arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">arbeidmatch.no</a>
-              </p>
-            </div>
+          </div>
+          <div style="background:#0a0f18;padding:24px 36px;text-align:center;">
+            <p style="font-size:11px;color:rgba(255,255,255,0.25);line-height:1.8;margin:0;">
+              ArbeidMatch Norge AS | Org.nr 935 667 089 MVA<br />
+              Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway<br />
+              <a href="mailto:post@arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">post@arbeidmatch.no</a>
+              <span> | </span>
+              <a href="https://arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">arbeidmatch.no</a>
+            </p>
           </div>
         </div>
       `,
