@@ -13,7 +13,8 @@ function parseStatus(value: string | null): ErrorStatus {
 
 export async function GET(request: NextRequest) {
   try {
-    const configuredPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+    // Update Vercel env var from NEXT_PUBLIC_ADMIN_PASSWORD to ADMIN_PASSWORD
+    const configuredPassword = process.env.ADMIN_PASSWORD;
     if (configuredPassword) {
       const suppliedPassword = request.headers.get("x-admin-password") || "";
       if (suppliedPassword !== configuredPassword) {

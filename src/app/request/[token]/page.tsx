@@ -510,7 +510,10 @@ export default function RequestTokenPage() {
 
   const isStepValid = (value: number) => {
     if (value === 0) return !!form.industry;
-    if (value === 1) return !!(form.workerType && form.experience && form.candidates >= 1);
+    if (value === 1) {
+      if (form.workerType === "Other" && !form.tradeOther.trim()) return false;
+      return !!(form.workerType && form.experience && form.candidates >= 1);
+    }
     if (value === 2) return !!form.urgency;
     if (value === 3) return !!(form.contractType && form.salary.trim());
     if (value === 4) return form.locations.length > 0;
@@ -1143,6 +1146,11 @@ export default function RequestTokenPage() {
               <button
                 type="button"
                 onClick={() => {
+                  if (step === 1 && form.workerType === "Other" && !form.tradeOther.trim()) {
+                    setSubmitStatus("error");
+                    setSubmitError("Please specify the trade type.");
+                    return;
+                  }
                   if (step < TOTAL_STEPS - 1) {
                     handleNext();
                   } else {

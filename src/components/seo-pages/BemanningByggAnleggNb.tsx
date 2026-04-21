@@ -24,9 +24,9 @@ export default function BemanningByggAnleggNb() {
     <article className="bg-white">
       <header className="border-b border-border bg-surface">
         <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
-          <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Bemanning bygg</p>
+          <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Construction staffing</p>
           <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold leading-tight tracking-tight text-navy">
-            Bemanning bygg og anlegg med dokumentert EU/EEA-kompetanse
+            Construction and site staffing with verified EU/EEA talent
           </h1>
         </div>
       </header>
@@ -34,43 +34,43 @@ export default function BemanningByggAnleggNb() {
       <div className="mx-auto w-full max-w-content space-y-12 px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
         <section className="max-w-3xl space-y-4 leading-relaxed text-text-secondary">
           <p>
-            Norske bygge- og anleggsprosjekter må balansere fremdrift, HMS og tilgang på fagarbeidere. ArbeidMatch
-            kobler virksomheter med forhåndsvurderte kandidater fra EU/EØS der dokumentasjon og forventninger er avklart
-            tidlig. Vi tilstreber tydelig dialog om{" "}
+            Norwegian construction projects must balance delivery speed, safety, and skilled workforce availability.
+            ArbeidMatch connects employers with pre-screened EU/EEA candidates where documentation and expectations are
+            clarified early. We keep communication clear around{" "}
             <Link href="/for-employers" className="font-medium text-gold hover:underline">
-              arbeidsgiverbehov
+              employer requirements
             </Link>{" "}
-            og leveranser innenfor gjeldende regelverk.
+            and compliant delivery.
           </p>
           <p>
-            Når dere trenger utenlandske byggearbeidere, kartlegger vi fag, sertifikater og språkbehov. Målet vårt er
-            riktig match - ikke høyest mulig volum. For autoriserte roller (f.eks. elektriker) viser vi vei til{" "}
+            When you need international construction workers, we assess trade fit, certifications, and language needs.
+            Our goal is quality matching, not volume. For regulated roles (for example electricians), we guide you toward{" "}
             <Link href="/dsb-support" className="font-medium text-gold hover:underline">
-              DSB-godkjenning
+              DSB authorization
             </Link>{" "}
-            der det er relevant. Bestill behovsavklaring via{" "}
+            where relevant. Start with a staffing brief via{" "}
             <Link href="/request" className="font-medium text-gold hover:underline">
-              forespørsel
+              request form
             </Link>
             .
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-navy">Hvilke fagarbeidere kan vi levere?</h2>
+          <h2 className="text-2xl font-bold text-navy">Which roles can we deliver?</h2>
           <ul className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
             {[
               [
-                "Betongarbeider",
-                "Erfaring med støping, herding og overflatearbeid på anlegg med norske HMS-standarder.",
+                "Concrete worker",
+                "Experience with casting, curing, and finishing work in safety-focused construction environments.",
               ],
-              ["Flislegger", "Presisjonsarbeid i våtrom og offentlige bygg med krav til dokumentert kvalitet."],
-              ["Snekker", "Innredning, montering og tømrerarbeid der detaljer og fremdrift må gå hånd i hånd."],
-              ["Maler", "Innendørs og utendørs arbeid med fokus på forberedelser, sprøyte- og rullteknikk."],
-              ["Stillasbygger", "Sertifiserte profiler med erfaring fra høyder, sikring og rigg på store prosjekter."],
-              ["Rørlegger / hjelpearbeider VVS", "Støttefunksjoner og strukturerte team der fagansvar er avklart."],
-              ["Anleggsarbeider", "Maskinassistert arbeid, rigg og logistikk på anleggsområde."],
-              ["Elektriker (autorisasjon)", "Der prosjektet krever dokumentert norsk autorisasjon, avklarer vi krav før presentasjon."],
+              ["Tile installer", "Precision work in wet rooms and public buildings with quality-focused execution."],
+              ["Carpenter", "Fitting, assembly, and structural work where detail and pace both matter."],
+              ["Painter", "Interior and exterior work with strong preparation and finishing standards."],
+              ["Scaffolder", "Certified profiles experienced with height safety and project rigging."],
+              ["Plumbing support worker", "Structured team support where trade responsibilities are clearly defined."],
+              ["Site worker", "Machine-assisted work, setup, and logistics support on active sites."],
+              ["Electrician (authorized)", "When projects require Norwegian authorization, we validate requirements before presentation."],
             ].map(([title, text]) => (
               <li key={title} className={`${roleCardClass} p-6 md:p-7`} style={{ padding: "28px 24px" }}>
                 <div className="flex items-start gap-3">
@@ -86,20 +86,20 @@ export default function BemanningByggAnleggNb() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-navy">Hvorfor velge ArbeidMatch?</h2>
+          <h2 className="text-2xl font-bold text-navy">Why choose ArbeidMatch?</h2>
           <div className="mt-6 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
             {[
               {
-                t: "Faglig tyngde",
-                b: "Vi stiller presise spørsmål om erfaring fra norsk byggeplasskultur og prosjektstørrelse - basert på vår erfaring med rekruttering til bygg.",
+                t: "Industry depth",
+                b: "We ask precise screening questions about project experience, safety context, and on-site expectations.",
               },
               {
-                t: "Compliance i praksis",
-                b: "Vi arbeider for å avklare avtaler, dokumentasjon og tariff/allmenngjøring der det inngår i oppdraget - i tråd med gjeldende krav.",
+                t: "Compliance in practice",
+                b: "We help clarify contracts, documentation, and wage framework expectations within applicable requirements.",
               },
               {
-                t: "Forutsigbar leveranse",
-                b: "Med tydelig scope jobber vi mot milepæler dere kan planlegge etter. Målet er færre avbrudd i produksjonstid.",
+                t: "Predictable delivery",
+                b: "With clear scope, we work toward milestones your team can plan around and execute against.",
               },
             ].map((u) => (
               <article key={u.t} className={`${roleCardClass} p-6`} style={{ padding: "28px 24px" }}>
@@ -116,24 +116,24 @@ export default function BemanningByggAnleggNb() {
         </section>
 
         <section>
-          <h2 className="text-2xl font-bold text-navy">Ofte stilte spørsmål</h2>
+          <h2 className="text-2xl font-bold text-navy">Frequently asked questions</h2>
           <dl className="mx-auto mt-6 max-w-[800px] space-y-6 px-0 md:px-4">
             {[
               {
-                q: "Kan vi få fagarbeidere på kort varsel?",
-                a: "Tilgjengelighet varierer med sesong og sertifikatkrav. Med tydelig kravprofil kan vi ofte presentere kandidater raskt, men vi lover ikke «i morgen» uten faglig avklaring.",
+                q: "Can we receive candidates quickly?",
+                a: "Availability varies by season and certification requirements. With a clear brief, we can often present candidates fast.",
               },
               {
-                q: "Hvordan sikrer dere dokumentasjon?",
-                a: "Vi gjennomgår relevante attester og identifikasjon i tråd med oppdragets risiko. Der autorisasjon kreves, avklarer vi dette før tilbud.",
+                q: "How do you validate documentation?",
+                a: "We review relevant documents and identity records based on role risk and client requirements.",
               },
               {
-                q: "Håndterer dere utleie og innleie?",
-                a: "Vi tilpasser modell til deres behov og rammer, i dialog med deres juridiske avklaringer. Målet er ryddige kontrakter og tydelig ansvar.",
+                q: "Do you support different hiring models?",
+                a: "Yes. We adapt the delivery model to your needs and legal framework with clear responsibilities.",
               },
               {
-                q: "Hva med norsk og HMS?",
-                a: "Vi vurderer språk og erfaring opp mot prosjektets krav. HMS er en forutsetning for at bemanningen skal fungere i praksis.",
+                q: "What about language and HSE?",
+                a: "We assess language and practical experience against project demands. Safety readiness is a core requirement.",
               },
             ].map((item) => (
               <div key={item.q}>
@@ -147,32 +147,30 @@ export default function BemanningByggAnleggNb() {
         <SeeAlsoSection
           variant="surface"
           items={[
-            { href: "/bemanning-logistikk", label: "Logistikk & lager" },
-            { href: "/bemanning-industri", label: "Industri & produksjon" },
-            { href: "/bemanningsbyrå-trondheim", label: "Bemanning Trondheim" },
-            { href: "/dsb-support", label: "DSB-godkjenning for elektrikere" },
+            { href: "/bemanning-logistikk", label: "Logistics & warehouse" },
+            { href: "/bemanning-industri", label: "Industry & production" },
+            { href: "/bemanningsbyrå-trondheim", label: "Staffing in Trondheim" },
+            { href: "/dsb-support", label: "DSB authorization for electricians" },
           ]}
         />
 
         <section className="rounded-2xl border border-gold/30 bg-navy px-6 py-10 text-center text-white">
-          <h2 className="text-2xl font-bold">Klar for trygg bemanning på byggeplassen?</h2>
+          <h2 className="text-2xl font-bold">Ready for compliant staffing on your construction site?</h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-white/80">
-            Send oss kravene deres - vi returnerer med profiler og en plan. Vi tilstreber kort tid fra avklaring til
-            oppstart der markedet tillater det, ofte i om lag{" "}
-            <span className="font-semibold text-white">2 ukers leveringstid</span> for relevante roller.
+            Send us your role requirements and we will respond with candidate profiles and a practical delivery plan.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
             <Link
               href="/request"
               className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-white hover:bg-gold-hover sm:w-auto"
             >
-              Bestill kandidater
+              Request candidates
             </Link>
             <Link
               href="/for-employers"
               className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10 sm:w-auto"
             >
-              Les om arbeidsgiverløsningen
+              Explore employer services
             </Link>
           </div>
         </section>

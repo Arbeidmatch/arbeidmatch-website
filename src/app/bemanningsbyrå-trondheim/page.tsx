@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
-  title: "Bemanningsbyrå Trondheim – EU/EEA",
+  title: "Staffing Agency Trondheim - EU/EEA Workforce",
   description:
-    "Bemanningsbyrå Trondheim med fagarbeidere til bygg, industri og logistikk. Rekruttering EU/EEA – ta kontakt for bemanning i Trondheim.",
+    "Staffing in Trondheim for construction, industry, and logistics. EU/EEA recruitment with documented candidate quality.",
   alternates: { canonical: "https://www.arbeidmatch.no/bemanningsbyrå-trondheim" },
 };
 
@@ -13,43 +13,41 @@ export default function BemanningsbyraTrondheimPage() {
   return (
     <article className="bg-white">
       <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
-        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Lokalside</p>
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Location page</p>
         <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
-          Bemanningsbyrå Trondheim for prosjekter i teknologibyen som bygger videre
+          Trondheim staffing for projects across technology, construction, and operations
         </h1>
         <div className="mt-8 max-w-3xl space-y-4 leading-relaxed text-text-secondary">
           <p>
-            Trondheim-regionen kombinerer marin næring, byutvikling og industrielt tyngdepunkt. ArbeidMatch har
-            hovedkontor i Ranheim og leverer bemanningsbyrå Trondheim med kort vei til møter, befaring og oppfølging. Vi
-            rekrutterer EU/EEA-arbeidere der dokumentasjon og språk er avklart før oppstart - og vi tør å si nei når krav
-            og kompetanse ikke matcher.
+            The Trondheim region combines marine industry, city development, and industrial growth. ArbeidMatch is based
+            in Ranheim and supports Trondheim staffing with close follow-up, clear screening, and practical role matching.
           </p>
           <p>
-            Typiske oppdrag omfatter bygg, logistikk og industri. Les om{" "}
+            Typical assignments include construction, logistics, and production. Learn about{" "}
             <Link href="/dsb-support" className="font-medium text-gold hover:underline">
-              DSB-godkjenning
+              DSB authorization
             </Link>{" "}
-            ved behov, eller send{" "}
+            where relevant, or send a staffing{" "}
             <Link href="/request" className="font-medium text-gold hover:underline">
-              forespørsel
+              request
             </Link>
             .
           </p>
         </div>
         <section className="mt-10 rounded-xl border border-border bg-surface p-6 transition-all duration-200 hover:border-[#C9A84C]">
-          <h2 className="text-lg font-semibold text-navy">Relevante roller i regionen</h2>
+          <h2 className="text-lg font-semibold text-navy">Typical roles in the region</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-text-secondary">
-            <li>Betong og tømrerhjelp til bolig- og næringsbygg</li>
-            <li>Industrioperatører til prosess og pakking</li>
-            <li>Lager- og truckteam mot nye logistikksenter</li>
-            <li>Stillas og rigg mot infrastrukturunderentreprise</li>
+            <li>Concrete and carpentry support for residential and commercial projects</li>
+            <li>Industrial operators for process and packaging lines</li>
+            <li>Warehouse and forklift teams for logistics hubs</li>
+            <li>Scaffolding and setup crews for infrastructure contractors</li>
           </ul>
         </section>
         <section className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {[
-            ["Lokal nærhet", "Kort vei til kundemøter og oppstartsoppfølging i Midt-Norge."],
-            ["HMS-forventninger", "Vi jobber strukturert med krav som er høye i norske byggeplassmiljøer."],
-            ["Kontraktsrammer", "Målet er at HR og prosjektleder ser samme bilde av leveransen."],
+            ["Local presence", "Fast coordination with hiring teams and project leads in Mid-Norway."],
+            ["Safety expectations", "Structured screening aligned with strict safety requirements."],
+            ["Contract clarity", "Clear delivery scope so HR and site management stay aligned."],
           ].map(([t, b]) => (
             <article
               key={t}
@@ -62,36 +60,36 @@ export default function BemanningsbyraTrondheimPage() {
           ))}
         </section>
         <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
-          <h2 className="am-h3 font-semibold text-navy">Kort FAQ</h2>
+          <h2 className="am-h3 font-semibold text-navy">Quick FAQ</h2>
           <p className="mt-3 text-sm text-text-secondary">
-            Hvor raskt kan dere starte? - Avhengig av rolle og marked; vi avklarer realistisk tidslinje tidlig.
+            How fast can staffing start? It depends on role and market availability, and we set realistic timelines early.
           </p>
         </section>
         <SeeAlsoSection
           variant="surface"
           items={[
-            { href: "/bemanning-bygg-anlegg", label: "Bygg & Anlegg" },
-            { href: "/bemanning-logistikk", label: "Logistikk" },
-            { href: "/bemanning-industri", label: "Industri" },
-            { href: "/about", label: "Om ArbeidMatch" },
+            { href: "/bemanning-bygg-anlegg", label: "Construction" },
+            { href: "/bemanning-logistikk", label: "Logistics" },
+            { href: "/bemanning-industri", label: "Industry" },
+            { href: "/about", label: "About ArbeidMatch" },
           ]}
         />
         <p className="mt-10 text-lg font-semibold text-navy">
-          Ta kontakt med oss for bemanning i Trondheim – vi starter med krav og leverer profiler som er forberedt på
-          norske forhold.
+          Contact us for staffing in Trondheim - we start from your requirements and deliver profiles prepared for local
+          working conditions.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
           <Link
             href="/request"
             className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
           >
-            Send forespørsel
+            Send request
           </Link>
           <Link
             href="/for-employers"
             className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md border border-navy px-6 py-3 text-sm font-semibold text-navy sm:w-auto"
           >
-            Les mer for arbeidsgivere
+            Learn more for employers
           </Link>
         </div>
       </div>

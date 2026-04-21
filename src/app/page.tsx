@@ -8,19 +8,19 @@ import HomeFaqJsonLd from "@/components/seo/HomeFaqJsonLd";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Bemanning av EU/EEA-arbeidere Trondheim",
+  title: "EU/EEA Staffing for Norway | ArbeidMatch",
   description:
-    "Bemanningsbyrå i Trondheim med rekruttering fra EU/EEA til bygg, logistikk og industri. Lovlig bemanning med utenlandske arbeidere – ta kontakt i dag.",
+    "Staffing agency in Trondheim connecting qualified EU/EEA workers with Norwegian employers in construction, logistics, and industry.",
   openGraph: {
-    title: "Bemanning av EU/EEA-arbeidere Trondheim | ArbeidMatch",
+    title: "EU/EEA Staffing for Norway | ArbeidMatch",
     description:
-      "Bemanningsbyrå i Trondheim med rekruttering fra EU/EEA til bygg, logistikk og industri. Lovlig bemanning med utenlandske arbeidere – ta kontakt i dag.",
-    locale: "nb_NO",
+      "Staffing agency in Trondheim connecting qualified EU/EEA workers with Norwegian employers in construction, logistics, and industry.",
+    locale: "en_US",
   },
   twitter: {
-    title: "Bemanning av EU/EEA-arbeidere Trondheim | ArbeidMatch",
+    title: "EU/EEA Staffing for Norway | ArbeidMatch",
     description:
-      "Bemanningsbyrå i Trondheim med rekruttering fra EU/EEA til bygg, logistikk og industri. Lovlig bemanning med utenlandske arbeidere – ta kontakt i dag.",
+      "Staffing agency in Trondheim connecting qualified EU/EEA workers with Norwegian employers in construction, logistics, and industry.",
   },
 };
 

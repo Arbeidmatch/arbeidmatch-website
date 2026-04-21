@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import BreadcrumbByggAnleggJsonLd from "@/components/seo/BreadcrumbByggAnleggJsonLd";
 import BemanningByggAnleggNb from "@/components/seo-pages/BemanningByggAnleggNb";
-import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
-export const metadata: Metadata = nbPageMetadata(
-  "/bemanning-bygg-anlegg",
-  "Bemanning bygg og anlegg – fagarbeidere | ArbeidMatch",
-  "Bemanning bygg med utenlandske byggearbeidere og EU arbeidskraft. Rekruttering anlegg og fagarbeidere bygg Norge – ta kontakt for behovsavklaring.",
-);
+export const metadata: Metadata = {
+  title: "Construction and Site Staffing | ArbeidMatch",
+  description:
+    "Construction staffing in Norway with qualified EU/EEA workers. Request screened candidates for building and site projects.",
+};
 
 export default function BemanningByggAnleggPage() {
   return (

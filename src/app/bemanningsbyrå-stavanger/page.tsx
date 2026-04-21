@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
-  title: "Bemanning Stavanger olje og industri",
+  title: "Staffing Stavanger - Energy and Industry",
   description:
-    "Bemanning Stavanger olje industri og logistikk. EU/EEA-fagarbeidere til vedlikehold og bygg – ta kontakt i Stavanger.",
+    "Staffing in Stavanger for energy, industry, and logistics projects. EU/EEA recruitment with documented worker profiles.",
   alternates: { canonical: "https://www.arbeidmatch.no/bemanningsbyrå-stavanger" },
 };
 
@@ -13,43 +13,41 @@ export default function BemanningsbyraStavangerPage() {
   return (
     <article className="bg-white">
       <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
-        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Lokalside</p>
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Location page</p>
         <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
-          Bemanning Stavanger olje industri – når sikkerhetskrav og tempo møtes
+          Stavanger staffing where safety requirements and project pace must align
         </h1>
         <div className="mt-8 max-w-3xl space-y-4 leading-relaxed text-text-secondary">
           <p>
-            Rogaland er et kraftsentrum for energi, leverandørindustri og havnæring, med bolig- og infrastrukturprosjekter
-            som krever dokumentert kompetanse og tydelig sikkerhetsbrief. ArbeidMatch leverer bemanning Stavanger med
-            forventningsstyring: vi avklarer kurs, adgang og roller før presentasjon. Vi tilstreber profiler som kan
-            verifiseres - ikke «ukjente navn på liste».
+            Rogaland is a high-activity region for energy, supplier industry, and maritime operations. We deliver
+            Stavanger staffing with clear pre-screening for training, access requirements, and role fit.
           </p>
           <p>
-            Vi rekrutterer fra EU/EEA med fokus på regulerte miljø og prosjektmodus. Ta kontakt via{" "}
+            We recruit from the EU/EEA for regulated environments and project-based teams. Reach out through a staffing{" "}
             <Link href="/request" className="font-medium text-gold hover:underline">
-              forespørsel
+              request
             </Link>{" "}
-            eller les mer for{" "}
+            or read more for{" "}
             <Link href="/for-employers" className="font-medium text-gold hover:underline">
-              arbeidsgivere
+              employers
             </Link>
             .
           </p>
         </div>
         <section className="mt-10 rounded-xl border border-border bg-surface p-6 transition-all duration-200 hover:border-[#C9A84C]">
-          <h2 className="text-lg font-semibold text-navy">Etterspurte roller i Rogaland</h2>
+          <h2 className="text-lg font-semibold text-navy">In-demand roles in Rogaland</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-text-secondary">
-            <li>Industri- og vedlikeholdsassistenter med dokumentert erfaring</li>
-            <li>Sveis og mekanisk hjelp til verksted og modulbygging</li>
-            <li>Logistikk og truck mot havn og forbundsårer</li>
-            <li>Byggfag til bolig og næring i storbyregionen</li>
+            <li>Industrial and maintenance support workers with documented experience</li>
+            <li>Welding and mechanical support for workshops and modular construction</li>
+            <li>Logistics and forklift roles linked to port and transport operations</li>
+            <li>Construction trades for residential and commercial projects</li>
           </ul>
         </section>
         <section className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {[
-            ["Sikkerhetskrav", "Vi matcher kandidater mot dokumentasjon og offshore/HMS-forventninger."],
-            ["Nasjonal oppfølging", "Kort vei til koordinering når innkjøps- og sikkerhetsløp er avklart."],
-            ["Ingen absolutte løfter", "Leveranse avhenger av marked og kompetanse - vi er åpne om det."],
+            ["Safety requirements", "Candidates are matched to documentation and safety expectations."],
+            ["Operational follow-up", "Fast coordination once procurement and safety scope are agreed."],
+            ["Realistic promises", "Delivery depends on market conditions and role complexity."],
           ].map(([t, b]) => (
             <article
               key={t}
@@ -62,34 +60,34 @@ export default function BemanningsbyraStavangerPage() {
           ))}
         </section>
         <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
-          <h2 className="am-h3 font-semibold text-navy">Kort FAQ</h2>
+          <h2 className="am-h3 font-semibold text-navy">Quick FAQ</h2>
           <p className="mt-3 text-sm text-text-secondary">
-            Dekker dere offshore? - Avhengig av kurs og autorisasjoner; vi avklarer før vi presenterer kandidater.
+            Do you cover offshore roles? It depends on required training and authorizations, which we verify first.
           </p>
         </section>
         <SeeAlsoSection
           variant="surface"
           items={[
-            { href: "/bemanning-industri", label: "Industri & produksjon" },
-            { href: "/bemanning-logistikk", label: "Logistikk" },
-            { href: "/for-employers", label: "For arbeidsgivere" },
+            { href: "/bemanning-industri", label: "Industry & production" },
+            { href: "/bemanning-logistikk", label: "Logistics" },
+            { href: "/for-employers", label: "For employers" },
           ]}
         />
         <p className="mt-10 text-lg font-semibold text-navy">
-          Ta kontakt med oss for bemanning i Stavanger – vi kobler sikkerhetskrav med reell rekrutteringskapasitet.
+          Contact us for staffing in Stavanger - we align safety requirements with realistic recruitment delivery.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
           <Link
             href="/request"
             className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
           >
-            Avklar behov
+            Clarify staffing needs
           </Link>
           <Link
             href="/contact"
             className="inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center text-sm font-semibold text-gold underline sm:w-auto"
           >
-            Kontakt oss
+            Contact us
           </Link>
         </div>
       </div>

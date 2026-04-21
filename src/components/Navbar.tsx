@@ -144,7 +144,7 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 #0a0f18 lg:hidden"
+              className="fixed inset-0 bg-[#0a0f18]/85 lg:hidden"
               style={{ zIndex: 40 }}
               onClick={closeMenu}
             />

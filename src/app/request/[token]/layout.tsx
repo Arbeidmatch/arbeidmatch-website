@@ -11,6 +11,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RequestLayout({ children }: { children: ReactNode }) {
+export default function RequestTokenLayout({ children }: { children: ReactNode }) {
   return children;
 }

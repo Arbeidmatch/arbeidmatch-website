@@ -5,6 +5,7 @@ import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { escapeHtml } from "@/lib/htmlSanitizer";
 import { buildEmail } from "@/lib/emailTemplate";
+import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
 
@@ -131,7 +132,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    await notifyError({ route: "/api/guide-interest-signup", error });
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
   }
 }

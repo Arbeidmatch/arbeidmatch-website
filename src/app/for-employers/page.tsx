@@ -9,13 +9,12 @@ import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection"
 import ForEmployersExtendedServices from "@/components/for-employers/ForEmployersExtendedServices";
 import OurServicesSection from "@/components/for-employers/OurServicesSection";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
-import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
-export const metadata: Metadata = nbPageMetadata(
-  "/for-employers",
-  "Rekruttere EU/EEA-arbeidere til Norge | ArbeidMatch",
-  "Få pre-screene fagarbeidere levert innen 2 uker. ArbeidMatch tilbyr bemanning og rekruttering fra EU/EEA til bygg, logistikk og industri. Kontakt oss i dag.",
-);
+export const metadata: Metadata = {
+  title: "Hire EU/EEA Workers in Norway | ArbeidMatch",
+  description:
+    "Get pre-screened EU/EEA professionals for construction, logistics, and industry in Norway. Submit your staffing request to ArbeidMatch.",
+};
 
 export default function ForEmployersPage() {
   return (

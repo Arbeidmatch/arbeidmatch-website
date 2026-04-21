@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
-  title: "Bemanning Kristiansand og Agder",
+  title: "Staffing Kristiansand and Agder",
   description:
-    "Bemanning Kristiansand til industri, logistikk og bygg. EU/EEA-rekruttering med dokumentasjon – ta kontakt i Agder.",
+    "Staffing in Kristiansand for industry, logistics, and construction. EU/EEA recruitment with clear documentation standards.",
   alternates: { canonical: "https://www.arbeidmatch.no/bemanningsbyrå-kristiansand" },
 };
 
@@ -13,42 +13,41 @@ export default function BemanningsbyraKristiansandPage() {
   return (
     <article className="bg-white">
       <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
-        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Lokalside</p>
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Location page</p>
         <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
-          Bemanning Kristiansand – broen mellom industri, logistikk og byutvikling
+          Kristiansand staffing across industry, logistics, and city development
         </h1>
         <div className="mt-8 max-w-3xl space-y-4 leading-relaxed text-text-secondary">
           <p>
-            Kristiansand og Agder er i vekst med industri, logistikk og boligbygging som krever arbeidskraft som forstår
-            prosess og skift. ArbeidMatch leverer bemanning Kristiansand med fokus på dokumentasjon, pendling og tydelige
-            forventninger til språk i sikkerhetsbrief. Vi tilstreber ryddig dialog med verksleder og tillitsvalgte.
+            Kristiansand and Agder continue to grow across industry, logistics, and housing development. ArbeidMatch
+            supports staffing in Kristiansand with clear expectations for documentation, mobility, and shift readiness.
           </p>
           <p>
-            Vi avklarer bolig, transport og arbeidstid tidlig. Send{" "}
+            We clarify accommodation, transport, and working-time expectations early. Send a staffing{" "}
             <Link href="/request" className="font-medium text-gold hover:underline">
-              forespørsel
+              request
             </Link>{" "}
-            eller les mer for{" "}
+            or read more for{" "}
             <Link href="/for-employers" className="font-medium text-gold hover:underline">
-              arbeidsgivere
+              employers
             </Link>
             .
           </p>
         </div>
         <section className="mt-10 rounded-xl border border-border bg-surface p-6 transition-all duration-200 hover:border-[#C9A84C]">
-          <h2 className="text-lg font-semibold text-navy">Typiske roller i Kristiansand og Agder</h2>
+          <h2 className="text-lg font-semibold text-navy">Typical roles in Kristiansand and Agder</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-text-secondary">
-            <li>Industrioperatører til prosess og pakking</li>
-            <li>Logistikk, truck og lager mot hav og motorvei</li>
-            <li>Byggfag til bolig og infrastrukturprosjekter</li>
-            <li>Teknisk assistanse i vedlikeholdsesong</li>
+            <li>Industrial operators for process and packaging lines</li>
+            <li>Logistics, forklift, and warehouse teams for port and highway networks</li>
+            <li>Construction trades for residential and infrastructure projects</li>
+            <li>Technical support roles during maintenance periods</li>
           </ul>
         </section>
         <section className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {[
-            ["Reell erfaring", "Vi stiller spørsmål om konkrete prosesser - ikke bare generelle etiketter."],
-            ["Regional logikk", "Pendling og bolig avklares tidlig for stabile team."],
-            ["Digital oppfølging", "Avstand til hovedkontor skal ikke bety avstand i dialog."],
+            ["Proven experience", "Screening focuses on real process experience, not generic labels."],
+            ["Regional logistics", "Commuting and accommodation fit are clarified early for stable teams."],
+            ["Operational follow-up", "Consistent communication regardless of project location."],
           ].map(([t, b]) => (
             <article
               key={t}
@@ -61,34 +60,34 @@ export default function BemanningsbyraKristiansandPage() {
           ))}
         </section>
         <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
-          <h2 className="am-h3 font-semibold text-navy">Kort FAQ</h2>
+          <h2 className="am-h3 font-semibold text-navy">Quick FAQ</h2>
           <p className="mt-3 text-sm text-text-secondary">
-            Dekker dere hele Agder? - Ja, med samme metodikk som i større byer - krav først, deretter sourcing.
+            Do you cover all of Agder? Yes - we use the same requirement-first process across the region.
           </p>
         </section>
         <SeeAlsoSection
           variant="surface"
           items={[
-            { href: "/bemanning-industri", label: "Industri & produksjon" },
-            { href: "/bemanning-logistikk", label: "Logistikk" },
-            { href: "/for-employers", label: "For arbeidsgivere" },
+            { href: "/bemanning-industri", label: "Industry & production" },
+            { href: "/bemanning-logistikk", label: "Logistics" },
+            { href: "/for-employers", label: "For employers" },
           ]}
         />
         <p className="mt-10 text-lg font-semibold text-navy">
-          Ta kontakt med oss for bemanning i Kristiansand – vi bygger leveransen rundt deres prosjekt og lokale realiteter.
+          Contact us for staffing in Kristiansand - we build delivery around your project constraints and local realities.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
           <Link
             href="/request"
             className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
           >
-            Send forespørsel
+            Send request
           </Link>
           <Link
             href="/for-employers"
             className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md border border-navy px-6 py-3 text-sm font-semibold text-navy sm:w-auto"
           >
-            For arbeidsgivere
+            For employers
           </Link>
         </div>
       </div>

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const supabase = getSupabaseServiceClient();
   if (!supabase) {
-    return NextResponse.json({ live: false });
+    return NextResponse.json({ error: "Service unavailable" }, { status: 500 });
   }
 
   try {
@@ -19,7 +19,7 @@ export async function GET() {
 
     if (error) {
       console.error("[tiktok-live-status]", error.message);
-      return NextResponse.json({ live: false });
+      return NextResponse.json({ error: "Failed to read live status" }, { status: 500 });
     }
 
     const raw = (data?.value ?? "").trim().toLowerCase();
@@ -28,6 +28,6 @@ export async function GET() {
   } catch (e) {
     await notifyError({ route: "/api/tiktok-live-status", error: e });
     console.error("[tiktok-live-status]", e);
-    return NextResponse.json({ live: false });
+    return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
   }
 }

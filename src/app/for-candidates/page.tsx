@@ -7,13 +7,12 @@ import CandidateFeedbackPill from "@/components/for-candidates/CandidateFeedback
 import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
 import ScrollReveal from "@/components/ScrollReveal";
 import StaggerHero from "@/components/premium/StaggerHero";
-import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
-export const metadata: Metadata = nbPageMetadata(
-  "/for-candidates",
-  "Jobb i Norge for EU/EEA-borgere | ArbeidMatch",
-  "Finn lovlig arbeid i Norge. ArbeidMatch kobler deg med norske arbeidsgivere innen bygg, logistikk og industri. Søk nå - reelle muligheter, trygge kontrakter.",
-);
+export const metadata: Metadata = {
+  title: "Work in Norway for EU/EEA Citizens | ArbeidMatch",
+  description:
+    "Find legal jobs in Norway with trusted employers. ArbeidMatch connects EU/EEA workers with roles in construction, logistics, industry, and more.",
+};
 
 export default function ForCandidatesPage() {
   return (

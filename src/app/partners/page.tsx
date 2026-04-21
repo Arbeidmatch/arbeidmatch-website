@@ -8,13 +8,12 @@ import {
   Languages,
   Scale,
 } from "lucide-react";
-import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
-export const metadata: Metadata = nbPageMetadata(
-  "/partners",
-  "Partnere | ArbeidMatch Norge",
-  "ArbeidMatch samarbeider med norske bedrifter og EU/EEA-rekrutterere for å levere kvalifisert arbeidskraft raskt og lovlig.",
-);
+export const metadata: Metadata = {
+  title: "Partners | ArbeidMatch Norway",
+  description:
+    "ArbeidMatch collaborates with Norwegian businesses and EU/EEA recruiters to deliver qualified workforce solutions quickly and compliantly.",
+};
 
 const cards: { icon: typeof Building2; title: string }[] = [
   { icon: Calculator, title: "Accounting & Tax Services" },

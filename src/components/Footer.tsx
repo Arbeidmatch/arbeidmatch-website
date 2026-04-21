@@ -95,6 +95,7 @@ export default function Footer() {
             <Link
               href="https://jobs.arbeidmatch.no"
               target="_blank"
+              rel="noopener noreferrer"
               className="mt-2 block text-[15px] font-semibold text-[#C9A84C] transition-colors hover:text-[#d8bc6a]"
             >
               Browse open positions →

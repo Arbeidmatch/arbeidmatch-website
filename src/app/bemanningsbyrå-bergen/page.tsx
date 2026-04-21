@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 
 export const metadata: Metadata = {
-  title: "Bemanning Bergen – maritim og bygg",
+  title: "Staffing Bergen - Maritime and Construction",
   description:
-    "Bemanning Bergen til verft, logistikk og byggeplass. EU/EEA-fagarbeidere med dokumentasjon – ta kontakt for bemanning i Bergen.",
+    "Staffing in Bergen for shipyard, logistics, and construction operations. EU/EEA recruitment with verified documentation.",
   alternates: { canonical: "https://www.arbeidmatch.no/bemanningsbyrå-bergen" },
 };
 
@@ -13,43 +13,41 @@ export default function BemanningsbyraBergenPage() {
   return (
     <article className="bg-white">
       <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
-        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Lokalside</p>
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Location page</p>
         <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
-          Bemanning Bergen der havn, byfjell og byutvikling møtes
+          Bergen staffing where maritime operations and city development meet
         </h1>
         <div className="mt-8 max-w-3xl space-y-4 leading-relaxed text-text-secondary">
           <p>
-            Bergensøkonomien er formet av sjøtransport, maritim teknologi og byutvikling i krevende terreng. ArbeidMatch
-            leverer bemanning Bergen til maritim klynge og landbasert bygg, med fokus på dokumentert EU/EEA-erfaring,
-            HMS og forutsigbar oppstart. Vi tilstreber tydelig avklaring før presentasjon.
+            Bergen combines maritime logistics, marine technology, and complex construction projects. ArbeidMatch supports
+            staffing in Bergen with verified EU/EEA experience, safety-aware screening, and predictable onboarding.
           </p>
           <p>
-            Vi avklarer truckklasser, språk og sertifikater tidlig, og støtter i dialog om tariff og allmenngjøring der
-            det er relevant. Ta kontakt via{" "}
+            We clarify certifications, language expectations, and practical role fit early. Contact us through a staffing{" "}
             <Link href="/request" className="font-medium text-gold hover:underline">
-              forespørsel
+              request
             </Link>{" "}
-            eller les mer for{" "}
+            or read more for{" "}
             <Link href="/for-employers" className="font-medium text-gold hover:underline">
-              arbeidsgivere
+              employers
             </Link>
             .
           </p>
         </div>
         <section className="mt-10 rounded-xl border border-border bg-surface p-6 transition-all duration-200 hover:border-[#C9A84C]">
-          <h2 className="text-lg font-semibold text-navy">Typiske roller i Bergensregionen</h2>
+          <h2 className="text-lg font-semibold text-navy">Typical roles in the Bergen region</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-text-secondary">
-            <li>Maritime sveisere og overflatearbeidere</li>
-            <li>Stillas og rigg mot infrastruktur og industri</li>
-            <li>Lager og terminal mot hav og motorvei</li>
-            <li>Byggfag til fortetting i sentrum og i dagligvarekjeder</li>
+            <li>Maritime welders and surface preparation teams</li>
+            <li>Scaffolding and setup crews for infrastructure and industry</li>
+            <li>Warehouse and terminal workers for port and road logistics</li>
+            <li>Construction trades for dense urban development projects</li>
           </ul>
         </section>
         <section className="mt-10 grid gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {[
-            ["Maritim forståelse", "Kandidater vurderes opp mot havn, verft og logistikk i regionen."],
-            ["Dokumentasjon", "Vi arbeider for ryddig papirflyt som tåler innkjøp og revisjon."],
-            ["Lokal + nasjonal", "Basert på vår erfaring kombinerer vi regional innsikt med EU/EEA-sourcing."],
+            ["Maritime understanding", "Candidates are matched to shipyard, port, and logistics realities."],
+            ["Documentation quality", "We prioritize clean documentation flow for procurement and audits."],
+            ["Local + national reach", "Regional insight combined with EU/EEA sourcing capabilities."],
           ].map(([t, b]) => (
             <article
               key={t}
@@ -62,36 +60,34 @@ export default function BemanningsbyraBergenPage() {
           ))}
         </section>
         <section className="mx-auto mt-10 max-w-[800px] px-0 md:px-4">
-          <h2 className="am-h3 font-semibold text-navy">Kort FAQ</h2>
+          <h2 className="am-h3 font-semibold text-navy">Quick FAQ</h2>
           <p className="mt-3 text-sm text-text-secondary">
-            Dekker dere hele Vestland? - Vi vurderer oppdrag nasjonalt; bergenske prosjekter får lokal kontekst i
-            screening.
+            Do you cover the full Vestland area? Yes - we assess projects nationally while screening for local context.
           </p>
         </section>
         <SeeAlsoSection
           variant="surface"
           items={[
-            { href: "/bemanning-bygg-anlegg", label: "Bygg & Anlegg" },
+            { href: "/bemanning-bygg-anlegg", label: "Construction" },
             { href: "/bemanning-horeca", label: "HoReCa" },
-            { href: "/for-employers", label: "For arbeidsgivere" },
+            { href: "/for-employers", label: "For employers" },
           ]}
         />
         <p className="mt-10 text-lg font-semibold text-navy">
-          Ta kontakt med oss for bemanning i Bergen – vi starter med deres prosjektforutsetninger og leverer ryddige
-          kandidatprofiler.
+          Contact us for staffing in Bergen - we start with your project constraints and deliver clear candidate profiles.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
           <Link
             href="/request"
             className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
           >
-            Send forespørsel
+            Send request
           </Link>
           <Link
             href="/for-employers"
             className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md border border-navy px-6 py-3 text-sm font-semibold text-navy sm:w-auto"
           >
-            For arbeidsgivere
+            For employers
           </Link>
         </div>
       </div>

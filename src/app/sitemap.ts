@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       "/for-candidates",
       "/for-staffing-agencies",
       "/dsb-support",
+      "/dsb-assistance",
       "/recruiter-network",
       "/partners",
       "/bemanning-bygg-anlegg",
@@ -34,7 +35,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${SITE}${path}`,
       lastModified: primaryLastMod,
       changeFrequency: "monthly" as const,
-      priority: 0.9,
+      priority: path === "/dsb-assistance" ? 0.5 : 0.9,
     })),
     ...["/about", "/contact"].map((path) => ({
       url: `${SITE}${path}`,
@@ -96,12 +97,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),
-    {
-      url: `${SITE}/premium/success`,
-      lastModified: primaryLastMod,
-      changeFrequency: "yearly" as const,
-      priority: 0.3,
-    },
     {
       url: `${SITE}/privacy`,
       lastModified: stableLastMod,
