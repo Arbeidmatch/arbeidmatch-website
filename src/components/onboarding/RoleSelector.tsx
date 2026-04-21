@@ -16,7 +16,6 @@ function RoleCard({
   icon,
   title,
   subtitle,
-  features,
   ctaLabel,
   onSelect,
   entranceDelay,
@@ -25,7 +24,6 @@ function RoleCard({
   icon: ReactNode;
   title: string;
   subtitle: string;
-  features: string[];
   ctaLabel: string;
   onSelect: () => void;
   entranceDelay: number;
@@ -60,16 +58,17 @@ function RoleCard({
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         onClick={onSelect}
-        className="group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col justify-between break-words md:min-h-[420px]"
+        className="role-card group relative box-border flex h-full w-full min-w-0 cursor-pointer flex-col break-words md:min-h-[420px]"
         style={{
           borderRadius: 20,
-          padding: "36px 32px",
-          border: active ? `1px solid ${GOLD}` : "1px solid rgba(201,168,76,0.2)",
-          background: active ? "rgba(201,168,76,0.06)" : "rgba(255,255,255,0.04)",
+          padding: "20px 16px",
+          border: active ? "1px solid rgba(201,168,76,0.4)" : "1px solid rgba(201,168,76,0.2)",
+          background: active ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.04)",
           boxShadow: active
             ? "0 0 0 1px rgba(201,168,76,0.4), 0 8px 32px rgba(201,168,76,0.08)"
             : "none",
           transition: cardTransition,
+          animation: skipMotion ? "none" : "goldPulse 2s ease-in-out infinite alternate",
         }}
       >
         {active ? (
@@ -80,57 +79,45 @@ function RoleCard({
           />
         ) : null}
 
-        <div className="relative z-[1] flex h-full min-w-0 flex-col justify-between">
-          <div>
-            <div
-              className="inline-flex items-center justify-center rounded-[14px]"
-              style={{
-                padding: 16,
-                background: "rgba(201,168,76,0.12)",
-                border: "1px solid rgba(201,168,76,0.25)",
-              }}
-            >
-              <span className="flex h-10 w-10 items-center justify-center text-[#C9A84C] [&>svg]:h-10 [&>svg]:w-10">
+        <div className="relative z-[1] flex h-full min-w-0 flex-col">
+          <div className="flex flex-col">
+              <div
+                className="inline-flex items-center justify-center rounded-[14px] p-3 min-[640px]:p-4"
+                style={{
+                  background: "rgba(201,168,76,0.12)",
+                  border: "1px solid rgba(201,168,76,0.25)",
+                }}
+              >
+                <span className="flex h-9 w-9 items-center justify-center text-[#C9A84C] min-[640px]:h-10 min-[640px]:w-10 [&>svg]:h-9 [&>svg]:w-9 min-[640px]:[&>svg]:h-10 min-[640px]:[&>svg]:w-10">
                 {icon}
               </span>
             </div>
             <h2
               className="text-white"
               style={{
-                fontSize: "1.5rem",
+                fontSize: "clamp(1rem, 4vw, 1.5rem)",
                 fontWeight: 800,
                 marginBottom: 8,
-                marginTop: 20,
+                marginTop: 16,
               }}
             >
               {title}
             </h2>
-            <p className="text-[13px] leading-[1.65] text-white/[0.55] min-[640px]:text-sm">{subtitle}</p>
-            <div className="my-6 h-px bg-white/[0.06]" />
-            <ul className="flex flex-col gap-2.5">
-              {features.map((f) => (
-                <li key={f} className="flex items-start gap-2.5 text-[13px] text-white/[0.7] min-[640px]:text-sm">
-                  <span
-                    className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
-                    style={{ background: GOLD }}
-                    aria-hidden
-                  />
-                  <span className="min-w-0 break-words">{f}</span>
-                </li>
-              ))}
-            </ul>
+            <p className="line-clamp-2 flex-grow text-[12px] leading-[1.5] text-white/[0.55] min-[640px]:line-clamp-none min-[640px]:text-sm min-[640px]:leading-[1.65]">
+              {subtitle}
+            </p>
           </div>
 
           <span
-            className="mt-6 flex w-full items-center justify-center gap-2 font-bold min-[640px]:mt-auto"
+            className="mt-auto flex w-full items-center justify-center gap-2 font-bold"
             style={{
               background: active ? "#b8953f" : GOLD,
               color: "#0D1B2A",
               fontWeight: 700,
               borderRadius: 12,
-              padding: "16px 24px",
+              padding: "10px 12px",
               width: "100%",
-              fontSize: 15,
+              fontSize: 13,
               letterSpacing: "0.01em",
               transform: active ? "scale(1.02)" : "scale(1)",
               transition: ctaTransition,
@@ -243,16 +230,11 @@ export default function RoleSelector() {
                     "radial-gradient(ellipse at 50% 60%, rgba(201,168,76,0.04) 0%, transparent 70%)",
                 }}
               >
-                <div className="flex min-h-0 w-full flex-col gap-6 md:flex-row md:items-stretch md:gap-5">
+                <div className="flex min-h-0 w-full flex-row items-stretch gap-3 min-[640px]:gap-5">
                   <RoleCard
                     icon={<Briefcase stroke={GOLD} strokeWidth={1.5} />}
                     title="I am an employer"
                     subtitle="Norwegian businesses looking for qualified EU/EEA workers in construction, logistics, industry and more."
-                    features={[
-                      "Pre-screened candidates delivered within 2 weeks",
-                      "Full compliance with Norwegian labor law",
-                      "Dedicated recruiter for your business",
-                    ]}
                     ctaLabel="Get started"
                     entranceDelay={skipEntrance ? 0 : 0.1}
                     skipMotion={skipEntrance}
@@ -262,11 +244,6 @@ export default function RoleSelector() {
                     icon={<UserCheck stroke={GOLD} strokeWidth={1.5} />}
                     title="I am looking for work"
                     subtitle="EU/EEA citizens and international workers looking for legal, well-paid jobs in Norway."
-                    features={[
-                      "Legal employment contracts in Norway",
-                      "Support before and after arrival",
-                      "Direct access to active job openings",
-                    ]}
                     ctaLabel="Find my job"
                     entranceDelay={skipEntrance ? 0 : 0.25}
                     skipMotion={skipEntrance}
@@ -284,6 +261,26 @@ export default function RoleSelector() {
               </button>
             </div>
           </motion.div>
+          <style jsx>{`
+            @keyframes goldPulse {
+              from {
+                border-color: rgba(201, 168, 76, 0.2);
+              }
+              to {
+                border-color: rgba(201, 168, 76, 0.5);
+              }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .role-card {
+                animation: none !important;
+              }
+            }
+            @media (min-width: 640px) {
+              .role-card {
+                padding: 36px 32px !important;
+              }
+            }
+          `}</style>
         </motion.div>
       ) : null}
     </AnimatePresence>
