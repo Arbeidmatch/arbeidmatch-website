@@ -462,7 +462,7 @@ export default function RequestPage() {
       </div>
 
       {showNonPartnerOptions && (
-        <div className="mx-auto flex min-h-[calc(100vh-160px)] w-full max-w-[960px] flex-col items-center justify-center px-6 text-center">
+        <div className="fixed inset-0 z-30 mx-auto flex w-full flex-col items-center justify-center px-6 pt-[88px] text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Choose access option</p>
           <h2 className="mt-3 text-[24px] font-bold text-white">How would you like to continue?</h2>
           <p className="mt-2 text-[15px] text-[rgba(255,255,255,0.55)]">Select the option that fits your hiring needs.</p>
@@ -559,7 +559,7 @@ export default function RequestPage() {
               onClick={() => {
                 setResultAction("none");
               }}
-              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[13px] text-[15px] text-[rgba(255,255,255,0.6)]"
+              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-[13px] text-[15px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]"
             >
               Back
             </button>
