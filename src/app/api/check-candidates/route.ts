@@ -6,8 +6,9 @@ import { getSupabaseServiceClient } from "@/lib/supabaseService";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const role = (request.nextUrl.searchParams.get("role") || "").trim();
-  if (role.length < 2) {
+  const role = request.nextUrl.searchParams.get("role") || "";
+  const normalizedRole = role.trim().toLowerCase();
+  if (normalizedRole.length < 2) {
     return NextResponse.json({ count: 0, role });
   }
 
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseServiceClient();
     if (!supabase) return NextResponse.json({ count: 0, role });
 
-    const rolePattern = `%${role}%`;
+    const rolePattern = `%${normalizedRole}%`;
     const { count, error } = await supabase
       .from("ats_candidates")
       .select("*", { count: "exact", head: true })
