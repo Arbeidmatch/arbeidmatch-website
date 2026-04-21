@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Briefcase, UserCheck } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 const GOLD = "#C9A84C";
 const STORAGE_KEY = "roleSelected";
@@ -234,7 +235,10 @@ export default function RoleSelector() {
                     ctaLabel="Get started"
                     entranceDelay={skipEntrance ? 0 : 0.1}
                     skipMotion={skipEntrance}
-                    onSelect={() => closeWithOptionalRedirect("employer", "/for-employers")}
+                    onSelect={() => {
+                      trackEvent("select_role", { role: "employer" });
+                      closeWithOptionalRedirect("employer", "/for-employers");
+                    }}
                   />
                   <RoleCard
                     icon={<UserCheck stroke={GOLD} strokeWidth={1.5} />}
@@ -243,7 +247,10 @@ export default function RoleSelector() {
                     ctaLabel="Find my job"
                     entranceDelay={skipEntrance ? 0 : 0.25}
                     skipMotion={skipEntrance}
-                    onSelect={() => closeWithOptionalRedirect("candidate", "/for-candidates")}
+                    onSelect={() => {
+                      trackEvent("select_role", { role: "candidate" });
+                      closeWithOptionalRedirect("candidate", "/for-candidates");
+                    }}
                   />
                 </div>
               </div>
@@ -251,7 +258,10 @@ export default function RoleSelector() {
               <button
                 type="button"
                 className="mt-2 shrink-0 cursor-pointer pt-1 text-center text-[12px] text-white/[0.3] transition-colors hover:text-white/60 md:mt-8 md:text-[13px]"
-                onClick={() => closeWithOptionalRedirect("skipped", null)}
+                onClick={() => {
+                  trackEvent("skip_role_selection");
+                  closeWithOptionalRedirect("skipped", null);
+                }}
               >
                 Continue without selecting
               </button>

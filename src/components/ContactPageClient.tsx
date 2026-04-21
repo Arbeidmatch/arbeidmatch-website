@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { Building2, Mail, MapPin } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
+import { trackEvent } from "@/lib/analytics";
 
 function IconFacebook({ className }: { className?: string }) {
   return (
@@ -79,6 +80,7 @@ export default function ContactPageClient() {
         throw new Error(data.error || "Failed");
       }
       setSubmitted(true);
+      trackEvent("contact_form_submitted");
       form.reset();
       setNeed("Qualified workers");
       setNeedOther("");

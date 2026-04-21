@@ -13,6 +13,7 @@ import {
   Truck,
   X,
 } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 type TokenData = {
   company: string;
@@ -558,6 +559,9 @@ export default function RequestTokenPage() {
 
   const goTo = (next: number) => {
     if (next < 0 || next > TOTAL_STEPS - 1 || animating) return;
+    if (next > step) {
+      trackEvent("wizard_step_complete", { step: step + 1 });
+    }
     if (reducedMotion) {
       setStep(next);
       scrollToTop();
@@ -574,6 +578,12 @@ export default function RequestTokenPage() {
   useEffect(() => {
     if (submitStatus === "success") {
       scrollToTop();
+    }
+  }, [submitStatus]);
+
+  useEffect(() => {
+    if (submitStatus === "success") {
+      trackEvent("request_completed");
     }
   }, [submitStatus]);
 
@@ -642,6 +652,7 @@ export default function RequestTokenPage() {
 
   const handleSubmit = async (event?: FormEvent) => {
     event?.preventDefault();
+    trackEvent("wizard_submitted");
     setSubmitError("");
     setSubmitNotice("");
     setSubmitStatus("idle");
@@ -761,6 +772,7 @@ export default function RequestTokenPage() {
   const runCandidateSearch = async (roleInput?: string) => {
     const role = (roleInput ?? searchTerm).trim();
     if (role.length < 2) return;
+    trackEvent("check_role_selected", { role, industry: selectedIndustry || "unknown" });
     if (roleInput !== undefined) setSearchTerm(roleInput);
     setCheckState("searching");
     setSearchMessageIndex(0);
@@ -799,6 +811,7 @@ export default function RequestTokenPage() {
 
   useEffect(() => {
     if (checkState !== "result") return;
+    trackEvent("check_result_shown", { role: searchTerm.trim(), count: checkCount });
     if (reducedMotion) {
       setPitchIndex(pitchMessages.length - 1);
       setShowOfferCards(true);
@@ -980,7 +993,10 @@ export default function RequestTokenPage() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => setShowChoice(false)}
+                  onClick={() => {
+                    trackEvent("choice_start_request");
+                    setShowChoice(false);
+                  }}
                   className="mt-6 rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A]"
                 >
                   Start request
@@ -998,6 +1014,7 @@ export default function RequestTokenPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    trackEvent("choice_check_availability");
                     setShowCheckFlow(true);
                     setChoiceMode("check");
                   }}
@@ -1086,7 +1103,10 @@ export default function RequestTokenPage() {
                   <p className="mt-5 text-center text-[12px] text-[rgba(255,255,255,0.35)]">This search takes a moment.</p>
                   <button
                     type="button"
-                    onClick={() => setShowInstantPanel(true)}
+                    onClick={() => {
+                      trackEvent("upsell_instant_results_click");
+                      setShowInstantPanel(true);
+                    }}
                     className="mt-2 cursor-pointer text-[13px] font-semibold text-[#C9A84C] underline"
                   >
                     Get instant results
@@ -1144,7 +1164,11 @@ export default function RequestTokenPage() {
                       <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
                         <p className="text-base font-bold text-[#C9A84C]">Become a Partner</p>
                         <p className="mt-2 text-sm text-white/70">Full database access, priority matching, dedicated account manager.</p>
-                        <Link href="/contact" className="mt-4 inline-block rounded-[10px] bg-[#C9A84C] px-4 py-2 text-xs font-semibold text-[#0D1B2A]">
+                        <Link
+                          href="/contact"
+                          onClick={() => trackEvent("pricing_partner_click")}
+                          className="mt-4 inline-block rounded-[10px] bg-[#C9A84C] px-4 py-2 text-xs font-semibold text-[#0D1B2A]"
+                        >
                           Get in touch
                         </Link>
                       </div>
@@ -1154,6 +1178,7 @@ export default function RequestTokenPage() {
                         <button
                           type="button"
                           onClick={() => {
+                            trackEvent("pricing_premium_click");
                             setSelectedOffer("premium-subscription");
                             setNotifyStatus("idle");
                           }}
@@ -1171,6 +1196,7 @@ export default function RequestTokenPage() {
                         <button
                           type="button"
                           onClick={() => {
+                            trackEvent("pricing_profiles_click", { price: "100 NOK" });
                             setSelectedOffer("candidate-profiles");
                             setNotifyStatus("idle");
                           }}
@@ -1188,6 +1214,7 @@ export default function RequestTokenPage() {
                         <button
                           type="button"
                           onClick={() => {
+                            trackEvent("pricing_hire_click", { price: "1000 NOK" });
                             setSelectedOffer("hire-through-arbeidmatch");
                             setNotifyStatus("idle");
                           }}

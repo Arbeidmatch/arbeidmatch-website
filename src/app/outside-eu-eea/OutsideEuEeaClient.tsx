@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { Check, Clock, Wrench } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 const cardClass =
   "rounded-2xl border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.05)] p-6 md:p-8";
@@ -53,6 +54,7 @@ export default function OutsideEuEeaClient() {
         return;
       }
       setLeadSuccess(true);
+      trackEvent("non_eu_lead_signup", { source: "outside-eu-eea" });
     } catch {
       setLeadError("Something went wrong. Please try again.");
     } finally {
@@ -91,6 +93,7 @@ export default function OutsideEuEeaClient() {
       setWaitMessage("ok");
       setWaitEmail("");
       setWaitConsent(false);
+      trackEvent("non_eu_waitlist_signup");
     } catch {
       setWaitMessage("err");
     } finally {
@@ -439,6 +442,7 @@ export default function OutsideEuEeaClient() {
             <p className="mt-4 text-xl font-bold text-[#C9A84C]">39 EUR</p>
             <Link
               href="/dsb-support/non-eu"
+              onClick={() => trackEvent("dsb_guide_click", { source: "outside-eu-eea" })}
               className="mt-6 inline-flex min-h-[44px] w-full items-center justify-center rounded-[10px] bg-[#C9A84C] px-4 py-3 text-center text-sm font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
             >
               Get the guide

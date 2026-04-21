@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { trackEvent } from "@/lib/analytics";
 const companyLinks: [string, string][] = [
   ["For Employers", "/for-employers"],
   ["For Candidates", "/for-candidates"],
@@ -96,6 +99,7 @@ export default function Footer() {
               href="https://jobs.arbeidmatch.no"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackEvent("footer_jobs_click")}
               className="mt-2 block text-[15px] font-semibold text-[#C9A84C] transition-colors hover:text-[#d8bc6a]"
             >
               Browse open positions →

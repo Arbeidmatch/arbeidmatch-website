@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { trackEvent } from "@/lib/analytics";
 
 const PREMIUM_EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -209,6 +210,7 @@ export default function RequestPage() {
         throw new Error(data.error || "Request failed");
       }
       if (data.success && data.token) {
+        trackEvent("employer_request_started", { company: companyQuery.trim() || "unknown" });
         window.location.href = `/request/${data.token}`;
         return;
       }
