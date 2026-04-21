@@ -72,6 +72,9 @@ export default function RequestPage() {
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [partnerIssueStatus, setPartnerIssueStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [isLoadingExit, setIsLoadingExit] = useState(false);
+  const [partnerModalView, setPartnerModalView] = useState<"not_found" | "feedback_form" | "feedback_success">("not_found");
+  const [partnerIssueMessage, setPartnerIssueMessage] = useState("");
+  const [notFoundExiting, setNotFoundExiting] = useState(false);
   const hasMountedHistoryGuard = useRef(false);
 
   const filteredRoles = useMemo(() => {
@@ -142,6 +145,8 @@ export default function RequestPage() {
         nextStatus = "partner";
       } else {
         setPartnerIssueStatus("idle");
+        setPartnerModalView("not_found");
+        setPartnerIssueMessage("");
         nextStatus = "non_partner";
       }
       setIsLoadingExit(true);
@@ -204,10 +209,10 @@ export default function RequestPage() {
     setResultAction("none");
   };
 
-  const showNonPartnerOptions = accessStatus === "non_partner";
+  const showNonPartnerOptions = accessStatus === "non_partner" && resultAction !== "partner";
 
   const reportPartnerIssue = async () => {
-    if (!accessEmail.includes("@") || partnerIssueStatus === "submitting" || partnerIssueStatus === "success") return;
+    if (!accessEmail.includes("@") || partnerIssueStatus === "submitting") return;
     setPartnerIssueStatus("submitting");
     try {
       const response = await fetch("/api/partner-issue", {
@@ -215,10 +220,15 @@ export default function RequestPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: accessEmail.trim().toLowerCase(),
-          message: "User reports their email was not recognized. Please verify manually.",
+          message: partnerIssueMessage.trim(),
         }),
       });
-      setPartnerIssueStatus(response.ok ? "success" : "error");
+      if (response.ok) {
+        setPartnerIssueStatus("success");
+        setPartnerModalView("feedback_success");
+      } else {
+        setPartnerIssueStatus("error");
+      }
     } catch {
       setPartnerIssueStatus("error");
     }
@@ -497,7 +507,7 @@ export default function RequestPage() {
         </>
       )}
 
-      {resultAction === "partner" && accessStatus !== "non_partner" && (
+      {resultAction === "partner" && (
         <>
           <div className="partner-modal-backdrop fixed inset-0 z-[9998] bg-[rgba(0,0,0,0.75)] backdrop-blur-[6px]" />
           <div className="partner-modal fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10">
@@ -539,6 +549,96 @@ export default function RequestPage() {
                 <div className="mt-6 h-[2px] w-full rounded-full bg-[rgba(255,255,255,0.08)]">
                   <div className="loading-progress-fill h-full rounded-full bg-[#C9A84C]" />
                 </div>
+              </div>
+            ) : accessStatus === "non_partner" ? (
+              <div className={`not-found-panel mt-6 ${notFoundExiting ? "not-found-exit" : ""}`}>
+                {partnerModalView === "not_found" && (
+                  <div className="text-center">
+                    <svg viewBox="0 0 24 24" className="mx-auto h-7 w-7 text-[#C9A84C]" fill="none" aria-hidden>
+                      <path d="M12 3 4 7v6c0 4 3.2 7.8 8 9 4.8-1.2 8-5 8-9V7l-8-4Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M8.5 12.5h7m-7-3h7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    </svg>
+                    <p className="mt-3 text-[18px] font-bold text-white">No partner account found</p>
+                    <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.5)]">Tell us what happened and we will look into it right away.</p>
+                    <div className="mt-5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNotFoundExiting(true);
+                          setTimeout(() => {
+                            setPartnerModalView("feedback_form");
+                            setNotFoundExiting(false);
+                          }, 150);
+                        }}
+                        className="w-full rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[13px] text-[15px] text-[rgba(255,255,255,0.6)]"
+                      >
+                        Report a problem
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {partnerModalView === "feedback_form" && (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNotFoundExiting(true);
+                        setTimeout(() => {
+                          setPartnerModalView("not_found");
+                          setPartnerIssueStatus("idle");
+                          setNotFoundExiting(false);
+                        }, 150);
+                      }}
+                      className="inline-flex items-center gap-1 text-[13px] text-[#C9A84C]"
+                    >
+                      <ArrowLeft className="h-3.5 w-3.5" />
+                      Back
+                    </button>
+                    <svg viewBox="0 0 24 24" className="mx-auto mt-2 h-7 w-7 text-[#C9A84C]" fill="none" aria-hidden>
+                      <path d="M12 3 4 7v6c0 4 3.2 7.8 8 9 4.8-1.2 8-5 8-9V7l-8-4Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M8.5 12.5h7m-7-3h7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    </svg>
+                    <p className="mt-3 text-center text-[18px] font-bold text-white">Report a problem</p>
+                    <p className="mt-1.5 text-center text-[13px] text-[rgba(255,255,255,0.5)]">
+                      Tell us what happened and we will look into it right away.
+                    </p>
+                    <textarea
+                      rows={4}
+                      value={partnerIssueMessage}
+                      onChange={(event) => setPartnerIssueMessage(event.target.value)}
+                      placeholder="Describe the issue. For example: I work at Company X and my email should be registered."
+                      className="mt-5 w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void reportPartnerIssue()}
+                      disabled={partnerIssueStatus === "submitting" || !partnerIssueMessage.trim()}
+                      className="result-cta-primary mt-3 w-full rounded-[10px] px-4 py-[13px] text-[15px] font-bold text-[#0D1B2A] disabled:opacity-60"
+                    >
+                      {partnerIssueStatus === "submitting" ? (
+                        <svg className="spinner-arc mx-auto" viewBox="0 0 24 24" aria-hidden>
+                          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="46 18" />
+                        </svg>
+                      ) : (
+                        "Send report"
+                      )}
+                    </button>
+                    {partnerIssueStatus === "error" && (
+                      <p className="mt-3 text-center text-[13px] text-[rgba(255,255,255,0.5)]">Something went wrong. Please try again.</p>
+                    )}
+                  </div>
+                )}
+                {partnerModalView === "feedback_success" && (
+                  <div className="text-center">
+                    <svg className="mx-auto h-6 w-6 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <p className="mt-3 text-[16px] font-bold text-white">Report sent.</p>
+                    <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.45)]">
+                      We will review your request and contact you at {accessEmail} shortly.
+                    </p>
+                  </div>
+                )}
               </div>
             ) : accessStatus !== "partner" ? (
               <>
@@ -778,6 +878,13 @@ export default function RequestPage() {
         .loading-screen.loading-exit {
           opacity: 0;
         }
+        .not-found-panel {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .not-found-panel.not-found-exit {
+          opacity: 0;
+        }
         @media (prefers-reduced-motion: no-preference) {
           .result-zero {
             animation: resultIn 400ms ease-out both;
@@ -802,6 +909,9 @@ export default function RequestPage() {
           .partner-modal {
             animation: partnerModalIn 280ms ease both;
           }
+          .not-found-panel {
+            animation: notFoundIn 250ms ease both;
+          }
           .loading-shield {
             animation: shieldPulse 2s ease-in-out infinite;
           }
@@ -821,6 +931,16 @@ export default function RequestPage() {
           .loading-progress-fill {
             width: 0%;
             animation: progressFill 3s ease-out forwards;
+          }
+        }
+        @keyframes notFoundIn {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
         }
       `}</style>
