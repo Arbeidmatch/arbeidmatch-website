@@ -282,8 +282,10 @@ export default function RequestPage() {
                 Back
               </button>
             )}
-            <p className="text-[3rem] font-extrabold text-[#C9A84C]">{checkCount}</p>
-            <p className="mt-1 text-sm text-white/65">candidate profiles registered for {searchTerm.trim()}</p>
+            <p className="text-[3rem] font-extrabold text-[#C9A84C]">0</p>
+            <p className="mt-1 text-sm text-white/65">
+              This feature is currently in development. At this stage, only our partners can submit candidate requests.
+            </p>
             <p key={pitchMessages[pitchIndex]} className="mt-3 animate-[fadeMsg_2.3s_ease-in-out] text-sm text-white/75">
               {pitchMessages[pitchIndex]}
             </p>
