@@ -43,8 +43,11 @@ type RequestForm = {
   certificationsOther: string;
   candidates: number;
   contractType: string;
+  hiringType: string;
+  jobSummary: string;
   salary: string;
   salaryPeriod: "per hour" | "per month";
+  salaryMode: "Range" | "Fixed";
   overtime: string;
   accommodation: string;
   accommodationSupport: string;
@@ -358,8 +361,11 @@ const initialForm: RequestForm = {
   certificationsOther: "",
   candidates: 2,
   contractType: "Permanent employment",
+  hiringType: "Recruitment of personnel for companies",
+  jobSummary: "General hiring inquiry",
   salary: "250-300",
   salaryPeriod: "per hour",
+  salaryMode: "Range",
   overtime: "",
   accommodation: "Not provided",
   accommodationSupport: "Can help candidate find accommodation",
@@ -826,8 +832,8 @@ export default function RequestTokenPage() {
       phonePrefix: "",
       phoneNumber: "",
       phone: form.contactPhone.trim(),
-      job_summary: "General hiring inquiry",
-      hiringType: "Recruitment of personnel for companies",
+      job_summary: form.jobSummary,
+      hiringType: form.hiringType,
       category: form.industry,
       position: form.workerType.trim(),
       positionOther: "",
@@ -848,8 +854,8 @@ export default function RequestTokenPage() {
       dNumberOther: "",
       requirements: generatedNotes,
       contractType: form.contractType,
-      salaryPeriod: "Per hour",
-      salaryMode: "Range",
+      salaryPeriod: form.salaryPeriod === "per hour" ? "Per hour" : "Per month",
+      salaryMode: form.salaryMode,
       salary: `${form.salaryMin.trim()}-${form.salaryMax.trim()}`,
       salaryAmount: "",
       salaryFrom: form.salaryMin.trim(),
@@ -1580,6 +1586,7 @@ export default function RequestTokenPage() {
 
       <main className="flex min-h-dvh items-center justify-center px-4 pt-[72px] md:px-6 md:pt-[80px]">
         <form onSubmit={handleSubmit} className="w-full max-w-[560px]">
+          <input type="hidden" value={token} name="token" />
           <div
             key={step}
             className={`relative overflow-hidden rounded-[24px] border border-[rgba(201,168,76,0.15)] bg-white/[0.03] px-5 py-6 md:px-9 md:py-10 ${
@@ -1614,6 +1621,22 @@ export default function RequestTokenPage() {
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                     {INDUSTRY_OPTIONS.map((option) => (
                       <OptionCard key={option} label={option} selected={form.industry === option} onClick={() => setForm((p) => ({ ...p, industry: option }))} />
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className={labelClass}>Hiring type</p>
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                    {["Recruitment of personnel for companies", "Temporary staffing request"].map((option) => (
+                      <OptionCard key={option} label={option} selected={form.hiringType === option} onClick={() => setForm((p) => ({ ...p, hiringType: option }))} />
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className={labelClass}>Job summary</p>
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                    {["General hiring inquiry", "Urgent replacement need", "Planned team expansion", "Project-specific hiring"].map((option) => (
+                      <OptionCard key={option} label={option} selected={form.jobSummary === option} onClick={() => setForm((p) => ({ ...p, jobSummary: option }))} />
                     ))}
                   </div>
                 </div>
@@ -1670,6 +1693,28 @@ export default function RequestTokenPage() {
               <div className="space-y-5">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 3 of 8</p>
                 <h2 className="text-2xl font-extrabold">Salary and conditions</h2>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div>
+                    <p className={labelClass}>Salary mode</p>
+                    <div className="flex gap-2">
+                      {(["Range", "Fixed"] as const).map((mode) => (
+                        <button key={mode} type="button" className={`rounded-lg border px-4 py-2 text-sm ${form.salaryMode === mode ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`} onClick={() => setForm((p) => ({ ...p, salaryMode: mode }))}>
+                          {mode}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className={labelClass}>Salary period</p>
+                    <div className="flex gap-2">
+                      {(["per hour", "per month"] as const).map((period) => (
+                        <button key={period} type="button" className={`rounded-lg border px-4 py-2 text-sm ${form.salaryPeriod === period ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`} onClick={() => setForm((p) => ({ ...p, salaryPeriod: period }))}>
+                          {period === "per hour" ? "Per hour" : "Per month"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <input className={inputClass} value={form.salaryMin} onChange={(e) => setForm((p) => ({ ...p, salaryMin: e.target.value }))} placeholder="Salary min" />
                   <input className={inputClass} value={form.salaryMax} onChange={(e) => setForm((p) => ({ ...p, salaryMax: e.target.value }))} placeholder="Salary max" />
