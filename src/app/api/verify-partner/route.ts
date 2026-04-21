@@ -25,13 +25,6 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       { auth: { autoRefreshToken: false, persistSession: false } },
     );
-    const testUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const testKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const keyPreview = testKey ? testKey.substring(0, 20) + "..." : "MISSING";
-    await notifyError({
-      route: "/api/verify-partner DEBUG",
-      error: new Error(`URL: ${testUrl ? "OK" : "MISSING"} | KEY: ${keyPreview}`),
-    });
 
     const email = parsed.data.email.trim().toLowerCase();
     const domain = email.split("@")[1]?.toLowerCase();
