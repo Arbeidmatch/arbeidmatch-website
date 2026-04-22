@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import {
   useCallback,
+  useEffect,
   useRef,
   useState,
   type ChangeEvent,
@@ -13,10 +14,10 @@ import type { JobRecord } from "@/lib/jobs/types";
 
 type JobPostMediaSectionProps = {
   job: JobRecord;
-  canAdminUpload: boolean;
   employerBoardId: string | null;
   adminSecret: string | null;
-  isRevising: boolean;
+  /** When true, show upload controls (trusted surface with secret and board id). */
+  showUploadTools: boolean;
 };
 
 const ACCEPT = "image/jpeg,image/png,image/webp,image/gif";
@@ -36,11 +37,25 @@ function NavyPlaceholder({ subtitle }: { subtitle?: string }) {
   );
 }
 
+function GalleryEmptyDeck() {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-[rgba(201,168,76,0.28)] bg-[#0D1B2A] shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+      <div className="aspect-[16/10] max-h-[320px] min-h-[180px]">
+        <NavyPlaceholder subtitle="Up to four gallery images can appear here" />
+      </div>
+    </div>
+  );
+}
+
 function GallerySlider({ urls }: { urls: string[] }) {
   const [active, setActive] = useState(0);
   const safe = urls.filter(Boolean);
   const n = safe.length;
   const idx = n ? Math.min(active, n - 1) : 0;
+
+  useEffect(() => {
+    setActive(0);
+  }, [urls.join("|")]);
 
   const go = (next: number) => {
     if (!n) return;
@@ -50,14 +65,30 @@ function GallerySlider({ urls }: { urls: string[] }) {
   if (!n) return null;
 
   return (
-    <div className="mt-6">
+    <div
+      className="mt-0 outline-none"
+      tabIndex={0}
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Job gallery images"
+      onKeyDown={(e) => {
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          go(idx - 1);
+        }
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          go(idx + 1);
+        }
+      }}
+    >
       <div className="relative overflow-hidden rounded-2xl border border-[rgba(201,168,76,0.28)] bg-[#0D1B2A] shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
         <div
-          className="flex transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          className="flex will-change-transform transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
           style={{ transform: `translateX(-${idx * 100}%)` }}
         >
           {safe.map((src, i) => (
-            <div key={`${src}-${i}`} className="relative aspect-[16/10] w-full shrink-0">
+            <div key={`${src}-${i}`} className="relative aspect-[16/10] max-h-[420px] min-h-[200px] w-full shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={src} alt="" className="absolute inset-0 h-full w-full object-cover" />
             </div>
@@ -90,22 +121,20 @@ function GallerySlider({ urls }: { urls: string[] }) {
         ) : null}
       </div>
 
-      {n > 1 ? (
-        <div className="mt-4 flex justify-center gap-2">
-          {safe.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              aria-label={`Go to slide ${i + 1}`}
-              aria-current={i === idx ? "true" : undefined}
-              onClick={() => setActive(i)}
-              className={`h-2.5 rounded-full transition-all duration-300 ${
-                i === idx ? "w-8 bg-[#C9A84C]" : "w-2.5 bg-white/25 hover:bg-white/40"
-              }`}
-            />
-          ))}
-        </div>
-      ) : null}
+      <div className="mt-4 flex justify-center gap-2">
+        {safe.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            aria-label={`Go to slide ${i + 1}`}
+            aria-current={i === idx ? "true" : undefined}
+            onClick={() => setActive(i)}
+            className={`h-2.5 rounded-full transition-all duration-500 ease-out ${
+              i === idx ? "w-8 bg-[#C9A84C]" : "w-2.5 bg-white/25 hover:bg-white/40"
+            }`}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -206,10 +235,9 @@ function AdminDropSlot({
 
 export default function JobPostMediaSection({
   job,
-  canAdminUpload,
   employerBoardId,
   adminSecret,
-  isRevising,
+  showUploadTools,
 }: JobPostMediaSectionProps) {
   const router = useRouter();
   const mainInput = useRef<HTMLInputElement>(null);
@@ -302,7 +330,9 @@ export default function JobPostMediaSection({
     refresh();
   };
 
-  const showAdmin = Boolean(canAdminUpload && isRevising && employerBoardId && adminSecret);
+  const showAdmin = Boolean(showUploadTools && employerBoardId && adminSecret);
+  const isBoard = job.source === "employer_board";
+  const showGalleryRegion = isBoard || galleryUrls.length > 0;
 
   const galleryRefs = [g1, g2, g3, g4] as const;
 
@@ -319,14 +349,18 @@ export default function JobPostMediaSection({
             }
           />
         ) : (
-          <NavyPlaceholder subtitle={showAdmin ? "Add a hero image in the editor panel" : undefined} />
+          <NavyPlaceholder subtitle={showAdmin ? "Upload a hero image or fill the gallery below" : undefined} />
         )}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050a10]/90 via-transparent to-[#050a10]/30" />
       </div>
 
-      {galleryUrls.length > 0 ? (
+      {showGalleryRegion ? (
         <div className="container-site pt-6">
-          <GallerySlider urls={galleryUrls} />
+          {galleryUrls.length > 0 ? (
+            <GallerySlider urls={galleryUrls} />
+          ) : isBoard ? (
+            <GalleryEmptyDeck />
+          ) : null}
         </div>
       ) : null}
 
@@ -334,10 +368,7 @@ export default function JobPostMediaSection({
         <div className="container-site mt-6 max-w-4xl space-y-6 rounded-2xl border border-[rgba(201,168,76,0.25)] bg-[#0A0F18]/90 p-5 backdrop-blur-sm">
           <div>
             <h3 className="text-sm font-semibold text-white">Listing images</h3>
-            <p className="mt-1 text-xs text-white/50">
-              Stored in Supabase bucket <span className="font-mono text-[#C9A84C]/90">job-images</span> — one hero
-              and up to four gallery shots.
-            </p>
+            <p className="mt-1 text-xs text-white/50">One hero image and up to four gallery images (JPEG, PNG, WebP, GIF — max 5 MB each).</p>
           </div>
           <AdminDropSlot
             label="Hero (main)"

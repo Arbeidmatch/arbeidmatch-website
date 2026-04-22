@@ -494,10 +494,9 @@ export default function JobDetailView({
       {showMediaSection ? (
         <JobPostMediaSection
           job={job}
-          canAdminUpload={Boolean(canSurface)}
           employerBoardId={boardId}
           adminSecret={adminKey}
-          isRevising={Boolean(canSurface && revising)}
+          showUploadTools={Boolean(canSurface && adminKey && boardId)}
         />
       ) : null}
 
