@@ -62,7 +62,8 @@ export default function HomeWelcomeUserTypeSlideup() {
             key="home-welcome-backdrop"
             type="button"
             aria-label="Close welcome"
-            className="fixed inset-0 z-[218] bg-[#0D1B2A]/55 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[218] bg-[rgba(13,27,42,0.75)] backdrop-blur-[8px]"
+            style={{ WebkitBackdropFilter: "blur(8px)" }}
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={reduceMotion ? undefined : { opacity: 0 }}
