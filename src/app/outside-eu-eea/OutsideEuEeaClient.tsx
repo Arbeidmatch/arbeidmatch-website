@@ -152,7 +152,6 @@ export default function OutsideEuEeaClient() {
               </p>
             </article>
           </div>
-          <GuideTeaserCta href="/dsb-support/non-eu" />
         </div>
       </section>
 
@@ -543,6 +542,7 @@ export default function OutsideEuEeaClient() {
           {waitMessage === "err" ? (
             <p className="mt-4 text-sm text-[#E24B4A]">Please enter a valid email and accept the privacy terms.</p>
           ) : null}
+          <GuideTeaserCta href="/dsb-support/non-eu" />
         </div>
       </section>
 
