@@ -1,190 +1,87 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import JobCard from "@/components/jobs/JobCard";
+import { useState } from "react";
 import type { JobFilterOptions, JobRecord } from "@/lib/jobs/types";
-import { DEFAULT_JOB_FILTERS, filterJobs, sortJobs } from "@/lib/jobs/utils";
-
-const PAGE_SIZE = 6;
 
 interface JobsBoardClientProps {
   jobs: JobRecord[];
   filterOptions: JobFilterOptions;
 }
 
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: string[];
-}) {
-  return (
-    <label className="flex flex-col gap-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-white/65">
-      {label}
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="select-premium input-premium--dark h-11 rounded-md border border-white/15 bg-[#0A0F18] px-3 text-sm font-medium normal-case tracking-normal text-white"
-      >
-        <option value="all">All</option>
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
+export default function JobsBoardClient({ jobs: _jobs, filterOptions: _filterOptions }: JobsBoardClientProps) {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
-export default function JobsBoardClient({ jobs, filterOptions }: JobsBoardClientProps) {
-  const [filters, setFilters] = useState(DEFAULT_JOB_FILTERS);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-
-  const filteredJobs = useMemo(() => {
-    const listed = filterJobs(jobs, filters);
-    return sortJobs(listed, filters);
-  }, [filters, jobs]);
-
-  const visibleJobs = filteredJobs.slice(0, visibleCount);
-  const hasMore = filteredJobs.length > visibleCount;
+  const submitWaitlist = async () => {
+    if (!email.includes("@")) return;
+    setStatus("loading");
+    try {
+      const response = await fetch("/api/feature-waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          feature: "job-board",
+          consent: true,
+        }),
+      });
+      setStatus(response.ok ? "success" : "error");
+    } catch {
+      setStatus("error");
+    }
+  };
 
   return (
     <section className="container-site pb-20 pt-8 md:pt-10">
-      <div className="rounded-[20px] border border-[#C9A84C]/20 bg-white/[0.03] p-5 md:p-7">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-          <label className="md:col-span-2 lg:col-span-2">
-            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.08em] text-white/65">Keyword</span>
-            <input
-              value={filters.keyword}
-              onChange={(event) => {
-                setVisibleCount(PAGE_SIZE);
-                setFilters((prev) => ({ ...prev, keyword: event.target.value }));
-              }}
-              placeholder="Trade, city, role, keyword"
-              className="input-premium--dark h-11 w-full rounded-md border border-white/15 bg-[#0A0F18] px-4 text-sm text-white placeholder:text-white/40"
-            />
-          </label>
-
-          <FilterSelect
-            label="Sort by"
-            value={filters.sortBy}
-            onChange={(value) => {
-              setVisibleCount(PAGE_SIZE);
-              setFilters((prev) => ({ ...prev, sortBy: value as "newest" | "relevance" }));
-            }}
-            options={["newest", "relevance"]}
-          />
-
-          <FilterSelect
-            label="City"
-            value={filters.city}
-            onChange={(value) => {
-              setVisibleCount(PAGE_SIZE);
-              setFilters((prev) => ({ ...prev, city: value }));
-            }}
-            options={filterOptions.cities}
-          />
-
-          <FilterSelect
-            label="Category"
-            value={filters.category}
-            onChange={(value) => {
-              setVisibleCount(PAGE_SIZE);
-              setFilters((prev) => ({ ...prev, category: value }));
-            }}
-            options={filterOptions.categories}
-          />
-
-          <FilterSelect
-            label="Trade"
-            value={filters.trade}
-            onChange={(value) => {
-              setVisibleCount(PAGE_SIZE);
-              setFilters((prev) => ({ ...prev, trade: value }));
-            }}
-            options={filterOptions.trades}
-          />
-
-          <FilterSelect
-            label="Contract"
-            value={filters.contractType}
-            onChange={(value) => {
-              setVisibleCount(PAGE_SIZE);
-              setFilters((prev) => ({ ...prev, contractType: value }));
-            }}
-            options={filterOptions.contractTypes}
-          />
-
-          <FilterSelect
-            label="Work type"
-            value={filters.workModel}
-            onChange={(value) => {
-              setVisibleCount(PAGE_SIZE);
-              setFilters((prev) => ({ ...prev, workModel: value }));
-            }}
-            options={filterOptions.workModels}
-          />
-
-          <FilterSelect
-            label="Language"
-            value={filters.languageRequirement}
-            onChange={(value) => {
-              setVisibleCount(PAGE_SIZE);
-              setFilters((prev) => ({ ...prev, languageRequirement: value }));
-            }}
-            options={filterOptions.languageRequirements}
-          />
+      <div
+        className="mx-auto max-w-[560px] rounded-[16px] border px-8 py-10 text-center"
+        style={{
+          background: "rgba(255,255,255,0.03)",
+          borderColor: "rgba(201,168,76,0.15)",
+          borderTop: "2px solid rgba(201,168,76,0.35)",
+        }}
+      >
+        <div className="mx-auto flex h-8 w-8 items-center justify-center text-[#C9A84C]">
+          <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" aria-hidden>
+            <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M12 7.8v4.8l3.2 1.9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
         </div>
+        <h2 className="mt-4 text-[22px] font-bold text-white">Job listings coming soon.</h2>
+        <p className="mt-2 text-[15px] leading-[1.7] text-[rgba(255,255,255,0.55)]">
+          We are currently building our job board. Sign up below to be notified when positions become available.
+        </p>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-white/60">
-          <span className="rounded-full border border-white/15 px-3 py-1">{filteredJobs.length} matching jobs</span>
-          <button
-            type="button"
-            onClick={() => {
-              setVisibleCount(PAGE_SIZE);
-              setFilters(DEFAULT_JOB_FILTERS);
-            }}
-            className="btn-outline-premium rounded-full border border-white/20 px-3 py-1 font-semibold text-white/75"
-          >
-            Reset filters
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-8">
-        {filteredJobs.length === 0 ? (
-          <div className="rounded-[18px] border border-white/15 bg-white/[0.03] px-6 py-12 text-center">
-            <h3 className="text-xl font-semibold text-white">No jobs matched your filters</h3>
-            <p className="mx-auto mt-2 max-w-xl text-sm text-white/70">
-              Try a broader keyword or remove one filter. We recruit continuously for Norway-focused opportunities.
-            </p>
+        {status === "success" ? (
+          <div className="mt-6">
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-[#C9A84C]/50 text-[#C9A84C]">
+              <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.4">
+                <path d="M4 10l4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p className="mt-3 text-sm font-semibold text-[#C9A84C]">You are on the list. We will notify you.</p>
           </div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {visibleJobs.map((job) => (
-                <JobCard key={job.id} job={job} />
-              ))}
-            </div>
-
-            {hasMore ? (
-              <div className="mt-8 text-center">
-                <button
-                  type="button"
-                  onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
-                  className="btn-gold-premium inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#C9A84C] px-6 py-3 text-sm font-semibold text-[#0D1B2A]"
-                >
-                  Load more jobs
-                </button>
-              </div>
+          <div>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="your@email.com"
+              className="mt-6 h-12 w-full rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-[#0A0F18] px-4 text-sm text-white placeholder:text-white/40 focus:border-[rgba(201,168,76,0.45)] focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => void submitWaitlist()}
+              disabled={status === "loading" || !email.includes("@")}
+              className="mt-3 inline-flex min-h-[48px] w-full items-center justify-center rounded-[10px] bg-[#C9A84C] px-6 py-3 text-sm font-bold text-[#0D1B2A] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {status === "loading" ? "Submitting..." : "Notify me when available"}
+            </button>
+            {status === "error" ? (
+              <p className="mt-3 text-xs text-[#E24B4A]">Could not save your request. Please try again.</p>
             ) : null}
-          </>
+          </div>
         )}
       </div>
     </section>

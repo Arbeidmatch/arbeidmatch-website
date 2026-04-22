@@ -2,9 +2,12 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { createContractEnvelope } from "@/lib/docusign";
+import { buildEmail } from "@/lib/emailTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { buildPartnerContractDraft, buildPartnerOfferDraft } from "@/lib/partnerEmailDrafts";
+import { createPartnerOfferDecisionToken, getSiteBaseUrl } from "@/lib/partnerOfferActions";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 type SlackPayload = {
@@ -160,6 +163,9 @@ export async function POST(request: NextRequest) {
     const companyName = partnerRequest.company_name || "Partner";
     const contactName = partnerRequest.full_name || "Partner Contact";
     const orgNumber = partnerRequest.org_number || "";
+    const contactNameMatch = contactName.match(/^(.+?)\s*\((.+)\)\s*$/);
+    const contactPersonName = contactNameMatch?.[1]?.trim() || contactName;
+    const contactPersonTitle = contactNameMatch?.[2]?.trim() || "Contact person";
 
     if (actionId === "approve_partner") {
       const domain = email.split("@")[1]?.toLowerCase().trim() || "";
@@ -318,13 +324,25 @@ export async function POST(request: NextRequest) {
       if (!transporter) {
         return NextResponse.json({ text: "Mail transporter is not configured." }, { status: 500 });
       }
+      const siteBaseUrl = getSiteBaseUrl();
+      const acceptToken = createPartnerOfferDecisionToken(requestId, "accept");
+      const declineToken = createPartnerOfferDecisionToken(requestId, "decline");
+      const acceptUrl = `${siteBaseUrl}/api/partner-offer/respond?decision=accept&token=${encodeURIComponent(acceptToken)}`;
+      const declineUrl = `${siteBaseUrl}/api/partner-offer/respond?decision=decline&token=${encodeURIComponent(declineToken)}`;
       const offerDraft = buildPartnerOfferDraft({
         companyName,
         orgNumber,
-        contactName,
+        contactName: contactPersonName,
+        contactTitle: contactPersonTitle,
         contactEmail: email,
+        acceptUrl,
+        declineUrl,
       });
-      const html = premiumEmailLayout("Offer from ArbeidMatch", offerDraft.html);
+      const html = buildEmail({
+        title: "Service Offer",
+        preheader: "Review and respond to your offer from ArbeidMatch.",
+        body: offerDraft.html,
+      });
       await transporter.sendMail({
         ...mailHeaders(),
         to: email,
@@ -332,6 +350,13 @@ export async function POST(request: NextRequest) {
         text: offerDraft.text,
         html,
       });
+      const { error: offerStatusError } = await supabase
+        .from("partner_requests")
+        .update({ status: "offer_sent" })
+        .eq("id", requestId);
+      if (offerStatusError) {
+        throw offerStatusError;
+      }
 
       return NextResponse.json({
         text: `Offer sent to ${email}.`,
@@ -348,26 +373,46 @@ export async function POST(request: NextRequest) {
     }
 
     if (actionId === "send_partner_contract") {
-      if (!transporter) {
-        return NextResponse.json({ text: "Mail transporter is not configured." }, { status: 500 });
-      }
-      const contractDraft = buildPartnerContractDraft({
+      const envelope = await createContractEnvelope({
+        requestId,
         companyName,
         orgNumber,
-        contactName,
+        contactName: contactPersonName,
         contactEmail: email,
+        contactTitle: contactPersonTitle,
       });
-      const html = premiumEmailLayout("Contract from ArbeidMatch", contractDraft.html);
-      await transporter.sendMail({
-        ...mailHeaders(),
-        to: email,
-        subject: contractDraft.subject,
-        text: contractDraft.text,
-        html,
-      });
+      const { error: statusError } = await supabase
+        .from("partner_requests")
+        .update({ status: "contract_sent_for_signature" })
+        .eq("id", requestId);
+      if (statusError) {
+        throw statusError;
+      }
+
+      if (transporter) {
+        const contractDraft = buildPartnerContractDraft({
+          companyName,
+          orgNumber,
+          contactName: contactPersonName,
+          contactEmail: email,
+          contactTitle: contactPersonTitle,
+        });
+        const html = buildEmail({
+          title: "Contract sent for signature",
+          preheader: "Please check your DocuSign inbox.",
+          body: contractDraft.html,
+        });
+        await transporter.sendMail({
+          ...mailHeaders(),
+          to: email,
+          subject: contractDraft.subject,
+          text: `${contractDraft.text}\n\nDocuSign envelope id: ${envelope.envelopeId}`,
+          html,
+        });
+      }
 
       return NextResponse.json({
-        text: `Contract sent to ${email}.`,
+        text: `Contract sent for signature to ${email}.`,
         replace_original: true,
         blocks: buildResolvedBlocks({
           status: "Contract sent",
