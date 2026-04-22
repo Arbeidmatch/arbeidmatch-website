@@ -506,34 +506,36 @@ export default function CandidateProfileWizard({
 
   return (
     <div className="min-h-dvh bg-[#0D1B2A] text-white">
-      <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
+      <div className="mx-auto w-full max-w-content px-4 py-8 sm:px-6 sm:py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
         {mode === "choose" ? (
           <motion.div initial={reduceMotion ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={transition}>
-            <div className="mx-auto max-w-3xl rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-10 md:p-12">
+            <div className="mx-auto max-w-3xl rounded-[18px] border border-[#C9A84C]/20 bg-[linear-gradient(165deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 shadow-[0_16px_48px_rgba(0,0,0,0.35)] sm:p-8 md:rounded-[20px] md:p-12">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#C9A84C]">Candidates</p>
-              <h1 className="mt-4 text-4xl font-extrabold tracking-[-0.02em] md:text-5xl">Choose how you want to explore roles</h1>
-              <p className="mt-5 text-base leading-relaxed text-white/75">
+              <h1 className="mt-3 text-2xl font-extrabold tracking-[-0.02em] sm:mt-4 sm:text-4xl md:text-5xl">
+                Choose how you want to explore roles
+              </h1>
+              <p className="mt-4 text-sm leading-relaxed text-white/75 sm:mt-5 sm:text-base">
                 Browse jobs in read-only mode, or build a focused profile to unlock applications and stronger job matching.
               </p>
 
-              <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="mt-8 grid grid-cols-1 gap-3 sm:mt-10 sm:gap-4 md:grid-cols-2">
                 <Link
                   href="/jobs?browse=1"
-                  className="group inline-flex min-h-[52px] items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:border-[rgba(201,168,76,0.55)] hover:bg-[rgba(201,168,76,0.08)]"
+                  className="group inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-[12px] border border-[rgba(201,168,76,0.4)] px-5 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:border-[rgba(201,168,76,0.6)] hover:bg-[rgba(201,168,76,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/55 md:min-h-[52px]"
                 >
                   Browse Jobs
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden />
                 </Link>
                 <button
                   type="button"
                   onClick={startMatchedFlow}
-                  className="inline-flex min-h-[52px] items-center justify-center rounded-[10px] bg-[#C9A84C] px-6 py-3 text-sm font-bold text-[#0D1B2A] transition-all duration-300 hover:bg-[#b8953f]"
+                  className="inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-[12px] bg-[#C9A84C] px-5 py-3.5 text-sm font-bold text-[#0D1B2A] transition-all duration-300 hover:bg-[#b8953f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D1B2A] md:min-h-[52px]"
                 >
                   Get Matched Jobs
                 </button>
               </div>
 
-              <p className="mt-8 text-sm text-white/55">
+              <p className="mt-6 text-xs leading-relaxed text-white/55 sm:mt-8 sm:text-sm">
                 If you continue with matching, you will review GDPR consent first, then complete a short premium profile flow.
               </p>
             </div>
@@ -548,27 +550,52 @@ export default function CandidateProfileWizard({
             transition={transition}
           >
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#C9A84C]">Profile builder</p>
-                <h1 className="mt-3 text-3xl font-bold md:text-4xl">{stepTitle}</h1>
-                <p className="mt-3 max-w-xl text-sm text-white/70 md:text-base">One decision per step. Confirm when you are ready.</p>
+                <h1 className="mt-2 text-2xl font-bold leading-tight sm:mt-3 sm:text-3xl md:text-4xl">{stepTitle}</h1>
+                <p className="mt-2 max-w-xl text-sm text-white/70 sm:mt-3 md:text-base">
+                  One decision per step. Confirm when you are ready.
+                </p>
               </div>
-              <div className="w-full max-w-xs rounded-[10px] border border-[rgba(201,168,76,0.18)] bg-[rgba(255,255,255,0.03)] p-4">
-                <div className="flex items-center justify-between text-xs text-white/60">
-                  <span>
+              <div className="w-full shrink-0 rounded-[12px] border border-[#C9A84C]/30 bg-[rgba(10,15,24,0.85)] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:p-4 md:max-w-xs">
+                <div className="flex items-center justify-between text-xs font-medium text-white/70">
+                  <span id="am-profile-step-label">
                     Step {wizardStep} of {TOTAL_STEPS}
                   </span>
-                  <span>{progress}%</span>
+                  <span className="tabular-nums text-[#C9A84C]" aria-hidden>
+                    {progress}%
+                  </span>
                 </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full rounded-full bg-[#C9A84C] transition-all duration-300" style={{ width: `${progress}%` }} />
+                <div
+                  className="mt-2.5 h-3 overflow-hidden rounded-full border border-[#C9A84C]/25 bg-[#0A0F18] sm:h-3.5"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={progress}
+                  aria-valuetext={`Step ${wizardStep} of ${TOTAL_STEPS}, ${progress} percent complete`}
+                  aria-labelledby="am-profile-step-label"
+                >
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-[#b8953f] via-[#C9A84C] to-[#d4b56a] shadow-[0_0_14px_rgba(201,168,76,0.55)]"
+                    initial={false}
+                    animate={{ width: `${progress}%` }}
+                    transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 120, damping: 20 }}
+                  />
                 </div>
               </div>
             </div>
 
             <form
-              className="mt-10 rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-8 md:p-10"
+              className="mt-6 rounded-[18px] border border-[#C9A84C]/18 bg-[linear-gradient(165deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-5 shadow-[0_14px_44px_rgba(0,0,0,0.32)] sm:mt-8 sm:p-7 md:mt-10 md:p-10"
               onSubmit={(event) => {
+                event.preventDefault();
+                void handleConfirmNext();
+              }}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
+                const el = event.target;
+                if (!(el instanceof HTMLInputElement) || el.type !== "radio") return;
+                if (!validateCurrentStep()) return;
                 event.preventDefault();
                 void handleConfirmNext();
               }}
@@ -576,9 +603,9 @@ export default function CandidateProfileWizard({
               <AnimatePresence mode="wait">
                 <motion.div
                   key={wizardStep}
-                  initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+                  initial={reduceMotion ? false : { opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
                   transition={transition}
                 >
                   {wizardStep === 1 ? (
@@ -754,18 +781,18 @@ export default function CandidateProfileWizard({
               </AnimatePresence>
 
               {wizardStep !== 9 || saveStatus !== "done" ? (
-                <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-between">
+                <div className="mt-8 flex w-full flex-col gap-3 sm:mt-10 sm:flex-row sm:justify-between">
                   <button
                     type="button"
                     onClick={goBack}
-                    className="min-h-[44px] rounded-[10px] border border-white/15 px-5 text-sm font-semibold text-white/75 transition-colors hover:border-[rgba(201,168,76,0.35)]"
+                    className="min-h-[48px] w-full touch-manipulation rounded-[12px] border border-white/18 px-5 text-sm font-semibold text-white/80 transition-colors hover:border-[#C9A84C]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 sm:w-auto sm:min-w-[120px]"
                   >
                     Back
                   </button>
                   <button
                     type="submit"
                     disabled={saveStatus === "saving" || (wizardStep === 9 && shareWithEmployers === null)}
-                    className="min-h-[44px] rounded-[10px] bg-[#C9A84C] px-6 text-sm font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f] disabled:opacity-50"
+                    className="min-h-[48px] w-full touch-manipulation rounded-[12px] bg-[#C9A84C] px-6 text-sm font-bold text-[#0D1B2A] shadow-[0_8px_24px_rgba(201,168,76,0.22)] transition-colors hover:bg-[#b8953f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D1B2A] disabled:pointer-events-none disabled:opacity-50 sm:w-auto sm:min-w-[180px]"
                   >
                     {wizardStep === 9 ? (saveStatus === "saving" ? "Saving…" : "Confirm & Next") : "Confirm & Next"}
                   </button>
@@ -779,18 +806,28 @@ export default function CandidateProfileWizard({
       <AnimatePresence>
         {mode === "wizard" && showGdprEntry ? (
           <motion.div
-            className="fixed inset-0 z-[130] flex items-center justify-center bg-[rgba(13,27,42,0.88)] px-4 backdrop-blur-md"
+            className="fixed inset-0 z-[280] flex items-end justify-center bg-[rgba(13,27,42,0.9)] px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-8 backdrop-blur-md sm:items-center sm:px-4 sm:pb-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={transition}
+            role="presentation"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                /* do not close on backdrop — must use Cancel */
+              }
+            }}
           >
             <motion.div
-              initial={reduceMotion ? false : { opacity: 0, y: 12, scale: 0.98 }}
+              initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={reduceMotion ? undefined : { opacity: 0, y: 10, scale: 0.98 }}
+              exit={reduceMotion ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
               transition={transition}
-              className="w-full max-w-xl rounded-[16px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.55)] bg-[#0A0F18] p-8"
+              className="max-h-[min(88dvh,720px)] w-full max-w-xl overflow-y-auto overscroll-contain rounded-t-[20px] border border-[#C9A84C]/28 border-t-2 border-t-[#C9A84C] bg-[#0A0F18] p-5 shadow-[0_-12px_48px_rgba(0,0,0,0.45)] sm:rounded-[18px] sm:p-8"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="am-candidate-gdpr-title"
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.1)]">
@@ -798,7 +835,9 @@ export default function CandidateProfileWizard({
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#C9A84C]">GDPR</p>
-                  <h2 className="text-xl font-bold">Privacy first</h2>
+                  <h2 id="am-candidate-gdpr-title" className="text-lg font-bold sm:text-xl">
+                    Privacy first
+                  </h2>
                 </div>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-white/70">
@@ -819,12 +858,12 @@ export default function CandidateProfileWizard({
                 <GdprInput label="City" value={city} onChange={setCity} className="sm:col-span-2" autoComplete="address-level2" />
               </div>
 
-              <label className="mt-5 flex items-start gap-3 rounded-[10px] border border-white/10 bg-[#0D1B2A] p-4 text-sm text-white/75">
+              <label className="mt-5 flex min-h-[48px] cursor-pointer items-start gap-3 rounded-[12px] border border-white/12 bg-[#0D1B2A] p-4 text-sm text-white/75 focus-within:ring-2 focus-within:ring-[#C9A84C]/45">
                 <input
                   type="checkbox"
                   checked={gdprEntryAccepted}
                   onChange={(event) => setGdprEntryAccepted(event.target.checked)}
-                  className="mt-1"
+                  className="mt-1 h-5 w-5 shrink-0 rounded border-white/30 accent-[#C9A84C] focus-visible:outline-none"
                 />
                 <span>
                   I agree to the processing of my personal data according to the{" "}
@@ -834,14 +873,14 @@ export default function CandidateProfileWizard({
                   .
                 </span>
               </label>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => {
                     setMode("choose");
                     setShowGdprEntry(false);
                   }}
-                  className="min-h-[44px] rounded-[10px] border border-white/15 px-5 text-sm font-semibold text-white/75 hover:border-[rgba(201,168,76,0.35)]"
+                  className="min-h-[48px] w-full touch-manipulation rounded-[12px] border border-white/18 px-5 text-sm font-semibold text-white/80 hover:border-[#C9A84C]/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 sm:w-auto"
                 >
                   Cancel
                 </button>
@@ -849,7 +888,7 @@ export default function CandidateProfileWizard({
                   type="button"
                   disabled={!gdprFormValid()}
                   onClick={dismissGdpr}
-                  className="min-h-[44px] rounded-[10px] bg-[#C9A84C] px-6 text-sm font-bold text-[#0D1B2A] disabled:opacity-50"
+                  className="min-h-[48px] w-full touch-manipulation rounded-[12px] bg-[#C9A84C] px-6 text-sm font-bold text-[#0D1B2A] shadow-[0_8px_22px_rgba(201,168,76,0.25)] hover:bg-[#b8953f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/75 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0F18] disabled:pointer-events-none disabled:opacity-50 sm:w-auto"
                 >
                   Continue
                 </button>
@@ -911,16 +950,23 @@ function RadioRow({
   checked: boolean;
   onChange: () => void;
 }) {
-  const id = `${name}-${label.replace(/\s+/g, "-").toLowerCase()}`;
+  const id = `${name}-${label.replace(/\s+/g, "-").toLowerCase().replace(/[^a-z0-9-]/g, "")}`;
   return (
     <label
       htmlFor={id}
-      className={`flex cursor-pointer items-center gap-3 rounded-[10px] border px-4 py-3 text-sm transition-all duration-300 ${
-        checked ? "border-[rgba(201,168,76,0.55)] bg-[rgba(201,168,76,0.12)] text-white" : "border-white/10 text-white/75 hover:border-[rgba(201,168,76,0.35)]"
+      className={`flex min-h-[48px] cursor-pointer touch-manipulation items-center gap-3 rounded-[12px] border px-4 py-3.5 text-sm transition-all duration-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-[#C9A84C]/50 focus-within:ring-offset-2 focus-within:ring-offset-[#0D1B2A] ${
+        checked ? "border-[#C9A84C]/55 bg-[rgba(201,168,76,0.14)] text-white shadow-[0_0_0_1px_rgba(201,168,76,0.12)]" : "border-white/12 text-white/78 hover:border-[#C9A84C]/35"
       }`}
     >
-      <input id={id} type="radio" name={name} checked={checked} onChange={onChange} className="h-4 w-4 accent-[#C9A84C]" />
-      <span>{label}</span>
+      <input
+        id={id}
+        type="radio"
+        name={name}
+        checked={checked}
+        onChange={onChange}
+        className="h-[18px] w-[18px] shrink-0 accent-[#C9A84C] focus:outline-none"
+      />
+      <span className="leading-snug">{label}</span>
     </label>
   );
 }
