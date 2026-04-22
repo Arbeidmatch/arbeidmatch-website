@@ -45,6 +45,7 @@ const CHECKS = [
 ] as const;
 
 export default function DsbRequestPopup() {
+  return null;
   const [open, setOpen] = useState(false);
   const [showFab, setShowFab] = useState(false);
 

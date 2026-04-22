@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createDsbGuideStripeCheckout } from "@/lib/dsbGuideCheckout";
 import { notifyError } from "@/lib/errorNotifier";
 import { isRateLimited } from "@/lib/requestProtection";
+import { DSB_PRODUCTS_AVAILABLE } from "@/lib/dsbAvailability";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,10 @@ type Body = {
 export async function POST(req: NextRequest) {
   let guideTypeForNotify: string | undefined;
   try {
+    if (!DSB_PRODUCTS_AVAILABLE) {
+      return NextResponse.json({ error: "DSB products are temporarily unavailable." }, { status: 503 });
+    }
+
     if (isRateLimited(req, "dsb-guide-checkout", 15, 10 * 60 * 1000)) {
       return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
     }

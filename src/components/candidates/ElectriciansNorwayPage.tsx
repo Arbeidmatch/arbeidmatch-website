@@ -1,11 +1,11 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Briefcase, Clock, FileCheck } from "lucide-react";
 
 import SourceDisclaimer from "@/components/ui/SourceDisclaimer";
+import ComingSoonCapture from "@/components/ui/ComingSoonCapture";
 
 const GOLD = "#C9A84C";
 const NAVY = "#0f1923";
@@ -65,7 +65,7 @@ function RequirementCard({
 }
 
 export default function ElectriciansNorwayPage() {
-  const router = useRouter();
+  const [comingSoonFeature, setComingSoonFeature] = useState<string | null>(null);
 
   return (
     <main>
@@ -88,7 +88,7 @@ export default function ElectriciansNorwayPage() {
             Norway has strong demand for qualified electricians. As an EU/EEA citizen, you have the right to apply for legal
             employment. Here is what you need to know before you start.
           </p>
-          <InlineRegisterBlock onPrimaryDsb={() => router.push("/dsb-support")} />
+          <InlineRegisterBlock onPrimaryDsb={() => setComingSoonFeature("dsb-authorization-guide")} />
         </div>
       </section>
 
@@ -235,13 +235,14 @@ export default function ElectriciansNorwayPage() {
               requirements, and additional authorizations for datacenter or naval work are covered in our detailed DSB
               Authorization Guide.
             </p>
-            <Link
-              href="/dsb-support"
+            <button
+              type="button"
+              onClick={() => setComingSoonFeature("dsb-authorization-guide")}
               className="mt-4 inline-flex items-center justify-center rounded-[8px] px-6 py-3 text-[14px] font-bold text-[#0f1923]"
               style={{ background: GOLD }}
             >
-              Get the Full Guide
-            </Link>
+              Get the Full Guide, Coming soon
+            </button>
           </div>
         </div>
       </section>
@@ -280,6 +281,9 @@ export default function ElectriciansNorwayPage() {
           </div>
         </div>
       </section>
+      {comingSoonFeature ? (
+        <ComingSoonCapture featureName={comingSoonFeature} isOpen onClose={() => setComingSoonFeature(null)} />
+      ) : null}
     </main>
   );
 }

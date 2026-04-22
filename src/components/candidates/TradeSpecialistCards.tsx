@@ -436,7 +436,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
           <div className="flex flex-col gap-[10px]">
             <button
               type="button"
-              onClick={() => router.push("/dsb-support/eu")}
+              onClick={() => router.push("/premium")}
               className="flex w-full items-center justify-between rounded-[10px] border px-5 py-4 text-left transition-all duration-200 ease-out hover:bg-[rgba(201,168,76,0.15)] hover:border-[rgba(201,168,76,0.5)]"
               style={{ background: "rgba(201,168,76,0.08)", borderColor: "rgba(201,168,76,0.15)" }}
             >
@@ -452,7 +452,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
             </button>
             <button
               type="button"
-              onClick={() => router.push("/dsb-support/non-eu")}
+              onClick={() => router.push("/premium")}
               className="flex w-full items-center justify-between rounded-[10px] border px-5 py-4 text-left transition-all duration-200 ease-out hover:bg-[rgba(201,168,76,0.12)] hover:border-[rgba(201,168,76,0.4)]"
               style={{ background: "rgba(201,168,76,0.06)", borderColor: "rgba(201,168,76,0.15)" }}
             >
@@ -480,8 +480,8 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
             </a>
           </p>
           <div className="mt-6">
-            <Link href="/dsb-support" className="text-[12px] text-white/[0.4] underline underline-offset-2">
-              Learn more about DSB authorization
+            <Link href="/premium" className="text-[12px] text-white/[0.4] underline underline-offset-2">
+              DSB authorization, Coming soon
             </Link>
           </div>
         </>

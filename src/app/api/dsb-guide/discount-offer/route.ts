@@ -8,6 +8,7 @@ import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { createDiscountCoupon } from "@/lib/stripeCoupons";
 import type { DsbDiscountGuideType } from "@/lib/stripeCoupons";
 import { notifyError } from "@/lib/errorNotifier";
+import { DSB_PRODUCTS_AVAILABLE } from "@/lib/dsbAvailability";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,13 @@ type Body = {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!DSB_PRODUCTS_AVAILABLE) {
+      return NextResponse.json(
+        { success: false, error: "DSB products are temporarily unavailable." },
+        { status: 503 },
+      );
+    }
+
     const raw = (await request.json()) as Record<string, unknown>;
     if (hasHoneypotValue(raw)) {
       return NextResponse.json({ success: true });

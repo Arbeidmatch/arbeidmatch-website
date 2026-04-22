@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import DsbApplicationChecklist from "@/components/dsb/DsbApplicationChecklist";
 import DsbEmployerGuide from "@/components/dsb/DsbEmployerGuide";
 import DsbPillarFromMarkdown from "@/components/dsb/DsbPillarFromMarkdown";
@@ -8,6 +9,7 @@ import DsbCompleteGuide from "@/components/dsb/DsbCompleteGuide";
 import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 import DsbPublicOverviewBar from "@/components/dsb/DsbPublicOverviewBar";
 import DsbTypeSelectorLoader from "./DsbTypeSelectorLoader";
+import { DSB_SUPPORT_AVAILABLE } from "@/lib/dsbAvailability";
 
 const SITE = "https://www.arbeidmatch.no";
 const canonical = `${SITE}/dsb-support`;
@@ -43,6 +45,10 @@ export const metadata: Metadata = {
 };
 
 export default function DsbSupportPage() {
+  if (!DSB_SUPPORT_AVAILABLE) {
+    notFound();
+  }
+
   return (
     <>
       <DsbTypeSelectorLoader disableAutoOpen />

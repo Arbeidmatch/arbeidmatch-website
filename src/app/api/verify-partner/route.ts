@@ -12,6 +12,24 @@ const schema = z.object({
   token: z.string().uuid().optional(),
 });
 
+function normalizeDomain(input: string): string {
+  return input
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .replace(/^@/, "")
+    .split("/")[0]
+    .split(":")[0];
+}
+
+function extractCandidateDomains(raw: string): string[] {
+  return raw
+    .split(/[,\s;|]+/g)
+    .map((item) => normalizeDomain(item))
+    .filter(Boolean);
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -27,15 +45,14 @@ export async function POST(request: NextRequest) {
     );
 
     const email = parsed.data.email.trim().toLowerCase();
-    const domain = email.split("@")[1]?.toLowerCase();
+    const domain = normalizeDomain(email.split("@")[1] ?? "");
     if (!domain) return NextResponse.json({ verified: false });
 
-    const { data: partner, error: partnerError } = await supabase
+    const { data: partners, error: partnerError } = await supabase
       .from("partners")
       .select("id, company_name, domain")
-      .eq("domain", domain)
       .eq("active", true)
-      .maybeSingle();
+      .limit(500);
 
     if (partnerError) {
       if (partnerError.code === "PGRST116") {
@@ -46,6 +63,12 @@ export async function POST(request: NextRequest) {
       }
       throw partnerError;
     }
+
+    const partner =
+      (partners ?? []).find((row) => {
+        const candidates = extractCandidateDomains(String(row.domain ?? ""));
+        return candidates.includes(domain);
+      }) ?? null;
 
     if (!partner) {
       return NextResponse.json({ verified: false, reason: "not_found" }, { status: 200 });

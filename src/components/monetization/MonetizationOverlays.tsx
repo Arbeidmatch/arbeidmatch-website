@@ -21,11 +21,8 @@ const StickyBottomBanner = dynamic(() => import("./StickyBottomBanner"), { ssr: 
 
 export default function MonetizationOverlays() {
   const pathname = usePathname() || "";
-
-  const exitIntentEnabled = pathname === "/for-candidates" || pathname === "/dsb-support";
-
-  const stickyBannerEnabled = pathname !== "/dsb-support" && !pathname.startsWith("/dsb-guide");
-
+  const exitIntentEnabled = false;
+  const stickyBannerEnabled = false;
   const scrollCtaEnabled = pathname === "/for-candidates" || pathname === "/for-employers";
 
   return (

@@ -1,0 +1,511 @@
+[
+  {
+    "id": "job-001",
+    "slug": "industrial-electrician-oslo-rotation",
+    "status": "active",
+    "featured": true,
+    "title": "Industrial Electrician, Oslo Rotation",
+    "companyName": "ArbeidMatch Client Partner",
+    "showCompanyName": false,
+    "location": "Oslo",
+    "city": "Oslo",
+    "country": "Norway",
+    "category": "Electrical",
+    "industry": "Construction",
+    "trade": "Industrial Electrician",
+    "contractType": "Project",
+    "workModel": "Recruitment",
+    "employmentType": "Rotation",
+    "languageRequirement": "English",
+    "salaryNok": "NOK 290 - 330/hour",
+    "startDate": "2026-05-15",
+    "publishedAt": "2026-04-18",
+    "expiryDate": "2026-05-20",
+    "yearsExperienceMin": 3,
+    "excerpt": "Join a structured project team delivering modern commercial installations in Oslo.",
+    "summary": "We are recruiting experienced industrial electricians for a long-term rotation project in Oslo. You will work in a safety-focused crew with clear handover routines.",
+    "responsibilities": [
+      "Install and maintain low-voltage electrical systems according to Norwegian standards.",
+      "Read technical drawings and execute cable routing and panel connections.",
+      "Report progress daily and coordinate with site supervisors."
+    ],
+    "requirements": [
+      "Minimum 3 years of industrial or construction electrical experience.",
+      "Valid electrical qualifications recognized in EEA or equivalent pathway.",
+      "Strong attention to safety documentation and quality checks."
+    ],
+    "whatWeOffer": [
+      "Competitive hourly salary with structured rotation planning.",
+      "Accommodation support and onboarding guidance for Norway.",
+      "Professional screening and direct communication with our recruitment team."
+    ],
+    "practicalInformation": [
+      "Rotation: 14 days on, 14 days off.",
+      "Work location: Oslo region.",
+      "Start date: Mid May 2026."
+    ],
+    "applicationMethod": [
+      "Submit your profile and updated CV through the application form.",
+      "Qualified candidates are contacted within 1 to 2 business days."
+    ],
+    "tags": [
+      "Rotation",
+      "Electrical",
+      "Commercial Project",
+      "EEA"
+    ],
+    "contactEmail": "post@arbeidmatch.no",
+    "applicationCount": 17
+  },
+  {
+    "id": "job-002",
+    "slug": "tig-welder-bergen-shipyard",
+    "status": "active",
+    "featured": true,
+    "title": "TIG Welder, Bergen Shipyard",
+    "companyName": "Fjord Marine Services",
+    "showCompanyName": true,
+    "location": "Bergen",
+    "city": "Bergen",
+    "country": "Norway",
+    "category": "Welding",
+    "industry": "Marine",
+    "trade": "TIG Welder",
+    "contractType": "Temporary",
+    "workModel": "Bemanning",
+    "employmentType": "Full-time",
+    "languageRequirement": "Both",
+    "salaryNok": "From NOK 320/hour",
+    "startDate": "2026-06-01",
+    "publishedAt": "2026-04-16",
+    "yearsExperienceMin": 4,
+    "excerpt": "Precision TIG welding for marine upgrade projects with stable shift planning.",
+    "summary": "A high-quality shipyard team in Bergen is hiring TIG welders for marine retrofitting and maintenance operations with clear quality control processes.",
+    "responsibilities": [
+      "Perform TIG welding on stainless and duplex materials.",
+      "Inspect weld quality according to project specifications.",
+      "Coordinate with QA and production teams during shift handovers."
+    ],
+    "requirements": [
+      "Documented TIG welding experience in marine or offshore environments.",
+      "Ability to read WPS and technical drawings.",
+      "English communication level for site coordination."
+    ],
+    "whatWeOffer": [
+      "Predictable schedule with overtime opportunities when available.",
+      "Workwear and safety gear onboarding.",
+      "Long-term client pipeline for top-performing candidates."
+    ],
+    "practicalInformation": [
+      "Location: Bergen shipyard area.",
+      "Accommodation support can be discussed.",
+      "Start: June 2026."
+    ],
+    "applicationMethod": [
+      "Apply with CV and certificates.",
+      "Shortlisted candidates receive a technical pre-screening call."
+    ],
+    "tags": [
+      "TIG",
+      "Shipyard",
+      "Marine",
+      "Quality"
+    ],
+    "applicationCount": 29
+  },
+  {
+    "id": "job-003",
+    "slug": "concrete-worker-trondheim-permanent",
+    "status": "active",
+    "featured": false,
+    "title": "Concrete Worker, Trondheim",
+    "companyName": "ArbeidMatch Client Partner",
+    "showCompanyName": false,
+    "location": "Trondheim",
+    "city": "Trondheim",
+    "country": "Norway",
+    "category": "Construction",
+    "industry": "Building and Infrastructure",
+    "trade": "Concrete Worker",
+    "contractType": "Permanent",
+    "workModel": "Permanent",
+    "employmentType": "Full-time",
+    "languageRequirement": "English",
+    "salaryNok": "NOK 255 - 290/hour",
+    "publishedAt": "2026-04-14",
+    "yearsExperienceMin": 2,
+    "excerpt": "Permanent role on modern residential and public infrastructure projects.",
+    "summary": "An established construction team in Trondheim is expanding and looking for concrete workers who are reliable, structured, and quality oriented.",
+    "responsibilities": [
+      "Prepare formwork and reinforcement for concrete pours.",
+      "Execute casting, curing, and finishing according to site plan.",
+      "Follow site HSE routines and daily task planning."
+    ],
+    "requirements": [
+      "At least 2 years of relevant concrete experience.",
+      "Ability to work in a team-based environment.",
+      "Basic English for instructions and safety meetings."
+    ],
+    "whatWeOffer": [
+      "Permanent opportunity with stable demand.",
+      "Structured onboarding and practical support.",
+      "Professional recruitment process focused on long-term fit."
+    ],
+    "practicalInformation": [
+      "Work location: Trondheim and nearby area.",
+      "Standard daytime schedule."
+    ],
+    "applicationMethod": [
+      "Complete the online application in less than 5 minutes.",
+      "Upload your CV to speed up pre-screening."
+    ],
+    "tags": [
+      "Permanent",
+      "Infrastructure",
+      "Concrete"
+    ],
+    "applicationCount": 9
+  },
+  {
+    "id": "job-004",
+    "slug": "c-class-driver-stavanger-logistics",
+    "status": "active",
+    "featured": false,
+    "title": "C-Class Driver, Stavanger Logistics",
+    "companyName": "NordVest Logistics",
+    "showCompanyName": true,
+    "location": "Stavanger",
+    "city": "Stavanger",
+    "country": "Norway",
+    "category": "Transport",
+    "industry": "Logistics",
+    "trade": "Truck Driver",
+    "contractType": "Temporary",
+    "workModel": "Bemanning",
+    "employmentType": "Full-time",
+    "languageRequirement": "Norwegian",
+    "publishedAt": "2026-04-12",
+    "yearsExperienceMin": 1,
+    "excerpt": "Regional distribution role with modern fleet and predictable routes.",
+    "summary": "We are hiring dependable C-class drivers for regional logistics routes in Stavanger. The role is suited to candidates who value routine and on-time delivery.",
+    "responsibilities": [
+      "Deliver goods across defined regional routes.",
+      "Perform daily vehicle checks and report deviations.",
+      "Follow loading and unloading procedures with warehouse teams."
+    ],
+    "requirements": [
+      "Valid C-class driving licence.",
+      "Professional driver card and relevant permits.",
+      "Norwegian communication level for route instructions."
+    ],
+    "whatWeOffer": [
+      "Structured shift schedule.",
+      "Clear compliance and onboarding process.",
+      "Possibility for contract extension."
+    ],
+    "practicalInformation": [
+      "Location: Stavanger.",
+      "Early and daytime shifts."
+    ],
+    "applicationMethod": [
+      "Send your application and licence details.",
+      "Candidates meeting criteria are contacted quickly."
+    ],
+    "tags": [
+      "Logistics",
+      "Driver",
+      "C-Class"
+    ],
+    "applicationCount": 14
+  },
+  {
+    "id": "job-005",
+    "slug": "offshore-electrician-alesund",
+    "status": "active",
+    "featured": true,
+    "title": "Offshore Electrician, Alesund",
+    "companyName": "ArbeidMatch Client Partner",
+    "showCompanyName": false,
+    "location": "Alesund",
+    "city": "Alesund",
+    "country": "Norway",
+    "category": "Electrical",
+    "industry": "Offshore",
+    "trade": "Offshore Electrician",
+    "contractType": "Project",
+    "workModel": "Recruitment",
+    "employmentType": "Rotation",
+    "languageRequirement": "English",
+    "salaryNok": "NOK 340 - 380/hour",
+    "startDate": "2026-06-10",
+    "publishedAt": "2026-04-11",
+    "yearsExperienceMin": 5,
+    "excerpt": "Offshore project assignment with clear rotations and safety-first operations.",
+    "summary": "Experienced offshore electricians are needed for vessel upgrade projects near Alesund. Candidates should be confident with documentation and strict safety routines.",
+    "responsibilities": [
+      "Electrical installation and troubleshooting offshore.",
+      "Interpret technical documentation and execute assigned tasks.",
+      "Contribute to toolbox talks and safety reporting."
+    ],
+    "requirements": [
+      "Minimum 5 years in offshore electrical work.",
+      "Relevant offshore certifications are an advantage.",
+      "Strong practical troubleshooting skills."
+    ],
+    "whatWeOffer": [
+      "High-demand assignments with transparent conditions.",
+      "Recruitment process focused on quality matching.",
+      "Consistent communication through all hiring stages."
+    ],
+    "practicalInformation": [
+      "Rotation-based travel and deployment.",
+      "Start date can be adjusted for notice periods."
+    ],
+    "applicationMethod": [
+      "Apply via the digital form and attach offshore certificates.",
+      "Pre-screening call is scheduled for shortlisted candidates."
+    ],
+    "tags": [
+      "Offshore",
+      "Rotation",
+      "Electrical"
+    ],
+    "applicationCount": 22
+  },
+  {
+    "id": "job-006",
+    "slug": "industrial-painter-haugesund",
+    "status": "active",
+    "featured": false,
+    "title": "Industrial Painter, Haugesund",
+    "companyName": "Coastal Surface Works",
+    "showCompanyName": true,
+    "location": "Haugesund",
+    "city": "Haugesund",
+    "country": "Norway",
+    "category": "Surface Treatment",
+    "industry": "Industry",
+    "trade": "Industrial Painter",
+    "contractType": "Temporary",
+    "workModel": "Temporary",
+    "employmentType": "Full-time",
+    "languageRequirement": "English",
+    "publishedAt": "2026-04-09",
+    "excerpt": "Surface treatment role for industrial facilities with strong HSE culture.",
+    "summary": "A trusted industrial partner in Haugesund is looking for painters experienced with blasting, coating, and structured quality checks.",
+    "responsibilities": [
+      "Prepare surfaces before coating application.",
+      "Apply paint and protective systems according to specs.",
+      "Maintain quality records and follow HSE routines."
+    ],
+    "requirements": [
+      "Experience with industrial painting methods.",
+      "Comfort with physical work in varied site conditions.",
+      "Ability to follow written instructions in English."
+    ],
+    "whatWeOffer": [
+      "Professional work environment and clear expectations.",
+      "Support from an experienced recruitment coordinator.",
+      "Opportunity to join additional projects after completion."
+    ],
+    "practicalInformation": [
+      "Location: Haugesund area.",
+      "Shift details shared during interview stage."
+    ],
+    "applicationMethod": [
+      "Apply online and upload updated CV.",
+      "Candidates can be invited to practical verification."
+    ],
+    "tags": [
+      "Industry",
+      "Surface Treatment",
+      "Temporary"
+    ],
+    "applicationCount": 11
+  },
+  {
+    "id": "job-007",
+    "slug": "pipefitter-kristiansand-energy",
+    "status": "active",
+    "featured": false,
+    "title": "Pipefitter, Kristiansand Energy Project",
+    "companyName": "ArbeidMatch Client Partner",
+    "showCompanyName": false,
+    "location": "Kristiansand",
+    "city": "Kristiansand",
+    "country": "Norway",
+    "category": "Mechanical",
+    "industry": "Energy",
+    "trade": "Pipefitter",
+    "contractType": "Project",
+    "workModel": "Recruitment",
+    "employmentType": "Full-time",
+    "languageRequirement": "Both",
+    "salaryNok": "NOK 300 - 340/hour",
+    "publishedAt": "2026-04-08",
+    "yearsExperienceMin": 3,
+    "excerpt": "Mechanical installation role in a growing energy infrastructure project.",
+    "summary": "Pipefitters are needed for an energy project in Kristiansand. The team values precise execution, documentation discipline, and safe collaboration.",
+    "responsibilities": [
+      "Install and align piping systems according to drawings.",
+      "Perform measurements and quality checks before handover.",
+      "Coordinate with welding and QA teams."
+    ],
+    "requirements": [
+      "Solid pipefitting background from industry or energy projects.",
+      "Ability to read isometric drawings.",
+      "English or Norwegian for team communication."
+    ],
+    "whatWeOffer": [
+      "Clear project scope and technical leadership.",
+      "Supportive onboarding for international hires.",
+      "Access to future projects through ArbeidMatch."
+    ],
+    "practicalInformation": [
+      "Location: Kristiansand.",
+      "Project-based contract with extension potential."
+    ],
+    "applicationMethod": [
+      "Complete the application and attach your CV.",
+      "Technical screening follows if profile matches project needs."
+    ],
+    "tags": [
+      "Mechanical",
+      "Energy",
+      "Project"
+    ],
+    "applicationCount": 13
+  },
+  {
+    "id": "job-008",
+    "slug": "carpenter-tromso-prefab",
+    "status": "active",
+    "featured": false,
+    "title": "Carpenter, Tromso Prefab Team",
+    "companyName": "North Build Solutions",
+    "showCompanyName": true,
+    "location": "Tromso",
+    "city": "Tromso",
+    "country": "Norway",
+    "category": "Construction",
+    "industry": "Prefab",
+    "trade": "Carpenter",
+    "contractType": "Permanent",
+    "workModel": "Permanent",
+    "employmentType": "Full-time",
+    "languageRequirement": "English",
+    "publishedAt": "2026-04-07",
+    "excerpt": "Permanent carpenter role for prefab assembly in a modern workshop setting.",
+    "summary": "A growing prefab company in Tromso seeks skilled carpenters focused on quality, precision, and team collaboration in controlled production environments.",
+    "responsibilities": [
+      "Assemble and finish prefab wood structures.",
+      "Measure and cut materials according to technical specifications.",
+      "Maintain production quality and workflow discipline."
+    ],
+    "requirements": [
+      "Relevant carpentry experience.",
+      "Attention to detail and productivity mindset.",
+      "Ability to communicate in English on site."
+    ],
+    "whatWeOffer": [
+      "Long-term contract with stable schedule.",
+      "Structured onboarding and clear role expectations.",
+      "Support through the full hiring process."
+    ],
+    "practicalInformation": [
+      "Location: Tromso workshop area.",
+      "Full-time daytime operations."
+    ],
+    "applicationMethod": [
+      "Apply online with your CV and short profile.",
+      "Screening call arranged for relevant candidates."
+    ],
+    "tags": [
+      "Prefab",
+      "Carpenter",
+      "Permanent"
+    ],
+    "applicationCount": 8
+  },
+  {
+    "id": "job-009",
+    "slug": "cleaning-supervisor-oslo-facilities",
+    "status": "draft",
+    "featured": false,
+    "title": "Cleaning Supervisor, Oslo Facilities",
+    "showCompanyName": false,
+    "location": "Oslo",
+    "city": "Oslo",
+    "country": "Norway",
+    "category": "Facility Services",
+    "industry": "Services",
+    "trade": "Cleaning Supervisor",
+    "contractType": "Permanent",
+    "workModel": "Permanent",
+    "employmentType": "Full-time",
+    "languageRequirement": "Norwegian",
+    "publishedAt": "2026-04-06",
+    "excerpt": "Leadership role coordinating cleaning teams across facility contracts.",
+    "summary": "Draft role prepared for upcoming client need.",
+    "responsibilities": [
+      "To be confirmed"
+    ],
+    "requirements": [
+      "To be confirmed"
+    ],
+    "whatWeOffer": [
+      "To be confirmed"
+    ],
+    "practicalInformation": [
+      "To be confirmed"
+    ],
+    "applicationMethod": [
+      "To be confirmed"
+    ],
+    "tags": [
+      "Draft"
+    ],
+    "applicationCount": 0
+  },
+  {
+    "id": "job-010",
+    "slug": "hvac-technician-drammen-service",
+    "status": "closed",
+    "featured": false,
+    "title": "HVAC Technician, Drammen Service Team",
+    "showCompanyName": false,
+    "location": "Drammen",
+    "city": "Drammen",
+    "country": "Norway",
+    "category": "Mechanical",
+    "industry": "Building Services",
+    "trade": "HVAC Technician",
+    "contractType": "Temporary",
+    "workModel": "Temporary",
+    "employmentType": "Full-time",
+    "languageRequirement": "English",
+    "publishedAt": "2026-03-20",
+    "expiryDate": "2026-04-10",
+    "excerpt": "Closed role retained for reporting history.",
+    "summary": "Role closed after successful placement.",
+    "responsibilities": [
+      "N/A"
+    ],
+    "requirements": [
+      "N/A"
+    ],
+    "whatWeOffer": [
+      "N/A"
+    ],
+    "practicalInformation": [
+      "N/A"
+    ],
+    "applicationMethod": [
+      "N/A"
+    ],
+    "tags": [
+      "Closed"
+    ],
+    "applicationCount": 35
+  }
+]

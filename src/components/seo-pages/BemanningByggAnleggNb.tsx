@@ -44,11 +44,8 @@ export default function BemanningByggAnleggNb() {
           </p>
           <p>
             When you need international construction workers, we assess trade fit, certifications, and language needs.
-            Our goal is quality matching, not volume. For regulated roles (for example electricians), we guide you toward{" "}
-            <Link href="/dsb-support" className="font-medium text-gold hover:underline">
-              DSB authorization
-            </Link>{" "}
-            where relevant. Start with a staffing brief via{" "}
+            Our goal is quality matching, not volume. For regulated roles (for example electricians), DSB support is currently
+            in coming soon mode. Start with a staffing brief via{" "}
             <Link href="/request" className="font-medium text-gold hover:underline">
               request form
             </Link>
@@ -150,7 +147,7 @@ export default function BemanningByggAnleggNb() {
             { href: "/bemanning-logistikk", label: "Logistics & warehouse" },
             { href: "/bemanning-industri", label: "Industry & production" },
             { href: "/bemanningsbyrå-trondheim", label: "Staffing in Trondheim" },
-            { href: "/dsb-support", label: "DSB authorization for electricians" },
+            { href: "/premium", label: "DSB authorization for electricians, Coming soon" },
           ]}
         />
 

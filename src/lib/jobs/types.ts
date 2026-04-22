@@ -1,0 +1,68 @@
+export type JobSource = "manual" | "recman";
+export type JobSyncStatus = "none" | "pending" | "synced" | "error";
+export type JobStatus = "draft" | "active" | "closed" | "archived";
+export type JobApplyMethod = "internal" | "external_url" | "email";
+
+export interface JobRecord {
+  id: string;
+  source: JobSource;
+  externalId?: string | null;
+  title: string;
+  slug: string;
+  companyName?: string | null;
+  hideCompany?: boolean;
+  location: string;
+  category?: string | null;
+  trade?: string | null;
+  contractType?: string | null;
+  workModel?: string | null;
+  languageRequirement?: string | null;
+  salary?: string | null;
+  summary?: string | null;
+  description: string;
+  responsibilities?: string[] | string | null;
+  requirements?: string[] | string | null;
+  benefits?: string[] | string | null;
+  startDate?: string | null;
+  applicationMethod?: JobApplyMethod;
+  applicationUrl?: string | null;
+  applicationEmail?: string | null;
+  status: JobStatus;
+  featured?: boolean;
+  publishedAt?: string | null;
+  expiryDate?: string | null;
+  applicationCount?: number;
+  syncStatus?: JobSyncStatus;
+  syncError?: string | null;
+  lastSyncedAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface JobFilters {
+  keyword: string;
+  city: string;
+  category: string;
+  trade: string;
+  contractType: string;
+  workModel: string;
+  languageRequirement: string;
+  sortBy: "newest" | "relevance";
+}
+
+export interface JobFilterOptions {
+  cities: string[];
+  categories: string[];
+  trades: string[];
+  contractTypes: string[];
+  workModels: string[];
+  languageRequirements: string[];
+}
+
+export interface AdminJobsFilters {
+  query?: string;
+  source?: "all" | JobSource;
+  status?: "all" | JobStatus;
+  location?: string;
+  category?: string;
+}

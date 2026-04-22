@@ -37,24 +37,6 @@ const HELPERS: Record<string, HelperConfig> = {
     text: "First candidate profiles are often ready within approximately two weeks, depending on role, location, and current capacity.",
     cta: { label: "Request now →", href: "/request" },
   },
-  "/dsb-support": {
-    icon: "📋",
-    title: "Not sure which guide?",
-    text: "EU/EEA citizens have a faster, simpler process. Select your category above.",
-    cta: null,
-  },
-  "/dsb-support/eu": {
-    icon: "🇪🇺",
-    title: "Quick tip",
-    text: "Start gathering your documents now. Processing begins only after your application is submitted.",
-    cta: { label: "DSB Authorization Guide →", href: "/dsb-support" },
-  },
-  "/dsb-support/non-eu": {
-    icon: "📄",
-    title: "Important",
-    text: "Start your visa process in parallel with DSB. Both take several months.",
-    cta: null,
-  },
   "/partners": {
     icon: "🌐",
     title: "Become a partner",
