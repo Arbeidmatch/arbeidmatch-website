@@ -533,6 +533,7 @@ export default function RequestTokenPage() {
   const [selectedOffer, setSelectedOffer] = useState("");
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifyStatus, setNotifyStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const isPartnerFlow = tokenData?.job_summary === "Partner candidate request";
 
   const scrollToTop = () => {
     if (typeof window === "undefined") return;
@@ -575,11 +576,11 @@ export default function RequestTokenPage() {
   }, [token]);
 
   useEffect(() => {
-    if (startWizard) {
+    if (startWizard || isPartnerFlow) {
       setShowChoice(false);
       setShowCheckFlow(false);
     }
-  }, [startWizard]);
+  }, [isPartnerFlow, startWizard]);
 
   const goTo = (next: number) => {
     if (next < 0 || next > TOTAL_STEPS - 1 || animating) return;
@@ -690,7 +691,7 @@ export default function RequestTokenPage() {
       full_name: tokenData?.full_name ?? "Contact person",
       phonePrefix: "",
       phoneNumber: "",
-      phone: tokenData?.phone && tokenData.phone.trim().length >= 6 ? tokenData.phone.trim() : "N/A N/A",
+      phone: tokenData?.phone && tokenData.phone.trim().length >= 6 ? tokenData.phone.trim() : "00000000",
       job_summary: tokenData?.job_summary ?? "",
       hiringType: "Recruitment of personnel for companies",
       category: form.industry,
@@ -727,8 +728,8 @@ export default function RequestTokenPage() {
       hasRotation: "",
       rotationWeeksOn: "",
       rotationWeeksOff: "",
-      internationalTravel: form.internationalTransport ?? "",
-      localTravel: form.localTransport ?? "",
+      internationalTravel: typeof form.internationalTransport === "string" ? form.internationalTransport : "",
+      localTravel: typeof form.localTransport === "string" ? form.localTransport : "",
       localTravelOther: "",
       accommodation: form.accommodation ?? "",
       accommodationCost: "",
