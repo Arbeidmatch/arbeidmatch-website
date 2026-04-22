@@ -1,5 +1,6 @@
 import type { JobRecord } from "@/lib/jobs/types";
 import type { CandidateProfilePayload, JobPreferencesPayload } from "@/lib/candidates/profileSchema";
+import { resolveSalaryHourlyMidNok } from "@/lib/candidates/profileSchema";
 
 /** Minimum profile fields required for role matching heuristics. */
 export type JobMatchProfileInput = Pick<CandidateProfilePayload, "experiences" | "preferences">;
@@ -43,26 +44,46 @@ function mapCategoryToJobType(category?: string | null): string | null {
   return "Onshore";
 }
 
+function extractLikelyHourlyMidNok(salaryText: string): number | null {
+  const s = `${salaryText}`;
+  if (!s.trim()) return null;
+  const mentionsHourly = includesAny(s, ["hour", "per hour", "/h", "kr/h", "nok/h", "timer"]);
+  const nums = [...s.matchAll(/\b(\d{3})\b/g)]
+    .map((m) => parseInt(m[1], 10))
+    .filter((n) => n >= 200 && n <= 900);
+  if (!nums.length) return null;
+  const lo = Math.min(...nums);
+  const hi = Math.max(...nums);
+  const mid = (lo + hi) / 2;
+  if (mentionsHourly) return mid;
+  if (hi <= 900) return mid;
+  return null;
+}
+
 export function salaryHourlyScore(job: JobRecord, band: JobPreferencesPayload["salaryHourly"]): number {
   const salaryText = `${job.salary ?? ""}`;
   if (!salaryText.trim()) return 58;
 
-  const mentionsHourly = includesAny(salaryText, ["hour", "per hour", "/h", "kr/h", "nok/h"]);
-  const lowHour = includesAny(salaryText, ["380", "400", "420", "440", "450"]);
-  const midHour = includesAny(salaryText, ["480", "500", "520", "540", "550", "560"]);
-  const highHour = includesAny(salaryText, ["580", "600", "620", "650", "700"]);
-
-  if (mentionsHourly || lowHour || midHour || highHour) {
-    if (band === "600_plus") return highHour ? 92 : midHour ? 84 : 74;
-    if (band === "500_600") return midHour || highHour ? 88 : lowHour ? 76 : 72;
-    return lowHour || midHour ? 82 : 70;
+  const candMid = resolveSalaryHourlyMidNok(band);
+  const implied = extractLikelyHourlyMidNok(salaryText);
+  if (implied !== null) {
+    const diff = Math.abs(implied - candMid);
+    if (diff <= 40) return 92;
+    if (diff <= 90) return 84;
+    if (diff <= 150) return 76;
+    return 68;
   }
 
-  const highAnnual = includesAny(salaryText, ["700", "720", "750", "800", "850"]);
-  const midAnnual = includesAny(salaryText, ["600", "620", "650", "680"]);
-  if (band === "600_plus") return highAnnual ? 90 : midAnnual ? 82 : 74;
-  if (band === "500_600") return midAnnual || highAnnual ? 86 : 78;
-  return 76;
+  const high = includesAny(salaryText, ["560", "570", "580", "590", "600", "620", "650", "700", "720"]);
+  const midHigh = includesAny(salaryText, ["480", "500", "510", "520", "530", "540", "550"]);
+  const mid = includesAny(salaryText, ["380", "400", "410", "420", "430", "440", "450", "460", "470"]);
+  const low = includesAny(salaryText, ["200", "220", "240", "250", "260", "280", "300", "320", "340", "350", "360"]);
+
+  if (candMid >= 575) return high || midHigh ? 90 : mid ? 80 : 72;
+  if (candMid >= 475) return midHigh || high ? 88 : mid || low ? 78 : 72;
+  if (candMid >= 375) return mid || midHigh ? 84 : low ? 78 : 70;
+  if (candMid >= 275) return low || mid ? 82 : 70;
+  return low ? 84 : mid ? 76 : 70;
 }
 
 export type JobMatchResult = {
@@ -104,7 +125,7 @@ export function computeJobMatchScore(job: JobRecord, profile: JobMatchProfileInp
   const expMonths = experienceBandMonths(profile.preferences.experienceBand);
   const years = expMonths / 12;
   const workModel = normalize(job.workModel ?? "");
-  const wantsHeavyHours = profile.preferences.hoursPerWeek === "60_plus" || profile.preferences.hoursPerWeek === "48";
+  const wantsHeavyHours = profile.preferences.hoursPerWeek === "54_plus" || profile.preferences.hoursPerWeek === "48";
   const offshore = profile.preferences.jobType === "Offshore";
   let hoursScore = 70;
   if (offshore && wantsHeavyHours) hoursScore = 88;
@@ -137,7 +158,7 @@ function hoursSubScore(job: JobRecord, profile: JobMatchProfileInput): number {
   const expMonths = experienceBandMonths(profile.preferences.experienceBand);
   const years = expMonths / 12;
   const workModel = normalize(job.workModel ?? "");
-  const wantsHeavyHours = profile.preferences.hoursPerWeek === "60_plus" || profile.preferences.hoursPerWeek === "48";
+  const wantsHeavyHours = profile.preferences.hoursPerWeek === "54_plus" || profile.preferences.hoursPerWeek === "48";
   const offshore = profile.preferences.jobType === "Offshore";
   let hoursScore = 70;
   if (offshore && wantsHeavyHours) hoursScore = 88;

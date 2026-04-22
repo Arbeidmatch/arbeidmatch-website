@@ -23,10 +23,10 @@ function jobPrefsFromDraft(d: Record<string, unknown>): JobPreferencesPayload {
     : "2_5";
   const salaryHourly = salaryHourlyOptions.includes(d.salaryHourly as JobPreferencesPayload["salaryHourly"])
     ? (d.salaryHourly as JobPreferencesPayload["salaryHourly"])
-    : "500_600";
+    : "400_450";
   const hoursPerWeek = hoursPrefs.includes(d.hoursPerWeek as JobPreferencesPayload["hoursPerWeek"])
     ? (d.hoursPerWeek as JobPreferencesPayload["hoursPerWeek"])
-    : "40";
+    : "37.5";
   const rotation = rotationPrefs.includes(d.rotation as JobPreferencesPayload["rotation"])
     ? (d.rotation as JobPreferencesPayload["rotation"])
     : "flexible";

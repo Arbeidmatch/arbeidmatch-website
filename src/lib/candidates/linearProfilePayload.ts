@@ -1,4 +1,9 @@
-import type { CandidateProfilePayload, JobPreferencesPayload, WorkExperiencePayload } from "@/lib/candidates/profileSchema";
+import {
+  salaryHourlyHumanLabels,
+  type CandidateProfilePayload,
+  type JobPreferencesPayload,
+  type WorkExperiencePayload,
+} from "@/lib/candidates/profileSchema";
 
 function experienceBandApproxYears(band: JobPreferencesPayload["experienceBand"]): number {
   switch (band) {
@@ -47,7 +52,7 @@ export function buildSyntheticExperiences(prefs: JobPreferencesPayload, residenc
       fromYear: String(start),
       toMonth: "Dec",
       toYear: String(y),
-      responsibilities: `${prefs.jobType} work across relevant projects. Declared experience band: ${bandText}. Expected hourly band: ${prefs.salaryHourly}. Weekly hours ${prefs.hoursPerWeek}, rotation ${prefs.rotation}. Housing preference ${prefs.housing}. ${licenseLine}`,
+      responsibilities: `${prefs.jobType} work across relevant projects. Declared experience band: ${bandText}. Expected hourly band: ${salaryHourlyHumanLabels[prefs.salaryHourly]}. Weekly hours ${prefs.hoursPerWeek}, rotation ${prefs.rotation}. Housing preference ${prefs.housing}. ${licenseLine}`,
     },
   ];
 }

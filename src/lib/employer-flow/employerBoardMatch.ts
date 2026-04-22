@@ -1,4 +1,5 @@
 import type { CandidateProfilePayload } from "@/lib/candidates/profileSchema";
+import { resolveSalaryHourlyMidNok } from "@/lib/candidates/profileSchema";
 import type { EmployerBoardMeta } from "@/lib/jobs/types";
 
 function bandMinYears(band: CandidateProfilePayload["preferences"]["experienceBand"]): number {
@@ -13,19 +14,6 @@ function bandMinYears(band: CandidateProfilePayload["preferences"]["experienceBa
       return 10;
     default:
       return 0;
-  }
-}
-
-function salaryBandMidNok(band: CandidateProfilePayload["preferences"]["salaryHourly"]): number {
-  switch (band) {
-    case "400_500":
-      return 450;
-    case "500_600":
-      return 550;
-    case "600_plus":
-      return 650;
-    default:
-      return 500;
   }
 }
 
@@ -60,7 +48,7 @@ export function computeEmployerBoardMatch(meta: EmployerBoardMeta, profile: Cand
     breakdown.push("Experience gap 0");
   }
 
-  const mid = salaryBandMidNok(profile.preferences.salaryHourly);
+  const mid = resolveSalaryHourlyMidNok(profile.preferences.salaryHourly);
   if (meta.salaryMin !== null && meta.salaryMax !== null) {
     const lo = Math.min(meta.salaryMin, meta.salaryMax);
     const hi = Math.max(meta.salaryMin, meta.salaryMax);
@@ -76,8 +64,13 @@ export function computeEmployerBoardMatch(meta: EmployerBoardMeta, profile: Cand
   }
 
   const hoursText = `${meta.hours || ""}`.toLowerCase();
-  const wantsHeavy = profile.preferences.hoursPerWeek === "60_plus" || profile.preferences.hoursPerWeek === "48";
-  const jobHeavy = hoursText.includes("48") || hoursText.includes("50") || hoursText.includes("60") || hoursText.includes("rotation");
+  const wantsHeavy = profile.preferences.hoursPerWeek === "54_plus" || profile.preferences.hoursPerWeek === "48";
+  const jobHeavy =
+    hoursText.includes("48") ||
+    hoursText.includes("50") ||
+    hoursText.includes("54") ||
+    hoursText.includes("60") ||
+    hoursText.includes("rotation");
   if ((jobHeavy && wantsHeavy) || (!jobHeavy && !wantsHeavy)) {
     points += 1;
     breakdown.push("Hours rhythm +1");

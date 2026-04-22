@@ -15,6 +15,7 @@ import {
   jobTypes,
   hoursPrefs,
   rotationPrefs,
+  salaryHourlyHumanLabels,
   salaryHourlyOptions,
 } from "@/lib/candidates/profileSchema";
 import {
@@ -110,16 +111,12 @@ const EXPERIENCE_LABELS: Record<(typeof experienceBands)[number], string> = {
   "10_plus": "10+ years",
 };
 
-const SALARY_LABELS: Record<(typeof salaryHourlyOptions)[number], string> = {
-  "400_500": "400 to 500 NOK per hour",
-  "500_600": "500 to 600 NOK per hour",
-  "600_plus": "600+ NOK per hour",
-};
+const SALARY_LABELS = salaryHourlyHumanLabels;
 
 const HOURS_LABELS: Record<(typeof hoursPrefs)[number], string> = {
-  "40": "40",
-  "48": "48",
-  "60_plus": "60+",
+  "37.5": "37.5 hours per week (standard legal limit)",
+  "48": "48 hours per week (maximum with overtime)",
+  "54_plus": "54+ hours per week (exceptional circumstances)",
 };
 
 const ROTATION_LABELS: Record<(typeof rotationPrefs)[number], string> = {

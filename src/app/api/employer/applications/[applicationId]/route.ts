@@ -2,22 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { noStoreJson } from "@/lib/apiSecurity";
 import type { CandidateProfilePayload } from "@/lib/candidates/profileSchema";
+import { salaryHourlyEmployerBandLabelResolved } from "@/lib/candidates/profileSchema";
 import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { logApiError } from "@/lib/secureLogger";
 
 type RouteContext = { params: Promise<{ applicationId: string }> };
 
 function formatSalaryHourly(band: CandidateProfilePayload["preferences"]["salaryHourly"]): string {
-  switch (band) {
-    case "400_500":
-      return "NOK 400 to 500 per hour (preference band)";
-    case "500_600":
-      return "NOK 500 to 600 per hour (preference band)";
-    case "600_plus":
-      return "NOK 600+ per hour (preference band)";
-    default:
-      return "Not specified";
-  }
+  return salaryHourlyEmployerBandLabelResolved(band);
 }
 
 export async function GET(request: NextRequest, context: RouteContext) {

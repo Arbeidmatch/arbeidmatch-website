@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { candidateProfilePayloadSchema } from "@/lib/candidates/profileSchema";
+import { candidateProfilePayloadSchema, salaryHourlyBandMidNok } from "@/lib/candidates/profileSchema";
 import { getSupabaseAdminClient } from "@/lib/jobs/applyService";
 import { notifyError } from "@/lib/errorNotifier";
 import { isRateLimited } from "@/lib/requestProtection";
@@ -25,16 +25,8 @@ function experienceYearsFromBand(band: z.infer<typeof candidateProfilePayloadSch
 
 function salaryMinFromHourly(hourly: z.infer<typeof candidateProfilePayloadSchema>["preferences"]["salaryHourly"]): number {
   const hoursPerYear = 37.5 * 52;
-  switch (hourly) {
-    case "400_500":
-      return Math.round(450 * hoursPerYear);
-    case "500_600":
-      return Math.round(550 * hoursPerYear);
-    case "600_plus":
-      return Math.round(650 * hoursPerYear);
-    default:
-      return Math.round(550 * hoursPerYear);
-  }
+  const mid = salaryHourlyBandMidNok[hourly];
+  return Math.round(mid * hoursPerYear);
 }
 
 export async function POST(request: NextRequest) {
