@@ -2,10 +2,13 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { startTransition, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { startTransition, useCallback, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
+import { trackEvent } from "@/lib/analytics";
+import { readHomeUserType, writeHomeUserType } from "@/lib/homeUserType";
 import {
   Building2,
   Check,
@@ -20,7 +23,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 import BemanningCard from "@/components/home/BemanningCard";
-import RoleSelector from "@/components/onboarding/RoleSelector";
+import HomeWelcomeUserTypeSlideup from "@/components/home/HomeWelcomeUserTypeSlideup";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 import ScrollReveal, { ScrollRevealGrid } from "@/components/ScrollReveal";
 const HERO_DURATION = 0.78;
@@ -32,15 +35,31 @@ type Props = {
 
 export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Props) {
   const reduce = useReducedMotion();
+  const router = useRouter();
   const [sessionRoleBanner, setSessionRoleBanner] = useState<null | "employer" | "candidate">(null);
+
   useEffect(() => {
     try {
-      const v = window.sessionStorage.getItem("roleSelected");
-      if (v === "employer" || v === "candidate") startTransition(() => setSessionRoleBanner(v));
+      const role = window.sessionStorage.getItem("roleSelected");
+      const ut = readHomeUserType();
+      if (role === "employer" || ut === "employer") startTransition(() => setSessionRoleBanner("employer"));
+      else if (role === "candidate" || ut === "candidate") startTransition(() => setSessionRoleBanner("candidate"));
     } catch {
       /* ignore */
     }
   }, []);
+
+  const goHire = useCallback(() => {
+    trackEvent("home_user_type", { userType: "employer", source: "hero_cards" });
+    writeHomeUserType("employer");
+    router.push("/for-employers");
+  }, [router]);
+
+  const goWork = useCallback(() => {
+    trackEvent("home_user_type", { userType: "candidate", source: "hero_cards" });
+    writeHomeUserType("candidate");
+    router.push("/for-candidates");
+  }, [router]);
 
   const fade = (delaySec: number) =>
     reduce
@@ -136,10 +155,43 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
 
   return (
     <div className="min-h-screen bg-[#0D1B2A]">
-      <RoleSelector />
+      <HomeWelcomeUserTypeSlideup />
       <section className="section-y-home flex items-center bg-[#0D1B2A]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           {hero}
+        </div>
+      </section>
+
+      <section className="border-b border-[rgba(201,168,76,0.08)] bg-[#0D1B2A] px-6 py-12 md:px-12 md:py-16 lg:px-20">
+        <div className="mx-auto grid max-w-content grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
+          <button
+            type="button"
+            onClick={goHire}
+            className="group flex min-h-[220px] flex-col rounded-[22px] border border-[rgba(201,168,76,0.22)] bg-[linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-8 text-left transition duration-300 hover:-translate-y-1 hover:border-[rgba(201,168,76,0.4)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.28)] md:min-h-[260px] md:p-10"
+          >
+            <Building2 className="text-[#C9A84C]" size={32} strokeWidth={1.5} aria-hidden />
+            <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-[1.65rem]">I&apos;m looking to hire</h2>
+            <p className="mt-3 max-w-md text-[15px] leading-relaxed text-white/60">
+              Find qualified EU/EEA candidates for your Norwegian business
+            </p>
+            <span className="mt-auto pt-8 text-sm font-semibold text-[#C9A84C] transition group-hover:translate-x-0.5">
+              Continue as employer →
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={goWork}
+            className="group flex min-h-[220px] flex-col rounded-[22px] border border-[rgba(201,168,76,0.22)] bg-[linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-8 text-left transition duration-300 hover:-translate-y-1 hover:border-[rgba(201,168,76,0.4)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.28)] md:min-h-[260px] md:p-10"
+          >
+            <User className="text-[#C9A84C]" size={32} strokeWidth={1.5} aria-hidden />
+            <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-[1.65rem]">I&apos;m looking for work</h2>
+            <p className="mt-3 max-w-md text-[15px] leading-relaxed text-white/60">
+              Discover job opportunities in Norway matched to your skills
+            </p>
+            <span className="mt-auto pt-8 text-sm font-semibold text-[#C9A84C] transition group-hover:translate-x-0.5">
+              Continue as candidate →
+            </span>
+          </button>
         </div>
       </section>
 
@@ -189,66 +241,6 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       <section className="section-y-home bg-[#0D1B2A]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="am-h2 heading-premium-xl font-sans font-extrabold tracking-tight text-white">Who are you?</h2>
-          </ScrollReveal>
-          <ScrollReveal variant="fadeUp" className="text-center">
-            <p className="text-home-subtle mx-auto mb-16 mt-6 max-w-lg">
-              Two simple paths. Choose yours.
-            </p>
-          </ScrollReveal>
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-12 lg:gap-16">
-            <ScrollReveal variant="fadeUp">
-              <article className="who-choice-card card-premium rounded-2xl border border-[rgba(201,168,76,0.12)] bg-[rgba(255,255,255,0.025)] p-10 md:p-12 lg:p-14">
-                <Building2 className="text-[#C9A84C]" size={28} strokeWidth={1.5} />
-                <h3 className="mt-7 text-xl font-semibold tracking-tight text-white md:text-2xl">I&apos;m an employer</h3>
-                <p className="text-home-subtle mt-4">Norwegian company looking for qualified workers</p>
-                <ul className="mt-8 space-y-3">
-                  {[
-                    "Fast candidate delivery",
-                    "Pre-screened candidate profiles",
-                    "Legal and compliant staffing",
-                    "Dedicated recruiter support",
-                  ].map((item) => (
-                    <li key={item} className="flex items-center gap-3 text-[15px] text-white/88">
-                      <Check size={17} className="shrink-0 text-[#C9A84C]" strokeWidth={2} /> {item}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href="/for-employers"
-                  className="btn-gold-premium relative mt-10 inline-flex min-h-[52px] w-full min-w-[44px] items-center justify-center rounded-xl bg-gold px-6 py-3 text-[15px] font-semibold tracking-tight text-[#0D1B2A] hover:bg-gold-hover sm:w-auto"
-                >
-                  Explore employer services →
-                </Link>
-              </article>
-            </ScrollReveal>
-            <ScrollReveal variant="fadeUp">
-              <article className="who-choice-card card-premium rounded-2xl border border-[rgba(201,168,76,0.12)] bg-[rgba(255,255,255,0.025)] p-10 md:p-12 lg:p-14">
-                <User className="text-[#C9A84C]" size={28} strokeWidth={1.5} />
-                <h3 className="mt-7 text-xl font-semibold tracking-tight text-white md:text-2xl">I&apos;m a candidate</h3>
-                <p className="text-home-subtle mt-4">Looking for legal work in Norway</p>
-                <ul className="mt-8 space-y-3">
-                  {[
-                    "Legal employment contracts",
-                    "Clear salary expectations",
-                    "Support before and after arrival",
-                    "Direct access to active jobs",
-                  ].map((item) => (
-                    <li key={item} className="flex items-center gap-3 text-[15px] text-white/88">
-                      <Check size={17} className="shrink-0 text-[#C9A84C]" strokeWidth={2} /> {item}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href="/for-candidates"
-                  className="btn-micro mt-10 inline-flex min-h-[52px] w-full min-w-[44px] items-center justify-center rounded-xl border border-[rgba(201,168,76,0.22)] bg-transparent px-6 py-3 text-[15px] font-medium tracking-tight text-white/90 transition-colors duration-300 hover:border-[rgba(201,168,76,0.38)] hover:bg-[rgba(201,168,76,0.06)] sm:w-auto"
-                >
-                  Explore candidate path →
-                </Link>
-              </article>
-            </ScrollReveal>
-          </div>
-          <ScrollReveal variant="fadeUp" className="mt-14 text-center">
             <Link
               href="/electricians-norway#dsb-authorization-guide"
               className="text-[13px] font-medium tracking-wide text-white/45 transition-colors hover:text-[#C9A84C]/90"
