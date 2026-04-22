@@ -57,6 +57,7 @@ function rowToJobRecord(row: EmployerJobRow): JobRecord {
     mappedJobType: row.mapped_job_type,
     salaryMin: row.salary_min,
     salaryMax: row.salary_max,
+    listingStatus: row.status,
     hours: row.hours,
     rotation: row.rotation,
     licenseRequired: row.license_required,
@@ -127,6 +128,62 @@ export async function getEmployerJobBySlug(slug: string): Promise<JobRecord | nu
 
   if (res.error || !res.data) return null;
   return rowToJobRecord(res.data as EmployerJobRow);
+}
+
+/** Employer board row for slug regardless of draft/live/closed (for trusted surface flows). */
+export async function getEmployerJobBySlugAnyStatus(slug: string): Promise<JobRecord | null> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return null;
+
+  const res = await supabase.from("employer_jobs").select("*").eq("slug", slug).maybeSingle();
+
+  if (res.error || !res.data) return null;
+  return rowToJobRecord(res.data as EmployerJobRow);
+}
+
+export async function updateEmployerBoardJobById(params: {
+  jobId: string;
+  title: string;
+  description: string;
+  requirements: string;
+  salary_min: number | null;
+  salary_max: number | null;
+  status: "draft" | "live" | "closed";
+}): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return { ok: false, reason: "Server misconfigured." };
+
+  const nowIso = new Date().toISOString();
+  const today = nowIso.slice(0, 10);
+
+  const rowPatch: Record<string, unknown> = {
+    title: params.title.trim(),
+    description: params.description.trim(),
+    requirements: params.requirements.trim(),
+    salary_min: params.salary_min,
+    salary_max: params.salary_max,
+    status: params.status,
+    updated_at: nowIso,
+  };
+
+  if (params.status === "live") {
+    const cur = await supabase.from("employer_jobs").select("published_at").eq("id", params.jobId).maybeSingle();
+    const existing = cur.data && typeof (cur.data as { published_at?: string | null }).published_at === "string"
+      ? (cur.data as { published_at: string }).published_at
+      : null;
+    rowPatch.published_at = existing || today;
+  } else if (params.status === "draft") {
+    rowPatch.published_at = null;
+  }
+
+  const upd = await supabase.from("employer_jobs").update(rowPatch).eq("id", params.jobId).select("id").maybeSingle();
+
+  if (upd.error || !upd.data) {
+    logApiError("updateEmployerBoardJobById", upd.error ?? new Error("no row"), { jobId: params.jobId });
+    return { ok: false, reason: "Update failed." };
+  }
+
+  return { ok: true };
 }
 
 export async function createEmployerJobDraftAfterRequest(params: {

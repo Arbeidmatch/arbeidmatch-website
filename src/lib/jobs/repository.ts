@@ -4,7 +4,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { JOBS_MOCK_DATA } from "@/lib/jobs/data";
-import { getEmployerJobBySlug, listLiveEmployerJobsAsRecords } from "@/lib/employer-flow/employerJobsRepository";
+import { getEmployerJobBySlug, getEmployerJobBySlugAnyStatus, listLiveEmployerJobsAsRecords } from "@/lib/employer-flow/employerJobsRepository";
 import type { AdminJobsFilters, JobRecord, JobStatus } from "@/lib/jobs/types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -126,9 +126,17 @@ export async function getJobById(id: string): Promise<JobRecord | null> {
   return jobs.find((job) => job.id === id) ?? null;
 }
 
-export async function getJobBySlug(slug: string): Promise<JobRecord | null> {
-  const board = await getEmployerJobBySlug(slug);
-  if (board) return board;
+export async function getJobBySlug(
+  slug: string,
+  opts?: { employerBoardAnyStatus?: boolean },
+): Promise<JobRecord | null> {
+  if (opts?.employerBoardAnyStatus) {
+    const board = await getEmployerJobBySlugAnyStatus(slug);
+    if (board) return board;
+  } else {
+    const board = await getEmployerJobBySlug(slug);
+    if (board) return board;
+  }
   const jobs = await listAllJobs();
   return jobs.find((job) => job.slug === slug) ?? null;
 }
