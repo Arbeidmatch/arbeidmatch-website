@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import ElectriciansNorwayPage from "@/components/candidates/ElectriciansNorwayPage";
-import ElectriciansDsbAuthorizationGuide from "@/components/candidates/ElectriciansDsbAuthorizationGuide";
 
 const SITE = "https://www.arbeidmatch.no";
 
 export const metadata: Metadata = {
-  title: { absolute: "Work as an Electrician in Norway | EU/EEA Guide | ArbeidMatch" },
+  title: { absolute: "DSB-authorised electricians for Norway | Employers & candidates | ArbeidMatch" },
   description:
-    "EU/EEA electricians: work legally in Norway — full DSB authorization guide, official resources, documents, timelines, salary ranges, and job opportunities in one place.",
+    "ArbeidMatch connects Norwegian employers with EU/EEA electricians who hold or are obtaining DSB authorisation. Guides help candidates navigate the process.",
   alternates: {
     canonical: `${SITE}/electricians-norway`,
     languages: {
@@ -20,9 +19,9 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Work as an Electrician in Norway | EU/EEA Guide | ArbeidMatch",
+    title: "DSB-authorised electricians for Norway | ArbeidMatch",
     description:
-      "EU/EEA electricians: full DSB authorization guide for Norway, official resources, documents, salary ranges, and job opportunities.",
+      "Hire verified electricians for Norwegian projects, or get our DSB guide as a candidate. ArbeidMatch recruitment and guidance.",
     locale: "nb_NO",
     siteName: "ArbeidMatch",
     type: "website",
@@ -30,19 +29,16 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Work as an Electrician in Norway | EU/EEA Guide | ArbeidMatch",
+    title: "DSB-authorised electricians for Norway | ArbeidMatch",
     description:
-      "EU/EEA electricians: full DSB authorization guide for Norway, official resources, documents, salary ranges, and job opportunities.",
+      "Employers: request authorised candidates. Candidates: DSB guides and support from ArbeidMatch.",
   },
 };
 
 export default function Page() {
   return (
-    <>
-      <Suspense fallback={null}>
-        <ElectriciansNorwayPage />
-      </Suspense>
-      <ElectriciansDsbAuthorizationGuide />
-    </>
+    <Suspense fallback={null}>
+      <ElectriciansNorwayPage />
+    </Suspense>
   );
 }
