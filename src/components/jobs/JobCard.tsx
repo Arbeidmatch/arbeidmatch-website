@@ -58,35 +58,46 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
         </div>
       </div>
 
-      <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+      <div className="mt-5 flex min-w-0 flex-row flex-nowrap items-stretch gap-3">
         <Link
           href={viewHref}
-          className="btn-outline-premium inline-flex min-h-[44px] items-center justify-center rounded-md border border-[#C9A84C]/35 px-4 py-2 text-sm font-semibold text-[#C9A84C]"
+          className="btn-outline-premium inline-flex h-11 min-h-[44px] w-[8.75rem] shrink-0 items-center justify-center whitespace-nowrap rounded-md border border-[#C9A84C]/35 px-4 text-sm font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
         >
           View job
         </Link>
         {browseOnly ? (
-          <Link
-            href="/for-candidates"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-[rgba(201,168,76,0.35)] bg-transparent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[rgba(201,168,76,0.08)]"
-          >
-            How to unlock applications
-          </Link>
+          job.applicationMethod === "internal" || !job.applicationMethod ? (
+            <ApplyWithProfileGate
+              applyHref={`/jobs/${job.slug}/apply`}
+              className="btn-gold-premium inline-flex h-11 min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-md bg-[#C9A84C] px-4 text-sm font-bold text-[#0D1B2A] transition-opacity hover:opacity-95"
+            >
+              Apply
+            </ApplyWithProfileGate>
+          ) : (
+            <a
+              href={applyHref}
+              target={applyExternal ? "_blank" : undefined}
+              rel={applyExternal ? "noopener noreferrer" : undefined}
+              className="btn-gold-premium inline-flex h-11 min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-md bg-[#C9A84C] px-4 text-sm font-bold text-[#0D1B2A] transition-opacity hover:opacity-95"
+            >
+              Apply
+            </a>
+          )
         ) : job.applicationMethod === "internal" || !job.applicationMethod ? (
           <ApplyWithProfileGate
             applyHref={applyHref}
-            className="btn-gold-premium inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A]"
+            className="btn-gold-premium inline-flex h-11 min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-md bg-[#C9A84C] px-4 text-sm font-bold text-[#0D1B2A] transition-opacity hover:opacity-95"
           >
-            Apply now
+            Apply
           </ApplyWithProfileGate>
         ) : (
           <a
             href={applyHref}
             target={applyExternal ? "_blank" : undefined}
             rel={applyExternal ? "noopener noreferrer" : undefined}
-            className="btn-gold-premium inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A]"
+            className="btn-gold-premium inline-flex h-11 min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-md bg-[#C9A84C] px-4 text-sm font-bold text-[#0D1B2A] transition-opacity hover:opacity-95"
           >
-            Apply now
+            Apply
           </a>
         )}
       </div>
