@@ -232,14 +232,18 @@ export default function CandidateProfileWizard({
 
   useEffect(() => {
     if (wizardStep !== 8) {
-      setVideoHintTimerReady(false);
-      setVideoHintClosedByUser(false);
-      setVideoHintManualOpen(false);
+      queueMicrotask(() => {
+        setVideoHintTimerReady(false);
+        setVideoHintClosedByUser(false);
+        setVideoHintManualOpen(false);
+      });
       return;
     }
     if (videoUrl.trim()) {
-      setVideoHintTimerReady(false);
-      setVideoHintManualOpen(false);
+      queueMicrotask(() => {
+        setVideoHintTimerReady(false);
+        setVideoHintManualOpen(false);
+      });
       return;
     }
     if (videoHintManualOpen) return;
@@ -446,9 +450,10 @@ export default function CandidateProfileWizard({
 
   useEffect(() => {
     if (entryMode !== "complete-only" || tokenTrim) return;
-    setMode("wizard");
-    resetWizard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      setMode("wizard");
+      resetWizard();
+    });
   }, [entryMode, tokenTrim]);
 
   useEffect(() => {
@@ -909,7 +914,7 @@ kind of role you are looking for in Norway. Keep it under
                             initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
                             animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                             exit={reduceMotion ? undefined : { opacity: 0, y: 8 }}
-                            transition={{ duration: reduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+                            transition={{ duration: reduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] as const }}
                             className="relative rounded-xl border border-[rgba(201,168,76,0.38)] bg-[#0D1B2A]/95 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
                           >
                             <button
