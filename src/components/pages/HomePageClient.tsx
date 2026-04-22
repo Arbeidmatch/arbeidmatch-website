@@ -296,6 +296,10 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
                 different cultures, backgrounds and religions experience respect and clarity from the first contact. And so
                 that Norwegian employers get workers who genuinely fit their environment.
               </p>
+              <p className="text-home-lead mt-6 max-w-none">
+                And we believe that good work — done with dignity and mutual respect — is something everyone deserves access
+                to.
+              </p>
               <ul className="mt-12 space-y-6">
                 {[
                   "Cultural and religious sensitivity throughout our screening process",

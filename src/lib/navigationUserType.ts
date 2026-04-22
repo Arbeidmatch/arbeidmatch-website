@@ -31,6 +31,12 @@ export function setNavigationUserType(value: NavigationUserType | null): void {
   }
 }
 
+/** Call after mutating `userType` in localStorage outside `setNavigationUserType` (e.g. welcome / home helpers). */
+export function notifyNavigationUserTypeChanged(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent("am-navigation-user-type"));
+}
+
 export function subscribeNavigationUserType(onChange: () => void): () => void {
   if (typeof window === "undefined") return () => {};
   const handler = () => onChange();

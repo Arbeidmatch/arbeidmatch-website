@@ -2,13 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Crown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
-import { candidateNavLinks, employerNavLinks, neutralNavLinks } from "@/lib/navigationDualLinks";
+import {
+  neutralNavLinks,
+  premiumCandidateCenter,
+  premiumCandidateMore,
+  premiumEmployerCenter,
+  premiumEmployerMore,
+} from "@/lib/navigationDualLinks";
 import {
   getNavigationUserType,
   setNavigationUserType,
@@ -16,84 +22,142 @@ import {
   type NavigationUserType,
 } from "@/lib/navigationUserType";
 
-const tjenesterStaffingLink = { href: "/for-staffing-agencies", label: "For bemanningsbyråer" } as const;
+import type { DualNavLink } from "@/lib/navigationDualLinks";
 
-const tjenesterIndustryLinks = [
-  { href: "/bemanning-bygg-anlegg", label: "Bygg & Anlegg" },
-  { href: "/bemanning-logistikk", label: "Logistikk" },
-  { href: "/bemanning-industri", label: "Industri" },
-  { href: "/bemanning-renhold", label: "Renhold" },
-  { href: "/bemanning-horeca", label: "HoReCa" },
-  { href: "/bemanning-helse", label: "Helse" },
-  { href: "/welding-specialists", label: "Sveisespesialister" },
-];
-
-const stederLinks = [
-  { href: "/bemanningsbyrå-trondheim", label: "Trondheim" },
-  { href: "/bemanningsbyrå-bergen", label: "Bergen" },
-  { href: "/bemanningsbyrå-stavanger", label: "Stavanger" },
-  { href: "/bemanningsbyrå-kristiansand", label: "Kristiansand" },
-];
-
-const ressurserLinks: { href: string; label: string; premium?: boolean }[] = [
-  { href: "https://jobs.arbeidmatch.no", label: "Open Jobs" },
-  { href: "/electricians-norway", label: "Electricians in Norway" },
-  { href: "/outside-eu-eea", label: "Non-EU Workers" },
-  { href: "/welding-specialists", label: "Welding Specialists" },
-  { href: "/premium", label: "Premium Guides", premium: true },
-  { href: "/about", label: "Om oss" },
-  { href: "/partners", label: "Partners" },
-  { href: "/blog", label: "Blog" },
-  { href: "/recruiter-network", label: "Partner Program" },
-  { href: "/contact", label: "Kontakt" },
-];
-
-const megaAllHrefs = [tjenesterStaffingLink, ...tjenesterIndustryLinks, ...stederLinks, ...ressurserLinks];
+const DRAWER_EASE = [0.32, 0.72, 0, 1] as const;
+const MORE_EASE = [0.22, 1, 0.36, 1] as const;
 
 function linkActive(pathname: string, href: string): boolean {
-  if (href === "/" || href.startsWith("http")) return pathname === href;
+  if (href === "/" || href.startsWith("http")) return false;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function megaHasActive(pathname: string): boolean {
-  return megaAllHrefs.some((i) => !i.href.startsWith("http") && linkActive(pathname, i.href));
+function moreHasActive(pathname: string, links: DualNavLink[]): boolean {
+  return links.some((l) => !l.external && linkActive(pathname, l.href));
 }
 
-const megaColLabelClass =
-  "am-eyebrow mb-3 font-semibold uppercase tracking-[0.1em] text-[#C9A84C]";
-const megaLinkClass =
-  "flex min-h-[44px] min-w-[44px] items-center rounded-md px-6 py-3 text-[14px] text-[rgba(255,255,255,0.7)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.03)] hover:text-white lg:min-h-0 lg:min-w-0 lg:px-3 lg:py-2";
+const navLinkClass =
+  "text-sm font-medium text-white/70 transition-colors duration-200 hover:text-white";
+const navLinkActiveClass = "text-white";
 
-const megaPanelInnerClass =
-  "rounded-2xl border border-black/[0.06] bg-[#0D1B2A] p-8 shadow-[0_8px_32px_rgba(255,255,255,0.03)]";
-
-const DRAWER_EASE = [0.32, 0.72, 0, 1] as const;
-
-const dualNavLinkClass =
-  "shrink-0 text-[13px] font-normal text-[rgba(255,255,255,0.75)] transition-[color,font-weight] duration-150 hover:font-medium hover:text-white lg:text-[14px]";
-
-function DesktopDualNavLink({
+function NavRowLink({
   pathname,
   item,
+  onNavigate,
 }: {
   pathname: string;
-  item: { href: string; label: string; external?: boolean };
+  item: DualNavLink;
+  onNavigate?: () => void;
 }) {
   const active = item.external ? false : linkActive(pathname, item.href);
-  const cls = `${dualNavLinkClass} ${active ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""}`;
+  const cls = `${navLinkClass} ${active ? navLinkActiveClass : ""}`;
 
   if (item.external) {
     return (
-      <a href={item.href} target="_blank" rel="noopener noreferrer" className={cls}>
+      <a href={item.href} target="_blank" rel="noopener noreferrer" className={cls} onClick={onNavigate}>
         {item.label}
       </a>
     );
   }
 
   return (
-    <Link href={item.href} className={cls}>
+    <Link href={item.href} className={cls} onClick={onNavigate}>
       {item.label}
     </Link>
+  );
+}
+
+function MoreMenu({
+  pathname,
+  label,
+  links,
+  isOpen,
+  onOpenChange,
+}: {
+  pathname: string;
+  label: string;
+  links: DualNavLink[];
+  isOpen: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) onOpenChange(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onOpenChange(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [isOpen, onOpenChange]);
+
+  const activeMore = moreHasActive(pathname, links);
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+        onClick={() => onOpenChange(!isOpen)}
+        onMouseEnter={() => onOpenChange(true)}
+        className={`inline-flex items-center gap-1 rounded-md px-1 py-1.5 text-sm font-medium transition-colors duration-200 ${
+          activeMore || isOpen ? "text-white" : "text-white/70 hover:text-white"
+        }`}
+      >
+        {label}
+        <ChevronDown className={`h-3.5 w-3.5 opacity-50 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} aria-hidden />
+      </button>
+      <AnimatePresence>
+        {isOpen ? (
+          <motion.div
+            key="more-dd"
+            role="menu"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.18, ease: MORE_EASE }}
+            className="absolute right-0 top-full z-[60] mt-2 min-w-[220px] rounded-xl border border-[rgba(201,168,76,0.12)] bg-[rgba(13,27,42,0.98)] py-2 shadow-[0_16px_48px_rgba(0,0,0,0.45)] backdrop-blur-md"
+            onMouseLeave={() => onOpenChange(false)}
+          >
+            {links.map((item) => (
+              <div key={item.href + item.label} role="none">
+                {item.external ? (
+                  <a
+                    role="menuitem"
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block px-4 py-2.5 text-sm font-medium text-white/75 transition-colors hover:bg-white/[0.06] hover:text-white"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    role="menuitem"
+                    href={item.href}
+                    className={`block px-4 py-2.5 text-sm font-medium transition-colors hover:bg-white/[0.06] ${
+                      linkActive(pathname, item.href) ? "text-[#C9A84C]" : "text-white/75 hover:text-white"
+                    }`}
+                    onClick={() => onOpenChange(false)}
+                  >
+                    {item.label}
+                  </Link>
+                )}
+              </div>
+            ))}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -101,13 +165,18 @@ export default function Navbar() {
   const pathname = usePathname();
   const [userType, setUserType] = useState<NavigationUserType | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [isMegaOpen, setIsMegaOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     startTransition(() => setMounted(true));
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const hasPremium = document.cookie.split(";").some((c) => c.trim().startsWith("premium_token="));
+    setIsPremium(hasPremium);
   }, []);
 
   useEffect(() => {
@@ -124,21 +193,10 @@ export default function Navbar() {
   }, [pathname]);
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
-    const hasPremium = document.cookie.split(";").some((c) => c.trim().startsWith("premium_token="));
-    setIsPremium(hasPremium);
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    queueMicrotask(onScroll);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    startTransition(() => setIsOpen(false));
-    startTransition(() => setIsMegaOpen(false));
+    startTransition(() => {
+      setIsOpen(false);
+      setMoreOpen(false);
+    });
   }, [pathname]);
 
   useEffect(() => {
@@ -167,17 +225,7 @@ export default function Navbar() {
     };
   }, [isOpen]);
 
-  const navItemClass =
-    "shrink-0 text-[15px] font-normal text-[rgba(255,255,255,0.7)] transition-[color,font-weight] duration-150 hover:font-medium hover:text-white";
-
-  const headerSurface = scrolled
-    ? "border-b border-black/[0.06] bg-[#0D1B2A]/95 shadow-[0_1px_0_rgba(255,255,255,0.03)] backdrop-blur-md"
-    : "border-b border-black/[0.06] bg-[#0D1B2A]/90 backdrop-blur-sm";
-
   const closeMenu = () => setIsOpen(false);
-  const closeMegaMenu = () => setIsMegaOpen(false);
-
-  const showMegaMenu = userType === null;
 
   const mobilePortal =
     mounted &&
@@ -188,26 +236,24 @@ export default function Navbar() {
             <motion.button
               key="mobile-nav-backdrop"
               type="button"
-              aria-label="Lukk meny"
+              aria-label="Close menu"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-[#0a0f18]/85 lg:hidden"
-              style={{ zIndex: 40 }}
+              className="fixed inset-0 z-[280] bg-[#0a0f18]/80 backdrop-blur-sm lg:hidden"
               onClick={closeMenu}
             />
             <motion.aside
               key="mobile-nav-drawer"
               role="dialog"
               aria-modal="true"
-              aria-label="Navigasjon"
+              aria-label="Navigation"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ duration: 0.35, ease: DRAWER_EASE }}
-              className="fixed bottom-0 right-0 top-0 flex w-[min(100vw,320px)] flex-col overflow-y-auto bg-[#0a0f19] lg:hidden"
-              style={{ zIndex: 50 }}
+              transition={{ duration: 0.32, ease: DRAWER_EASE }}
+              className="fixed bottom-0 right-0 top-0 z-[281] flex h-[100dvh] w-[min(100vw,360px)] flex-col overflow-hidden border-l border-[rgba(201,168,76,0.12)] bg-[#0D1B2A] shadow-[-12px_0_40px_rgba(0,0,0,0.35)] lg:hidden"
             >
               <MobileDrawerContent pathname={pathname} onClose={closeMenu} isPremium={isPremium} />
             </motion.aside>
@@ -220,19 +266,17 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`sticky top-0 transition-colors duration-200 ${headerSurface} ${isOpen ? "z-30" : "z-[210]"}`}
+        className={`sticky top-0 z-50 border-b border-[rgba(201,168,76,0.1)] bg-[rgba(13,27,42,0.95)] backdrop-blur-md transition-shadow duration-200 ${
+          isOpen ? "shadow-none" : "shadow-[0_1px_0_rgba(0,0,0,0.2)]"
+        }`}
       >
-        <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-3 px-4 md:h-16 md:min-h-[64px] md:gap-4 md:px-12 lg:h-[72px] lg:min-h-[72px] lg:gap-6 lg:px-20">
-          <Link
-            href="/"
-            className="block min-h-[44px] min-w-fit shrink-0 leading-[44px]"
-            style={{ whiteSpace: "nowrap", display: "flex", alignItems: "center" }}
-          >
-            <span style={{ color: "#ffffff", fontWeight: 700, fontSize: "1.25rem" }}>Arbeid</span>
-            <span style={{ color: "#C9A84C", fontWeight: 700, fontSize: "1.25rem" }}>Match</span>
+        <div className="mx-auto flex h-16 min-h-[64px] w-full max-w-content items-center justify-between gap-6 px-5 md:px-10 lg:px-16">
+          <Link href="/" className="group flex shrink-0 items-center gap-0 text-lg font-bold tracking-tight">
+            <span className="text-white transition-colors group-hover:text-white">Arbeid</span>
+            <span className="text-[#C9A84C]">Match</span>
           </Link>
 
-          <nav className="hidden min-w-0 flex-1 flex-wrap items-center justify-center gap-x-4 gap-y-2 lg:flex xl:gap-x-5">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-8 lg:flex">
             {userType === null ? (
               <>
                 {neutralNavLinks.map((link) => {
@@ -243,162 +287,48 @@ export default function Navbar() {
                         key={link.href}
                         href={link.href}
                         onClick={() => setNavigationUserType(link.userType!)}
-                        className={`${navItemClass} ${active ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""}`}
+                        className={`${navLinkClass} ${active ? navLinkActiveClass : ""}`}
                       >
                         {link.label}
                       </Link>
                     );
                   }
                   return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className={`${navItemClass} ${active ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""}`}
-                    >
+                    <Link key={link.href} href={link.href} className={`${navLinkClass} ${active ? navLinkActiveClass : ""}`}>
                       {link.label}
                     </Link>
                   );
                 })}
-
-                {showMegaMenu ? (
-                  <div className="relative" onMouseEnter={() => setIsMegaOpen(true)} onMouseLeave={closeMegaMenu}>
-                    <span
-                      className={`inline-flex min-h-[44px] cursor-default items-center gap-1 ${navItemClass} ${
-                        megaHasActive(pathname) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""
-                      }`}
-                    >
-                      Mer
-                      <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-                    </span>
-                    <div
-                      className={`absolute left-1/2 top-full z-[130] w-[min(920px,calc(100vw-2rem))] -translate-x-1/2 pt-3 transition-[opacity,transform,visibility] duration-[180ms] ease-out ${
-                        isMegaOpen
-                          ? "pointer-events-auto visible translate-y-0 opacity-100"
-                          : "pointer-events-none invisible -translate-y-[6px] opacity-0"
-                      }`}
-                    >
-                      <div className={megaPanelInnerClass}>
-                        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-10">
-                          <div>
-                            <p className={megaColLabelClass}>Tjenester</p>
-                            <ul className="space-y-0.5">
-                              <li>
-                                <Link
-                                  href={tjenesterStaffingLink.href}
-                                  onClick={closeMegaMenu}
-                                  className={`${megaLinkClass} ${linkActive(pathname, tjenesterStaffingLink.href) ? "font-medium text-gold" : ""}`}
-                                >
-                                  {tjenesterStaffingLink.label}
-                                </Link>
-                                <div className="mx-3 my-2 h-px bg-[rgba(201,168,76,0.2)]" aria-hidden />
-                              </li>
-                              {tjenesterIndustryLinks.map((item) => (
-                                <li key={item.href}>
-                                  <Link
-                                    href={item.href}
-                                    onClick={closeMegaMenu}
-                                    className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
-                                  >
-                                    {item.label}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                          <div>
-                            <p className={megaColLabelClass}>Steder</p>
-                            <ul className="space-y-0.5">
-                              {stederLinks.map((item) => (
-                                <li key={item.href}>
-                                  <Link
-                                    href={item.href}
-                                    onClick={closeMegaMenu}
-                                    className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
-                                  >
-                                    {item.label}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                          <div>
-                            <p className={megaColLabelClass}>Ressurser</p>
-                            <ul className="space-y-0.5">
-                              {ressurserLinks.map((item) => (
-                                <li key={item.href}>
-                                  {item.href.startsWith("http") ? (
-                                    <a
-                                      href={item.href}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      onClick={closeMegaMenu}
-                                      className={megaLinkClass}
-                                    >
-                                      {item.label}
-                                    </a>
-                                  ) : (
-                                    <Link
-                                      href={item.href}
-                                      onClick={closeMegaMenu}
-                                      className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
-                                    >
-                                      {item.premium ? (
-                                        <span className="inline-flex items-center gap-2 text-gold">
-                                          {isPremium ? (
-                                            <>
-                                              <Crown className="h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={1.75} aria-hidden />
-                                              <span>{item.label}</span>
-                                            </>
-                                          ) : (
-                                            <>
-                                              <span
-                                                className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C] motion-reduce:animate-none motion-safe:animate-pulse"
-                                                aria-hidden
-                                              />
-                                              <span>{item.label}</span>
-                                              <span
-                                                className="ml-1.5 rounded px-1 py-px text-[9px] font-bold text-[#0f1923]"
-                                                style={{ background: "#C9A84C" }}
-                                              >
-                                                NEW
-                                              </span>
-                                            </>
-                                          )}
-                                        </span>
-                                      ) : (
-                                        <span>{item.label}</span>
-                                      )}
-                                    </Link>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
               </>
             ) : userType === "employer" ? (
-              employerNavLinks.map((item) => <DesktopDualNavLink key={item.href} pathname={pathname} item={item} />)
+              <>
+                {premiumEmployerCenter.map((item) => (
+                  <NavRowLink key={item.href} pathname={pathname} item={item} />
+                ))}
+                <MoreMenu pathname={pathname} label="More" links={premiumEmployerMore} isOpen={moreOpen} onOpenChange={setMoreOpen} />
+              </>
             ) : (
-              candidateNavLinks.map((item) => <DesktopDualNavLink key={item.href + item.label} pathname={pathname} item={item} />)
+              <>
+                {premiumCandidateCenter.map((item) => (
+                  <NavRowLink key={item.href + item.label} pathname={pathname} item={item} />
+                ))}
+                <MoreMenu pathname={pathname} label="More" links={premiumCandidateMore} isOpen={moreOpen} onOpenChange={setMoreOpen} />
+              </>
             )}
           </nav>
 
-          <div className="hidden shrink-0 md:block">
+          <div className="hidden shrink-0 items-center gap-3 lg:flex">
             {userType === "candidate" ? (
               <Link
                 href="/candidates"
-                className="btn-gold-premium inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-[15px] font-medium text-[#0f1923] hover:bg-gold-hover"
+                className="inline-flex min-h-[40px] items-center justify-center rounded-lg bg-[#C9A84C] px-5 py-2 text-sm font-bold text-[#0D1B2A] transition hover:brightness-105"
               >
                 Create Profile
               </Link>
             ) : (
               <Link
                 href="/request"
-                className="btn-gold-premium inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-[15px] font-medium text-[#0f1923] hover:bg-gold-hover"
+                className="inline-flex min-h-[40px] items-center justify-center rounded-lg bg-[#C9A84C] px-5 py-2 text-sm font-bold text-[#0D1B2A] transition hover:brightness-105"
               >
                 Request Candidates
               </Link>
@@ -407,30 +337,30 @@ export default function Navbar() {
 
           <button
             type="button"
-            aria-label={isOpen ? "Lukk meny" : "Åpne meny"}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
             onClick={() => setIsOpen((v) => !v)}
-            className="relative flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border-0 bg-transparent lg:hidden"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-transparent text-[#C9A84C] transition hover:bg-white/[0.06] lg:hidden"
           >
             <span className="sr-only">Menu</span>
             <span className="flex h-[14px] w-[22px] flex-col justify-center gap-[5px]">
               <motion.span
-                className="block h-0.5 w-[22px] rounded-[2px] bg-[#C9A84C]"
+                className="block h-0.5 w-[22px] rounded-sm bg-current"
                 style={{ height: 2 }}
                 animate={isOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
-                transition={{ duration: 0.3, ease: DRAWER_EASE }}
+                transition={{ duration: 0.28, ease: DRAWER_EASE }}
               />
               <motion.span
-                className="block h-0.5 w-[22px] rounded-[2px] bg-[#C9A84C]"
+                className="block h-0.5 w-[22px] rounded-sm bg-current"
                 style={{ height: 2 }}
                 animate={isOpen ? { opacity: 0 } : { opacity: 1 }}
-                transition={{ duration: 0.3, ease: DRAWER_EASE }}
+                transition={{ duration: 0.2, ease: DRAWER_EASE }}
               />
               <motion.span
-                className="block h-0.5 w-[22px] rounded-[2px] bg-[#C9A84C]"
+                className="block h-0.5 w-[22px] rounded-sm bg-current"
                 style={{ height: 2 }}
                 animate={isOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
-                transition={{ duration: 0.3, ease: DRAWER_EASE }}
+                transition={{ duration: 0.28, ease: DRAWER_EASE }}
               />
             </span>
           </button>

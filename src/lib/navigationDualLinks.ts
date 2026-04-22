@@ -2,31 +2,45 @@ import type { NavigationUserType } from "@/lib/navigationUserType";
 
 export type DualNavLink = { href: string; label: string; external?: boolean };
 
-export const employerNavLinks: DualNavLink[] = [
+/** Desktop center row (max 4) — employer */
+export const premiumEmployerCenter: DualNavLink[] = [
   { href: "/request", label: "Request Candidates" },
   { href: "/become-a-partner", label: "Become a Partner" },
-  { href: "/welding-specialists", label: "Welding Specialists" },
-  { href: "/recruiter-network", label: "Recruiter Network" },
-  { href: "/partners", label: "Trusted Partners" },
   { href: "/about", label: "Om oss" },
   { href: "/contact", label: "Contact" },
 ];
 
-export const candidateNavLinks: DualNavLink[] = [
+/** Desktop “More” dropdown — employer */
+export const premiumEmployerMore: DualNavLink[] = [
+  { href: "/welding-specialists", label: "Welding Specialists" },
+  { href: "/recruiter-network", label: "Recruiter Network" },
+  { href: "/partners", label: "Trusted Partners" },
+];
+
+/** Desktop center row — candidate */
+export const premiumCandidateCenter: DualNavLink[] = [
   { href: "/for-candidates", label: "For Candidates" },
   { href: "https://jobs.arbeidmatch.no", label: "Browse Jobs", external: true },
+  { href: "/about", label: "Om oss" },
+  { href: "/contact", label: "Contact" },
+];
+
+/** Desktop “More” dropdown — candidate */
+export const premiumCandidateMore: DualNavLink[] = [
   { href: "/candidates", label: "Create Profile" },
   { href: "/non-eu-candidates", label: "Non-EU Workers" },
   { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/partners", label: "Trusted Partners" },
-  { href: "/about", label: "Om oss" },
-  { href: "/contact", label: "Contact" },
 ];
+
+/** Full lists for mobile drawer (center + more). */
+export const employerNavLinks: DualNavLink[] = [...premiumEmployerCenter, ...premiumEmployerMore];
+
+export const candidateNavLinks: DualNavLink[] = [...premiumCandidateCenter, ...premiumCandidateMore];
 
 export const neutralNavLinks: {
   href: string;
   label: string;
-  /** Persist userType then navigate */
   userType?: NavigationUserType;
 }[] = [
   { href: "/for-employers", label: "For Employers", userType: "employer" },

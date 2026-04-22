@@ -7,25 +7,28 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import { trackEvent } from "@/lib/analytics";
 import { homeUserTypeIsUnset, writeHomeUserType } from "@/lib/homeUserType";
+import { setNavigationUserType } from "@/lib/navigationUserType";
 
 const TRANSITION = { duration: 0.38, ease: [0.22, 1, 0.36, 1] as const };
+
+const WELCOME_DELAY_MS = 600;
 
 export default function HomeWelcomeUserTypeSlideup() {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
-  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const t = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       try {
-        if (homeUserTypeIsUnset()) setOpen(true);
+        if (homeUserTypeIsUnset()) {
+          setOpen(true);
+        }
       } catch {
         setOpen(true);
       }
-      setMounted(true);
-    }, 600);
-    return () => window.clearTimeout(t);
+    }, WELCOME_DELAY_MS);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -41,6 +44,7 @@ export default function HomeWelcomeUserTypeSlideup() {
     (role: "employer" | "candidate") => {
       trackEvent("home_user_type", { userType: role, source: "welcome_slideup" });
       writeHomeUserType(role);
+      setNavigationUserType(role);
       setOpen(false);
       router.push(role === "employer" ? "/for-employers" : "/for-candidates");
     },
@@ -52,8 +56,6 @@ export default function HomeWelcomeUserTypeSlideup() {
     writeHomeUserType("browsing");
     setOpen(false);
   }, []);
-
-  if (!mounted) return null;
 
   return (
     <AnimatePresence>

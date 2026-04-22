@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Building2, Calculator, GraduationCap, Home, Languages, Scale, X } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Building2, Calculator, GraduationCap, Home, Languages, Scale } from "lucide-react";
 
+import PartnerProfilePreviewModal from "@/components/partners/PartnerProfilePreviewModal";
 import { EASE_PREMIUM } from "@/lib/animationConstants";
-
-const GOLD = "#C9A84C";
 
 const PARTNER_SERVICES = [
   { id: "accounting_tax" as const, title: "Accounting & Tax Services", Icon: Calculator },
@@ -133,88 +132,17 @@ export default function PartnersPageClient() {
         </div>
       </section>
 
-      <AnimatePresence>
-        {openService ? (
-          <motion.div
-            key="partner-interest-modal"
-            role="presentation"
-            className="fixed inset-0 z-[10060] flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm"
-            initial={reduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={reduceMotion ? undefined : { opacity: 0 }}
-            transition={{ duration: reduceMotion ? 0 : 0.22 }}
-            onClick={closeModal}
-          >
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="partner-interest-title"
-              className="pointer-events-auto w-full max-w-[420px]"
-              initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={reduceMotion ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
-              transition={{ duration: reduceMotion ? 0 : 0.28, ease: EASE_PREMIUM }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="relative rounded-[20px] border border-[rgba(201,168,76,0.28)] border-t-2 border-t-[rgba(201,168,76,0.55)] bg-[#0f1923] px-8 py-9 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  aria-label="Close"
-                  className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-lg text-white/45 transition hover:bg-white/10 hover:text-white"
-                >
-                  <X className="h-5 w-5" strokeWidth={1.8} />
-                </button>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: GOLD }}>
-                  Partnership
-                </p>
-                <h2 id="partner-interest-title" className="mt-2 pr-8 text-xl font-bold text-white">
-                  {openTitle}
-                </h2>
-
-                {status === "success" ? (
-                  <p className="mt-8 text-center text-[15px] leading-relaxed text-white/85">
-                    Thank you! We&apos;ll be in touch soon.
-                  </p>
-                ) : (
-                  <>
-                    <label htmlFor="partner-interest-email" className="mt-8 block text-left text-[11px] font-semibold uppercase tracking-[0.1em] text-white/45">
-                      Enter your email address
-                    </label>
-                    <input
-                      id="partner-interest-email"
-                      type="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@company.com"
-                      className="mt-2 w-full rounded-[14px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.05)] px-4 py-3.5 text-[15px] text-white outline-none placeholder:text-white/35 focus:border-[#C9A84C] focus:bg-[rgba(255,255,255,0.07)]"
-                    />
-                    <p className="mt-3 text-center text-[12px] leading-relaxed text-white/45">
-                      We&apos;ll contact you about partnership opportunities
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => void submit()}
-                      disabled={!email.includes("@") || status === "submitting"}
-                      className="mt-6 w-full rounded-[12px] py-3.5 text-[15px] font-bold text-[#0D1B2A] transition disabled:opacity-45"
-                      style={{
-                        background: `linear-gradient(135deg, #e4cf7a 0%, ${GOLD} 45%, #a88a3a 100%)`,
-                        boxShadow: "0 6px 24px rgba(201,168,76,0.28)",
-                      }}
-                    >
-                      {status === "submitting" ? "Sending…" : "Get in touch"}
-                    </button>
-                    {status === "error" ? (
-                      <p className="mt-3 text-center text-[13px] text-red-300/90">Something went wrong. Please try again.</p>
-                    ) : null}
-                  </>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      <PartnerProfilePreviewModal
+        open={!!openService}
+        presenceKey={openService ?? "closed"}
+        reduceMotion={!!reduceMotion}
+        serviceTitle={openTitle}
+        email={email}
+        onEmailChange={setEmail}
+        onSubmit={() => void submit()}
+        onClose={closeModal}
+        status={status}
+      />
     </div>
   );
 }

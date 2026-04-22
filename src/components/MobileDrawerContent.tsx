@@ -5,7 +5,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Crown, ExternalLink, X } from "lucide-react";
 
-import { candidateNavLinks, employerNavLinks, neutralNavLinks } from "@/lib/navigationDualLinks";
+import {
+  neutralNavLinks,
+  premiumCandidateCenter,
+  premiumCandidateMore,
+  premiumEmployerCenter,
+  premiumEmployerMore,
+} from "@/lib/navigationDualLinks";
 import {
   getNavigationUserType,
   setNavigationUserType,
@@ -88,11 +94,6 @@ export default function MobileDrawerContent({
   isPremium: boolean;
 }) {
   const [userType, setUserType] = useState<NavigationUserType | null>(null);
-  const [jobAlertsOpen, setJobAlertsOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [consent, setConsent] = useState(false);
-  const [jobStatus, setJobStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-
   useEffect(() => {
     setUserType(getNavigationUserType());
     return subscribeNavigationUserType(() => setUserType(getNavigationUserType()));
@@ -108,27 +109,6 @@ export default function MobileDrawerContent({
 
   const clearUserType = () => {
     setNavigationUserType(null);
-  };
-
-  const submitJobAlerts = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!consent) return;
-    setJobStatus("loading");
-    try {
-      const res = await fetch("/api/guide-interest-signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), specialty: "general", consent: true }),
-      });
-      const data = (await res.json()) as { success?: boolean };
-      if (!res.ok || !data.success) {
-        setJobStatus("error");
-        return;
-      }
-      setJobStatus("success");
-    } catch {
-      setJobStatus("error");
-    }
   };
 
   return (
@@ -216,8 +196,14 @@ export default function MobileDrawerContent({
                 Change
               </button>
             </div>
-            <SectionLabel>Employer</SectionLabel>
-            {employerNavLinks.map((item) => (
+            <SectionLabel>Main</SectionLabel>
+            {premiumEmployerCenter.map((item) => (
+              <DrawerRowLink key={item.href} href={item.href} pathname={pathname} external={item.external} onClose={onClose}>
+                {item.label}
+              </DrawerRowLink>
+            ))}
+            <SectionLabel>More</SectionLabel>
+            {premiumEmployerMore.map((item) => (
               <DrawerRowLink key={item.href} href={item.href} pathname={pathname} external={item.external} onClose={onClose}>
                 {item.label}
               </DrawerRowLink>
@@ -249,61 +235,27 @@ export default function MobileDrawerContent({
                 Change
               </button>
             </div>
-            <SectionLabel>Candidate</SectionLabel>
-            {candidateNavLinks.map((item) => (
+            <SectionLabel>Main</SectionLabel>
+            {premiumCandidateCenter.map((item) => (
+              <DrawerRowLink key={item.href + item.label} href={item.href} pathname={pathname} external={item.external} onClose={onClose}>
+                {item.label}
+              </DrawerRowLink>
+            ))}
+            <SectionLabel>More</SectionLabel>
+            {premiumCandidateMore.map((item) => (
               <DrawerRowLink key={item.href + item.label} href={item.href} pathname={pathname} external={item.external} onClose={onClose}>
                 {item.label}
               </DrawerRowLink>
             ))}
             <div className="border-t border-white/[0.06] px-6 py-5">
-              <button
-                type="button"
-                onClick={() => setJobAlertsOpen((o) => !o)}
+              <Link
+                href="/candidates"
+                onClick={onClose}
                 className="block w-full rounded-[10px] py-3.5 text-center text-[14px] font-bold text-[#0f1923]"
                 style={{ background: GOLD }}
               >
-                Register for job alerts
-              </button>
-              {jobAlertsOpen ? (
-                <div className="mt-4 overflow-hidden">
-                  {jobStatus === "success" ? (
-                    <p className="text-[13px]" style={{ color: GOLD }}>
-                      You are on the list. We will be in touch.
-                    </p>
-                  ) : (
-                    <form onSubmit={submitJobAlerts}>
-                      <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Your email address"
-                        className="w-full rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-[14px] py-2.5 text-[13px] text-white placeholder:text-white/40"
-                      />
-                      <label className="mt-2 flex cursor-pointer items-start gap-2 text-[12px] text-white/[0.55]">
-                        <input
-                          type="checkbox"
-                          checked={consent}
-                          onChange={(e) => setConsent(e.target.checked)}
-                          className="mt-0.5 shrink-0"
-                        />
-                        <span>I agree to receive job alerts from ArbeidMatch</span>
-                      </label>
-                      <button
-                        type="submit"
-                        disabled={jobStatus === "loading"}
-                        className="mt-3 w-full rounded-[8px] py-3 text-[14px] font-bold text-[#0f1923] disabled:opacity-60"
-                        style={{ background: GOLD }}
-                      >
-                        Sign me up
-                      </button>
-                      {jobStatus === "error" ? (
-                        <p className="mt-2 text-[13px] text-red-400">Something went wrong. Please try again.</p>
-                      ) : null}
-                    </form>
-                  )}
-                </div>
-              ) : null}
+                Create Profile
+              </Link>
             </div>
           </>
         ) : null}
