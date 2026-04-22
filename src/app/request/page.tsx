@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Bolt, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
 
@@ -56,7 +56,6 @@ const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "yahoo.com", "hotmail.com", "ou
 
 export default function RequestPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [checkState, setCheckState] = useState<"idle" | "searching" | "result">("idle");
   const [selectedIndustry, setSelectedIndustry] = useState("");
   const [roleQuery, setRoleQuery] = useState("");
@@ -140,7 +139,8 @@ export default function RequestPage() {
 
   useEffect(() => {
     if (hasAutoStartedRoleCheck.current) return;
-    const roleFromQuery = (searchParams.get("role") || "").trim();
+    if (typeof window === "undefined") return;
+    const roleFromQuery = (new URLSearchParams(window.location.search).get("role") || "").trim();
     if (!roleFromQuery) return;
 
     const matchingIndustry = CHECK_ROLE_GROUPS.find((group) =>
@@ -153,7 +153,7 @@ export default function RequestPage() {
     setRoleQuery(roleFromQuery);
     hasAutoStartedRoleCheck.current = true;
     void runCandidateSearch(roleFromQuery);
-  }, [searchParams]);
+  }, []);
 
   const verifyAccess = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
