@@ -793,8 +793,8 @@ export default function CandidateProfileWizard({
               <p className="mt-4 text-sm leading-relaxed text-white/70">
                 We process your data to operate recruitment matching for Norwegian employers. You can withdraw consent later by
                 contacting{" "}
-                <a className="text-[#C9A84C] hover:underline" href="mailto:post@arbeidmatch.no">
-                  post@arbeidmatch.no
+                <a className="text-[#C9A84C] hover:underline" href="mailto:support@arbeidmatch.no">
+                  support@arbeidmatch.no
                 </a>
                 .
               </p>
