@@ -121,9 +121,14 @@ function isRequirementsContentAbsorbedByDescription(description: string, require
 }
 
 function isRequirementsDuplicateOfDescription(description: string, requirements?: string[] | string | null): boolean {
-  const req = normalizeComparableText(requirementsPlainText(requirements));
+  const reqJoined = requirementsPlainText(requirements);
+  const req = normalizeComparableText(reqJoined);
   if (!req) return false;
-  return normalizeComparableText(description) === req;
+  const desc = normalizeComparableText(description);
+  if (desc === req) return true;
+  const dPlain = plainTextFromMarkdown(description);
+  const rPlain = plainTextFromMarkdown(reqJoined);
+  return rPlain.length >= 30 && dPlain === rPlain;
 }
 
 function formatJobLocationHeadline(location: string): string {
