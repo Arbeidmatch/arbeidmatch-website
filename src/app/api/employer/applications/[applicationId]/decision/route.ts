@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { noStoreJson } from "@/lib/apiSecurity";
+import { insertAuditLog } from "@/lib/audit/masterAuditLog";
 import { logApiError } from "@/lib/secureLogger";
 import {
   sendCandidateAcceptedEmail,
@@ -114,11 +115,25 @@ export async function POST(request: NextRequest, context: RouteContext) {
           reason: parsed.data.reason,
           details: parsed.data.details,
         });
+        void insertAuditLog({
+          eventType: "email_sent_candidate_rejection_feedback",
+          entityType: "email",
+          entityId: applicationId,
+          actor: "system",
+          metadata: {},
+        });
       }
     } catch (e) {
       logApiError("/api/employer/applications decision reject mail", e, { applicationId });
     }
 
+    void insertAuditLog({
+      eventType: "employer_rejected_candidate",
+      entityType: "application",
+      entityId: applicationId,
+      actor: "employer",
+      metadata: { reason: parsed.data.reason },
+    });
     return noStoreJson({ success: true });
   }
 
@@ -145,9 +160,24 @@ export async function POST(request: NextRequest, context: RouteContext) {
       jobTitle: row.job_title,
       mode: parsed.data.action === "accept_hire" ? "hire" : "interview",
     });
+    void insertAuditLog({
+      eventType: "email_sent_candidate_accepted",
+      entityType: "email",
+      entityId: applicationId,
+      actor: "system",
+      metadata: { mode: parsed.data.action },
+    });
   } catch (e) {
     logApiError("/api/employer/applications decision accept mail", e, { applicationId });
   }
+
+  void insertAuditLog({
+    eventType: "employer_accepted_candidate_stage2_unlocked",
+    entityType: "application",
+    entityId: applicationId,
+    actor: "employer",
+    metadata: { decision },
+  });
 
   return noStoreJson({ success: true });
 }

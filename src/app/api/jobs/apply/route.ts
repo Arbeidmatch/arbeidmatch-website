@@ -5,6 +5,7 @@ import { notifyError } from "@/lib/errorNotifier";
 import { jobApplicationSchema } from "@/lib/jobs/application";
 import { getJobBySlug, getSupabaseAdminClient } from "@/lib/jobs/applyService";
 import { isRateLimited } from "@/lib/requestProtection";
+import { insertAuditLog } from "@/lib/audit/masterAuditLog";
 import { logApiError } from "@/lib/secureLogger";
 import { candidateProfilePayloadSchema } from "@/lib/candidates/profileSchema";
 import { computeJobMatchScore } from "@/lib/candidates/jobMatchScore";
@@ -283,10 +284,27 @@ export async function POST(request: NextRequest) {
         ? insertRes.data[0].id
         : null;
 
+    if (newApplicationId) {
+      void insertAuditLog({
+        eventType: "candidate_applied_to_job",
+        entityType: "application",
+        entityId: newApplicationId,
+        actor: "candidate",
+        metadata: { jobSlug: job.slug, jobSource: job.source, matchScore: matchScore },
+      });
+    }
+
     try {
       await sendCandidateApplicationReceivedEmail({
         to: parsedPayload.data.email.trim(),
         jobTitle: job.title,
+      });
+      void insertAuditLog({
+        eventType: "email_sent_candidate_application_received",
+        entityType: "email",
+        entityId: newApplicationId,
+        actor: "system",
+        metadata: { jobSlug: job.slug },
       });
       if (employerInbox && newApplicationId && employerAccessToken && job.source === "employer_board") {
         await sendEmployerNewCandidateEmail({
@@ -294,6 +312,13 @@ export async function POST(request: NextRequest) {
           applicationId: newApplicationId,
           token: employerAccessToken,
           jobTitle: job.title,
+        });
+        void insertAuditLog({
+          eventType: "email_sent_employer_new_candidate",
+          entityType: "email",
+          entityId: newApplicationId,
+          actor: "system",
+          metadata: { jobSlug: job.slug },
         });
       }
     } catch (mailErr) {

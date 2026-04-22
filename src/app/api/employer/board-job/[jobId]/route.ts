@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { insertAuditLog } from "@/lib/audit/masterAuditLog";
 import { getEmployerDraftJobForEdit, updateEmployerBoardJobById } from "@/lib/employer-flow/employerJobsRepository";
 import { noStoreJson } from "@/lib/apiSecurity";
 
@@ -12,7 +13,7 @@ const patchBodySchema = z.object({
   requirements: z.string().trim().min(1).max(10000),
   salaryMin: z.union([z.number(), z.null()]).optional(),
   salaryMax: z.union([z.number(), z.null()]).optional(),
-  status: z.enum(["draft", "live", "closed"]),
+  status: z.enum(["draft", "live", "closed", "archived"]),
 });
 
 export async function GET(request: NextRequest, context: RouteContext) {
@@ -79,6 +80,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (!result.ok) {
     return noStoreJson({ error: result.reason }, { status: 400 });
   }
+
+  void insertAuditLog({
+    eventType: "job_post_edited",
+    entityType: "job",
+    entityId: jobId,
+    actor: "admin",
+    metadata: { status: parsed.data.status },
+  });
 
   return noStoreJson({ success: true });
 }

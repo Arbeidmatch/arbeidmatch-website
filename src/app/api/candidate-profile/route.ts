@@ -5,6 +5,7 @@ import { candidateProfilePayloadSchema } from "@/lib/candidates/profileSchema";
 import { getSupabaseAdminClient } from "@/lib/jobs/applyService";
 import { notifyError } from "@/lib/errorNotifier";
 import { isRateLimited } from "@/lib/requestProtection";
+import { insertAuditLog } from "@/lib/audit/masterAuditLog";
 import { logApiError } from "@/lib/secureLogger";
 
 function experienceYearsFromBand(band: z.infer<typeof candidateProfilePayloadSchema>["preferences"]["experienceBand"]): number {
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
-    const upsert = await supabase.from("candidates").upsert(row, { onConflict: "email" });
+    const upsert = await supabase.from("candidates").upsert(row, { onConflict: "email" }).select("id").maybeSingle();
     if (upsert.error) {
       logApiError("/api/candidate-profile upsert", upsert.error);
       return NextResponse.json(
@@ -99,6 +100,15 @@ export async function POST(request: NextRequest) {
         { status: 500 },
       );
     }
+
+    const cid = upsert.data && typeof (upsert.data as { id?: string }).id === "string" ? (upsert.data as { id: string }).id : null;
+    void insertAuditLog({
+      eventType: "candidate_profile_completed",
+      entityType: "candidate",
+      entityId: cid,
+      actor: "candidate",
+      metadata: { email: data.email },
+    });
 
     return NextResponse.json({ success: true, shareWithEmployers: data.shareWithEmployers });
   } catch (error) {

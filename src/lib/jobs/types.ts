@@ -4,7 +4,7 @@ export type EmployerBoardMeta = {
   mappedJobType: string | null;
   salaryMin: number | null;
   salaryMax: number | null;
-  listingStatus?: "draft" | "live" | "closed";
+  listingStatus?: "draft" | "live" | "closed" | "archived";
   hours: string | null;
   rotation: string | null;
   licenseRequired: boolean;

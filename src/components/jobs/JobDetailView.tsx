@@ -221,11 +221,12 @@ function MarkdownSection({
   );
 }
 
-type ListingBoardStatus = "draft" | "live" | "closed";
+type ListingBoardStatus = "draft" | "live" | "closed" | "archived";
 
 function defaultListingStatus(job: JobRecord): ListingBoardStatus {
   const fromMeta = job.employerBoardMeta?.listingStatus;
-  if (fromMeta === "draft" || fromMeta === "live" || fromMeta === "closed") return fromMeta;
+  if (fromMeta === "draft" || fromMeta === "live" || fromMeta === "closed" || fromMeta === "archived") return fromMeta;
+  if (job.status === "archived") return "archived";
   if (job.status === "closed") return "closed";
   if (job.status === "draft") return "draft";
   return "live";
@@ -464,6 +465,7 @@ export default function JobDetailView({
           <option value="draft">draft</option>
           <option value="live">live</option>
           <option value="closed">closed</option>
+          <option value="archived">archived</option>
         </select>
       ),
     };
