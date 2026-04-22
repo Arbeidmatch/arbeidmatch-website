@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isEeaCandidatePhone, isEeaResidenceCountryName } from "@/lib/candidates/euEeaCandidateGeo";
+
 export const jobTypeSchema = z.enum(["Offshore", "Onshore", "Transport", "Automotive"]);
 export const jobTypes = jobTypeSchema.options;
 
@@ -49,8 +51,15 @@ export const candidateProfilePayloadSchema = z.object({
   email: z.string().trim().email(),
   firstName: z.string().trim().min(2),
   lastName: z.string().trim().min(2),
-  phone: z.string().trim().min(6),
-  currentCountry: z.string().trim().min(2),
+  phone: z
+    .string()
+    .trim()
+    .refine((v) => v.replace(/[\s-]/g, "").length >= 8, { message: "Phone is too short." })
+    .refine(isEeaCandidatePhone, { message: "Phone must use an EU/EEA country code." }),
+  currentCountry: z
+    .string()
+    .trim()
+    .refine(isEeaResidenceCountryName, { message: "Country of residence must be in the EU or EEA." }),
   city: z.string().trim().min(2),
   gdprEntryAccepted: z.literal(true),
   privacyPolicyVersion: z.string().trim().min(1).optional(),

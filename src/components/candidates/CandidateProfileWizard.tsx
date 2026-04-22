@@ -16,6 +16,15 @@ import {
   rotationPrefs,
   salaryHourlyOptions,
 } from "@/lib/candidates/profileSchema";
+import {
+  DEFAULT_EEA_DIAL_PREFIX,
+  OUTSIDE_EEA_RESIDENCE_VALUE,
+  buildEeaPhone,
+  eeaDialOptionsSortedByCountry,
+  isEeaCandidatePhone,
+  isEeaResidenceCountryName,
+  splitEeaPhoneToParts,
+} from "@/lib/candidates/euEeaCandidateGeo";
 
 type Mode = "choose" | "wizard";
 
@@ -141,8 +150,11 @@ export default function CandidateProfileWizard({
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState(() => (initialEmailHint?.includes("@") ? initialEmailHint.trim() : ""));
-  const [phone, setPhone] = useState("");
+  const [phoneDial, setPhoneDial] = useState<string>(DEFAULT_EEA_DIAL_PREFIX);
+  const [phoneNational, setPhoneNational] = useState("");
   const [currentCountry, setCurrentCountry] = useState("");
+  const [outsideRedirectPending, setOutsideRedirectPending] = useState(false);
+  const fullPhone = useMemo(() => buildEeaPhone(phoneDial, phoneNational), [phoneDial, phoneNational]);
   const [city, setCity] = useState("");
 
   const [jobType, setJobType] = useState<JobPreferencesPayload["jobType"] | null>(null);
@@ -177,7 +189,7 @@ export default function CandidateProfileWizard({
       firstName,
       lastName,
       email: email.trim().toLowerCase(),
-      phone,
+      phone: fullPhone,
       currentCountry,
       city,
       jobType,
@@ -197,6 +209,7 @@ export default function CandidateProfileWizard({
     email,
     experienceBand,
     firstName,
+    fullPhone,
     gdprEntryAccepted,
     hasDriverLicense,
     housing,
@@ -204,7 +217,6 @@ export default function CandidateProfileWizard({
     jobType,
     lastName,
     licenseCategories,
-    phone,
     rotation,
     salaryHourly,
     shareWithEmployers,
@@ -218,8 +230,10 @@ export default function CandidateProfileWizard({
     setFirstName("");
     setLastName("");
     setEmail("");
-    setPhone("");
+    setPhoneDial(DEFAULT_EEA_DIAL_PREFIX);
+    setPhoneNational("");
     setCurrentCountry("");
+    setOutsideRedirectPending(false);
     setCity("");
     setJobType(null);
     setExperienceBand(null);
@@ -294,7 +308,7 @@ export default function CandidateProfileWizard({
       email: email.trim(),
       firstName,
       lastName,
-      phone,
+      phone: fullPhone,
       currentCountry,
       city,
       preferences,
@@ -375,8 +389,14 @@ export default function CandidateProfileWizard({
         if (typeof d.firstName === "string") setFirstName(d.firstName);
         if (typeof d.lastName === "string") setLastName(d.lastName);
         if (typeof d.email === "string") setEmail(d.email);
-        if (typeof d.phone === "string") setPhone(d.phone);
-        if (typeof d.currentCountry === "string") setCurrentCountry(d.currentCountry);
+        if (typeof d.phone === "string") {
+          const parts = splitEeaPhoneToParts(d.phone);
+          setPhoneDial(parts.dial);
+          setPhoneNational(parts.nationalDigits);
+        }
+        if (typeof d.currentCountry === "string") {
+          setCurrentCountry(isEeaResidenceCountryName(d.currentCountry) ? d.currentCountry : "");
+        }
         if (typeof d.city === "string") setCity(d.city);
         if (typeof d.videoUrl === "string") setVideoUrl(d.videoUrl);
         if (jobTypes.includes(d.jobType as JobPreferencesPayload["jobType"])) {
@@ -465,12 +485,15 @@ export default function CandidateProfileWizard({
   const stepTitle = STEP_TITLES[wizardStep - 1] ?? "Profile";
 
   function gdprFormValid(): boolean {
+    if (currentCountry === OUTSIDE_EEA_RESIDENCE_VALUE) return false;
+    const nationalOk = phoneNational.replace(/\D/g, "").length >= 6;
     return (
       gdprEntryAccepted &&
       email.trim().includes("@") &&
       firstName.trim().length >= 2 &&
       lastName.trim().length >= 2 &&
-      phone.trim().length >= 6 &&
+      nationalOk &&
+      isEeaCandidatePhone(fullPhone) &&
       currentCountry.trim().length >= 2 &&
       city.trim().length >= 2
     );
@@ -480,6 +503,14 @@ export default function CandidateProfileWizard({
     if (!gdprFormValid()) return;
     window.localStorage.setItem("am_candidate_profile_email", email.trim().toLowerCase());
     setShowGdprEntry(false);
+  }
+
+  function startOutsideEeaRedirect() {
+    if (outsideRedirectPending) return;
+    setOutsideRedirectPending(true);
+    window.setTimeout(() => {
+      window.location.assign("/non-eu-candidates");
+    }, 2200);
   }
 
   if (entryMode === "complete-only" && tokenTrim && resumeBoot === "loading") {
@@ -853,45 +884,130 @@ export default function CandidateProfileWizard({
                 <GdprInput label="First name" value={firstName} onChange={setFirstName} autoComplete="given-name" />
                 <GdprInput label="Last name" value={lastName} onChange={setLastName} autoComplete="family-name" />
                 <GdprInput label="Email" type="email" value={email} onChange={setEmail} className="sm:col-span-2" autoComplete="email" />
-                <GdprInput label="Phone" value={phone} onChange={setPhone} autoComplete="tel" />
-                <GdprInput label="Current country" value={currentCountry} onChange={setCurrentCountry} autoComplete="country-name" />
-                <GdprInput label="City" value={city} onChange={setCity} className="sm:col-span-2" autoComplete="address-level2" />
+
+                <label className="flex flex-col gap-2 text-sm text-white/80 sm:col-span-2">
+                  <span className="font-medium text-white">Country of residence</span>
+                  <span className="text-xs font-normal leading-snug text-white/55">
+                    Candidate registration on ArbeidMatch is for people who live in the EU or EEA.
+                  </span>
+                  <select
+                    value={currentCountry}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setCurrentCountry(v);
+                      if (v !== OUTSIDE_EEA_RESIDENCE_VALUE) setOutsideRedirectPending(false);
+                    }}
+                    className="min-h-[48px] w-full rounded-[10px] border border-white/15 bg-[#0D1B2A] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)]"
+                    autoComplete="country"
+                  >
+                    <option value="">Select your country</option>
+                    {eeaDialOptionsSortedByCountry().map((c) => (
+                      <option key={c.iso} value={c.country}>
+                        {c.country}
+                      </option>
+                    ))}
+                    <option value={OUTSIDE_EEA_RESIDENCE_VALUE}>I live outside the EU / EEA</option>
+                  </select>
+                </label>
+
+                {currentCountry === OUTSIDE_EEA_RESIDENCE_VALUE ? (
+                  <div className="space-y-4 rounded-[12px] border border-amber-400/35 bg-amber-500/[0.09] p-4 sm:col-span-2">
+                    <p className="text-sm leading-relaxed text-white/90">
+                      Thank you for your interest. This candidate path is reserved for residents inside the EU or European
+                      Economic Area. In a moment we will open a page with DSB-focused guides that explain how international
+                      hiring and compliance work in Norway.
+                    </p>
+                    {outsideRedirectPending ? (
+                      <p className="text-sm font-medium text-[#C9A84C]" role="status" aria-live="polite">
+                        Taking you to the international candidate page…
+                      </p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={startOutsideEeaRedirect}
+                        className="inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-[12px] bg-[#C9A84C] px-5 text-sm font-bold text-[#0D1B2A] shadow-[0_8px_22px_rgba(201,168,76,0.25)] transition-colors hover:bg-[#b8953f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/75 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0F18]"
+                      >
+                        Continue to international information
+                      </button>
+                    )}
+                  </div>
+                ) : currentCountry ? (
+                  <>
+                    <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-stretch">
+                      <label className="flex min-w-0 flex-1 flex-col gap-2 text-sm text-white/80">
+                        <span className="font-medium text-white">Phone (EU / EEA prefix)</span>
+                        <select
+                          value={phoneDial}
+                          onChange={(e) => setPhoneDial(e.target.value)}
+                          className="min-h-[48px] w-full rounded-[10px] border border-white/15 bg-[#0D1B2A] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)]"
+                        >
+                          {eeaDialOptionsSortedByCountry().map((c) => (
+                            <option key={`dial-${c.iso}`} value={c.dial}>
+                              {c.dial} · {c.country}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="flex min-w-0 flex-[1.4] flex-col gap-2 text-sm text-white/80">
+                        <span className="font-medium text-white">Mobile number</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="tel-national"
+                          value={phoneNational}
+                          onChange={(e) => setPhoneNational(e.target.value.replace(/\D/g, ""))}
+                          placeholder="Digits only, no leading 0"
+                          className="min-h-[48px] w-full rounded-[10px] border border-white/15 bg-[#0D1B2A] px-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-[rgba(201,168,76,0.45)]"
+                        />
+                      </label>
+                    </div>
+                    <GdprInput label="City" value={city} onChange={setCity} className="sm:col-span-2" autoComplete="address-level2" />
+                  </>
+                ) : null}
               </div>
 
-              <label className="mt-5 flex min-h-[48px] cursor-pointer items-start gap-3 rounded-[12px] border border-white/12 bg-[#0D1B2A] p-4 text-sm text-white/75 focus-within:ring-2 focus-within:ring-[#C9A84C]/45">
-                <input
-                  type="checkbox"
-                  checked={gdprEntryAccepted}
-                  onChange={(event) => setGdprEntryAccepted(event.target.checked)}
-                  className="mt-1 h-5 w-5 shrink-0 rounded border-white/30 accent-[#C9A84C] focus-visible:outline-none"
-                />
-                <span>
-                  I agree to the processing of my personal data according to the{" "}
-                  <Link href="/privacy" className="font-semibold text-[#C9A84C] hover:underline">
-                    Privacy Policy
-                  </Link>
-                  .
-                </span>
-              </label>
+              {currentCountry && currentCountry !== OUTSIDE_EEA_RESIDENCE_VALUE ? (
+                <label className="mt-5 flex min-h-[48px] cursor-pointer items-start gap-3 rounded-[12px] border border-white/12 bg-[#0D1B2A] p-4 text-sm text-white/75 focus-within:ring-2 focus-within:ring-[#C9A84C]/45">
+                  <input
+                    type="checkbox"
+                    checked={gdprEntryAccepted}
+                    onChange={(event) => setGdprEntryAccepted(event.target.checked)}
+                    className="mt-1 h-5 w-5 shrink-0 rounded border-white/30 accent-[#C9A84C] focus-visible:outline-none"
+                  />
+                  <span>
+                    I agree to the processing of my personal data according to the{" "}
+                    <Link href="/privacy" className="font-semibold text-[#C9A84C] hover:underline">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </span>
+                </label>
+              ) : null}
               <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => {
                     setMode("choose");
                     setShowGdprEntry(false);
+                    setOutsideRedirectPending(false);
+                    setCurrentCountry("");
+                    setPhoneDial(DEFAULT_EEA_DIAL_PREFIX);
+                    setPhoneNational("");
                   }}
                   className="min-h-[48px] w-full touch-manipulation rounded-[12px] border border-white/18 px-5 text-sm font-semibold text-white/80 hover:border-[#C9A84C]/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 sm:w-auto"
                 >
                   Cancel
                 </button>
-                <button
-                  type="button"
-                  disabled={!gdprFormValid()}
-                  onClick={dismissGdpr}
-                  className="min-h-[48px] w-full touch-manipulation rounded-[12px] bg-[#C9A84C] px-6 text-sm font-bold text-[#0D1B2A] shadow-[0_8px_22px_rgba(201,168,76,0.25)] hover:bg-[#b8953f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/75 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0F18] disabled:pointer-events-none disabled:opacity-50 sm:w-auto"
-                >
-                  Continue
-                </button>
+                {currentCountry !== OUTSIDE_EEA_RESIDENCE_VALUE ? (
+                  <button
+                    type="button"
+                    disabled={!gdprFormValid()}
+                    onClick={dismissGdpr}
+                    className="min-h-[48px] w-full touch-manipulation rounded-[12px] bg-[#C9A84C] px-6 text-sm font-bold text-[#0D1B2A] shadow-[0_8px_22px_rgba(201,168,76,0.25)] hover:bg-[#b8953f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/75 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0F18] disabled:pointer-events-none disabled:opacity-50 sm:w-auto"
+                  >
+                    Continue
+                  </button>
+                ) : null}
               </div>
             </motion.div>
           </motion.div>

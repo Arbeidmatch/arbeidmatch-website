@@ -30,7 +30,7 @@ function experienceBandLabel(band: JobPreferencesPayload["experienceBand"]): str
   }
 }
 
-export function buildSyntheticExperiences(prefs: JobPreferencesPayload): WorkExperiencePayload[] {
+export function buildSyntheticExperiences(prefs: JobPreferencesPayload, residenceCountry: string): WorkExperiencePayload[] {
   const y = new Date().getFullYear();
   const start = y - experienceBandApproxYears(prefs.experienceBand);
   const bandText = experienceBandLabel(prefs.experienceBand);
@@ -40,7 +40,7 @@ export function buildSyntheticExperiences(prefs: JobPreferencesPayload): WorkExp
   return [
     {
       companyName: "Various employers",
-      country: "Norway",
+      country: residenceCountry.trim() || "Norway",
       orgNumber: "",
       jobTitle: `${prefs.jobType} specialist`,
       fromMonth: "Jan",
@@ -96,7 +96,7 @@ export function buildCandidateProfilePayload(input: {
     gdprEntryAccepted: true,
     privacyPolicyVersion: "2026-04-22",
     videoUrl: input.videoUrl.trim(),
-    experiences: buildSyntheticExperiences(input.preferences),
+    experiences: buildSyntheticExperiences(input.preferences, input.currentCountry),
     preferences: input.preferences,
     shareWithEmployers: input.shareWithEmployers,
   };
