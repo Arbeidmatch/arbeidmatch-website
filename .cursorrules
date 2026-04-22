@@ -190,6 +190,13 @@ LOW:
 11. Portal resurse gratuite candidati
 12. ComingSoonCapture pe linkuri inactive
 
+## COMPLETAT
+
+- 2026-04-22: Issue #7, fix formular /contact:
+  - validare client-side pentru campuri obligatorii (name, company, email, message, needOther)
+  - mesaje de eroare inline pe camp
+  - stil select/dropdown aliniat la design system (bg rgba(255,255,255,0.04), border rgba(201,168,76,0.15), radius 12, text alb, fara box-shadow)
+
 ACTIUNI MANUALE NECESARE:
 - Supabase SQL Editor: ruleaza supabase/request_and_lead_tables.sql
 - Vercel Analytics: activeaza
