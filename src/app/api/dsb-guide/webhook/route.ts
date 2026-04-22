@@ -129,7 +129,9 @@ export async function POST(request: NextRequest) {
 
     const baseUrl = getPublicBaseUrl();
     const pathSlug = slug === "non-eu" ? "non-eu" : "eu";
-    const accessLink = token ? `${baseUrl}/dsb-guide/${pathSlug}?token=${encodeURIComponent(token)}` : `${baseUrl}/dsb-support`;
+    const accessLink = token
+      ? `${baseUrl}/dsb-guide/${pathSlug}?token=${encodeURIComponent(token)}`
+      : `${baseUrl}/electricians-norway?section=dsb`;
 
     const smtpPass = process.env.SMTP_PASS;
     if (!smtpPass) {

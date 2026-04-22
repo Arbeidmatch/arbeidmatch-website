@@ -50,6 +50,6 @@ export default async function DsbSupportVerifyPage({
       throw error;
     }
     console.error("[Verify Page] Unexpected error:", error);
-    redirect("/dsb-support?error=verify_error");
+    redirect("/electricians-norway?section=dsb&error=verify_error");
   }
 }

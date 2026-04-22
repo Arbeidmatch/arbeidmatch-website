@@ -23,8 +23,6 @@ import BemanningCard from "@/components/home/BemanningCard";
 import RoleSelector from "@/components/onboarding/RoleSelector";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 import ScrollReveal, { ScrollRevealGrid } from "@/components/ScrollReveal";
-import ComingSoonCapture from "@/components/ui/ComingSoonCapture";
-
 const HERO_DURATION = 0.78;
 
 type Props = {
@@ -35,8 +33,6 @@ type Props = {
 export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Props) {
   const reduce = useReducedMotion();
   const [sessionRoleBanner, setSessionRoleBanner] = useState<null | "employer" | "candidate">(null);
-  const [comingSoonFeature, setComingSoonFeature] = useState<string | null>(null);
-
   useEffect(() => {
     try {
       const v = window.sessionStorage.getItem("roleSelected");
@@ -253,13 +249,12 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
             </ScrollReveal>
           </div>
           <ScrollReveal variant="fadeUp" className="mt-14 text-center">
-            <button
-              type="button"
-              onClick={() => setComingSoonFeature("dsb-authorization-guide")}
+            <Link
+              href="/electricians-norway?section=dsb"
               className="text-[13px] font-medium tracking-wide text-white/45 transition-colors hover:text-[#C9A84C]/90"
             >
-              Electrician DSB authorization support — coming soon
-            </button>
+              Electrician DSB authorization guide →
+            </Link>
           </ScrollReveal>
         </div>
       </section>
@@ -362,9 +357,6 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           </ScrollReveal>
         </div>
       </section>
-      {comingSoonFeature ? (
-        <ComingSoonCapture featureName={comingSoonFeature} isOpen onClose={() => setComingSoonFeature(null)} />
-      ) : null}
     </div>
   );
 }

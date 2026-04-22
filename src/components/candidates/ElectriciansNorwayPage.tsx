@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import Link from "next/link";
+import { useEffect, type ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
 import { Briefcase, Clock, FileCheck } from "lucide-react";
 
 import SourceDisclaimer from "@/components/ui/SourceDisclaimer";
-import ComingSoonCapture from "@/components/ui/ComingSoonCapture";
 
 const GOLD = "#C9A84C";
 const NAVY = "#0f1923";
 const ARBEIDSTILSYNET_MIN =
   "https://www.arbeidstilsynet.no/en/pay-and-engagement-of-employees/pay-and-minimum-rates-of-pay/minimum-wage/";
 
-function InlineRegisterBlock({ onPrimaryDsb }: { onPrimaryDsb: () => void }) {
+function InlineRegisterBlock() {
   return (
     <div className="mt-8 w-full max-w-2xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
@@ -28,9 +29,8 @@ function InlineRegisterBlock({ onPrimaryDsb }: { onPrimaryDsb: () => void }) {
         >
           Register for job alerts
         </a>
-        <button
-          type="button"
-          onClick={onPrimaryDsb}
+        <Link
+          href="#dsb-authorization-guide"
           className="inline-flex min-h-[48px] items-center justify-center rounded-[10px] border bg-transparent px-8 py-3.5 text-[15px] font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:bg-[rgba(201,168,76,0.1)]"
           style={{
             color: "rgba(201,168,76,0.95)",
@@ -39,8 +39,8 @@ function InlineRegisterBlock({ onPrimaryDsb }: { onPrimaryDsb: () => void }) {
             animation: "softGlow 4.5s ease-in-out infinite",
           }}
         >
-          Get the Full DSB Guide
-        </button>
+          Full DSB Authorization Guide
+        </Link>
       </div>
       <style jsx>{`
         @keyframes premiumPulse {
@@ -93,7 +93,13 @@ function RequirementCard({
 }
 
 export default function ElectriciansNorwayPage() {
-  const [comingSoonFeature, setComingSoonFeature] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("section") !== "dsb") return;
+    const el = document.getElementById("dsb-authorization-guide");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [searchParams]);
 
   return (
     <main>
@@ -116,7 +122,7 @@ export default function ElectriciansNorwayPage() {
             Norway has strong demand for qualified electricians. As an EU/EEA citizen, you have the right to apply for legal
             employment. Here is what you need to know before you start.
           </p>
-          <InlineRegisterBlock onPrimaryDsb={() => setComingSoonFeature("dsb-authorization-guide")} />
+          <InlineRegisterBlock />
         </div>
       </section>
 
@@ -263,14 +269,13 @@ export default function ElectriciansNorwayPage() {
               requirements, and additional authorizations for datacenter or naval work are covered in our detailed DSB
               Authorization Guide.
             </p>
-            <button
-              type="button"
-              onClick={() => setComingSoonFeature("dsb-authorization-guide")}
-              className="mt-4 inline-flex items-center justify-center rounded-[8px] px-6 py-3 text-[14px] font-bold text-[#0f1923]"
+            <Link
+              href="#dsb-authorization-guide"
+              className="mt-4 inline-flex items-center justify-center rounded-[8px] px-6 py-3 text-[14px] font-bold text-[#0f1923] transition hover:brightness-110"
               style={{ background: GOLD }}
             >
-              Get the Full Guide, Coming soon
-            </button>
+              Open full DSB guide on this page
+            </Link>
           </div>
         </div>
       </section>
@@ -309,9 +314,6 @@ export default function ElectriciansNorwayPage() {
           </div>
         </div>
       </section>
-      {comingSoonFeature ? (
-        <ComingSoonCapture featureName={comingSoonFeature} isOpen onClose={() => setComingSoonFeature(null)} />
-      ) : null}
     </main>
   );
 }

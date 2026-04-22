@@ -8,8 +8,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Crown } from "lucide-react";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
-import ComingSoonCapture from "@/components/ui/ComingSoonCapture";
-
 const tjenesterStaffingLink = { href: "/for-staffing-agencies", label: "For bemanningsbyråer" } as const;
 
 const tjenesterIndustryLinks = [
@@ -29,13 +27,12 @@ const stederLinks = [
   { href: "/bemanningsbyrå-kristiansand", label: "Kristiansand" },
 ];
 
-const ressurserLinks: { href: string; label: string; premium?: boolean; comingSoon?: boolean }[] = [
+const ressurserLinks: { href: string; label: string; premium?: boolean }[] = [
   { href: "https://jobs.arbeidmatch.no", label: "Open Jobs" },
   { href: "/electricians-norway", label: "Electricians in Norway" },
   { href: "/outside-eu-eea", label: "Non-EU Workers" },
   { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/premium", label: "Premium Guides", premium: true },
-  { href: "#", label: "DSB Authorization Guide", comingSoon: true },
   { href: "/about", label: "Om oss" },
   { href: "/partners", label: "Partners" },
   { href: "/blog", label: "Blog" },
@@ -76,8 +73,6 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
-  const [comingSoonFeature, setComingSoonFeature] = useState<string | null>(null);
-
   useEffect(() => {
     startTransition(() => setMounted(true));
   }, []);
@@ -267,29 +262,12 @@ export default function Navbar() {
                       <ul className="space-y-0.5">
                         {ressurserLinks.map((item) => (
                           <li key={item.href}>
-                            {item.comingSoon ? (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  closeMegaMenu();
-                                  setComingSoonFeature("dsb-authorization-guide");
-                                }}
-                                className={`${megaLinkClass} w-full text-left`}
-                              >
-                                <span className="inline-flex items-center gap-2">
-                                  <span>{item.label}</span>
-                                  <span className="rounded px-1.5 py-px text-[9px] font-bold text-[#0f1923]" style={{ background: "#C9A84C" }}>
-                                    Coming soon
-                                  </span>
-                                </span>
-                              </button>
-                            ) : (
-                              <Link
-                                href={item.href}
-                                onClick={closeMegaMenu}
-                                className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
-                              >
-                                {item.premium ? (
+                            <Link
+                              href={item.href}
+                              onClick={closeMegaMenu}
+                              className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
+                            >
+                              {item.premium ? (
                                 <span className="inline-flex items-center gap-2 text-gold">
                                   {isPremium ? (
                                     <>
@@ -315,8 +293,7 @@ export default function Navbar() {
                               ) : (
                                 <span>{item.label}</span>
                               )}
-                              </Link>
-                            )}
+                            </Link>
                           </li>
                         ))}
                       </ul>
@@ -368,9 +345,6 @@ export default function Navbar() {
         </div>
       </header>
       {mobilePortal}
-      {comingSoonFeature ? (
-        <ComingSoonCapture featureName={comingSoonFeature} isOpen onClose={() => setComingSoonFeature(null)} />
-      ) : null}
     </>
   );
 }

@@ -8,6 +8,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function DsbAssistanceLayout({ children }: { children: React.ReactNode }) {
+export default function DsbSupportLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

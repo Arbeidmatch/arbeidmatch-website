@@ -18,7 +18,7 @@ export default function BlogPostAnsatteLovligPage() {
         items={[
           { href: "/for-employers", label: "For arbeidsgivere" },
           { href: "/bemanning-bygg-anlegg", label: "Bemanning bygg & anlegg" },
-          { href: "/dsb-support", label: "DSB-godkjenning" },
+          { href: "/electricians-norway?section=dsb", label: "DSB-godkjenning (elektrikere)" },
           { href: "/request", label: "Be om kandidater" },
         ]}
       />

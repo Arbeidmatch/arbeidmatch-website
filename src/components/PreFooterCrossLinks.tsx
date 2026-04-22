@@ -10,7 +10,7 @@ const CONFIG: Record<
   employers: {
     links: [
       { href: "/for-candidates", label: "See what candidates receive" },
-      { href: "/premium", label: "DSB guide, Coming soon" },
+      { href: "/electricians-norway?section=dsb", label: "DSB guide for electricians" },
     ],
   },
   candidates: {

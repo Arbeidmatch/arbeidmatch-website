@@ -28,7 +28,7 @@ const HELPERS: Record<string, HelperConfig> = {
   "/for-candidates": {
     icon: "⚡",
     title: "Ready to apply?",
-    text: "Browse open positions in Norway or get your DSB authorization first.",
+    text: "Browse open positions in Norway. Electricians: full DSB authorization guide and checklist are on our Electricians in Norway page.",
     cta: { label: "See open positions →", href: "https://jobs.arbeidmatch.no" },
   },
   "/for-employers": {

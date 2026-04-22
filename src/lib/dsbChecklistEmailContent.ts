@@ -19,7 +19,7 @@ export function buildDsbChecklistEmailBodyHtml(firstName: string) {
     (item) =>
       `<li style="margin-bottom:8px;font-size:14px;line-height:1.7;color:rgba(255,255,255,0.88);">${escapeHtml(item)}</li>`,
   ).join("");
-  const ctaUrl = "https://arbeidmatch.no/dsb-support";
+  const ctaUrl = "https://arbeidmatch.no/electricians-norway?section=dsb";
 
   return [
     `<p style="margin:0 0 20px;line-height:1.8;font-size:14px;color:rgba(255,255,255,0.92);">Hi ${safeName},</p>`,

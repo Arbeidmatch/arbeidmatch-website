@@ -110,7 +110,7 @@ export default function DsbChecklistClient() {
                         If you don&apos;t see it in a few minutes, check spam or promotions.
                       </p>
                       <Link
-                        href="/dsb-support"
+                        href="/electricians-norway?section=dsb"
                         className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#b8923f] to-gold py-3 text-sm font-semibold text-[#0a0f14] transition-transform duration-300 ease-premium hover:scale-[1.02]"
                       >
                         Explore paid guides

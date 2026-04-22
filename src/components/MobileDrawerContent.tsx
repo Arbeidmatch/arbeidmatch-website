@@ -283,13 +283,9 @@ export default function MobileDrawerContent({
               </DrawerRowLink>
             ))}
             <SectionLabel>GUIDES AND RESOURCES</SectionLabel>
-            <button
-              type="button"
-              onClick={() => setSoonFeature("dsb-authorization-guide")}
-              className="block w-full border-b border-white/[0.04] border-l-2 border-l-transparent px-6 py-3.5 text-left text-[15px] text-white"
-            >
-              DSB Authorization Guide <span className="ml-2 rounded px-1 py-px text-[9px] font-bold text-[#0f1923]" style={{ background: GOLD }}>Coming soon</span>
-            </button>
+            <DrawerRowLink href="/electricians-norway?section=dsb" pathname={pathname} onClose={onClose}>
+              DSB Authorization Guide
+            </DrawerRowLink>
             <DrawerRowLink href="/premium" pathname={pathname} onClose={onClose}>
               Premium Guides
             </DrawerRowLink>
@@ -401,13 +397,9 @@ export default function MobileDrawerContent({
               </DrawerRowLink>
             ))}
             <SectionLabel>GUIDES AND RESOURCES</SectionLabel>
-            <button
-              type="button"
-              onClick={() => setSoonFeature("dsb-authorization-guide")}
-              className="block w-full border-b border-white/[0.04] border-l-2 border-l-transparent px-6 py-3.5 text-left text-[15px] font-normal text-white"
-            >
-              DSB Authorization Guide <span className="ml-2 rounded px-1 py-px text-[9px] font-bold text-[#0f1923]" style={{ background: GOLD }}>Coming soon</span>
-            </button>
+            <DrawerRowLink href="/electricians-norway?section=dsb" pathname={pathname} onClose={onClose}>
+              DSB Authorization Guide
+            </DrawerRowLink>
             <Link
               href="/premium"
               onClick={onClose}

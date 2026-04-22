@@ -7,6 +7,7 @@ import { DSB_SUPPORT_AVAILABLE, DSB_PRODUCTS_AVAILABLE } from "@/lib/dsbAvailabi
 export const metadata: Metadata = {
   title: "DSB Guide for Non-EU Electricians in Norway · 39 EUR",
   description: "Non-EU DSB authorization guide for Norway with visa and assessment guidance, secure one-time access.",
+  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
 };
 
 export default function DsbSupportNonEuPage() {

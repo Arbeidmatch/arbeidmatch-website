@@ -10,19 +10,9 @@ export const metadata: Metadata = {
 
 const guides = [
   {
-    href: "/dsb-checklist",
-    title: "DSB checklist",
-    body: "Structured overview of documents and steps employers often review for cross-border hiring.",
-  },
-  {
-    href: "/dsb-guide/eu",
-    title: "EU / EEA guide",
-    body: "Context for mobility within the European Economic Area and how it relates to Norwegian work rules.",
-  },
-  {
-    href: "/dsb-guide/non-eu",
-    title: "Non-EU guide",
-    body: "Higher-level guidance when the worker is not covered by EU free movement rules.",
+    href: "/electricians-norway?section=dsb",
+    title: "DSB authorization guide (electricians)",
+    body: "Full public guide, checklist, official links, and paid EU / non-EU deep-dive checkout on one page.",
   },
   {
     href: "/outside-eu-eea",
@@ -31,13 +21,13 @@ const guides = [
   },
   {
     href: "/dsb-support/eu",
-    title: "DSB support — EU",
-    body: "Human support channel for EU/EEA-related questions about documentation and compliance.",
+    title: "Purchase — EU/EEA DSB guide",
+    body: "Secure checkout for the extended EU/EEA guide (30-day access).",
   },
   {
     href: "/dsb-support/non-eu",
-    title: "DSB support — non-EU",
-    body: "Support path tailored to non-EU/EEA cases and more complex permit routes.",
+    title: "Purchase — non-EU DSB guide",
+    body: "Secure checkout for the extended non-EU guide (30-day access).",
   },
 ] as const;
 
@@ -62,10 +52,10 @@ export default function NonEuCandidatesPage() {
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
           <Link
-            href="/dsb-checklist"
+            href="/electricians-norway?section=dsb"
             className="inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-[12px] bg-[#C9A84C] px-8 text-sm font-bold text-[#0D1B2A] shadow-[0_12px_32px_rgba(201,168,76,0.28)] transition-colors hover:bg-[#b8953f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D1B2A] sm:w-auto"
           >
-            Browse our guides
+            DSB guide for electricians
           </Link>
           <Link
             href="/for-candidates"

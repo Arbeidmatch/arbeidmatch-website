@@ -161,7 +161,7 @@ export default function DsbGuideCheckoutMobilePremium({ variant }: { variant: Gu
     } catch {
       /* ignore */
     }
-    window.location.href = "/dsb-support";
+    window.location.href = "/electricians-norway?section=dsb";
   };
 
   const spring = [0.16, 1, 0.3, 1] as const;

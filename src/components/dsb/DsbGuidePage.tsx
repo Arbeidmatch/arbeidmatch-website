@@ -18,7 +18,7 @@ export async function DsbGuidePage({ guideSlug, token }: Props) {
   const state = await resolveGuidePageState(token, guideSlug);
 
   if (state.kind === "missing") {
-    redirect("/dsb-support?purchase=required");
+    redirect("/electricians-norway?section=dsb");
   }
 
   if (state.kind === "invalid" || state.kind === "wrong_guide" || state.kind === "expired") {

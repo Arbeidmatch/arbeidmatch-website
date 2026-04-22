@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import ElectriciansNorwayPage from "@/components/candidates/ElectriciansNorwayPage";
+import ElectriciansDsbAuthorizationGuide from "@/components/candidates/ElectriciansDsbAuthorizationGuide";
 
 const SITE = "https://www.arbeidmatch.no";
 
 export const metadata: Metadata = {
   title: { absolute: "Work as an Electrician in Norway | EU/EEA Guide | ArbeidMatch" },
   description:
-    "EU/EEA electricians: learn what you need to work legally in Norway. DSB authorization, required documents, salary ranges, and job opportunities.",
+    "EU/EEA electricians: work legally in Norway — full DSB authorization guide, official resources, documents, timelines, salary ranges, and job opportunities in one place.",
   alternates: {
     canonical: `${SITE}/electricians-norway`,
     languages: {
@@ -20,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Work as an Electrician in Norway | EU/EEA Guide | ArbeidMatch",
     description:
-      "EU/EEA electricians: learn what you need to work legally in Norway. DSB authorization, required documents, salary ranges, and job opportunities.",
+      "EU/EEA electricians: full DSB authorization guide for Norway, official resources, documents, salary ranges, and job opportunities.",
     locale: "nb_NO",
     siteName: "ArbeidMatch",
     type: "website",
@@ -30,10 +32,17 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Work as an Electrician in Norway | EU/EEA Guide | ArbeidMatch",
     description:
-      "EU/EEA electricians: learn what you need to work legally in Norway. DSB authorization, required documents, salary ranges, and job opportunities.",
+      "EU/EEA electricians: full DSB authorization guide for Norway, official resources, documents, salary ranges, and job opportunities.",
   },
 };
 
 export default function Page() {
-  return <ElectriciansNorwayPage />;
+  return (
+    <>
+      <Suspense fallback={null}>
+        <ElectriciansNorwayPage />
+      </Suspense>
+      <ElectriciansDsbAuthorizationGuide />
+    </>
+  );
 }

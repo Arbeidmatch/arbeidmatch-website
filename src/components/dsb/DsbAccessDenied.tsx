@@ -27,16 +27,16 @@ export default function DsbAccessDenied({ kind, guideSlug }: Props) {
           <p className="mt-3 text-sm text-text-secondary">{detail}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
-              href="/dsb-support"
+              href="/electricians-norway?section=dsb"
               className="inline-flex justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
             >
               Get access
             </Link>
             <Link
-              href={`/dsb-support#guide-${guideSlug}`}
+              href="/electricians-norway?section=dsb#dsb-authorization-guide"
               className="inline-flex justify-center rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface"
             >
-              View pricing
+              View guide & pricing
             </Link>
           </div>
         </div>

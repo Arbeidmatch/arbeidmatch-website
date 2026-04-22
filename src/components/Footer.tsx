@@ -93,9 +93,6 @@ export default function Footer() {
             {resourcesLinks.map(([label, href]) => (
               <FooterLink key={href} href={href} label={label} />
             ))}
-            <p className="mb-3 block text-sm text-[rgba(255,255,255,0.6)]">
-              DSB Authorization Guide <span className="ml-2 rounded px-1 py-px text-[9px] font-bold text-[#0f1923]" style={{ background: "#C9A84C" }}>Coming soon</span>
-            </p>
             <p className="mt-2 text-xs text-[rgba(255,255,255,0.5)]">Looking for jobs?</p>
             <Link
               href="https://jobs.arbeidmatch.no"

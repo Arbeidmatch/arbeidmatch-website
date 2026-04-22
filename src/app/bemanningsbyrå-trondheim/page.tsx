@@ -24,7 +24,7 @@ export default function BemanningsbyraTrondheimPage() {
           </p>
           <p>
             Typical assignments include construction, logistics, and production. Learn about{" "}
-            <Link href="/dsb-support" className="font-medium text-gold hover:underline">
+            <Link href="/electricians-norway?section=dsb" className="font-medium text-gold hover:underline">
               DSB authorization
             </Link>{" "}
             where relevant, or send a staffing{" "}

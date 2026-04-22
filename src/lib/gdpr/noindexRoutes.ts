@@ -12,6 +12,8 @@ const NOINDEX_PREFIXES = [
   "/employer/candidates",
   "/dsb-guide/eu",
   "/dsb-guide/non-eu",
+  "/dsb-support",
+  "/dsb-assistance",
   "/feedback",
   "/premium/success",
   "/premium/browse",
