@@ -8,6 +8,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Crown } from "lucide-react";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
+import { candidateNavLinks, employerNavLinks, neutralNavLinks } from "@/lib/navigationDualLinks";
+import {
+  getNavigationUserType,
+  setNavigationUserType,
+  subscribeNavigationUserType,
+  type NavigationUserType,
+} from "@/lib/navigationUserType";
+
 const tjenesterStaffingLink = { href: "/for-staffing-agencies", label: "For bemanningsbyråer" } as const;
 
 const tjenesterIndustryLinks = [
@@ -40,20 +48,15 @@ const ressurserLinks: { href: string; label: string; premium?: boolean }[] = [
   { href: "/contact", label: "Kontakt" },
 ];
 
-const primaryDesktopLinks = [
-  { href: "/for-employers", label: "For Employers" },
-  { href: "/for-candidates", label: "For Candidates" },
-] as const;
-
 const megaAllHrefs = [tjenesterStaffingLink, ...tjenesterIndustryLinks, ...stederLinks, ...ressurserLinks];
 
 function linkActive(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/";
+  if (href === "/" || href.startsWith("http")) return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function megaHasActive(pathname: string): boolean {
-  return megaAllHrefs.some((i) => linkActive(pathname, i.href));
+  return megaAllHrefs.some((i) => !i.href.startsWith("http") && linkActive(pathname, i.href));
 }
 
 const megaColLabelClass =
@@ -66,16 +69,59 @@ const megaPanelInnerClass =
 
 const DRAWER_EASE = [0.32, 0.72, 0, 1] as const;
 
+const dualNavLinkClass =
+  "shrink-0 text-[13px] font-normal text-[rgba(255,255,255,0.75)] transition-[color,font-weight] duration-150 hover:font-medium hover:text-white lg:text-[14px]";
+
+function DesktopDualNavLink({
+  pathname,
+  item,
+}: {
+  pathname: string;
+  item: { href: string; label: string; external?: boolean };
+}) {
+  const active = item.external ? false : linkActive(pathname, item.href);
+  const cls = `${dualNavLinkClass} ${active ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""}`;
+
+  if (item.external) {
+    return (
+      <a href={item.href} target="_blank" rel="noopener noreferrer" className={cls}>
+        {item.label}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={item.href} className={cls}>
+      {item.label}
+    </Link>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
+  const [userType, setUserType] = useState<NavigationUserType | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isMegaOpen, setIsMegaOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+
   useEffect(() => {
     startTransition(() => setMounted(true));
   }, []);
+
+  useEffect(() => {
+    setUserType(getNavigationUserType());
+    return subscribeNavigationUserType(() => setUserType(getNavigationUserType()));
+  }, []);
+
+  useEffect(() => {
+    if (pathname === "/for-employers" || pathname.startsWith("/for-employers/")) {
+      if (getNavigationUserType() !== "employer") setNavigationUserType("employer");
+    } else if (pathname === "/for-candidates" || pathname.startsWith("/for-candidates/")) {
+      if (getNavigationUserType() !== "candidate") setNavigationUserType("candidate");
+    }
+  }, [pathname]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -131,6 +177,8 @@ export default function Navbar() {
   const closeMenu = () => setIsOpen(false);
   const closeMegaMenu = () => setIsMegaOpen(false);
 
+  const showMegaMenu = userType === null;
+
   const mobilePortal =
     mounted &&
     createPortal(
@@ -174,7 +222,7 @@ export default function Navbar() {
       <header
         className={`sticky top-0 transition-colors duration-200 ${headerSurface} ${isOpen ? "z-30" : "z-[210]"}`}
       >
-        <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-4 px-6 md:h-16 md:min-h-[64px] md:px-12 lg:h-[72px] lg:min-h-[72px] lg:gap-10 lg:px-20">
+        <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-3 px-4 md:h-16 md:min-h-[64px] md:gap-4 md:px-12 lg:h-[72px] lg:min-h-[72px] lg:gap-6 lg:px-20">
           <Link
             href="/"
             className="block min-h-[44px] min-w-fit shrink-0 leading-[44px]"
@@ -184,133 +232,177 @@ export default function Navbar() {
             <span style={{ color: "#C9A84C", fontWeight: 700, fontSize: "1.25rem" }}>Match</span>
           </Link>
 
-          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-10 lg:flex">
-            {primaryDesktopLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`${navItemClass} ${linkActive(pathname, link.href) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""}`}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <nav className="hidden min-w-0 flex-1 flex-wrap items-center justify-center gap-x-4 gap-y-2 lg:flex xl:gap-x-5">
+            {userType === null ? (
+              <>
+                {neutralNavLinks.map((link) => {
+                  const active = linkActive(pathname, link.href);
+                  if (link.userType) {
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setNavigationUserType(link.userType!)}
+                        className={`${navItemClass} ${active ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""}`}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  }
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`${navItemClass} ${active ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""}`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
 
-            <div
-              className="relative"
-              onMouseEnter={() => setIsMegaOpen(true)}
-              onMouseLeave={closeMegaMenu}
-            >
-              <span
-                className={`inline-flex min-h-[44px] cursor-default items-center gap-1 ${navItemClass} ${
-                  megaHasActive(pathname) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""
-                }`}
-              >
-                Mer
-                <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-              </span>
-              <div
-                className={`absolute left-1/2 top-full z-[130] w-[min(920px,calc(100vw-2rem))] -translate-x-1/2 pt-3 transition-[opacity,transform,visibility] duration-[180ms] ease-out ${
-                  isMegaOpen ? "pointer-events-auto visible translate-y-0 opacity-100" : "pointer-events-none invisible -translate-y-[6px] opacity-0"
-                }`}
-              >
-                <div className={megaPanelInnerClass}>
-                  <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-10">
-                    <div>
-                      <p className={megaColLabelClass}>Tjenester</p>
-                      <ul className="space-y-0.5">
-                        <li>
-                          <Link
-                            href={tjenesterStaffingLink.href}
-                            onClick={closeMegaMenu}
-                            className={`${megaLinkClass} ${linkActive(pathname, tjenesterStaffingLink.href) ? "font-medium text-gold" : ""}`}
-                          >
-                            {tjenesterStaffingLink.label}
-                          </Link>
-                          <div className="mx-3 my-2 h-px bg-[rgba(201,168,76,0.2)]" aria-hidden />
-                        </li>
-                        {tjenesterIndustryLinks.map((item) => (
-                          <li key={item.href}>
-                            <Link
-                              href={item.href}
-                              onClick={closeMegaMenu}
-                              className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
-                            >
-                              {item.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <p className={megaColLabelClass}>Steder</p>
-                      <ul className="space-y-0.5">
-                        {stederLinks.map((item) => (
-                          <li key={item.href}>
-                            <Link
-                              href={item.href}
-                              onClick={closeMegaMenu}
-                              className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
-                            >
-                              {item.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <p className={megaColLabelClass}>Ressurser</p>
-                      <ul className="space-y-0.5">
-                        {ressurserLinks.map((item) => (
-                          <li key={item.href}>
-                            <Link
-                              href={item.href}
-                              onClick={closeMegaMenu}
-                              className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
-                            >
-                              {item.premium ? (
-                                <span className="inline-flex items-center gap-2 text-gold">
-                                  {isPremium ? (
-                                    <>
-                                      <Crown className="h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={1.75} aria-hidden />
-                                      <span>{item.label}</span>
-                                    </>
+                {showMegaMenu ? (
+                  <div className="relative" onMouseEnter={() => setIsMegaOpen(true)} onMouseLeave={closeMegaMenu}>
+                    <span
+                      className={`inline-flex min-h-[44px] cursor-default items-center gap-1 ${navItemClass} ${
+                        megaHasActive(pathname) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""
+                      }`}
+                    >
+                      Mer
+                      <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
+                    </span>
+                    <div
+                      className={`absolute left-1/2 top-full z-[130] w-[min(920px,calc(100vw-2rem))] -translate-x-1/2 pt-3 transition-[opacity,transform,visibility] duration-[180ms] ease-out ${
+                        isMegaOpen
+                          ? "pointer-events-auto visible translate-y-0 opacity-100"
+                          : "pointer-events-none invisible -translate-y-[6px] opacity-0"
+                      }`}
+                    >
+                      <div className={megaPanelInnerClass}>
+                        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-10">
+                          <div>
+                            <p className={megaColLabelClass}>Tjenester</p>
+                            <ul className="space-y-0.5">
+                              <li>
+                                <Link
+                                  href={tjenesterStaffingLink.href}
+                                  onClick={closeMegaMenu}
+                                  className={`${megaLinkClass} ${linkActive(pathname, tjenesterStaffingLink.href) ? "font-medium text-gold" : ""}`}
+                                >
+                                  {tjenesterStaffingLink.label}
+                                </Link>
+                                <div className="mx-3 my-2 h-px bg-[rgba(201,168,76,0.2)]" aria-hidden />
+                              </li>
+                              {tjenesterIndustryLinks.map((item) => (
+                                <li key={item.href}>
+                                  <Link
+                                    href={item.href}
+                                    onClick={closeMegaMenu}
+                                    className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
+                                  >
+                                    {item.label}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <p className={megaColLabelClass}>Steder</p>
+                            <ul className="space-y-0.5">
+                              {stederLinks.map((item) => (
+                                <li key={item.href}>
+                                  <Link
+                                    href={item.href}
+                                    onClick={closeMegaMenu}
+                                    className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
+                                  >
+                                    {item.label}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <p className={megaColLabelClass}>Ressurser</p>
+                            <ul className="space-y-0.5">
+                              {ressurserLinks.map((item) => (
+                                <li key={item.href}>
+                                  {item.href.startsWith("http") ? (
+                                    <a
+                                      href={item.href}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={closeMegaMenu}
+                                      className={megaLinkClass}
+                                    >
+                                      {item.label}
+                                    </a>
                                   ) : (
-                                    <>
-                                      <span
-                                        className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C] motion-reduce:animate-none motion-safe:animate-pulse"
-                                        aria-hidden
-                                      />
-                                      <span>{item.label}</span>
-                                      <span
-                                        className="ml-1.5 rounded px-1 py-px text-[9px] font-bold text-[#0f1923]"
-                                        style={{ background: "#C9A84C" }}
-                                      >
-                                        NEW
-                                      </span>
-                                    </>
+                                    <Link
+                                      href={item.href}
+                                      onClick={closeMegaMenu}
+                                      className={`${megaLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-gold" : ""}`}
+                                    >
+                                      {item.premium ? (
+                                        <span className="inline-flex items-center gap-2 text-gold">
+                                          {isPremium ? (
+                                            <>
+                                              <Crown className="h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={1.75} aria-hidden />
+                                              <span>{item.label}</span>
+                                            </>
+                                          ) : (
+                                            <>
+                                              <span
+                                                className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C] motion-reduce:animate-none motion-safe:animate-pulse"
+                                                aria-hidden
+                                              />
+                                              <span>{item.label}</span>
+                                              <span
+                                                className="ml-1.5 rounded px-1 py-px text-[9px] font-bold text-[#0f1923]"
+                                                style={{ background: "#C9A84C" }}
+                                              >
+                                                NEW
+                                              </span>
+                                            </>
+                                          )}
+                                        </span>
+                                      ) : (
+                                        <span>{item.label}</span>
+                                      )}
+                                    </Link>
                                   )}
-                                </span>
-                              ) : (
-                                <span>{item.label}</span>
-                              )}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
+                ) : null}
+              </>
+            ) : userType === "employer" ? (
+              employerNavLinks.map((item) => <DesktopDualNavLink key={item.href} pathname={pathname} item={item} />)
+            ) : (
+              candidateNavLinks.map((item) => <DesktopDualNavLink key={item.href + item.label} pathname={pathname} item={item} />)
+            )}
           </nav>
 
           <div className="hidden shrink-0 md:block">
-            <Link
-              href="/request"
-              className="btn-gold-premium inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-[15px] font-medium text-white hover:bg-gold-hover"
-            >
-              Request Candidates
-            </Link>
+            {userType === "candidate" ? (
+              <Link
+                href="/candidates"
+                className="btn-gold-premium inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-[15px] font-medium text-[#0f1923] hover:bg-gold-hover"
+              >
+                Create Profile
+              </Link>
+            ) : (
+              <Link
+                href="/request"
+                className="btn-gold-premium inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-[15px] font-medium text-[#0f1923] hover:bg-gold-hover"
+              >
+                Request Candidates
+              </Link>
+            )}
           </div>
 
           <button
