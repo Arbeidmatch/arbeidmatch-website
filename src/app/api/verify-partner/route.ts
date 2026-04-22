@@ -12,7 +12,7 @@ const schema = z.object({
   token: z.string().uuid().optional(),
 });
 
-const FREE_EMAIL_DOMAINS = new Set([
+const DEFAULT_PUBLIC_EMAIL_DOMAINS_BLOCKLIST = [
   "gmail.com",
   "yahoo.com",
   "hotmail.com",
@@ -20,7 +20,21 @@ const FREE_EMAIL_DOMAINS = new Set([
   "icloud.com",
   "live.com",
   "msn.com",
-]);
+];
+
+function getPublicEmailDomainsBlocklist(): Set<string> {
+  const raw = process.env.PUBLIC_EMAIL_DOMAINS_BLOCKLIST;
+  const normalized = (raw ?? "")
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (normalized.length > 0) {
+    return new Set(normalized);
+  }
+
+  return new Set(DEFAULT_PUBLIC_EMAIL_DOMAINS_BLOCKLIST);
+}
 
 function normalizeDomain(input: string): string {
   const normalized = input
@@ -64,8 +78,9 @@ export async function POST(request: NextRequest) {
     const normalizedInput = rawEmail.includes("@") ? rawEmail : `info@${rawEmail}`;
     const email = normalizedInput;
     const domain = normalizeDomain(normalizedInput.split("@")[1] ?? normalizedInput);
+    const publicEmailDomainsBlocklist = getPublicEmailDomainsBlocklist();
     if (!domain) return NextResponse.json({ verified: false });
-    if (FREE_EMAIL_DOMAINS.has(domain)) {
+    if (publicEmailDomainsBlocklist.has(domain)) {
       return NextResponse.json({ verified: false, reason: "personal_email" }, { status: 200 });
     }
 
