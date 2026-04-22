@@ -23,6 +23,7 @@ import {
   filterRegionsByPrefix,
   regionsForCountry,
 } from "@/lib/recruiterNetworkGeo";
+import RecruiterNetworkPremiumApplyModal from "@/components/recruiter-network/RecruiterNetworkPremiumApplyModal";
 
 const HERO_EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -148,6 +149,7 @@ export default function RecruiterNetworkClient() {
   const [countryOpen, setCountryOpen] = useState(false);
   const [regionTypeahead, setRegionTypeahead] = useState("");
   const [regionOpen, setRegionOpen] = useState(false);
+  const [premiumApplyOpen, setPremiumApplyOpen] = useState(false);
   const countryComboRef = useRef<HTMLDivElement | null>(null);
   const regionComboRef = useRef<HTMLDivElement | null>(null);
 
@@ -351,6 +353,7 @@ export default function RecruiterNetworkClient() {
   const hasRegion = Boolean(form.region.trim());
 
   return (
+    <>
     <div className="bg-[#06090e] text-white">
       <section className="recruiter-network-hero flex min-h-[88vh] flex-col justify-center py-12 md:py-20">
         <div className="rn-hero-inner mx-auto w-full max-w-content px-4 md:px-6">
@@ -386,7 +389,7 @@ export default function RecruiterNetworkClient() {
               <motion.div className="mt-10 flex flex-wrap items-center gap-4" {...heroFade(0.6)}>
                 <button
                   type="button"
-                  onClick={scrollToForm}
+                  onClick={() => setPremiumApplyOpen(true)}
                   className="btn-gold-premium inline-block min-h-[48px] rounded-md bg-gold px-8 py-3.5 text-base font-semibold text-white hover:bg-gold-hover"
                 >
                   Apply to Join →
