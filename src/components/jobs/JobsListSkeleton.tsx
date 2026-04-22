@@ -1,6 +1,6 @@
 export default function JobsListSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid min-w-0 grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }).map((_, idx) => (
         <div key={idx} className="rounded-[18px] border border-white/10 bg-white/[0.03] p-5">
           <div className="skeleton h-5 w-28 rounded-full" />
