@@ -171,8 +171,11 @@ export async function POST(request: NextRequest) {
       const domain = email.split("@")[1]?.toLowerCase().trim() || "";
       const { error: partnerInsertError } = await supabase.from("partners").insert({
         company_name: companyName,
+        email,
         domain,
+        contact_name: contactPersonName,
         active: true,
+        verification_status: "verified",
       });
       if (partnerInsertError) {
         throw partnerInsertError;

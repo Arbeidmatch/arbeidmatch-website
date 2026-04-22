@@ -1,5 +1,10 @@
-export const metadata = { robots: "noindex, nofollow" };
+import type { Metadata } from "next";
 import BecomePartnerClient from "./BecomePartnerClient";
+
+export const metadata: Metadata = {
+  title: "Become a partner | ArbeidMatch",
+  description: "Partner onboarding: company details, terms, and electronic signature of the partnership agreement.",
+};
 
 export default async function BecomePartnerPage({
   searchParams,

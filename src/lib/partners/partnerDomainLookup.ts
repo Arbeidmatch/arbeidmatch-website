@@ -50,7 +50,13 @@ function extractCandidateDomains(raw: string): string[] {
     .filter(Boolean);
 }
 
-type PartnerRow = { id: string; company_name: string | null; domain: string | null; email: string | null };
+type PartnerRow = {
+  id: string;
+  company_name: string | null;
+  domain: string | null;
+  email: string | null;
+  verification_status: string | null;
+};
 
 export async function findActivePartnerByDomain(
   supabase: SupabaseClient,
@@ -66,8 +72,9 @@ export async function findActivePartnerByDomain(
   while (pagesScanned < maxPages && rowsScanned < maxRows) {
     let query = supabase
       .from("partners")
-      .select("id, company_name, domain, email")
+      .select("id, company_name, domain, email, verification_status")
       .eq("active", true)
+      .or("verification_status.eq.verified,verification_status.is.null")
       .order("id", { ascending: true })
       .limit(pageSize);
 
