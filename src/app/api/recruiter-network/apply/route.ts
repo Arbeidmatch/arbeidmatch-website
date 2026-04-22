@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
     const full_name = (body.full_name || "").trim();
     const email = (body.email || "").trim().toLowerCase();
     const country = (body.country || "").trim();
-    const region = (body.region || "").trim();
+    const regionPart = (body.region || "").trim();
+    const cityPart = (body.city || "").trim();
     const partner_type = (body.partner_type || "").trim();
     const social_url = (body.social_url || "").trim();
     const monthly_reach_raw = (body.monthly_reach || "").trim();
@@ -49,9 +50,13 @@ export async function POST(request: NextRequest) {
     if (!full_name || !email || !email.includes("@")) {
       return NextResponse.json({ success: false, error: "Name and a valid email are required." }, { status: 400 });
     }
-    if (!country || !region) {
+    if (!country || !regionPart) {
       return NextResponse.json({ success: false, error: "Country and region are required." }, { status: 400 });
     }
+    if (!cityPart) {
+      return NextResponse.json({ success: false, error: "City is required." }, { status: 400 });
+    }
+    const region = `${regionPart} — ${cityPart}`;
     if (!PARTNER_TYPES.has(partner_type)) {
       return NextResponse.json({ success: false, error: "Please select a partner path." }, { status: 400 });
     }
@@ -119,7 +124,8 @@ export async function POST(request: NextRequest) {
       emailFieldRows([
         { label: "Name", value: full_name },
         { label: "Country", value: country },
-        { label: "Region", value: region },
+        { label: "Region", value: regionPart },
+        { label: "City", value: cityPart },
         { label: "Partner type", value: typeLabel },
         { label: "Monthly reach", value: String(monthly_reach) },
       ]),
@@ -131,7 +137,8 @@ export async function POST(request: NextRequest) {
       { label: "Full name", value: full_name },
       { label: "Email", value: email },
       { label: "Country", value: country },
-      { label: "Region / city", value: region },
+      { label: "Region", value: regionPart },
+      { label: "City", value: cityPart },
       { label: "Partner type", value: typeLabel },
       { label: "Profile URL", value: social_url },
       { label: "Monthly reach", value: String(monthly_reach) },

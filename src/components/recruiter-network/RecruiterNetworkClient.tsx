@@ -17,8 +17,22 @@ import {
   IconTrend,
   IconVenn,
 } from "./RecruiterNetworkIcons";
+import {
+  RECRUITER_EEA_COUNTRIES,
+  filterCountriesByPrefix,
+  filterRegionsByPrefix,
+  regionsForCountry,
+} from "@/lib/recruiterNetworkGeo";
 
 const HERO_EASE = [0.16, 1, 0.3, 1] as const;
+
+const RN_LABEL = "mb-2.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55";
+const RN_INPUT =
+  "rn-recruiter-field w-full rounded-[12px] border border-[rgba(201,168,76,0.22)] bg-[#0D1B2A] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/40 shadow-none transition-[border-color,box-shadow] duration-200 focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]/35";
+const RN_LIST =
+  "absolute z-[80] mt-1.5 max-h-[min(280px,50vh)] w-full overflow-y-auto overscroll-contain rounded-[12px] border border-[rgba(201,168,76,0.35)] bg-[#0D1B2A] py-1 shadow-[0_20px_50px_rgba(0,0,0,0.55)]";
+const RN_LIST_ITEM =
+  "w-full cursor-pointer px-4 py-2.5 text-left text-[14px] text-white/90 transition-colors hover:bg-[rgba(201,168,76,0.14)] focus:bg-[rgba(201,168,76,0.14)] focus:outline-none";
 
 function useIsMobileWidth(): boolean {
   const [m, setM] = useState(false);
@@ -126,9 +140,26 @@ export default function RecruiterNetworkClient() {
   const [motivation, setMotivation] = useState("");
   const [form, setForm] = useState({
     country: "",
+    region: "",
     city: "",
     businessType: "",
   });
+  const [countryTypeahead, setCountryTypeahead] = useState("");
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [regionTypeahead, setRegionTypeahead] = useState("");
+  const [regionOpen, setRegionOpen] = useState(false);
+  const countryComboRef = useRef<HTMLDivElement | null>(null);
+  const regionComboRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onDocMouseDown = (ev: MouseEvent) => {
+      const t = ev.target as Node;
+      if (countryComboRef.current && !countryComboRef.current.contains(t)) setCountryOpen(false);
+      if (regionComboRef.current && !regionComboRef.current.contains(t)) setRegionOpen(false);
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, []);
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -233,41 +264,6 @@ export default function RecruiterNetworkClient() {
     "Genuine interest in building something long-term",
   ] as const;
 
-  const norwegianCities = [
-    "Oslo", "Bergen", "Trondheim", "Stavanger", "Kristiansand",
-    "Drammen", "Tromso", "Fredrikstad", "Sandnes", "Sarpsborg",
-    "Bodo", "Sandefjord", "Alesund", "Porsgrunn", "Haugesund",
-    "Arendal", "Tonsberg", "Moss", "Hamar", "Lillehammer",
-    "Molde", "Harstad", "Gjovik", "Halden", "Kongsberg",
-    "Larvik", "Skien", "Horten", "Alta", "Narvik",
-    "Mo i Rana", "Steinkjer", "Levanger", "Elverum",
-    "Whole of Norway",
-  ] as const;
-
-  const swedishCities = [
-    "Stockholm", "Gothenburg", "Malmo", "Uppsala", "Vasteras",
-    "Orebro", "Linkoping", "Helsingborg", "Jonkoping", "Norrkoping",
-    "Lund", "Umea", "Gavle", "Boras", "Sodertalje",
-    "Eskilstuna", "Halmstad", "Vaxjo", "Karlstad", "Sundsvall",
-    "Whole of Sweden",
-  ] as const;
-
-  const danishCities = [
-    "Copenhagen", "Aarhus", "Odense", "Aalborg", "Esbjerg",
-    "Horsens", "Randers", "Kolding", "Vejle", "Herning",
-    "Silkeborg", "Frederiksberg", "Naestved", "Slagelse", "Hillerod",
-    "Whole of Denmark",
-  ] as const;
-
-  const cityOptions =
-    form.country === "Norway"
-      ? norwegianCities
-      : form.country === "Sweden"
-        ? swedishCities
-        : form.country === "Denmark"
-          ? danishCities
-          : [];
-
   const mapBusinessTypeToHasCompany = (value: string) => {
     if (!value) return "";
     if (value === "no_business") return "not_yet";
@@ -286,11 +282,30 @@ export default function RecruiterNetworkClient() {
 
     setSubmitting(true);
     try {
+      let resolvedCountry = form.country.trim();
+      if (!resolvedCountry && countryTypeahead.trim()) {
+        const guess = RECRUITER_EEA_COUNTRIES.find((c) => c.toLowerCase() === countryTypeahead.trim().toLowerCase());
+        if (guess) resolvedCountry = guess;
+      }
+      if (!resolvedCountry) {
+        setError("Please select your country from the list.");
+        return;
+      }
+      if (!form.region.trim()) {
+        setError("Please enter or select your region.");
+        return;
+      }
+      if (!form.city.trim()) {
+        setError("Please enter your city.");
+        return;
+      }
+
       const payload = {
         full_name: String(fd.get("full_name") || "").trim(),
         email: String(fd.get("email") || "").trim(),
-        country: form.country || String(fd.get("country") || "").trim(),
-        region: form.city || String(fd.get("region") || "").trim(),
+        country: resolvedCountry,
+        region: form.region.trim(),
+        city: form.city.trim(),
         partner_type: String(fd.get("partner_type") || "").trim(),
         social_url: String(fd.get("social_url") || "").trim(),
         monthly_reach: String(fd.get("monthly_reach") || "").trim(),
@@ -312,7 +327,9 @@ export default function RecruiterNetworkClient() {
       }
       setSuccessEmail(payload.email);
       e.currentTarget.reset();
-      setForm({ country: "", city: "", businessType: "" });
+      setForm({ country: "", region: "", city: "", businessType: "" });
+      setCountryTypeahead("");
+      setRegionTypeahead("");
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -323,6 +340,15 @@ export default function RecruiterNetworkClient() {
   const stagger = isMobile ? 0.04 : 0.08;
   const stepStagger = isMobile ? 0.05 : 0.1;
   const reqStagger = isMobile ? 0.03 : 0.06;
+
+  const regionChoicesList = regionsForCountry(form.country);
+  const countryFiltered = filterCountriesByPrefix(countryTypeahead);
+  const regionFiltered =
+    regionChoicesList && regionChoicesList.length > 0
+      ? filterRegionsByPrefix(regionChoicesList, regionTypeahead)
+      : [];
+  const hasCommittedCountry = Boolean(form.country.trim());
+  const hasRegion = Boolean(form.region.trim());
 
   return (
     <div className="bg-[#06090e] text-white">
@@ -590,106 +616,200 @@ export default function RecruiterNetworkClient() {
                 </p>
               </motion.div>
             ) : (
-              <form onSubmit={onSubmit} className="rn-card-net space-y-6 border border-white/15 bg-white/[0.05] p-7 md:p-10">
+              <form onSubmit={onSubmit} className="rn-card-net space-y-8 border border-white/15 bg-white/[0.05] p-7 md:p-10">
                 <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
+                  <label htmlFor="rn-full-name" className={RN_LABEL}>
                     Full name *
                   </label>
                   <input
+                    id="rn-full-name"
                     name="full_name"
                     required
-                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                    placeholder="Your name"
+                    className={RN_INPUT}
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
+                  <label htmlFor="rn-email" className={RN_LABEL}>
                     Email address *
                   </label>
                   <input
+                    id="rn-email"
                     name="email"
                     type="email"
                     required
-                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                    placeholder="you@company.com"
+                    className={RN_INPUT}
                   />
                 </div>
-                <div>
-                  <label
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "rgba(255,255,255,0.7)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
-                      display: "block",
-                      marginBottom: 8,
-                    }}
-                  >
+
+                <div ref={countryComboRef} className="relative">
+                  <label htmlFor="rn-country-input" className={RN_LABEL}>
                     Country *
                   </label>
-                  <select
-                    value={form.country}
-                    onChange={(e) => setForm({ ...form, country: e.target.value, city: "" })}
-                    required
-                    className={`w-full appearance-none rounded-[10px] border border-white/25 bg-[#0f1923] px-[18px] py-[14px] text-[15px] focus:border-[#C9A84C] focus:bg-[#0f1923] focus:outline-none ${
-                      form.country ? "text-white" : "text-white/45"
-                    }`}
-                  >
-                    <option value="" disabled className="bg-white text-[#0f1923]">
-                      Select your country
-                    </option>
-                    <option value="Norway" className="bg-white text-[#0f1923]">
-                      Norway
-                    </option>
-                    <option value="Sweden" className="bg-white text-[#0f1923]">
-                      Sweden
-                    </option>
-                    <option value="Denmark" className="bg-white text-[#0f1923]">
-                      Denmark
-                    </option>
-                    <option value="Other" className="bg-white text-[#0f1923]">
-                      Other Nordic / European country
-                    </option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
-                    Area you want to cover *
-                  </label>
-                  <p className="mb-2 text-xs text-white/40">
-                    Select the city or region where you will recruit candidates.
+                  <p className="mb-2.5 text-[12px] leading-relaxed text-white/45">
+                    Type a letter to filter. All EU/EEA countries — Norway, Denmark and Sweden appear first in the list.
                   </p>
-                  {form.country === "Other" ? (
-                    <input
-                      name="region"
-                      value={form.city}
-                      onChange={(e) => setForm({ ...form, city: e.target.value })}
-                      required
-                      placeholder="Enter your city or region"
-                      className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
-                    />
-                  ) : (
-                    <select
-                      name="region"
-                      value={form.city}
-                      onChange={(e) => setForm({ ...form, city: e.target.value })}
-                      required
-                      className={`w-full appearance-none rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none ${
-                        form.city ? "text-white" : "text-white/45"
-                      }`}
+                  <input
+                    id="rn-country-input"
+                    type="text"
+                    autoComplete="off"
+                    value={countryTypeahead}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setCountryTypeahead(v);
+                      setCountryOpen(true);
+                      setForm((f) => ({ ...f, country: "", region: "", city: "" }));
+                      setRegionTypeahead("");
+                    }}
+                    onFocus={() => setCountryOpen(true)}
+                    onBlur={() => {
+                      const match = RECRUITER_EEA_COUNTRIES.find(
+                        (c) => c.toLowerCase() === countryTypeahead.trim().toLowerCase(),
+                      );
+                      if (match) {
+                        setForm((f) => ({ ...f, country: match, region: "", city: "" }));
+                        setCountryTypeahead(match);
+                        setRegionTypeahead("");
+                      }
+                      setCountryOpen(false);
+                    }}
+                    placeholder="Start typing a country…"
+                    className={RN_INPUT}
+                    aria-autocomplete="list"
+                    aria-expanded={countryOpen}
+                    aria-controls="rn-country-listbox"
+                  />
+                  {countryOpen && countryFiltered.length > 0 ? (
+                    <ul
+                      id="rn-country-listbox"
+                      role="listbox"
+                      className={RN_LIST}
                     >
-                      <option value="" disabled className="bg-white text-[#0f1923]">
-                        Select city or region
-                      </option>
-                      {cityOptions.map((city) => (
-                        <option key={city} value={city} className="bg-white text-[#0f1923]">
-                          {city}
-                        </option>
+                      {countryFiltered.map((c) => (
+                        <li key={c} role="none">
+                          <button
+                            type="button"
+                            role="option"
+                            className={RN_LIST_ITEM}
+                            onMouseDown={(ev) => {
+                              ev.preventDefault();
+                              setForm((f) => ({ ...f, country: c, region: "", city: "" }));
+                              setCountryTypeahead(c);
+                              setCountryOpen(false);
+                              setRegionTypeahead("");
+                              setRegionOpen(false);
+                            }}
+                          >
+                            {c}
+                          </button>
+                        </li>
                       ))}
-                    </select>
-                  )}
+                    </ul>
+                  ) : null}
                 </div>
+
+                {hasCommittedCountry ? (
+                  <div className="space-y-1">
+                    <label htmlFor={regionChoicesList ? "rn-region-input" : "rn-region-manual"} className={RN_LABEL}>
+                      Region *
+                    </label>
+                    <p className="mb-2.5 text-[12px] leading-relaxed text-white/45">
+                      {regionChoicesList
+                        ? "Choose your county or region (Norway, Denmark, Sweden). Type to narrow the list."
+                        : "Enter your region, county or state as used locally in your country."}
+                    </p>
+                    {regionChoicesList ? (
+                      <div ref={regionComboRef} className="relative">
+                        <input
+                          id="rn-region-input"
+                          type="text"
+                          autoComplete="off"
+                          value={regionTypeahead}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setRegionTypeahead(v);
+                            setRegionOpen(true);
+                            setForm((f) => ({ ...f, region: "", city: "" }));
+                          }}
+                          onFocus={() => {
+                            setRegionOpen(true);
+                            if (form.region) setRegionTypeahead(form.region);
+                          }}
+                          onBlur={() => {
+                            const list = regionChoicesList;
+                            const match = list.find((r) => r.toLowerCase() === regionTypeahead.trim().toLowerCase());
+                            if (match) {
+                              setForm((f) => ({ ...f, region: match, city: "" }));
+                              setRegionTypeahead(match);
+                            }
+                            setRegionOpen(false);
+                          }}
+                          placeholder="Search regions…"
+                          className={RN_INPUT}
+                          aria-autocomplete="list"
+                          aria-expanded={regionOpen}
+                          aria-controls="rn-region-listbox"
+                        />
+                        {regionOpen && regionFiltered.length > 0 ? (
+                          <ul id="rn-region-listbox" role="listbox" className={RN_LIST}>
+                            {regionFiltered.map((r) => (
+                              <li key={r} role="none">
+                                <button
+                                  type="button"
+                                  role="option"
+                                  className={RN_LIST_ITEM}
+                                  onMouseDown={(ev) => {
+                                    ev.preventDefault();
+                                    setForm((f) => ({ ...f, region: r, city: "" }));
+                                    setRegionTypeahead(r);
+                                    setRegionOpen(false);
+                                  }}
+                                >
+                                  {r}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <input
+                        id="rn-region-manual"
+                        type="text"
+                        value={form.region}
+                        onChange={(e) => {
+                          const r = e.target.value;
+                          setForm((f) => ({
+                            ...f,
+                            region: r,
+                            city: r.trim() ? f.city : "",
+                          }));
+                        }}
+                        placeholder="Enter your region"
+                        className={RN_INPUT}
+                      />
+                    )}
+                  </div>
+                ) : null}
+
+                {hasCommittedCountry && hasRegion ? (
+                  <div>
+                    <label htmlFor="rn-city" className={RN_LABEL}>
+                      City *
+                    </label>
+                    <input
+                      id="rn-city"
+                      type="text"
+                      value={form.city}
+                      onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                      placeholder="Enter your city"
+                      className={RN_INPUT}
+                    />
+                  </div>
+                ) : null}
 
                 <fieldset>
                   <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
@@ -796,45 +916,48 @@ export default function RecruiterNetworkClient() {
                 </fieldset>
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
+                  <label htmlFor="rn-social" className={RN_LABEL}>
                     Social media or professional profile link *
                   </label>
                   <input
+                    id="rn-social"
                     name="social_url"
                     type="url"
                     required
                     placeholder="https://"
-                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                    className={RN_INPUT}
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
+                  <label htmlFor="rn-reach" className={RN_LABEL}>
                     Monthly reach / visitors *
                   </label>
                   <input
+                    id="rn-reach"
                     name="monthly_reach"
                     type="text"
                     inputMode="numeric"
                     required
                     placeholder="e.g. 150,000"
-                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                    className={RN_INPUT}
                   />
                 </div>
 
                 <input type="hidden" name="has_company" value={mapBusinessTypeToHasCompany(form.businessType)} />
 
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
+                  <label htmlFor="rn-motivation" className={RN_LABEL}>
                     Tell us why you want to join
                   </label>
                   <textarea
+                    id="rn-motivation"
                     name="motivation"
                     maxLength={500}
                     rows={4}
                     placeholder="What drives you? What is your market? What makes you the right partner?"
                     value={motivation}
                     onChange={(ev) => setMotivation(ev.target.value)}
-                    className="rn-input input-premium input-premium--dark textarea-premium w-full resize-y rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                    className={`${RN_INPUT} min-h-[120px] resize-y`}
                   />
                   <p className="mt-1 text-right text-[11px] text-white/40">{motivation.length}/500</p>
                 </div>
