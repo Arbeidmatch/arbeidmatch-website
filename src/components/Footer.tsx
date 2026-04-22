@@ -7,7 +7,7 @@ const companyLinks: [string, string][] = [
   ["For Candidates", "/for-candidates"],
   ["Request Candidates", "/request"],
   ["Partners", "/partners"],
-  ["About", "/about"],
+  ["About us", "/about"],
   ["Contact", "/contact"],
   ["Privacy", "/privacy"],
   ["Terms", "/terms"],
