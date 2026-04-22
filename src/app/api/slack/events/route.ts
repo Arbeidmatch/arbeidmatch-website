@@ -34,6 +34,12 @@ export async function POST(request: NextRequest) {
       const channelId = body.event.channel || "";
       const cursorTasksChannelId = process.env.SLACK_CURSOR_TASKS_CHANNEL_ID || "";
       if (channelId === cursorTasksChannelId && cursorTasksChannelId) {
+        await notifyError({
+          route: "/api/slack/events DEBUG",
+          error: new Error(
+            `Channel: ${body.event?.channel} | Expected: ${process.env.SLACK_CURSOR_TASKS_CHANNEL_ID} | Text: ${body.event?.text}`,
+          ),
+        });
         const token = process.env.GITHUB_ISSUES_TOKEN;
         if (token) {
           const title = messageText.slice(0, 80);
