@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import type { JobPreferencesPayload } from "@/lib/candidates/profileSchema";
+import { resolveWorkTypeFromCategoryString } from "@/lib/candidates/profileSchema";
 import { applyGeneratedEmployerJobTone } from "@/lib/jobs/partnerJobCopy";
 
 export type EmployerRequestWizardPayload = {
@@ -62,12 +64,8 @@ function experienceLabel(years?: string, qualification?: string): string {
   return "professional level";
 }
 
-function mapCategoryToJobType(category: string): "Offshore" | "Onshore" | "Transport" | "Automotive" {
-  const c = category.trim().toLowerCase();
-  if (c.includes("offshore")) return "Offshore";
-  if (c.includes("transport") || c.includes("logistics") || c.includes("driver")) return "Transport";
-  if (c.includes("auto") || c.includes("vehicle") || c.includes("mechanic")) return "Automotive";
-  return "Onshore";
+function mapCategoryToJobType(category: string): JobPreferencesPayload["jobType"] {
+  return resolveWorkTypeFromCategoryString(category) ?? "Construction & Civil";
 }
 
 function parseSalaryRange(payload: EmployerRequestWizardPayload): { min: number | null; max: number | null; label: string } {
@@ -128,7 +126,7 @@ export type GeneratedEmployerJobInsert = {
   employer_email: string;
   location: string;
   category: string;
-  mapped_job_type: "Offshore" | "Onshore" | "Transport" | "Automotive";
+  mapped_job_type: JobPreferencesPayload["jobType"];
   experience_years_min: number | null;
 };
 

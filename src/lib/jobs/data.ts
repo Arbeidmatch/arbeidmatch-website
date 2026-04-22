@@ -106,7 +106,7 @@ export const JOBS_MOCK_DATA: JobRecord[] = [
     companyName: null,
     hideCompany: true,
     location: "Stavanger",
-    category: "Transport",
+    category: "Logistics & Transport",
     trade: "Truck Driver",
     contractType: "Temporary",
     workModel: "Bemanning",

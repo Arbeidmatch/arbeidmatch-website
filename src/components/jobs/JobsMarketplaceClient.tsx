@@ -4,15 +4,22 @@ import { useMemo, useState } from "react";
 import { BriefcaseBusiness, Search } from "lucide-react";
 import type { JobRecord } from "@/lib/jobs/types";
 import JobCard from "@/components/jobs/JobCard";
+import {
+  EMPLOYER_JOB_WORK_TYPES,
+  resolveWorkTypeFromCategoryString,
+  type EmployerJobWorkType,
+} from "@/lib/candidates/profileSchema";
 
-type JobCategory = "All" | "Offshore" | "Onshore" | "Transport" | "Automotive";
+type JobCategory = "All" | EmployerJobWorkType;
 
-function inferCategory(job: JobRecord): Exclude<JobCategory, "All"> {
-  const raw = `${job.category ?? ""} ${job.title} ${job.summary ?? ""} ${job.description}`.toLowerCase();
-  if (raw.includes("offshore")) return "Offshore";
-  if (raw.includes("transport") || raw.includes("driver") || raw.includes("logistics")) return "Transport";
-  if (raw.includes("auto") || raw.includes("vehicle") || raw.includes("mechanic")) return "Automotive";
-  return "Onshore";
+function inferCategory(job: JobRecord): EmployerJobWorkType {
+  const fromCat = job.category?.trim();
+  if (fromCat) {
+    const direct = resolveWorkTypeFromCategoryString(fromCat);
+    if (direct) return direct;
+  }
+  const blob = `${job.category ?? ""} ${job.title} ${job.summary ?? ""} ${job.description}`;
+  return resolveWorkTypeFromCategoryString(blob) ?? "Construction & Civil";
 }
 
 export default function JobsMarketplaceClient({ jobs, browseOnly }: { jobs: JobRecord[]; browseOnly: boolean }) {
@@ -48,7 +55,7 @@ export default function JobsMarketplaceClient({ jobs, browseOnly }: { jobs: JobR
     ];
   }, [enriched, jobs]);
 
-  const filters: JobCategory[] = ["All", "Offshore", "Onshore", "Transport", "Automotive"];
+  const filters: JobCategory[] = ["All", ...EMPLOYER_JOB_WORK_TYPES];
 
   return (
     <div className="min-w-0 overflow-x-hidden bg-[#0D1B2A] text-white">
@@ -62,8 +69,8 @@ export default function JobsMarketplaceClient({ jobs, browseOnly }: { jobs: JobR
             Blue-Collar Careers in Norway
           </h1>
           <p className="mx-auto mt-4 max-w-3xl text-pretty text-base leading-relaxed text-white/75 md:text-lg">
-            Explore opportunities across offshore, onshore, transport, and automotive sectors with verified employers across
-            Norway.
+            Explore opportunities across construction, technical trades, logistics, industry, facility services, and hospitality
+            with verified employers across Norway.
           </p>
           {browseOnly ? (
             <p className="mx-auto mt-4 max-w-3xl text-pretty rounded-[12px] border border-[rgba(201,168,76,0.25)] bg-[rgba(255,255,255,0.03)] px-4 py-3 text-sm text-white/75">

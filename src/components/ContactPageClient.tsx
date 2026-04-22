@@ -43,11 +43,12 @@ const inputInlineStyle = {
 
 const NEED_OPTIONS = [
   "Qualified workers",
-  "Offshore workers",
-  "Onshore workers",
-  "Transport workers",
-  "Automotive workers",
-  "Healthcare staff",
+  "Construction & Civil",
+  "Electrical & Technical",
+  "Logistics & Transport",
+  "Industry & Production",
+  "Cleaning & Facility",
+  "Hospitality & Healthcare",
   "Engineers & Technical",
   "Other",
 ] as const;

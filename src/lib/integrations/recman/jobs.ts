@@ -37,7 +37,7 @@ export async function fetchRecmanJobs(): Promise<RecmanJob[]> {
       id: "RM-78477",
       title: "Truck Driver C-Class, Stavanger",
       location: "Stavanger",
-      category: "Transport",
+      category: "Logistics & Transport",
       trade: "Truck Driver",
       contractType: "Temporary",
       workModel: "Bemanning",

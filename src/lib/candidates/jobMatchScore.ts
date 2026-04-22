@@ -1,6 +1,10 @@
 import type { JobRecord } from "@/lib/jobs/types";
 import type { CandidateProfilePayload, JobPreferencesPayload } from "@/lib/candidates/profileSchema";
-import { prefersConcreteRotationCycle, resolveSalaryHourlyMidNok } from "@/lib/candidates/profileSchema";
+import {
+  prefersConcreteRotationCycle,
+  resolveSalaryHourlyMidNok,
+  resolveWorkTypeFromCategoryString,
+} from "@/lib/candidates/profileSchema";
 
 /** Minimum profile fields required for role matching heuristics. */
 export type JobMatchProfileInput = Pick<CandidateProfilePayload, "experiences" | "preferences">;
@@ -35,13 +39,15 @@ function experienceBandMonths(band: JobPreferencesPayload["experienceBand"]): nu
   }
 }
 
-function mapCategoryToJobType(category?: string | null): string | null {
-  if (!category) return null;
-  const c = normalize(category);
-  if (c.includes("offshore")) return "Offshore";
-  if (c.includes("transport") || c.includes("logistics")) return "Transport";
-  if (c.includes("auto") || c.includes("vehicle")) return "Automotive";
-  return "Onshore";
+function resolveJobRecordWorkType(job: JobRecord): JobPreferencesPayload["jobType"] | null {
+  const fromMeta = job.employerBoardMeta?.mappedJobType?.trim();
+  if (fromMeta) {
+    const m = resolveWorkTypeFromCategoryString(fromMeta);
+    if (m) return m;
+  }
+  const cat = job.category?.trim();
+  if (cat) return resolveWorkTypeFromCategoryString(cat);
+  return null;
 }
 
 function extractLikelyHourlyMidNok(salaryText: string): number | null {
@@ -77,7 +83,7 @@ export function salaryHourlyScore(job: JobRecord, band: JobPreferencesPayload["s
   const high = includesAny(salaryText, ["560", "570", "580", "590", "600", "620", "650", "700", "720"]);
   const midHigh = includesAny(salaryText, ["480", "500", "510", "520", "530", "540", "550"]);
   const mid = includesAny(salaryText, ["380", "400", "410", "420", "430", "440", "450", "460", "470"]);
-  const low = includesAny(salaryText, ["200", "220", "240", "250", "260", "280", "300", "320", "340", "350", "360"]);
+  const low = includesAny(salaryText, ["200", "210", "220", "230", "240", "250", "260", "280", "300", "320", "340", "350", "360"]);
 
   if (candMid >= 575) return high || midHigh ? 90 : mid ? 80 : 72;
   if (candMid >= 475) return midHigh || high ? 88 : mid || low ? 78 : 72;
@@ -112,7 +118,7 @@ export function computeJobMatchScore(job: JobRecord, profile: JobMatchProfileInp
     add(0.22, 65, "Limited trade signal on the job posting.");
   }
 
-  const mapped = mapCategoryToJobType(job.category);
+  const mapped = resolveJobRecordWorkType(job);
   if (mapped) {
     const score = mapped === profile.preferences.jobType ? 90 : 68;
     add(0.18, score, mapped === profile.preferences.jobType ? "Sector preference matches job category." : "Sector preference is close but not exact.");
@@ -126,10 +132,13 @@ export function computeJobMatchScore(job: JobRecord, profile: JobMatchProfileInp
   const years = expMonths / 12;
   const workModel = normalize(job.workModel ?? "");
   const wantsHeavyHours = profile.preferences.hoursPerWeek === "54_plus" || profile.preferences.hoursPerWeek === "48";
-  const offshore = profile.preferences.jobType === "Offshore";
+  const prefersStandardWeek = profile.preferences.hoursPerWeek === "37.5";
+  const rotationOrOffshoreJob =
+    includesAny(workModel, ["rotation", "offshore", "shift"]) ||
+    includesAny(`${job.category ?? ""} ${job.description}`, ["offshore"]);
   let hoursScore = 70;
-  if (offshore && wantsHeavyHours) hoursScore = 88;
-  else if (includesAny(workModel, ["rotation", "offshore", "shift"]) && wantsHeavyHours) hoursScore = 84;
+  if (rotationOrOffshoreJob && wantsHeavyHours) hoursScore = 88;
+  else if (rotationOrOffshoreJob && prefersStandardWeek) hoursScore = 82;
   else if (years >= 3) hoursScore = 80;
   else hoursScore = 72;
   add(0.14, hoursScore, `Work rhythm fit using hours preference, rotation context, and about ${years.toFixed(1)} years of declared experience band.`);
@@ -172,10 +181,13 @@ function hoursSubScore(job: JobRecord, profile: JobMatchProfileInput): number {
   const years = expMonths / 12;
   const workModel = normalize(job.workModel ?? "");
   const wantsHeavyHours = profile.preferences.hoursPerWeek === "54_plus" || profile.preferences.hoursPerWeek === "48";
-  const offshore = profile.preferences.jobType === "Offshore";
+  const prefersStandardWeek = profile.preferences.hoursPerWeek === "37.5";
+  const rotationOrOffshoreJob =
+    includesAny(workModel, ["rotation", "offshore", "shift"]) ||
+    includesAny(`${job.category ?? ""} ${job.description}`, ["offshore"]);
   let hoursScore = 70;
-  if (offshore && wantsHeavyHours) hoursScore = 88;
-  else if (includesAny(workModel, ["rotation", "offshore", "shift"]) && wantsHeavyHours) hoursScore = 84;
+  if (rotationOrOffshoreJob && wantsHeavyHours) hoursScore = 88;
+  else if (rotationOrOffshoreJob && prefersStandardWeek) hoursScore = 82;
   else if (years >= 3) hoursScore = 80;
   else hoursScore = 72;
   return hoursScore;
@@ -215,7 +227,7 @@ export function jobCompatibilityCriteria(
   job: JobRecord,
   profile: JobMatchProfileInput,
 ): Record<JobCompatibilityCriterionKey, boolean> {
-  const mapped = mapCategoryToJobType(job.category);
+  const mapped = resolveJobRecordWorkType(job);
   const jobType = mapped == null ? true : mapped === profile.preferences.jobType;
 
   const trade = job.trade?.trim();

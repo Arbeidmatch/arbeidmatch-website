@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { BriefcaseBusiness, MapPin, Search } from "lucide-react";
+import { EMPLOYER_JOB_WORK_TYPES, type EmployerJobWorkType } from "@/lib/candidates/profileSchema";
 
-type JobCategory = "Offshore" | "Onshore" | "Transport" | "Automotive";
+type JobCategory = EmployerJobWorkType;
 type JobType = "Full-time" | "Contract";
 
 type PremiumJob = {
@@ -25,7 +26,7 @@ const JOBS: PremiumJob[] = [
     location: "Stavanger",
     salary: "NOK 630,000 to 720,000",
     type: "Full-time",
-    category: "Offshore",
+    category: "Industry & Production",
     description: "Support platform electrical systems, safety inspections, and maintenance planning.",
     posted: "2 days ago",
     featured: true,
@@ -36,7 +37,7 @@ const JOBS: PremiumJob[] = [
     location: "Bergen",
     salary: "NOK 290 to 340 per hour",
     type: "Contract",
-    category: "Onshore",
+    category: "Construction & Civil",
     description: "Perform MIG and TIG welding on structural components in production facilities.",
     posted: "1 day ago",
     featured: false,
@@ -47,7 +48,7 @@ const JOBS: PremiumJob[] = [
     location: "Trondheim",
     salary: "NOK 610,000 to 680,000",
     type: "Full-time",
-    category: "Transport",
+    category: "Logistics & Transport",
     description: "Handle long-haul deliveries across regional routes with strict safety standards.",
     posted: "3 days ago",
     featured: true,
@@ -58,7 +59,7 @@ const JOBS: PremiumJob[] = [
     location: "Oslo",
     salary: "NOK 580,000 to 650,000",
     type: "Full-time",
-    category: "Automotive",
+    category: "Electrical & Technical",
     description: "Diagnose electronic systems, perform advanced troubleshooting, and support workshop teams.",
     posted: "5 days ago",
     featured: false,
@@ -69,7 +70,7 @@ const JOBS: PremiumJob[] = [
     location: "Hammerfest",
     salary: "NOK 300 to 360 per hour",
     type: "Contract",
-    category: "Offshore",
+    category: "Industry & Production",
     description: "Install and maintain pressure piping systems during scheduled offshore rotations.",
     posted: "4 days ago",
     featured: false,
@@ -80,7 +81,7 @@ const JOBS: PremiumJob[] = [
     location: "Drammen",
     salary: "NOK 280 to 330 per hour",
     type: "Contract",
-    category: "Onshore",
+    category: "Construction & Civil",
     description: "Execute reinforcement, casting, and finishing for commercial construction projects.",
     posted: "6 days ago",
     featured: false,
@@ -91,7 +92,7 @@ const JOBS: PremiumJob[] = [
     location: "Tromso",
     salary: "NOK 560,000 to 620,000",
     type: "Full-time",
-    category: "Transport",
+    category: "Logistics & Transport",
     description: "Service diesel and hybrid fleet vehicles with preventive maintenance schedules.",
     posted: "2 days ago",
     featured: false,
@@ -102,14 +103,14 @@ const JOBS: PremiumJob[] = [
     location: "Kristiansand",
     salary: "NOK 550,000 to 610,000",
     type: "Full-time",
-    category: "Automotive",
+    category: "Electrical & Technical",
     description: "Deliver high-quality paint correction and collision repair for premium vehicles.",
     posted: "7 days ago",
     featured: true,
   },
 ];
 
-const FILTERS: Array<"All" | JobCategory> = ["All", "Offshore", "Onshore", "Transport", "Automotive"];
+const FILTERS: Array<"All" | JobCategory> = ["All", ...EMPLOYER_JOB_WORK_TYPES];
 
 export default function PremiumJobsBoard() {
   const [query, setQuery] = useState("");
@@ -146,8 +147,8 @@ export default function PremiumJobsBoard() {
             Blue-Collar Careers in Norway
           </h1>
           <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-white/75 md:text-lg animate-[fadeIn_.8s_ease]">
-            Explore premium opportunities in offshore, onshore, transport, and automotive sectors with verified employers
-            across Norway.
+            Explore premium opportunities across construction, technical trades, logistics, industry, facility services, and
+            hospitality with verified employers across Norway.
           </p>
 
           <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">

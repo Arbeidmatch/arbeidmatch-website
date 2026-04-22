@@ -2,13 +2,91 @@ import { z } from "zod";
 
 import { isEeaCandidatePhone, isEeaResidenceCountryName } from "@/lib/candidates/euEeaCandidateGeo";
 
-export const jobTypeSchema = z.enum(["Offshore", "Onshore", "Transport", "Automotive"]);
+/** Same sector labels as employer `/request` flow — used for candidate prefs and employer job matching. */
+export const EMPLOYER_JOB_WORK_TYPES = [
+  "Construction & Civil",
+  "Electrical & Technical",
+  "Logistics & Transport",
+  "Industry & Production",
+  "Cleaning & Facility",
+  "Hospitality & Healthcare",
+] as const;
+
+export type EmployerJobWorkType = (typeof EMPLOYER_JOB_WORK_TYPES)[number];
+
+export const jobTypeSchema = z.enum(EMPLOYER_JOB_WORK_TYPES);
 export const jobTypes = jobTypeSchema.options;
+
+const LEGACY_FOUR_JOB_TYPES: Record<string, EmployerJobWorkType> = {
+  offshore: "Industry & Production",
+  onshore: "Construction & Civil",
+  transport: "Logistics & Transport",
+  automotive: "Electrical & Technical",
+};
+
+/** Normalized keys (trim + lower) → canonical work type. Covers `/request` token industry strings and variants. */
+const JOB_CATEGORY_ALIAS_TO_WORK_TYPE: Record<string, EmployerJobWorkType> = {
+  ...LEGACY_FOUR_JOB_TYPES,
+  "construction & civil": "Construction & Civil",
+  "electrical & technical": "Electrical & Technical",
+  "logistics & transport": "Logistics & Transport",
+  "industry & production": "Industry & Production",
+  "cleaning & facility": "Cleaning & Facility",
+  "hospitality & healthcare": "Hospitality & Healthcare",
+  electrical: "Electrical & Technical",
+  "plumbing and hvac (vvs)": "Electrical & Technical",
+  "plumbing and hvac": "Electrical & Technical",
+  construction: "Construction & Civil",
+  "welding and metal": "Industry & Production",
+  logistics: "Logistics & Transport",
+  "industry and production": "Industry & Production",
+  cleaning: "Cleaning & Facility",
+  horeca: "Hospitality & Healthcare",
+  healthcare: "Hospitality & Healthcare",
+};
+
+/**
+ * Map stored job category / legacy job-type strings to a canonical work type, or null if unknown.
+ * Used for employer_jobs.category, mapped_job_type, candidate drafts, and Recman-style categories.
+ */
+export function resolveWorkTypeFromCategoryString(raw: string): EmployerJobWorkType | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const lower = trimmed.toLowerCase();
+  for (const canon of EMPLOYER_JOB_WORK_TYPES) {
+    if (canon.toLowerCase() === lower) return canon;
+  }
+  const alias = JOB_CATEGORY_ALIAS_TO_WORK_TYPE[lower];
+  if (alias) return alias;
+
+  // Heuristic fallbacks for free-text categories (job boards, imports)
+  if (/(^|[^a-z])(construction|civil|bygg|anlegg)([^a-z]|$)/i.test(trimmed)) return "Construction & Civil";
+  if (/(electric|elektro|automotive|vehicle|mechanic|tekniker|vvs|plumb|hvac|welder|welding|pipefitter)/i.test(trimmed)) {
+    return "Electrical & Technical";
+  }
+  if (/(logistics|transport|truck|driver|warehouse|forklift|crane|lager|sjåfør)/i.test(trimmed)) return "Logistics & Transport";
+  if (/(cleaning|facility|renhold|janitor|vaktmester|industrial cleaner)/i.test(trimmed)) return "Cleaning & Facility";
+  if (
+    /(?:^|[^a-z])(?:industry|production|offshore|manufactur|fabrikk|process)(?:[^a-z]|$)/i.test(trimmed) ||
+    /steel worker|cnc/i.test(trimmed)
+  ) {
+    return "Industry & Production";
+  }
+  if (/(hospitality|healthcare|horeca|hotel|kitchen|chef|care|sykepleie|kokk)/i.test(trimmed)) return "Hospitality & Healthcare";
+
+  return null;
+}
+
+function normalizeJobTypeInput(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const resolved = resolveWorkTypeFromCategoryString(value);
+  return resolved ?? value;
+}
 
 export const experienceBandSchema = z.enum(["0_2", "2_5", "5_10", "10_plus"]);
 export const experienceBands = experienceBandSchema.options;
 
-export const salaryHourlySchema = z.enum([
+const salaryHourlyEnum = z.enum([
   "200_250",
   "250_300",
   "300_350",
@@ -19,9 +97,20 @@ export const salaryHourlySchema = z.enum([
   "550_600",
   "600_plus",
 ]);
-export const salaryHourlyOptions = salaryHourlySchema.options;
 
-export type SalaryHourlyBand = z.infer<typeof salaryHourlySchema>;
+/** Accept legacy / alternate keys from drafts and normalize to canonical bands. */
+function normalizeSalaryHourlyInput(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const v = value.trim();
+  if (v === "400_500") return "400_450";
+  if (v === "500_600") return "500_550";
+  return v;
+}
+
+export const salaryHourlySchema = z.preprocess(normalizeSalaryHourlyInput, salaryHourlyEnum);
+export const salaryHourlyOptions = salaryHourlyEnum.options;
+
+export type SalaryHourlyBand = z.infer<typeof salaryHourlyEnum>;
 
 /** Human-readable labels for UI (wizard, summaries). */
 export const salaryHourlyHumanLabels = {
@@ -85,14 +174,40 @@ export function salaryHourlyEmployerBandLabelResolved(band: string): string {
   return LEGACY_SALARY_EMPLOYER_LABEL[band] ?? "Not specified";
 }
 
+const hoursPrefEnum = z.enum(["37.5", "48", "54_plus"]);
+
+/** JSON may send 37.5 as a number; drafts may use alternate spellings. */
+function normalizeHoursPrefInput(value: unknown): unknown {
+  if (value === 37.5 || value === "37,5") return "37.5";
+  if (value === 48) return "48";
+  if (typeof value === "string") {
+    const t = value.trim();
+    if (t === "37,5") return "37.5";
+    if (t === "54+" || t === "54 +") return "54_plus";
+  }
+  return value;
+}
+
 /** Norwegian working-time context: 37.5 h normal week, 48 h overtime cap, 54+ h exceptional. */
-export const hoursPrefSchema = z.enum(["37.5", "48", "54_plus"]);
-export const hoursPrefs = hoursPrefSchema.options;
+export const hoursPrefSchema = z.preprocess(normalizeHoursPrefInput, hoursPrefEnum);
+export const hoursPrefs = hoursPrefEnum.options;
 
-export const rotationPrefSchema = z.enum(["4on_2off", "6on_2off"]);
-export const rotationPrefs = rotationPrefSchema.options;
+const rotationPrefEnum = z.enum(["4on_2off", "6on_2off"]);
 
-export type RotationPref = z.infer<typeof rotationPrefSchema>;
+/** Long-form keys and legacy wizard values map onto canonical rotation prefs. */
+function normalizeRotationPrefInput(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const v = value.trim();
+  if (v === "4_weeks_on_2_weeks_off") return "4on_2off";
+  if (v === "6_weeks_on_2_weeks_off") return "6on_2off";
+  if (v === "1_2" || v === "2_4" || v === "flexible") return "4on_2off";
+  return v;
+}
+
+export const rotationPrefSchema = z.preprocess(normalizeRotationPrefInput, rotationPrefEnum);
+export const rotationPrefs = rotationPrefEnum.options;
+
+export type RotationPref = z.infer<typeof rotationPrefEnum>;
 
 export const rotationHumanLabels = {
   "4on_2off": "4 weeks on, 2 weeks off",
@@ -130,10 +245,39 @@ export const housingPrefs = housingPrefSchema.options;
 export const travelPrefSchema = z.enum(["company", "personal"]);
 export const travelPrefs = travelPrefSchema.options;
 
+/** Pasted intro links often omit https://; Zod .url() requires an absolute URL. */
+export function normalizeCandidateVideoUrlInput(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const t = value.trim();
+  if (!t) return t;
+  if (/^https?:\/\//i.test(t)) return t;
+  const candidate = `https://${t}`;
+  try {
+    const host = new URL(candidate).hostname.toLowerCase();
+    if (
+      host.includes("youtube.com") ||
+      host.includes("youtu.be") ||
+      host.includes("vimeo.com") ||
+      host.includes("loom.com") ||
+      host.endsWith("tiktok.com")
+    ) {
+      return candidate;
+    }
+  } catch {
+    return t;
+  }
+  return t;
+}
+
 export const workExperienceSchema = z.object({
   companyName: z.string().trim().min(2),
   country: z.string().trim().min(2),
-  orgNumber: z.string().trim().optional(),
+  orgNumber: z.preprocess((v) => {
+    if (v === null || v === undefined || v === "") return undefined;
+    if (typeof v !== "string") return undefined;
+    const t = v.trim();
+    return t.length ? t : undefined;
+  }, z.string().min(1).optional()),
   jobTitle: z.string().trim().min(2),
   fromMonth: z.string().trim().min(1),
   fromYear: z.string().trim().min(4),
@@ -143,7 +287,7 @@ export const workExperienceSchema = z.object({
 });
 
 export const jobPreferencesSchema = z.object({
-  jobType: jobTypeSchema,
+  jobType: z.preprocess(normalizeJobTypeInput, jobTypeSchema),
   experienceBand: experienceBandSchema,
   salaryHourly: salaryHourlySchema,
   hoursPerWeek: hoursPrefSchema,
@@ -170,7 +314,7 @@ export const candidateProfilePayloadSchema = z.object({
   city: z.string().trim().min(2),
   gdprEntryAccepted: z.literal(true),
   privacyPolicyVersion: z.string().trim().min(1).optional(),
-  videoUrl: z.string().trim().url(),
+  videoUrl: z.preprocess(normalizeCandidateVideoUrlInput, z.string().trim().url()),
   experiences: z.array(workExperienceSchema).min(1).max(6),
   preferences: jobPreferencesSchema,
   shareWithEmployers: z.boolean(),

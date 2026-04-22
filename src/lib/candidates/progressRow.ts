@@ -3,7 +3,7 @@ import {
   experienceBands,
   hoursPrefs,
   housingPrefs,
-  jobTypes,
+  resolveWorkTypeFromCategoryString,
   rotationPrefs,
   salaryHourlyOptions,
   travelPrefs,
@@ -15,20 +15,46 @@ function s(d: Record<string, unknown>, key: string, fallback: string): string {
 }
 
 function jobPrefsFromDraft(d: Record<string, unknown>): JobPreferencesPayload {
-  const jobType = jobTypes.includes(d.jobType as JobPreferencesPayload["jobType"])
-    ? (d.jobType as JobPreferencesPayload["jobType"])
-    : "Onshore";
+  const rawJobType = typeof d.jobType === "string" ? d.jobType.trim() : "";
+  const jobType = rawJobType
+    ? (resolveWorkTypeFromCategoryString(rawJobType) ?? "Construction & Civil")
+    : "Construction & Civil";
   const experienceBand = experienceBands.includes(d.experienceBand as JobPreferencesPayload["experienceBand"])
     ? (d.experienceBand as JobPreferencesPayload["experienceBand"])
     : "2_5";
-  const salaryHourly = salaryHourlyOptions.includes(d.salaryHourly as JobPreferencesPayload["salaryHourly"])
-    ? (d.salaryHourly as JobPreferencesPayload["salaryHourly"])
+  const rawSalary = d.salaryHourly;
+  const salaryMapped =
+    typeof rawSalary === "string" && rawSalary.trim() === "400_500"
+      ? "400_450"
+      : typeof rawSalary === "string" && rawSalary.trim() === "500_600"
+        ? "500_550"
+        : rawSalary;
+  const salaryHourly = salaryHourlyOptions.includes(salaryMapped as JobPreferencesPayload["salaryHourly"])
+    ? (salaryMapped as JobPreferencesPayload["salaryHourly"])
     : "400_450";
-  const hoursPerWeek = hoursPrefs.includes(d.hoursPerWeek as JobPreferencesPayload["hoursPerWeek"])
-    ? (d.hoursPerWeek as JobPreferencesPayload["hoursPerWeek"])
+  const rawHours = d.hoursPerWeek;
+  const hoursCoerced =
+    rawHours === 37.5 || rawHours === "37,5"
+      ? "37.5"
+      : rawHours === 48
+        ? "48"
+        : typeof rawHours === "string" && (rawHours.trim() === "54+" || rawHours.trim() === "54 +")
+          ? "54_plus"
+          : rawHours;
+  const hoursPerWeek = hoursPrefs.includes(hoursCoerced as JobPreferencesPayload["hoursPerWeek"])
+    ? (hoursCoerced as JobPreferencesPayload["hoursPerWeek"])
     : "37.5";
-  const rotation = rotationPrefs.includes(d.rotation as JobPreferencesPayload["rotation"])
-    ? (d.rotation as JobPreferencesPayload["rotation"])
+  const rawRot = d.rotation;
+  const rotationMapped =
+    typeof rawRot === "string" && rawRot.trim() === "4_weeks_on_2_weeks_off"
+      ? "4on_2off"
+      : typeof rawRot === "string" && rawRot.trim() === "6_weeks_on_2_weeks_off"
+        ? "6on_2off"
+        : typeof rawRot === "string" && (rawRot.trim() === "1_2" || rawRot.trim() === "2_4" || rawRot.trim() === "flexible")
+          ? "4on_2off"
+          : rawRot;
+  const rotation = rotationPrefs.includes(rotationMapped as JobPreferencesPayload["rotation"])
+    ? (rotationMapped as JobPreferencesPayload["rotation"])
     : "4on_2off";
   const housing = housingPrefs.includes(d.housing as JobPreferencesPayload["housing"])
     ? (d.housing as JobPreferencesPayload["housing"])

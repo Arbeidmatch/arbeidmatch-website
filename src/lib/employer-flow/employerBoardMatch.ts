@@ -1,5 +1,9 @@
-import type { CandidateProfilePayload } from "@/lib/candidates/profileSchema";
-import { prefersConcreteRotationCycle, resolveSalaryHourlyMidNok } from "@/lib/candidates/profileSchema";
+import type { CandidateProfilePayload, EmployerJobWorkType } from "@/lib/candidates/profileSchema";
+import {
+  prefersConcreteRotationCycle,
+  resolveSalaryHourlyMidNok,
+  resolveWorkTypeFromCategoryString,
+} from "@/lib/candidates/profileSchema";
 import type { EmployerBoardMeta } from "@/lib/jobs/types";
 
 function bandMinYears(band: CandidateProfilePayload["preferences"]["experienceBand"]): number {
@@ -24,12 +28,24 @@ export type EmployerBoardMatchResult = {
   breakdown: string[];
 };
 
+function employerBoardWorkType(meta: EmployerBoardMeta): EmployerJobWorkType | null {
+  const fromMapped = meta.mappedJobType?.trim();
+  if (fromMapped) {
+    const m = resolveWorkTypeFromCategoryString(fromMapped);
+    if (m) return m;
+  }
+  const cat = meta.category?.trim();
+  if (cat) return resolveWorkTypeFromCategoryString(cat);
+  return null;
+}
+
 export function computeEmployerBoardMatch(meta: EmployerBoardMeta, profile: CandidateProfilePayload): EmployerBoardMatchResult {
   const breakdown: string[] = [];
   let points = 0;
   const maxPoints = 12;
 
-  if (meta.mappedJobType && meta.mappedJobType === profile.preferences.jobType) {
+  const jobWorkType = employerBoardWorkType(meta);
+  if (jobWorkType && jobWorkType === profile.preferences.jobType) {
     points += 3;
     breakdown.push("Job sector +3");
   } else {

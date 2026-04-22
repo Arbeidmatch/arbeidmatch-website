@@ -1,4 +1,5 @@
 import {
+  normalizeCandidateVideoUrlInput,
   rotationHumanLabels,
   salaryHourlyHumanLabels,
   type CandidateProfilePayload,
@@ -36,6 +37,7 @@ function experienceBandLabel(band: JobPreferencesPayload["experienceBand"]): str
   }
 }
 
+/** Synthetic CV line — `prefs.jobType` uses the same sector enum as employer `/request` categories. */
 export function buildSyntheticExperiences(prefs: JobPreferencesPayload, residenceCountry: string): WorkExperiencePayload[] {
   const y = new Date().getFullYear();
   const start = y - experienceBandApproxYears(prefs.experienceBand);
@@ -47,7 +49,6 @@ export function buildSyntheticExperiences(prefs: JobPreferencesPayload, residenc
     {
       companyName: "Various employers",
       country: residenceCountry.trim() || "Norway",
-      orgNumber: "",
       jobTitle: `${prefs.jobType} specialist`,
       fromMonth: "Jan",
       fromYear: String(start),
@@ -101,7 +102,7 @@ export function buildCandidateProfilePayload(input: {
     city: input.city.trim(),
     gdprEntryAccepted: true,
     privacyPolicyVersion: "2026-04-22",
-    videoUrl: input.videoUrl.trim(),
+    videoUrl: String(normalizeCandidateVideoUrlInput(input.videoUrl.trim()) ?? "").trim(),
     experiences: buildSyntheticExperiences(input.preferences, input.currentCountry),
     preferences: input.preferences,
     shareWithEmployers: input.shareWithEmployers,
