@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 function LoadingFallback() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-[#0D1B2A] text-sm text-white/70">
-      Loading…
+      Loading...
     </div>
   );
 }

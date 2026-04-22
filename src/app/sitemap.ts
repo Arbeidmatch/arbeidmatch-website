@@ -4,11 +4,6 @@ import { PREMIUM_ARTICLE_SLUGS } from "@/lib/premium/articleSlugs";
 
 const SITE = "https://www.arbeidmatch.no";
 
-/**
- * Intentionally omitted from this sitemap (noindex internal flows, direct links only):
- * /candidates, /candidates/complete-profile, /engineers-technical, /jobs/edit/*, /employer/candidates/*
- */
-
 /** lastmod for homepage + primary commercial URLs (task spec: today) */
 const primaryLastMod = new Date("2026-04-19T12:00:00.000Z");
 const stableLastMod = new Date("2026-01-15T12:00:00.000Z");
