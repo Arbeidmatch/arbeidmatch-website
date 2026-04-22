@@ -91,17 +91,23 @@ function IconCheck({ className }: { className?: string }) {
   );
 }
 
-function StarRow() {
-  return (
-    <div className="flex gap-0.5" aria-hidden>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <svg key={i} width={16} height={16} viewBox="0 0 24 24" fill={GOLD} className="text-[#C9A84C]">
-          <path d="M12 2l2.9 7.4H22l-6 4.6 2.3 7L12 16.9 5.7 21 8 14.6 2 9.4h7.1z" />
-        </svg>
-      ))}
-    </div>
-  );
-}
+const candidateRequestCards = [
+  {
+    role: "Electrician",
+    text: "Looking for work in Bergen or Stavanger. 5 years experience, DSB authorized, available from June.",
+    tag: "EU/EEA · Norway Ready",
+  },
+  {
+    role: "Welder — TIG/MIG",
+    text: "Certified welder with 8 years offshore experience. Looking for rotation-based contract in Norway.",
+    tag: "EU/EEA · Offshore Ready",
+  },
+  {
+    role: "HGV Driver — Class C+E",
+    text: "C+E license, 6 years experience in transport logistics. Open to relocation, accommodation needed.",
+    tag: "EU/EEA · Transport",
+  },
+] as const;
 
 export default function PremiumLandingPage() {
   const searchParams = useSearchParams();
@@ -440,31 +446,30 @@ export default function PremiumLandingPage() {
         </div>
       </section>
 
-      <section className="border-t border-white/[0.06] px-6 py-16 md:px-10 md:py-20">
-        <div className="mx-auto grid max-w-[1100px] grid-cols-1 gap-6 md:grid-cols-3">
-          {[
-            {
-              quote:
-                "The DSB approval guide alone saved me weeks of confusion. Everything is explained clearly and sourced from official pages. Worth the investment.",
-              who: "Electrician, Poland. Working in Bergen since 2024.",
-            },
-            {
-              quote:
-                "As an employer, I finally understand what I can legally ask candidates to provide. The employment contract guide is exactly what I needed.",
-              who: "Construction company owner, Trondheim.",
-            },
-            {
-              quote:
-                "I found the tax registration guide before my first week of work. Avoided mistakes that could have cost me money. Highly recommend.",
-              who: "Logistics worker, Romania. Based in Stavanger.",
-            },
-          ].map((t) => (
-            <div key={t.who} className="rounded-[14px] bg-white/[0.04] p-7">
-              <StarRow />
-              <p className="mt-4 text-[15px] leading-relaxed text-white/85">{t.quote}</p>
-              <p className="mt-4 text-[13px] text-white/45">{t.who}</p>
-            </div>
-          ))}
+      <section className="border-t border-white/[0.06] bg-white/[0.02] px-6 py-16 md:px-10 md:py-20">
+        <div className="mx-auto max-w-[1100px]">
+          <p className="text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">Candidate requests</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-white md:text-4xl">Active Candidate Profiles</h2>
+          <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-white/55">
+            Verified EU/EEA professionals looking for roles in Norway
+          </p>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+            {candidateRequestCards.map((card) => (
+              <article
+                key={card.role}
+                className="relative rounded-[14px] border border-[#C9A84C]/20 bg-[#0f1923] p-5 pt-11 shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
+              >
+                <span className="absolute right-3 top-3 max-w-[55%] text-right text-[10px] font-semibold uppercase leading-snug tracking-wide text-[#C9A84C]/95">
+                  {card.tag}
+                </span>
+                <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-300/95 ring-1 ring-emerald-400/25">
+                  Available
+                </span>
+                <h3 className="mt-4 text-lg font-bold text-white">{card.role}</h3>
+                <p className="mt-2 text-[13px] leading-relaxed text-white/50">{card.text}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
