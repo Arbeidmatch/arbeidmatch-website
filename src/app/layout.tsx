@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import BetaBanner from "@/components/BetaBanner";
 import ScrollProgressBar from "@/components/ScrollProgressBar";
 import CookieConsent from "@/components/CookieConsent";
+import GdprConsentProvider from "@/components/gdpr/GdprConsentProvider";
 import HomeJsonLd from "@/components/seo/HomeJsonLd";
 
 const DeferredAppOverlays = dynamic(() => import("@/components/client/DeferredAppOverlays"), { loading: () => null });
@@ -90,14 +91,16 @@ export default function RootLayout({
   return (
     <html lang="nb" className={`h-full overflow-x-hidden antialiased ${fontSans.variable}`}>
       <body className="flex min-h-full flex-col overflow-x-hidden bg-[#0D1B2A] font-sans text-white">
-        <BetaBanner />
-        <ScrollProgressBar />
-        <Navbar />
-        <main className="flex min-w-0 flex-1 flex-col overflow-x-clip pb-[40px]">{children}</main>
-        <Footer />
-        <DeferredAppOverlays />
-        <CookieConsent />
-        <HomeJsonLd />
+        <GdprConsentProvider>
+          <BetaBanner />
+          <ScrollProgressBar />
+          <Navbar />
+          <main className="flex min-w-0 flex-1 flex-col overflow-x-clip pb-[40px]">{children}</main>
+          <Footer />
+          <DeferredAppOverlays />
+          <CookieConsent />
+          <HomeJsonLd />
+        </GdprConsentProvider>
       </body>
     </html>
   );

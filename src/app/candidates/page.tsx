@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import CandidateProfileWizard from "@/components/candidates/CandidateProfileWizard";
+import GdprProfileWizardGate from "@/components/gdpr/GdprProfileWizardGate";
 
 export const metadata: Metadata = {
   title: "Candidate Profile | ArbeidMatch",
@@ -25,11 +26,13 @@ export default async function CandidatesPage({ searchParams }: Props) {
   const hasToken = typeof token === "string" && token.length >= 32;
 
   return (
-    <CandidateProfileWizard
-      entryMode={hasToken ? "complete-only" : "default"}
-      resumeToken={hasToken ? token : null}
-      applyReturnPath={ret?.trim() ? ret : null}
-      initialEmailHint={email?.includes("@") ? email : null}
-    />
+    <GdprProfileWizardGate>
+      <CandidateProfileWizard
+        entryMode={hasToken ? "complete-only" : "default"}
+        resumeToken={hasToken ? token : null}
+        applyReturnPath={ret?.trim() ? ret : null}
+        initialEmailHint={email?.includes("@") ? email : null}
+      />
+    </GdprProfileWizardGate>
   );
 }

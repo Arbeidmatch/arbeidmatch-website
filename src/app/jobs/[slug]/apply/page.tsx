@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import JobApplicationForm from "@/components/jobs/JobApplicationForm";
+import JobApplicationFormWithGdpr from "@/components/gdpr/JobApplicationFormWithGdpr";
 import { getJobBySlug } from "@/lib/jobs/repository";
 
 type Props = {
@@ -117,7 +117,7 @@ export default async function JobApplyPage({ params, searchParams }: Props) {
             Complete the form in a few simple steps. We only ask for information relevant to recruitment.
           </p>
           <div className="mt-5">
-            <JobApplicationForm job={job} />
+            <JobApplicationFormWithGdpr job={job} />
           </div>
         </section>
 

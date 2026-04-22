@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import GdprProfileWizardGate from "@/components/gdpr/GdprProfileWizardGate";
+
 import CompleteProfileClient from "./CompleteProfileClient";
 
 export const metadata: Metadata = {
@@ -20,7 +22,9 @@ function LoadingFallback() {
 export default function CompleteProfilePage() {
   return (
     <Suspense fallback={<LoadingFallback />}>
-      <CompleteProfileClient />
+      <GdprProfileWizardGate>
+        <CompleteProfileClient />
+      </GdprProfileWizardGate>
     </Suspense>
   );
 }

@@ -4,6 +4,8 @@ import { useCallback, useId, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check } from "lucide-react";
 
+import { useGdprConsent } from "@/components/gdpr/GdprConsentProvider";
+
 type ProfileApi = {
   profile_completion_step?: number | null;
   profile_completed_at?: string | null;
@@ -32,6 +34,7 @@ export default function ApplyWithProfileGate({
   className?: string;
   children: React.ReactNode;
 }) {
+  const gdpr = useGdprConsent();
   const reduceMotion = useReducedMotion();
   const titleId = useId();
   const [open, setOpen] = useState(false);
@@ -64,6 +67,11 @@ export default function ApplyWithProfileGate({
   }, []);
 
   const handleApplyClick = useCallback(async () => {
+    if (!gdpr.hydrated) return;
+    if (gdpr.status !== "accepted") {
+      gdpr.reopenForAcceptance();
+      return;
+    }
     setLoading(true);
     try {
       const stored = typeof window !== "undefined" ? window.localStorage.getItem("am_candidate_profile_email") : null;
@@ -85,7 +93,7 @@ export default function ApplyWithProfileGate({
     } finally {
       setLoading(false);
     }
-  }, [applyHref, openPanel]);
+  }, [applyHref, gdpr, openPanel]);
 
   const postReminder = useCallback(
     async (payload: { email: string; mode: "send_email" | "continue_url" }) => {
@@ -162,7 +170,12 @@ export default function ApplyWithProfileGate({
 
   return (
     <>
-      <button type="button" onClick={() => void handleApplyClick()} disabled={loading} className={className}>
+      <button
+        type="button"
+        onClick={() => void handleApplyClick()}
+        disabled={loading || !gdpr.hydrated || gdpr.status === "unset"}
+        className={className}
+      >
         {loading ? "Checking…" : children}
       </button>
 

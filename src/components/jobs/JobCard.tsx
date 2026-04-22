@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import ApplyWithProfileGate from "@/components/jobs/ApplyWithProfileGate";
+import JobFitCheckButton from "@/components/jobs/JobFitCheckButton";
 import type { JobRecord } from "@/lib/jobs/types";
 
 function formatDate(date: string): string {
@@ -84,10 +85,29 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
           >
             View job
           </Link>
-          {browseOnly ? (
-            job.applicationMethod === "internal" || !job.applicationMethod ? (
+          <div className="flex min-w-0 flex-1 flex-col gap-2.5 sm:flex-row sm:gap-2.5">
+            <JobFitCheckButton job={job} className="flex-1" />
+            {browseOnly ? (
+              job.applicationMethod === "internal" || !job.applicationMethod ? (
+                <ApplyWithProfileGate
+                  applyHref={`/jobs/${job.slug}/apply`}
+                  className={`btn-gold-premium ${btnBase} flex-1 bg-[#C9A84C] font-bold text-[#0D1B2A] hover:opacity-95 sm:min-w-0 sm:flex-1`}
+                >
+                  Apply
+                </ApplyWithProfileGate>
+              ) : (
+                <a
+                  href={applyHref}
+                  target={applyExternal ? "_blank" : undefined}
+                  rel={applyExternal ? "noopener noreferrer" : undefined}
+                  className={`btn-gold-premium ${btnBase} flex-1 bg-[#C9A84C] font-bold text-[#0D1B2A] hover:opacity-95 sm:min-w-0 sm:flex-1`}
+                >
+                  Apply
+                </a>
+              )
+            ) : job.applicationMethod === "internal" || !job.applicationMethod ? (
               <ApplyWithProfileGate
-                applyHref={`/jobs/${job.slug}/apply`}
+                applyHref={applyHref}
                 className={`btn-gold-premium ${btnBase} flex-1 bg-[#C9A84C] font-bold text-[#0D1B2A] hover:opacity-95 sm:min-w-0 sm:flex-1`}
               >
                 Apply
@@ -101,24 +121,8 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
               >
                 Apply
               </a>
-            )
-          ) : job.applicationMethod === "internal" || !job.applicationMethod ? (
-            <ApplyWithProfileGate
-              applyHref={applyHref}
-              className={`btn-gold-premium ${btnBase} flex-1 bg-[#C9A84C] font-bold text-[#0D1B2A] hover:opacity-95 sm:min-w-0 sm:flex-1`}
-            >
-              Apply
-            </ApplyWithProfileGate>
-          ) : (
-            <a
-              href={applyHref}
-              target={applyExternal ? "_blank" : undefined}
-              rel={applyExternal ? "noopener noreferrer" : undefined}
-              className={`btn-gold-premium ${btnBase} flex-1 bg-[#C9A84C] font-bold text-[#0D1B2A] hover:opacity-95 sm:min-w-0 sm:flex-1`}
-            >
-              Apply
-            </a>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </article>
