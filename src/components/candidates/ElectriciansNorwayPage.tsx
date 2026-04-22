@@ -3,10 +3,14 @@
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
-import { BookOpen, Building2, ShieldCheck } from "lucide-react";
+import { BookOpen, ShieldCheck } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+
+import { EASE_PREMIUM } from "@/lib/animationConstants";
 
 const GOLD = "#C9A84C";
 const NAVY = "#0f1923";
+const NAVY_PANEL = "#0D1B2A";
 const DSB_INFO_URL =
   "https://www.dsb.no/en/Electrical-safety/kvalifikasjoner-foretak-og-virksomhet/Apply-for-approval-as-electrical-professionals-in-Norway/";
 
@@ -36,14 +40,60 @@ function OutlineGoldButton({ href, children }: { href: string; children: ReactNo
   );
 }
 
+const cardBaseClass =
+  "group relative flex h-full min-h-0 flex-col overflow-hidden rounded-[22px] border bg-[rgba(255,255,255,0.02)] p-8 transition-all duration-500 ease-out md:p-10 " +
+  "border-[rgba(201,168,76,0.32)] shadow-[0_12px_40px_rgba(0,0,0,0.25)] " +
+  "hover:-translate-y-[3px] hover:border-[rgba(201,168,76,0.55)] hover:shadow-[0_22px_55px_rgba(0,0,0,0.38),0_0_0_1px_rgba(201,168,76,0.12)]";
+
+const iconWrapClass =
+  "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.08)] text-[#C9A84C] transition duration-500 group-hover:border-[rgba(201,168,76,0.55)] group-hover:bg-[rgba(201,168,76,0.14)]";
+
+function GoldCardCta({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex min-h-[50px] w-full items-center justify-center rounded-[12px] px-8 py-3.5 text-[15px] font-bold text-[#0D1B2A] transition duration-300 hover:-translate-y-0.5 hover:brightness-[1.06] hover:shadow-[0_12px_32px_rgba(201,168,76,0.35)]"
+      style={{
+        background: `linear-gradient(135deg, #e4cf7a 0%, ${GOLD} 42%, #a88a3a 100%)`,
+        boxShadow: "0 4px 20px rgba(201,168,76,0.25)",
+        border: "1px solid rgba(255,255,255,0.22)",
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function OutlineGoldCardCta({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex min-h-[50px] w-full items-center justify-center rounded-[12px] border-2 border-[#C9A84C] bg-transparent px-8 py-3.5 text-[15px] font-semibold text-[#C9A84C] transition duration-300 hover:-translate-y-0.5 hover:bg-[rgba(201,168,76,0.1)] hover:shadow-[0_0_28px_rgba(201,168,76,0.18)]"
+    >
+      {children}
+    </Link>
+  );
+}
+
 export default function ElectriciansNorwayPage() {
   const searchParams = useSearchParams();
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (searchParams.get("section") !== "dsb") return;
     const el = document.getElementById("dsb-authorization-guide");
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [searchParams]);
+
+  const cardMotionProps = (delay: number) =>
+    reduceMotion
+      ? {}
+      : {
+          initial: { opacity: 0, y: 28 },
+          whileInView: { opacity: 1, y: 0 },
+          viewport: { once: true, margin: "-40px" },
+          transition: { duration: 0.55, ease: EASE_PREMIUM, delay },
+        };
 
   return (
     <main>
@@ -72,49 +122,41 @@ export default function ElectriciansNorwayPage() {
         </div>
       </section>
 
-      <section className="border-t border-[rgba(201,168,76,0.15)] bg-[#0D1B2A] px-6 py-16 text-white md:py-20">
-        <div className="mx-auto grid max-w-content gap-12 lg:grid-cols-2 lg:gap-16">
-          <div className="rounded-2xl border border-[rgba(201,168,76,0.18)] bg-[rgba(255,255,255,0.03)] p-8 md:p-10" style={{ borderTop: `3px solid ${GOLD}` }}>
-            <div className="flex items-center gap-3 text-gold">
-              <Building2 className="h-8 w-8" strokeWidth={1.5} aria-hidden />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em]" style={{ color: GOLD }}>
-                For employers
-              </p>
-            </div>
-            <h2 className="mt-4 text-2xl font-bold text-white md:text-[28px]">Looking for authorised electricians?</h2>
-            <p className="mt-4 text-[15px] leading-[1.75] text-white/70">
-              Every electrician we present for Norwegian roles either already holds DSB authorisation or is actively moving
-              through the process with a clear plan. You get fewer surprises on site and faster confidence that electrical
-              work can start safely and legally.
-            </p>
-            <p className="mt-3 text-[15px] leading-[1.75] text-white/70">
-              Tell us what you need — we match you with candidates who fit your project and your compliance expectations.
-            </p>
-            <div className="mt-8">
-              <GoldButton href="/request">Request candidates</GoldButton>
-            </div>
-          </div>
+      <section className="border-t border-[rgba(201,168,76,0.15)] px-6 py-16 md:py-24" style={{ background: NAVY_PANEL }}>
+        <div className="mx-auto max-w-content">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-stretch lg:gap-12">
+            <motion.article {...cardMotionProps(0)} className={cardBaseClass}>
+              <div className="pointer-events-none absolute inset-0 rounded-[22px] bg-[linear-gradient(145deg,rgba(201,168,76,0.06)_0%,transparent_45%)] opacity-80 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="relative flex h-full flex-col">
+                <div className={iconWrapClass}>
+                  <ShieldCheck className="h-7 w-7" strokeWidth={1.6} aria-hidden />
+                </div>
+                <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-[26px]">I have DSB authorisation</h2>
+                <p className="mt-4 flex-1 text-[15px] leading-[1.75] text-white/70">
+                  Ready to work in Norway. Create your profile and we&apos;ll connect you with employers who are actively
+                  hiring.
+                </p>
+                <div className="mt-10 w-full shrink-0 pt-2">
+                  <GoldCardCta href="/candidates">Create your profile</GoldCardCta>
+                </div>
+              </div>
+            </motion.article>
 
-          <div className="rounded-2xl border border-[rgba(201,168,76,0.18)] bg-[rgba(255,255,255,0.03)] p-8 md:p-10" style={{ borderTop: `3px solid ${GOLD}` }}>
-            <div className="flex items-center gap-3 text-gold">
-              <BookOpen className="h-8 w-8" strokeWidth={1.5} aria-hidden />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em]" style={{ color: GOLD }}>
-                For candidates
-              </p>
-            </div>
-            <h2 className="mt-4 text-2xl font-bold text-white md:text-[28px]">Need DSB authorisation?</h2>
-            <p className="mt-4 text-[15px] leading-[1.75] text-white/70">
-              Our guides walk you through what Norwegian employers expect, how authorisation fits into hiring, and how to
-              prepare your documentation — in plain language, from a recruitment team that works with electricians every
-              week.
-            </p>
-            <p className="mt-3 text-[15px] leading-[1.75] text-white/70">
-              ArbeidMatch does not decide DSB applications; we help you understand the journey and present you to employers
-              once you are ready.
-            </p>
-            <div className="mt-8">
-              <GoldButton href="/premium">Get the guide</GoldButton>
-            </div>
+            <motion.article {...cardMotionProps(0.1)} className={cardBaseClass}>
+              <div className="pointer-events-none absolute inset-0 rounded-[22px] bg-[linear-gradient(145deg,rgba(201,168,76,0.04)_0%,transparent_50%)] opacity-90 transition-opacity duration-500 group-hover:opacity-100" />
+              <div className="relative flex h-full flex-col">
+                <div className={iconWrapClass}>
+                  <BookOpen className="h-7 w-7" strokeWidth={1.6} aria-hidden />
+                </div>
+                <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-[26px]">I need DSB authorisation</h2>
+                <p className="mt-4 flex-1 text-[15px] leading-[1.75] text-white/70">
+                  Get our step-by-step guide to understand the process, prepare your documents, and apply with confidence.
+                </p>
+                <div className="mt-10 w-full shrink-0 pt-2">
+                  <OutlineGoldCardCta href="/premium">Get the guide</OutlineGoldCardCta>
+                </div>
+              </div>
+            </motion.article>
           </div>
         </div>
       </section>
@@ -122,7 +164,7 @@ export default function ElectriciansNorwayPage() {
       <section
         id="dsb-authorization-guide"
         className="scroll-mt-[calc(4rem+8px)] border-t-2 border-[rgba(201,168,76,0.28)] px-6 py-14 text-white md:py-16"
-        style={{ background: `linear-gradient(180deg, ${NAVY} 0%, #0f1c30 55%, #0D1B2A 100%)` }}
+        style={{ background: `linear-gradient(180deg, ${NAVY} 0%, #0f1c30 55%, ${NAVY_PANEL} 100%)` }}
       >
         <div className="mx-auto max-w-content">
           <div className="flex items-start gap-4">
