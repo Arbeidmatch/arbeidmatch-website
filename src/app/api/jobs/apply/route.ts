@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { notifyError } from "@/lib/errorNotifier";
@@ -7,6 +8,11 @@ import { isRateLimited } from "@/lib/requestProtection";
 import { logApiError } from "@/lib/secureLogger";
 import { candidateProfilePayloadSchema } from "@/lib/candidates/profileSchema";
 import { computeJobMatchScore } from "@/lib/candidates/jobMatchScore";
+import { computeEmployerBoardMatch, employerBoardMeetsThreshold } from "@/lib/employer-flow/employerBoardMatch";
+import {
+  sendCandidateApplicationReceivedEmail,
+  sendEmployerNewCandidateEmail,
+} from "@/lib/employer-flow/employerJobEmails";
 
 const payloadSchema = z.object({
   jobSlug: z.string().trim().min(2),
@@ -24,6 +30,8 @@ const payloadSchema = z.object({
   drivingLicence: z.string().trim().min(1),
   availability: z.string().trim().min(1),
   message: z.string().trim().optional(),
+  behavioralStory: z.string().trim().min(30).max(1200),
+  behavioralSafety: z.string().trim().min(30).max(1200),
   gdprConsent: z.literal("true"),
   profileJson: z.string().trim().optional(),
 });
@@ -61,6 +69,8 @@ export async function POST(request: NextRequest) {
       drivingLicence: formData.get("drivingLicence"),
       availability: formData.get("availability"),
       message: formData.get("message") || undefined,
+      behavioralStory: formData.get("behavioralStory"),
+      behavioralSafety: formData.get("behavioralSafety"),
       gdprConsent: formData.get("gdprConsent"),
       profileJson: (formData.get("profileJson") as string | null) || undefined,
     });
@@ -138,6 +148,7 @@ export async function POST(request: NextRequest) {
     let matchScore: number | null = null;
     let matchSummary: string | null = null;
     let profileSnapshot: unknown | null = null;
+    let employerInbox: string | null = null;
 
     if (!parsedPayload.data.profileJson) {
       return NextResponse.json({ error: "Candidate profile snapshot is required to apply." }, { status: 400 });
@@ -159,19 +170,41 @@ export async function POST(request: NextRequest) {
     }
 
     profileSnapshot = parsedProfile.data;
-    const match = computeJobMatchScore(job, parsedProfile.data);
-    matchScore = match.score;
-    matchSummary = match.reasons.slice(0, 3).join(" ");
 
-    if (match.score < 70) {
-      return NextResponse.json(
-        {
-          error: "Not ideal match, adjust your profile",
-          matchScore: match.score,
-          matchSummary,
-        },
-        { status: 422 },
-      );
+    if (job.source === "employer_board" && job.employerBoardMeta) {
+      const boardMatch = computeEmployerBoardMatch(job.employerBoardMeta, parsedProfile.data);
+      matchScore = Math.round(boardMatch.percent);
+      matchSummary = boardMatch.breakdown.slice(0, 4).join(" ");
+      if (!employerBoardMeetsThreshold(boardMatch)) {
+        return NextResponse.json(
+          {
+            error: "Not ideal match, adjust your profile",
+            matchScore,
+            matchSummary,
+          },
+          { status: 422 },
+        );
+      }
+      if (job.employerJobId) {
+        const er = await supabase.from("employer_jobs").select("employer_email").eq("id", job.employerJobId).maybeSingle();
+        if (!er.error && er.data?.employer_email) {
+          employerInbox = String(er.data.employer_email).trim().toLowerCase();
+        }
+      }
+    } else {
+      const match = computeJobMatchScore(job, parsedProfile.data);
+      matchScore = match.score;
+      matchSummary = match.reasons.slice(0, 3).join(" ");
+      if (match.score < 70) {
+        return NextResponse.json(
+          {
+            error: "Not ideal match, adjust your profile",
+            matchScore: match.score,
+            matchSummary,
+          },
+          { status: 422 },
+        );
+      }
     }
 
     const bucket = process.env.SUPABASE_JOB_CV_BUCKET || "job-cvs";
@@ -190,6 +223,14 @@ export async function POST(request: NextRequest) {
         { status: 500 },
       );
     }
+
+    const employerAccessToken = job.source === "employer_board" ? randomUUID() : null;
+    const employerAccessExpiresAt =
+      job.source === "employer_board" ? new Date(Date.now() + 7 * 86400000).toISOString() : null;
+    const behavioralAnswers = {
+      deliveryUnderPressure: validatedClientSchema.data.behavioralStory,
+      safetyOnSite: validatedClientSchema.data.behavioralSafety,
+    };
 
     const insertRes = await supabase.from("job_applications").insert({
       job_id: job.id,
@@ -220,7 +261,10 @@ export async function POST(request: NextRequest) {
       match_score: matchScore,
       match_summary: matchSummary,
       profile_snapshot: profileSnapshot,
-    });
+      behavioral_answers: behavioralAnswers,
+      employer_access_token: employerAccessToken,
+      employer_access_expires_at: employerAccessExpiresAt,
+    }).select("id");
 
     if (insertRes.error) {
       await supabase.storage.from(bucket).remove([filePath]);
@@ -232,6 +276,28 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 },
       );
+    }
+
+    const newApplicationId =
+      Array.isArray(insertRes.data) && insertRes.data[0] && typeof insertRes.data[0].id === "string"
+        ? insertRes.data[0].id
+        : null;
+
+    try {
+      await sendCandidateApplicationReceivedEmail({
+        to: parsedPayload.data.email.trim(),
+        jobTitle: job.title,
+      });
+      if (employerInbox && newApplicationId && employerAccessToken && job.source === "employer_board") {
+        await sendEmployerNewCandidateEmail({
+          to: employerInbox,
+          applicationId: newApplicationId,
+          token: employerAccessToken,
+          jobTitle: job.title,
+        });
+      }
+    } catch (mailErr) {
+      logApiError("/api/jobs/apply notify", mailErr, { jobSlug: job.slug });
     }
 
     return NextResponse.json({ success: true });

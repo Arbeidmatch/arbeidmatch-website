@@ -34,6 +34,16 @@ export const jobApplicationSchema = z.object({
   drivingLicence: z.enum(drivingLicenceOptions, { message: "Select driving licence." }),
   availability: z.enum(availabilityOptions, { message: "Select availability." }),
   cvFile: fileSchema,
+  behavioralStory: z
+    .string()
+    .trim()
+    .min(30, "Describe a strong example using at least 30 characters.")
+    .max(1200, "Keep this answer under 1200 characters."),
+  behavioralSafety: z
+    .string()
+    .trim()
+    .min(30, "Describe your safety mindset using at least 30 characters.")
+    .max(1200, "Keep this answer under 1200 characters."),
   message: z.string().trim().max(600, "Message can be up to 600 characters.").optional(),
   gdprConsent: z.literal(true, { message: "You must accept the privacy notice to continue." }),
 });

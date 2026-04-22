@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     const url = request.nextUrl;
     const jobs = await getAdminJobs({
       query: url.searchParams.get("q") || undefined,
-      source: (url.searchParams.get("source") as "all" | "manual" | "recman" | null) ?? undefined,
+      source: (url.searchParams.get("source") as "all" | "manual" | "recman" | "employer_board" | null) ?? undefined,
       status: (url.searchParams.get("status") as "all" | "draft" | "active" | "closed" | "archived" | null) ?? undefined,
       location: url.searchParams.get("location") || undefined,
       category: url.searchParams.get("category") || undefined,

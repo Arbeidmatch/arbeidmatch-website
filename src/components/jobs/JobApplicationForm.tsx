@@ -14,6 +14,7 @@ import {
 } from "@/lib/jobs/application";
 import type { JobRecord } from "@/lib/jobs/types";
 import type { CandidateProfilePayload } from "@/lib/candidates/profileSchema";
+import { computeEmployerBoardMatch } from "@/lib/employer-flow/employerBoardMatch";
 import { computeJobMatchScore } from "@/lib/candidates/jobMatchScore";
 
 type FormErrors = Partial<Record<keyof JobApplicationFormData, string>>;
@@ -32,6 +33,8 @@ type FormState = {
   drivingLicence: (typeof drivingLicenceOptions)[number];
   availability: (typeof availabilityOptions)[number];
   cvFile: File | undefined;
+  behavioralStory: string;
+  behavioralSafety: string;
   message: string;
   gdprConsent: boolean;
 };
@@ -72,6 +75,8 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
     drivingLicence: drivingLicenceOptions[0],
     availability: availabilityOptions[0],
     cvFile: undefined as File | undefined,
+    behavioralStory: "",
+    behavioralSafety: "",
     message: "",
     gdprConsent: false,
   });
@@ -102,8 +107,16 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
         return;
       }
       setProfileSnapshot(parsed);
-      const match = computeJobMatchScore(job, parsed);
-      setMatchPreview({ score: match.score, summary: match.reasons.slice(0, 2).join(" ") });
+      if (job.source === "employer_board" && job.employerBoardMeta) {
+        const boardMatch = computeEmployerBoardMatch(job.employerBoardMeta, parsed);
+        setMatchPreview({
+          score: Math.round(boardMatch.percent),
+          summary: boardMatch.breakdown.slice(0, 3).join(" "),
+        });
+      } else {
+        const match = computeJobMatchScore(job, parsed);
+        setMatchPreview({ score: match.score, summary: match.reasons.slice(0, 2).join(" ") });
+      }
     } catch {
       setProfileSnapshot(null);
       setMatchPreview(null);
@@ -172,6 +185,8 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
     requestPayload.set("drivingLicence", parsed.data.drivingLicence);
     requestPayload.set("availability", parsed.data.availability);
     requestPayload.set("message", parsed.data.message ?? "");
+    requestPayload.set("behavioralStory", parsed.data.behavioralStory);
+    requestPayload.set("behavioralSafety", parsed.data.behavioralSafety);
     requestPayload.set("gdprConsent", "true");
     requestPayload.set("cvFile", parsed.data.cvFile);
     if (profileSnapshot) {
@@ -284,6 +299,11 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
                   .
                 </p>
               ) : null}
+              {profileSnapshot && job.source === "employer_board" && job.employerBoardMeta ? (
+                <p className="mt-2 text-xs text-white/55">
+                  Board roles use a 12-point employer fit model. The percentage reflects that checklist.
+                </p>
+              ) : null}
             </div>
           ) : (
             <p className="md:col-span-2 text-sm text-white/55">
@@ -340,6 +360,22 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
 
       {step === 3 ? (
         <div className="mt-5 space-y-4">
+          <Field label="Describe a time you delivered under pressure" error={errors.behavioralStory}>
+            <textarea
+              value={formData.behavioralStory}
+              onChange={(e) => updateField("behavioralStory", e.target.value)}
+              placeholder="Concrete situation, your actions, and outcome."
+              className={`${inputClassName} min-h-[100px] py-2.5`}
+            />
+          </Field>
+          <Field label="How do you approach safety on site" error={errors.behavioralSafety}>
+            <textarea
+              value={formData.behavioralSafety}
+              onChange={(e) => updateField("behavioralSafety", e.target.value)}
+              placeholder="Habits, communication, PPE, and stopping work when needed."
+              className={`${inputClassName} min-h-[100px] py-2.5`}
+            />
+          </Field>
           <Field label="Optional message" error={errors.message}>
             <textarea
               value={formData.message}

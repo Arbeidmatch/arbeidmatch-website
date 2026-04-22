@@ -1,7 +1,9 @@
+import type { JobSource } from "@/lib/jobs/types";
+
 export interface AdminJobDto {
   id: string;
   slug: string;
-  source: "manual" | "recman";
+  source: JobSource;
   externalId?: string | null;
   title: string;
   location: string;

@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { JOBS_MOCK_DATA } from "@/lib/jobs/data";
+import { getEmployerJobBySlug, listLiveEmployerJobsAsRecords } from "@/lib/employer-flow/employerJobsRepository";
 import type { AdminJobsFilters, JobRecord, JobStatus } from "@/lib/jobs/types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -126,6 +127,8 @@ export async function getJobById(id: string): Promise<JobRecord | null> {
 }
 
 export async function getJobBySlug(slug: string): Promise<JobRecord | null> {
+  const board = await getEmployerJobBySlug(slug);
+  if (board) return board;
   const jobs = await listAllJobs();
   return jobs.find((job) => job.slug === slug) ?? null;
 }
@@ -216,8 +219,14 @@ export async function markRecmanJobsMissing(externalIds: string[]): Promise<numb
 }
 
 export async function getPublicJobs(): Promise<JobRecord[]> {
-  const jobs = await listAllJobs();
-  return jobs.filter((job) => job.status === "active");
+  const [jobs, board] = await Promise.all([listAllJobs(), listLiveEmployerJobsAsRecords()]);
+  const activeFile = jobs.filter((job) => job.status === "active");
+  const merged = [...board, ...activeFile];
+  return merged.sort((a, b) => {
+    const da = new Date(a.publishedAt ?? a.createdAt ?? "1970-01-01").getTime();
+    const db = new Date(b.publishedAt ?? b.createdAt ?? "1970-01-01").getTime();
+    return db - da;
+  });
 }
 
 export async function getRelatedJobs(target: JobRecord): Promise<JobRecord[]> {

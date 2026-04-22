@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import JobDetailView from "@/components/jobs/JobDetailView";
-import { getJobBySlug, getPublicJobs, getRelatedJobs } from "@/lib/jobs/repository";
+import { getSiteOrigin } from "@/lib/candidates/siteOrigin";
+import { getJobBySlug, getRelatedJobs } from "@/lib/jobs/repository";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -42,6 +43,7 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
   if (!job || job.status !== "active") notFound();
 
   const relatedJobs = await getRelatedJobs(job);
+  const shareUrl = `${getSiteOrigin()}/jobs/${job.slug}`;
 
   const jobPostingStructuredData = {
     "@context": "https://schema.org",
@@ -68,7 +70,7 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingStructuredData) }} />
-      <JobDetailView job={job} relatedJobs={relatedJobs} browseOnly={browseOnly} />
+      <JobDetailView job={job} relatedJobs={relatedJobs} browseOnly={browseOnly} shareUrl={shareUrl} />
     </>
   );
 }

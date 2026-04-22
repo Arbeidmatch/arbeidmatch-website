@@ -52,7 +52,7 @@ alter table public.job_applications
   add column if not exists behavioral_answers jsonb,
   add column if not exists employer_access_token uuid,
   add column if not exists employer_access_expires_at timestamptz,
-  add column if not exists employer_decision text not null default 'pending',
+  add column if not exists employer_decision text default 'pending',
   add column if not exists stage_2_unlocked_at timestamptz,
   add column if not exists employer_feedback_reason text,
   add column if not exists employer_feedback_details text,

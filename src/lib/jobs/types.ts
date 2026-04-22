@@ -1,4 +1,17 @@
-export type JobSource = "manual" | "recman";
+export type JobSource = "manual" | "recman" | "employer_board";
+
+export type EmployerBoardMeta = {
+  mappedJobType: string | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  hours: string | null;
+  rotation: string | null;
+  licenseRequired: boolean;
+  housingProvided: boolean;
+  travelPaid: boolean;
+  experienceYearsMin: number | null;
+  category: string | null;
+};
 export type JobSyncStatus = "none" | "pending" | "synced" | "error";
 export type JobStatus = "draft" | "active" | "closed" | "archived";
 export type JobApplyMethod = "internal" | "external_url" | "email";
@@ -6,6 +19,8 @@ export type JobApplyMethod = "internal" | "external_url" | "email";
 export interface JobRecord {
   id: string;
   source: JobSource;
+  employerJobId?: string | null;
+  employerBoardMeta?: EmployerBoardMeta | null;
   externalId?: string | null;
   title: string;
   slug: string;

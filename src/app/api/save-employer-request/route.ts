@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { generateEmployerJobContent } from "@/lib/employer-flow/generateEmployerJob";
+import { createEmployerJobDraftAfterRequest } from "@/lib/employer-flow/employerJobsRepository";
 import { getRateLimitResult, hasHoneypotValue, noStoreJson } from "@/lib/apiSecurity";
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
@@ -189,7 +191,7 @@ export async function POST(request: NextRequest) {
       normalizedBooleanFields.push("accommodation");
     }
 
-    const { error } = await supabase.from("employer_requests").insert({
+    const { data: insertedRequest, error } = await supabase.from("employer_requests").insert({
       token_id:                      payload.token,
       company:                       payload.company,
       org_number:                    payload.orgNumber,
@@ -247,10 +249,62 @@ export async function POST(request: NextRequest) {
       referral_email:                payload.referralEmail || null,
       subscribe:                     parsedSubscribe,
       notes:                         payload.notes || null,
-    });
+    })
+      .select("id")
+      .maybeSingle();
 
     if (error) {
       throw error;
+    }
+
+    if (insertedRequest?.id) {
+      try {
+        const generated = generateEmployerJobContent({
+          company: payload.company,
+          category: payload.category,
+          position: payload.position,
+          positionOther: payload.positionOther,
+          qualification: payload.qualification,
+          experience: payload.experience ?? "",
+          hiringType: payload.hiringType,
+          certifications: payload.certifications,
+          requirements: payload.requirements,
+          norwegianLevel: payload.norwegianLevel,
+          englishLevel: payload.englishLevel,
+          driverLicense: payload.driverLicense,
+          contractType: payload.contractType,
+          salaryFrom: payload.salaryFrom,
+          salaryTo: payload.salaryTo,
+          salary: payload.salary,
+          salaryAmount: payload.salaryAmount,
+          hoursUnit: payload.hoursUnit,
+          hoursAmount: payload.hoursAmount,
+          hasRotation: payload.hasRotation,
+          rotationWeeksOn: payload.rotationWeeksOn,
+          rotationWeeksOff: payload.rotationWeeksOff,
+          internationalTravel: payload.internationalTravel,
+          localTravel: payload.localTravel,
+          accommodation: payload.accommodation || "",
+          accommodationCost: payload.accommodationCost,
+          city: payload.city,
+          startDate: payload.startDate,
+          job_summary: payload.job_summary || undefined,
+          equipment: payload.equipment,
+          tools: payload.tools,
+          numberOfPositions: payload.numberOfPositions,
+          email: payload.email,
+        });
+        await createEmployerJobDraftAfterRequest({
+          employerRequestId: insertedRequest.id,
+          generated,
+        });
+      } catch (flowError) {
+        await notifyError({
+          route: "/api/save-employer-request employer job draft",
+          error: flowError,
+          context: { employerRequestId: insertedRequest.id },
+        });
+      }
     }
 
     return noStoreJson({ success: true });

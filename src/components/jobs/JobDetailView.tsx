@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ApplyWithProfileGate from "@/components/jobs/ApplyWithProfileGate";
+import ShareJobButton from "@/components/jobs/ShareJobButton";
 import type { JobRecord } from "@/lib/jobs/types";
 import JobCard from "@/components/jobs/JobCard";
 
@@ -39,10 +40,12 @@ export default function JobDetailView({
   job,
   relatedJobs,
   browseOnly = false,
+  shareUrl,
 }: {
   job: JobRecord;
   relatedJobs: JobRecord[];
   browseOnly?: boolean;
+  shareUrl?: string;
 }) {
   const applyHref =
     job.applicationMethod === "external_url"
@@ -59,7 +62,13 @@ export default function JobDetailView({
       </Link>
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <article className="rounded-[20px] border border-[#C9A84C]/20 bg-white/[0.03] p-6 md:p-8">
+        <article
+          className={`rounded-[20px] border bg-white/[0.03] p-6 md:p-8 ${
+            job.source === "employer_board"
+              ? "border-[#C9A84C]/40 bg-[linear-gradient(145deg,rgba(13,27,42,0.95),rgba(17,30,46,0.92))]"
+              : "border-[#C9A84C]/20"
+          }`}
+        >
           <header>
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/65">{job.location}, Norway</p>
             <h1 className="mt-3 text-3xl font-bold leading-tight text-white md:text-4xl">{job.title}</h1>
@@ -129,6 +138,11 @@ export default function JobDetailView({
                 Apply now
               </a>
             )}
+            {shareUrl ? (
+              <div className="mt-3">
+                <ShareJobButton jobUrl={shareUrl} jobTitle={job.title} />
+              </div>
+            ) : null}
             <p className="mt-3 text-xs leading-relaxed text-white/55">
               {browseOnly
                 ? "You are viewing jobs in read-only mode. Complete your profile to unlock applications."

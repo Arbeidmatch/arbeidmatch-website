@@ -43,6 +43,8 @@
 ## Supabase Tables
 - request_tokens - UUID token generated at first employer form step
 - employer_requests - all employer form fields
+- employer_jobs - auto-generated job board drafts and live postings from employer wizard (run `supabase/employer_jobs_flow.sql`)
+- job_edit_tokens - one-time publish tokens for employer job edits (7-day expiry)
 - partners - partner domains (domain, company_name, active) - RLS enabled, service_role policy
 - partner_sessions - secure partner sessions (session_token, request_token, expires_at 30 min, used)
 - partner_requests - partner applications (email, company_name, org_number, phone, full_name, gdpr_consent, status, token)
@@ -175,6 +177,9 @@ When starting a new conversation, always:
 ## Changelog
 ### 2026-04-22
 - Candidate profile flow redesigned as a nine-step Linear-style wizard on `/candidates`, with GDPR gate first, hourly salary bands, experience bands, driver licence step, housing including no preference, video intro embed, and final employer sharing consent. Progress persists through `/api/candidate-profile/progress`, final save through `/api/candidate-profile`, and job applications enforce a 70% match score with a clear 422 message when below threshold.
+- Employer request submit auto-creates a draft `employer_jobs` row plus a 7-day one-time edit link emailed to the employer (`/jobs/edit/[jobId]?token=...`). Publishing locks the post and sets status live so it appears on `/jobs` merged with JSON file jobs.
+- Job applications for employer board roles use a 12-point checklist match mapped to a percentage with a 70% gate, store behavioral answers, issue a 7-day employer review token, and send SMTP notifications to employer and candidate.
+- Employer secure review UI at `/employer/candidates/[applicationId]?token=...` with stage 1 anonymous fields, accept for interview or hire unlocking contact and video, and reject with mandatory structured feedback plus optional candidate email.
 
 ### 2026-04-21
 - Complete session described above

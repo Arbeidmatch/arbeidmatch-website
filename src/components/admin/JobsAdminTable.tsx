@@ -12,7 +12,7 @@ export default function JobsAdminTable({ initialJobs }: { initialJobs: AdminJobD
   const [jobs, setJobs] = useState(initialJobs);
   const [busyId, setBusyId] = useState("");
   const [query, setQuery] = useState("");
-  const [sourceFilter, setSourceFilter] = useState<"all" | "manual" | "recman">("all");
+  const [sourceFilter, setSourceFilter] = useState<"all" | "manual" | "recman" | "employer_board">("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "draft" | "active" | "closed" | "archived">("all");
   const [locationFilter, setLocationFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -102,6 +102,7 @@ export default function JobsAdminTable({ initialJobs }: { initialJobs: AdminJobD
           <option value="all">All sources</option>
           <option value="manual">Manual</option>
           <option value="recman">RecMan</option>
+          <option value="employer_board">Employer board</option>
         </select>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)} className="select-premium input-premium--dark h-10 rounded-md border border-white/15 bg-[#0A0F18] px-3 text-sm text-white">
           <option value="all">All statuses</option>
@@ -143,7 +144,15 @@ export default function JobsAdminTable({ initialJobs }: { initialJobs: AdminJobD
               <tr key={job.id} className="border-b border-white/10 text-white/85">
                 <td className="py-3 pr-4">{job.title}</td>
                 <td className="py-3 pr-4">
-                  <span className={`rounded-full px-2 py-0.5 text-xs uppercase ${job.source === "manual" ? "border border-sky-300/30 text-sky-200" : "border border-purple-300/30 text-purple-200"}`}>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs uppercase ${
+                      job.source === "manual"
+                        ? "border border-sky-300/30 text-sky-200"
+                        : job.source === "recman"
+                          ? "border border-purple-300/30 text-purple-200"
+                          : "border border-amber-300/35 text-amber-200"
+                    }`}
+                  >
                     {job.source}
                   </span>
                 </td>
