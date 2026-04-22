@@ -60,6 +60,41 @@ function extractCandidateDomains(raw: string): string[] {
     .filter(Boolean);
 }
 
+async function findActivePartnerByDomain(
+  supabase: any,
+  domain: string,
+): Promise<{ id: string; company_name: string | null } | null> {
+  type PartnerRow = { id: string; company_name: string | null; domain: string | null };
+  const pageSize = 1000;
+  let from = 0;
+
+  while (true) {
+    const to = from + pageSize - 1;
+    const { data, error } = await supabase
+      .from("partners")
+      .select("id, company_name, domain")
+      .eq("active", true)
+      .range(from, to);
+
+    if (error) {
+      if (error.code === "PGRST116") return null;
+      if (error.code === "42P01") throw error;
+      throw error;
+    }
+
+    const rows = (data ?? []) as PartnerRow[];
+    const partner =
+      rows.find((row) => {
+        const candidates = extractCandidateDomains(String(row.domain ?? ""));
+        return candidates.includes(domain);
+      }) ?? null;
+
+    if (partner) return partner;
+    if (rows.length < pageSize) return null;
+    from += pageSize;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -84,27 +119,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ verified: false, reason: "personal_email" }, { status: 200 });
     }
 
-    const { data: partners, error: partnerError } = await supabase
-      .from("partners")
-      .select("id, company_name, domain")
-      .eq("active", true)
-      .limit(500);
-
-    if (partnerError) {
-      if (partnerError.code === "PGRST116") {
-        return NextResponse.json({ verified: false, reason: "not_found" }, { status: 200 });
-      }
-      if (partnerError.code === "42P01") {
+    let partner: { id: string; company_name: string | null } | null = null;
+    try {
+      partner = await findActivePartnerByDomain(supabase, domain);
+    } catch (error) {
+      if (typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "42P01") {
         return NextResponse.json({ verified: false });
       }
-      throw partnerError;
+      throw error;
     }
-
-    const partner =
-      (partners ?? []).find((row) => {
-        const candidates = extractCandidateDomains(String(row.domain ?? ""));
-        return candidates.includes(domain);
-      }) ?? null;
 
     if (!partner) {
       return NextResponse.json({ verified: false, reason: "not_found" }, { status: 200 });
