@@ -60,41 +60,6 @@ function extractCandidateDomains(raw: string): string[] {
     .filter(Boolean);
 }
 
-async function findActivePartnerByDomain(
-  supabase: any,
-  domain: string,
-): Promise<{ id: string; company_name: string | null } | null> {
-  type PartnerRow = { id: string; company_name: string | null; domain: string | null };
-  const pageSize = 1000;
-  let from = 0;
-
-  while (true) {
-    const to = from + pageSize - 1;
-    const { data, error } = await supabase
-      .from("partners")
-      .select("id, company_name, domain")
-      .eq("active", true)
-      .range(from, to);
-
-    if (error) {
-      if (error.code === "PGRST116") return null;
-      if (error.code === "42P01") throw error;
-      throw error;
-    }
-
-    const rows = (data ?? []) as PartnerRow[];
-    const partner =
-      rows.find((row) => {
-        const candidates = extractCandidateDomains(String(row.domain ?? ""));
-        return candidates.includes(domain);
-      }) ?? null;
-
-    if (partner) return partner;
-    if (rows.length < pageSize) return null;
-    from += pageSize;
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -114,16 +79,108 @@ export async function POST(request: NextRequest) {
     const email = normalizedInput;
     const domain = normalizeDomain(normalizedInput.split("@")[1] ?? normalizedInput);
     const publicEmailDomainsBlocklist = getPublicEmailDomainsBlocklist();
+    type PartnerRow = { id: string; company_name: string | null; domain: string | null; email: string | null };
+    const findActivePartnerByDomain = async (
+      normalizedDomain: string,
+    ): Promise<{
+      partner: { id: string; company_name: string | null } | null;
+      pagesScanned: number;
+      rowsScanned: number;
+      capReached: boolean;
+    }> => {
+      const pageSize = 1000;
+      const maxPages = 50;
+      const maxRows = 50000;
+      let lastSeenId: string | null = null;
+      let pagesScanned = 0;
+      let rowsScanned = 0;
+
+      while (pagesScanned < maxPages && rowsScanned < maxRows) {
+        let query = supabase
+          .from("partners")
+          .select("id, company_name, domain, email")
+          .eq("active", true)
+          .order("id", { ascending: true })
+          .limit(pageSize);
+
+        if (lastSeenId) {
+          query = query.gt("id", lastSeenId);
+        }
+
+        const { data, error } = await query;
+        if (error) {
+          if (error.code === "PGRST116") {
+            return { partner: null, pagesScanned, rowsScanned, capReached: false };
+          }
+          if (error.code === "42P01") throw error;
+          throw error;
+        }
+
+        const rows = (data ?? []) as PartnerRow[];
+        pagesScanned += 1;
+        rowsScanned += rows.length;
+
+        const partner =
+          rows.find((row) => {
+            const candidates = [
+              ...extractCandidateDomains(String(row.domain ?? "")),
+              ...extractCandidateDomains(String(row.email ?? "")),
+            ];
+            return candidates.includes(normalizedDomain);
+          }) ?? null;
+
+        if (partner) {
+          return { partner, pagesScanned, rowsScanned, capReached: false };
+        }
+        if (rows.length === 0 || rows.length < pageSize) {
+          return { partner: null, pagesScanned, rowsScanned, capReached: false };
+        }
+
+        lastSeenId = rows[rows.length - 1]?.id ?? null;
+        if (!lastSeenId) {
+          return { partner: null, pagesScanned, rowsScanned, capReached: false };
+        }
+      }
+
+      return { partner: null, pagesScanned, rowsScanned, capReached: true };
+    };
+
     if (!domain) return NextResponse.json({ verified: false });
     if (publicEmailDomainsBlocklist.has(domain)) {
       return NextResponse.json({ verified: false, reason: "personal_email" }, { status: 200 });
     }
 
     let partner: { id: string; company_name: string | null } | null = null;
+    let pagesScanned = 0;
     try {
-      partner = await findActivePartnerByDomain(supabase, domain);
+      const lookup = await findActivePartnerByDomain(domain);
+      partner = lookup.partner;
+      pagesScanned = lookup.pagesScanned;
+      if (lookup.capReached) {
+        await notifyError({
+          route: "/api/verify-partner lookup",
+          error: new Error("Partner lookup scan cap reached"),
+          context: {
+            normalizedDomain: domain,
+            pagesScanned: lookup.pagesScanned,
+            rowsScanned: lookup.rowsScanned,
+            matched: false,
+            reason: "scan_cap_reached",
+          },
+        });
+      }
     } catch (error) {
       if (typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "42P01") {
+        await notifyError({
+          route: "/api/verify-partner lookup",
+          error,
+          context: {
+            normalizedDomain: domain,
+            pagesScanned,
+            matched: false,
+            reason: "partners_table_missing",
+          },
+        });
         return NextResponse.json({ verified: false });
       }
       throw error;
