@@ -95,15 +95,15 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
                 Before you leave...
               </h2>
               <p className="mt-3 bg-gradient-to-r from-gold via-amber-200 to-gold bg-clip-text text-base font-medium text-transparent sm:text-lg">
-                Grab the free EU/EEA DSB document checklist, instant email delivery.
+                Grab the free EU/EEA electrician document checklist — same guide as on our Electricians in Norway page.
               </p>
               <div className="mt-8">
                 <Link
-                  href="/electricians-norway?section=dsb"
+                  href="/electricians-norway#dsb-authorization-guide"
                   onClick={() => dismiss(true)}
                   className="btn-gold-shine relative inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#b8923f] via-gold to-[#d4b45c] px-6 py-3.5 text-sm font-semibold text-[#0a0f14] shadow-[0_8px_32px_rgba(201,168,76,0.35)] transition-[transform,box-shadow] duration-300 ease-premium hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(201,168,76,0.45)]"
                 >
-                  DSB Authorization Guide
+                  Open authorization guide
                 </Link>
               </div>
               <button

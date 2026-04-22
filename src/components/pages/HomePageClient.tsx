@@ -250,10 +250,10 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           </div>
           <ScrollReveal variant="fadeUp" className="mt-14 text-center">
             <Link
-              href="/electricians-norway?section=dsb"
+              href="/electricians-norway#dsb-authorization-guide"
               className="text-[13px] font-medium tracking-wide text-white/45 transition-colors hover:text-[#C9A84C]/90"
             >
-              Electrician DSB authorization guide →
+              Electricians in Norway — authorization guide →
             </Link>
           </ScrollReveal>
         </div>

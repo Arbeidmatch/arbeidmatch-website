@@ -3,7 +3,7 @@ import { DsbGuidePage } from "@/components/dsb/DsbGuidePage";
 
 export const metadata: Metadata = {
   title: "DSB Guide: EU/EEA Electricians",
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
 };
 
 export default async function DsbGuideEuPage({

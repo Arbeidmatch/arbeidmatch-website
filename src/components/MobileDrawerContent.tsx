@@ -283,9 +283,6 @@ export default function MobileDrawerContent({
               </DrawerRowLink>
             ))}
             <SectionLabel>GUIDES AND RESOURCES</SectionLabel>
-            <DrawerRowLink href="/electricians-norway?section=dsb" pathname={pathname} onClose={onClose}>
-              DSB Authorization Guide
-            </DrawerRowLink>
             <DrawerRowLink href="/premium" pathname={pathname} onClose={onClose}>
               Premium Guides
             </DrawerRowLink>
@@ -397,9 +394,6 @@ export default function MobileDrawerContent({
               </DrawerRowLink>
             ))}
             <SectionLabel>GUIDES AND RESOURCES</SectionLabel>
-            <DrawerRowLink href="/electricians-norway?section=dsb" pathname={pathname} onClose={onClose}>
-              DSB Authorization Guide
-            </DrawerRowLink>
             <Link
               href="/premium"
               onClick={onClose}

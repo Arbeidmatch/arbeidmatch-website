@@ -13,6 +13,7 @@ const NOINDEX_PREFIXES = [
   "/dsb-guide/eu",
   "/dsb-guide/non-eu",
   "/dsb-support",
+  "/dsb-checklist",
   "/dsb-assistance",
   "/feedback",
   "/premium/success",
