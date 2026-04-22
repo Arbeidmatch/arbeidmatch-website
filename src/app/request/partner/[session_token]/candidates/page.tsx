@@ -207,8 +207,9 @@ export default function PartnerCandidatesPage() {
                 key={candidate.id}
                 className="relative flex h-full flex-col rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 transition-colors duration-[220ms] hover:border-[rgba(201,168,76,0.4)]"
               >
-                <span className="absolute right-4 top-4 rounded-full bg-[#C9A84C] px-3 py-1 text-xs font-bold text-[#0D1B2A]">
-                  {candidate.compatibilityScore}%
+                <span className="absolute right-4 top-4 rounded-full bg-[#C9A84C] px-3 py-1 text-center text-[10px] font-bold leading-tight text-[#0D1B2A]">
+                  <span className="block font-semibold uppercase tracking-wide">Compatibility</span>
+                  <span className="block text-xs">{candidate.compatibilityScore}%</span>
                 </span>
                 <h2 className="pr-20 text-lg font-bold text-white">Candidate #{index + 1}</h2>
                 <div className="mt-4 space-y-2 text-sm text-white/82">

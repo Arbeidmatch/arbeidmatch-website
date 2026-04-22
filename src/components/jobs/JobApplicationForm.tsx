@@ -49,6 +49,16 @@ const tradeOptions = [
   "Industrial Painter",
 ];
 
+/** User-facing copy for the numeric compatibility signal (internal logic still uses score). */
+function compatibilityTierLabel(percent: number): string {
+  if (percent >= 85) return "Strong compatibility";
+  if (percent >= 70) return "Good compatibility";
+  return "Low compatibility";
+}
+
+const LOW_COMPATIBILITY_APPLY_ERROR = "This job may not be the right fit for you";
+const LEGACY_LOW_COMPATIBILITY_APPLY_ERROR = "Not ideal match, adjust your profile";
+
 const totalSteps = 3;
 const inputClassName =
   "input-premium--dark min-h-[44px] rounded-md border border-white/15 bg-[#0A0F18] px-3 text-sm text-white placeholder:text-white/40";
@@ -200,10 +210,13 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
 
     if (!response.ok) {
       const payload = (await response.json().catch(() => ({}))) as { error?: string; matchScore?: number; matchSummary?: string };
-      const message =
-        payload.error === "Not ideal match, adjust your profile"
-          ? `Match score is ${payload.matchScore ?? "low"}%. Not ideal match, adjust your profile.`
-          : payload.error || "Submission failed. Please try again.";
+      const isLowCompatibility =
+        payload.error === LOW_COMPATIBILITY_APPLY_ERROR || payload.error === LEGACY_LOW_COMPATIBILITY_APPLY_ERROR;
+      const message = isLowCompatibility
+        ? typeof payload.matchScore === "number"
+          ? `You are ${payload.matchScore}% compatible with this job. ${LOW_COMPATIBILITY_APPLY_ERROR}`
+          : LOW_COMPATIBILITY_APPLY_ERROR
+        : payload.error || "Submission failed. Please try again.";
       setErrors({ gdprConsent: message });
       setStatus("idle");
       return;
@@ -288,11 +301,12 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
 
           {matchPreview ? (
             <div className="md:col-span-2 rounded-md border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.08)] px-4 py-3 text-sm text-white/80">
-              <p className="font-semibold text-[#C9A84C]">Match preview: {matchPreview.score}%</p>
+              <p className="font-semibold text-[#C9A84C]">{compatibilityTierLabel(matchPreview.score)}</p>
+              <p className="mt-1 text-white/70">You are {matchPreview.score}% compatible with this job.</p>
               <p className="mt-1 text-white/70">{matchPreview.summary}</p>
               {matchPreview.score < 70 ? (
                 <p className="mt-2 text-white/70">
-                  Applications require at least 70% match.{" "}
+                  Applications require good compatibility with this role (typically about 70% or higher on our scale).{" "}
                   <span className="font-semibold text-[#C9A84C]">
                     Use the secure link from your profile email to adjust details
                   </span>
@@ -301,7 +315,7 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
               ) : null}
               {profileSnapshot && job.source === "employer_board" && job.employerBoardMeta ? (
                 <p className="mt-2 text-xs text-white/55">
-                  Board roles use a 12-point employer fit model. The percentage reflects that checklist.
+                  Board roles use a 12-point employer fit model. The value reflects compatibility with that checklist.
                 </p>
               ) : null}
             </div>
@@ -311,7 +325,7 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
               <Link href="/for-candidates" className="font-semibold text-[#C9A84C] hover:underline">
                 candidate overview
               </Link>{" "}
-              to unlock match scoring and applications.
+              to unlock compatibility insights and applications.
             </p>
           )}
         </div>

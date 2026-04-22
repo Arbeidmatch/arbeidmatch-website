@@ -24,6 +24,12 @@ type ApiPayload = {
   videoUrl?: string;
 };
 
+function compatibilityTierLabel(percent: number): string {
+  if (percent >= 85) return "Strong compatibility";
+  if (percent >= 70) return "Good compatibility";
+  return "Low compatibility";
+}
+
 function experienceBandLabel(band: string): string {
   switch (band) {
     case "0_2":
@@ -149,7 +155,14 @@ export default function EmployerCandidateReviewClient({ applicationId }: { appli
       {error ? <p className="text-sm text-red-300">{error}</p> : null}
 
       <section className="grid gap-4 rounded-[18px] border border-white/10 bg-white/[0.03] p-5 md:grid-cols-2 md:p-6">
-        <Stat label="Match score" value={data.matchScore !== null ? `${data.matchScore}%` : "n/a"} />
+        <Stat
+          label="Compatibility level"
+          value={
+            data.matchScore !== null
+              ? `${compatibilityTierLabel(data.matchScore)} (${data.matchScore}% compatible with this role)`
+              : "n/a"
+          }
+        />
         <Stat label="Job category" value={data.jobCategory} />
         <Stat label="Candidate experience band" value={experienceBandLabel(data.candidateExperienceBand)} />
         <Stat label="Salary expectations" value={data.salaryExpectationLabel} />

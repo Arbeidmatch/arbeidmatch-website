@@ -40,7 +40,7 @@ export default async function JobApplyPage({ params, searchParams }: Props) {
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Read-only browsing</p>
           <h1 className="mt-3 text-2xl font-bold text-white">Applications are disabled in browse mode</h1>
           <p className="mt-3 max-w-2xl text-sm text-white/75">
-            Complete your candidate profile to unlock applications and improve your match score.
+            Complete your candidate profile to unlock applications and improve your compatibility with open roles.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link

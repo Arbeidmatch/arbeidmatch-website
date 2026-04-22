@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
       if (!employerBoardMeetsThreshold(boardMatch)) {
         return NextResponse.json(
           {
-            error: "Not ideal match, adjust your profile",
+            error: "This job may not be the right fit for you",
             matchScore,
             matchSummary,
           },
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
       if (match.score < 70) {
         return NextResponse.json(
           {
-            error: "Not ideal match, adjust your profile",
+            error: "This job may not be the right fit for you",
             matchScore: match.score,
             matchSummary,
           },
