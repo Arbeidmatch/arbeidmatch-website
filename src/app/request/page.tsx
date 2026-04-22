@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, Bolt, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
+import { ArrowLeft, Bolt, Check, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
 
@@ -56,6 +56,43 @@ const SEARCH_MESSAGES = [
 ];
 
 const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "live.com", "msn.com"]);
+
+const ACCESS_OPTION_BENEFITS = {
+  partner: [
+    "Priority access to pre-screened candidates",
+    "Dedicated account manager",
+    "Reduced per-hire fees",
+    "Early access to new candidate profiles",
+    "Direct communication with ArbeidMatch team",
+  ],
+  premium: [
+    "Unlimited candidate requests per month",
+    "Priority matching and faster turnaround",
+    "Advanced filters and search tools",
+    "Monthly reporting and analytics",
+    "Premium support response within 2 hours",
+  ],
+  payPerUse: [
+    "No monthly commitment",
+    "Pay only when you hire",
+    "Access to full candidate database",
+    "Standard support included",
+    "Flexible for seasonal hiring needs",
+  ],
+} as const;
+
+function RequestAccessBenefits({ items }: { items: readonly string[] }) {
+  return (
+    <ul className="request-option-benefits mt-3 flex flex-1 flex-col gap-1.5 border-t border-[rgba(255,255,255,0.08)] pt-3">
+      {items.map((line) => (
+        <li key={line} className="flex gap-2.5 text-left text-[11.5px] leading-[1.45] text-[rgba(255,255,255,0.52)]">
+          <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#C9A84C]" strokeWidth={2.5} aria-hidden />
+          <span>{line}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function RequestPage() {
   const router = useRouter();
@@ -570,11 +607,12 @@ export default function RequestPage() {
                       }}
                       className="request-option-card text-left"
                     >
-                      <Users className="h-5 w-5 text-[#C9A84C]" />
+                      <Users className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                       <p className="mt-4 text-[18px] font-bold text-white">Become a Partner</p>
                       <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
                         Get access to partner-only candidate tools and direct hiring support.
                       </p>
+                      <RequestAccessBenefits items={ACCESS_OPTION_BENEFITS.partner} />
                     </button>
 
                     <button
@@ -585,11 +623,12 @@ export default function RequestPage() {
                       }}
                       className="request-option-card text-left"
                     >
-                      <Star className="h-5 w-5 text-[#C9A84C]" />
+                      <Star className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                       <p className="mt-4 text-[18px] font-bold text-white">Premium Subscription</p>
                       <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
                         Best for ongoing hiring with priority support and expanded matching.
                       </p>
+                      <RequestAccessBenefits items={ACCESS_OPTION_BENEFITS.premium} />
                     </button>
 
                     <button
@@ -600,11 +639,12 @@ export default function RequestPage() {
                       }}
                       className="request-option-card text-left"
                     >
-                      <Clock3 className="h-5 w-5 text-[#C9A84C]" />
+                      <Clock3 className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                       <p className="mt-4 text-[18px] font-bold text-white">Pay per use</p>
                       <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
                         Flexible access when you need candidates without a long-term commitment.
                       </p>
+                      <RequestAccessBenefits items={ACCESS_OPTION_BENEFITS.payPerUse} />
                     </button>
                   </div>
 
@@ -1105,6 +1145,7 @@ export default function RequestPage() {
         .request-options-container {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          align-items: stretch;
           gap: 24px;
           padding: 40px 20px;
           max-width: 1200px;
@@ -1112,6 +1153,11 @@ export default function RequestPage() {
           margin: 0 auto;
         }
         .request-option-card {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          height: 100%;
+          min-height: 100%;
           background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(201, 168, 76, 0.3);
           border-radius: 16px;
@@ -1119,6 +1165,12 @@ export default function RequestPage() {
           text-align: left;
           transition: border-color 220ms ease, background 220ms ease, transform 220ms ease;
           cursor: pointer;
+        }
+        .request-option-benefits {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          width: 100%;
         }
         .spinner-arc {
           width: 20px;
