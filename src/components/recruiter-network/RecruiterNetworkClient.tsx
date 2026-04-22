@@ -228,7 +228,7 @@ export default function RecruiterNetworkClient() {
     {
       icon: <IconTrend size={48} />,
       title: "Commission Model",
-      text: "Zero upfront investment. You earn on every placement. If you plan to operate in Norway, we can help you set up an ENK or AS to invoice legally. Outside Norway, business structures differ, and we'll do our best to guide you.",
+      text: "You earn on every placement. If you plan to operate in Norway, we can help you set up an ENK or AS to invoice legally. Outside Norway, business structures differ, and we'll do our best to guide you.",
     },
   ] as const;
 
@@ -589,7 +589,7 @@ export default function RecruiterNetworkClient() {
               Ready to build with us?
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-center text-white/60">
-              Tell us about yourself. We typically respond within 1 to 2 business days.
+              Tell us about yourself.
             </p>
           </Reveal>
 
@@ -612,7 +612,7 @@ export default function RecruiterNetworkClient() {
                 </div>
                 <p className="text-lg font-semibold text-white">Thank you! Your application is under review.</p>
                 <p className="mt-3 text-sm leading-relaxed text-white/65">
-                  We will contact you at <span className="text-[#B8860B]">{successEmail}</span> within 1 to 2 business days.
+                  We will contact you at <span className="text-[#B8860B]">{successEmail}</span>.
                 </p>
               </motion.div>
             ) : (
