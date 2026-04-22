@@ -118,7 +118,7 @@ export default function OutsideEuEeaClient() {
             <span className="text-[#C9A84C]">as a Non-EU Citizen</span>
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-relaxed text-[rgba(255,255,255,0.7)]">
-            Norway is open to skilled workers from outside the EU/EEA — but the process requires preparation.
+            Norway is open to skilled workers from outside the EU/EEA, but the process requires preparation.
             We&apos;ll help you understand every step.
           </p>
         </div>
@@ -357,7 +357,7 @@ export default function OutsideEuEeaClient() {
           <div className="rounded-2xl border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.05)] p-6 md:p-10">
             <h2 className="text-center text-2xl font-extrabold text-white md:text-3xl">Get your free Norway Work Guide</h2>
             <p className="mx-auto mt-4 max-w-xl text-center text-[rgba(255,255,255,0.7)]">
-              We&apos;ll send you a practical overview of work permits, required documents, and first steps — straight to
+              We&apos;ll send you a practical overview of work permits, required documents, and first steps, straight to
               your inbox.
             </p>
 

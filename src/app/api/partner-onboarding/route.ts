@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
     const transporter = createSmtpTransporter();
     if (transporter) {
       const html = buildInternalEmailHtml({
-        title: "Partner onboarding — envelope sent",
+        title: "Partner onboarding: envelope sent",
         rows: [
           { label: "Partner ID", value: partnerId },
           { label: "Company", value: parsed.data.companyName },
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
         ...mailHeaders(),
         to: process.env.SUPPORT_EMAIL || "post@arbeidmatch.no",
         subject: `Partner agreement sent: ${parsed.data.companyName}`,
-        text: `Partner ${partnerId} — DocuSign envelope ${envelopeId} sent to ${email}`,
+        text: `Partner ${partnerId}: DocuSign envelope ${envelopeId} sent to ${email}`,
         html,
       });
     }

@@ -27,17 +27,17 @@ export const metadata: Metadata = {
 const LEGAL_LINKS = [
   {
     name: "Arbeidstilsynet",
-    description: "The Norwegian Labour Inspection Authority — rights, safety, and working conditions.",
+    description: "The Norwegian Labour Inspection Authority: rights, safety, and working conditions.",
     href: "https://www.arbeidstilsynet.no/en/",
   },
   {
     name: "NAV",
-    description: "Norwegian Labour and Welfare Administration — benefits, registration, and guidance.",
+    description: "Norwegian Labour and Welfare Administration: benefits, registration, and guidance.",
     href: "https://www.nav.no/en",
   },
   {
     name: "Skatteetaten",
-    description: "The Norwegian Tax Administration — tax ID, reporting, and deductions.",
+    description: "The Norwegian Tax Administration: tax ID, reporting, and deductions.",
     href: "https://www.skatteetaten.no/en/",
   },
 ] as const;
@@ -45,7 +45,7 @@ const LEGAL_LINKS = [
 const HOW_STEPS = [
   {
     title: "Tell us what you're looking for",
-    body: "Share your trade, experience, and what matters to you in a role — location, contract type, salary expectations.",
+    body: "Share your trade, experience, and what matters to you in a role: location, contract type, salary expectations.",
   },
   {
     title: "See what fits you",
@@ -106,7 +106,7 @@ export default function ForCandidatesPage() {
             </h1>
             <p className="subtitle-premium mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
               You decide your pace and what you share. Clear structure and plain-language context on Norwegian
-              employment help you present yourself confidently — and you&apos;ll see roles that fit your expectations, on
+              employment help you present yourself confidently, and you&apos;ll see roles that fit your expectations, on
               your timeline.
             </p>
             <Link
@@ -128,7 +128,7 @@ export default function ForCandidatesPage() {
             <h2 className="heading-premium-xl mt-5 font-display text-3xl text-white md:text-4xl">Legal employment in Norway</h2>
             <p className="mt-4 text-base leading-relaxed text-white/65">
               Norwegian rules protect workers and set clear expectations for employers. These official sites are the
-              authoritative source for rights, welfare, and tax obligations — bookmark them as you plan your move.
+              authoritative source for rights, welfare, and tax obligations. Bookmark them as you plan your move.
             </p>
           </ScrollReveal>
           <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3">
@@ -151,7 +151,7 @@ export default function ForCandidatesPage() {
               <h2 className="heading-premium-xl mt-5 font-display text-3xl text-white md:text-4xl">Accommodation support</h2>
               <p className="mt-4 text-base leading-relaxed text-white/70">
                 Where roles require relocation, many employers help newcomers settle. Arrangements depend on the contract
-                and site — you&apos;ll see what&apos;s realistic in each role so you can decide before you commit.
+                and site. You&apos;ll see what&apos;s realistic in each role so you can decide before you commit.
               </p>
               <ul className="mt-8 space-y-4">
                 <li className="flex gap-4 rounded-xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-5">
@@ -159,7 +159,7 @@ export default function ForCandidatesPage() {
                   <div>
                     <p className="font-semibold text-white">Single room where possible</p>
                     <p className="mt-1 text-sm leading-relaxed text-white/65">
-                      Many placements prioritise a private room or clearly defined single occupancy — especially on
+                      Many placements prioritise a private room or clearly defined single occupancy, especially on
                       longer rotations or remote sites.
                     </p>
                   </div>
@@ -185,7 +185,7 @@ export default function ForCandidatesPage() {
                   signing up for.
                 </p>
                 <p className="mt-4 text-sm leading-relaxed text-white/50">
-                  When you spell out what you need in your profile, employers see what housing setup actually fits you —
+                  When you spell out what you need in your profile, employers see what housing setup actually fits you, so
                   you stay in control of what you&apos;re willing to accept.
                 </p>
               </div>
@@ -199,7 +199,7 @@ export default function ForCandidatesPage() {
           <ScrollReveal variant="fadeUp" className="text-center">
             <h2 className="heading-premium-xl font-display text-3xl text-white md:text-4xl">How it works</h2>
             <p className="mx-auto mt-4 max-w-xl text-base text-white/60">
-              Three steps — you choose the pace, the detail, and what happens next.
+              Three steps: you choose the pace, the detail, and what happens next.
             </p>
           </ScrollReveal>
           <ol className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-3">

@@ -245,7 +245,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
               href="/electricians-norway#dsb-authorization-guide"
               className="text-[13px] font-medium tracking-wide text-white/45 transition-colors hover:text-[#C9A84C]/90"
             >
-              Electricians in Norway — authorization guide →
+              Electricians in Norway: authorization guide →
             </Link>
           </ScrollReveal>
         </div>
@@ -297,7 +297,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
                 that Norwegian employers get workers who genuinely fit their environment.
               </p>
               <p className="text-home-lead mt-6 max-w-none">
-                And we believe that good work — done with dignity and mutual respect — is something everyone deserves access
+                And we believe that good work, done with dignity and mutual respect, is something everyone deserves access
                 to.
               </p>
               <ul className="mt-12 space-y-6">

@@ -345,7 +345,7 @@ export default function JobPostMediaSection({
         ) : galleryUrls.length ? (
           <NavyPlaceholder
             subtitle={
-              showAdmin ? "Optional hero — gallery images are shown below" : "Gallery images are shown below"
+              showAdmin ? "Optional hero. Gallery images are shown below" : "Gallery images are shown below"
             }
           />
         ) : (
@@ -368,7 +368,7 @@ export default function JobPostMediaSection({
         <div className="container-site mt-6 max-w-4xl space-y-6 rounded-2xl border border-[rgba(201,168,76,0.25)] bg-[#0A0F18]/90 p-5 backdrop-blur-sm">
           <div>
             <h3 className="text-sm font-semibold text-white">Listing images</h3>
-            <p className="mt-1 text-xs text-white/50">One hero image and up to four gallery images (JPEG, PNG, WebP, GIF — max 5 MB each).</p>
+            <p className="mt-1 text-xs text-white/50">One hero image and up to four gallery images (JPEG, PNG, WebP, GIF, max 5 MB each).</p>
           </div>
           <AdminDropSlot
             label="Hero (main)"

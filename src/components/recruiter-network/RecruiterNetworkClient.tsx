@@ -196,7 +196,7 @@ export default function RecruiterNetworkClient() {
       bullets: [
         "Background in recruitment or HR",
         "Network in your region",
-        "If you plan to operate in Norway, we can help you set up an ENK or AS. Outside Norway, business structures differ — we'll do our best to guide you.",
+        "If you plan to operate in Norway, we can help you set up an ENK or AS. Outside Norway, business structures differ, and we'll do our best to guide you.",
       ],
     },
     {
@@ -228,7 +228,7 @@ export default function RecruiterNetworkClient() {
     {
       icon: <IconTrend size={48} />,
       title: "Commission Model",
-      text: "Zero upfront investment. You earn on every placement. If you plan to operate in Norway, we can help you set up an ENK or AS to invoice legally. Outside Norway, business structures differ — we'll do our best to guide you.",
+      text: "Zero upfront investment. You earn on every placement. If you plan to operate in Norway, we can help you set up an ENK or AS to invoice legally. Outside Norway, business structures differ, and we'll do our best to guide you.",
     },
   ] as const;
 
@@ -259,7 +259,7 @@ export default function RecruiterNetworkClient() {
     "Active presence: social media, community or professional network",
     "100K+ monthly reach (for influencer track) or relevant experience",
     "Professional English communication",
-    "If you plan to operate in Norway, we can help you set up an ENK or AS. Outside Norway, business structures differ — we'll do our best to guide you.",
+    "If you plan to operate in Norway, we can help you set up an ENK or AS. Outside Norway, business structures differ, and we'll do our best to guide you.",
     "Exclusive focus on your designated region",
     "Genuine interest in building something long-term",
   ] as const;
@@ -650,7 +650,7 @@ export default function RecruiterNetworkClient() {
                     Country *
                   </label>
                   <p className="mb-2.5 text-[12px] leading-relaxed text-white/45">
-                    Type a letter to filter. All EU/EEA countries — Norway, Denmark and Sweden appear first in the list.
+                    Type a letter to filter. All EU/EEA countries; Norway, Denmark and Sweden appear first in the list.
                   </p>
                   <input
                     id="rn-country-input"

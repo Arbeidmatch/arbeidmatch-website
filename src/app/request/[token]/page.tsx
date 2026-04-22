@@ -2041,8 +2041,8 @@ export default function RequestTokenPage() {
                     label="Yes, add branding"
                     sublabel={
                       brandingPartnerRate
-                        ? `${brandingPriceNok} NOK — verified partner rate`
-                        : `${brandingPriceNok} NOK — standard rate`
+                        ? `${brandingPriceNok} NOK (verified partner rate)`
+                        : `${brandingPriceNok} NOK (standard rate)`
                     }
                     selected={form.brandingChoice === "yes"}
                     onClick={() => setForm((prev) => ({ ...prev, brandingChoice: "yes" }))}

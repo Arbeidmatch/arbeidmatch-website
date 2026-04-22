@@ -121,7 +121,7 @@ export default function PartnersPageClient() {
         <div className="relative mx-auto mt-20 max-w-content rounded-2xl border border-[rgba(201,168,76,0.22)] bg-[rgba(255,255,255,0.04)] px-6 py-12 text-center md:px-12">
           <h2 className="font-display text-2xl font-bold md:text-3xl">Interested in another collaboration?</h2>
           <p className="mx-auto mt-3 max-w-lg text-white/65">
-            Tell us what you offer — we&apos;ll see how it fits our partner network.
+            Tell us what you offer, and we&apos;ll see how it fits our partner network.
           </p>
           <Link
             href="/contact"

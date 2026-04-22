@@ -37,7 +37,7 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
       <Link
         href={viewHref}
         className="absolute right-4 top-4 z-10 rounded-xl outline-none ring-offset-2 ring-offset-[#0a1624] focus-visible:ring-2 focus-visible:ring-[#C9A84C]/60 sm:right-5 sm:top-5 md:right-6 md:top-6"
-        aria-label={`Job image — ${job.title}`}
+        aria-label={`Job image: ${job.title}`}
       >
         <div
           className={`relative ${THUMB_SIZE} shrink-0 overflow-hidden rounded-xl border border-[#C9A84C]/35 bg-[#0D1B2A] shadow-[0_4px_14px_rgba(0,0,0,0.25)] transition-[filter,box-shadow] duration-300 ease-out group-hover/card:brightness-[1.07] group-hover/card:shadow-[0_6px_18px_rgba(201,168,76,0.12)]`}

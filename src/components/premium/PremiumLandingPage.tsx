@@ -98,12 +98,12 @@ const candidateRequestCards = [
     tag: "EU/EEA · Norway Ready",
   },
   {
-    role: "Welder — TIG/MIG",
+    role: "Welder (TIG/MIG)",
     text: "Certified welder with 8 years offshore experience. Looking for rotation-based contract in Norway.",
     tag: "EU/EEA · Offshore Ready",
   },
   {
-    role: "HGV Driver — Class C+E",
+    role: "HGV Driver (Class C+E)",
     text: "C+E license, 6 years experience in transport logistics. Open to relocation, accommodation needed.",
     tag: "EU/EEA · Transport",
   },

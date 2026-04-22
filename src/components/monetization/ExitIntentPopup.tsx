@@ -95,7 +95,7 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
                 Before you leave...
               </h2>
               <p className="mt-3 bg-gradient-to-r from-gold via-amber-200 to-gold bg-clip-text text-base font-medium text-transparent sm:text-lg">
-                Grab the free EU/EEA electrician document checklist — same guide as on our Electricians in Norway page.
+                Grab the free EU/EEA electrician document checklist, the same guide as on our Electricians in Norway page.
               </p>
               <div className="mt-8">
                 <Link

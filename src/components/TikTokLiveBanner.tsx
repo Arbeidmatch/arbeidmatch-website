@@ -86,7 +86,7 @@ export default function TikTokLiveBanner() {
               We&apos;re live on TikTok
             </span>
             <span className="mt-1 block text-[13px] leading-snug text-white/55">
-              Tips on working in Scandinavia — join the stream
+              Tips on working in Scandinavia. Join the stream
             </span>
           </span>
         </motion.a>

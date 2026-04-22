@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       await transporter.sendMail({
         ...mailHeaders(),
         to: emailLower,
-        subject: "Your free Norway work guide — ArbeidMatch",
+        subject: "Your free Norway work guide from ArbeidMatch",
         html: buildNonEuLeadEmail(firstName, unsubToken),
       });
       logEmailSent("non_eu_lead_user_guide", { toDomain: emailLower.split("@")[1] ?? "" });

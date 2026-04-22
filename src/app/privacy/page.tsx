@@ -115,22 +115,22 @@ export default function PrivacyPage() {
         </p>
         <ul>
           <li>
-            <strong>Managed database and authentication</strong> — hosting of application data and user sessions in the
+            <strong>Managed database and authentication</strong>: hosting of application data and user sessions in the
             EEA.
           </li>
           <li>
-            <strong>Payment services</strong> — card payments and fraud checks; card data is processed only on the
+            <strong>Payment services</strong>: card payments and fraud checks; card data is processed only on the
             processor&apos;s side.
           </li>
           <li>
-            <strong>Email and transactional messaging</strong> — delivery of confirmations, password resets and
+            <strong>Email and transactional messaging</strong>: delivery of confirmations, password resets and
             service-related notices.
           </li>
           <li>
-            <strong>File storage</strong> — storage of documents you upload (e.g. CVs) under access controls.
+            <strong>File storage</strong>: storage of documents you upload (e.g. CVs) under access controls.
           </li>
           <li>
-            <strong>Infrastructure and logging</strong> — application hosting, CDN and security monitoring compatible with
+            <strong>Infrastructure and logging</strong>: application hosting, CDN and security monitoring compatible with
             GDPR.
           </li>
         </ul>

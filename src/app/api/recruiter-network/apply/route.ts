@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     if (!cityPart) {
       return NextResponse.json({ success: false, error: "City is required." }, { status: 400 });
     }
-    const region = `${regionPart} — ${cityPart}`;
+    const region = `${regionPart}, ${cityPart}`;
     if (!PARTNER_TYPES.has(partner_type)) {
       return NextResponse.json({ success: false, error: "Please select a partner path." }, { status: 400 });
     }

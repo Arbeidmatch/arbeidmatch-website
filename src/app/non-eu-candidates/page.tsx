@@ -21,12 +21,12 @@ const guides = [
   },
   {
     href: "/dsb-support/eu",
-    title: "Purchase — EU/EEA DSB guide",
+    title: "Purchase: EU/EEA DSB guide",
     body: "Secure checkout for the extended EU/EEA guide (30-day access).",
   },
   {
     href: "/dsb-support/non-eu",
-    title: "Purchase — non-EU DSB guide",
+    title: "Purchase: non-EU DSB guide",
     body: "Secure checkout for the extended non-EU guide (30-day access).",
   },
 ] as const;

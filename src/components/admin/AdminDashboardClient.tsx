@@ -219,7 +219,7 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
           >
             <h3 className="text-sm font-semibold uppercase tracking-wide text-[#C9A84C]">Average application match score</h3>
             <div className="mt-8 flex flex-col items-center justify-center gap-3">
-              <div className="text-5xl font-bold tabular-nums text-white">{data.avgMatchScore != null ? `${data.avgMatchScore}%` : "—"}</div>
+              <div className="text-5xl font-bold tabular-nums text-white">{data.avgMatchScore != null ? `${data.avgMatchScore}%` : "N/A"}</div>
               <div className="h-3 w-full max-w-xs overflow-hidden rounded-full bg-white/10">
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-[#5c4a24] to-[#C9A84C]"
@@ -254,7 +254,7 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
                   <tr key={j.id} className="border-t border-white/5 hover:bg-white/[0.02]">
                     <td className="px-4 py-2 text-white/90">{j.title}</td>
                     <td className="px-4 py-2 text-white/70">{j.status}</td>
-                    <td className="px-4 py-2 text-white/60">{j.expires_at ? j.expires_at.slice(0, 10) : "—"}</td>
+                    <td className="px-4 py-2 text-white/60">{j.expires_at ? j.expires_at.slice(0, 10) : "N/A"}</td>
                     <td className="px-4 py-2 text-white/70">{j.applications}</td>
                   </tr>
                 ))}
@@ -284,9 +284,9 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
                       <span className="text-white/85">{candidateDisplay(a)}</span>
                       <span className="mt-0.5 block text-[11px] text-white/45">{a.email}</span>
                     </td>
-                    <td className="px-4 py-2 text-white/75">{a.status ?? "—"}</td>
-                    <td className="px-4 py-2 text-white/70">{a.match_score != null ? `${a.match_score}%` : "—"}</td>
-                    <td className="px-4 py-2 text-white/60">{a.submitted_at ? a.submitted_at.slice(0, 16) : "—"}</td>
+                    <td className="px-4 py-2 text-white/75">{a.status ?? "N/A"}</td>
+                    <td className="px-4 py-2 text-white/70">{a.match_score != null ? `${a.match_score}%` : "N/A"}</td>
+                    <td className="px-4 py-2 text-white/60">{a.submitted_at ? a.submitted_at.slice(0, 16) : "N/A"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -310,7 +310,7 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
                   <tr key={e.id} className="border-t border-white/5 hover:bg-white/[0.02]">
                     <td className="px-4 py-2 text-white/90">{e.company}</td>
                     <td className="px-4 py-2 text-white/70">{e.email}</td>
-                    <td className="px-4 py-2 text-white/60">{e.created_at?.slice(0, 16) ?? "—"}</td>
+                    <td className="px-4 py-2 text-white/60">{e.created_at?.slice(0, 16) ?? "N/A"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -420,7 +420,7 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
             </table>
           </div>
           <p className="mt-2 text-xs text-white/45">
-            Page {auditPage} — {auditTotal} events total
+            Page {auditPage}, {auditTotal} events total
           </p>
         </section>
       </div>

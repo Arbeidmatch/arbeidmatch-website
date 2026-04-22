@@ -30,7 +30,7 @@ export function buildPartnerAgreementHtml(input: PartnerAgreementInput): string 
 <html lang="en">
 <head><meta charset="utf-8"/><title>Partnership agreement</title></head>
 <body style="font-family:Georgia,serif;font-size:14px;line-height:1.6;color:#111;padding:32px;max-width:720px;margin:0 auto;">
-  <h1 style="font-size:22px;">ArbeidMatch — Partnership agreement</h1>
+  <h1 style="font-size:22px;">ArbeidMatch: Partnership agreement</h1>
   <p>This agreement is entered into between <strong>ArbeidMatch Norge AS</strong> (Org.nr 935 667 089) and the partner below.</p>
   <table style="width:100%;border-collapse:collapse;margin:20px 0;">
     <tr><td style="padding:8px 0;border-bottom:1px solid #ddd;"><strong>Company</strong></td><td style="padding:8px 0;border-bottom:1px solid #ddd;">${company}</td></tr>
@@ -54,7 +54,7 @@ export async function createAndSendPartnerAgreementEnvelope(input: PartnerAgreem
   const documentBase64 = Buffer.from(html, "utf8").toString("base64");
 
   const envelopeDefinition = {
-    emailSubject: `Sign your ArbeidMatch partnership agreement — ${input.companyName}`,
+    emailSubject: `Sign your ArbeidMatch partnership agreement for ${input.companyName}`,
     status: "sent",
     customFields: {
       textCustomFields: [
