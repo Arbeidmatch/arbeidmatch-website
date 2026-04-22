@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ApplyWithProfileGate from "@/components/jobs/ApplyWithProfileGate";
 import type { JobRecord } from "@/lib/jobs/types";
 import JobCard from "@/components/jobs/JobCard";
 
@@ -34,7 +35,15 @@ function normalizeList(items?: string[] | string | null): string[] {
   return items.split("\n").map((item) => item.trim()).filter(Boolean);
 }
 
-export default function JobDetailView({ job, relatedJobs }: { job: JobRecord; relatedJobs: JobRecord[] }) {
+export default function JobDetailView({
+  job,
+  relatedJobs,
+  browseOnly = false,
+}: {
+  job: JobRecord;
+  relatedJobs: JobRecord[];
+  browseOnly?: boolean;
+}) {
   const applyHref =
     job.applicationMethod === "external_url"
       ? job.applicationUrl || `/jobs/${job.slug}/apply`
@@ -95,14 +104,21 @@ export default function JobDetailView({ job, relatedJobs }: { job: JobRecord; re
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-28 lg:h-fit">
           <div className="rounded-[18px] border border-[#C9A84C]/25 bg-[#0A0F18] p-5">
-            <p className="text-sm text-white/70">Ready to apply?</p>
-            {job.applicationMethod === "internal" || !job.applicationMethod ? (
+            <p className="text-sm text-white/70">{browseOnly ? "Browse mode" : "Ready to apply?"}</p>
+            {browseOnly ? (
               <Link
-                href={applyHref}
+                href="/candidates"
+                className="mt-3 inline-flex w-full min-h-[46px] items-center justify-center rounded-md border border-[rgba(201,168,76,0.35)] bg-transparent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[rgba(201,168,76,0.08)]"
+              >
+                Complete profile to apply
+              </Link>
+            ) : job.applicationMethod === "internal" || !job.applicationMethod ? (
+              <ApplyWithProfileGate
+                applyHref={applyHref}
                 className="btn-gold-premium mt-3 inline-flex w-full min-h-[46px] items-center justify-center rounded-md bg-[#C9A84C] px-5 py-3 text-sm font-semibold text-[#0D1B2A]"
               >
                 Apply now
-              </Link>
+              </ApplyWithProfileGate>
             ) : (
               <a
                 href={applyHref}
@@ -114,7 +130,9 @@ export default function JobDetailView({ job, relatedJobs }: { job: JobRecord; re
               </a>
             )}
             <p className="mt-3 text-xs leading-relaxed text-white/55">
-              Fast and direct process. ArbeidMatch recruits continuously for trusted clients in Norway.
+              {browseOnly
+                ? "You are viewing jobs in read-only mode. Complete your profile to unlock applications."
+                : "Fast and direct process. ArbeidMatch recruits continuously for trusted clients in Norway."}
             </p>
           </div>
 
@@ -142,14 +160,21 @@ export default function JobDetailView({ job, relatedJobs }: { job: JobRecord; re
           <h2 className="text-2xl font-semibold text-white">Related jobs</h2>
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {relatedJobs.map((relatedJob) => (
-              <JobCard key={relatedJob.id} job={relatedJob} />
+              <JobCard key={relatedJob.id} job={relatedJob} browseOnly={browseOnly} />
             ))}
           </div>
         </section>
       ) : null}
 
       <div className="fixed inset-x-0 bottom-0 z-[120] border-t border-[#C9A84C]/25 bg-[#0A0F18]/95 p-3 backdrop-blur-sm lg:hidden">
-        {job.applicationMethod === "internal" || !job.applicationMethod ? (
+        {browseOnly ? (
+          <Link
+            href="/candidates"
+            className="inline-flex w-full min-h-[46px] items-center justify-center rounded-md border border-[rgba(201,168,76,0.35)] bg-transparent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[rgba(201,168,76,0.08)]"
+          >
+            Complete profile to apply
+          </Link>
+        ) : job.applicationMethod === "internal" || !job.applicationMethod ? (
           <Link
             href={applyHref}
             className="btn-gold-premium inline-flex w-full min-h-[46px] items-center justify-center rounded-md bg-[#C9A84C] px-5 py-3 text-sm font-semibold text-[#0D1B2A]"

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   availabilityOptions,
   drivingLicenceOptions,
@@ -13,6 +13,8 @@ import {
   type JobApplicationFormData,
 } from "@/lib/jobs/application";
 import type { JobRecord } from "@/lib/jobs/types";
+import type { CandidateProfilePayload } from "@/lib/candidates/profileSchema";
+import { computeJobMatchScore } from "@/lib/candidates/jobMatchScore";
 
 type FormErrors = Partial<Record<keyof JobApplicationFormData, string>>;
 type FormState = {
@@ -53,6 +55,8 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [errors, setErrors] = useState<FormErrors>({});
   const [cvFileName, setCvFileName] = useState("");
+  const [profileSnapshot, setProfileSnapshot] = useState<CandidateProfilePayload | null>(null);
+  const [matchPreview, setMatchPreview] = useState<{ score: number; summary: string } | null>(null);
   const [formData, setFormData] = useState<FormState>({
     firstName: "",
     lastName: "",
@@ -74,6 +78,37 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
 
   const progressLabel = useMemo(() => `Step ${step} of ${totalSteps}`, [step]);
   const progressValue = useMemo(() => (step / totalSteps) * 100, [step]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const email = formData.email.trim().toLowerCase();
+    if (!email.includes("@")) {
+      setProfileSnapshot(null);
+      setMatchPreview(null);
+      return;
+    }
+
+    try {
+      const raw = window.localStorage.getItem("am_candidate_profile_json");
+      if (!raw) {
+        setProfileSnapshot(null);
+        setMatchPreview(null);
+        return;
+      }
+      const parsed = JSON.parse(raw) as CandidateProfilePayload;
+      if (!parsed?.email || parsed.email.trim().toLowerCase() !== email) {
+        setProfileSnapshot(null);
+        setMatchPreview(null);
+        return;
+      }
+      setProfileSnapshot(parsed);
+      const match = computeJobMatchScore(job, parsed);
+      setMatchPreview({ score: match.score, summary: match.reasons.slice(0, 2).join(" ") });
+    } catch {
+      setProfileSnapshot(null);
+      setMatchPreview(null);
+    }
+  }, [formData.email, job]);
 
   function updateField<Key extends keyof typeof formData>(key: Key, value: (typeof formData)[Key]) {
     setErrors((prev) => ({ ...prev, [key]: undefined }));
@@ -139,6 +174,9 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
     requestPayload.set("message", parsed.data.message ?? "");
     requestPayload.set("gdprConsent", "true");
     requestPayload.set("cvFile", parsed.data.cvFile);
+    if (profileSnapshot) {
+      requestPayload.set("profileJson", JSON.stringify(profileSnapshot));
+    }
 
     const response = await fetch("/api/jobs/apply", {
       method: "POST",
@@ -146,8 +184,12 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
     });
 
     if (!response.ok) {
-      const payload = (await response.json().catch(() => ({}))) as { error?: string };
-      setErrors({ gdprConsent: payload.error || "Submission failed. Please try again." });
+      const payload = (await response.json().catch(() => ({}))) as { error?: string; matchScore?: number; matchSummary?: string };
+      const message =
+        payload.error === "Not ideal match, adjust your profile"
+          ? `Match score is ${payload.matchScore ?? "low"}%. Not ideal match, adjust your profile.`
+          : payload.error || "Submission failed. Please try again.";
+      setErrors({ gdprConsent: message });
       setStatus("idle");
       return;
     }
@@ -228,6 +270,30 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
           <Field label="City" error={errors.city}>
             <input value={formData.city} onChange={(e) => updateField("city", e.target.value)} className={inputClassName} />
           </Field>
+
+          {matchPreview ? (
+            <div className="md:col-span-2 rounded-md border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.08)] px-4 py-3 text-sm text-white/80">
+              <p className="font-semibold text-[#C9A84C]">Match preview: {matchPreview.score}%</p>
+              <p className="mt-1 text-white/70">{matchPreview.summary}</p>
+              {matchPreview.score < 70 ? (
+                <p className="mt-2 text-white/70">
+                  Applications require at least 70% match.{" "}
+                  <Link href="/candidates/complete-profile" className="font-semibold text-[#C9A84C] hover:underline">
+                    Adjust your profile
+                  </Link>
+                  .
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <p className="md:col-span-2 text-sm text-white/55">
+              Tip: complete your{" "}
+              <Link href="/candidates" className="font-semibold text-[#C9A84C] hover:underline">
+                candidate profile
+              </Link>{" "}
+              to unlock match scoring and applications.
+            </p>
+          )}
         </div>
       ) : null}
 

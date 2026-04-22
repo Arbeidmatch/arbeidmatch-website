@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import JobDetailView from "@/components/jobs/JobDetailView";
 import { getJobBySlug, getPublicJobs, getRelatedJobs } from "@/lib/jobs/repository";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -28,8 +31,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function JobDetailPage({ params }: Props) {
+export default async function JobDetailPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const sp = await searchParams;
+  const browseRaw = sp.browse;
+  const browseValue = Array.isArray(browseRaw) ? browseRaw[0] : browseRaw;
+  const browseOnly = browseValue === "1" || browseValue === "true";
+
   const job = await getJobBySlug(slug);
   if (!job || job.status !== "active") notFound();
 
@@ -60,7 +68,7 @@ export default async function JobDetailPage({ params }: Props) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingStructuredData) }} />
-      <JobDetailView job={job} relatedJobs={relatedJobs} />
+      <JobDetailView job={job} relatedJobs={relatedJobs} browseOnly={browseOnly} />
     </>
   );
 }

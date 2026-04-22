@@ -173,5 +173,8 @@ When starting a new conversation, always:
 4. Update this file after every completed task under a ## Changelog section at the bottom
 
 ## Changelog
+### 2026-04-22
+- Candidate profile flow redesigned as a nine-step Linear-style wizard on `/candidates`, with GDPR gate first, hourly salary bands, experience bands, driver licence step, housing including no preference, video intro embed, and final employer sharing consent. Progress persists through `/api/candidate-profile/progress`, final save through `/api/candidate-profile`, and job applications enforce a 70% match score with a clear 422 message when below threshold.
+
 ### 2026-04-21
 - Complete session described above

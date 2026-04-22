@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ApplyWithProfileGate from "@/components/jobs/ApplyWithProfileGate";
 import type { JobRecord } from "@/lib/jobs/types";
 
 function formatDate(date: string): string {
@@ -11,7 +12,7 @@ function formatDate(date: string): string {
   }).format(new Date(date));
 }
 
-export default function JobCard({ job }: { job: JobRecord }) {
+export default function JobCard({ job, browseOnly = false }: { job: JobRecord; browseOnly?: boolean }) {
   const applyHref =
     job.applicationMethod === "external_url"
       ? job.applicationUrl || `/jobs/${job.slug}/apply`
@@ -19,6 +20,7 @@ export default function JobCard({ job }: { job: JobRecord }) {
         ? `mailto:${job.applicationEmail || "post@arbeidmatch.no"}`
         : `/jobs/${job.slug}/apply`;
   const applyExternal = job.applicationMethod === "external_url";
+  const viewHref = browseOnly ? `/jobs/${job.slug}?browse=1` : `/jobs/${job.slug}`;
 
   return (
     <article className="card-premium rounded-[18px] border border-[#C9A84C]/20 bg-white/[0.03] p-5 md:p-6">
@@ -58,18 +60,25 @@ export default function JobCard({ job }: { job: JobRecord }) {
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
         <Link
-          href={`/jobs/${job.slug}`}
+          href={viewHref}
           className="btn-outline-premium inline-flex min-h-[44px] items-center justify-center rounded-md border border-[#C9A84C]/35 px-4 py-2 text-sm font-semibold text-[#C9A84C]"
         >
           View job
         </Link>
-        {job.applicationMethod === "internal" || !job.applicationMethod ? (
+        {browseOnly ? (
           <Link
-            href={applyHref}
+            href="/candidates"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-[rgba(201,168,76,0.35)] bg-transparent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[rgba(201,168,76,0.08)]"
+          >
+            Complete profile to apply
+          </Link>
+        ) : job.applicationMethod === "internal" || !job.applicationMethod ? (
+          <ApplyWithProfileGate
+            applyHref={applyHref}
             className="btn-gold-premium inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A]"
           >
             Apply now
-          </Link>
+          </ApplyWithProfileGate>
         ) : (
           <a
             href={applyHref}

@@ -30,7 +30,10 @@ create table if not exists public.job_applications (
   status text not null default 'new',
   source text not null default 'job-board',
   submitted_at timestamptz not null default now(),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  match_score integer null,
+  match_summary text null,
+  profile_snapshot jsonb null
 );
 
 create index if not exists idx_job_applications_job_slug on public.job_applications(job_slug);
@@ -49,3 +52,9 @@ on conflict (id) do nothing;
 Optional environment variable override:
 
 - `SUPABASE_JOB_CV_BUCKET=job-cvs`
+
+## Candidate profiles (site)
+
+Run `supabase/candidates.sql` in Supabase SQL Editor to create the `candidates` table used by `/candidates` profile completion.
+
+If your `job_applications` table was created earlier, run `supabase/job_applications_match_fields.sql` to add optional match metadata columns.

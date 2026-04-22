@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import JobApplicationForm from "@/components/jobs/JobApplicationForm";
 import { getJobBySlug } from "@/lib/jobs/repository";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -20,10 +23,43 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function JobApplyPage({ params }: Props) {
+export default async function JobApplyPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const sp = await searchParams;
+  const browseRaw = sp.browse;
+  const browseValue = Array.isArray(browseRaw) ? browseRaw[0] : browseRaw;
+  const browseOnly = browseValue === "1" || browseValue === "true";
+
   const job = await getJobBySlug(slug);
   if (!job || job.status !== "active") notFound();
+
+  if (browseOnly) {
+    return (
+      <div className="container-site py-10">
+        <div className="rounded-[18px] border border-[#C9A84C]/25 bg-white/[0.03] p-6 md:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Read-only browsing</p>
+          <h1 className="mt-3 text-2xl font-bold text-white">Applications are disabled in browse mode</h1>
+          <p className="mt-3 max-w-2xl text-sm text-white/75">
+            Complete your candidate profile to unlock applications and improve your match score.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/candidates/complete-profile"
+              className="btn-gold-premium inline-flex min-h-[44px] items-center rounded-md bg-[#C9A84C] px-5 py-2 text-sm font-semibold text-[#0D1B2A]"
+            >
+              Complete profile
+            </Link>
+            <Link
+              href={`/jobs/${job.slug}?browse=1`}
+              className="btn-outline-premium inline-flex min-h-[44px] items-center rounded-md border border-[#C9A84C]/35 px-5 py-2 text-sm font-semibold text-[#C9A84C]"
+            >
+              Back to job details
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (job.applicationMethod === "external_url" && job.applicationUrl) {
     return (

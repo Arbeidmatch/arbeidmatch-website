@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import PremiumJobsBoard from "@/components/jobs/PremiumJobsBoard";
+import JobsMarketplaceClient from "@/components/jobs/JobsMarketplaceClient";
+import { getPublicJobs } from "@/lib/jobs/repository";
 
 export const metadata: Metadata = {
   title: "Blue-Collar Careers in Norway",
@@ -16,6 +17,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function JobsPage() {
-  return <PremiumJobsBoard />;
+type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+export default async function JobsPage({ searchParams }: Props) {
+  const sp = await searchParams;
+  const browseRaw = sp.browse;
+  const browseValue = Array.isArray(browseRaw) ? browseRaw[0] : browseRaw;
+  const browseOnly = browseValue === "1" || browseValue === "true";
+
+  const jobs = await getPublicJobs();
+  return <JobsMarketplaceClient jobs={jobs} browseOnly={browseOnly} />;
 }

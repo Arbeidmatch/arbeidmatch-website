@@ -35,6 +35,12 @@ export default function ForEmployersPage() {
             >
               Request candidates
             </Link>
+            <Link
+              href="/engineers-technical"
+              className="mt-4 inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md border border-[rgba(201,168,76,0.35)] px-8 py-3 font-medium text-white transition-colors hover:bg-[rgba(201,168,76,0.08)] sm:mx-auto sm:w-auto sm:max-w-none"
+            >
+              Explore Engineers &amp; Technical
+            </Link>
           </StaggerHero>
         </div>
       </section>
