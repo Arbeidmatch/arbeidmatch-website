@@ -6,7 +6,7 @@ export type DualNavLink = { href: string; label: string; external?: boolean };
 export const premiumEmployerCenter: DualNavLink[] = [
   { href: "/request", label: "Request Candidates" },
   { href: "/become-a-partner", label: "Become a Partner" },
-  { href: "/about", label: "Om oss" },
+  { href: "/about", label: "About us" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -21,14 +21,14 @@ export const premiumEmployerMore: DualNavLink[] = [
 export const premiumCandidateCenter: DualNavLink[] = [
   { href: "/for-candidates", label: "For Candidates" },
   { href: "https://jobs.arbeidmatch.no", label: "Browse Jobs", external: true },
-  { href: "/about", label: "Om oss" },
+  { href: "/about", label: "About us" },
   { href: "/contact", label: "Contact" },
 ];
 
 /** Desktop “More” dropdown — candidate */
 export const premiumCandidateMore: DualNavLink[] = [
   { href: "/candidates", label: "Create Profile" },
-  { href: "/non-eu-candidates", label: "Non-EU Workers" },
+  { href: "/non-eu-candidates", label: "Outside EU/EEA" },
   { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/partners", label: "Trusted Partners" },
 ];
@@ -45,6 +45,6 @@ export const neutralNavLinks: {
 }[] = [
   { href: "/for-employers", label: "For Employers", userType: "employer" },
   { href: "/for-candidates", label: "For Candidates", userType: "candidate" },
-  { href: "/about", label: "Om oss" },
+  { href: "/about", label: "About us" },
   { href: "/contact", label: "Contact" },
 ];

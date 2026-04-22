@@ -143,7 +143,7 @@ export default function DsbTypeSelector({
                 <p className="text-4xl" aria-hidden>
                   🌍
                 </p>
-                <h3 className="mt-3 text-2xl font-semibold text-white">Non-EU Citizen</h3>
+                <h3 className="mt-3 text-2xl font-semibold text-white">Outside EU/EEA</h3>
                 <p className="mt-2 text-xs text-white/75">Ukraine, India, Philippines, Serbia + others</p>
                 <ul className="mt-4 space-y-2 text-sm text-white/90">
                   <li>- Longer process (6-12 months)</li>
@@ -156,7 +156,7 @@ export default function DsbTypeSelector({
                   onClick={() => selectType("non-eu")}
                   className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-md border border-[#C9A84C] py-3 text-sm font-bold text-white transition hover:bg-[rgba(201,168,76,0.15)]"
                 >
-                  I am Non-EU →
+                  Outside EU/EEA →
                 </button>
               </article>
             </div>

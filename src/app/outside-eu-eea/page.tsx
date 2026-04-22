@@ -4,8 +4,8 @@ import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
 export const metadata: Metadata = nbPageMetadata(
   "/outside-eu-eea",
-  "Working in Norway as a Non-EU Citizen | ArbeidMatch",
-  "Permits, documents, and first steps for skilled workers outside the EU/EEA. Free guide and practical overview from ArbeidMatch.",
+  "Working in Norway from outside the EU/EEA | ArbeidMatch",
+  "Context on permits and practical steps for skilled workers outside the EU/EEA. ArbeidMatch does not offer job placements for this group; guides explain requirements and process.",
 );
 
 export default function OutsideEuEeaPage() {

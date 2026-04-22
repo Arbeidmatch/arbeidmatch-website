@@ -1102,13 +1102,14 @@ I speak [languages]. Thank you for watching.`}
                 {currentCountry === OUTSIDE_EEA_RESIDENCE_VALUE ? (
                   <div className="space-y-4 rounded-[12px] border border-amber-400/35 bg-amber-500/[0.09] p-4 sm:col-span-2">
                     <p className="text-sm leading-relaxed text-white/90">
-                      Thank you for your interest. This candidate path is reserved for residents inside the EU or European
-                      Economic Area. In a moment we will open a page with DSB-focused guides that explain how international
-                      hiring and compliance work in Norway.
+                      Thank you for your interest. Candidate registration on ArbeidMatch is only for people who live in
+                      the EU or European Economic Area. We do not have job placements for residents outside the EU/EEA. The
+                      next page explains this clearly and points to our guides if you want to understand Norwegian
+                      requirements and processes.
                     </p>
                     {outsideRedirectPending ? (
                       <p className="text-sm font-medium text-[#C9A84C]" role="status" aria-live="polite">
-                        Taking you to the international candidate page…
+                        Opening information for people outside the EU/EEA…
                       </p>
                     ) : (
                       <button
@@ -1116,7 +1117,7 @@ I speak [languages]. Thank you for watching.`}
                         onClick={startOutsideEeaRedirect}
                         className="inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-[12px] bg-[#C9A84C] px-5 text-sm font-bold text-[#0D1B2A] shadow-[0_8px_22px_rgba(201,168,76,0.25)] transition-colors hover:bg-[#b8953f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/75 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0F18]"
                       >
-                        Continue to international information
+                        Continue to outside EU/EEA information
                       </button>
                     )}
                   </div>

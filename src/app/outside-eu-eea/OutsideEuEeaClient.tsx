@@ -33,11 +33,6 @@ export default function OutsideEuEeaClient() {
   const [leadSuccess, setLeadSuccess] = useState(false);
   const [leadError, setLeadError] = useState("");
 
-  const [waitEmail, setWaitEmail] = useState("");
-  const [waitConsent, setWaitConsent] = useState(false);
-  const [waitLoading, setWaitLoading] = useState(false);
-  const [waitMessage, setWaitMessage] = useState<"idle" | "ok" | "err">("idle");
-
   const submitLead = async (e: FormEvent) => {
     e.preventDefault();
     setLeadError("");
@@ -62,45 +57,6 @@ export default function OutsideEuEeaClient() {
     }
   };
 
-  const submitWaitlist = async (e: FormEvent) => {
-    e.preventDefault();
-    setWaitMessage("idle");
-    if (!waitEmail.trim() || !waitEmail.includes("@")) {
-      setWaitMessage("err");
-      return;
-    }
-    if (!waitConsent) {
-      setWaitMessage("err");
-      return;
-    }
-    setWaitLoading(true);
-    try {
-      const waitlistEmail = waitEmail.trim().toLowerCase();
-      const res = await fetch("/api/feature-waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: waitlistEmail,
-          feature: "non-eu-positions",
-          consent: true,
-        }),
-      });
-      const data = (await res.json()) as { success?: boolean; error?: string };
-      if (!res.ok || !data.success) {
-        setWaitMessage("err");
-        return;
-      }
-      setWaitMessage("ok");
-      setWaitEmail("");
-      setWaitConsent(false);
-      trackEvent("non_eu_waitlist_signup");
-    } catch {
-      setWaitMessage("err");
-    } finally {
-      setWaitLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#0D1B2A] text-white">
       {/* Hero */}
@@ -111,15 +67,17 @@ export default function OutsideEuEeaClient() {
         }}
       >
         <div className="mx-auto w-full max-w-content px-4 md:px-6 lg:px-12">
-          <p className="text-[11px] font-bold tracking-[0.18em] text-[#C9A84C]">NON-EU WORKERS</p>
+          <p className="text-[11px] font-bold tracking-[0.18em] text-[#C9A84C]">OUTSIDE EU/EEA</p>
           <h1 className="mt-4 text-4xl font-extrabold leading-tight tracking-tight md:text-5xl lg:text-[3.25rem]">
             <span className="text-white">Working in Norway</span>
             <br />
-            <span className="text-[#C9A84C]">as a Non-EU Citizen</span>
+            <span className="text-[#C9A84C]">from outside the EU/EEA</span>
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-relaxed text-[rgba(255,255,255,0.7)]">
-            Norway is open to skilled workers from outside the EU/EEA, but the process requires preparation.
-            We&apos;ll help you understand every step.
+            Norway can admit skilled workers from outside the EU/EEA when legal requirements are met, but the process
+            takes time and depends on employers and authorities. ArbeidMatch does not match candidates outside the EU/EEA
+            to jobs; the sections below explain how this often works in practice, and our guides go deeper on
+            requirements.
           </p>
         </div>
       </section>
@@ -319,8 +277,9 @@ export default function OutsideEuEeaClient() {
             </div>
             <h2 className="text-lg font-bold text-white">Yes, it&apos;s possible</h2>
             <p className="mt-3 text-sm leading-relaxed text-[rgba(255,255,255,0.65)]">
-              Norway issues work permits to skilled non-EU workers. The key is having the right trade skills and
-              documentation.
+              Norwegian authorities may grant work permits to skilled workers from outside the EU/EEA when a qualified
+              employer sponsors the role and documentation is in order. That is separate from ArbeidMatch candidate
+              matching, which is for EU/EEA residents only.
             </p>
           </article>
           <article className={cardClass}>
@@ -492,56 +451,23 @@ export default function OutsideEuEeaClient() {
         </div>
       </section>
 
-      {/* Waitlist */}
+      {/* ArbeidMatch scope */}
       <section className="border-t border-[rgba(201,168,76,0.12)] bg-[#0a0f18] px-4 py-14 md:py-20">
         <div className="mx-auto max-w-xl text-center">
-          <h2 className="text-2xl font-bold text-white md:text-3xl">No open positions for non-EU workers right now</h2>
+          <h2 className="text-2xl font-bold text-white md:text-3xl">ArbeidMatch and job placements</h2>
           <p className="mt-4 text-[rgba(255,255,255,0.65)]">
-            We&apos;re building our non-EU employer network. Join the waitlist and be first to know when positions open.
+            ArbeidMatch currently connects EU/EEA candidates with Norwegian employers. We do not have job placements
+            available for candidates outside the EU/EEA at this time.
           </p>
-          <form onSubmit={submitWaitlist} className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-stretch">
-            <label className="sr-only" htmlFor="waitlist-email">
-              Email
-            </label>
-            <input
-              id="waitlist-email"
-              type="email"
-              required
-              className={`${inputClass} sm:flex-1`}
-              placeholder="Your email"
-              value={waitEmail}
-              onChange={(ev) => setWaitEmail(ev.target.value)}
-              autoComplete="email"
-            />
-            <button
-              type="submit"
-              disabled={waitLoading}
-              className="min-h-[48px] shrink-0 rounded-[10px] bg-[#C9A84C] px-8 text-sm font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f] disabled:opacity-50"
-            >
-              {waitLoading ? "…" : "Join waitlist"}
-            </button>
-          </form>
-          <label className="mt-4 flex cursor-pointer items-start justify-center gap-2 text-left text-[13px] text-[rgba(255,255,255,0.55)]">
-            <input
-              type="checkbox"
-              checked={waitConsent}
-              onChange={(ev) => setWaitConsent(ev.target.checked)}
-              className="mt-1 h-4 w-4 shrink-0 rounded border-[rgba(201,168,76,0.4)] accent-[#C9A84C]"
-            />
-            <span>
-              I agree to be notified about non-EU opportunities and accept the{" "}
-              <Link href="/privacy" className="text-[#C9A84C] underline">
-                Privacy Policy
-              </Link>
-              .
-            </span>
-          </label>
-          {waitMessage === "ok" ? (
-            <p className="mt-4 text-sm font-medium text-[#1D9E75]">You&apos;re on the list. We&apos;ll be in touch.</p>
-          ) : null}
-          {waitMessage === "err" ? (
-            <p className="mt-4 text-sm text-[#E24B4A]">Please enter a valid email and accept the privacy terms.</p>
-          ) : null}
+          <p className="mt-4 text-[rgba(255,255,255,0.65)]">
+            If you want to understand Norwegian requirements and processes, our guides are the right next step.
+          </p>
+          <Link
+            href="/premium"
+            className="mt-8 inline-flex min-h-[48px] items-center justify-center rounded-[10px] bg-[#C9A84C] px-8 text-sm font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
+          >
+            Browse our guides
+          </Link>
           <GuideTeaserCta href="/electricians-norway?section=dsb" />
         </div>
       </section>
