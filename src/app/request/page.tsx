@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Bolt, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
 
@@ -57,11 +57,6 @@ const SEARCH_MESSAGES = [
 
 const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "live.com", "msn.com"]);
 
-/** Hide industry/role search and fake loading until candidate counts are live. Set false to restore full flow. */
-const REQUEST_PAGE_MINIMAL_UI = true;
-
-const MINIMAL_ROTATE_ROLES = ["CARPENTER", "ELECTRICIAN", "WELDER", "PLUMBER", "PAINTER"];
-
 export default function RequestPage() {
   const router = useRouter();
   const [checkState, setCheckState] = useState<"idle" | "searching" | "result">("idle");
@@ -92,8 +87,6 @@ export default function RequestPage() {
   const [partnerApplicationEmail, setPartnerApplicationEmail] = useState("");
   const [partnerApplicationStatus, setPartnerApplicationStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [partnerApplicationError, setPartnerApplicationError] = useState("");
-  const [requestMinimalLandingDismissed, setRequestMinimalLandingDismissed] = useState(false);
-  const useMinimalAvailabilityLanding = REQUEST_PAGE_MINIMAL_UI && !requestMinimalLandingDismissed;
   const reduceMotion = useReducedMotion();
   const hasMountedHistoryGuard = useRef(false);
   const hasAutoStartedRoleCheck = useRef(false);
@@ -138,14 +131,6 @@ export default function RequestPage() {
     setNotifyEmail("");
     setNotifyStatus("idle");
     setResultAction("none");
-    if (useMinimalAvailabilityLanding) {
-      let hash = 0;
-      for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
-      setCheckCount((hash % 36) + 12);
-      setShowAccessCheck(true);
-      setCheckState("result");
-      return;
-    }
     setCheckState("searching");
     setSearchMessageIndex(0);
     await new Promise((resolve) => setTimeout(resolve, 10000));
@@ -156,19 +141,11 @@ export default function RequestPage() {
     setCheckState("result");
   };
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (typeof window === "undefined") return;
     if (hasAutoStartedRoleCheck.current) return;
 
     const roleFromQuery = (new URLSearchParams(window.location.search).get("role") || "").trim();
-
-    if (REQUEST_PAGE_MINIMAL_UI && !roleFromQuery) {
-      hasAutoStartedRoleCheck.current = true;
-      setSearchTerm("CARPENTER");
-      setCheckState("result");
-      return;
-    }
-
     if (!roleFromQuery) return;
 
     hasAutoStartedRoleCheck.current = true;
@@ -246,17 +223,6 @@ export default function RequestPage() {
   };
 
   const backToRoleSearch = () => {
-    if (useMinimalAvailabilityLanding) {
-      setSearchTerm((prev) => {
-        const u = prev.trim().toUpperCase() || "CARPENTER";
-        const idx = MINIMAL_ROTATE_ROLES.indexOf(u);
-        const nextIdx = idx === -1 ? 0 : (idx + 1) % MINIMAL_ROTATE_ROLES.length;
-        return MINIMAL_ROTATE_ROLES[nextIdx];
-      });
-      setResultAction("none");
-      setAccessStatus("idle");
-      return;
-    }
     setCheckState("idle");
     setSearchTerm("");
     setCheckCount(0);
@@ -270,7 +236,6 @@ export default function RequestPage() {
 
   const resetToFirstStep = () => {
     setShowLeaveDialog(false);
-    setRequestMinimalLandingDismissed(true);
     setCheckState("idle");
     setSelectedIndustry("");
     setRoleQuery("");
@@ -420,7 +385,7 @@ export default function RequestPage() {
           showNonPartnerOptions ? "pointer-events-none translate-y-2 opacity-0" : "translate-y-0 opacity-100"
         }`}
       >
-        {checkState === "idle" && !useMinimalAvailabilityLanding && (
+        {checkState === "idle" && (
           <>
             {!selectedIndustry && (
               <button
@@ -494,7 +459,7 @@ export default function RequestPage() {
           </>
         )}
 
-        {checkState === "searching" && !useMinimalAvailabilityLanding && (
+        {checkState === "searching" && (
           <div className="flex flex-col items-center py-10 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
             <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
@@ -509,31 +474,19 @@ export default function RequestPage() {
           <div className="relative text-center">
             <button
               type="button"
-              onClick={() => (useMinimalAvailabilityLanding ? router.back() : backToRoleSearch())}
+              onClick={() => backToRoleSearch()}
               className="mb-4 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
             >
               <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
               Back
             </button>
-            {!useMinimalAvailabilityLanding ? (
-              <div className="pointer-events-none absolute left-1/2 top-[120px] h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(201,168,76,0.08)_0%,transparent_70%)]" />
-            ) : null}
-            <p
-              className={`text-[12px] uppercase tracking-[0.15em] text-[rgba(201,168,76,0.7)]${useMinimalAvailabilityLanding ? " mt-2" : " mt-3"}`}
-            >
-              {searchTerm.trim() || "ROLE"}
-            </p>
-            {!useMinimalAvailabilityLanding ? (
-              <>
-                <div className="mx-auto mt-3 inline-flex rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.06)] px-3 py-1 text-[11px] text-[rgba(255,255,255,0.6)]">
-                  Feature in development. Partner access only.
-                </div>
-                <div className="mx-auto my-8 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
-              </>
-            ) : null}
-            <div
-              className={`mx-auto grid w-full max-w-[560px] grid-cols-1 gap-3 sm:grid-cols-2${useMinimalAvailabilityLanding ? " mt-8" : ""}`}
-            >
+            <div className="pointer-events-none absolute left-1/2 top-[120px] h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(201,168,76,0.08)_0%,transparent_70%)]" />
+            <p className="mt-3 text-[12px] uppercase tracking-[0.15em] text-[rgba(201,168,76,0.7)]">{searchTerm.trim() || "ROLE"}</p>
+            <div className="mx-auto mt-3 inline-flex rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.06)] px-3 py-1 text-[11px] text-[rgba(255,255,255,0.6)]">
+              Feature in development. Partner access only.
+            </div>
+            <div className="mx-auto my-8 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
+            <div className="mx-auto grid w-full max-w-[560px] grid-cols-1 gap-3 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={() => {
@@ -562,7 +515,6 @@ export default function RequestPage() {
               type="button"
               onClick={() => {
                 resetToFirstStep();
-                void router.replace("/request");
               }}
               className="mx-auto mt-4 block cursor-pointer text-center text-[13px] text-[rgba(201,168,76,0.6)] underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
             >
