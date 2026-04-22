@@ -90,6 +90,8 @@ export default function RequestPage() {
   const reduceMotion = useReducedMotion();
   const hasMountedHistoryGuard = useRef(false);
   const hasAutoStartedRoleCheck = useRef(false);
+  /** Bumped on reset / back so in-flight `runCandidateSearch` cannot apply after leaving the flow. */
+  const candidateSearchGenerationRef = useRef(0);
 
   const filteredRoles = useMemo(() => {
     if (!selectedIndustry) return [];
@@ -125,6 +127,7 @@ export default function RequestPage() {
   const runCandidateSearch = async (roleInput: string) => {
     const role = roleInput.trim();
     if (role.length < 2) return;
+    const generation = ++candidateSearchGenerationRef.current;
     setSearchTerm(role);
     setAccessStatus("idle");
     setSelectedOption(null);
@@ -134,6 +137,7 @@ export default function RequestPage() {
     setCheckState("searching");
     setSearchMessageIndex(0);
     await new Promise((resolve) => setTimeout(resolve, 10000));
+    if (generation !== candidateSearchGenerationRef.current) return;
     let hash = 0;
     for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
     setCheckCount((hash % 36) + 12);
@@ -223,6 +227,7 @@ export default function RequestPage() {
   };
 
   const backToRoleSearch = () => {
+    candidateSearchGenerationRef.current += 1;
     setCheckState("idle");
     setSearchTerm("");
     setCheckCount(0);
@@ -235,6 +240,7 @@ export default function RequestPage() {
   };
 
   const resetToFirstStep = () => {
+    candidateSearchGenerationRef.current += 1;
     setShowLeaveDialog(false);
     setCheckState("idle");
     setSelectedIndustry("");
@@ -245,6 +251,7 @@ export default function RequestPage() {
     setShowAccessCheck(false);
     setAccessEmail("");
     setAccessStatus("idle");
+    setAccessErrorMessage("");
     setCompanyName("");
     setSelectedOption(null);
     setNotifyEmail("");
@@ -252,9 +259,14 @@ export default function RequestPage() {
     setResultAction("none");
     setPartnerModalView("not_found");
     setPartnerIssueStatus("idle");
+    setPartnerIssueMessage("");
+    setFeedbackEmail("");
+    setNotFoundExiting(false);
     setShowPartnerApplicationModal(false);
+    setPartnerApplicationEmail("");
     setPartnerApplicationStatus("idle");
     setPartnerApplicationError("");
+    hasAutoStartedRoleCheck.current = false;
   };
 
   const showNonPartnerOptions = resultAction === "non_partner";
@@ -515,6 +527,7 @@ export default function RequestPage() {
               type="button"
               onClick={() => {
                 resetToFirstStep();
+                void router.replace("/request");
               }}
               className="mx-auto mt-4 block cursor-pointer text-center text-[13px] text-[rgba(201,168,76,0.6)] underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
             >
