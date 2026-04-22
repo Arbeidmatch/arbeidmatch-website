@@ -6,27 +6,15 @@ ALTER TABLE IF EXISTS public.waitlist ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.error_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS public.partner_requests ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies for request_tokens
+-- Create RLS policies for request_tokens (service_role only for now)
 DROP POLICY IF EXISTS "service_role_full" ON public.request_tokens;
-DROP POLICY IF EXISTS "auth_read_own" ON public.request_tokens;
-
 CREATE POLICY "service_role_full" ON public.request_tokens
 TO service_role USING (true) WITH CHECK (true);
 
-CREATE POLICY "auth_read_own" ON public.request_tokens
-FOR SELECT TO authenticated
-USING (auth.uid()::text = user_id);
-
--- Create RLS policies for employer_requests
+-- Create RLS policies for employer_requests (service_role only for now)
 DROP POLICY IF EXISTS "service_role_full" ON public.employer_requests;
-DROP POLICY IF EXISTS "auth_read_own" ON public.employer_requests;
-
 CREATE POLICY "service_role_full" ON public.employer_requests
 TO service_role USING (true) WITH CHECK (true);
-
-CREATE POLICY "auth_read_own" ON public.employer_requests
-FOR SELECT TO authenticated
-USING (auth.uid()::text = employer_id);
 
 -- Create RLS policies for guides (public read)
 DROP POLICY IF EXISTS "service_role_full" ON public.guides;
