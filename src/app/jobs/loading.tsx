@@ -1,18 +1,17 @@
-import JobsListSkeleton from "@/components/jobs/JobsListSkeleton";
-
 export default function JobsLoading() {
   return (
-    <div className="bg-[#0D1B2A] text-white">
-      <section className="container-site section-y-tight pb-4">
-        <div className="max-w-3xl">
-          <div className="skeleton h-4 w-40 rounded-full" />
-          <div className="skeleton mt-4 h-12 w-full max-w-[520px] rounded-md" />
-          <div className="skeleton mt-3 h-6 w-full max-w-[600px] rounded-md" />
-        </div>
-      </section>
-      <section className="container-site pb-20">
-        <JobsListSkeleton />
-      </section>
+    <div
+      className="min-h-[calc(100vh-4rem)] animate-pulse"
+      style={{
+        background: "linear-gradient(165deg, #0B1424 0%, #0f1f38 42%, #0a1222 100%)",
+      }}
+    >
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-lg flex-col justify-center px-6 py-20 sm:px-8">
+        <div className="mx-auto h-3 w-24 rounded-full bg-white/10" />
+        <div className="mx-auto mt-6 h-10 w-4/5 max-w-md rounded-md bg-white/10" />
+        <div className="mx-auto mt-4 h-6 w-full max-w-sm rounded-md bg-white/10" />
+        <div className="mx-auto mt-12 h-12 w-full rounded-lg bg-white/10" />
+      </div>
     </div>
   );
 }
