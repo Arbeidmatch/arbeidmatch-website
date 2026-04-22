@@ -1,4 +1,8 @@
-import ScrollReveal from "@/components/ScrollReveal";
+"use client";
+
+import { motion, useInView, useReducedMotion } from "framer-motion";
+import { Star } from "lucide-react";
+import { useRef } from "react";
 
 const testimonials = [
   {
@@ -27,24 +31,51 @@ const testimonials = [
   },
 ];
 
-export default function Testimonials() {
+function StarRow() {
   return (
-    <section className="bg-[#0D1B2A] py-12 md:py-20">
+    <div className="flex gap-1" aria-hidden>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star key={i} className="h-3.5 w-3.5 fill-[#C9A84C]/25 text-[#C9A84C]/45" strokeWidth={1.25} />
+      ))}
+    </div>
+  );
+}
+
+export default function Testimonials() {
+  const ref = useRef<HTMLElement>(null);
+  const reduce = useReducedMotion();
+  const inView = useInView(ref, { once: true, amount: 0.12 });
+
+  return (
+    <section ref={ref} className="section-y bg-[#0D1B2A]">
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-        <ScrollReveal variant="fadeUp" className="text-center">
-          <h2 className="heading-premium-xl font-display text-4xl text-white">What our clients say</h2>
-        </ScrollReveal>
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
-          {testimonials.map((item) => (
-            <ScrollReveal key={item.name} variant="fadeUp">
-              <article className="card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-8">
-                <p className="text-lg text-gold">★★★★★</p>
-                <p className="mt-3 italic text-white/70">{item.quote}</p>
-                <p className="mt-4 font-semibold text-white">
-                  {item.name} <span className="font-normal text-white/70">| {item.company}</span>
-                </p>
-              </article>
-            </ScrollReveal>
+        <motion.div
+          className="text-center"
+          initial={reduce ? false : { opacity: 0, y: 18 }}
+          animate={reduce || inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <h2 className="am-h2 heading-premium-xl font-sans font-extrabold tracking-tight text-white">What our clients say</h2>
+          <p className="mx-auto mt-4 max-w-md text-[15px] font-normal leading-relaxed text-white/50">
+            Trusted by Norwegian employers and staffing partners.
+          </p>
+        </motion.div>
+        <div className="mt-14 grid gap-8 md:grid-cols-2 md:gap-10">
+          {testimonials.map((item, index) => (
+            <motion.article
+              key={item.name}
+              className="rounded-2xl border border-[rgba(201,168,76,0.1)] bg-[rgba(255,255,255,0.025)] p-8 md:p-10"
+              initial={reduce ? false : { opacity: 0, y: 22 }}
+              animate={reduce || inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
+              transition={{ duration: 0.5, delay: reduce ? 0 : index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <StarRow />
+              <p className="mt-5 text-[16px] font-normal leading-[1.65] tracking-tight text-white/72">{item.quote}</p>
+              <p className="mt-8 text-[14px] font-medium tracking-tight text-white">
+                {item.name}
+                <span className="font-normal text-white/45"> · {item.company}</span>
+              </p>
+            </motion.article>
           ))}
         </div>
       </div>

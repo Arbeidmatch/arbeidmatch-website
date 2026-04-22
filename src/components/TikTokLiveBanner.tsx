@@ -1,11 +1,13 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 const TIKTOK_LIVE_URL =
   process.env.NEXT_PUBLIC_TIKTOK_LIVE_URL ?? "https://www.tiktok.com/@arbeidmatch/live";
 
 const POLL_MS = 60_000;
+const NAVY = "#0D1B2A";
 
 function TikTokIcon({ className }: { className?: string }) {
   return (
@@ -20,6 +22,7 @@ function TikTokIcon({ className }: { className?: string }) {
  */
 export default function TikTokLiveBanner() {
   const [live, setLive] = useState<boolean | null>(null);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     let cancelled = false;
@@ -49,40 +52,44 @@ export default function TikTokLiveBanner() {
   }
 
   return (
-    <div className="border-b border-red-900/20 bg-[#0a0f1a]">
-      <div className="mx-auto w-full max-w-content px-4 py-2.5 md:px-6 md:py-3">
-        <a
+    <div className="border-b border-[rgba(201,168,76,0.12)] bg-[#0D1B2A]">
+      <div className="mx-auto w-full max-w-content px-4 py-3 md:px-6 md:py-4">
+        <motion.a
           href={TIKTOK_LIVE_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="animate-tiktok-live-border relative flex items-center gap-3 overflow-hidden rounded-xl border border-red-500/40 bg-[#0f172a] px-4 py-3 pr-14 shadow-lg transition hover:border-red-400/60 hover:bg-[#131d2e] md:gap-4 md:px-5"
+          initial={reduceMotion ? false : { opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className="relative flex items-center gap-4 overflow-hidden rounded-xl border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] px-4 py-3.5 pr-16 transition-colors duration-300 hover:border-[rgba(201,168,76,0.35)] hover:bg-[rgba(255,255,255,0.045)] md:gap-5 md:px-5 md:pr-20"
         >
           <span
-            className="absolute right-2 top-2 rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white md:right-3 md:top-2.5"
+            className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1.5 rounded-full border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.12)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#C9A84C]"
             aria-hidden
           >
-            LIVE
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C9A84C]/50 opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#C9A84C]" />
+            </span>
+            Live
           </span>
 
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-white">
-            <TikTokIcon className="h-6 w-6" />
+          <span
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[rgba(201,168,76,0.15)] text-white/90"
+            style={{ background: `linear-gradient(145deg, ${NAVY}, rgba(255,255,255,0.04))` }}
+          >
+            <TikTokIcon className="h-5 w-5" />
           </span>
 
           <span className="min-w-0 flex-1 text-left">
-            <span className="flex flex-wrap items-center gap-2">
-              <span className="text-base font-semibold text-white md:text-lg">
-                We&apos;re LIVE on TikTok!
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-red-400">
-                <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#E24B4A] shadow-[0_0_8px_#E24B4A]" />
-                LIVE
-              </span>
+            <span className="block text-[15px] font-semibold tracking-tight text-white md:text-base">
+              We&apos;re live on TikTok
             </span>
-            <span className="mt-0.5 block text-sm text-white/70">
-              Join us now for tips on working in Scandinavia
+            <span className="mt-1 block text-[13px] leading-snug text-white/55">
+              Tips on working in Scandinavia — join the stream
             </span>
           </span>
-        </a>
+        </motion.a>
       </div>
     </div>
   );

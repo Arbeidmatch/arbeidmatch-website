@@ -16,7 +16,7 @@ export default function WeldingCertGrid({ variant }: { variant: Variant }) {
           key={title}
           className={`group rounded-[14px] border p-5 transition-[border-color,transform] duration-200 ${
             isDark
-              ? "border-white/[0.08] bg-white/[0.03] hover:-translate-y-[3px] hover:border-[rgba(201,168,76,0.4)]"
+              ? "border-white/[0.08] bg-white/[0.03] hover:-translate-y-[2px] hover:border-[rgba(201,168,76,0.28)]"
               : "border-black/[0.08] bg-white hover:-translate-y-[3px] hover:border-[#C9A84C]"
           }`}
           style={{ borderWidth: "0.5px" }}

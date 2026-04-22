@@ -1,51 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
+import { useRef } from "react";
 
-const NAVY = "#0f1923";
 const GOLD = "#C9A84C";
 
 export default function BemanningCard() {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const onMq = () => setReducedMotion(mq.matches);
-    onMq();
-    mq.addEventListener("change", onMq);
-    return () => mq.removeEventListener("change", onMq);
-  }, []);
-
-  useEffect(() => {
-    if (reducedMotion) {
-      setVisible(true);
-      return;
-    }
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e?.isIntersecting) {
-          setVisible(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [reducedMotion]);
-
-  const motion = reducedMotion
-    ? {}
-    : {
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(24px)",
-        transition: "opacity 400ms ease-out, transform 400ms ease-out",
-      };
+  const reduce = useReducedMotion();
+  const inView = useInView(ref, { once: true, amount: 0.15, margin: "0px 0px -8% 0px" });
 
   const points = [
     "Pre-screened candidates from EU and EEA countries",
@@ -54,8 +18,14 @@ export default function BemanningCard() {
   ];
 
   return (
-    <section className="bg-[#0D1B2A] px-6 pb-10 pt-0 md:px-12 md:pb-12 lg:px-20">
-      <div ref={ref} className="mx-auto w-full max-w-[1100px]" style={motion}>
+    <section className="bg-[#0D1B2A] px-6 pb-12 pt-0 md:px-12 md:pb-16 lg:px-20">
+      <motion.div
+        ref={ref}
+        className="mx-auto w-full max-w-[1100px]"
+        initial={reduce ? false : { opacity: 0, y: 28 }}
+        animate={reduce || inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      >
         <div
           className="rounded-[20px] border px-7 py-7 md:px-12 md:py-12"
           style={{
@@ -99,20 +69,20 @@ export default function BemanningCard() {
             <div className="flex shrink-0 flex-col items-stretch self-center lg:items-center">
               <Link
                 href="/request"
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-[10px] bg-[#C9A84C] px-8 py-4 text-center text-[15px] font-bold text-[#0f1923] transition-[transform,background-color] duration-200 hover:scale-[1.02] hover:bg-[#b8953f]"
+                className="btn-gold-premium inline-flex items-center justify-center whitespace-nowrap rounded-xl bg-[#C9A84C] px-8 py-4 text-center text-[15px] font-semibold tracking-tight text-[#0D1B2A] transition-colors duration-200 hover:bg-[#b8953f]"
               >
                 Send us a candidate request
               </Link>
               <Link
                 href="/for-staffing-agencies"
-                className="mt-3 block text-center text-[13px] text-[#C9A84C] underline-offset-4 hover:underline"
+                className="mt-4 block text-center text-[13px] font-medium text-[#C9A84C]/90 underline-offset-[5px] transition-colors hover:text-[#C9A84C] hover:underline"
               >
                 Learn more about partnership
               </Link>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

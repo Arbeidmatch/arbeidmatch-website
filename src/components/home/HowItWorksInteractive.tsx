@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -76,6 +77,7 @@ function desktopGridCols(selected: number | null, reduceMotion: boolean): string
 export default function HowItWorksInteractive() {
   const [selected, setSelected] = useState<number | null>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const fmReduce = useReducedMotion();
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -96,12 +98,22 @@ export default function HowItWorksInteractive() {
   const gridTransition = reduceMotion ? "" : "md:transition-[grid-template-columns] md:duration-[350ms] md:ease-out";
 
   return (
-    <section id="how-it-works" className="bg-[#0D1B2A] py-12 md:py-20">
+    <section id="how-it-works" className="section-y bg-[#0D1B2A]">
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-        <h2 className="heading-premium-xl text-center font-display text-4xl text-white">How we work</h2>
-        <p className="subheading-premium mt-4 text-center text-white/70">Choose the service that fits your needs.</p>
+        <motion.div
+          initial={fmReduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: fmReduce ? 0 : 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center"
+        >
+          <h2 className="am-h2 heading-premium-xl font-sans font-extrabold tracking-tight text-white">How we work</h2>
+          <p className="mx-auto mt-5 max-w-lg text-[17px] font-normal leading-relaxed tracking-tight text-white/58">
+            Choose the service that fits your needs.
+          </p>
+        </motion.div>
 
-        <div className={`mt-14 grid grid-cols-1 gap-6 ${desktopGridCols(selected, reduceMotion)} ${gridTransition}`}>
+        <div className={`mt-16 grid grid-cols-1 gap-8 ${desktopGridCols(selected, reduceMotion)} ${gridTransition}`}>
           {CARDS.map((card, i) => {
             const open = reduceMotion ? i === 0 : selected === i;
             const dimOthers = !reduceMotion && selected !== null && !open;
@@ -119,7 +131,7 @@ export default function HowItWorksInteractive() {
                     toggle(i);
                   }
                 }}
-                className={`relative overflow-hidden rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-5 py-6 md:px-7 md:py-8 ${
+                className={`relative overflow-hidden rounded-2xl border border-[rgba(201,168,76,0.12)] bg-[rgba(255,255,255,0.025)] px-6 py-7 md:px-8 md:py-9 ${
                   reduceMotion ? "cursor-default" : "cursor-pointer"
                 } ${
                   !reduceMotion && !open
@@ -200,15 +212,12 @@ export default function HowItWorksInteractive() {
                     ) : null}
                     <Link
                       href={card.cta.href}
-                      className="mt-5 flex w-full items-center justify-center rounded-lg text-center text-sm font-bold text-[#0D1B2A] transition-opacity hover:opacity-95"
-                      style={{ background: GOLD, padding: "12px 20px" }}
+                      className="btn-gold-premium mt-6 flex w-full items-center justify-center rounded-xl text-center text-[14px] font-semibold tracking-tight text-[#0D1B2A] transition-opacity hover:opacity-95"
+                      style={{ background: GOLD, padding: "14px 22px" }}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {card.cta.label}
                     </Link>
-                    {open && !reduceMotion ? (
-                      <p className="mt-2.5 text-center text-[11px] text-white/70">Click to collapse</p>
-                    ) : null}
                   </div>
                 </div>
               </div>

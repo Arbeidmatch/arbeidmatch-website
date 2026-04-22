@@ -185,8 +185,8 @@ export default function RoleSelector() {
       {isOpen ? (
         <motion.div
           key="role-overlay"
-          className="fixed inset-0 z-[240] flex items-center justify-center overflow-hidden backdrop-blur-[12px]"
-          style={{ background: "rgba(10, 15, 25, 0.92)" }}
+          className="fixed inset-0 z-[240] flex items-center justify-center overflow-hidden backdrop-blur-[14px]"
+          style={{ background: "rgba(13, 27, 42, 0.94)" }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{
