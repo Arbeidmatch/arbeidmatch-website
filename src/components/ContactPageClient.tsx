@@ -1,9 +1,9 @@
 "use client";
 
-import type { CSSProperties, FormEvent } from "react";
-import { useState } from "react";
+import type { FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Building2, Mail, MapPin } from "lucide-react";
+import { Building2, ChevronDown, Mail, MapPin } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import { trackEvent } from "@/lib/analytics";
 
@@ -41,28 +41,43 @@ const inputInlineStyle = {
   padding: "12px 16px",
 };
 
-const needSelectClass =
-  "w-full rounded-lg border border-[rgba(201,168,76,0.4)] bg-[#eef1f5] px-4 py-3 text-[#0D1B2A] focus:border-[#C9A84C] focus:outline-none transition-[border-color,background-color] duration-200 hover:border-[rgba(201,168,76,0.65)] hover:bg-white relative z-[1000] cursor-pointer";
-const needSelectInlineStyle: CSSProperties = {
-  backgroundColor: "#eef1f5",
-  border: "1px solid rgba(201,168,76,0.4)",
-  color: "#0D1B2A",
-  borderRadius: 8,
-  padding: "12px 16px",
-};
-
-const optionStyle: CSSProperties = {
-  backgroundColor: "#0f1923",
-  color: "#ffffff",
-  padding: "10px 12px",
-};
+const NEED_OPTIONS = [
+  "Qualified workers",
+  "Offshore workers",
+  "Onshore workers",
+  "Transport workers",
+  "Automotive workers",
+  "Healthcare staff",
+  "Engineers & Technical",
+  "Other",
+] as const;
 
 export default function ContactPageClient() {
   const [submitted, setSubmitted] = useState(false);
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const [need, setNeed] = useState("Qualified workers");
+  const [need, setNeed] = useState<string>(NEED_OPTIONS[0]);
   const [needOther, setNeedOther] = useState("");
+  const [needDropdownOpen, setNeedDropdownOpen] = useState(false);
+  const needDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!needDropdownOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const el = needDropdownRef.current;
+      if (!el || el.contains(event.target as Node)) return;
+      setNeedDropdownOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setNeedDropdownOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [needDropdownOpen]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -240,43 +255,54 @@ export default function ContactPageClient() {
                   style={inputInlineStyle}
                 />
               </label>
-              <label className="form-label-premium relative z-[1000] overflow-visible text-[13px] text-white/70">
-                I need
-                <select
-                  name="need"
-                  className={needSelectClass}
-                  value={need}
-                  onChange={(event) => {
-                    setNeed(event.target.value);
-                    if (event.target.value !== "Other") {
-                      setNeedOther("");
-                    }
-                  }}
-                  style={needSelectInlineStyle}
-                >
-                  <option value="Qualified workers" style={optionStyle}>
-                    Qualified workers
-                  </option>
-                  <option value="Skilled tradespeople" style={optionStyle}>
-                    Skilled tradespeople
-                  </option>
-                  <option value="Engineers & Technical" style={optionStyle}>
-                    Engineers & Technical
-                  </option>
-                  <option value="Healthcare staff" style={optionStyle}>
-                    Healthcare staff
-                  </option>
-                  <option value="Construction workers" style={optionStyle}>
-                    Construction workers
-                  </option>
-                  <option value="Support" style={optionStyle}>
-                    Support
-                  </option>
-                  <option value="Other" style={optionStyle}>
-                    Other
-                  </option>
-                </select>
-              </label>
+              <div className="form-label-premium relative z-[1000] overflow-visible text-[13px] text-white/70">
+                <span className="block">I need</span>
+                <input type="hidden" name="need" value={need === "Other" ? needOther : need} />
+                <div ref={needDropdownRef} className="relative mt-1.5 w-full">
+                  <button
+                    type="button"
+                    id="contact-need-trigger"
+                    aria-haspopup="listbox"
+                    aria-expanded={needDropdownOpen}
+                    aria-controls="contact-need-listbox"
+                    onClick={() => setNeedDropdownOpen((open) => !open)}
+                    className="flex w-full items-center justify-between rounded-lg border border-[rgba(201,168,76,0.3)] bg-[#0D1B2A] px-4 py-3 text-left text-white transition-[border-color,background-color] duration-200 hover:border-[rgba(201,168,76,0.55)] hover:bg-[rgba(255,255,255,0.04)] focus:outline-none focus-visible:border-[#C9A84C]"
+                  >
+                    <span className="pr-2">{need}</span>
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 text-[#C9A84C] transition-transform duration-200 ${needDropdownOpen ? "rotate-180" : ""}`}
+                      aria-hidden
+                    />
+                  </button>
+                  {needDropdownOpen ? (
+                    <div
+                      id="contact-need-listbox"
+                      role="listbox"
+                      aria-labelledby="contact-need-trigger"
+                      className="absolute left-0 right-0 top-full z-[9999] mt-1 overflow-hidden rounded-lg border border-[rgba(201,168,76,0.3)] bg-[#0D1B2A]"
+                    >
+                      {NEED_OPTIONS.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          role="option"
+                          aria-selected={need === option}
+                          onClick={() => {
+                            setNeed(option);
+                            setNeedDropdownOpen(false);
+                            if (option !== "Other") setNeedOther("");
+                          }}
+                          className={`w-full border-b border-[rgba(201,168,76,0.1)] px-4 py-3 text-left text-sm text-white transition-colors duration-150 last:border-b-0 hover:bg-[rgba(201,168,76,0.1)] hover:text-[#C9A84C] ${
+                            need === option ? "bg-[rgba(201,168,76,0.12)] text-[#C9A84C]" : ""
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
               {need === "Other" && (
                 <label className="form-label-premium text-[13px] text-white/70">
                   Please specify
