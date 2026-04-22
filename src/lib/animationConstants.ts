@@ -2,15 +2,15 @@
 export const EASE_PREMIUM = [0.16, 1, 0.3, 1] as const;
 
 export function getRevealDurationMs(isMobile: boolean): number {
-  return isMobile ? 400 : 600;
+  return isMobile ? 480 : 720;
 }
 
 export function getRevealStaggerMs(isMobile: boolean): number {
-  return isMobile ? 40 : 80;
+  return isMobile ? 50 : 95;
 }
 
 export function getRevealTranslateY(isMobile: boolean): number {
-  return isMobile ? 12 : 24;
+  return isMobile ? 16 : 28;
 }
 
 export function getPageTransitionMs(isMobile: boolean): number {

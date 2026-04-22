@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { startTransition, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+
+import { EASE_PREMIUM } from "@/lib/animationConstants";
 import {
   Building2,
   Check,
@@ -23,8 +25,7 @@ import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard"
 import ScrollReveal, { ScrollRevealGrid } from "@/components/ScrollReveal";
 import ComingSoonCapture from "@/components/ui/ComingSoonCapture";
 
-const HERO_EASE = [0.16, 1, 0.3, 1] as const;
-const HERO_DURATION = 0.8;
+const HERO_DURATION = 0.78;
 
 type Props = {
   howItWorksSlot: ReactNode;
@@ -49,9 +50,9 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
     reduce
       ? {}
       : {
-          initial: { opacity: 0 } as const,
-          animate: { opacity: 1 } as const,
-          transition: { duration: HERO_DURATION, delay: delaySec, ease: HERO_EASE },
+          initial: { opacity: 0, y: 20 } as const,
+          animate: { opacity: 1, y: 0 } as const,
+          transition: { duration: HERO_DURATION, delay: delaySec, ease: EASE_PREMIUM },
         };
 
   const hero = !reduce ? (
@@ -73,14 +74,11 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         <br />
         Norwegian business.
       </motion.h1>
-      <motion.p
-        className="mb-10 max-w-[34rem] text-[17px] font-normal leading-[1.65] tracking-tight text-white/65"
-        {...fade(0.25)}
-      >
+      <motion.p className="text-home-lead mb-12" {...fade(0.25)}>
         We source and screen pre-qualified EU/EEA workers for Norwegian businesses in construction, logistics, and industry.
         Employers remain responsible for compliance with applicable Norwegian labor law and collective agreements.
       </motion.p>
-      <motion.div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center" {...fade(0.4)}>
+      <motion.div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5" {...fade(0.42)}>
         <Link
           href="/request"
           className="btn-gold-premium relative inline-flex min-h-[52px] w-full min-w-[44px] items-center justify-center rounded-xl bg-gold px-8 py-3.5 text-[15px] font-semibold tracking-tight text-[#0D1B2A] hover:bg-gold-hover sm:w-auto"
@@ -110,11 +108,11 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         <br />
         Norwegian business.
       </h1>
-      <p className="mb-10 max-w-[34rem] text-[17px] font-normal leading-[1.65] tracking-tight text-white/65">
+      <p className="text-home-lead mb-12">
         We source and screen pre-qualified EU/EEA workers for Norwegian businesses in construction, logistics, and industry.
         Employers remain responsible for compliance with applicable Norwegian labor law and collective agreements.
       </p>
-      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
         <Link
           href="/request"
           className="btn-gold-premium relative inline-flex min-h-[52px] w-full min-w-[44px] items-center justify-center rounded-xl bg-gold px-8 py-3.5 text-[15px] font-semibold tracking-tight text-[#0D1B2A] hover:bg-gold-hover sm:w-auto"
@@ -143,7 +141,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
   return (
     <div className="min-h-screen bg-[#0D1B2A]">
       <RoleSelector />
-      <section className="section-y flex items-center bg-[#0D1B2A]">
+      <section className="section-y-home flex items-center bg-[#0D1B2A]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           {hero}
         </div>
@@ -156,7 +154,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           className="border-b border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] px-6 py-2.5 md:px-12 lg:px-20"
           initial={reduce ? false : { opacity: 0, y: -8 }}
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.4, ease: EASE_PREMIUM }}
         >
           <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[13px] text-white/70">
             <span>Welcome back.</span>
@@ -176,7 +174,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           className="border-b border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] px-6 py-2.5 md:px-12 lg:px-20"
           initial={reduce ? false : { opacity: 0, y: -8 }}
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.4, ease: EASE_PREMIUM }}
         >
           <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[13px] text-white/70">
             <span>Welcome back. Looking for work in Norway?</span>
@@ -192,22 +190,22 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         </motion.div>
       ) : null}
 
-      <section className="section-y bg-[#0D1B2A]">
+      <section className="section-y-home bg-[#0D1B2A]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="am-h2 heading-premium-xl font-sans font-extrabold text-white">Who are you?</h2>
+            <h2 className="am-h2 heading-premium-xl font-sans font-extrabold tracking-tight text-white">Who are you?</h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp" className="text-center">
-            <p className="mb-16 mt-5 max-w-lg mx-auto text-[17px] font-normal leading-relaxed tracking-tight text-white/60">
+            <p className="text-home-subtle mx-auto mb-16 mt-6 max-w-lg">
               Two simple paths. Choose yours.
             </p>
           </ScrollReveal>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-10 lg:gap-14">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-12 lg:gap-16">
             <ScrollReveal variant="fadeUp">
-              <article className="who-choice-card card-premium rounded-2xl border border-[rgba(201,168,76,0.12)] bg-[rgba(255,255,255,0.025)] p-10 md:p-12">
+              <article className="who-choice-card card-premium rounded-2xl border border-[rgba(201,168,76,0.12)] bg-[rgba(255,255,255,0.025)] p-10 md:p-12 lg:p-14">
                 <Building2 className="text-[#C9A84C]" size={28} strokeWidth={1.5} />
-                <h3 className="mt-6 text-xl font-semibold tracking-tight text-white md:text-2xl">I&apos;m an employer</h3>
-                <p className="mt-3 text-[15px] leading-relaxed text-white/58">Norwegian company looking for qualified workers</p>
+                <h3 className="mt-7 text-xl font-semibold tracking-tight text-white md:text-2xl">I&apos;m an employer</h3>
+                <p className="text-home-subtle mt-4">Norwegian company looking for qualified workers</p>
                 <ul className="mt-8 space-y-3">
                   {[
                     "Fast candidate delivery",
@@ -229,10 +227,10 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
               </article>
             </ScrollReveal>
             <ScrollReveal variant="fadeUp">
-              <article className="who-choice-card card-premium rounded-2xl border border-[rgba(201,168,76,0.12)] bg-[rgba(255,255,255,0.025)] p-10 md:p-12">
+              <article className="who-choice-card card-premium rounded-2xl border border-[rgba(201,168,76,0.12)] bg-[rgba(255,255,255,0.025)] p-10 md:p-12 lg:p-14">
                 <User className="text-[#C9A84C]" size={28} strokeWidth={1.5} />
-                <h3 className="mt-6 text-xl font-semibold tracking-tight text-white md:text-2xl">I&apos;m a candidate</h3>
-                <p className="mt-3 text-[15px] leading-relaxed text-white/58">Looking for legal work in Norway</p>
+                <h3 className="mt-7 text-xl font-semibold tracking-tight text-white md:text-2xl">I&apos;m a candidate</h3>
+                <p className="text-home-subtle mt-4">Looking for legal work in Norway</p>
                 <ul className="mt-8 space-y-3">
                   {[
                     "Legal employment contracts",
@@ -268,20 +266,20 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
 
       <ScrollReveal variant="fadeIn">{howItWorksSlot}</ScrollReveal>
 
-      <section className="section-y bg-[#0D1B2A]">
+      <section className="section-y-home bg-[#0D1B2A]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="am-h2 heading-premium-xl font-sans font-extrabold text-white">Industries we serve</h2>
+            <h2 className="am-h2 heading-premium-xl font-sans font-extrabold tracking-tight text-white">Industries we serve</h2>
           </ScrollReveal>
           <ScrollRevealGrid
-            className="mt-14 grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-10 lg:grid-cols-3 lg:gap-12"
+            className="mt-16 grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:gap-14"
             items={industries}
             itemKey={([, title]) => title}
             renderItem={([Icon, title, text]) => (
-              <article className="industry-card card-premium group rounded-2xl border border-[rgba(201,168,76,0.1)] bg-[rgba(255,255,255,0.025)] p-8 transition-colors duration-300 hover:border-[rgba(201,168,76,0.22)]">
+              <article className="industry-card card-premium group rounded-2xl border border-[rgba(201,168,76,0.1)] bg-[rgba(255,255,255,0.025)] p-9 transition-[transform,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-[rgba(201,168,76,0.24)] md:hover:-translate-y-1 md:hover:shadow-[0_20px_48px_rgba(0,0,0,0.28)]">
                 <Icon className="shrink-0 text-[#C9A84C]" size={22} strokeWidth={1.5} />
-                <h3 className="mt-5 text-lg font-semibold tracking-tight text-white">{title}</h3>
-                <p className="mt-2.5 text-[14px] leading-relaxed text-white/58">{text}</p>
+                <h3 className="mt-6 text-lg font-semibold tracking-tight text-white">{title}</h3>
+                <p className="text-home-subtle mt-3 text-[14px] md:text-[15px]">{text}</p>
                 <a
                   href="https://jobs.arbeidmatch.no"
                   target="_blank"
@@ -299,19 +297,19 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         </div>
       </section>
 
-      <section className="section-y bg-[#0D1B2A]">
+      <section className="section-y-home bg-[#0D1B2A]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <div className="mx-auto max-w-4xl rounded-2xl border border-[rgba(201,168,76,0.12)] bg-[rgba(255,255,255,0.025)] p-10 md:p-14 lg:p-16">
+            <div className="mx-auto max-w-4xl rounded-[22px] border border-[rgba(201,168,76,0.14)] bg-[linear-gradient(165deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015))] p-10 md:p-14 lg:p-[4.25rem]">
               <h2 className="am-h2 heading-premium-xl mb-8 font-extrabold tracking-tight text-white">
                 Recruitment that works. For everyone.
               </h2>
-              <p className="text-[17px] font-normal leading-[1.7] tracking-tight text-white/65">
+              <p className="text-home-lead max-w-none">
                 We have not invented anything new. But we organize the process as well as we can, so that candidates from
                 different cultures, backgrounds and religions experience respect and clarity from the first contact. And so
                 that Norwegian employers get workers who genuinely fit their environment.
               </p>
-              <ul className="mt-10 space-y-5">
+              <ul className="mt-12 space-y-6">
                 {[
                   "Cultural and religious sensitivity throughout our screening process",
                   "Clear communication across languages and expectations",
@@ -327,7 +325,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
                         />
                       </svg>
                     </span>
-                    <span className="text-[15px] leading-relaxed text-white/78">{item}</span>
+                    <span className="text-[15px] leading-[1.72] tracking-[-0.01em] text-white/[0.78]">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -338,19 +336,19 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
 
       {testimonialsSlot}
 
-      <section className="section-y bg-[#0D1B2A]">
+      <section className="section-y-home bg-[#0D1B2A]">
         <WeldingSpecialistsCard />
       </section>
 
-      <section className="mesh-cta-wrap section-y bg-[#0D1B2A] text-center">
+      <section className="mesh-cta-wrap section-y-home bg-[#0D1B2A] text-center">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <h2 className="am-h2 heading-premium-xl mb-6 font-extrabold tracking-tight text-white">
+            <h2 className="am-h2 heading-premium-xl mb-7 font-extrabold tracking-tight text-white">
               Ready to find your next workers?
             </h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
-            <p className="mx-auto mb-10 max-w-xl text-[17px] font-normal leading-relaxed tracking-tight text-white/60">
+            <p className="text-home-lead mx-auto mb-12 max-w-xl">
               Contact us today. Our goal is to connect you with pre-qualified candidates within about two weeks.
             </p>
           </ScrollReveal>

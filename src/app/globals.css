@@ -54,6 +54,19 @@ body {
     @apply py-12 md:py-16 lg:py-[100px];
   }
 
+  /** Homepage & premium landing rhythm — extra air, less density */
+  .section-y-home {
+    @apply py-16 md:py-24 lg:py-[7.5rem];
+  }
+
+  .text-home-lead {
+    @apply max-w-[36rem] text-[17px] font-normal leading-[1.68] tracking-[-0.015em] text-white/[0.62] md:text-[1.125rem];
+  }
+
+  .text-home-subtle {
+    @apply text-[15px] font-normal leading-relaxed tracking-[-0.01em] text-white/[0.52] md:text-[16px];
+  }
+
   .section-y-tight {
     @apply py-10 md:py-14 lg:py-20;
   }
@@ -236,7 +249,7 @@ body {
   position: absolute;
   inset: 0;
   z-index: 0;
-  opacity: 0.38;
+  opacity: 0.3;
   background:
     radial-gradient(ellipse 85% 55% at 18% 28%, rgba(201, 168, 76, 0.07), transparent 52%),
     radial-gradient(ellipse 55% 45% at 82% 72%, rgba(13, 27, 42, 0.5), transparent 58%),

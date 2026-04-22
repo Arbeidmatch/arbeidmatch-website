@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "framer-motion";
+
+import { EASE_PREMIUM } from "@/lib/animationConstants";
 import { useRef } from "react";
 
 const GOLD = "#C9A84C";
@@ -18,13 +20,13 @@ export default function BemanningCard() {
   ];
 
   return (
-    <section className="bg-[#0D1B2A] px-6 pb-12 pt-0 md:px-12 md:pb-16 lg:px-20">
+    <section className="bg-[#0D1B2A] px-6 pb-16 pt-2 md:px-12 md:pb-20 lg:px-20 lg:pb-24">
       <motion.div
         ref={ref}
         className="mx-auto w-full max-w-[1100px]"
         initial={reduce ? false : { opacity: 0, y: 28 }}
         animate={reduce || inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.68, ease: EASE_PREMIUM }}
       >
         <div
           className="rounded-[20px] border px-7 py-7 md:px-12 md:py-12"

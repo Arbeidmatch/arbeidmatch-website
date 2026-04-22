@@ -1,6 +1,8 @@
 "use client";
 
 import { motion, useInView, useReducedMotion } from "framer-motion";
+
+import { EASE_PREMIUM } from "@/lib/animationConstants";
 import { Star } from "lucide-react";
 import { useRef } from "react";
 
@@ -47,30 +49,32 @@ export default function Testimonials() {
   const inView = useInView(ref, { once: true, amount: 0.12 });
 
   return (
-    <section ref={ref} className="section-y bg-[#0D1B2A]">
+    <section ref={ref} className="section-y-home bg-[#0D1B2A]">
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <motion.div
           className="text-center"
-          initial={reduce ? false : { opacity: 0, y: 18 }}
-          animate={reduce || inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          initial={reduce ? false : { opacity: 0, y: 22 }}
+          animate={reduce || inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
+          transition={{ duration: 0.62, ease: EASE_PREMIUM }}
         >
           <h2 className="am-h2 heading-premium-xl font-sans font-extrabold tracking-tight text-white">What our clients say</h2>
-          <p className="mx-auto mt-4 max-w-md text-[15px] font-normal leading-relaxed text-white/50">
+          <p className="text-home-subtle mx-auto mt-5 max-w-md">
             Trusted by Norwegian employers and staffing partners.
           </p>
         </motion.div>
-        <div className="mt-14 grid gap-8 md:grid-cols-2 md:gap-10">
+        <div className="mt-16 grid gap-10 md:grid-cols-2 md:gap-12">
           {testimonials.map((item, index) => (
             <motion.article
               key={item.name}
-              className="rounded-2xl border border-[rgba(201,168,76,0.1)] bg-[rgba(255,255,255,0.025)] p-8 md:p-10"
-              initial={reduce ? false : { opacity: 0, y: 22 }}
-              animate={reduce || inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
-              transition={{ duration: 0.5, delay: reduce ? 0 : index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-[20px] border border-[rgba(201,168,76,0.12)] bg-[rgba(255,255,255,0.03)] p-9 md:p-11"
+              initial={reduce ? false : { opacity: 0, y: 26 }}
+              animate={reduce || inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 26 }}
+              transition={{ duration: 0.62, delay: reduce ? 0 : index * 0.08, ease: EASE_PREMIUM }}
             >
               <StarRow />
-              <p className="mt-5 text-[16px] font-normal leading-[1.65] tracking-tight text-white/72">{item.quote}</p>
+              <p className="mt-6 text-[16px] font-normal leading-[1.72] tracking-[-0.01em] text-white/[0.72] md:text-[17px]">
+                {item.quote}
+              </p>
               <p className="mt-8 text-[14px] font-medium tracking-tight text-white">
                 {item.name}
                 <span className="font-normal text-white/45"> · {item.company}</span>

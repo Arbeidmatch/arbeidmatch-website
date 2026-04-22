@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
+
+import { EASE_PREMIUM } from "@/lib/animationConstants";
 import { useRef } from "react";
 import WeldingCertGrid from "./WeldingCertGrid";
 
@@ -19,7 +21,7 @@ export default function WeldingSpecialistsCard() {
       className="mx-auto w-full max-w-[1100px] px-6 py-10 md:px-12 lg:px-0 lg:py-12"
       initial={reduce ? false : { opacity: 0, y: 28 }}
       animate={reduce || inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.68, ease: EASE_PREMIUM }}
     >
       <div
         className="rounded-2xl border p-8 lg:p-12"

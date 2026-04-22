@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
+
+import { EASE_PREMIUM } from "@/lib/animationConstants";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -95,25 +97,25 @@ export default function HowItWorksInteractive() {
     setSelected((s) => (s === i ? null : i));
   };
 
-  const gridTransition = reduceMotion ? "" : "md:transition-[grid-template-columns] md:duration-[350ms] md:ease-out";
+  const gridTransition = reduceMotion ? "" : "md:transition-[grid-template-columns] md:duration-[420ms] md:ease-[cubic-bezier(0.16,1,0.3,1)]";
 
   return (
-    <section id="how-it-works" className="section-y bg-[#0D1B2A]">
+    <section id="how-it-works" className="section-y-home bg-[#0D1B2A]">
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <motion.div
           initial={fmReduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: fmReduce ? 0 : 0.5, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: fmReduce ? 0 : 0.62, ease: EASE_PREMIUM }}
           className="text-center"
         >
           <h2 className="am-h2 heading-premium-xl font-sans font-extrabold tracking-tight text-white">How we work</h2>
-          <p className="mx-auto mt-5 max-w-lg text-[17px] font-normal leading-relaxed tracking-tight text-white/58">
+          <p className="text-home-subtle mx-auto mt-6 max-w-lg">
             Choose the service that fits your needs.
           </p>
         </motion.div>
 
-        <div className={`mt-16 grid grid-cols-1 gap-8 ${desktopGridCols(selected, reduceMotion)} ${gridTransition}`}>
+        <div className={`mt-20 grid grid-cols-1 gap-10 ${desktopGridCols(selected, reduceMotion)} ${gridTransition}`}>
           {CARDS.map((card, i) => {
             const open = reduceMotion ? i === 0 : selected === i;
             const dimOthers = !reduceMotion && selected !== null && !open;
@@ -135,9 +137,9 @@ export default function HowItWorksInteractive() {
                   reduceMotion ? "cursor-default" : "cursor-pointer"
                 } ${
                   !reduceMotion && !open
-                    ? "transition-all duration-[350ms] ease-out md:hover:-translate-y-1 md:hover:border-[rgba(201,168,76,0.4)]"
+                    ? "transition-all duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)] md:hover:-translate-y-1 md:hover:border-[rgba(201,168,76,0.4)]"
                     : !reduceMotion
-                      ? "transition-all duration-[350ms] ease-out"
+                      ? "transition-all duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
                       : ""
                 } ${open ? "md:scale-[1.01]" : ""} ${
                   dimOthers ? "md:scale-[0.98] md:opacity-50" : "opacity-100"
@@ -146,8 +148,8 @@ export default function HowItWorksInteractive() {
                   borderColor: open ? GOLD : "rgba(201,168,76,0.15)",
                   borderWidth: "1px",
                   transitionProperty: reduceMotion ? "none" : "transform, opacity, border-color, border-width",
-                  transitionDuration: reduceMotion ? "0ms" : "350ms",
-                  transitionTimingFunction: "ease-out",
+                  transitionDuration: reduceMotion ? "0ms" : "420ms",
+                  transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
                 }}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -172,8 +174,8 @@ export default function HowItWorksInteractive() {
                   style={{
                     maxHeight: open ? 600 : 0,
                     transitionProperty: reduceMotion ? "none" : "max-height, opacity",
-                    transitionDuration: reduceMotion ? "0ms" : "350ms",
-                    transitionTimingFunction: "ease-out",
+                    transitionDuration: reduceMotion ? "0ms" : "420ms",
+                    transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
                     opacity: open ? 1 : 0,
                   }}
                 >
@@ -183,7 +185,7 @@ export default function HowItWorksInteractive() {
                       opacity: open ? 1 : 0,
                       transitionProperty: reduceMotion ? "none" : "opacity",
                       transitionDuration: reduceMotion ? "0ms" : "200ms",
-                      transitionTimingFunction: "ease-out",
+                      transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
                       transitionDelay: open && !reduceMotion ? "150ms" : "0ms",
                     }}
                   >

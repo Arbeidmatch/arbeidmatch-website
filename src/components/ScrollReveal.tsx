@@ -3,7 +3,7 @@
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { EASE_PREMIUM, getRevealDurationMs, getRevealTranslateY } from "@/lib/animationConstants";
+import { EASE_PREMIUM, getRevealDurationMs, getRevealStaggerMs, getRevealTranslateY } from "@/lib/animationConstants";
 import type { ScrollRevealVariant } from "@/hooks/useScrollReveal";
 
 type Props = {
@@ -87,7 +87,7 @@ export function ScrollRevealGrid<T>({ className, items, renderItem, itemKey }: G
   const isMobile = useIsMobileWidth();
   const reduceMotion = useReducedMotion();
   const isInView = useInView(ref, { once: true, amount: isMobile ? 0.05 : 0.1 });
-  const stagger = (isMobile ? 40 : 80) / 1000;
+  const stagger = getRevealStaggerMs(isMobile) / 1000;
   const duration = getRevealDurationMs(isMobile) / 1000;
   const y = getRevealTranslateY(isMobile);
 
