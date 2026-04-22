@@ -369,9 +369,16 @@ export default function RequestPage() {
   useEffect(() => {
     const onDocumentClick = (event: MouseEvent) => {
       if (!isPastFirstStep) return;
-      const target = event.target as HTMLElement | null;
-      if (!target) return;
-      const anchor = target.closest("a[href]") as HTMLAnchorElement | null;
+      const raw = event.target;
+      if (!(raw instanceof Element)) return;
+      if (
+        raw.closest(".leave-dialog") ||
+        raw.closest(".partner-modal") ||
+        raw.closest(".request-options-overlay")
+      ) {
+        return;
+      }
+      const anchor = raw.closest("a[href]") as HTMLAnchorElement | null;
       if (!anchor) return;
       const href = anchor.getAttribute("href") || "";
       if (!href.startsWith("/")) return;
@@ -673,19 +680,32 @@ export default function RequestPage() {
 
       {showLeaveDialog && (
         <>
-          <div className="fixed inset-0 z-[9998] bg-[rgba(0,0,0,0.7)] backdrop-blur-[4px]" />
-          <div className="leave-dialog fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10">
+          <div
+            role="presentation"
+            className="fixed inset-0 z-[10100] bg-[rgba(0,0,0,0.7)] backdrop-blur-[4px]"
+            onClick={() => setShowLeaveDialog(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="request-leave-title"
+            className="leave-dialog pointer-events-auto fixed left-1/2 top-1/2 z-[10101] w-[90%] max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10"
+            onClick={(e) => e.stopPropagation()}
+          >
             <svg viewBox="0 0 24 24" className="mx-auto h-6 w-6 text-[#C9A84C]" fill="none" aria-hidden>
               <path d="M12 3v10m0 8h.01M5.2 20h13.6a1.2 1.2 0 0 0 1.04-1.8L13.04 5.4a1.2 1.2 0 0 0-2.08 0L4.16 18.2A1.2 1.2 0 0 0 5.2 20Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <p className="mt-4 text-center text-[20px] font-bold text-white">Leave current search?</p>
+            <p id="request-leave-title" className="mt-4 text-center text-[20px] font-bold text-white">
+              Leave current search?
+            </p>
             <p className="mt-2 text-center text-sm leading-[1.6] text-[rgba(255,255,255,0.55)]">
               You are in the middle of a candidate request. If you leave now, your progress will be lost.
             </p>
             <div className="mt-7 flex flex-col gap-[10px]">
               <button
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setShowLeaveDialog(false);
                   resetToFirstStep();
                   router.push("/request");
@@ -696,7 +716,10 @@ export default function RequestPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setShowLeaveDialog(false)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowLeaveDialog(false);
+                }}
                 className="w-full rounded-[12px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[14px] text-[15px] text-[rgba(255,255,255,0.7)]"
               >
                 Continue my search
@@ -708,13 +731,34 @@ export default function RequestPage() {
 
       {resultAction === "partner" && (
         <>
-          <div className="partner-modal-backdrop fixed inset-0 z-[9998] bg-[rgba(0,0,0,0.75)] backdrop-blur-[6px]" />
-          <div className="partner-modal fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10">
+          <div
+            role="presentation"
+            className="partner-modal-backdrop fixed inset-0 z-[10100] bg-[rgba(0,0,0,0.75)] backdrop-blur-[6px]"
+            onClick={() => {
+              setResultAction("none");
+              setAccessStatus("idle");
+              setPartnerModalView("not_found");
+              setAccessErrorMessage("");
+            }}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="partner-verify-title"
+            className="partner-modal pointer-events-auto fixed left-1/2 top-1/2 z-[10101] w-[90%] max-w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10 isolation-isolate"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               type="button"
-              onClick={() => setResultAction("none")}
+              onClick={(e) => {
+                e.stopPropagation();
+                setResultAction("none");
+                setAccessStatus("idle");
+                setPartnerModalView("not_found");
+                setAccessErrorMessage("");
+              }}
               aria-label="Close partner verification modal"
-              className="absolute right-4 top-4 text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.8)]"
+              className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.9)]"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
                 <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -725,7 +769,9 @@ export default function RequestPage() {
               <path d="M12 3 5 6v5c0 4.6 3.1 8.9 7 10 3.9-1.1 7-5.4 7-10V6l-7-3Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M9.5 12.2 11.2 14l3.3-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <p className="mt-[14px] text-center text-[20px] font-bold text-white">Partner Verification</p>
+            <p id="partner-verify-title" className="mt-[14px] text-center text-[20px] font-bold text-white">
+              Partner Verification
+            </p>
             <p className="mt-2 text-center text-sm leading-[1.6] text-[rgba(255,255,255,0.55)]">
               Enter your company email to verify your partner status. We will send you a secure access link valid for 14 days.
             </p>
@@ -911,13 +957,25 @@ export default function RequestPage() {
 
       {showPartnerApplicationModal && (
         <>
-          <div className="partner-modal-backdrop fixed inset-0 z-[9998] bg-[rgba(0,0,0,0.75)] backdrop-blur-[6px]" />
-          <div className="partner-modal fixed left-1/2 top-1/2 z-[9999] w-[90%] max-w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10">
+          <div
+            role="presentation"
+            className="partner-modal-backdrop fixed inset-0 z-[10100] bg-[rgba(0,0,0,0.75)] backdrop-blur-[6px]"
+            onClick={() => setShowPartnerApplicationModal(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="partner-modal pointer-events-auto fixed left-1/2 top-1/2 z-[10101] w-[90%] max-w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10 isolation-isolate"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               type="button"
-              onClick={() => setShowPartnerApplicationModal(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPartnerApplicationModal(false);
+              }}
               aria-label="Close partner application modal"
-              className="absolute right-4 top-4 text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.8)]"
+              className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.9)]"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
                 <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -997,7 +1055,7 @@ export default function RequestPage() {
           left: 0;
           right: 0;
           bottom: 0;
-          z-index: 9999;
+          z-index: 10101;
           background: rgba(13, 27, 42, 0.85);
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
