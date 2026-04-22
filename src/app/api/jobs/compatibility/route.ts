@@ -6,6 +6,7 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { getJobBySlug } from "@/lib/jobs/repository";
 import { isRateLimited } from "@/lib/requestProtection";
 import { jobPreferencesSchema, workExperienceSchema } from "@/lib/candidates/profileSchema";
+import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 import { logApiError } from "@/lib/secureLogger";
 
 const bodySchema = z.object({
@@ -89,10 +90,10 @@ export async function POST(request: NextRequest) {
     const payload = buildJobCompatibilityPayload(job, profileInput);
     const applyHref =
       job.applicationMethod === "external_url"
-        ? job.applicationUrl || `/jobs/${job.slug}/apply`
+        ? job.applicationUrl || jobsBoardAbsoluteUrl(`/jobs/${job.slug}/apply`)
         : job.applicationMethod === "email"
           ? `mailto:${job.applicationEmail || "post@arbeidmatch.no"}`
-          : `/jobs/${job.slug}/apply`;
+          : jobsBoardAbsoluteUrl(`/jobs/${job.slug}/apply`);
 
     return NextResponse.json({
       complete: true as const,

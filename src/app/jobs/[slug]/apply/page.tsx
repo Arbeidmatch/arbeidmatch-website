@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import JobApplicationFormWithGdpr from "@/components/gdpr/JobApplicationFormWithGdpr";
+import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 import { getJobBySlug } from "@/lib/jobs/repository";
 
 type Props = {
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `Apply, ${job.title}`,
     description: `Apply for ${job.title} in ${job.location}. Fast and direct application process with ArbeidMatch.`,
     alternates: {
-      canonical: `https://www.arbeidmatch.no/jobs/${job.slug}/apply`,
+      canonical: jobsBoardAbsoluteUrl(`/jobs/${job.slug}/apply`),
     },
   };
 }
@@ -44,7 +45,7 @@ export default async function JobApplyPage({ params, searchParams }: Props) {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href={`/jobs/${job.slug}?browse=1`}
+              href={jobsBoardAbsoluteUrl(`/jobs/${job.slug}?browse=1`)}
               className="btn-outline-premium inline-flex min-h-[44px] items-center rounded-md border border-[#C9A84C]/35 px-5 py-2 text-sm font-semibold text-[#C9A84C]"
             >
               Back to job details
@@ -106,7 +107,7 @@ export default async function JobApplyPage({ params, searchParams }: Props) {
 
   return (
     <div className="container-site pb-16 pt-6 md:pt-8">
-      <Link href={`/jobs/${job.slug}`} className="link-text-premium inline-flex text-sm font-medium text-[#C9A84C]">
+      <Link href={jobsBoardAbsoluteUrl(`/jobs/${job.slug}`)} className="link-text-premium inline-flex text-sm font-medium text-[#C9A84C]">
         Back to job details
       </Link>
 

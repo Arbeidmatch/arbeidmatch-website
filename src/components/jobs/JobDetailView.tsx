@@ -12,6 +12,7 @@ import {
   isPartnerNeutralJobCopy,
   neutralWordingForPartnerJobMarkdown,
 } from "@/lib/jobs/partnerJobCopy";
+import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 import type { JobRecord } from "@/lib/jobs/types";
 import JobCard from "@/components/jobs/JobCard";
 import JobPostMediaSection from "@/components/jobs/JobPostMediaSection";
@@ -250,10 +251,10 @@ export default function JobDetailView({
 
   const applyHref =
     job.applicationMethod === "external_url"
-      ? job.applicationUrl || `/jobs/${job.slug}/apply`
+      ? job.applicationUrl || jobsBoardAbsoluteUrl(`/jobs/${job.slug}/apply`)
       : job.applicationMethod === "email"
         ? `mailto:${job.applicationEmail || "post@arbeidmatch.no"}`
-        : `/jobs/${job.slug}/apply`;
+        : jobsBoardAbsoluteUrl(`/jobs/${job.slug}/apply`);
   const applyExternal = job.applicationMethod === "external_url";
 
   const copyAudience: JobMarkdownCopyAudience = isPartnerNeutralJobCopy(job) ? "partner" : "arbeidmatch";
@@ -488,7 +489,7 @@ export default function JobDetailView({
   return (
     <div className="pb-16 pt-6 md:pt-8">
       <div className="container-site">
-        <Link href="/jobs" className="link-text-premium inline-flex text-sm font-medium text-[#C9A84C]">
+        <Link href={jobsBoardAbsoluteUrl("/jobs")} className="link-text-premium inline-flex text-sm font-medium text-[#C9A84C]">
           Back to all jobs
         </Link>
       </div>

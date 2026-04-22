@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Target } from "lucide-react";
 
+import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 import type { JobRecord } from "@/lib/jobs/types";
 
 type FitSuccess = {
@@ -30,8 +31,8 @@ function completionFromStorage(): string | null {
 function resolveApplyHref(job: JobRecord, browseOnly: boolean, serverApplyHref: string): string {
   const internal = job.applicationMethod === "internal" || !job.applicationMethod;
   if (!internal) return serverApplyHref;
-  const base = `/jobs/${job.slug}/apply`;
-  return browseOnly ? `${base}?browse=1` : base;
+  const base = jobsBoardAbsoluteUrl(`/jobs/${job.slug}/apply`);
+  return browseOnly ? jobsBoardAbsoluteUrl(`/jobs/${job.slug}/apply?browse=1`) : base;
 }
 
 export default function JobFitCheckButton({

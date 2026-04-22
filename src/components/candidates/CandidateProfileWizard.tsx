@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check, Shield } from "lucide-react";
 
 import { sanitizeApplyReturnPath } from "@/lib/candidates/applyReturnPath";
+import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 import { buildCandidateProfilePayload, buildJobPreferences } from "@/lib/candidates/linearProfilePayload";
 import type { CandidateProfilePayload, JobPreferencesPayload } from "@/lib/candidates/profileSchema";
 import {
@@ -82,7 +83,7 @@ type WizardEntryMode = "default" | "complete-only";
 type CandidateProfileWizardProps = {
   entryMode?: WizardEntryMode;
   resumeToken?: string | null;
-  /** Safe in-app path (e.g. `/jobs/slug`) after profile is saved. */
+  /** Safe return URL (jobs subdomain) after profile is saved. */
   applyReturnPath?: string | null;
   /** Pre-fills email from magic link before resume payload loads. */
   initialEmailHint?: string | null;
@@ -348,7 +349,8 @@ export default function CandidateProfileWizard({
     if (saveStatus !== "done") return;
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const fromReturn = applyReturnPath ? sanitizeApplyReturnPath(origin, applyReturnPath) : null;
-    const target = fromReturn || (shareWithEmployers ? "/jobs" : "/jobs?browse=1");
+    const target =
+      fromReturn || (shareWithEmployers ? jobsBoardAbsoluteUrl("/jobs") : jobsBoardAbsoluteUrl("/jobs?browse=1"));
     const handle = window.setTimeout(() => {
       window.location.assign(target);
     }, 900);
@@ -382,7 +384,7 @@ export default function CandidateProfileWizard({
         if (completed >= 9) {
           const origin = typeof window !== "undefined" ? window.location.origin : "";
           const fromReturn = applyReturnPath ? sanitizeApplyReturnPath(origin, applyReturnPath) : null;
-          window.location.assign(fromReturn || "/jobs");
+          window.location.assign(fromReturn || jobsBoardAbsoluteUrl("/jobs"));
           return;
         }
         const d = data.draft && typeof data.draft === "object" ? data.draft : {};
@@ -551,7 +553,7 @@ export default function CandidateProfileWizard({
 
               <div className="mt-8 grid grid-cols-1 gap-3 sm:mt-10 sm:gap-4 md:grid-cols-2">
                 <Link
-                  href="/jobs?browse=1"
+                  href={jobsBoardAbsoluteUrl("/jobs?browse=1")}
                   className="group inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-[12px] border border-[rgba(201,168,76,0.4)] px-5 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:border-[rgba(201,168,76,0.6)] hover:bg-[rgba(201,168,76,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/55 md:min-h-[52px]"
                 >
                   Browse Jobs

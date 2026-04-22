@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import JobDetailView from "@/components/jobs/JobDetailView";
-import { getSiteOrigin } from "@/lib/candidates/siteOrigin";
 import { getJobBySlug, getRelatedJobs } from "@/lib/jobs/repository";
+import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -32,7 +32,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     title: `${job.title} in ${job.location}`,
     description: job.summary ?? job.description,
     alternates: {
-      canonical: `https://www.arbeidmatch.no/jobs/${job.slug}`,
+      canonical: jobsBoardAbsoluteUrl(`/jobs/${job.slug}`),
     },
     openGraph: {
       title: `${job.title} | ArbeidMatch`,
@@ -57,7 +57,7 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
   if (!employerPeek && job.status !== "active") notFound();
 
   const relatedJobs = await getRelatedJobs(job);
-  const shareUrl = `${getSiteOrigin()}/jobs/${job.slug}`;
+  const shareUrl = jobsBoardAbsoluteUrl(`/jobs/${job.slug}`);
 
   const jobPostingStructuredData = {
     "@context": "https://schema.org",

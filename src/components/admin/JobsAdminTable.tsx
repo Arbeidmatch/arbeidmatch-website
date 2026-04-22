@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { AdminJobDto } from "@/components/admin/job-admin-types";
+import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
@@ -190,7 +191,7 @@ export default function JobsAdminTable({ initialJobs }: { initialJobs: AdminJobD
                       Archive
                     </button>
                     <Link
-                      href={`/jobs/${job.slug}`}
+                      href={jobsBoardAbsoluteUrl(`/jobs/${job.slug}`)}
                       className="btn-outline-premium rounded-md border border-emerald-300/30 px-2.5 py-1 text-xs text-emerald-200"
                     >
                       View public

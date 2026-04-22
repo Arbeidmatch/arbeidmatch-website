@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+
+import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 
 type JobPayload = {
   id: string;
@@ -15,7 +17,6 @@ type JobPayload = {
 };
 
 export default function BoardJobEditClient({ jobId }: { jobId: string }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token")?.trim() ?? "";
 
@@ -72,7 +73,7 @@ export default function BoardJobEditClient({ jobId }: { jobId: string }) {
       setSaving(false);
       return;
     }
-    router.replace(`/jobs/${body.slug}`);
+    window.location.assign(jobsBoardAbsoluteUrl(`/jobs/${body.slug}`));
   }
 
   if (loading) {
@@ -88,7 +89,7 @@ export default function BoardJobEditClient({ jobId }: { jobId: string }) {
     return (
       <section className="mx-auto max-w-xl rounded-[18px] border border-[#C9A84C]/25 bg-white/[0.03] p-6 text-center text-white/80">
         <p className="text-sm text-red-300">{error}</p>
-        <Link href="/jobs" className="mt-4 inline-block text-sm font-semibold text-[#C9A84C] hover:underline">
+        <Link href={jobsBoardAbsoluteUrl("/jobs")} className="mt-4 inline-block text-sm font-semibold text-[#C9A84C] hover:underline">
           Back to jobs
         </Link>
       </section>
@@ -152,7 +153,7 @@ export default function BoardJobEditClient({ jobId }: { jobId: string }) {
           {saving ? "Publishing..." : "Publish to job board"}
         </button>
         <Link
-          href="/jobs"
+          href={jobsBoardAbsoluteUrl("/jobs")}
           className="btn-outline-premium inline-flex min-h-[44px] items-center justify-center rounded-md border border-white/20 px-4 py-2 text-sm font-semibold text-white/80"
         >
           Cancel

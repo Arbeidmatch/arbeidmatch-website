@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ImageIcon } from "lucide-react";
 import ApplyWithProfileGate from "@/components/jobs/ApplyWithProfileGate";
 import JobFitCheckButton from "@/components/jobs/JobFitCheckButton";
+import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 import type { JobRecord } from "@/lib/jobs/types";
 
 const THUMB_SIZE = "h-[72px] w-[72px] sm:h-20 sm:w-20";
@@ -22,12 +23,12 @@ const btnBase =
 export default function JobCard({ job, browseOnly = false }: { job: JobRecord; browseOnly?: boolean }) {
   const applyHref =
     job.applicationMethod === "external_url"
-      ? job.applicationUrl || `/jobs/${job.slug}/apply`
+      ? job.applicationUrl || jobsBoardAbsoluteUrl(`/jobs/${job.slug}/apply`)
       : job.applicationMethod === "email"
         ? `mailto:${job.applicationEmail || "post@arbeidmatch.no"}`
-        : `/jobs/${job.slug}/apply`;
+        : jobsBoardAbsoluteUrl(`/jobs/${job.slug}/apply`);
   const applyExternal = job.applicationMethod === "external_url";
-  const viewHref = browseOnly ? `/jobs/${job.slug}?browse=1` : `/jobs/${job.slug}`;
+  const viewHref = jobsBoardAbsoluteUrl(browseOnly ? `/jobs/${job.slug}?browse=1` : `/jobs/${job.slug}`);
   const snippet = job.summary ?? job.description;
   const mainImage = job.imageMain?.trim() || null;
 
@@ -117,7 +118,7 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
             {browseOnly ? (
               job.applicationMethod === "internal" || !job.applicationMethod ? (
                 <ApplyWithProfileGate
-                  applyHref={`/jobs/${job.slug}/apply`}
+                  applyHref={jobsBoardAbsoluteUrl(`/jobs/${job.slug}/apply`)}
                   className={`btn-gold-premium ${btnBase} flex-1 bg-[#C9A84C] font-bold text-[#0D1B2A] hover:opacity-95 sm:min-w-0 sm:flex-1`}
                 >
                   Apply

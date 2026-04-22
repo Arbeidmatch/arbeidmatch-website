@@ -12,6 +12,7 @@ import {
   workAuthorizationOptions,
   type JobApplicationFormData,
 } from "@/lib/jobs/application";
+import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 import type { JobRecord } from "@/lib/jobs/types";
 import type { CandidateProfilePayload } from "@/lib/candidates/profileSchema";
 import { computeEmployerBoardMatch } from "@/lib/employer-flow/employerBoardMatch";
@@ -235,13 +236,13 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
-            href={`/jobs/${job.slug}`}
+            href={jobsBoardAbsoluteUrl(`/jobs/${job.slug}`)}
             className="btn-outline-premium inline-flex min-h-[44px] items-center justify-center rounded-md border border-[#C9A84C]/35 px-4 py-2 text-sm font-semibold text-[#C9A84C]"
           >
             Back to job details
           </Link>
           <Link
-            href="/jobs"
+            href={jobsBoardAbsoluteUrl("/jobs")}
             className="btn-gold-premium inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A]"
           >
             Browse more jobs
