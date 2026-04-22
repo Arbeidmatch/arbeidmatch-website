@@ -148,9 +148,10 @@ export function computeJobMatchScore(job: JobRecord, profile: JobMatchProfileInp
     "6 on",
   ]);
   const rotPref = String(profile.preferences.rotation);
+  const concreteRot = prefersConcreteRotationCycle(rotPref);
   let rotationScore = 72;
-  if (rotationHeavy && prefersConcreteRotationCycle(rotPref)) rotationScore = 86;
-  if (!rotationHeavy && rotPref === "flexible") rotationScore = 78;
+  if (rotationHeavy && concreteRot) rotationScore = 86;
+  else if (!rotationHeavy && !concreteRot) rotationScore = 78;
   add(0.1, rotationScore, "Rotation preference compared to role language.");
 
   const reqText = `${job.description}\n${normalizeList(job.requirements).join("\n")}`;
@@ -195,9 +196,10 @@ function rotationSubScore(job: JobRecord, profile: JobMatchProfileInput): number
     "6 on",
   ]);
   const rotPref = String(profile.preferences.rotation);
+  const concreteRot = prefersConcreteRotationCycle(rotPref);
   let rotationScore = 72;
-  if (rotationHeavy && prefersConcreteRotationCycle(rotPref)) rotationScore = 86;
-  if (!rotationHeavy && rotPref === "flexible") rotationScore = 78;
+  if (rotationHeavy && concreteRot) rotationScore = 86;
+  else if (!rotationHeavy && !concreteRot) rotationScore = 78;
   return rotationScore;
 }
 

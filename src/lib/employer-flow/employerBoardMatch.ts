@@ -82,13 +82,13 @@ export function computeEmployerBoardMatch(meta: EmployerBoardMeta, profile: Cand
   const jobRotationHeavy = rotText.includes("rotation") || rotText.includes("weeks");
   const pref = String(profile.preferences.rotation);
   const concrete = prefersConcreteRotationCycle(pref);
-  if (!jobRotationHeavy && pref === "flexible") {
+  if (!jobRotationHeavy && !concrete) {
     points += 1;
     breakdown.push("Rotation +1");
   } else if (jobRotationHeavy && concrete) {
     points += 1;
     breakdown.push("Rotation +1");
-  } else if (jobRotationHeavy && pref === "flexible") {
+  } else if (jobRotationHeavy && !concrete) {
     points += 1;
     breakdown.push("Rotation flexible +1");
   } else {
