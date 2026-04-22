@@ -44,18 +44,25 @@ export default async function JobApplyPage({ params, searchParams }: Props) {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/candidates/complete-profile"
-              className="btn-gold-premium inline-flex min-h-[44px] items-center rounded-md bg-[#C9A84C] px-5 py-2 text-sm font-semibold text-[#0D1B2A]"
-            >
-              Complete profile
-            </Link>
-            <Link
               href={`/jobs/${job.slug}?browse=1`}
               className="btn-outline-premium inline-flex min-h-[44px] items-center rounded-md border border-[#C9A84C]/35 px-5 py-2 text-sm font-semibold text-[#C9A84C]"
             >
               Back to job details
             </Link>
+            <Link
+              href="/for-candidates"
+              className="btn-outline-premium inline-flex min-h-[44px] items-center rounded-md border border-white/20 px-5 py-2 text-sm font-semibold text-white/85"
+            >
+              Candidate overview
+            </Link>
           </div>
+          <p className="mt-4 max-w-2xl text-xs text-white/55">
+            To finish your profile, open the secure link from your reminder email, or write to{" "}
+            <a href="mailto:post@arbeidmatch.no" className="font-semibold text-[#C9A84C] hover:underline">
+              post@arbeidmatch.no
+            </a>
+            .
+          </p>
         </div>
       </div>
     );

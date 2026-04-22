@@ -484,10 +484,10 @@ export default function CandidateProfileWizard({
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-[#0D1B2A] px-6 text-center text-white">
         <p className="max-w-md text-sm text-white/75">This link is invalid or has expired. Request a new reminder from the apply flow.</p>
         <Link
-          href="/candidates/complete-profile"
+          href="/for-candidates"
           className="inline-flex min-h-[44px] items-center justify-center rounded-[10px] bg-[#C9A84C] px-6 text-sm font-bold text-[#0D1B2A]"
         >
-          Start complete profile
+          Back to candidate overview
         </Link>
       </div>
     );

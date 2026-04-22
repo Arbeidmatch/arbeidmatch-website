@@ -95,7 +95,7 @@ export default function ApplyWithProfileGate({
   return (
     <>
       <button type="button" onClick={() => void handleApplyClick()} disabled={loading} className={className}>
-        {loading ? "Checking…" : children}
+        {loading ? "Checking..." : children}
       </button>
 
       {open ? (
@@ -128,18 +128,9 @@ export default function ApplyWithProfileGate({
                 type="button"
                 disabled={remindLoading}
                 onClick={() => void sendReminder()}
-                className="min-h-[44px] rounded-[10px] border border-[rgba(201,168,76,0.45)] px-4 text-sm font-semibold text-[#C9A84C] hover:bg-[rgba(201,168,76,0.08)] disabled:opacity-50"
+                className="min-h-[44px] rounded-[10px] bg-[#C9A84C] px-4 text-sm font-bold text-[#0D1B2A] hover:bg-[#b8953f] disabled:opacity-50"
               >
-                {remindLoading ? "Sending…" : "Send Reminder Email"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  window.location.assign("/candidates/complete-profile");
-                }}
-                className="min-h-[44px] rounded-[10px] bg-[#C9A84C] px-4 text-sm font-bold text-[#0D1B2A] hover:bg-[#b8953f]"
-              >
-                Complete Now
+                {remindLoading ? "Sending..." : "Email secure profile link"}
               </button>
             </div>
           </div>

@@ -293,9 +293,9 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
               {matchPreview.score < 70 ? (
                 <p className="mt-2 text-white/70">
                   Applications require at least 70% match.{" "}
-                  <Link href="/candidates/complete-profile" className="font-semibold text-[#C9A84C] hover:underline">
-                    Adjust your profile
-                  </Link>
+                  <span className="font-semibold text-[#C9A84C]">
+                    Use the secure link from your profile email to adjust details
+                  </span>
                   .
                 </p>
               ) : null}
@@ -308,8 +308,8 @@ export default function JobApplicationForm({ job }: { job: JobRecord }) {
           ) : (
             <p className="md:col-span-2 text-sm text-white/55">
               Tip: complete your{" "}
-              <Link href="/candidates" className="font-semibold text-[#C9A84C] hover:underline">
-                candidate profile
+              <Link href="/for-candidates" className="font-semibold text-[#C9A84C] hover:underline">
+                candidate overview
               </Link>{" "}
               to unlock match scoring and applications.
             </p>

@@ -116,10 +116,10 @@ export default function JobDetailView({
             <p className="text-sm text-white/70">{browseOnly ? "Browse mode" : "Ready to apply?"}</p>
             {browseOnly ? (
               <Link
-                href="/candidates"
+                href="/for-candidates"
                 className="mt-3 inline-flex w-full min-h-[46px] items-center justify-center rounded-md border border-[rgba(201,168,76,0.35)] bg-transparent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[rgba(201,168,76,0.08)]"
               >
-                Complete profile to apply
+                How to unlock applications
               </Link>
             ) : job.applicationMethod === "internal" || !job.applicationMethod ? (
               <ApplyWithProfileGate
@@ -145,7 +145,7 @@ export default function JobDetailView({
             ) : null}
             <p className="mt-3 text-xs leading-relaxed text-white/55">
               {browseOnly
-                ? "You are viewing jobs in read-only mode. Complete your profile to unlock applications."
+                ? "You are viewing jobs in read-only mode. Use your invitation email or contact us to unlock applications."
                 : "Fast and direct process. ArbeidMatch recruits continuously for trusted clients in Norway."}
             </p>
           </div>
@@ -183,10 +183,10 @@ export default function JobDetailView({
       <div className="fixed inset-x-0 bottom-0 z-[120] border-t border-[#C9A84C]/25 bg-[#0A0F18]/95 p-3 backdrop-blur-sm lg:hidden">
         {browseOnly ? (
           <Link
-            href="/candidates"
+            href="/for-candidates"
             className="inline-flex w-full min-h-[46px] items-center justify-center rounded-md border border-[rgba(201,168,76,0.35)] bg-transparent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[rgba(201,168,76,0.08)]"
           >
-            Complete profile to apply
+            How to unlock applications
           </Link>
         ) : job.applicationMethod === "internal" || !job.applicationMethod ? (
           <Link

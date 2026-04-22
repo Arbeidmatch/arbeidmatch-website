@@ -67,10 +67,10 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
         </Link>
         {browseOnly ? (
           <Link
-            href="/candidates"
+            href="/for-candidates"
             className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-[rgba(201,168,76,0.35)] bg-transparent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[rgba(201,168,76,0.08)]"
           >
-            Complete profile to apply
+            How to unlock applications
           </Link>
         ) : job.applicationMethod === "internal" || !job.applicationMethod ? (
           <ApplyWithProfileGate
