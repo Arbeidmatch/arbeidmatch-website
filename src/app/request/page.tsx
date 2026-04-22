@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Bolt, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
 
 type VerifyPartnerResponse = {
@@ -53,6 +53,11 @@ const SEARCH_MESSAGES = [
 ];
 
 const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "live.com", "msn.com"]);
+
+/** Hide industry/role search and fake loading until candidate counts are live. Set false to restore full flow. */
+const REQUEST_PAGE_MINIMAL_UI = true;
+
+const MINIMAL_ROTATE_ROLES = ["CARPENTER", "ELECTRICIAN", "WELDER", "PLUMBER", "PAINTER"];
 
 export default function RequestPage() {
   const router = useRouter();
@@ -122,13 +127,21 @@ export default function RequestPage() {
     const role = roleInput.trim();
     if (role.length < 2) return;
     setSearchTerm(role);
-    setCheckState("searching");
-    setSearchMessageIndex(0);
     setAccessStatus("idle");
     setSelectedOffer("");
     setNotifyEmail("");
     setNotifyStatus("idle");
     setResultAction("none");
+    if (REQUEST_PAGE_MINIMAL_UI) {
+      let hash = 0;
+      for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
+      setCheckCount((hash % 36) + 12);
+      setShowAccessCheck(true);
+      setCheckState("result");
+      return;
+    }
+    setCheckState("searching");
+    setSearchMessageIndex(0);
     await new Promise((resolve) => setTimeout(resolve, 10000));
     let hash = 0;
     for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
@@ -137,21 +150,30 @@ export default function RequestPage() {
     setCheckState("result");
   };
 
-  useEffect(() => {
-    if (hasAutoStartedRoleCheck.current) return;
+  useLayoutEffect(() => {
     if (typeof window === "undefined") return;
+    if (hasAutoStartedRoleCheck.current) return;
+
     const roleFromQuery = (new URLSearchParams(window.location.search).get("role") || "").trim();
+
+    if (REQUEST_PAGE_MINIMAL_UI && !roleFromQuery) {
+      hasAutoStartedRoleCheck.current = true;
+      setSearchTerm("CARPENTER");
+      setCheckState("result");
+      return;
+    }
+
     if (!roleFromQuery) return;
 
+    hasAutoStartedRoleCheck.current = true;
     const matchingIndustry = CHECK_ROLE_GROUPS.find((group) =>
-      group.roles.some((role) => role.toLowerCase() === roleFromQuery.toLowerCase()),
+      group.roles.some((r) => r.toLowerCase() === roleFromQuery.toLowerCase()),
     )?.industry;
 
     if (matchingIndustry) {
       setSelectedIndustry(matchingIndustry);
     }
     setRoleQuery(roleFromQuery);
-    hasAutoStartedRoleCheck.current = true;
     void runCandidateSearch(roleFromQuery);
   }, []);
 
@@ -218,6 +240,17 @@ export default function RequestPage() {
   };
 
   const backToRoleSearch = () => {
+    if (REQUEST_PAGE_MINIMAL_UI) {
+      setSearchTerm((prev) => {
+        const u = prev.trim().toUpperCase() || "CARPENTER";
+        const idx = MINIMAL_ROTATE_ROLES.indexOf(u);
+        const nextIdx = idx === -1 ? 0 : (idx + 1) % MINIMAL_ROTATE_ROLES.length;
+        return MINIMAL_ROTATE_ROLES[nextIdx];
+      });
+      setResultAction("none");
+      setAccessStatus("idle");
+      return;
+    }
     setCheckState("idle");
     setSearchTerm("");
     setCheckCount(0);
@@ -230,6 +263,23 @@ export default function RequestPage() {
   };
 
   const resetToFirstStep = () => {
+    if (REQUEST_PAGE_MINIMAL_UI) {
+      setCheckState("result");
+      setSelectedIndustry("");
+      setRoleQuery("");
+      setSearchTerm("CARPENTER");
+      setSearchMessageIndex(0);
+      setCheckCount(0);
+      setShowAccessCheck(false);
+      setAccessEmail("");
+      setAccessStatus("idle");
+      setCompanyName("");
+      setSelectedOffer("");
+      setNotifyEmail("");
+      setNotifyStatus("idle");
+      setResultAction("none");
+      return;
+    }
     setCheckState("idle");
     setSelectedIndustry("");
     setRoleQuery("");
@@ -366,7 +416,7 @@ export default function RequestPage() {
           showNonPartnerOptions ? "pointer-events-none translate-y-2 opacity-0" : "translate-y-0 opacity-100"
         }`}
       >
-        {checkState === "idle" && (
+        {checkState === "idle" && !REQUEST_PAGE_MINIMAL_UI && (
           <>
             {!selectedIndustry && (
               <button
@@ -440,7 +490,7 @@ export default function RequestPage() {
           </>
         )}
 
-        {checkState === "searching" && (
+        {checkState === "searching" && !REQUEST_PAGE_MINIMAL_UI && (
           <div className="flex flex-col items-center py-10 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
             <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
@@ -455,20 +505,28 @@ export default function RequestPage() {
           <div className="relative text-center">
             <button
               type="button"
-              onClick={backToRoleSearch}
+              onClick={() => (REQUEST_PAGE_MINIMAL_UI ? router.back() : backToRoleSearch())}
               className="mb-4 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
             >
               <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
               Back
             </button>
-            <div className="pointer-events-none absolute left-1/2 top-[120px] h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(201,168,76,0.08)_0%,transparent_70%)]" />
+            {!REQUEST_PAGE_MINIMAL_UI ? (
+              <div className="pointer-events-none absolute left-1/2 top-[120px] h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(201,168,76,0.08)_0%,transparent_70%)]" />
+            ) : null}
             <p className="result-zero relative z-[1] text-[96px] font-extrabold leading-none text-transparent">0</p>
             <p className="mt-3 text-[12px] uppercase tracking-[0.15em] text-[rgba(201,168,76,0.7)]">{searchTerm.trim() || "ROLE"}</p>
-            <div className="mx-auto mt-3 inline-flex rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.06)] px-3 py-1 text-[11px] text-[rgba(255,255,255,0.6)]">
-              Feature in development. Partner access only.
-            </div>
-            <div className="mx-auto my-8 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
-            <div className="mx-auto grid w-full max-w-[560px] grid-cols-1 gap-3 sm:grid-cols-2">
+            {!REQUEST_PAGE_MINIMAL_UI ? (
+              <>
+                <div className="mx-auto mt-3 inline-flex rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.06)] px-3 py-1 text-[11px] text-[rgba(255,255,255,0.6)]">
+                  Feature in development. Partner access only.
+                </div>
+                <div className="mx-auto my-8 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
+              </>
+            ) : null}
+            <div
+              className={`mx-auto grid w-full max-w-[560px] grid-cols-1 gap-3 sm:grid-cols-2${REQUEST_PAGE_MINIMAL_UI ? " mt-8" : ""}`}
+            >
               <button
                 type="button"
                 onClick={() => {
