@@ -23,7 +23,7 @@ export async function GET(
   try {
     const { data, error } = await supabase
       .from("request_tokens")
-      .select("company, email, full_name, phone, job_summary, org_number, gdpr_consent")
+      .select("company, email, full_name, phone, job_summary, org_number, gdpr_consent, company_country")
       .eq("token", token)
       .single();
 

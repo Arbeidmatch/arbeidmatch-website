@@ -13,6 +13,8 @@ const createTokenSchema = z
     email: z.string().trim().email().max(200),
     phone: z.string().trim().min(6).max(40),
     job_summary: z.string().trim().min(1).max(1000),
+    org_number: z.string().trim().max(40).optional().or(z.literal("")),
+    company_country: z.enum(["Norway", "Denmark", "Sweden"]).optional(),
     website: z.string().max(256).optional(),
     company_website: z.string().max(256).optional(),
     honeypot: z.string().max(256).optional(),
@@ -80,6 +82,9 @@ export async function POST(request: NextRequest) {
     const token = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
+    const orgTrim = parsed.data.org_number?.trim() || null;
+    const country = parsed.data.company_country ?? "Norway";
+
     const { error } = await supabase.from("request_tokens").insert({
       token,
       full_name: parsed.data.full_name,
@@ -87,6 +92,8 @@ export async function POST(request: NextRequest) {
       email: parsed.data.email,
       phone: parsed.data.phone,
       job_summary: parsed.data.job_summary,
+      org_number: orgTrim,
+      company_country: country,
       expires_at: expiresAt,
       used: false,
     });

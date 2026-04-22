@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import {
   Bolt,
@@ -16,16 +16,21 @@ import {
 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 
+type CompanyCountry = "Norway" | "Denmark" | "Sweden";
+
 type TokenData = {
   company: string;
   email: string;
   job_summary: string;
   org_number?: string;
+  company_country?: string | null;
   full_name?: string;
   phone?: string;
   gdpr_consent?: boolean;
   verified_partner?: boolean;
 };
+
+const SWEDISH_ORG_PATTERN = /^\d{6}-\d{4}$/;
 
 type RequestForm = {
   industry: string;
@@ -544,6 +549,15 @@ export default function RequestTokenPage() {
   );
   const brandingPriceNok = brandingPartnerRate ? 499 : 999;
 
+  const [wizardSubstep, setWizardSubstep] = useState<"company" | "industry">("company");
+  const [companyCountry, setCompanyCountry] = useState<CompanyCountry>("Norway");
+  const [employerCompany, setEmployerCompany] = useState("");
+  const [employerOrgNumber, setEmployerOrgNumber] = useState("");
+  const [registryQuery, setRegistryQuery] = useState("");
+  const [companySuggestions, setCompanySuggestions] = useState<Array<{ name: string; orgNumber: string }>>([]);
+  const [companySearchLoading, setCompanySearchLoading] = useState(false);
+  const registrySearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const scrollToTop = () => {
     if (typeof window === "undefined") return;
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -585,6 +599,54 @@ export default function RequestTokenPage() {
   }, [token]);
 
   useEffect(() => {
+    if (!tokenData) return;
+    const co = tokenData.company?.trim() || "";
+    const org = tokenData.org_number?.trim() || "";
+    setEmployerCompany(co);
+    setEmployerOrgNumber(org);
+    setRegistryQuery(co);
+    const cc = tokenData.company_country;
+    if (cc === "Denmark" || cc === "Sweden" || cc === "Norway") {
+      setCompanyCountry(cc);
+    } else {
+      setCompanyCountry("Norway");
+    }
+    setWizardSubstep("company");
+  }, [tokenData]);
+
+  useEffect(() => {
+    if (companyCountry === "Sweden") {
+      setCompanySuggestions([]);
+      setCompanySearchLoading(false);
+      return;
+    }
+    const q = registryQuery.trim();
+    if (q.length < 2) {
+      setCompanySuggestions([]);
+      return;
+    }
+    if (registrySearchTimer.current) clearTimeout(registrySearchTimer.current);
+    registrySearchTimer.current = setTimeout(() => {
+      void (async () => {
+        setCompanySearchLoading(true);
+        try {
+          const path = companyCountry === "Denmark" ? "/api/cvr/search" : "/api/brreg/search";
+          const res = await fetch(`${path}?q=${encodeURIComponent(q)}`);
+          const data = (await res.json()) as { companies?: Array<{ name: string; orgNumber: string }> };
+          setCompanySuggestions(data.companies ?? []);
+        } catch {
+          setCompanySuggestions([]);
+        } finally {
+          setCompanySearchLoading(false);
+        }
+      })();
+    }, 380);
+    return () => {
+      if (registrySearchTimer.current) clearTimeout(registrySearchTimer.current);
+    };
+  }, [registryQuery, companyCountry]);
+
+  useEffect(() => {
     if (startWizard || isPartnerFlow) {
       setShowChoice(false);
       setShowCheckFlow(false);
@@ -593,6 +655,7 @@ export default function RequestTokenPage() {
 
   const goTo = (next: number) => {
     if (next < 0 || next > TOTAL_STEPS - 1 || animating) return;
+    if (next === 0) setWizardSubstep("industry");
     if (next > step) {
       trackEvent("wizard_step_complete", { step: step + 1 });
     }
@@ -663,8 +726,20 @@ export default function RequestTokenPage() {
     });
   };
 
+  const isCompanySubstepValid = () => {
+    const co = employerCompany.trim();
+    const org = employerOrgNumber.trim();
+    if (co.length < 2) return false;
+    if (isPartnerFlow) return true;
+    if (companyCountry === "Sweden") return SWEDISH_ORG_PATTERN.test(org);
+    return org.length >= 6;
+  };
+
   const isStepValid = (value: number) => {
-    if (value === 0) return !!form.industry;
+    if (value === 0) {
+      if (wizardSubstep === "company") return isCompanySubstepValid();
+      return !!form.industry;
+    }
     if (value === 1) {
       if (form.workerType === "Other" && !form.tradeOther.trim()) return false;
       return !!(form.workerType && form.experience && form.candidates >= 1);
@@ -682,6 +757,12 @@ export default function RequestTokenPage() {
   };
 
   const handleNext = () => {
+    if (step === 0 && wizardSubstep === "company") {
+      if (!isCompanySubstepValid()) return;
+      setWizardSubstep("industry");
+      scrollToTop();
+      return;
+    }
     if (step < TOTAL_STEPS - 1) goTo(step + 1);
   };
 
@@ -695,8 +776,9 @@ export default function RequestTokenPage() {
 
     const payload = {
       token,
-      company: tokenData?.company ?? "",
-      orgNumber: tokenData?.org_number ?? "",
+      company: employerCompany.trim() || tokenData?.company || "",
+      orgNumber: employerOrgNumber.trim(),
+      companyCountry,
       email: tokenData?.email ?? "",
       full_name: tokenData?.full_name ?? "Contact person",
       phonePrefix: "",
@@ -1463,7 +1545,139 @@ export default function RequestTokenPage() {
           >
             <div className="absolute left-[10%] right-[10%] top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(201,168,76,0.5),transparent)]" />
 
-            {step === 0 && (
+            {step === 0 && wizardSubstep === "company" && (
+              <div className="space-y-5">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step 1 of ${TOTAL_STEPS}`}</p>
+                <h2 className="text-2xl font-extrabold">Company details</h2>
+                <p className="text-sm text-white/50">Tell us where your company is registered so we can verify it correctly.</p>
+
+                <div>
+                  <label htmlFor="company-country" className={labelClass}>
+                    Company country
+                  </label>
+                  <select
+                    id="company-country"
+                    value={companyCountry}
+                    onChange={(e) => {
+                      const v = e.target.value as CompanyCountry;
+                      setCompanyCountry(v);
+                      setCompanySuggestions([]);
+                      if (v === "Sweden") {
+                        setRegistryQuery("");
+                      }
+                    }}
+                    className={`${inputClass} cursor-pointer`}
+                  >
+                    <option value="Norway">Norway</option>
+                    <option value="Denmark">Denmark</option>
+                    <option value="Sweden">Sweden</option>
+                  </select>
+                </div>
+
+                {companyCountry === "Sweden" ? (
+                  <>
+                    <div>
+                      <label htmlFor="employer-company-se" className={labelClass}>
+                        Company name
+                      </label>
+                      <input
+                        id="employer-company-se"
+                        className={inputClass}
+                        value={employerCompany}
+                        onChange={(e) => setEmployerCompany(e.target.value)}
+                        placeholder="Registered company name"
+                        autoComplete="organization"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="employer-org-se" className={labelClass}>
+                        Organisation number
+                      </label>
+                      <input
+                        id="employer-org-se"
+                        className={inputClass}
+                        value={employerOrgNumber}
+                        onChange={(e) => setEmployerOrgNumber(e.target.value)}
+                        placeholder="XXXXXX-XXXX"
+                        inputMode="text"
+                        autoComplete="off"
+                      />
+                      <p className="mt-2 text-xs leading-relaxed text-white/45">
+                        Swedish company details verified manually by our team.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label htmlFor="registry-search" className={labelClass}>
+                        {companyCountry === "Denmark" ? "Search CVR (company name)" : "Search Brønnøysund (company name)"}
+                      </label>
+                      <input
+                        id="registry-search"
+                        className={inputClass}
+                        value={registryQuery}
+                        onChange={(e) => setRegistryQuery(e.target.value)}
+                        placeholder="Type at least 2 characters…"
+                        autoComplete="organization"
+                      />
+                      {companySearchLoading ? (
+                        <p className="mt-2 text-xs text-white/40">Searching…</p>
+                      ) : null}
+                    </div>
+                    {companySuggestions.length > 0 ? (
+                      <ul className="max-h-48 space-y-2 overflow-y-auto rounded-[12px] border border-white/10 bg-white/[0.04] p-2">
+                        {companySuggestions.map((c) => (
+                          <li key={`${c.orgNumber}-${c.name}`}>
+                            <button
+                              type="button"
+                              className="w-full rounded-lg px-3 py-2 text-left text-sm text-white/85 transition-colors hover:bg-white/10"
+                              onClick={() => {
+                                setEmployerCompany(c.name);
+                                setEmployerOrgNumber(c.orgNumber);
+                                setRegistryQuery(c.name);
+                              }}
+                            >
+                              <span className="font-medium text-white">{c.name}</span>
+                              <span className="mt-0.5 block text-xs text-white/45">Org.nr {c.orgNumber}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    <div>
+                      <label htmlFor="employer-company" className={labelClass}>
+                        Company name
+                      </label>
+                      <input
+                        id="employer-company"
+                        className={inputClass}
+                        value={employerCompany}
+                        onChange={(e) => setEmployerCompany(e.target.value)}
+                        placeholder="As registered"
+                        autoComplete="organization"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="employer-org" className={labelClass}>
+                        Organisation number
+                      </label>
+                      <input
+                        id="employer-org"
+                        className={inputClass}
+                        value={employerOrgNumber}
+                        onChange={(e) => setEmployerOrgNumber(e.target.value)}
+                        placeholder={companyCountry === "Denmark" ? "8-digit CVR" : "9-digit org.nr"}
+                        inputMode="numeric"
+                        autoComplete="off"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {step === 0 && wizardSubstep === "industry" && (
               <div className="space-y-4">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step 1 of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Which industry is this request for?</h2>
@@ -1852,7 +2066,7 @@ export default function RequestTokenPage() {
 
             <div
               className={`mt-6 flex w-full items-center gap-3 border-t border-white/10 pt-5 ${
-                step > 0 ? "justify-between" : "justify-end"
+                step > 0 || (step === 0 && wizardSubstep === "industry") ? "justify-between" : "justify-end"
               }`}
             >
               <div>
@@ -1860,6 +2074,18 @@ export default function RequestTokenPage() {
                   <button
                     type="button"
                     onClick={() => goTo(step - 1)}
+                    disabled={animating || isSubmitting}
+                    className="rounded-[10px] border border-white/20 px-6 py-3 text-sm text-white/60 disabled:opacity-40"
+                  >
+                    Back
+                  </button>
+                ) : wizardSubstep === "industry" ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setWizardSubstep("company");
+                      scrollToTop();
+                    }}
                     disabled={animating || isSubmitting}
                     className="rounded-[10px] border border-white/20 px-6 py-3 text-sm text-white/60 disabled:opacity-40"
                   >

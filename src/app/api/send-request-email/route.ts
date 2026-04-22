@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
         "Contact details",
         [
           rowHtml("Company", data.company),
+          rowHtml("Company country", (data.companyCountry as string) || "Norway"),
           rowHtml("Org.nr", data.orgNumber),
           rowHtml("Email", data.email, true),
           rowHtml("Full name", data.full_name),
@@ -264,6 +265,7 @@ export async function POST(request: NextRequest) {
 
     const slackFields: Record<string, string> = {};
     pushSlackField(slackFields, "Company name", data.company);
+    pushSlackField(slackFields, "Company country", (data.companyCountry as string) || "Norway");
     pushSlackField(slackFields, "Contact name", data.full_name);
     pushSlackField(slackFields, "Email", data.email);
     pushSlackField(slackFields, "Phone", data.phone);
@@ -291,6 +293,7 @@ export async function POST(request: NextRequest) {
 
     const coveredKeys = new Set([
       "company",
+      "companyCountry",
       "full_name",
       "email",
       "phone",

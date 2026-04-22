@@ -15,6 +15,7 @@ const requestSchema = z
     token: z.string().uuid(),
     company: z.string().trim().min(2).max(160),
     orgNumber: z.string().trim().max(40).optional().or(z.literal("")),
+    companyCountry: z.enum(["Norway", "Denmark", "Sweden"]).optional(),
     email: z.string().trim().email().max(200),
     full_name: z.string().trim().min(2).max(120),
     phonePrefix: z.string().trim().max(8).optional().or(z.literal("")),
@@ -79,7 +80,28 @@ const requestSchema = z
     company_website: z.string().max(256).optional(),
     honeypot: z.string().max(256).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((data, ctx) => {
+    const org = (data.orgNumber || "").trim();
+    const country = data.companyCountry ?? "Norway";
+    if (country === "Sweden") {
+      if (!/^\d{6}-\d{4}$/.test(org)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["orgNumber"],
+          message: "Swedish organisation number must be in format XXXXXX-XXXX.",
+        });
+      }
+      return;
+    }
+    if (data.job_summary !== "Partner candidate request" && org.length < 6) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["orgNumber"],
+        message: "Organisation number is required for this country.",
+      });
+    }
+  });
 
 function parseNumeric(value?: string) {
   if (!value || !value.trim()) return null;
@@ -215,10 +237,13 @@ export async function POST(request: NextRequest) {
       normalizedBooleanFields.push("accommodation");
     }
 
+    const companyCountry = payload.companyCountry ?? "Norway";
+
     const { data: insertedRequest, error } = await supabase.from("employer_requests").insert({
       token_id:                      payload.token,
       company:                       payload.company,
       org_number:                    payload.orgNumber,
+      company_country:               companyCountry,
       email:                         payload.email,
       full_name:                     payload.full_name,
       phone:                         payload.phone,

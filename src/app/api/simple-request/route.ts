@@ -22,6 +22,7 @@ const requestSchema = z
     role: z.string().trim().max(160).optional(),
     job_summary: z.string().trim().max(1000).optional().default("General hiring inquiry"),
     org_number: z.string().trim().max(40).optional(),
+    company_country: z.enum(["Norway", "Denmark", "Sweden"]).optional(),
     gdprConsent: z
       .boolean()
       .refine((val) => val === true, { message: "GDPR consent required" }),
@@ -89,6 +90,7 @@ export async function POST(request: NextRequest) {
       referralEmail,
       org_number,
       orgNumber,
+      company_country,
     } = parsed.data;
     companySnapshot = company?.trim() || "unknown";
     const resolvedFullName = full_name?.trim() || `${first_name} ${last_name}`.trim();
@@ -103,6 +105,7 @@ export async function POST(request: NextRequest) {
       email,
       phone,
       org_number: org_number ?? orgNumber,
+      company_country: company_country ?? "Norway",
       job_summary,
       gdpr_consent: true,
       how_did_you_hear: howDidYouHear,

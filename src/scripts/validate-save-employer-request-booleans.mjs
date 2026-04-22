@@ -47,7 +47,8 @@ function buildPayload(token, hasRotation, subscribe) {
   return {
     token,
     company: "ArbeidMatch Test Company",
-    orgNumber: "",
+    companyCountry: "Norway",
+    orgNumber: "123456789",
     email: "test@arbeidmatch.no",
     full_name: "Test Person",
     phonePrefix: "",
