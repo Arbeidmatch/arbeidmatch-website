@@ -343,6 +343,18 @@ export default function RequestPage() {
     };
   }, [isPastFirstStep]);
 
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (!showNonPartnerOptions) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow || "auto";
+    };
+  }, [showNonPartnerOptions]);
+
   return (
     <section className="min-h-dvh bg-[#0a0f18] px-4 py-10 text-white md:px-6">
       <div
@@ -494,107 +506,109 @@ export default function RequestPage() {
       </div>
 
       {showNonPartnerOptions && (
-        <div className="fixed inset-0 z-30 mx-auto flex w-full flex-col items-center justify-center px-6 pt-[88px] text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Choose access option</p>
-          <h2 className="mt-3 text-[24px] font-bold text-white">How would you like to continue?</h2>
-          <p className="mt-2 text-[15px] text-[rgba(255,255,255,0.55)]">Select the option that fits your hiring needs.</p>
-          <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
+        <div className="request-options-overlay">
+          <div className="request-options-panel">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Choose access option</p>
+            <h2 className="mt-3 text-[24px] font-bold text-white">How would you like to continue?</h2>
+            <p className="mt-2 text-[15px] text-[rgba(255,255,255,0.55)]">Select the option that fits your hiring needs.</p>
+            <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
 
-          <div className="non-partner-cards w-full max-w-[980px]">
-            <button
-              type="button"
-              onClick={() => {
-                setPartnerApplicationEmail(accessEmail.trim().toLowerCase());
-                setPartnerApplicationStatus("idle");
-                setPartnerApplicationError("");
-                setShowPartnerApplicationModal(true);
-              }}
-              className="non-partner-card rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] p-6 text-left"
-            >
-              <Users className="h-5 w-5 text-[#C9A84C]" />
-              <p className="mt-4 text-[18px] font-bold text-white">Become a Partner</p>
-              <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
-                Get access to partner-only candidate tools and direct hiring support.
-              </p>
-            </button>
+            <div className="request-options-container">
+              <button
+                type="button"
+                onClick={() => {
+                  setPartnerApplicationEmail(accessEmail.trim().toLowerCase());
+                  setPartnerApplicationStatus("idle");
+                  setPartnerApplicationError("");
+                  setShowPartnerApplicationModal(true);
+                }}
+                className="request-option-card text-left"
+              >
+                <Users className="h-5 w-5 text-[#C9A84C]" />
+                <p className="mt-4 text-[18px] font-bold text-white">Become a Partner</p>
+                <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
+                  Get access to partner-only candidate tools and direct hiring support.
+                </p>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedOffer("premium");
-                setNotifyStatus("idle");
-              }}
-              className="non-partner-card rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] p-6 text-left"
-            >
-              <Star className="h-5 w-5 text-[#C9A84C]" />
-              <p className="mt-4 text-[18px] font-bold text-white">Premium Subscription</p>
-              <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
-                Best for ongoing hiring with priority support and expanded matching.
-              </p>
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedOffer("premium");
+                  setNotifyStatus("idle");
+                }}
+                className="request-option-card text-left"
+              >
+                <Star className="h-5 w-5 text-[#C9A84C]" />
+                <p className="mt-4 text-[18px] font-bold text-white">Premium Subscription</p>
+                <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
+                  Best for ongoing hiring with priority support and expanded matching.
+                </p>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedOffer("pay-per-use");
-                setNotifyStatus("idle");
-              }}
-              className="non-partner-card rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] p-6 text-left"
-            >
-              <Clock3 className="h-5 w-5 text-[#C9A84C]" />
-              <p className="mt-4 text-[18px] font-bold text-white">Pay per use</p>
-              <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
-                Flexible access when you need candidates without a long-term commitment.
-              </p>
-            </button>
-          </div>
-
-          {selectedOffer && (
-            <div className="mt-6 w-full max-w-[520px] rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] p-5 text-left">
-              <p className="text-[14px] text-[rgba(255,255,255,0.65)]">Get notified when this option is available.</p>
-              <div className="mt-3 flex flex-col gap-[10px] sm:flex-row">
-                <input
-                  type="email"
-                  value={notifyEmail}
-                  onChange={(event) => setNotifyEmail(event.target.value)}
-                  placeholder="yourname@company.no"
-                  className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => void submitFeatureWaitlist()}
-                  disabled={!notifyEmail.includes("@") || notifyStatus === "submitting"}
-                  className="result-cta-primary rounded-[10px] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] disabled:opacity-60"
-                >
-                  {notifyStatus === "submitting" ? "Sending..." : "Notify me"}
-                </button>
-              </div>
-              {notifyStatus === "success" && (
-                <div className="waitlist-success-card mt-4">
-                  <svg viewBox="0 0 24 24" className="mx-auto h-7 w-7 text-[#C9A84C]" fill="none" aria-hidden>
-                    <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <p className="mt-[14px] text-[18px] font-bold text-white">We have got you covered.</p>
-                  <p className="mt-2 text-[14px] leading-[1.7] text-[rgba(255,255,255,0.55)]">
-                    You will be among the first to know when this launches. We are building something worth waiting for.
-                  </p>
-                  <p className="mt-4 text-[12px] text-[rgba(255,255,255,0.3)]">We will reach out directly when access becomes available.</p>
-                </div>
-              )}
-              {notifyStatus === "error" && <p className="mt-3 text-[13px] text-[rgba(255,255,255,0.5)]">Could not save your request. Please try again.</p>}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedOffer("pay-per-use");
+                  setNotifyStatus("idle");
+                }}
+                className="request-option-card text-left"
+              >
+                <Clock3 className="h-5 w-5 text-[#C9A84C]" />
+                <p className="mt-4 text-[18px] font-bold text-white">Pay per use</p>
+                <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
+                  Flexible access when you need candidates without a long-term commitment.
+                </p>
+              </button>
             </div>
-          )}
 
-          <div className="mt-5 w-full max-w-[320px]">
-            <button
-              type="button"
-              onClick={() => {
-                setResultAction("none");
-              }}
-              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-[13px] text-[15px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]"
-            >
-              Back
-            </button>
+            {selectedOffer && (
+              <div className="mt-6 w-full max-w-[520px] rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] p-5 text-left">
+                <p className="text-[14px] text-[rgba(255,255,255,0.65)]">Get notified when this option is available.</p>
+                <div className="mt-3 flex flex-col gap-[10px] sm:flex-row">
+                  <input
+                    type="email"
+                    value={notifyEmail}
+                    onChange={(event) => setNotifyEmail(event.target.value)}
+                    placeholder="yourname@company.no"
+                    className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void submitFeatureWaitlist()}
+                    disabled={!notifyEmail.includes("@") || notifyStatus === "submitting"}
+                    className="result-cta-primary rounded-[10px] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] disabled:opacity-60"
+                  >
+                    {notifyStatus === "submitting" ? "Sending..." : "Notify me"}
+                  </button>
+                </div>
+                {notifyStatus === "success" && (
+                  <div className="waitlist-success-card mt-4">
+                    <svg viewBox="0 0 24 24" className="mx-auto h-7 w-7 text-[#C9A84C]" fill="none" aria-hidden>
+                      <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <p className="mt-[14px] text-[18px] font-bold text-white">We have got you covered.</p>
+                    <p className="mt-2 text-[14px] leading-[1.7] text-[rgba(255,255,255,0.55)]">
+                      You will be among the first to know when this launches. We are building something worth waiting for.
+                    </p>
+                    <p className="mt-4 text-[12px] text-[rgba(255,255,255,0.3)]">We will reach out directly when access becomes available.</p>
+                  </div>
+                )}
+                {notifyStatus === "error" && <p className="mt-3 text-[13px] text-[rgba(255,255,255,0.5)]">Could not save your request. Please try again.</p>}
+              </div>
+            )}
+
+            <div className="mt-5 w-full max-w-[320px]">
+              <button
+                type="button"
+                onClick={() => {
+                  setResultAction("none");
+                }}
+                className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-[13px] text-[15px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]"
+              >
+                Back
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -919,33 +933,44 @@ export default function RequestPage() {
           border-color: rgba(201, 168, 76, 0.5);
           color: #ffffff;
         }
-        .non-partner-cards {
+        .request-options-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 9999;
+          background: rgba(13, 27, 42, 0.85);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px 20px;
+          overflow-y: auto;
+        }
+        .request-options-panel {
+          width: 100%;
+          max-width: 1200px;
+          text-align: center;
+        }
+        .request-options-container {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 20px;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 24px;
+          padding: 40px 20px;
+          max-width: 1200px;
+          width: 100%;
           margin: 0 auto;
         }
-        .non-partner-card {
-          transition: border-color 220ms ease, background 220ms ease;
-        }
-        @media (max-width: 767px) {
-          .non-partner-cards {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            gap: 16px;
-            padding: 0 24px;
-            max-width: 100%;
-            scrollbar-width: none;
-          }
-          .non-partner-cards::-webkit-scrollbar {
-            display: none;
-          }
-          .non-partner-card {
-            width: 80vw;
-            flex-shrink: 0;
-            scroll-snap-align: center;
-          }
+        .request-option-card {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(201, 168, 76, 0.3);
+          border-radius: 16px;
+          padding: 32px;
+          text-align: center;
+          transition: border-color 220ms ease, background 220ms ease, transform 220ms ease;
+          cursor: pointer;
         }
         .spinner-arc {
           width: 20px;
@@ -1115,9 +1140,9 @@ export default function RequestPage() {
           .partner-success-enter {
             animation: partnerSuccessIn 300ms ease both;
           }
-          .non-partner-card:hover {
-            border-color: rgba(201, 168, 76, 0.45);
-            background: rgba(201, 168, 76, 0.05);
+          .request-option-card:hover {
+            border-color: rgba(201, 168, 76, 0.6);
+            background: rgba(255, 255, 255, 0.08);
             transform: translateY(-4px);
           }
           .leave-dialog {
@@ -1174,6 +1199,21 @@ export default function RequestPage() {
           to {
             opacity: 1;
             transform: translateY(0);
+          }
+        }
+        @media (max-width: 768px) {
+          .request-options-overlay {
+            align-items: flex-start;
+            padding-top: 48px;
+            padding-bottom: 24px;
+          }
+          .request-options-container {
+            grid-template-columns: 1fr;
+            gap: 16px;
+            padding: 16px 0;
+          }
+          .request-option-card {
+            padding: 24px;
           }
         }
       `}</style>
