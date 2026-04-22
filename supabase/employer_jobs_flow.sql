@@ -75,3 +75,8 @@ create policy "service_role_job_edit_tokens" on public.job_edit_tokens
 
 grant all on public.employer_jobs to service_role;
 grant all on public.job_edit_tokens to service_role;
+
+-- Job detail media (public URLs; files live in Storage bucket `job-images`)
+alter table public.employer_jobs
+  add column if not exists image_main text,
+  add column if not exists image_gallery text[];

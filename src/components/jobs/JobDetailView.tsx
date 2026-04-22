@@ -9,6 +9,7 @@ import { JobMarkdownBody } from "@/components/jobs/JobMarkdown";
 import ShareJobButton from "@/components/jobs/ShareJobButton";
 import type { JobRecord } from "@/lib/jobs/types";
 import JobCard from "@/components/jobs/JobCard";
+import JobPostMediaSection from "@/components/jobs/JobPostMediaSection";
 
 function formatDate(date: string): string {
   return new Intl.DateTimeFormat("en-GB", {
@@ -388,6 +389,13 @@ export default function JobDetailView({
 
   type MetaRow = { label: string; view: ReactNode; revise?: ReactNode };
 
+  const adminKey = searchParams.get("admin")?.trim() ?? null;
+
+  const showMediaSection = useMemo(() => {
+    const galleryAny = Boolean((job.imageGallery ?? []).some((u) => typeof u === "string" && u.trim()));
+    return job.source === "employer_board" || Boolean(job.imageMain?.trim()) || galleryAny;
+  }, [job.imageGallery, job.imageMain, job.source]);
+
   const metaRows: MetaRow[] = useMemo(() => {
     const base: MetaRow[] = [
       { label: "Contract", view: job.contractType ?? "-" },
@@ -456,12 +464,24 @@ export default function JobDetailView({
   ]);
 
   return (
-    <div className="container-site pb-16 pt-6 md:pt-8">
-      <Link href="/jobs" className="link-text-premium inline-flex text-sm font-medium text-[#C9A84C]">
-        Back to all jobs
-      </Link>
+    <div className="pb-16 pt-6 md:pt-8">
+      <div className="container-site">
+        <Link href="/jobs" className="link-text-premium inline-flex text-sm font-medium text-[#C9A84C]">
+          Back to all jobs
+        </Link>
+      </div>
 
-      <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      {showMediaSection ? (
+        <JobPostMediaSection
+          job={job}
+          canAdminUpload={Boolean(canSurface)}
+          employerBoardId={boardId}
+          adminSecret={adminKey}
+          isRevising={Boolean(canSurface && revising)}
+        />
+      ) : null}
+
+      <div className="container-site mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <article
           className={`relative rounded-[20px] border bg-white/[0.03] p-6 md:p-8 ${
             job.source === "employer_board"

@@ -53,6 +53,10 @@ export interface JobRecord {
   lastSyncedAt?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+  /** Public URL for employer board hero image (Supabase Storage). */
+  imageMain?: string | null;
+  /** Up to four gallery URLs in slot order (empty strings allowed between slots). */
+  imageGallery?: string[] | null;
 }
 
 export interface JobFilters {

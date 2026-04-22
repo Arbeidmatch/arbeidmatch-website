@@ -45,6 +45,15 @@ function normalizeList(value?: string[] | string | null): string[] {
   return textToList(value);
 }
 
+function normalizeImageGallerySlots(value?: string[] | null): string[] | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (!Array.isArray(value)) return undefined;
+  const arr = value.map((s) => (typeof s === "string" ? s.trim() : "")).slice(0, 4);
+  while (arr.length < 4) arr.push("");
+  if (!arr.some((s) => s)) return undefined;
+  return arr;
+}
+
 async function ensureJobsFile(): Promise<void> {
   await mkdir(DATA_DIR, { recursive: true });
 
@@ -88,6 +97,8 @@ export function sanitizeJob(job: JobRecord): JobRecord {
     applicationUrl: normalizeOptionalText(job.applicationUrl),
     applicationEmail: normalizeOptionalText(job.applicationEmail),
     syncError: normalizeOptionalText(job.syncError),
+    imageMain: normalizeOptionalText(job.imageMain),
+    imageGallery: normalizeImageGallerySlots(job.imageGallery),
   };
 }
 

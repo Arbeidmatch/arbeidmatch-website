@@ -34,7 +34,17 @@ type EmployerJobRow = {
   published_at: string | null;
   created_at: string;
   updated_at: string | null;
+  image_main?: string | null;
+  image_gallery?: string[] | null;
 };
+
+const GALLERY_SLOT_COUNT = 4;
+
+export function normalizeEmployerGallerySlots(raw: string[] | null | undefined): string[] {
+  const arr = [...(raw ?? [])].map((s) => (typeof s === "string" ? s.trim() : ""));
+  while (arr.length < GALLERY_SLOT_COUNT) arr.push("");
+  return arr.slice(0, GALLERY_SLOT_COUNT);
+}
 
 function mapStatus(row: EmployerJobRow): JobStatus {
   if (row.status === "live") return "active";
@@ -102,6 +112,8 @@ function rowToJobRecord(row: EmployerJobRow): JobRecord {
     createdAt: row.created_at,
     updatedAt: row.updated_at ?? row.created_at,
     employerBoardMeta: meta,
+    imageMain: row.image_main?.trim() || null,
+    imageGallery: normalizeEmployerGallerySlots(row.image_gallery).map((u) => u.trim()),
   };
 }
 
@@ -183,6 +195,59 @@ export async function updateEmployerBoardJobById(params: {
     return { ok: false, reason: "Update failed." };
   }
 
+  return { ok: true };
+}
+
+export async function setEmployerJobMainImage(jobId: string, url: string | null): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return { ok: false, reason: "Server misconfigured." };
+
+  const nowIso = new Date().toISOString();
+  const trimmed = url?.trim() || null;
+  const upd = await supabase
+    .from("employer_jobs")
+    .update({ image_main: trimmed, updated_at: nowIso })
+    .eq("id", jobId)
+    .select("id")
+    .maybeSingle();
+
+  if (upd.error || !upd.data) {
+    logApiError("setEmployerJobMainImage", upd.error ?? new Error("no row"), { jobId });
+    return { ok: false, reason: "Update failed." };
+  }
+  return { ok: true };
+}
+
+export async function setEmployerJobGallerySlot(
+  jobId: string,
+  slot: 1 | 2 | 3 | 4,
+  url: string | null,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) return { ok: false, reason: "Server misconfigured." };
+
+  const cur = await supabase.from("employer_jobs").select("image_gallery").eq("id", jobId).maybeSingle();
+  if (cur.error || !cur.data) {
+    logApiError("setEmployerJobGallerySlot read", cur.error ?? new Error("no row"), { jobId });
+    return { ok: false, reason: "Update failed." };
+  }
+
+  const slots = normalizeEmployerGallerySlots((cur.data as { image_gallery?: string[] | null }).image_gallery);
+  slots[slot - 1] = url?.trim() || "";
+  const allEmpty = slots.every((s) => !s);
+  const nowIso = new Date().toISOString();
+
+  const upd = await supabase
+    .from("employer_jobs")
+    .update({ image_gallery: allEmpty ? null : slots, updated_at: nowIso })
+    .eq("id", jobId)
+    .select("id")
+    .maybeSingle();
+
+  if (upd.error || !upd.data) {
+    logApiError("setEmployerJobGallerySlot write", upd.error ?? new Error("no row"), { jobId });
+    return { ok: false, reason: "Update failed." };
+  }
   return { ok: true };
 }
 
