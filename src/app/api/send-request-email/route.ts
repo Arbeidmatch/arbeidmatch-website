@@ -7,6 +7,7 @@ import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import { notifySlack } from "@/lib/slackNotifier";
 import { buildEmail, buildEmailFieldRow, emailBodyParagraph } from "@/lib/emailTemplate";
+import { logEmailSent } from "@/lib/audit/masterAuditLog";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 import {
   mailHeaders,
@@ -220,6 +221,7 @@ export async function POST(request: NextRequest) {
         ctaUrl: adminUrl,
       }),
     });
+    logEmailSent("employer_request_admin_notify", { company: companyName, city: cityLabel });
 
     if (data.email && !(await isUnsubscribed(data.email))) {
       const unsubToken = await getOrCreateSubscription(data.email, "employer-request");
@@ -235,6 +237,10 @@ export async function POST(request: NextRequest) {
           ctaUrl: "https://arbeidmatch.no/feedback",
           unsubscribeToken: unsubToken,
         }),
+      });
+      logEmailSent("employer_request_thank_you_employer", {
+        company: data.company ?? "",
+        toDomain: data.email.includes("@") ? data.email.split("@")[1] ?? "" : "",
       });
     }
 
@@ -260,6 +266,9 @@ export async function POST(request: NextRequest) {
           ctaUrl: "https://arbeidmatch.no/contact",
           unsubscribeToken: referralUnsubToken,
         }),
+      });
+      logEmailSent("employer_request_referral_thank_you", {
+        toDomain: data.referralEmail.includes("@") ? data.referralEmail.split("@")[1] ?? "" : "",
       });
     }
 

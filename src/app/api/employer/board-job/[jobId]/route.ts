@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { insertAuditLog } from "@/lib/audit/masterAuditLog";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { getEmployerDraftJobForEdit, updateEmployerBoardJobById } from "@/lib/employer-flow/employerJobsRepository";
 import { noStoreJson } from "@/lib/apiSecurity";
 
@@ -81,13 +81,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return noStoreJson({ error: result.reason }, { status: 400 });
   }
 
-  void insertAuditLog({
-    eventType: "job_post_edited",
-    entityType: "job",
-    entityId: jobId,
-    actor: "admin",
-    metadata: { status: parsed.data.status },
-  });
+  void logAuditEvent("job_post_edited", "job", jobId, "admin", { status: parsed.data.status });
 
   return noStoreJson({ success: true });
 }

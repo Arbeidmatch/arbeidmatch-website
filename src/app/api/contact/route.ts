@@ -6,6 +6,7 @@ import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
 import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTemplate";
 import { mailHeaders, premiumCtaButton } from "@/lib/emailPremiumTemplate";
+import { logEmailSent } from "@/lib/audit/masterAuditLog";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 type ContactPayload = {
@@ -84,6 +85,7 @@ export async function POST(request: NextRequest) {
         body: internalBody,
       }),
     });
+    logEmailSent("contact_form_internal", { recipient, isSupportRequest });
 
     const safeName = escapeHtml(name);
     const safeNeed = escapeHtml(need);
@@ -107,6 +109,7 @@ export async function POST(request: NextRequest) {
           unsubscribeToken: unsubToken,
         }),
       });
+      logEmailSent("contact_form_ack", { toDomain: email.includes("@") ? email.split("@")[1] ?? "" : "" });
     }
 
     void notifySlack("contacts", {

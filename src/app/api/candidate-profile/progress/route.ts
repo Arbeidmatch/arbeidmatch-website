@@ -4,6 +4,7 @@ import { z } from "zod";
 import { draftToIncompleteCandidateRow } from "@/lib/candidates/progressRow";
 import { getSupabaseAdminClient } from "@/lib/jobs/applyService";
 import { isRateLimited } from "@/lib/requestProtection";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { logApiError } from "@/lib/secureLogger";
 import { notifyError } from "@/lib/errorNotifier";
 
@@ -56,6 +57,11 @@ export async function POST(request: NextRequest) {
         { status: 500 },
       );
     }
+
+    void logAuditEvent("candidate_profile_progress_saved", "candidate", null, "candidate", {
+      email: emailKey,
+      lastCompletedStep: parsed.data.lastCompletedStep,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

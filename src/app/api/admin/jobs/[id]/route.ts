@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { notifyError } from "@/lib/errorNotifier";
 import { manualJobUpdateSchema, mapManualInputToJobPayload } from "@/lib/jobs/admin-schema";
 import { getJobById, updateManualJob } from "@/lib/jobs/repository";
@@ -57,6 +59,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const mapped = mapManualInputToJobPayload(merged);
     const job = await updateManualJob(id, mapped);
     if (!job) return NextResponse.json({ error: "Job not found or not editable" }, { status: 404 });
+    void logAuditEvent("job_post_edited", "job", id, "admin", { status: job.status, slug: job.slug });
     return NextResponse.json({ job });
   } catch (error) {
     await notifyError({ route: "/api/admin/jobs/[id] PUT", error });

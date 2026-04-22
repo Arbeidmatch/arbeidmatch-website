@@ -7,7 +7,7 @@ import { generateEmployerJobContent } from "@/lib/employer-flow/generateEmployer
 import { createEmployerJobDraftAfterRequest } from "@/lib/employer-flow/employerJobsRepository";
 import { getRateLimitResult, hasHoneypotValue, noStoreJson } from "@/lib/apiSecurity";
 import { notifyError } from "@/lib/errorNotifier";
-import { insertAuditLog } from "@/lib/audit/masterAuditLog";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { logApiError } from "@/lib/secureLogger";
 
 const requestSchema = z
@@ -309,21 +309,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (insertedRequest?.id) {
-      void insertAuditLog({
-        eventType: "employer_request_created",
-        entityType: "employer",
-        entityId: insertedRequest.id,
-        actor: "employer",
-        metadata: { company: payload.company, brandingRequested: wantsBranding },
+      void logAuditEvent("employer_request_created", "employer_request", insertedRequest.id, "employer", {
+        company: payload.company,
+        brandingRequested: wantsBranding,
+      });
+      void logAuditEvent("branding_option_selected", "branding", insertedRequest.id, "employer", {
+        choice: wantsBranding ? "yes" : "no",
+        branding_price,
       });
       if (wantsBranding) {
-        void insertAuditLog({
-          eventType: "branding_requested",
-          entityType: "employer",
-          entityId: insertedRequest.id,
-          actor: "employer",
-          metadata: { branding_price },
-        });
+        void logAuditEvent("branding_requested", "branding", insertedRequest.id, "employer", { branding_price });
       }
       try {
         const generated = generateEmployerJobContent({

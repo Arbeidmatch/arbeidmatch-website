@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { insertAuditLog } from "@/lib/audit/masterAuditLog";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { renewEmployerJobByToken } from "@/lib/employer-flow/employerJobExpiry";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
@@ -45,13 +45,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (!r.error && r.data?.slug) slug = String(r.data.slug);
   }
 
-  await insertAuditLog({
-    eventType: "job_post_renewed",
-    entityType: "job",
-    entityId: jobId,
-    actor: "employer",
-    metadata: { source: "renew_post" },
-  });
+  await logAuditEvent("job_post_renewed", "job", jobId, "employer", { source: "renew_post" });
 
   return NextResponse.json({
     success: true,
@@ -80,13 +74,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     if (!r.error && r.data?.slug) slug = String(r.data.slug);
   }
 
-  await insertAuditLog({
-    eventType: "job_post_renewed",
-    entityType: "job",
-    entityId: jobId,
-    actor: "employer",
-    metadata: { source: "renew_link" },
-  });
+  await logAuditEvent("job_post_renewed", "job", jobId, "employer", { source: "renew_link" });
 
   const dest = slug ? `/jobs/${slug}?renewed=1` : "/jobs?renewed=1";
   return NextResponse.redirect(new URL(dest, request.url));

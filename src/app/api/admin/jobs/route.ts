@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { notifyError } from "@/lib/errorNotifier";
 import { manualJobCreateSchema, mapManualInputToJobPayload } from "@/lib/jobs/admin-schema";
 import { createManualJob, getAdminJobs } from "@/lib/jobs/repository";
@@ -27,6 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid payload", details: parsed.error.flatten() }, { status: 400 });
     }
     const job = await createManualJob(mapManualInputToJobPayload(parsed.data));
+    void logAuditEvent("job_post_created", "job", job.id, "admin", { source: job.source, slug: job.slug });
     return NextResponse.json({ job }, { status: 201 });
   } catch (error) {
     await notifyError({ route: "/api/admin/jobs POST", error });

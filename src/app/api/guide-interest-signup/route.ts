@@ -6,6 +6,7 @@ import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { escapeHtml } from "@/lib/htmlSanitizer";
 import { buildEmail } from "@/lib/emailTemplate";
 import { notifyError } from "@/lib/errorNotifier";
+import { logAuditEvent, logEmailSent } from "@/lib/audit/masterAuditLog";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
@@ -88,6 +89,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    void logAuditEvent("guide_interest_signup_saved", "candidate", existing?.id ?? null, "candidate", {
+      specialty,
+      guideWanted,
+      updated: Boolean(existing?.id),
+    });
+
     const transporter = createSmtpTransporter();
     if (transporter) {
       const lines = [
@@ -132,6 +139,7 @@ export async function POST(request: NextRequest) {
             unsubscribeToken: unsubToken,
           }),
         });
+        logEmailSent("guide_interest_confirmation", { toDomain: email.split("@")[1] ?? "", specialty });
       } catch {
         /* ignore email transport errors */
       }

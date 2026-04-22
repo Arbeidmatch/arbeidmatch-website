@@ -5,7 +5,7 @@ import { candidateProfilePayloadSchema } from "@/lib/candidates/profileSchema";
 import { getSupabaseAdminClient } from "@/lib/jobs/applyService";
 import { notifyError } from "@/lib/errorNotifier";
 import { isRateLimited } from "@/lib/requestProtection";
-import { insertAuditLog } from "@/lib/audit/masterAuditLog";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { logApiError } from "@/lib/secureLogger";
 
 function experienceYearsFromBand(band: z.infer<typeof candidateProfilePayloadSchema>["preferences"]["experienceBand"]): number {
@@ -102,13 +102,7 @@ export async function POST(request: NextRequest) {
     }
 
     const cid = upsert.data && typeof (upsert.data as { id?: string }).id === "string" ? (upsert.data as { id: string }).id : null;
-    void insertAuditLog({
-      eventType: "candidate_profile_completed",
-      entityType: "candidate",
-      entityId: cid,
-      actor: "candidate",
-      metadata: { email: data.email },
-    });
+    void logAuditEvent("candidate_profile_completed", "candidate", cid, "candidate", { email: data.email });
 
     return NextResponse.json({ success: true, shareWithEmployers: data.shareWithEmployers });
   } catch (error) {

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { notifyError } from "@/lib/errorNotifier";
 import { manualJobUpdateSchema, mapManualInputToJobPayload } from "@/lib/jobs/admin-schema";
 import { archiveJob, getJobById, publishJob, updateManualJob } from "@/lib/jobs/repository";
@@ -63,6 +65,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
+    void logAuditEvent("job_post_edited", "job", id, "admin", { status: job.status, slug: job.slug });
     return NextResponse.json({ job });
   } catch (error) {
     await notifyError({ route: "/api/jobs/[id] PUT", error });
@@ -78,6 +81,13 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
+    void logAuditEvent(
+      body.action === "archive" ? "job_post_archived" : "job_post_published",
+      "job",
+      id,
+      "admin",
+      { slug: job.slug },
+    );
 
     return NextResponse.json({ job });
   } catch (error) {

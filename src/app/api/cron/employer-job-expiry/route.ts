@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { insertAuditLog } from "@/lib/audit/masterAuditLog";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { runEmployerJobExpirySweep } from "@/lib/employer-flow/employerJobExpiry";
 import { notifyError } from "@/lib/errorNotifier";
 
@@ -19,12 +19,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await runEmployerJobExpirySweep();
-    await insertAuditLog({
-      eventType: "employer_job_expiry_cron",
-      entityType: "other",
-      actor: "system",
-      metadata: result,
-    });
+    await logAuditEvent("employer_job_expiry_cron", "other", null, "system", result);
     return NextResponse.json({ success: true, ...result });
   } catch (e) {
     await notifyError({ route: "/api/cron/employer-job-expiry", error: e });

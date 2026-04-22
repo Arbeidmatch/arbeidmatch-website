@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { notifyError } from "@/lib/errorNotifier";
 import { getOrCreateSubscription } from "@/lib/emailSubscription";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
@@ -24,6 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     await getOrCreateSubscription(email, "jobs-coming-soon");
+    void logAuditEvent("jobs_launch_notify_signup", "email", null, "candidate", { emailDomain: email.split("@")[1] ?? "" });
     return NextResponse.json({ success: true });
   } catch (e) {
     await notifyError({ route: "/api/jobs-launch-notify", error: e });

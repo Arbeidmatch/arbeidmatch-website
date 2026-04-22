@@ -8,7 +8,7 @@ import {
   updateSubscriberBySubscriptionId,
 } from "@/lib/premium/subscribers";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
-import { insertAuditLog } from "@/lib/audit/masterAuditLog";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { notifyError } from "@/lib/errorNotifier";
 
 export const dynamic = "force-dynamic";
@@ -118,13 +118,7 @@ export async function POST(request: NextRequest) {
         break;
     }
 
-    void insertAuditLog({
-      eventType: `payment_stripe_${event.type}`,
-      entityType: "payment",
-      entityId: null,
-      actor: "system",
-      metadata: { stripeEventId: event.id },
-    });
+    void logAuditEvent(`payment_stripe_${event.type}`, "payment", null, "system", { stripeEventId: event.id });
   } catch (e) {
     await notifyError({ route: "/api/premium/webhook", error: e });
     console.error("[premium/webhook] handler", e);

@@ -15,6 +15,7 @@ import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
 import { logApiError } from "@/lib/secureLogger";
+import { logAuditEvent, logEmailSent } from "@/lib/audit/masterAuditLog";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
@@ -67,6 +68,10 @@ export async function POST(request: NextRequest) {
       throw insertError;
     }
 
+    void logAuditEvent("non_eu_lead_created", "candidate", null, "candidate", {
+      emailDomain: emailLower.includes("@") ? emailLower.split("@")[1] ?? "" : "",
+    });
+
     if (!(await isUnsubscribed(emailLower))) {
       const unsubToken = await getOrCreateSubscription(emailLower, "non-eu-lead");
       await transporter.sendMail({
@@ -75,6 +80,7 @@ export async function POST(request: NextRequest) {
         subject: "Your free Norway work guide — ArbeidMatch",
         html: buildNonEuLeadEmail(firstName, unsubToken),
       });
+      logEmailSent("non_eu_lead_user_guide", { toDomain: emailLower.split("@")[1] ?? "" });
     }
 
     await transporter.sendMail({
@@ -90,6 +96,7 @@ export async function POST(request: NextRequest) {
         ]),
       }),
     });
+    logEmailSent("non_eu_lead_internal_notify", {});
 
     void notifySlack("nonEu", {
       title: "New Non-EU Lead",

@@ -8,6 +8,7 @@ import {
   noStoreJson,
   parseJsonBodyWithSchema,
 } from "@/lib/apiSecurity";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 
@@ -121,6 +122,10 @@ export async function POST(request: NextRequest) {
     if (error) {
       throw error;
     }
+
+    void logAuditEvent("employer_request_token_created", "request_token", token, "employer", {
+      company: company?.trim() || null,
+    });
 
     return noStoreJson({ success: true, token });
   } catch (error) {

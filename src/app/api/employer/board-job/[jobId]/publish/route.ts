@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { noStoreJson } from "@/lib/apiSecurity";
-import { insertAuditLog } from "@/lib/audit/masterAuditLog";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { commitEmployerJobEdit } from "@/lib/employer-flow/employerJobsRepository";
 
 const bodySchema = z.object({
@@ -43,13 +43,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return noStoreJson({ error: result.reason }, { status: 400 });
   }
 
-  void insertAuditLog({
-    eventType: "job_post_published",
-    entityType: "job",
-    entityId: jobId,
-    actor: "employer",
-    metadata: { slug: result.slug },
-  });
+  void logAuditEvent("job_post_published", "job", jobId, "employer", { slug: result.slug });
 
   return noStoreJson({ success: true, slug: result.slug });
 }

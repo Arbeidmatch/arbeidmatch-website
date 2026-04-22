@@ -7,6 +7,7 @@ import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
 import { buildEmail, emailBodyParagraph } from "@/lib/emailTemplate";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { logEmailSent } from "@/lib/audit/masterAuditLog";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
@@ -79,6 +80,7 @@ Visit https://arbeidmatch.no`,
             unsubscribeToken: unsubToken,
           }),
         });
+        logEmailSent("app_waitlist_confirmation", { toDomain: email.split("@")[1] ?? "" });
       } catch (e) {
         console.error("[app-waitlist] confirmation email", e);
       }

@@ -8,6 +8,7 @@ import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
 import { buildEmail, emailFieldRows } from "@/lib/emailTemplate";
+import { logAuditEvent, logEmailSent } from "@/lib/audit/masterAuditLog";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
@@ -65,6 +66,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Could not save. Please try again." }, { status: 500 });
     }
 
+    void logAuditEvent("dsb_lead_created", "candidate", null, "candidate", {
+      source,
+      emailDomain: email.includes("@") ? email.split("@")[1] ?? "" : "",
+    });
+
     const transporter = createSmtpTransporter();
     if (transporter) {
       try {
@@ -81,6 +87,7 @@ export async function POST(request: NextRequest) {
               unsubscribeToken: unsubToken,
             }),
           });
+          logEmailSent("dsb_checklist_lead_user", { toDomain: email.split("@")[1] ?? "" });
         }
       } catch (e) {
         console.error("[dsb-leads] user email", e);
@@ -102,6 +109,7 @@ export async function POST(request: NextRequest) {
             body: internalBody,
           }),
         });
+        logEmailSent("dsb_checklist_lead_internal", { source });
       } catch (e) {
         console.error("[dsb-leads] notify email", e);
       }

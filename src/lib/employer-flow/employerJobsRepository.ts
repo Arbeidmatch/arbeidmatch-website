@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import type { JobRecord, JobStatus } from "@/lib/jobs/types";
 import type { GeneratedEmployerJobInsert } from "@/lib/employer-flow/generateEmployerJob";
-import { insertAuditLog } from "@/lib/audit/masterAuditLog";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { sendEmployerJobDraftReadyEmail } from "@/lib/employer-flow/employerJobEmails";
 import { logApiError } from "@/lib/secureLogger";
 
@@ -318,23 +318,17 @@ export async function createEmployerJobDraftAfterRequest(params: {
       editToken,
       title: params.generated.title,
     });
-    void insertAuditLog({
-      eventType: "email_sent_employer_job_draft_ready",
-      entityType: "email",
-      entityId: jobId,
-      actor: "system",
-      metadata: { template: "employer_job_draft_ready", toDomain: params.generated.employer_email.split("@")[1] ?? "" },
+    void logAuditEvent("email_sent_employer_job_draft_ready", "email", jobId, "system", {
+      template: "employer_job_draft_ready",
+      toDomain: params.generated.employer_email.split("@")[1] ?? "",
     });
   } catch (e) {
     logApiError("createEmployerJobDraftAfterRequest email", e, { jobId });
   }
 
-  void insertAuditLog({
-    eventType: "job_post_generated",
-    entityType: "job",
-    entityId: jobId,
-    actor: "system",
-    metadata: { employerRequestId: params.employerRequestId, slug },
+  void logAuditEvent("job_post_generated", "job", jobId, "system", {
+    employerRequestId: params.employerRequestId,
+    slug,
   });
 
   return { jobId, editToken, slug };

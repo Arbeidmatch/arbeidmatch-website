@@ -5,6 +5,7 @@ import {
   setEmployerJobGallerySlot,
   setEmployerJobMainImage,
 } from "@/lib/employer-flow/employerJobsRepository";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { noStoreJson } from "@/lib/apiSecurity";
 import { logApiError } from "@/lib/secureLogger";
 
@@ -76,6 +77,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       await removeStorageObjects(jobId, (name) => name.startsWith("main."));
       const res = await setEmployerJobMainImage(jobId, null);
       if (!res.ok) return noStoreJson({ error: res.reason }, { status: 400 });
+      void logAuditEvent("job_post_images_updated", "job", jobId, "admin", { action: "clear_main" });
       return noStoreJson({ success: true });
     }
 
@@ -86,6 +88,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     await removeStorageObjects(jobId, (name) => new RegExp(`^gallery-${slot}\\.`).test(name));
     const res = await setEmployerJobGallerySlot(jobId, slot as 1 | 2 | 3 | 4, null);
     if (!res.ok) return noStoreJson({ error: res.reason }, { status: 400 });
+    void logAuditEvent("job_post_images_updated", "job", jobId, "admin", { action: "clear_gallery_slot", slot });
     return noStoreJson({ success: true });
   }
 
@@ -158,10 +161,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
   if (kind === "main") {
     const res = await setEmployerJobMainImage(jobId, publicUrl);
     if (!res.ok) return noStoreJson({ error: res.reason }, { status: 400 });
+    void logAuditEvent("job_post_images_updated", "job", jobId, "admin", { action: "upload_main" });
     return noStoreJson({ success: true, url: publicUrl });
   }
 
   const res = await setEmployerJobGallerySlot(jobId, slotNum as 1 | 2 | 3 | 4, publicUrl);
   if (!res.ok) return noStoreJson({ error: res.reason }, { status: 400 });
+  void logAuditEvent("job_post_images_updated", "job", jobId, "admin", { action: "upload_gallery", slot: slotNum });
   return noStoreJson({ success: true, url: publicUrl });
 }
