@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check, Shield } from "lucide-react";
 
+import { sanitizeApplyReturnPath } from "@/lib/candidates/applyReturnPath";
 import { buildCandidateProfilePayload, buildJobPreferences } from "@/lib/candidates/linearProfilePayload";
 import type { CandidateProfilePayload, JobPreferencesPayload } from "@/lib/candidates/profileSchema";
 import {
@@ -72,6 +73,10 @@ type WizardEntryMode = "default" | "complete-only";
 type CandidateProfileWizardProps = {
   entryMode?: WizardEntryMode;
   resumeToken?: string | null;
+  /** Safe in-app path (e.g. `/jobs/slug`) after profile is saved. */
+  applyReturnPath?: string | null;
+  /** Pre-fills email from magic link before resume payload loads. */
+  initialEmailHint?: string | null;
 };
 
 const TOTAL_STEPS = 9;
@@ -122,6 +127,8 @@ const HOUSING_LABELS: Record<(typeof housingPrefs)[number], string> = {
 export default function CandidateProfileWizard({
   entryMode = "default",
   resumeToken = null,
+  applyReturnPath = null,
+  initialEmailHint = null,
 }: CandidateProfileWizardProps) {
   const reduceMotion = useReducedMotion();
 
@@ -133,7 +140,7 @@ export default function CandidateProfileWizard({
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => (initialEmailHint?.includes("@") ? initialEmailHint.trim() : ""));
   const [phone, setPhone] = useState("");
   const [currentCountry, setCurrentCountry] = useState("");
   const [city, setCity] = useState("");
@@ -325,12 +332,14 @@ export default function CandidateProfileWizard({
 
   useEffect(() => {
     if (saveStatus !== "done") return;
-    const target = shareWithEmployers ? "/jobs" : "/jobs?browse=1";
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const fromReturn = applyReturnPath ? sanitizeApplyReturnPath(origin, applyReturnPath) : null;
+    const target = fromReturn || (shareWithEmployers ? "/jobs" : "/jobs?browse=1");
     const handle = window.setTimeout(() => {
       window.location.assign(target);
     }, 900);
     return () => window.clearTimeout(handle);
-  }, [saveStatus, shareWithEmployers]);
+  }, [applyReturnPath, saveStatus, shareWithEmployers]);
 
   useEffect(() => {
     if (entryMode !== "complete-only" || tokenTrim) return;
@@ -357,7 +366,9 @@ export default function CandidateProfileWizard({
         }
         const completed = data.profile_completion_step ?? 0;
         if (completed >= 9) {
-          window.location.assign("/jobs");
+          const origin = typeof window !== "undefined" ? window.location.origin : "";
+          const fromReturn = applyReturnPath ? sanitizeApplyReturnPath(origin, applyReturnPath) : null;
+          window.location.assign(fromReturn || "/jobs");
           return;
         }
         const d = data.draft && typeof data.draft === "object" ? data.draft : {};
@@ -410,7 +421,7 @@ export default function CandidateProfileWizard({
     return () => {
       cancelled = true;
     };
-  }, [entryMode, tokenTrim]);
+  }, [applyReturnPath, entryMode, tokenTrim]);
 
   function validateCurrentStep(): boolean {
     switch (wizardStep) {

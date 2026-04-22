@@ -7,5 +7,12 @@ import CandidateProfileWizard from "@/components/candidates/CandidateProfileWiza
 export default function CompleteProfileClient() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  return <CandidateProfileWizard entryMode="complete-only" resumeToken={token} />;
+  const returnPath = searchParams.get("return");
+  return (
+    <CandidateProfileWizard
+      entryMode="complete-only"
+      resumeToken={token}
+      applyReturnPath={returnPath?.trim() ? returnPath : null}
+    />
+  );
 }

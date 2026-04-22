@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { sanitizeApplyReturnPath } from "@/lib/candidates/applyReturnPath";
 import { getSiteOrigin } from "@/lib/candidates/siteOrigin";
 import { createSmtpTransporter, PROFILE_TRANSACTIONAL_FROM } from "@/lib/candidates/smtpShared";
 import { draftToIncompleteCandidateRow } from "@/lib/candidates/progressRow";
@@ -14,20 +15,70 @@ import { emailParagraph, premiumCtaButton, wrapPremiumEmail } from "@/lib/emailP
 
 const bodySchema = z.object({
   email: z.string().trim().email(),
+  returnUrl: z.string().trim().max(2000).optional(),
+  mode: z.enum(["send_email", "continue_url"]).optional().default("send_email"),
 });
 
 const REMINDER_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
+function buildCandidatesMagicLink(base: string, emailKey: string, token: string, returnPath: string | null): string {
+  const q = new URLSearchParams();
+  q.set("email", emailKey);
+  q.set("token", token);
+  if (returnPath) q.set("return", returnPath);
+  return `${base}/candidates?${q.toString()}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    if (isRateLimited(request, "candidate-profile-reminder", 8, 10 * 60 * 1000)) {
-      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
-    }
-
     const json = (await request.json()) as unknown;
     const parsed = bodySchema.safeParse(json);
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid email." }, { status: 400 });
+    }
+
+    const base = getSiteOrigin();
+    const safeReturn = sanitizeApplyReturnPath(base, parsed.data.returnUrl ?? undefined);
+
+    if (parsed.data.mode === "continue_url") {
+      if (isRateLimited(request, "candidate-profile-continue-url", 20, 10 * 60 * 1000)) {
+        return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
+      }
+
+      const supabase = getSupabaseAdminClient();
+      if (!supabase) {
+        return NextResponse.json({ error: "Supabase is not configured." }, { status: 500 });
+      }
+
+      const emailKey = parsed.data.email.toLowerCase();
+      const existing = await supabase
+        .from("candidates")
+        .select("profile_token, token_expires_at, profile_completion_step")
+        .eq("email", emailKey)
+        .maybeSingle();
+
+      if (existing.error) {
+        logApiError("/api/candidate-profile/reminder continue lookup", existing.error);
+        return NextResponse.json({ error: "Could not load profile." }, { status: 500 });
+      }
+
+      const step = existing.data?.profile_completion_step ?? 0;
+      if (step >= 9) {
+        return NextResponse.json({ error: "Profile is already complete." }, { status: 400 });
+      }
+
+      const token = typeof existing.data?.profile_token === "string" ? existing.data.profile_token.trim() : "";
+      const expires = existing.data?.token_expires_at ? new Date(existing.data.token_expires_at).getTime() : 0;
+      if (!token || !expires || expires < Date.now()) {
+        return NextResponse.json({ error: "no_valid_link", hint: "Request a new link by email." }, { status: 404 });
+      }
+
+      const continueUrl = buildCandidatesMagicLink(base, emailKey, token, safeReturn);
+      return NextResponse.json({ success: true, continueUrl });
+    }
+
+    if (isRateLimited(request, "candidate-profile-reminder", 8, 10 * 60 * 1000)) {
+      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const transporter = createSmtpTransporter();
@@ -109,8 +160,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const base = getSiteOrigin();
-    const link = `${base}/candidates/complete-profile?token=${encodeURIComponent(token)}`;
+    const link = buildCandidatesMagicLink(base, emailKey, token, safeReturn);
     const step = existing.data?.profile_completion_step ?? 0;
     const displayStep = Math.min(9, Math.max(0, step));
 
@@ -119,7 +169,7 @@ export async function POST(request: NextRequest) {
       emailParagraph(`Hi ${safeFirst},`),
       emailParagraph("You started applying on ArbeidMatch, but your candidate profile is not finished yet."),
       emailParagraph(`<strong>Progress:</strong> you are <strong>${displayStep}</strong> of <strong>9</strong> steps in.`),
-      `<p style="margin:24px 0;text-align:center;">${premiumCtaButton(link, "Continue My Profile")}</p>`,
+      `<p style="margin:24px 0;text-align:center;">${premiumCtaButton(link, "Continue your profile")}</p>`,
       emailParagraph(`Or copy this link:<br /><span style="word-break:break-all;font-size:13px;color:#555;">${escapeHtml(link)}</span>`),
       emailParagraph("This secure link is valid for 7 days."),
     ].join("");
