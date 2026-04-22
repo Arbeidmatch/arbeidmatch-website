@@ -435,18 +435,22 @@ export default function OutsideEuEeaClient() {
         <div className="mx-auto w-full max-w-content px-4 md:px-6 lg:px-12">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
           <article className={`${cardClass} flex h-full flex-col`}>
-            <h3 className="text-lg font-bold text-white">DSB Authorization Guide</h3>
-            <p className="mt-2 flex-1 text-sm text-[rgba(255,255,255,0.65)]">
+            <div className="mb-3 flex items-start justify-between gap-2">
+              <h3 className="text-lg font-bold text-white">DSB Authorization Guide</h3>
+              <span className="shrink-0 rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#C9A84C]">
+                Coming soon
+              </span>
+            </div>
+            <p className="mt-1 flex-1 text-sm text-[rgba(255,255,255,0.65)]">
               For electricians who need Norwegian DSB approval
             </p>
-            <p className="mt-4 text-xl font-bold text-[#C9A84C]">39 EUR</p>
-            <Link
-              href="/dsb-support/non-eu"
-              onClick={() => trackEvent("dsb_guide_click", { source: "outside-eu-eea" })}
-              className="mt-6 inline-flex min-h-[44px] w-full items-center justify-center rounded-[10px] bg-[#C9A84C] px-4 py-3 text-center text-sm font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
+            <button
+              type="button"
+              disabled
+              className="mt-6 w-full cursor-not-allowed rounded-[10px] border border-[rgba(201,168,76,0.2)] py-3 text-sm font-semibold text-[rgba(255,255,255,0.35)]"
             >
-              Get the guide
-            </Link>
+              Coming soon
+            </button>
           </article>
           <article className={`${cardClass} flex h-full flex-col`}>
             <div className="mb-3 flex items-start justify-between gap-2">

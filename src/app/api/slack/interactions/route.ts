@@ -11,9 +11,9 @@ type SlackPayload = {
 };
 
 function isValidSlackSignature(request: NextRequest, rawBody: string): boolean {
-  const secret = process.env.SLACK_SIGNING_SECRET;
+  const secret = process.env.SLACK_SIGNING_SECRET?.trim();
   const signature = request.headers.get("x-slack-signature") || "";
-  const timestamp = request.headers.get("x-slack-request-timestamp") || "";
+  const timestamp = request.headers.get("x-slack-request-timestamp") || request.headers.get("x-slack-timestamp") || "";
   if (!secret || !signature.startsWith("v0=") || !timestamp) return false;
 
   const ts = Number.parseInt(timestamp, 10);
