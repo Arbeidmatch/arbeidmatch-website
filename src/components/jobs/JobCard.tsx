@@ -86,7 +86,6 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
             View job
           </Link>
           <div className="flex min-w-0 flex-1 flex-col gap-2.5 sm:flex-row sm:gap-2.5">
-            <JobFitCheckButton job={job} className="flex-1" />
             {browseOnly ? (
               job.applicationMethod === "internal" || !job.applicationMethod ? (
                 <ApplyWithProfileGate
@@ -122,6 +121,7 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
                 Apply
               </a>
             )}
+            <JobFitCheckButton job={job} browseOnly={browseOnly} className="flex-1" />
           </div>
         </div>
       </div>
