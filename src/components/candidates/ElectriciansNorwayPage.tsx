@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Link from "next/link";
 import { Briefcase, Clock, FileCheck } from "lucide-react";
 
 import SourceDisclaimer from "@/components/ui/SourceDisclaimer";
@@ -16,24 +15,53 @@ function InlineRegisterBlock({ onPrimaryDsb }: { onPrimaryDsb: () => void }) {
   return (
     <div className="mt-8 w-full max-w-2xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
-        <button
-          type="button"
-          onClick={onPrimaryDsb}
-          className="inline-flex min-h-[48px] items-center justify-center rounded-[10px] px-8 py-3.5 text-[15px] font-bold text-[#0f1923] transition-opacity duration-200 hover:opacity-95"
-          style={{ background: GOLD }}
-        >
-          Get the Full DSB Guide
-        </button>
         <a
           href="https://jobs.arbeidmatch.no/sign-up"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-[48px] items-center justify-center rounded-[10px] border bg-transparent px-8 py-3.5 text-[15px] font-semibold transition-colors duration-200 hover:bg-[rgba(201,168,76,0.08)]"
-          style={{ color: GOLD, borderColor: "rgba(201,168,76,0.45)" }}
+          className="inline-flex min-h-[48px] items-center justify-center rounded-[10px] border px-8 py-3.5 text-[15px] font-bold text-[#0f1923] shadow-[0_10px_30px_rgba(201,168,76,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_35px_rgba(201,168,76,0.38)]"
+          style={{
+            background: "linear-gradient(135deg, #d6b45a 0%, #c9a84c 45%, #b8953f 100%)",
+            borderColor: "rgba(255,255,255,0.25)",
+            animation: "premiumPulse 3.2s ease-in-out infinite",
+          }}
         >
           Register for job alerts
         </a>
+        <button
+          type="button"
+          onClick={onPrimaryDsb}
+          className="inline-flex min-h-[48px] items-center justify-center rounded-[10px] border bg-transparent px-8 py-3.5 text-[15px] font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:bg-[rgba(201,168,76,0.1)]"
+          style={{
+            color: "rgba(201,168,76,0.95)",
+            borderColor: "rgba(201,168,76,0.38)",
+            boxShadow: "inset 0 0 0 1px rgba(201,168,76,0.08)",
+            animation: "softGlow 4.5s ease-in-out infinite",
+          }}
+        >
+          Get the Full DSB Guide
+        </button>
       </div>
+      <style jsx>{`
+        @keyframes premiumPulse {
+          0%,
+          100% {
+            filter: saturate(1);
+          }
+          50% {
+            filter: saturate(1.12) brightness(1.03);
+          }
+        }
+        @keyframes softGlow {
+          0%,
+          100% {
+            box-shadow: inset 0 0 0 1px rgba(201, 168, 76, 0.08), 0 0 0 rgba(201, 168, 76, 0);
+          }
+          50% {
+            box-shadow: inset 0 0 0 1px rgba(201, 168, 76, 0.16), 0 0 20px rgba(201, 168, 76, 0.14);
+          }
+        }
+      `}</style>
     </div>
   );
 }
