@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { applyGeneratedEmployerJobTone } from "@/lib/jobs/partnerJobCopy";
 
 export type EmployerRequestWizardPayload = {
   company: string;
@@ -176,7 +177,7 @@ export function generateEmployerJobContent(payload: EmployerRequestWizardPayload
     .filter(Boolean)
     .join("\n\n");
 
-  const description = `${intro}\n\n${body}`;
+  const description = applyGeneratedEmployerJobTone(`${intro}\n\n${body}`);
 
   const reqLines = [
     payload.requirements?.trim(),
@@ -186,7 +187,7 @@ export function generateEmployerJobContent(payload: EmployerRequestWizardPayload
     payload.driverLicense ? `Driver licence signal: ${payload.driverLicense}.` : null,
   ].filter(Boolean);
 
-  const requirements = reqLines.join("\n");
+  const requirements = applyGeneratedEmployerJobTone(reqLines.join("\n"));
 
   const baseSlug = slugify(`${payload.category}-${positionTitle}`).slice(0, 72) || "role";
   const slug = `${baseSlug}-${randomUUID().slice(0, 8)}`;

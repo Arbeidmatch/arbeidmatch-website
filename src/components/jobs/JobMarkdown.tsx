@@ -1,6 +1,9 @@
 import type { ComponentProps } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { neutralWordingForPartnerJobMarkdown } from "@/lib/jobs/partnerJobCopy";
+
+export type JobMarkdownCopyAudience = "partner" | "arbeidmatch";
 
 const mdLinkClass = "font-medium text-[#C9A84C] underline decoration-[#C9A84C]/40 underline-offset-2 hover:decoration-[#C9A84C]";
 
@@ -53,14 +56,24 @@ const components = {
   ),
 };
 
-export function JobMarkdownBody({ markdown }: { markdown: string }) {
+export function JobMarkdownBody({
+  markdown,
+  copyAudience = "arbeidmatch",
+}: {
+  markdown: string;
+  /** Partner/client listings use neutral employer wording; ArbeidMatch-owned listings may keep "we". */
+  copyAudience?: JobMarkdownCopyAudience;
+}) {
   const trimmed = markdown?.trim() ?? "";
   if (!trimmed) return null;
+
+  const source =
+    copyAudience === "partner" ? neutralWordingForPartnerJobMarkdown(trimmed) : trimmed;
 
   return (
     <div className="job-markdown max-w-none">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-        {trimmed}
+        {source}
       </ReactMarkdown>
     </div>
   );

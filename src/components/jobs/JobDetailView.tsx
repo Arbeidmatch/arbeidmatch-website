@@ -5,8 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 import ApplyWithProfileGate from "@/components/jobs/ApplyWithProfileGate";
-import { JobMarkdownBody } from "@/components/jobs/JobMarkdown";
+import { JobMarkdownBody, type JobMarkdownCopyAudience } from "@/components/jobs/JobMarkdown";
 import ShareJobButton from "@/components/jobs/ShareJobButton";
+import {
+  benefitsSectionTitleForJob,
+  isPartnerNeutralJobCopy,
+  neutralWordingForPartnerJobMarkdown,
+} from "@/lib/jobs/partnerJobCopy";
 import type { JobRecord } from "@/lib/jobs/types";
 import JobCard from "@/components/jobs/JobCard";
 import JobPostMediaSection from "@/components/jobs/JobPostMediaSection";
@@ -81,7 +86,7 @@ function descriptionHasWorkTasksHeading(description: string): boolean {
 
 function descriptionHasWeOfferHeading(description: string): boolean {
   return markdownHeadingsLower(description).some((t) =>
-    /^(we\s+offer|what\s+we\s+offer|benefits|vi\s+tilbyr)/.test(t),
+    /^(we\s+offer|what\s+we\s+offer|about\s+the\s+offer|benefits|vi\s+tilbyr)/.test(t),
   );
 }
 
@@ -98,7 +103,7 @@ function descriptionCoversStructuredJobSections(description: string): boolean {
     /^krav(\s+til)?/,
     /^kvalifikasjoner/,
   ]);
-  const offer = has([/^we\s+offer$/, /^benefits/, /^vi\s+tilbyr/, /^what\s+we\s+offer$/]);
+  const offer = has([/^we\s+offer$/, /^about\s+the\s+offer$/, /^benefits/, /^vi\s+tilbyr/, /^what\s+we\s+offer$/]);
   const personal = has([/^personal\s+qualities$/, /^personlige\s+egenskaper/, /^personlig\s+/]);
 
   const hits = [work, qual, offer, personal].filter(Boolean).length;
@@ -194,7 +199,15 @@ function pickHeroBlurb(job: JobRecord): string | null {
   return excerptPlainAfterFirstHeading(desc, 240);
 }
 
-function MarkdownSection({ title, markdown }: { title: string; markdown: string }) {
+function MarkdownSection({
+  title,
+  markdown,
+  copyAudience = "arbeidmatch",
+}: {
+  title: string;
+  markdown: string;
+  copyAudience?: JobMarkdownCopyAudience;
+}) {
   const trimmed = markdown?.trim() ?? "";
   if (!trimmed) return null;
 
@@ -202,7 +215,7 @@ function MarkdownSection({ title, markdown }: { title: string; markdown: string 
     <section className="rounded-[18px] border border-white/10 bg-white/[0.03] p-5 md:p-8">
       <h2 className="border-b border-[rgba(201,168,76,0.22)] pb-3 text-xl font-semibold tracking-tight text-white">{title}</h2>
       <div className="mt-6">
-        <JobMarkdownBody markdown={trimmed} />
+        <JobMarkdownBody markdown={trimmed} copyAudience={copyAudience} />
       </div>
     </section>
   );
@@ -241,6 +254,9 @@ export default function JobDetailView({
         ? `mailto:${job.applicationEmail || "post@arbeidmatch.no"}`
         : `/jobs/${job.slug}/apply`;
   const applyExternal = job.applicationMethod === "external_url";
+
+  const copyAudience: JobMarkdownCopyAudience = isPartnerNeutralJobCopy(job) ? "partner" : "arbeidmatch";
+  const benefitsSectionTitle = benefitsSectionTitleForJob(job);
 
   const requirementsMarkdown = useMemo(() => {
     const raw = job.requirements;
@@ -379,12 +395,16 @@ export default function JobDetailView({
   ]);
 
   const summaryPreview = useMemo(() => {
+    const partner = isPartnerNeutralJobCopy(job);
     if (revising) {
       const d = draftDescription.trim();
       if (!d) return "";
-      return d.length > 220 ? `${d.slice(0, 220)}...` : d;
+      const clip = d.length > 220 ? `${d.slice(0, 220)}...` : d;
+      return partner ? neutralWordingForPartnerJobMarkdown(clip) : clip;
     }
-    return pickHeroBlurb(job);
+    const blurb = pickHeroBlurb(job);
+    if (!blurb) return null;
+    return partner ? neutralWordingForPartnerJobMarkdown(blurb) : blurb;
   }, [revising, draftDescription, job]);
 
   type MetaRow = { label: string; view: ReactNode; revise?: ReactNode };
@@ -564,9 +584,11 @@ export default function JobDetailView({
                 />
               </section>
             ) : (
-              <MarkdownSection title="About the role" markdown={job.description} />
+              <MarkdownSection title="About the role" markdown={job.description} copyAudience={copyAudience} />
             )}
-            {showWorkTasks ? <MarkdownSection title="Work tasks" markdown={workTasksMarkdown} /> : null}
+            {showWorkTasks ? (
+              <MarkdownSection title="Work tasks" markdown={workTasksMarkdown} copyAudience={copyAudience} />
+            ) : null}
             {revising && canSurface ? (
               <section className="rounded-[18px] border border-white/10 bg-white/[0.03] p-5 md:p-8">
                 <h2 className="border-b border-[rgba(201,168,76,0.22)] pb-3 text-xl font-semibold tracking-tight text-white">Qualifications</h2>
@@ -578,9 +600,11 @@ export default function JobDetailView({
                 />
               </section>
             ) : showQualifications ? (
-              <MarkdownSection title="Qualifications" markdown={requirementsMarkdown} />
+              <MarkdownSection title="Qualifications" markdown={requirementsMarkdown} copyAudience={copyAudience} />
             ) : null}
-            {showWeOffer ? <MarkdownSection title="We offer" markdown={benefitsMarkdown} /> : null}
+            {showWeOffer ? (
+              <MarkdownSection title={benefitsSectionTitle} markdown={benefitsMarkdown} copyAudience={copyAudience} />
+            ) : null}
             <DetailSection
               title="Application method"
               items={[
