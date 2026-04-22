@@ -24,6 +24,7 @@ type TokenData = {
   full_name?: string;
   phone?: string;
   gdpr_consent?: boolean;
+  verified_partner?: boolean;
 };
 
 type RequestForm = {
@@ -49,9 +50,10 @@ type RequestForm = {
   region: string;
   startDate: string;
   notes: string;
+  brandingChoice: "" | "yes" | "no";
 };
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 const CITY_OPTIONS = [
   "Oslo", "Bergen", "Trondheim", "Stavanger", "Kristiansand", "Drammen", "Tromso", "Fredrikstad",
@@ -345,6 +347,7 @@ const initialForm: RequestForm = {
   region: "",
   startDate: "",
   notes: "",
+  brandingChoice: "",
 };
 
 const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]";
@@ -535,6 +538,12 @@ export default function RequestTokenPage() {
   const [notifyStatus, setNotifyStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const isPartnerFlow = tokenData?.job_summary === "Partner candidate request";
 
+  const brandingPartnerRate = useMemo(
+    () => Boolean(tokenData?.verified_partner) || isPartnerFlow,
+    [tokenData?.verified_partner, isPartnerFlow],
+  );
+  const brandingPriceNok = brandingPartnerRate ? 499 : 999;
+
   const scrollToTop = () => {
     if (typeof window === "undefined") return;
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -668,6 +677,7 @@ export default function RequestTokenPage() {
       return !!(form.internationalTransport && form.localTransport);
     }
     if (value === 5) return !!form.urgency;
+    if (value === 6) return form.brandingChoice === "yes" || form.brandingChoice === "no";
     return false;
   };
 
@@ -750,6 +760,8 @@ export default function RequestTokenPage() {
       referralEmail: "",
       subscribe: "Yes - send me candidate updates",
       notes: form.notes,
+      brandingRequested: form.brandingChoice === "yes",
+      brandingPrice: form.brandingChoice === "yes" ? brandingPriceNok : 0,
     };
 
     try {
@@ -1453,7 +1465,7 @@ export default function RequestTokenPage() {
 
             {step === 0 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 1 of 6</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step 1 of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Which industry is this request for?</h2>
                 <p className="text-sm text-white/50">Select the primary industry first.</p>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -1484,7 +1496,7 @@ export default function RequestTokenPage() {
 
             {step === 1 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 2 of 6</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step 2 of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Worker type and requirements</h2>
                 <p className="text-sm text-white/50">Worker roles and certifications depend on selected industry.</p>
 
@@ -1574,7 +1586,7 @@ export default function RequestTokenPage() {
 
             {step === 2 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 3 of 6</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step 3 of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">What are you offering?</h2>
                 <p className="text-sm text-white/50">Help candidates understand the conditions.</p>
 
@@ -1645,7 +1657,7 @@ export default function RequestTokenPage() {
 
             {step === 3 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 4 of 6</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step 4 of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Where will they work?</h2>
                 <p className="text-sm text-white/50">Select one or multiple work locations in Norway.</p>
 
@@ -1683,7 +1695,7 @@ export default function RequestTokenPage() {
 
             {step === 4 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 5 of 6</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step 5 of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Final details</h2>
                 <p className="text-sm text-white/50">Almost done. A few last questions.</p>
 
@@ -1782,9 +1794,9 @@ export default function RequestTokenPage() {
 
             {step === 5 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 6 of 6</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step 6 of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">What is your hiring priority?</h2>
-                <p className="text-sm text-white/50">Final step: we use this to prioritize delivery and response time.</p>
+                <p className="text-sm text-white/50">We use this to prioritize delivery and response time.</p>
                 <div className="grid grid-cols-1 gap-3">
                   {[
                     { title: "Urgent", sub: "I need candidates within 1 to 2 weeks", icon: "⚡" },
@@ -1802,6 +1814,39 @@ export default function RequestTokenPage() {
                     />
                   ))}
                 </div>
+              </div>
+            )}
+
+            {step === 6 && (
+              <div className="space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step 7 of ${TOTAL_STEPS}`}</p>
+                <h2 className="text-2xl font-extrabold">Would you like to add your company branding?</h2>
+                <p className="text-sm text-white/50">Your company name and identity will be visible on the job post.</p>
+                <div className="grid grid-cols-1 gap-3">
+                  <OptionCard
+                    label="Yes, add branding"
+                    sublabel={
+                      brandingPartnerRate
+                        ? `${brandingPriceNok} NOK — verified partner rate`
+                        : `${brandingPriceNok} NOK — standard rate`
+                    }
+                    selected={form.brandingChoice === "yes"}
+                    onClick={() => setForm((prev) => ({ ...prev, brandingChoice: "yes" }))}
+                  />
+                  <OptionCard
+                    label="No, post anonymously"
+                    sublabel="Free. ArbeidMatch recruits discreetly without publishing your company name on the listing."
+                    selected={form.brandingChoice === "no"}
+                    onClick={() => setForm((prev) => ({ ...prev, brandingChoice: "no" }))}
+                  />
+                </div>
+                <p className="rounded-[12px] border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.08)] px-4 py-3 text-center text-sm font-semibold text-[#C9A84C]">
+                  {form.brandingChoice === "yes"
+                    ? `Selected: ${brandingPriceNok} NOK`
+                    : form.brandingChoice === "no"
+                      ? "Selected: no branding fee"
+                      : `Branding price if you choose yes: ${brandingPriceNok} NOK`}
+                </p>
               </div>
             )}
 

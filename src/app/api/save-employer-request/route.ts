@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { isVerifiedPartnerCompanyEmail } from "@/lib/partners/partnerDomainLookup";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { generateEmployerJobContent } from "@/lib/employer-flow/generateEmployerJob";
 import { createEmployerJobDraftAfterRequest } from "@/lib/employer-flow/employerJobsRepository";
@@ -71,6 +72,8 @@ const requestSchema = z
     referralEmail: z.string().trim().email().max(200).optional().or(z.literal("")),
     subscribe: z.string().trim().max(80).optional().or(z.literal("")),
     notes: z.string().trim().max(5000).optional().or(z.literal("")),
+    brandingRequested: z.boolean().optional(),
+    brandingPrice: z.union([z.number(), z.string().trim().max(20)]).optional(),
     website: z.string().max(256).optional(),
     company_website: z.string().max(256).optional(),
     honeypot: z.string().max(256).optional(),
@@ -176,6 +179,26 @@ export async function POST(request: NextRequest) {
       normalizedBooleanFields.push("subscribe");
     }
 
+    const wantsBranding = payload.brandingRequested === true;
+    let employerPartnerRate = false;
+    try {
+      employerPartnerRate =
+        (await isVerifiedPartnerCompanyEmail(supabase, payload.email)) ||
+        payload.job_summary === "Partner candidate request";
+    } catch (partnerLookupError) {
+      if (
+        typeof partnerLookupError === "object" &&
+        partnerLookupError !== null &&
+        "code" in partnerLookupError &&
+        (partnerLookupError as { code?: string }).code === "42P01"
+      ) {
+        employerPartnerRate = payload.job_summary === "Partner candidate request";
+      } else {
+        throw partnerLookupError;
+      }
+    }
+    const branding_price = wantsBranding ? (employerPartnerRate ? 499 : 999) : 0;
+
     const parsedOvertime = toBool(payload.overtime);
     if (hasNonEmptyString(payload.overtime) && parsedOvertime === null) {
       normalizedBooleanFields.push("overtime");
@@ -249,6 +272,8 @@ export async function POST(request: NextRequest) {
       referral_email:                payload.referralEmail || null,
       subscribe:                     parsedSubscribe,
       notes:                         payload.notes || null,
+      branding_requested:            wantsBranding,
+      branding_price:                branding_price,
     })
       .select("id")
       .maybeSingle();

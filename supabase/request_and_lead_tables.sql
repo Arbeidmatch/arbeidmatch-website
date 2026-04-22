@@ -167,3 +167,7 @@ create unique index if not exists guide_interest_notify_region_country_uidx
   on public.guide_interest_signups (lower(notify_email), coalesce(target_region, ''), coalesce(target_country, ''));
 create index if not exists guide_interest_signups_verified_idx on public.guide_interest_signups (email_verified, created_at desc);
 create index if not exists guide_interest_signups_email_idx on public.guide_interest_signups (lower(notify_email));
+
+-- Employer request wizard: optional paid branding on job post
+alter table public.employer_requests add column if not exists branding_requested boolean not null default false;
+alter table public.employer_requests add column if not exists branding_price numeric(10,2) not null default 0;

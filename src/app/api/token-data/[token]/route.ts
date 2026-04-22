@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { isVerifiedPartnerCompanyEmail } from "@/lib/partners/partnerDomainLookup";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { noStoreJson } from "@/lib/apiSecurity";
 import { logApiError } from "@/lib/secureLogger";
@@ -30,7 +31,26 @@ export async function GET(
       return noStoreJson({ success: false, error: "Token not found" }, { status: 404 });
     }
 
-    return noStoreJson({ success: true, data });
+    let verified_partner = false;
+    try {
+      const email = typeof data.email === "string" ? data.email : "";
+      if (email) {
+        verified_partner = await isVerifiedPartnerCompanyEmail(supabase, email);
+      }
+    } catch (lookupError) {
+      if (
+        typeof lookupError === "object" &&
+        lookupError !== null &&
+        "code" in lookupError &&
+        (lookupError as { code?: string }).code === "42P01"
+      ) {
+        verified_partner = false;
+      } else {
+        throw lookupError;
+      }
+    }
+
+    return noStoreJson({ success: true, data: { ...data, verified_partner } });
   } catch (error) {
     logApiError("token-data", error);
     await notifyError({ route: "/api/token-data/[token]", error });
