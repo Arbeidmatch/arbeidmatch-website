@@ -175,3 +175,6 @@ When starting a new conversation, always:
 ## Changelog
 ### 2026-04-21
 - Complete session described above
+### 2026-04-22
+- Issue #7 complete: /contact form validation fixed for required fields (name, company, email, message, needOther when Other is selected)
+- Issue #7 complete: /contact select dropdown styling updated to design system values (rgba(255,255,255,0.04), border rgba(201,168,76,0.15), radius 12, white text, no box-shadow)

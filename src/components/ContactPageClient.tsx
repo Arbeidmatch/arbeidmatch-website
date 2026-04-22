@@ -32,6 +32,8 @@ function IconTikTok({ className }: { className?: string }) {
 
 const inputClass =
   "w-full rounded-lg border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.05)] px-4 py-3 text-white placeholder:text-[rgba(255,255,255,0.35)] focus:outline-none";
+const selectClass =
+  "w-full appearance-none rounded-lg border border-[rgba(201,168,76,0.15)] px-4 py-3 text-white focus:outline-none focus:ring-0";
 const inputInlineStyle = {
   background: "rgba(255,255,255,0.05)",
   border: "1px solid rgba(201,168,76,0.15)",
@@ -39,6 +41,23 @@ const inputInlineStyle = {
   borderRadius: 8,
   padding: "12px 16px",
 };
+const selectInlineStyle = {
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid rgba(201,168,76,0.15)",
+  color: "white",
+  borderRadius: 12,
+  padding: "12px 16px",
+};
+const selectOptionStyle = {
+  backgroundColor: "#0f1923",
+  color: "white",
+};
+
+type FormErrors = Partial<Record<"name" | "company" | "email" | "needOther" | "message", string>>;
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 export default function ContactPageClient() {
   const [submitted, setSubmitted] = useState(false);
@@ -46,28 +65,50 @@ export default function ContactPageClient() {
   const [errorMessage, setErrorMessage] = useState("");
   const [need, setNeed] = useState("Qualified workers");
   const [needOther, setNeedOther] = useState("");
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     const formData = new FormData(form);
     const payload = {
-      name: String(formData.get("name") || ""),
-      company: String(formData.get("company") || ""),
-      email: String(formData.get("email") || ""),
+      name: String(formData.get("name") || "").trim(),
+      company: String(formData.get("company") || "").trim(),
+      email: String(formData.get("email") || "").trim(),
       need: need === "Other" ? needOther.trim() : need,
-      message: String(formData.get("message") || ""),
+      message: String(formData.get("message") || "").trim(),
       website: String(formData.get("website") || ""),
     };
 
+    const nextErrors: FormErrors = {};
+    if (!payload.name) {
+      nextErrors.name = "Please enter your name.";
+    }
+    if (!payload.company) {
+      nextErrors.company = "Please enter your company name.";
+    }
+    if (!payload.email) {
+      nextErrors.email = "Please enter your work email.";
+    } else if (!isValidEmail(payload.email)) {
+      nextErrors.email = "Please enter a valid email address.";
+    }
     if (need === "Other" && !needOther.trim()) {
+      nextErrors.needOther = "Please specify what you need.";
+    }
+    if (!payload.message) {
+      nextErrors.message = "Please add a short message.";
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setFormErrors(nextErrors);
       setStatus("error");
-      setErrorMessage("Please specify what you need.");
+      setErrorMessage("Please fix the highlighted fields and try again.");
       return;
     }
 
     setStatus("submitting");
     setErrorMessage("");
+    setFormErrors({});
 
     try {
       const response = await fetch("/api/contact", {
@@ -170,7 +211,7 @@ export default function ContactPageClient() {
           <ScrollReveal variant="fadeUp">
           <form
             onSubmit={handleSubmit}
-            className="card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-7 shadow-[var(--shadow-card)] md:ml-8 md:p-10"
+            className="card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-7 md:ml-8 md:p-10"
             style={{
               background: "rgba(255,255,255,0.03)",
               border: "1px solid rgba(201,168,76,0.15)",
@@ -199,7 +240,9 @@ export default function ContactPageClient() {
                     className={inputClass}
                     placeholder="Your name"
                     style={inputInlineStyle}
+                    aria-invalid={Boolean(formErrors.name)}
                   />
+                  {formErrors.name && <p className="mt-1 text-xs text-red-300">{formErrors.name}</p>}
                 </label>
                 <label className="form-label-premium text-[13px] text-white/70">
                   Company
@@ -209,7 +252,9 @@ export default function ContactPageClient() {
                     className={inputClass}
                     placeholder="Company"
                     style={inputInlineStyle}
+                    aria-invalid={Boolean(formErrors.company)}
                   />
+                  {formErrors.company && <p className="mt-1 text-xs text-red-300">{formErrors.company}</p>}
                 </label>
               </div>
               <label className="form-label-premium text-[13px] text-white/70">
@@ -221,13 +266,15 @@ export default function ContactPageClient() {
                   className={inputClass}
                   placeholder="name@company.com"
                   style={inputInlineStyle}
+                  aria-invalid={Boolean(formErrors.email)}
                 />
+                {formErrors.email && <p className="mt-1 text-xs text-red-300">{formErrors.email}</p>}
               </label>
               <label className="form-label-premium text-[13px] text-white/70">
                 I need
                 <select
                   name="need"
-                  className={inputClass}
+                  className={selectClass}
                   value={need}
                   onChange={(event) => {
                     setNeed(event.target.value);
@@ -235,15 +282,15 @@ export default function ContactPageClient() {
                       setNeedOther("");
                     }
                   }}
-                  style={inputInlineStyle}
+                  style={selectInlineStyle}
                 >
-                  <option>Qualified workers</option>
-                  <option>Skilled tradespeople</option>
-                  <option>Engineers & Technical</option>
-                  <option>Healthcare staff</option>
-                  <option>Construction workers</option>
-                  <option>Support</option>
-                  <option>Other</option>
+                  <option style={selectOptionStyle}>Qualified workers</option>
+                  <option style={selectOptionStyle}>Skilled tradespeople</option>
+                  <option style={selectOptionStyle}>Engineers & Technical</option>
+                  <option style={selectOptionStyle}>Healthcare staff</option>
+                  <option style={selectOptionStyle}>Construction workers</option>
+                  <option style={selectOptionStyle}>Support</option>
+                  <option style={selectOptionStyle}>Other</option>
                 </select>
               </label>
               {need === "Other" && (
@@ -256,18 +303,23 @@ export default function ContactPageClient() {
                     value={needOther}
                     onChange={(event) => setNeedOther(event.target.value)}
                     style={inputInlineStyle}
+                    aria-invalid={Boolean(formErrors.needOther)}
                   />
+                  {formErrors.needOther && <p className="mt-1 text-xs text-red-300">{formErrors.needOther}</p>}
                 </label>
               )}
               <label className="form-label-premium text-[13px] text-white/70">
                 Message
                 <textarea
+                  required
                   name="message"
                   rows={5}
                   className={`${inputClass} min-h-[100px]`}
                   placeholder="Tell us about your needs"
                   style={inputInlineStyle}
+                  aria-invalid={Boolean(formErrors.message)}
                 />
+                {formErrors.message && <p className="mt-1 text-xs text-red-300">{formErrors.message}</p>}
               </label>
               <button
                 type="submit"
