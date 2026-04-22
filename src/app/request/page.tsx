@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Bolt, Check, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
 
@@ -96,6 +96,19 @@ function RequestAccessBenefits({ items }: { items: readonly string[] }) {
 
 export default function RequestPage() {
   const router = useRouter();
+
+  const navigateBackOrHome = useCallback(() => {
+    if (typeof window === "undefined") {
+      router.push("/");
+      return;
+    }
+    if (window.history.length <= 1) {
+      router.push("/");
+      return;
+    }
+    router.back();
+  }, [router]);
+
   const [checkState, setCheckState] = useState<"idle" | "searching" | "result">("idle");
   const [selectedIndustry, setSelectedIndustry] = useState("");
   const [roleQuery, setRoleQuery] = useState("");
@@ -261,6 +274,15 @@ export default function RequestPage() {
     } catch {
       setNotifyStatus("error");
     }
+  };
+
+  const handleAvailabilityBack = () => {
+    if (selectedIndustry) {
+      setSelectedIndustry("");
+      setRoleQuery("");
+      return;
+    }
+    navigateBackOrHome();
   };
 
   const backToRoleSearch = () => {
@@ -436,16 +458,14 @@ export default function RequestPage() {
       >
         {checkState === "idle" && (
           <>
-            {!selectedIndustry && (
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="mb-4 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
-              >
-                <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
-                Back
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleAvailabilityBack}
+              className="mb-4 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
+            >
+              <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
+              Back
+            </button>
             <h1 className="text-2xl font-bold">Check candidate availability</h1>
             {!selectedIndustry ? (
               <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
