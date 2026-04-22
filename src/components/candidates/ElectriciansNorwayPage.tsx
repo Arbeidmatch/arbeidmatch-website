@@ -107,16 +107,16 @@ export default function ElectriciansNorwayPage() {
               color: GOLD,
             }}
           >
-            ArbeidMatch · DSB electricians
+            EU/EEA electricians · Norway
           </span>
           <h1 className="mt-6 max-w-4xl font-extrabold leading-[1.08] text-white [font-size:clamp(30px,4.5vw,52px)]">
-            Find DSB-authorised electricians for your Norwegian project
+            Work as an Electrician in Norway
           </h1>
           <p className="mt-5 max-w-2xl text-[17px] leading-[1.75] text-white/[0.68]">
-            We connect Norwegian employers with verified EU/EEA electricians who hold or are obtaining DSB authorisation.
+            High demand, competitive salaries and stable contracts for qualified EU/EEA electricians.
           </p>
           <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-            <GoldButton href="/request">Request authorised candidates</GoldButton>
+            <GoldButton href="/candidates">Create your profile</GoldButton>
             <OutlineGoldButton href="/premium">Get your DSB guide</OutlineGoldButton>
           </div>
         </div>
@@ -133,8 +133,7 @@ export default function ElectriciansNorwayPage() {
                 </div>
                 <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-[26px]">I have DSB authorisation</h2>
                 <p className="mt-4 flex-1 text-[15px] leading-[1.75] text-white/70">
-                  Ready to work in Norway. Create your profile and we&apos;ll connect you with employers who are actively
-                  hiring.
+                  Ready to work. Create your profile and we match you with Norwegian employers actively hiring.
                 </p>
                 <div className="mt-10 w-full shrink-0 pt-2">
                   <GoldCardCta href="/candidates">Create your profile</GoldCardCta>
@@ -150,7 +149,7 @@ export default function ElectriciansNorwayPage() {
                 </div>
                 <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-[26px]">I need DSB authorisation</h2>
                 <p className="mt-4 flex-1 text-[15px] leading-[1.75] text-white/70">
-                  Get our step-by-step guide to understand the process, prepare your documents, and apply with confidence.
+                  Get our step-by-step guide to prepare your documents and apply with confidence.
                 </p>
                 <div className="mt-10 w-full shrink-0 pt-2">
                   <OutlineGoldCardCta href="/premium">Get the guide</OutlineGoldCardCta>

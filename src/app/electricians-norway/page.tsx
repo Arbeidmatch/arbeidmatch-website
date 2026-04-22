@@ -6,9 +6,9 @@ import ElectriciansNorwayPage from "@/components/candidates/ElectriciansNorwayPa
 const SITE = "https://www.arbeidmatch.no";
 
 export const metadata: Metadata = {
-  title: { absolute: "DSB-authorised electricians for Norway | Employers & candidates | ArbeidMatch" },
+  title: { absolute: "Work as an electrician in Norway | EU/EEA & DSB | ArbeidMatch" },
   description:
-    "ArbeidMatch connects Norwegian employers with EU/EEA electricians who hold or are obtaining DSB authorisation. Guides help candidates navigate the process.",
+    "High demand and strong pay for qualified EU/EEA electricians in Norway. Create your profile, get matched with employers, or use our DSB authorisation guide.",
   alternates: {
     canonical: `${SITE}/electricians-norway`,
     languages: {
@@ -19,9 +19,9 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "DSB-authorised electricians for Norway | ArbeidMatch",
+    title: "Work as an electrician in Norway | ArbeidMatch",
     description:
-      "Hire verified electricians for Norwegian projects, or get our DSB guide as a candidate. ArbeidMatch recruitment and guidance.",
+      "EU/EEA electricians: build your profile, get matched with Norwegian employers, and prepare DSB authorisation with our guide.",
     locale: "nb_NO",
     siteName: "ArbeidMatch",
     type: "website",
@@ -29,9 +29,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "DSB-authorised electricians for Norway | ArbeidMatch",
+    title: "Work as an electrician in Norway | ArbeidMatch",
     description:
-      "Employers: request authorised candidates. Candidates: DSB guides and support from ArbeidMatch.",
+      "Profiles, employer matches, and DSB guidance for EU/EEA electricians who want to work in Norway.",
   },
 };
 
