@@ -31,53 +31,98 @@ import {
 
 type Mode = "choose" | "wizard";
 
-function isProbablyVideoUrl(url: string): boolean {
-  const lower = url.toLowerCase();
-  return lower.includes("youtube.com") || lower.includes("youtu.be") || lower.includes("vimeo.com") || lower.includes("loom.com");
+/** Ensures URL() can parse (adds https if missing). */
+function normalizeVideoUrlInput(raw: string): string | null {
+  const t = raw.trim();
+  if (!t) return null;
+  if (!/^https?:\/\//i.test(t)) return `https://${t}`;
+  return t;
 }
 
-function toYouTubeEmbed(url: string): string | null {
+function parseYouTubeEmbed(url: string): string | null {
+  let u: URL;
   try {
-    const parsed = new URL(url);
-    if (parsed.hostname.includes("youtu.be")) {
-      const id = parsed.pathname.replace("/", "").trim();
-      return id ? `https://www.youtube.com/embed/${id}` : null;
+    u = new URL(url);
+  } catch {
+    return null;
+  }
+  const host = u.hostname.replace(/^www\./i, "").toLowerCase();
+  if (host === "youtu.be") {
+    const id = u.pathname.split("/").filter(Boolean)[0]?.split("?")[0];
+    return id ? `https://www.youtube.com/embed/${encodeURIComponent(id)}` : null;
+  }
+  if (host === "youtube.com" || host === "m.youtube.com") {
+    const v = u.searchParams.get("v");
+    if (v) return `https://www.youtube.com/embed/${encodeURIComponent(v)}`;
+    const parts = u.pathname.split("/").filter(Boolean);
+    const embedIdx = parts.indexOf("embed");
+    if (embedIdx >= 0 && parts[embedIdx + 1]) {
+      return `https://www.youtube.com/embed/${encodeURIComponent(parts[embedIdx + 1])}`;
     }
-    if (parsed.hostname.includes("youtube.com")) {
-      const id = parsed.searchParams.get("v");
-      return id ? `https://www.youtube.com/embed/${id}` : null;
+    const shortsIdx = parts.indexOf("shorts");
+    if (shortsIdx >= 0 && parts[shortsIdx + 1]) {
+      return `https://www.youtube.com/embed/${encodeURIComponent(parts[shortsIdx + 1])}`;
     }
-    return null;
-  } catch {
-    return null;
   }
+  return null;
 }
 
-function toVimeoEmbed(url: string): string | null {
+function parseVimeoEmbed(url: string): string | null {
+  let u: URL;
   try {
-    const parsed = new URL(url);
-    if (!parsed.hostname.includes("vimeo.com")) return null;
-    const parts = parsed.pathname.split("/").filter(Boolean);
-    const id = parts[0];
-    return id ? `https://player.vimeo.com/video/${id}` : null;
+    u = new URL(url);
   } catch {
     return null;
   }
+  if (!u.hostname.toLowerCase().includes("vimeo.com")) return null;
+  const parts = u.pathname.split("/").filter(Boolean);
+  const videoIdx = parts.indexOf("video");
+  if (videoIdx >= 0 && parts[videoIdx + 1] && /^\d+$/.test(parts[videoIdx + 1])) {
+    return `https://player.vimeo.com/video/${parts[videoIdx + 1]}`;
+  }
+  for (const p of parts) {
+    if (/^\d+$/.test(p)) return `https://player.vimeo.com/video/${p}`;
+  }
+  return null;
 }
 
-function toLoomEmbed(url: string): string | null {
+function parseLoomEmbed(url: string): string | null {
+  let u: URL;
   try {
-    const parsed = new URL(url);
-    if (!parsed.hostname.includes("loom.com")) return null;
-    const share = parsed.pathname.replace("/share/", "").replace("/", "");
-    return share ? `https://www.loom.com/embed/${share}` : null;
+    u = new URL(url);
   } catch {
     return null;
   }
+  if (!u.hostname.toLowerCase().includes("loom.com")) return null;
+  const m = u.pathname.match(/\/(?:share|embed)\/([^/?#]+)/);
+  if (m?.[1]) return `https://www.loom.com/embed/${m[1]}`;
+  return null;
 }
 
-function buildEmbedSrc(url: string): string | null {
-  return toYouTubeEmbed(url) || toVimeoEmbed(url) || toLoomEmbed(url);
+function parseTikTokEmbed(url: string): string | null {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return null;
+  }
+  if (!u.hostname.toLowerCase().endsWith("tiktok.com")) return null;
+  const m = u.pathname.match(/\/video\/(\d+)/);
+  if (m?.[1]) return `https://www.tiktok.com/embed/v2/${m[1]}`;
+  return null;
+}
+
+/** Resolves a public video URL to an iframe-safe embed URL, or null if unsupported / invalid. */
+function getEmbedUrl(raw: string): string | null {
+  const normalized = normalizeVideoUrlInput(raw);
+  if (!normalized) return null;
+  try {
+    return (
+      parseYouTubeEmbed(normalized) ?? parseVimeoEmbed(normalized) ?? parseLoomEmbed(normalized) ?? parseTikTokEmbed(normalized)
+    );
+  } catch {
+    return null;
+  }
 }
 
 type WizardEntryMode = "default" | "complete-only";
@@ -174,6 +219,11 @@ export default function CandidateProfileWizard({
 
   const progress = useMemo(() => Math.round((wizardStep / TOTAL_STEPS) * 100), [wizardStep]);
 
+  const videoEmbedSrc = useMemo(() => {
+    const v = videoUrl.trim();
+    return v ? getEmbedUrl(v) : null;
+  }, [videoUrl]);
+
   const transition = reduceMotion
     ? { duration: 0 }
     : { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const };
@@ -195,7 +245,11 @@ export default function CandidateProfileWizard({
       hasPermit: hasDriverLicense === true,
       permitCategories: licenseCategories,
       housing,
-      videoUrl,
+      videoUrl: (() => {
+        const v = videoUrl.trim();
+        if (!v) return "";
+        return normalizeVideoUrlInput(v) ?? v;
+      })(),
       shareWithEmployers,
     };
   }, [
@@ -299,6 +353,11 @@ export default function CandidateProfileWizard({
       housing,
     });
 
+    const resolvedVideoUrl = (() => {
+      const v = videoUrl.trim();
+      return v ? (normalizeVideoUrlInput(v) ?? v) : "";
+    })();
+
     const payload: CandidateProfilePayload = buildCandidateProfilePayload({
       email: email.trim(),
       firstName,
@@ -307,7 +366,7 @@ export default function CandidateProfileWizard({
       currentCountry,
       city,
       preferences,
-      videoUrl,
+      videoUrl: resolvedVideoUrl,
       shareWithEmployers,
     });
 
@@ -459,7 +518,7 @@ export default function CandidateProfileWizard({
         return housing !== null;
       case 8: {
         const v = videoUrl.trim();
-        return Boolean(v && isProbablyVideoUrl(v) && buildEmbedSrc(v));
+        return Boolean(v && getEmbedUrl(v));
       }
       case 9:
         return shareWithEmployers !== null;
@@ -746,7 +805,7 @@ export default function CandidateProfileWizard({
 
                   {wizardStep === 8 ? (
                     <div className="space-y-5">
-                      <p className="text-sm text-white/70">Paste a YouTube, Vimeo, or Loom link. We embed a preview below.</p>
+                      <p className="text-sm text-white/70">Paste your intro video link. A live preview appears below when the URL is supported.</p>
                       <label className="flex flex-col gap-2 text-sm text-white/80">
                         Video link
                         <input
@@ -756,18 +815,19 @@ export default function CandidateProfileWizard({
                           className="min-h-[44px] rounded-[10px] border border-white/15 bg-[#0A0F18] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)]"
                         />
                       </label>
+                      <p className="text-xs leading-relaxed text-white/50">Accepted platforms: YouTube, Vimeo, Loom, TikTok</p>
                       <div className="rounded-[12px] border border-[rgba(201,168,76,0.18)] bg-[#0A0F18] p-4">
                         {!videoUrl.trim() ? (
                           <p className="text-sm text-white/55">Preview will appear here.</p>
-                        ) : !isProbablyVideoUrl(videoUrl.trim()) ? (
-                          <p className="text-sm text-white/60">Use a supported host: YouTube, Vimeo, or Loom.</p>
+                        ) : !videoEmbedSrc ? (
+                          <p className="text-sm text-amber-200/85">Invalid video link</p>
                         ) : (
-                          <div className="aspect-video w-full overflow-hidden rounded-[10px] border border-white/10">
+                          <div className="aspect-video w-full overflow-hidden rounded-[10px] border border-[rgba(201,168,76,0.35)] shadow-[inset_0_0_0_1px_rgba(201,168,76,0.12)]">
                             <iframe
                               title="Video intro preview"
-                              className="h-full w-full"
-                              src={buildEmbedSrc(videoUrl.trim()) ?? undefined}
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              className="h-full w-full border-0"
+                              src={videoEmbedSrc}
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                               allowFullScreen
                             />
                           </div>
