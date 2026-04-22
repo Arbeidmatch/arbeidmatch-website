@@ -11,6 +11,17 @@ export const metadata: Metadata = {
   description:
     "Explore legal work in Norway on your terms: official resources, accommodation context, and a profile flow where you choose the pace and what happens next.",
   robots: { index: false, follow: false },
+  openGraph: {
+    title: "Candidates | Legal work & support in Norway | ArbeidMatch",
+    description:
+      "Explore legal work in Norway on your terms: official resources, accommodation context, and a profile flow where you choose the pace and what happens next.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Candidates | Legal work & support in Norway | ArbeidMatch",
+    description:
+      "Explore legal work in Norway on your terms: official resources, accommodation context, and a profile flow where you choose the pace and what happens next.",
+  },
 };
 
 const LEGAL_LINKS = [
