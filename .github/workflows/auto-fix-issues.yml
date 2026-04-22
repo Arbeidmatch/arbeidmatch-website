@@ -56,6 +56,10 @@ jobs:
             const issueTitle = process.env.ISSUE_TITLE || "";
             const issueBody = process.env.ISSUE_BODY || "";
             const issueContext = `# ${issueTitle}\n\n${issueBody}`.toLowerCase();
+            const packageJsonPath = path.join(process.cwd(), "package.json");
+            const scripts = fs.existsSync(packageJsonPath)
+              ? (JSON.parse(fs.readFileSync(packageJsonPath, "utf8")).scripts || {})
+              : {};
 
             const runSafely = (command) => {
               try {
@@ -71,19 +75,31 @@ jobs:
 
             try {
               let implementationRan = false;
+              const triedCommands = [];
+              const skippedCommands = [];
 
-              if (runSafely("npm run auto-fix:issue")) {
+              const runScriptIfDefined = (scriptName) => {
+                if (!scripts[scriptName]) {
+                  skippedCommands.push(scriptName);
+                  core.info(`Skipping missing script: npm run ${scriptName}`);
+                  return false;
+                }
+                triedCommands.push(scriptName);
+                return runSafely(`npm run ${scriptName}`);
+              };
+
+              if (runScriptIfDefined("auto-fix:issue")) {
                 implementationRan = true;
-              } else if (runSafely("npm run issue:fix")) {
+              } else if (runScriptIfDefined("issue:fix")) {
                 implementationRan = true;
-              } else if (runSafely("npm run fix:issue")) {
+              } else if (runScriptIfDefined("fix:issue")) {
                 implementationRan = true;
               } else if (issueContext.includes("contact form")) {
                 core.info("Applying contact form fix path.");
-                implementationRan = runSafely("npm run fix:contact-form");
+                implementationRan = runScriptIfDefined("fix:contact-form");
               } else if (issueContext.includes("feature request") || issueContext.includes("feature")) {
                 core.info("Applying feature implementation path.");
-                implementationRan = runSafely("npm run implement:feature");
+                implementationRan = runScriptIfDefined("implement:feature");
               } else {
                 const notesPath = path.join(process.cwd(), "AUTO_FIX_NOTES.md");
                 const notes = [
@@ -91,8 +107,18 @@ jobs:
                   "",
                   `Issue #${process.env.ISSUE_NUMBER}: ${process.env.ISSUE_TITLE}`,
                   "",
-                  "No dedicated project auto-fix script was found.",
-                  "Please implement the requested changes manually or add one of:",
+                  "No dedicated project auto-fix script was found or all script attempts failed.",
+                  "",
+                  "Scripts available in package.json:",
+                  ...Object.keys(scripts).sort().map((script) => `- ${script}`),
+                  "",
+                  "Scripts attempted by automation:",
+                  ...(triedCommands.length ? triedCommands.map((script) => `- ${script}`) : ["- (none)"]),
+                  "",
+                  "Scripts skipped because they are missing:",
+                  ...(skippedCommands.length ? skippedCommands.map((script) => `- ${script}`) : ["- (none)"]),
+                  "",
+                  "Expected auto-fix scripts:",
                   "- npm run auto-fix:issue",
                   "- npm run issue:fix",
                   "- npm run fix:issue",
@@ -103,12 +129,14 @@ jobs:
                   process.env.ISSUE_BODY || "(empty)"
                 ].join("\n");
                 fs.writeFileSync(notesPath, notes, "utf8");
-                implementationRan = true;
+                implementationRan = false;
               }
 
               core.setOutput("implementation_ran", implementationRan ? "true" : "false");
               if (!implementationRan) {
-                core.setFailed("Could not run any auto-fix implementation command.");
+                core.setFailed(
+                  `Could not run any auto-fix implementation command. Tried: ${triedCommands.join(", ") || "(none)"}. Missing: ${skippedCommands.join(", ") || "(none)"}.`
+                );
               }
             } catch (error) {
               core.setFailed(`Auto-fix implementation failed: ${error.message}`);

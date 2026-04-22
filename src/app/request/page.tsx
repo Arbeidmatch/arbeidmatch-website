@@ -598,7 +598,7 @@ export default function RequestPage() {
               </div>
             )}
 
-            <div className="mt-5 w-full max-w-[320px]">
+            <div className="mx-auto mt-5 w-full max-w-[320px]">
               <button
                 type="button"
                 onClick={() => {
@@ -968,7 +968,7 @@ export default function RequestPage() {
           border: 1px solid rgba(201, 168, 76, 0.3);
           border-radius: 16px;
           padding: 32px;
-          text-align: center;
+          text-align: left;
           transition: border-color 220ms ease, background 220ms ease, transform 220ms ease;
           cursor: pointer;
         }
