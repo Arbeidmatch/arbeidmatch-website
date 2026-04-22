@@ -6,7 +6,7 @@ import CompleteProfileClient from "./CompleteProfileClient";
 export const metadata: Metadata = {
   title: "Complete Your Profile | ArbeidMatch",
   description: "Resume your candidate profile and unlock job applications on ArbeidMatch.",
-  alternates: { canonical: "https://www.arbeidmatch.no/candidates/complete-profile" },
+  robots: { index: false, follow: false },
 };
 
 function LoadingFallback() {

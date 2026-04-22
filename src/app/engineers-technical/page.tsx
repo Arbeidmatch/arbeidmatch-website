@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Engineers & Technical Staffing | ArbeidMatch",
   description:
     "Hire engineers and technical specialists for Norwegian projects. We source, pre-screen, and support onboarding for EU and EEA talent.",
-  alternates: { canonical: "https://www.arbeidmatch.no/engineers-technical" },
+  robots: { index: false, follow: false },
 };
 
 const capabilityCards = [
