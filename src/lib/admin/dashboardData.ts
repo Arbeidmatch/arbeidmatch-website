@@ -1,18 +1,17 @@
 import "server-only";
 
+import { getPublicJobs } from "@/lib/jobs/repository";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 export type AdminDashboardData = {
   counts: {
-    employerJobsLive: number;
-    employerJobsDraft: number;
-    employerJobsArchived: number;
-    employerJobsClosed: number;
+    /** Active listings shown on the public job board (file + live employer board). */
+    totalJobPostsLive: number;
     candidatesRegistered: number;
     applicationsTotal: number;
-    employerRequestsTotal: number;
+    employersTotal: number;
     partnersTotal: number;
-    conversionRate: number | null;
+    jobsExpiringIn7Days: number;
   };
   jobsPerWeek: { week: string; count: number }[];
   applicationsPerDay: { day: string; count: number }[];
@@ -31,6 +30,8 @@ export type AdminDashboardData = {
     id: string;
     job_title: string;
     email: string;
+    first_name: string | null;
+    last_name: string | null;
     status: string | null;
     match_score: number | null;
     submitted_at: string | null;
@@ -74,15 +75,12 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
   const supabase = getSupabaseAdminClient();
   const empty: AdminDashboardData = {
     counts: {
-      employerJobsLive: 0,
-      employerJobsDraft: 0,
-      employerJobsArchived: 0,
-      employerJobsClosed: 0,
+      totalJobPostsLive: 0,
       candidatesRegistered: 0,
       applicationsTotal: 0,
-      employerRequestsTotal: 0,
+      employersTotal: 0,
       partnersTotal: 0,
-      conversionRate: null,
+      jobsExpiringIn7Days: 0,
     },
     jobsPerWeek: [],
     applicationsPerDay: [],
@@ -98,28 +96,32 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
 
   if (!supabase) return empty;
 
-  const [
-    employerJobsLive,
-    employerJobsDraft,
-    employerJobsArchived,
-    employerJobsClosed,
-    candidatesRegistered,
-    applicationsTotal,
-    employerRequestsTotal,
-    partnersTotal,
-  ] = await Promise.all([
-    countTable("employer_jobs", { status: "live" }),
-    countTable("employer_jobs", { status: "draft" }),
-    countTable("employer_jobs", { status: "archived" }),
-    countTable("employer_jobs", { status: "closed" }),
+  const [candidatesRegistered, applicationsTotal, employerRequestsTotal, partnersTotal] = await Promise.all([
     countTable("candidates"),
     countTable("job_applications"),
     countTable("employer_requests"),
     countTable("partners"),
   ]);
 
-  const conversionRate =
-    employerJobsLive > 0 && applicationsTotal > 0 ? Math.round((applicationsTotal / employerJobsLive) * 10) / 10 : null;
+  const now = new Date();
+  const weekAhead = new Date(now.getTime() + 7 * 86400000).toISOString();
+
+  let totalJobPostsLive = 0;
+  try {
+    const publicJobs = await getPublicJobs();
+    totalJobPostsLive = publicJobs.length;
+  } catch {
+    totalJobPostsLive = 0;
+  }
+
+  const expiringCountRes = await supabase
+    .from("employer_jobs")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "live")
+    .lte("expires_at", weekAhead)
+    .gte("expires_at", now.toISOString());
+
+  const jobsExpiringIn7Days = expiringCountRes.error ? 0 : expiringCountRes.count ?? 0;
 
   const since = new Date();
   since.setUTCDate(since.getUTCDate() - 84);
@@ -205,7 +207,7 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
 
   const ra = await supabase
     .from("job_applications")
-    .select("id, job_title, email, status, match_score, submitted_at")
+    .select("id, job_title, email, first_name, last_name, status, match_score, submitted_at")
     .order("submitted_at", { ascending: false })
     .limit(10);
 
@@ -215,13 +217,11 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
     .order("created_at", { ascending: false })
     .limit(10);
 
-  const now = new Date();
-  const week = new Date(now.getTime() + 7 * 86400000).toISOString();
   const ex = await supabase
     .from("employer_jobs")
     .select("id, title, slug, expires_at, employer_email")
     .eq("status", "live")
-    .lte("expires_at", week)
+    .lte("expires_at", weekAhead)
     .gte("expires_at", now.toISOString())
     .order("expires_at", { ascending: true })
     .limit(20);
@@ -242,15 +242,12 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
 
   return {
     counts: {
-      employerJobsLive,
-      employerJobsDraft,
-      employerJobsArchived,
-      employerJobsClosed,
+      totalJobPostsLive,
       candidatesRegistered,
       applicationsTotal,
-      employerRequestsTotal,
+      employersTotal: employerRequestsTotal,
       partnersTotal,
-      conversionRate,
+      jobsExpiringIn7Days,
     },
     jobsPerWeek,
     applicationsPerDay,

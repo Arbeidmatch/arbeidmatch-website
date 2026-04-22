@@ -28,7 +28,7 @@ export default async function AdminDashboardPage({ searchParams }: Props) {
   const data = await fetchAdminDashboardData();
 
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0A0F18] p-8 text-white/60">Loading…</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#0D1B2A] p-8 text-white/60">Loading…</div>}>
       <AdminDashboardClient data={data} />
     </Suspense>
   );

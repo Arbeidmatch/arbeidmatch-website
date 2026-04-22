@@ -29,20 +29,31 @@ function StatCard({
   value,
   sub,
   delay,
+  variant = "default",
 }: {
   label: string;
   value: string | number;
   sub?: string;
   delay: number;
+  variant?: "default" | "warning";
 }) {
+  const border =
+    variant === "warning"
+      ? "border-amber-400/35 bg-[linear-gradient(160deg,rgba(60,35,20,0.55),rgba(13,27,42,0.96))]"
+      : "border-[rgba(201,168,76,0.25)] bg-[linear-gradient(160deg,rgba(13,27,42,0.98),rgba(22,38,58,0.94))]";
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay }}
-      className="rounded-2xl border border-[rgba(201,168,76,0.25)] bg-[linear-gradient(160deg,rgba(13,27,42,0.95),rgba(20,35,52,0.92))] p-6 shadow-lg"
+      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.4, delay, ease: [0.22, 1, 0.36, 1] }}
+      className={`rounded-2xl border p-6 ${border}`}
     >
-      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#C9A84C]/90">{label}</p>
+      <p
+        className={`text-xs font-semibold uppercase tracking-[0.1em] ${variant === "warning" ? "text-amber-200/95" : "text-[#C9A84C]/90"}`}
+      >
+        {label}
+      </p>
       <p className="mt-2 text-3xl font-bold tabular-nums text-white md:text-4xl">{value}</p>
       {sub ? <p className="mt-1 text-xs text-white/50">{sub}</p> : null}
     </motion.div>
@@ -51,11 +62,29 @@ function StatCard({
 
 function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:p-6">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:p-6"
+    >
       <h3 className="text-sm font-semibold uppercase tracking-wide text-[#C9A84C]">{title}</h3>
       <div className="mt-4 h-[260px] w-full">{children}</div>
-    </div>
+    </motion.div>
   );
+}
+
+function candidateDisplay(a: AdminDashboardData["recentApplications"][number]) {
+  const fn = a.first_name?.trim();
+  const ln = a.last_name?.trim();
+  const name = [fn, ln].filter(Boolean).join(" ");
+  return name || a.email;
+}
+
+function expiringRowTone(expiresAt: string): "critical" | "soon" {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  const twoDays = 48 * 3600000;
+  return ms <= twoDays ? "critical" : "soon";
 }
 
 export default function AdminDashboardClient({ data }: { data: AdminDashboardData }) {
@@ -100,7 +129,7 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
   const gaugePct = data.avgMatchScore != null ? Math.min(100, Math.max(0, data.avgMatchScore)) : 0;
 
   return (
-    <div className="min-h-screen bg-[#0A0F18] pb-16 pt-8 text-white">
+    <div className="min-h-screen bg-[#0D1B2A] pb-16 pt-8 text-white">
       <div className="container-site">
         <header className="mb-10 border-b border-[rgba(201,168,76,0.2)] pb-6">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#C9A84C]">ArbeidMatch</p>
@@ -108,51 +137,71 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
           <p className="mt-2 max-w-2xl text-sm text-white/65">Live metrics, charts, and audit trail. Access is restricted to the admin secret.</p>
         </header>
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="Employer jobs (live)" value={counts.employerJobsLive} delay={0} />
-          <StatCard label="Employer jobs (draft)" value={counts.employerJobsDraft} delay={0.05} />
-          <StatCard label="Employer jobs (archived)" value={counts.employerJobsArchived} delay={0.1} />
-          <StatCard label="Applications total" value={counts.applicationsTotal} delay={0.15} />
-          <StatCard label="Candidates registered" value={counts.candidatesRegistered} delay={0.2} />
-          <StatCard label="Employer requests" value={counts.employerRequestsTotal} delay={0.25} />
-          <StatCard label="Partners" value={counts.partnersTotal} delay={0.3} />
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard label="Total job posts live" value={counts.totalJobPostsLive} sub="Public board (file + live employer)" delay={0} />
+          <StatCard label="Candidates registered" value={counts.candidatesRegistered} delay={0.06} />
+          <StatCard label="Total applications" value={counts.applicationsTotal} delay={0.12} />
+          <StatCard label="Total employers" value={counts.employersTotal} sub="Employer requests" delay={0.18} />
+          <StatCard label="Total partners" value={counts.partnersTotal} delay={0.24} />
           <StatCard
-            label="Applications per live job"
-            value={counts.conversionRate != null ? String(counts.conversionRate) : "—"}
-            sub="Total applications ÷ live employer posts"
-            delay={0.35}
+            label="Jobs expiring in 7 days"
+            value={counts.jobsExpiringIn7Days}
+            sub="Live employer listings"
+            delay={0.3}
+            variant="warning"
           />
         </section>
 
         <section className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <ChartCard title="Job posts per week (employer board)">
+          <ChartCard title="Job posts per week">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data.jobsPerWeek} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                 <XAxis dataKey="week" tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }} />
                 <YAxis tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }} allowDecimals={false} />
                 <Tooltip contentStyle={{ background: NAVY, border: `1px solid ${GOLD}`, borderRadius: 8 }} />
-                <Line type="monotone" dataKey="count" stroke={GOLD} strokeWidth={2} dot={{ fill: GOLD, r: 3 }} />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke={GOLD}
+                  strokeWidth={2.5}
+                  dot={{ fill: GOLD, r: 3 }}
+                  isAnimationActive
+                  animationDuration={900}
+                  animationEasing="ease-out"
+                />
               </LineChart>
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Applications per day (14 days)">
+          <ChartCard title="Applications per day">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.applicationsPerDay} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
                 <XAxis dataKey="day" tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 10 }} />
                 <YAxis tick={{ fill: "rgba(255,255,255,0.55)", fontSize: 11 }} allowDecimals={false} />
                 <Tooltip contentStyle={{ background: NAVY, border: `1px solid ${GOLD}`, borderRadius: 8 }} />
-                <Bar dataKey="count" fill={GOLD} radius={[6, 6, 0, 0]} />
+                <Bar dataKey="count" fill={GOLD} radius={[6, 6, 0, 0]} isAnimationActive animationDuration={800} animationEasing="ease-out" />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Employer job categories">
+          <ChartCard title="Job category distribution">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={data.categoryDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={88}>
+                <Pie
+                  data={data.categoryDistribution}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={28}
+                  outerRadius={88}
+                  paddingAngle={1}
+                  isAnimationActive
+                  animationDuration={850}
+                  animationEasing="ease-out"
+                >
                   {data.categoryDistribution.map((_, i) => (
                     <Cell key={`c-${i}`} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                   ))}
@@ -162,7 +211,12 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
             </ResponsiveContainer>
           </ChartCard>
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:p-6">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:p-6"
+          >
             <h3 className="text-sm font-semibold uppercase tracking-wide text-[#C9A84C]">Average application match score</h3>
             <div className="mt-8 flex flex-col items-center justify-center gap-3">
               <div className="text-5xl font-bold tabular-nums text-white">{data.avgMatchScore != null ? `${data.avgMatchScore}%` : "—"}</div>
@@ -176,7 +230,7 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
               </div>
               <p className="text-xs text-white/50">Based on stored match_score on applications (up to 5000 rows).</p>
             </div>
-          </div>
+          </motion.div>
         </section>
 
         <section className="mt-12 space-y-8">
@@ -185,7 +239,7 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
           <div className="overflow-x-auto rounded-2xl border border-white/10">
             <table className="min-w-full text-left text-sm">
               <caption className="border-b border-white/10 bg-white/[0.04] px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#C9A84C]">
-                Latest employer jobs
+                Latest job posts
               </caption>
               <thead className="bg-[#0D1B2A]/80 text-white/60">
                 <tr>
@@ -216,8 +270,9 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
               <thead className="bg-[#0D1B2A]/80 text-white/60">
                 <tr>
                   <th className="px-4 py-2">Job</th>
-                  <th className="px-4 py-2">Candidate email</th>
-                  <th className="px-4 py-2">Match</th>
+                  <th className="px-4 py-2">Candidate</th>
+                  <th className="px-4 py-2">Status</th>
+                  <th className="px-4 py-2">Compatibility</th>
                   <th className="px-4 py-2">Submitted</th>
                 </tr>
               </thead>
@@ -225,8 +280,12 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
                 {data.recentApplications.map((a) => (
                   <tr key={a.id} className="border-t border-white/5 hover:bg-white/[0.02]">
                     <td className="px-4 py-2 text-white/90">{a.job_title}</td>
-                    <td className="px-4 py-2 text-white/70">{a.email}</td>
-                    <td className="px-4 py-2 text-white/70">{a.match_score ?? "—"}</td>
+                    <td className="px-4 py-2 text-white/70">
+                      <span className="text-white/85">{candidateDisplay(a)}</span>
+                      <span className="mt-0.5 block text-[11px] text-white/45">{a.email}</span>
+                    </td>
+                    <td className="px-4 py-2 text-white/75">{a.status ?? "—"}</td>
+                    <td className="px-4 py-2 text-white/70">{a.match_score != null ? `${a.match_score}%` : "—"}</td>
                     <td className="px-4 py-2 text-white/60">{a.submitted_at ? a.submitted_at.slice(0, 16) : "—"}</td>
                   </tr>
                 ))}
@@ -278,13 +337,25 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
                     </td>
                   </tr>
                 ) : (
-                  data.expiringSoon.map((j) => (
-                    <tr key={j.id} className="border-t border-white/5">
-                      <td className="px-4 py-2 text-white/90">{j.title}</td>
-                      <td className="px-4 py-2 text-amber-100/90">{j.expires_at?.slice(0, 16)}</td>
-                      <td className="px-4 py-2 text-white/70">{j.employer_email}</td>
-                    </tr>
-                  ))
+                  data.expiringSoon.map((j) => {
+                    const tone = j.expires_at ? expiringRowTone(j.expires_at) : "soon";
+                    const rowClass =
+                      tone === "critical"
+                        ? "border-t border-white/5 bg-red-950/35 border-l-4 border-l-red-500/90"
+                        : "border-t border-white/5 bg-amber-950/20 border-l-4 border-l-amber-400/80";
+                    return (
+                      <tr key={j.id} className={rowClass}>
+                        <td className="px-4 py-2 text-white/90">{j.title}</td>
+                        <td className={`px-4 py-2 font-medium tabular-nums ${tone === "critical" ? "text-red-200/95" : "text-amber-100/90"}`}>
+                          {j.expires_at?.slice(0, 16)}
+                          {tone === "critical" ? (
+                            <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-red-300/90">Urgent</span>
+                          ) : null}
+                        </td>
+                        <td className="px-4 py-2 text-white/70">{j.employer_email}</td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
