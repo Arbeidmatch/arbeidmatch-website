@@ -8,6 +8,7 @@ import { ArrowLeft, Bolt, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, 
 type VerifyPartnerResponse = {
   verified?: boolean;
   company_name?: string;
+  reason?: string;
 };
 
 const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: typeof HardHat; roles: string[] }> = [
@@ -66,6 +67,7 @@ export default function RequestPage() {
   const [accessEmail, setAccessEmail] = useState("");
   const [accessStatus, setAccessStatus] = useState<"idle" | "submitting" | "partner" | "non_partner" | "error">("idle");
   const [companyName, setCompanyName] = useState("");
+  const [accessErrorMessage, setAccessErrorMessage] = useState("");
 
   const [selectedOffer, setSelectedOffer] = useState("");
   const [notifyEmail, setNotifyEmail] = useState("");
@@ -138,6 +140,7 @@ export default function RequestPage() {
     event.preventDefault();
     if (!accessEmail.includes("@")) return;
     setAccessStatus("submitting");
+    setAccessErrorMessage("");
     setIsLoadingExit(false);
     try {
       const response = await fetch("/api/verify-partner", {
@@ -150,6 +153,13 @@ export default function RequestPage() {
       if (response.ok && data.verified) {
         setCompanyName(data.company_name || "your company");
         nextStatus = "partner";
+      } else if (data.reason === "personal_email") {
+        setAccessErrorMessage("Please use your company email address.");
+        setIsLoadingExit(true);
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        setAccessStatus("error");
+        setIsLoadingExit(false);
+        return;
       } else {
         setPartnerIssueStatus("idle");
         setPartnerModalView("not_found");
@@ -161,6 +171,7 @@ export default function RequestPage() {
       setAccessStatus(nextStatus);
       setIsLoadingExit(false);
     } catch {
+      setAccessErrorMessage("Could not check access right now. Please try again.");
       setIsLoadingExit(true);
       await new Promise((resolve) => setTimeout(resolve, 200));
       setAccessStatus("error");
@@ -800,7 +811,9 @@ export default function RequestPage() {
               </div>
             )}
 
-            {accessStatus === "error" && <p className="mt-4 text-sm text-red-300">Could not check access right now. Please try again.</p>}
+            {accessStatus === "error" && (
+              <p className="mt-4 text-sm text-red-300">{accessErrorMessage || "Could not check access right now. Please try again."}</p>
+            )}
           </div>
         </>
       )}

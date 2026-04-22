@@ -8,12 +8,22 @@ import { notifyError } from "@/lib/errorNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
 
 const schema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().min(3),
   token: z.string().uuid().optional(),
 });
 
+const FREE_EMAIL_DOMAINS = new Set([
+  "gmail.com",
+  "yahoo.com",
+  "hotmail.com",
+  "outlook.com",
+  "icloud.com",
+  "live.com",
+  "msn.com",
+]);
+
 function normalizeDomain(input: string): string {
-  return input
+  const normalized = input
     .trim()
     .toLowerCase()
     .replace(/^https?:\/\//, "")
@@ -21,6 +31,12 @@ function normalizeDomain(input: string): string {
     .replace(/^@/, "")
     .split("/")[0]
     .split(":")[0];
+
+  if (normalized.includes("@")) {
+    return normalized.split("@").pop() ?? "";
+  }
+
+  return normalized;
 }
 
 function extractCandidateDomains(raw: string): string[] {
@@ -44,9 +60,14 @@ export async function POST(request: NextRequest) {
       { auth: { autoRefreshToken: false, persistSession: false } },
     );
 
-    const email = parsed.data.email.trim().toLowerCase();
-    const domain = normalizeDomain(email.split("@")[1] ?? "");
+    const rawEmail = parsed.data.email.trim().toLowerCase();
+    const normalizedInput = rawEmail.includes("@") ? rawEmail : `info@${rawEmail}`;
+    const email = normalizedInput;
+    const domain = normalizeDomain(normalizedInput.split("@")[1] ?? normalizedInput);
     if (!domain) return NextResponse.json({ verified: false });
+    if (FREE_EMAIL_DOMAINS.has(domain)) {
+      return NextResponse.json({ verified: false, reason: "personal_email" }, { status: 200 });
+    }
 
     const { data: partners, error: partnerError } = await supabase
       .from("partners")
