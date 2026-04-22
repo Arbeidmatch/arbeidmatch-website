@@ -162,7 +162,11 @@ export default function RecruiterNetworkClient() {
       title: "The Recruiter",
       headline: "You know the game.",
       body: "You have experience in recruitment, HR or staffing. You understand the process. Now build your own regional business under a strong brand with full infrastructure.",
-      bullets: ["Background in recruitment or HR", "Network in your region", "ENK or AS (we help you set it up)"],
+      bullets: [
+        "Background in recruitment or HR",
+        "Network in your region",
+        "If you operate in Norway, we can help you set up an ENK or AS. Outside Norway, structures differ and we may have limited support.",
+      ],
     },
     {
       icon: <IconBookUp size={48} />,
@@ -193,7 +197,7 @@ export default function RecruiterNetworkClient() {
     {
       icon: <IconTrend size={48} />,
       title: "Commission Model",
-      text: "Zero upfront investment. You earn on every placement. We help you set up your ENK or AS to invoice legally.",
+      text: "Zero upfront investment. You earn on every placement. If you plan to operate in Norway, we can help you set up an ENK or AS to invoice legally. Outside Norway, business structures differ and we may have limited support.",
     },
   ] as const;
 
@@ -224,7 +228,7 @@ export default function RecruiterNetworkClient() {
     "Active presence: social media, community or professional network",
     "100K+ monthly reach (for influencer track) or relevant experience",
     "Professional English communication",
-    "ENK or AS in your country: we help you set this up",
+    "If you plan to operate in Norway, we can help you set up an ENK or AS. Outside Norway, business structures differ and we may have limited support.",
     "Exclusive focus on your designated region",
     "Genuine interest in building something long-term",
   ] as const;
@@ -698,12 +702,12 @@ export default function RecruiterNetworkClient() {
                     {[
                       {
                         value: "company",
-                        title: "Registered company (AS, ENK, or equivalent)",
+                        title: "Registered company (e.g. Norwegian AS/ENK or local equivalent)",
                         subtitle: "I invoice through my own registered business",
                       },
                       {
                         value: "sole_trader",
-                        title: "Sole trader / Self-employed (ENK)",
+                        title: "Sole trader / self-employed (e.g. ENK in Norway)",
                         subtitle: "I am self-employed and invoice under my personal business number",
                       },
                       {
