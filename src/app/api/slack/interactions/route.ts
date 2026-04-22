@@ -4,11 +4,63 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { buildPartnerContractDraft, buildPartnerOfferDraft } from "@/lib/partnerEmailDrafts";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 type SlackPayload = {
   actions?: Array<{ action_id?: string; value?: string }>;
+  user?: { id?: string; username?: string; name?: string };
 };
+
+function buildResolvedBlocks(input: {
+  status: string;
+  requestId: string;
+  companyName: string;
+  contactName: string;
+  email: string;
+  handledBy: string;
+}) {
+  return [
+    {
+      type: "header",
+      text: { type: "plain_text", text: "Partner Request Resolved" },
+    },
+    {
+      type: "section",
+      fields: [
+        { type: "mrkdwn", text: `*Status:*\n${input.status}` },
+        { type: "mrkdwn", text: `*Request ID:*\n${input.requestId}` },
+        { type: "mrkdwn", text: `*Company:*\n${input.companyName}` },
+        { type: "mrkdwn", text: `*Contact:*\n${input.contactName}` },
+        { type: "mrkdwn", text: `*Email:*\n${input.email}` },
+        { type: "mrkdwn", text: `*Handled by:*\n${input.handledBy}` },
+      ],
+    },
+    {
+      type: "actions",
+      elements: [
+        {
+          type: "button",
+          text: { type: "plain_text", text: "Contact Partner" },
+          action_id: "contact_partner",
+          value: input.requestId,
+        },
+        {
+          type: "button",
+          text: { type: "plain_text", text: "Send Offer" },
+          action_id: "send_partner_offer",
+          value: input.requestId,
+        },
+        {
+          type: "button",
+          text: { type: "plain_text", text: "Send Contract" },
+          action_id: "send_partner_contract",
+          value: input.requestId,
+        },
+      ],
+    },
+  ];
+}
 
 function isValidSlackSignature(request: NextRequest, rawBody: string): boolean {
   const secret = process.env.SLACK_SIGNING_SECRET?.trim();
@@ -82,6 +134,9 @@ export async function POST(request: NextRequest) {
     const action = payload.actions?.[0];
     const actionId = action?.action_id;
     const requestId = action?.value;
+    const handledByUserId = payload.user?.id?.trim() || "";
+    const handledByName = payload.user?.username?.trim() || payload.user?.name?.trim() || "Unknown user";
+    const handledBy = handledByUserId ? `<@${handledByUserId}>` : handledByName;
     if (!actionId || !requestId) {
       return NextResponse.json({ ok: false }, { status: 400 });
     }
@@ -102,11 +157,14 @@ export async function POST(request: NextRequest) {
 
     const transporter = createSmtpTransporter();
     const email = partnerRequest.email;
+    const companyName = partnerRequest.company_name || "Partner";
+    const contactName = partnerRequest.full_name || "Partner Contact";
+    const orgNumber = partnerRequest.org_number || "";
 
     if (actionId === "approve_partner") {
       const domain = email.split("@")[1]?.toLowerCase().trim() || "";
       const { error: partnerInsertError } = await supabase.from("partners").insert({
-        company_name: partnerRequest.company_name || "Partner",
+        company_name: companyName,
         domain,
         active: true,
       });
@@ -116,7 +174,24 @@ export async function POST(request: NextRequest) {
 
       const sessionToken = crypto.randomUUID();
       const requestToken = crypto.randomUUID();
+      const requestTokenExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      const { error: requestTokenError } = await supabase.from("request_tokens").insert({
+        token: requestToken,
+        full_name: contactName,
+        company: companyName,
+        org_number: orgNumber,
+        email,
+        phone: "N/A",
+        job_summary: "Partner candidate request",
+        gdpr_consent: true,
+        expires_at: requestTokenExpiresAt,
+        used: false,
+      });
+      if (requestTokenError) {
+        throw requestTokenError;
+      }
+
       const { error: sessionError } = await supabase.from("partner_sessions").insert({
         email,
         session_token: sessionToken,
@@ -155,6 +230,15 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         text: `Partner approved. Access link sent to ${email}.`,
+        replace_original: true,
+        blocks: buildResolvedBlocks({
+          status: "Approved",
+          requestId,
+          companyName,
+          contactName,
+          email,
+          handledBy,
+        }),
       });
     }
 
@@ -182,6 +266,15 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         text: `Contact email sent to ${email}.`,
+        replace_original: true,
+        blocks: buildResolvedBlocks({
+          status: "Contacted",
+          requestId,
+          companyName,
+          contactName,
+          email,
+          handledBy,
+        }),
       });
     }
 
@@ -209,6 +302,81 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         text: `Request rejected. Email sent to ${email}.`,
+        replace_original: true,
+        blocks: buildResolvedBlocks({
+          status: "Rejected",
+          requestId,
+          companyName,
+          contactName,
+          email,
+          handledBy,
+        }),
+      });
+    }
+
+    if (actionId === "send_partner_offer") {
+      if (!transporter) {
+        return NextResponse.json({ text: "Mail transporter is not configured." }, { status: 500 });
+      }
+      const offerDraft = buildPartnerOfferDraft({
+        companyName,
+        orgNumber,
+        contactName,
+        contactEmail: email,
+      });
+      const html = premiumEmailLayout("Offer from ArbeidMatch", offerDraft.html);
+      await transporter.sendMail({
+        ...mailHeaders(),
+        to: email,
+        subject: offerDraft.subject,
+        text: offerDraft.text,
+        html,
+      });
+
+      return NextResponse.json({
+        text: `Offer sent to ${email}.`,
+        replace_original: true,
+        blocks: buildResolvedBlocks({
+          status: "Offer sent",
+          requestId,
+          companyName,
+          contactName,
+          email,
+          handledBy,
+        }),
+      });
+    }
+
+    if (actionId === "send_partner_contract") {
+      if (!transporter) {
+        return NextResponse.json({ text: "Mail transporter is not configured." }, { status: 500 });
+      }
+      const contractDraft = buildPartnerContractDraft({
+        companyName,
+        orgNumber,
+        contactName,
+        contactEmail: email,
+      });
+      const html = premiumEmailLayout("Contract from ArbeidMatch", contractDraft.html);
+      await transporter.sendMail({
+        ...mailHeaders(),
+        to: email,
+        subject: contractDraft.subject,
+        text: contractDraft.text,
+        html,
+      });
+
+      return NextResponse.json({
+        text: `Contract sent to ${email}.`,
+        replace_original: true,
+        blocks: buildResolvedBlocks({
+          status: "Contract sent",
+          requestId,
+          companyName,
+          contactName,
+          email,
+          handledBy,
+        }),
       });
     }
 
