@@ -34,17 +34,18 @@ function renewBlock(jobId: string, renewToken: string | null): string {
     </p>`;
 }
 
+/** @returns true if mail was handed to SMTP; false if skipped so cron can retry. */
 export async function sendEmployerJobExpiryReminderEmail(input: {
   to: string;
   jobId: string;
   title: string;
   renewToken: string | null;
   variant: "7d" | "3d" | "1d";
-}) {
+}): Promise<boolean> {
   const transport = createSmtpTransporter();
   if (!transport) {
     logApiError("employerJobExpiryEmails reminder", new Error("SMTP not configured"), {});
-    return;
+    return false;
   }
 
   const title = escapeHtml(input.title);
@@ -65,19 +66,26 @@ export async function sendEmployerJobExpiryReminderEmail(input: {
     <p style="margin:0;font-size:12px;color:rgba(232,238,245,0.55);">If you already renewed, you can ignore this message.</p>
   `;
 
-  await transport.sendMail({
-    from: PROFILE_TRANSACTIONAL_FROM,
-    to: input.to,
-    subject: headline,
-    html: wrapHtml(inner),
-  });
+  try {
+    await transport.sendMail({
+      from: PROFILE_TRANSACTIONAL_FROM,
+      to: input.to,
+      subject: headline,
+      html: wrapHtml(inner),
+    });
+    return true;
+  } catch (e) {
+    logApiError("sendEmployerJobExpiryReminderEmail sendMail", e, { jobId: input.jobId, variant: input.variant });
+    return false;
+  }
 }
 
-export async function sendEmployerJobExpiredEmail(input: { to: string; jobId: string; title: string; renewToken: string | null }) {
+/** @returns true if mail was handed to SMTP; false if skipped so cron can retry. */
+export async function sendEmployerJobExpiredEmail(input: { to: string; jobId: string; title: string; renewToken: string | null }): Promise<boolean> {
   const transport = createSmtpTransporter();
   if (!transport) {
     logApiError("employerJobExpiryEmails expired", new Error("SMTP not configured"), {});
-    return;
+    return false;
   }
 
   const title = escapeHtml(input.title);
@@ -90,10 +98,16 @@ export async function sendEmployerJobExpiredEmail(input: { to: string; jobId: st
     ${renewBlock(input.jobId, input.renewToken)}
   `;
 
-  await transport.sendMail({
-    from: PROFILE_TRANSACTIONAL_FROM,
-    to: input.to,
-    subject: "Your job post has expired today",
-    html: wrapHtml(inner),
-  });
+  try {
+    await transport.sendMail({
+      from: PROFILE_TRANSACTIONAL_FROM,
+      to: input.to,
+      subject: "Your job post has expired today",
+      html: wrapHtml(inner),
+    });
+    return true;
+  } catch (e) {
+    logApiError("sendEmployerJobExpiredEmail sendMail", e, { jobId: input.jobId });
+    return false;
+  }
 }

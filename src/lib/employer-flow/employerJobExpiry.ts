@@ -25,11 +25,10 @@ type EmployerJobExpiryRow = {
   notification_sent_expiry: boolean;
 };
 
-function daysUntilExpiry(expiresAtIso: string): number {
-  return (new Date(expiresAtIso).getTime() - Date.now()) / MS_DAY;
-}
-
-export async function renewEmployerJobByToken(jobId: string, renewToken: string): Promise<{ ok: true } | { ok: false; reason: string }> {
+export async function renewEmployerJobByToken(
+  jobId: string,
+  renewToken: string,
+): Promise<{ ok: true; expiresAt: string; renewToken: string } | { ok: false; reason: string }> {
   const supabase = getSupabaseAdminClient();
   if (!supabase) return { ok: false, reason: "Server misconfigured." };
 
@@ -51,12 +50,14 @@ export async function renewEmployerJobByToken(jobId: string, renewToken: string)
   const base = Math.max(Date.now(), new Date(row.expires_at).getTime());
   const nextExpires = new Date(base + EXTEND_MS).toISOString();
   const nowIso = new Date().toISOString();
+  const nextRenewToken = randomUUID();
 
   const upd = await supabase
     .from("employer_jobs")
     .update({
       expires_at: nextExpires,
       status: "live",
+      renew_token: nextRenewToken,
       notification_sent_7d: false,
       notification_sent_3d: false,
       notification_sent_1d: false,
@@ -64,7 +65,7 @@ export async function renewEmployerJobByToken(jobId: string, renewToken: string)
       updated_at: nowIso,
     })
     .eq("id", jobId)
-    .select("id")
+    .select("id, expires_at, renew_token")
     .maybeSingle();
 
   if (upd.error || !upd.data) {
@@ -72,7 +73,8 @@ export async function renewEmployerJobByToken(jobId: string, renewToken: string)
     return { ok: false, reason: "Renewal failed." };
   }
 
-  return { ok: true };
+  const out = upd.data as { id: string; expires_at: string; renew_token: string };
+  return { ok: true, expiresAt: out.expires_at, renewToken: out.renew_token };
 }
 
 export async function runEmployerJobExpirySweep(): Promise<{
@@ -105,21 +107,20 @@ export async function runEmployerJobExpirySweep(): Promise<{
       await supabase.from("employer_jobs").update({ renew_token: renewToken }).eq("id", row.id);
     }
 
-    const days = daysUntilExpiry(row.expires_at);
+    const expiresMs = new Date(row.expires_at).getTime();
+    const nowMs = Date.now();
+    const days = (expiresMs - nowMs) / MS_DAY;
 
-    if (days <= 0) {
+    // Past due: final email (once) + archive. Listing leaves the board.
+    if (expiresMs <= nowMs) {
       if (!row.notification_sent_expiry) {
-        try {
-          await sendEmployerJobExpiredEmail({
-            to: row.employer_email,
-            jobId: row.id,
-            title: row.title,
-            renewToken,
-          });
-        } catch (e) {
-          logApiError("runEmployerJobExpirySweep email expired", e, { jobId: row.id });
-        }
-        emails.expired += 1;
+        const mailed = await sendEmployerJobExpiredEmail({
+          to: row.employer_email,
+          jobId: row.id,
+          title: row.title,
+          renewToken,
+        });
+        if (mailed) emails.expired += 1;
       }
 
       const nowIso = new Date().toISOString();
@@ -137,48 +138,43 @@ export async function runEmployerJobExpirySweep(): Promise<{
       continue;
     }
 
+    // Live jobs with expires_at still in the future: staged reminders (7d / 3d / 1d).
     if (days <= 1 && days > 0 && !row.notification_sent_1d) {
-      try {
-        await sendEmployerJobExpiryReminderEmail({
-          to: row.employer_email,
-          jobId: row.id,
-          title: row.title,
-          renewToken,
-          variant: "1d",
-        });
-      } catch (e) {
-        logApiError("runEmployerJobExpirySweep email 1d", e, { jobId: row.id });
+      const mailed = await sendEmployerJobExpiryReminderEmail({
+        to: row.employer_email,
+        jobId: row.id,
+        title: row.title,
+        renewToken,
+        variant: "1d",
+      });
+      if (mailed) {
+        await supabase.from("employer_jobs").update({ notification_sent_1d: true }).eq("id", row.id);
+        emails.d1 += 1;
       }
-      await supabase.from("employer_jobs").update({ notification_sent_1d: true }).eq("id", row.id);
-      emails.d1 += 1;
     } else if (days <= 3 && days > 1 && !row.notification_sent_3d) {
-      try {
-        await sendEmployerJobExpiryReminderEmail({
-          to: row.employer_email,
-          jobId: row.id,
-          title: row.title,
-          renewToken,
-          variant: "3d",
-        });
-      } catch (e) {
-        logApiError("runEmployerJobExpirySweep email 3d", e, { jobId: row.id });
+      const mailed = await sendEmployerJobExpiryReminderEmail({
+        to: row.employer_email,
+        jobId: row.id,
+        title: row.title,
+        renewToken,
+        variant: "3d",
+      });
+      if (mailed) {
+        await supabase.from("employer_jobs").update({ notification_sent_3d: true }).eq("id", row.id);
+        emails.d3 += 1;
       }
-      await supabase.from("employer_jobs").update({ notification_sent_3d: true }).eq("id", row.id);
-      emails.d3 += 1;
     } else if (days <= 7 && days > 3 && !row.notification_sent_7d) {
-      try {
-        await sendEmployerJobExpiryReminderEmail({
-          to: row.employer_email,
-          jobId: row.id,
-          title: row.title,
-          renewToken,
-          variant: "7d",
-        });
-      } catch (e) {
-        logApiError("runEmployerJobExpirySweep email 7d", e, { jobId: row.id });
+      const mailed = await sendEmployerJobExpiryReminderEmail({
+        to: row.employer_email,
+        jobId: row.id,
+        title: row.title,
+        renewToken,
+        variant: "7d",
+      });
+      if (mailed) {
+        await supabase.from("employer_jobs").update({ notification_sent_7d: true }).eq("id", row.id);
+        emails.d7 += 1;
       }
-      await supabase.from("employer_jobs").update({ notification_sent_7d: true }).eq("id", row.id);
-      emails.d7 += 1;
     }
   }
 
