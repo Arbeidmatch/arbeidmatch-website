@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { renewEmployerJobByToken } from "@/lib/employer-flow/employerJobExpiry";
+import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
@@ -59,12 +60,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const { jobId } = await context.params;
   const renewToken = request.nextUrl.searchParams.get("renewToken")?.trim();
   if (!jobId || !renewToken) {
-    return NextResponse.redirect(new URL("/jobs?renew=missing", request.url));
+    return NextResponse.redirect(jobsBoardAbsoluteUrl("/jobs?renew=missing"));
   }
 
   const result = await renewEmployerJobByToken(jobId, renewToken);
   if (!result.ok) {
-    return NextResponse.redirect(new URL(`/jobs?renew=error&message=${encodeURIComponent(result.reason)}`, request.url));
+    return NextResponse.redirect(
+      jobsBoardAbsoluteUrl(`/jobs?renew=error&message=${encodeURIComponent(result.reason)}`),
+    );
   }
 
   const supabase = getSupabaseAdminClient();
@@ -77,5 +80,5 @@ export async function GET(request: NextRequest, context: RouteContext) {
   await logAuditEvent("job_post_renewed", "job", jobId, "employer", { source: "renew_link" });
 
   const dest = slug ? `/jobs/${slug}?renewed=1` : "/jobs?renewed=1";
-  return NextResponse.redirect(new URL(dest, request.url));
+  return NextResponse.redirect(jobsBoardAbsoluteUrl(dest));
 }

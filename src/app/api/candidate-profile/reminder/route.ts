@@ -9,6 +9,7 @@ import { draftToIncompleteCandidateRow } from "@/lib/candidates/progressRow";
 import { getSupabaseAdminClient } from "@/lib/jobs/applyService";
 import { escapeHtml } from "@/lib/htmlSanitizer";
 import { isRateLimited } from "@/lib/requestProtection";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { logApiError } from "@/lib/secureLogger";
 import { notifyError } from "@/lib/errorNotifier";
 import { emailParagraph, premiumCtaButton, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
@@ -179,6 +180,13 @@ export async function POST(request: NextRequest) {
       to: emailKey,
       subject: "Complete your ArbeidMatch profile to apply",
       html: wrapPremiumEmail(inner),
+    });
+
+    const { data: candRow } = await supabase.from("candidates").select("id").eq("email", emailKey).maybeSingle();
+    const candidateId = candRow && typeof (candRow as { id?: string }).id === "string" ? (candRow as { id: string }).id : null;
+    void logAuditEvent("reminder_email_sent", "candidate", candidateId, "system", {
+      template: "candidate_profile_reminder",
+      step: displayStep,
     });
 
     return NextResponse.json({ success: true });

@@ -5,6 +5,7 @@ import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { buildInternalEmailHtml, mailHeaders } from "@/lib/emailPremiumTemplate";
 import { getDocuSignAuthServer, isDocuSignConfigured } from "@/lib/docusign/accessToken";
 import { createAndSendPartnerAgreementEnvelope } from "@/lib/docusign/partnerAgreementEnvelope";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { notifyError } from "@/lib/errorNotifier";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
@@ -151,6 +152,12 @@ export async function POST(request: NextRequest) {
       .update({ docusign_envelope_id: envelopeId, verification_status: "awaiting_signature" })
       .eq("id", partnerId);
     if (envUpdErr) throw envUpdErr;
+
+    void logAuditEvent("partner_onboarding_started", "partner", partnerId, "employer", {
+      companyName: parsed.data.companyName,
+      partnershipType: parsed.data.partnershipType,
+      envelopeId,
+    });
 
     const transporter = createSmtpTransporter();
     if (transporter) {

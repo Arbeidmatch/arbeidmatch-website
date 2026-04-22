@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { emailParagraph, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
 import { escapeHtml } from "@/lib/htmlSanitizer";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { notifyError } from "@/lib/errorNotifier";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
@@ -106,6 +107,10 @@ export async function POST(request: NextRequest) {
             await notifyError({ route: "/api/docusign/webhook partner mail", error: mailErr });
           }
         }
+        void logAuditEvent("partner_signed", "partner", partnerId, "system", {
+          envelopeStatus: status,
+          companyName,
+        });
         return NextResponse.json({ ok: true });
       }
 
@@ -121,6 +126,10 @@ export async function POST(request: NextRequest) {
           })
           .eq("id", partnerId);
         if (error) throw error;
+        void logAuditEvent("partner_declined", "partner", partnerId, "system", {
+          envelopeStatus: status,
+          verificationStatus: partnerVerification,
+        });
       }
       return NextResponse.json({ ok: true });
     }
