@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import { trackEvent } from "@/lib/analytics";
-import { homeUserTypeIsUnset, writeHomeUserType } from "@/lib/homeUserType";
+import { writeHomeUserType } from "@/lib/homeUserType";
 import { setNavigationUserType } from "@/lib/navigationUserType";
 
 const TRANSITION = { duration: 0.38, ease: [0.22, 1, 0.36, 1] as const };
@@ -19,15 +19,7 @@ export default function HomeWelcomeUserTypeSlideup() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      try {
-        if (homeUserTypeIsUnset()) {
-          setOpen(true);
-        }
-      } catch {
-        setOpen(true);
-      }
-    }, WELCOME_DELAY_MS);
+    const timer = window.setTimeout(() => setOpen(true), WELCOME_DELAY_MS);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -52,8 +44,13 @@ export default function HomeWelcomeUserTypeSlideup() {
   );
 
   const dismissBrowse = useCallback(() => {
-    trackEvent("home_user_type", { userType: "browsing", source: "welcome_slideup" });
-    writeHomeUserType("browsing");
+    trackEvent("home_user_type", { source: "welcome_slideup_browse", choice: "none" });
+    try {
+      window.sessionStorage.removeItem("roleSelected");
+    } catch {
+      /* ignore */
+    }
+    setNavigationUserType(null);
     setOpen(false);
   }, []);
 
