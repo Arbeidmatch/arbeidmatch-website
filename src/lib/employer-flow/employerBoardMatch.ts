@@ -1,5 +1,5 @@
 import type { CandidateProfilePayload } from "@/lib/candidates/profileSchema";
-import { resolveSalaryHourlyMidNok } from "@/lib/candidates/profileSchema";
+import { prefersConcreteRotationCycle, resolveSalaryHourlyMidNok } from "@/lib/candidates/profileSchema";
 import type { EmployerBoardMeta } from "@/lib/jobs/types";
 
 function bandMinYears(band: CandidateProfilePayload["preferences"]["experienceBand"]): number {
@@ -80,11 +80,12 @@ export function computeEmployerBoardMatch(meta: EmployerBoardMeta, profile: Cand
 
   const rotText = `${meta.rotation || ""}`.toLowerCase();
   const jobRotationHeavy = rotText.includes("rotation") || rotText.includes("weeks");
-  const pref = profile.preferences.rotation;
+  const pref = String(profile.preferences.rotation);
+  const concrete = prefersConcreteRotationCycle(pref);
   if (!jobRotationHeavy && pref === "flexible") {
     points += 1;
     breakdown.push("Rotation +1");
-  } else if (jobRotationHeavy && pref !== "flexible") {
+  } else if (jobRotationHeavy && concrete) {
     points += 1;
     breakdown.push("Rotation +1");
   } else if (jobRotationHeavy && pref === "flexible") {

@@ -14,6 +14,7 @@ import {
   housingPrefs,
   jobTypes,
   hoursPrefs,
+  rotationHumanLabels,
   rotationPrefs,
   salaryHourlyHumanLabels,
   salaryHourlyOptions,
@@ -119,11 +120,7 @@ const HOURS_LABELS: Record<(typeof hoursPrefs)[number], string> = {
   "54_plus": "54+ hours per week (exceptional circumstances)",
 };
 
-const ROTATION_LABELS: Record<(typeof rotationPrefs)[number], string> = {
-  "1_2": "1 to 2 weeks",
-  "2_4": "2 to 4 weeks",
-  flexible: "Flexible",
-};
+const ROTATION_LABELS = rotationHumanLabels;
 
 const HOUSING_LABELS: Record<(typeof housingPrefs)[number], string> = {
   company: "Company provided",
@@ -455,9 +452,9 @@ export default function CandidateProfileWizard({
       case 5:
         return rotation !== null;
       case 6:
-        if (hasDriverLicense === null) return false;
-        if (hasDriverLicense && licenseCategories.trim().length < 2) return false;
-        return true;
+        // Only require Yes/No. Categories are optional in the schema; a min-length
+        // rule here wrongly blocked valid single-letter classes (e.g. B, C, T).
+        return hasDriverLicense !== null;
       case 7:
         return housing !== null;
       case 8: {
@@ -695,17 +692,22 @@ export default function CandidateProfileWizard({
                   ) : null}
 
                   {wizardStep === 5 ? (
-                    <RadioFieldset legend="What rotation rhythm do you prefer?">
-                      {rotationPrefs.map((value) => (
-                        <RadioRow
-                          key={value}
-                          name="rotation"
-                          label={ROTATION_LABELS[value]}
-                          checked={rotation === value}
-                          onChange={() => setRotation(value)}
-                        />
-                      ))}
-                    </RadioFieldset>
+                    <div className="space-y-3">
+                      <RadioFieldset legend="What rotation rhythm do you prefer?">
+                        {rotationPrefs.map((value) => (
+                          <RadioRow
+                            key={value}
+                            name="rotation"
+                            label={ROTATION_LABELS[value]}
+                            checked={rotation === value}
+                            onChange={() => setRotation(value)}
+                          />
+                        ))}
+                      </RadioFieldset>
+                      <p className="text-sm leading-relaxed text-white/55">
+                        Currently these are the available rotation patterns. More options will be added soon.
+                      </p>
+                    </div>
                   ) : null}
 
                   {wizardStep === 6 ? (

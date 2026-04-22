@@ -85,11 +85,44 @@ export function salaryHourlyEmployerBandLabelResolved(band: string): string {
   return LEGACY_SALARY_EMPLOYER_LABEL[band] ?? "Not specified";
 }
 
+/** Norwegian working-time context: 37.5 h normal week, 48 h overtime cap, 54+ h exceptional. */
 export const hoursPrefSchema = z.enum(["37.5", "48", "54_plus"]);
 export const hoursPrefs = hoursPrefSchema.options;
 
-export const rotationPrefSchema = z.enum(["1_2", "2_4", "flexible"]);
+export const rotationPrefSchema = z.enum(["4on_2off", "6on_2off"]);
 export const rotationPrefs = rotationPrefSchema.options;
+
+export type RotationPref = z.infer<typeof rotationPrefSchema>;
+
+export const rotationHumanLabels = {
+  "4on_2off": "4 weeks on, 2 weeks off",
+  "6on_2off": "6 weeks on, 2 weeks off",
+} as const satisfies Record<RotationPref, string>;
+
+const LEGACY_ROTATION_LABELS: Record<string, string> = {
+  "1_2": "1 to 2 weeks",
+  "2_4": "2 to 4 weeks",
+  flexible: "Flexible",
+};
+
+/** Human label for UI and employer views; supports legacy snapshot keys. */
+export function rotationPrefLabelResolved(rot: string): string {
+  if (Object.prototype.hasOwnProperty.call(rotationHumanLabels, rot)) {
+    return rotationHumanLabels[rot as RotationPref];
+  }
+  return LEGACY_ROTATION_LABELS[rot] ?? rot;
+}
+
+/** For matching: true when the candidate chose a fixed cycle (current or legacy), not “flexible”. */
+export function prefersConcreteRotationCycle(rot: string): boolean {
+  if (rot === "flexible") return false;
+  return (
+    rot === "4on_2off" ||
+    rot === "6on_2off" ||
+    rot === "1_2" ||
+    rot === "2_4"
+  );
+}
 
 export const housingPrefSchema = z.enum(["company", "self", "no_preference"]);
 export const housingPrefs = housingPrefSchema.options;

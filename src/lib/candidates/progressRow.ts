@@ -29,7 +29,7 @@ function jobPrefsFromDraft(d: Record<string, unknown>): JobPreferencesPayload {
     : "37.5";
   const rotation = rotationPrefs.includes(d.rotation as JobPreferencesPayload["rotation"])
     ? (d.rotation as JobPreferencesPayload["rotation"])
-    : "flexible";
+    : "4on_2off";
   const housing = housingPrefs.includes(d.housing as JobPreferencesPayload["housing"])
     ? (d.housing as JobPreferencesPayload["housing"])
     : "no_preference";

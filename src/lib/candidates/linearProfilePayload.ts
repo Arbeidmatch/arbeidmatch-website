@@ -1,4 +1,5 @@
 import {
+  rotationHumanLabels,
   salaryHourlyHumanLabels,
   type CandidateProfilePayload,
   type JobPreferencesPayload,
@@ -52,7 +53,7 @@ export function buildSyntheticExperiences(prefs: JobPreferencesPayload, residenc
       fromYear: String(start),
       toMonth: "Dec",
       toYear: String(y),
-      responsibilities: `${prefs.jobType} work across relevant projects. Declared experience band: ${bandText}. Expected hourly band: ${salaryHourlyHumanLabels[prefs.salaryHourly]}. Weekly hours ${prefs.hoursPerWeek}, rotation ${prefs.rotation}. Housing preference ${prefs.housing}. ${licenseLine}`,
+      responsibilities: `${prefs.jobType} work across relevant projects. Declared experience band: ${bandText}. Expected hourly band: ${salaryHourlyHumanLabels[prefs.salaryHourly]}. Weekly hours ${prefs.hoursPerWeek}, rotation ${rotationHumanLabels[prefs.rotation]}. Housing preference ${prefs.housing}. ${licenseLine}`,
     },
   ];
 }

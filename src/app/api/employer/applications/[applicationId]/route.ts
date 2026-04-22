@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { noStoreJson } from "@/lib/apiSecurity";
 import type { CandidateProfilePayload } from "@/lib/candidates/profileSchema";
-import { salaryHourlyEmployerBandLabelResolved } from "@/lib/candidates/profileSchema";
+import { rotationPrefLabelResolved, salaryHourlyEmployerBandLabelResolved } from "@/lib/candidates/profileSchema";
 import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { logApiError } from "@/lib/secureLogger";
 
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     jobExperienceSignal: jobMeta.data?.experience_years_min ?? null,
     candidateExperienceBand: snap.preferences.experienceBand,
     salaryExpectationLabel: formatSalaryHourly(snap.preferences.salaryHourly),
-    rotationPreference: snap.preferences.rotation,
+    rotationPreference: rotationPrefLabelResolved(String(snap.preferences.rotation)),
     hasDrivingLicense: snap.preferences.hasPermit,
     housingPreference: snap.preferences.housing,
     travelPreference: snap.preferences.travel,

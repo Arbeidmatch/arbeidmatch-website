@@ -1,6 +1,6 @@
 import type { JobRecord } from "@/lib/jobs/types";
 import type { CandidateProfilePayload, JobPreferencesPayload } from "@/lib/candidates/profileSchema";
-import { resolveSalaryHourlyMidNok } from "@/lib/candidates/profileSchema";
+import { prefersConcreteRotationCycle, resolveSalaryHourlyMidNok } from "@/lib/candidates/profileSchema";
 
 /** Minimum profile fields required for role matching heuristics. */
 export type JobMatchProfileInput = Pick<CandidateProfilePayload, "experiences" | "preferences">;
@@ -135,10 +135,22 @@ export function computeJobMatchScore(job: JobRecord, profile: JobMatchProfileInp
   add(0.14, hoursScore, `Work rhythm fit using hours preference, rotation context, and about ${years.toFixed(1)} years of declared experience band.`);
 
   const rotationText = `${job.description} ${normalizeList(job.requirements).join(" ")}`;
-  const rotationHeavy = includesAny(rotationText, ["rotation", "swing", "2/4", "2-4", "14/14", "28/28"]);
+  const rotationHeavy = includesAny(rotationText, [
+    "rotation",
+    "swing",
+    "2/4",
+    "2-4",
+    "14/14",
+    "28/28",
+    "4/2",
+    "6/2",
+    "4 on",
+    "6 on",
+  ]);
+  const rotPref = String(profile.preferences.rotation);
   let rotationScore = 72;
-  if (rotationHeavy && profile.preferences.rotation !== "flexible") rotationScore = 86;
-  if (!rotationHeavy && profile.preferences.rotation === "flexible") rotationScore = 78;
+  if (rotationHeavy && prefersConcreteRotationCycle(rotPref)) rotationScore = 86;
+  if (!rotationHeavy && rotPref === "flexible") rotationScore = 78;
   add(0.1, rotationScore, "Rotation preference compared to role language.");
 
   const reqText = `${job.description}\n${normalizeList(job.requirements).join("\n")}`;
@@ -170,10 +182,22 @@ function hoursSubScore(job: JobRecord, profile: JobMatchProfileInput): number {
 
 function rotationSubScore(job: JobRecord, profile: JobMatchProfileInput): number {
   const rotationText = `${job.description} ${normalizeList(job.requirements).join(" ")}`;
-  const rotationHeavy = includesAny(rotationText, ["rotation", "swing", "2/4", "2-4", "14/14", "28/28"]);
+  const rotationHeavy = includesAny(rotationText, [
+    "rotation",
+    "swing",
+    "2/4",
+    "2-4",
+    "14/14",
+    "28/28",
+    "4/2",
+    "6/2",
+    "4 on",
+    "6 on",
+  ]);
+  const rotPref = String(profile.preferences.rotation);
   let rotationScore = 72;
-  if (rotationHeavy && profile.preferences.rotation !== "flexible") rotationScore = 86;
-  if (!rotationHeavy && profile.preferences.rotation === "flexible") rotationScore = 78;
+  if (rotationHeavy && prefersConcreteRotationCycle(rotPref)) rotationScore = 86;
+  if (!rotationHeavy && rotPref === "flexible") rotationScore = 78;
   return rotationScore;
 }
 
