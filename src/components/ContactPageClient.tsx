@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import type { CSSProperties, FormEvent } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Building2, Mail, MapPin } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -38,6 +39,22 @@ const inputInlineStyle = {
   color: "white",
   borderRadius: 8,
   padding: "12px 16px",
+};
+
+const needSelectClass =
+  "w-full rounded-lg border border-[rgba(201,168,76,0.4)] bg-[#eef1f5] px-4 py-3 text-[#0D1B2A] focus:border-[#C9A84C] focus:outline-none transition-[border-color,background-color] duration-200 hover:border-[rgba(201,168,76,0.65)] hover:bg-white relative z-[1000] cursor-pointer";
+const needSelectInlineStyle: CSSProperties = {
+  backgroundColor: "#eef1f5",
+  border: "1px solid rgba(201,168,76,0.4)",
+  color: "#0D1B2A",
+  borderRadius: 8,
+  padding: "12px 16px",
+};
+
+const optionStyle: CSSProperties = {
+  backgroundColor: "#0f1923",
+  color: "#ffffff",
+  padding: "10px 12px",
 };
 
 export default function ContactPageClient() {
@@ -167,10 +184,10 @@ export default function ContactPageClient() {
           </aside>
           </ScrollReveal>
 
-          <ScrollReveal variant="fadeUp">
+          <ScrollReveal variant="fadeUp" className="overflow-visible">
           <form
             onSubmit={handleSubmit}
-            className="card-premium rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-7 shadow-[var(--shadow-card)] md:ml-8 md:p-10"
+            className="card-premium overflow-visible rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-7 shadow-[var(--shadow-card)] md:ml-8 md:p-10"
             style={{
               background: "rgba(255,255,255,0.03)",
               border: "1px solid rgba(201,168,76,0.15)",
@@ -223,11 +240,11 @@ export default function ContactPageClient() {
                   style={inputInlineStyle}
                 />
               </label>
-              <label className="form-label-premium text-[13px] text-white/70">
+              <label className="form-label-premium relative z-[1000] overflow-visible text-[13px] text-white/70">
                 I need
                 <select
                   name="need"
-                  className={inputClass}
+                  className={needSelectClass}
                   value={need}
                   onChange={(event) => {
                     setNeed(event.target.value);
@@ -235,15 +252,29 @@ export default function ContactPageClient() {
                       setNeedOther("");
                     }
                   }}
-                  style={inputInlineStyle}
+                  style={needSelectInlineStyle}
                 >
-                  <option>Qualified workers</option>
-                  <option>Skilled tradespeople</option>
-                  <option>Engineers & Technical</option>
-                  <option>Healthcare staff</option>
-                  <option>Construction workers</option>
-                  <option>Support</option>
-                  <option>Other</option>
+                  <option value="Qualified workers" style={optionStyle}>
+                    Qualified workers
+                  </option>
+                  <option value="Skilled tradespeople" style={optionStyle}>
+                    Skilled tradespeople
+                  </option>
+                  <option value="Engineers & Technical" style={optionStyle}>
+                    Engineers & Technical
+                  </option>
+                  <option value="Healthcare staff" style={optionStyle}>
+                    Healthcare staff
+                  </option>
+                  <option value="Construction workers" style={optionStyle}>
+                    Construction workers
+                  </option>
+                  <option value="Support" style={optionStyle}>
+                    Support
+                  </option>
+                  <option value="Other" style={optionStyle}>
+                    Other
+                  </option>
                 </select>
               </label>
               {need === "Other" && (
