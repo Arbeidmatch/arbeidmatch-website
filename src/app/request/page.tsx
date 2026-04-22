@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Bolt, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
+
+import { EASE_PREMIUM } from "@/lib/animationConstants";
 
 type VerifyPartnerResponse = {
   verified?: boolean;
@@ -74,7 +77,7 @@ export default function RequestPage() {
   const [companyName, setCompanyName] = useState("");
   const [accessErrorMessage, setAccessErrorMessage] = useState("");
 
-  const [selectedOffer, setSelectedOffer] = useState("");
+  const [selectedOption, setSelectedOption] = useState<null | "premium" | "pay-per-use">(null);
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifyStatus, setNotifyStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [resultAction, setResultAction] = useState<"none" | "partner" | "non_partner">("none");
@@ -89,6 +92,9 @@ export default function RequestPage() {
   const [partnerApplicationEmail, setPartnerApplicationEmail] = useState("");
   const [partnerApplicationStatus, setPartnerApplicationStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [partnerApplicationError, setPartnerApplicationError] = useState("");
+  const [requestMinimalLandingDismissed, setRequestMinimalLandingDismissed] = useState(false);
+  const useMinimalAvailabilityLanding = REQUEST_PAGE_MINIMAL_UI && !requestMinimalLandingDismissed;
+  const reduceMotion = useReducedMotion();
   const hasMountedHistoryGuard = useRef(false);
   const hasAutoStartedRoleCheck = useRef(false);
 
@@ -128,11 +134,11 @@ export default function RequestPage() {
     if (role.length < 2) return;
     setSearchTerm(role);
     setAccessStatus("idle");
-    setSelectedOffer("");
+    setSelectedOption(null);
     setNotifyEmail("");
     setNotifyStatus("idle");
     setResultAction("none");
-    if (REQUEST_PAGE_MINIMAL_UI) {
+    if (useMinimalAvailabilityLanding) {
       let hash = 0;
       for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
       setCheckCount((hash % 36) + 12);
@@ -221,7 +227,7 @@ export default function RequestPage() {
   };
 
   const submitFeatureWaitlist = async () => {
-    if (!notifyEmail.includes("@") || !selectedOffer) return;
+    if (!notifyEmail.includes("@") || !selectedOption) return;
     setNotifyStatus("submitting");
     try {
       const response = await fetch("/api/feature-waitlist", {
@@ -229,7 +235,7 @@ export default function RequestPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: notifyEmail.trim().toLowerCase(),
-          feature: `pricing-${selectedOffer}`,
+          feature: `pricing-${selectedOption}`,
           consent: true,
         }),
       });
@@ -240,7 +246,7 @@ export default function RequestPage() {
   };
 
   const backToRoleSearch = () => {
-    if (REQUEST_PAGE_MINIMAL_UI) {
+    if (useMinimalAvailabilityLanding) {
       setSearchTerm((prev) => {
         const u = prev.trim().toUpperCase() || "CARPENTER";
         const idx = MINIMAL_ROTATE_ROLES.indexOf(u);
@@ -256,30 +262,15 @@ export default function RequestPage() {
     setCheckCount(0);
     setShowAccessCheck(false);
     setAccessStatus("idle");
-    setSelectedOffer("");
+    setSelectedOption(null);
     setNotifyEmail("");
     setNotifyStatus("idle");
     setResultAction("none");
   };
 
   const resetToFirstStep = () => {
-    if (REQUEST_PAGE_MINIMAL_UI) {
-      setCheckState("result");
-      setSelectedIndustry("");
-      setRoleQuery("");
-      setSearchTerm("CARPENTER");
-      setSearchMessageIndex(0);
-      setCheckCount(0);
-      setShowAccessCheck(false);
-      setAccessEmail("");
-      setAccessStatus("idle");
-      setCompanyName("");
-      setSelectedOffer("");
-      setNotifyEmail("");
-      setNotifyStatus("idle");
-      setResultAction("none");
-      return;
-    }
+    setShowLeaveDialog(false);
+    setRequestMinimalLandingDismissed(true);
     setCheckState("idle");
     setSelectedIndustry("");
     setRoleQuery("");
@@ -290,10 +281,15 @@ export default function RequestPage() {
     setAccessEmail("");
     setAccessStatus("idle");
     setCompanyName("");
-    setSelectedOffer("");
+    setSelectedOption(null);
     setNotifyEmail("");
     setNotifyStatus("idle");
     setResultAction("none");
+    setPartnerModalView("not_found");
+    setPartnerIssueStatus("idle");
+    setShowPartnerApplicationModal(false);
+    setPartnerApplicationStatus("idle");
+    setPartnerApplicationError("");
   };
 
   const showNonPartnerOptions = resultAction === "non_partner";
@@ -374,6 +370,7 @@ export default function RequestPage() {
       if (
         raw.closest(".leave-dialog") ||
         raw.closest(".partner-modal") ||
+        raw.closest(".partner-modal-backdrop") ||
         raw.closest(".request-options-overlay")
       ) {
         return;
@@ -423,7 +420,7 @@ export default function RequestPage() {
           showNonPartnerOptions ? "pointer-events-none translate-y-2 opacity-0" : "translate-y-0 opacity-100"
         }`}
       >
-        {checkState === "idle" && !REQUEST_PAGE_MINIMAL_UI && (
+        {checkState === "idle" && !useMinimalAvailabilityLanding && (
           <>
             {!selectedIndustry && (
               <button
@@ -497,7 +494,7 @@ export default function RequestPage() {
           </>
         )}
 
-        {checkState === "searching" && !REQUEST_PAGE_MINIMAL_UI && (
+        {checkState === "searching" && !useMinimalAvailabilityLanding && (
           <div className="flex flex-col items-center py-10 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
             <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
@@ -512,18 +509,21 @@ export default function RequestPage() {
           <div className="relative text-center">
             <button
               type="button"
-              onClick={() => (REQUEST_PAGE_MINIMAL_UI ? router.back() : backToRoleSearch())}
+              onClick={() => (useMinimalAvailabilityLanding ? router.back() : backToRoleSearch())}
               className="mb-4 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
             >
               <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
               Back
             </button>
-            {!REQUEST_PAGE_MINIMAL_UI ? (
+            {!useMinimalAvailabilityLanding ? (
               <div className="pointer-events-none absolute left-1/2 top-[120px] h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(201,168,76,0.08)_0%,transparent_70%)]" />
             ) : null}
-            <p className="result-zero relative z-[1] text-[96px] font-extrabold leading-none text-transparent">0</p>
-            <p className="mt-3 text-[12px] uppercase tracking-[0.15em] text-[rgba(201,168,76,0.7)]">{searchTerm.trim() || "ROLE"}</p>
-            {!REQUEST_PAGE_MINIMAL_UI ? (
+            <p
+              className={`text-[12px] uppercase tracking-[0.15em] text-[rgba(201,168,76,0.7)]${useMinimalAvailabilityLanding ? " mt-2" : " mt-3"}`}
+            >
+              {searchTerm.trim() || "ROLE"}
+            </p>
+            {!useMinimalAvailabilityLanding ? (
               <>
                 <div className="mx-auto mt-3 inline-flex rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.06)] px-3 py-1 text-[11px] text-[rgba(255,255,255,0.6)]">
                   Feature in development. Partner access only.
@@ -532,7 +532,7 @@ export default function RequestPage() {
               </>
             ) : null}
             <div
-              className={`mx-auto grid w-full max-w-[560px] grid-cols-1 gap-3 sm:grid-cols-2${REQUEST_PAGE_MINIMAL_UI ? " mt-8" : ""}`}
+              className={`mx-auto grid w-full max-w-[560px] grid-cols-1 gap-3 sm:grid-cols-2${useMinimalAvailabilityLanding ? " mt-8" : ""}`}
             >
               <button
                 type="button"
@@ -549,7 +549,7 @@ export default function RequestPage() {
                 onClick={() => {
                   setResultAction("non_partner");
                   setAccessStatus("idle");
-                  setSelectedOffer("");
+                  setSelectedOption(null);
                   setNotifyEmail("");
                   setNotifyStatus("idle");
                 }}
@@ -560,7 +560,10 @@ export default function RequestPage() {
             </div>
             <button
               type="button"
-              onClick={backToRoleSearch}
+              onClick={() => {
+                resetToFirstStep();
+                void router.replace("/request");
+              }}
               className="mx-auto mt-4 block cursor-pointer text-center text-[13px] text-[rgba(201,168,76,0.6)] underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
             >
               Search another role
@@ -572,108 +575,164 @@ export default function RequestPage() {
 
       {showNonPartnerOptions && (
         <div className="request-options-overlay">
-          <div className="request-options-panel">
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Choose access option</p>
-            <h2 className="mt-3 text-[24px] font-bold text-white">How would you like to continue?</h2>
-            <p className="mt-2 text-[15px] text-[rgba(255,255,255,0.55)]">Select the option that fits your hiring needs.</p>
-            <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
+          <div className="request-options-panel flex min-h-[100dvh] w-full flex-col items-center justify-center px-5 py-12">
+            <AnimatePresence mode="wait">
+              {selectedOption == null ? (
+                <motion.div
+                  key="access-options"
+                  className="w-full max-w-[1200px]"
+                  initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.26, ease: EASE_PREMIUM }}
+                >
+                  <p className="text-center text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Choose access option</p>
+                  <h2 className="mt-3 text-center text-[24px] font-bold text-white">How would you like to continue?</h2>
+                  <p className="mt-2 text-center text-[15px] text-[rgba(255,255,255,0.55)]">
+                    Select the option that fits your hiring needs.
+                  </p>
+                  <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
 
-            <div className="request-options-container">
-              <button
-                type="button"
-                onClick={() => {
-                  setPartnerApplicationEmail(accessEmail.trim().toLowerCase());
-                  setPartnerApplicationStatus("idle");
-                  setPartnerApplicationError("");
-                  setShowPartnerApplicationModal(true);
-                }}
-                className="request-option-card text-left"
-              >
-                <Users className="h-5 w-5 text-[#C9A84C]" />
-                <p className="mt-4 text-[18px] font-bold text-white">Become a Partner</p>
-                <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
-                  Get access to partner-only candidate tools and direct hiring support.
-                </p>
-              </button>
+                  <div className="request-options-container">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedOption(null);
+                        setPartnerApplicationEmail(accessEmail.trim().toLowerCase());
+                        setPartnerApplicationStatus("idle");
+                        setPartnerApplicationError("");
+                        setShowPartnerApplicationModal(true);
+                      }}
+                      className="request-option-card text-left"
+                    >
+                      <Users className="h-5 w-5 text-[#C9A84C]" />
+                      <p className="mt-4 text-[18px] font-bold text-white">Become a Partner</p>
+                      <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
+                        Get access to partner-only candidate tools and direct hiring support.
+                      </p>
+                    </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedOffer("premium");
-                  setNotifyStatus("idle");
-                }}
-                className="request-option-card text-left"
-              >
-                <Star className="h-5 w-5 text-[#C9A84C]" />
-                <p className="mt-4 text-[18px] font-bold text-white">Premium Subscription</p>
-                <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
-                  Best for ongoing hiring with priority support and expanded matching.
-                </p>
-              </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedOption("premium");
+                        setNotifyStatus("idle");
+                      }}
+                      className="request-option-card text-left"
+                    >
+                      <Star className="h-5 w-5 text-[#C9A84C]" />
+                      <p className="mt-4 text-[18px] font-bold text-white">Premium Subscription</p>
+                      <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
+                        Best for ongoing hiring with priority support and expanded matching.
+                      </p>
+                    </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedOffer("pay-per-use");
-                  setNotifyStatus("idle");
-                }}
-                className="request-option-card text-left"
-              >
-                <Clock3 className="h-5 w-5 text-[#C9A84C]" />
-                <p className="mt-4 text-[18px] font-bold text-white">Pay per use</p>
-                <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
-                  Flexible access when you need candidates without a long-term commitment.
-                </p>
-              </button>
-            </div>
-
-            {selectedOffer && (
-              <div className="mt-6 w-full max-w-[520px] rounded-[16px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] p-5 text-left">
-                <p className="text-[14px] text-[rgba(255,255,255,0.65)]">Get notified when this option is available.</p>
-                <div className="mt-3 flex flex-col gap-[10px] sm:flex-row">
-                  <input
-                    type="email"
-                    value={notifyEmail}
-                    onChange={(event) => setNotifyEmail(event.target.value)}
-                    placeholder="yourname@company.no"
-                    className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => void submitFeatureWaitlist()}
-                    disabled={!notifyEmail.includes("@") || notifyStatus === "submitting"}
-                    className="result-cta-primary rounded-[10px] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] disabled:opacity-60"
-                  >
-                    {notifyStatus === "submitting" ? "Sending..." : "Notify me"}
-                  </button>
-                </div>
-                {notifyStatus === "success" && (
-                  <div className="waitlist-success-card mt-4">
-                    <svg viewBox="0 0 24 24" className="mx-auto h-7 w-7 text-[#C9A84C]" fill="none" aria-hidden>
-                      <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <p className="mt-[14px] text-[18px] font-bold text-white">We have got you covered.</p>
-                    <p className="mt-2 text-[14px] leading-[1.7] text-[rgba(255,255,255,0.55)]">
-                      You will be among the first to know when this launches. We are building something worth waiting for.
-                    </p>
-                    <p className="mt-4 text-[12px] text-[rgba(255,255,255,0.3)]">We will reach out directly when access becomes available.</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedOption("pay-per-use");
+                        setNotifyStatus("idle");
+                      }}
+                      className="request-option-card text-left"
+                    >
+                      <Clock3 className="h-5 w-5 text-[#C9A84C]" />
+                      <p className="mt-4 text-[18px] font-bold text-white">Pay per use</p>
+                      <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
+                        Flexible access when you need candidates without a long-term commitment.
+                      </p>
+                    </button>
                   </div>
-                )}
-                {notifyStatus === "error" && <p className="mt-3 text-[13px] text-[rgba(255,255,255,0.5)]">Could not save your request. Please try again.</p>}
-              </div>
-            )}
 
-            <div className="mx-auto mt-5 w-full max-w-[320px]">
-              <button
-                type="button"
-                onClick={() => {
-                  setResultAction("none");
-                }}
-                className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-[13px] text-[15px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]"
-              >
-                Back
-              </button>
-            </div>
+                  <div className="mx-auto mt-10 w-full max-w-[320px]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResultAction("none");
+                        setSelectedOption(null);
+                        setNotifyStatus("idle");
+                        setNotifyEmail("");
+                      }}
+                      className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-[13px] text-[15px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]"
+                    >
+                      Back
+                    </button>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="waitlist-single"
+                  className="flex w-full max-w-[440px] flex-col items-stretch"
+                  initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -14 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.28, ease: EASE_PREMIUM }}
+                >
+                  <div className="rounded-[22px] border border-[rgba(201,168,76,0.28)] border-t-2 border-t-[rgba(201,168,76,0.55)] bg-[#0f1923] px-8 py-10 md:px-10 md:py-12">
+                    <p className="text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">
+                      {selectedOption === "premium" ? "Premium subscription" : "Pay per use"}
+                    </p>
+                    <h2 className="mt-4 text-center text-[22px] font-bold leading-snug tracking-tight text-white md:text-[24px]">
+                      Get notified when this option is available
+                    </h2>
+                    <p className="mx-auto mt-3 max-w-[340px] text-center text-sm leading-relaxed text-white/50">
+                      Leave your company email. We will reach out when this access model opens.
+                    </p>
+
+                    {notifyStatus === "success" ? (
+                      <div className="waitlist-success-card mt-8">
+                        <svg viewBox="0 0 24 24" className="mx-auto h-7 w-7 text-[#C9A84C]" fill="none" aria-hidden>
+                          <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <p className="mt-[14px] text-[18px] font-bold text-white">We have got you covered.</p>
+                        <p className="mt-2 text-[14px] leading-[1.7] text-[rgba(255,255,255,0.55)]">
+                          You will be among the first to know when this launches. We are building something worth waiting for.
+                        </p>
+                        <p className="mt-4 text-[12px] text-[rgba(255,255,255,0.3)]">
+                          We will reach out directly when access becomes available.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-8 flex flex-col gap-4">
+                        <label className="block text-left text-[11px] font-semibold uppercase tracking-[0.1em] text-white/40">
+                          Work email
+                        </label>
+                        <input
+                          type="email"
+                          value={notifyEmail}
+                          onChange={(event) => setNotifyEmail(event.target.value)}
+                          placeholder="yourname@company.no"
+                          autoComplete="email"
+                          className="w-full rounded-[14px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.05)] px-5 py-4 text-[15px] text-white outline-none ring-0 transition-[border-color,background-color] placeholder:text-white/35 focus:border-[#C9A84C] focus:bg-[rgba(255,255,255,0.07)]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void submitFeatureWaitlist()}
+                          disabled={!notifyEmail.includes("@") || notifyStatus === "submitting"}
+                          className="result-cta-primary min-h-[52px] w-full rounded-[12px] px-5 py-3.5 text-[15px] font-bold text-[#0D1B2A] disabled:opacity-50"
+                        >
+                          {notifyStatus === "submitting" ? "Sending..." : "Notify Me"}
+                        </button>
+                        {notifyStatus === "error" ? (
+                          <p className="text-center text-[13px] text-red-300/90">Could not save your request. Please try again.</p>
+                        ) : null}
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedOption(null);
+                        setNotifyStatus("idle");
+                        setNotifyEmail("");
+                      }}
+                      className="mt-8 w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-[13px] text-[15px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]"
+                    >
+                      Back
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       )}
@@ -692,6 +751,19 @@ export default function RequestPage() {
             className="leave-dialog pointer-events-auto fixed left-1/2 top-1/2 z-[10101] w-[90%] max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowLeaveDialog(false);
+              }}
+              aria-label="Close leave dialog"
+              className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.9)]"
+            >
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
+                <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </button>
             <svg viewBox="0 0 24 24" className="mx-auto h-6 w-6 text-[#C9A84C]" fill="none" aria-hidden>
               <path d="M12 3v10m0 8h.01M5.2 20h13.6a1.2 1.2 0 0 0 1.04-1.8L13.04 5.4a1.2 1.2 0 0 0-2.08 0L4.16 18.2A1.2 1.2 0 0 0 5.2 20Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -708,11 +780,11 @@ export default function RequestPage() {
                   e.stopPropagation();
                   setShowLeaveDialog(false);
                   resetToFirstStep();
-                  router.push("/request");
+                  void router.replace("/request");
                 }}
                 className="result-cta-primary w-full rounded-[12px] px-4 py-[14px] text-[15px] font-bold text-[#0D1B2A]"
               >
-                Yes, start over
+                Leave my current search
               </button>
               <button
                 type="button"
@@ -1029,11 +1101,6 @@ export default function RequestPage() {
       )}
 
       <style jsx>{`
-        .result-zero {
-          background: linear-gradient(135deg, #c9a84c, #f0d080);
-          -webkit-background-clip: text;
-          background-clip: text;
-        }
         .result-cta-primary {
           background: linear-gradient(135deg, #c9a84c, #b8953f);
           transition: filter 200ms ease, transform 200ms ease;
@@ -1106,16 +1173,6 @@ export default function RequestPage() {
           from {
             opacity: 0;
             transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes resultIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
           }
           to {
             opacity: 1;
@@ -1247,9 +1304,6 @@ export default function RequestPage() {
           text-align: center;
         }
         @media (prefers-reduced-motion: no-preference) {
-          .result-zero {
-            animation: resultIn 400ms ease-out both;
-          }
           .partner-form-enter {
             animation: partnerFormIn 300ms ease both;
           }
