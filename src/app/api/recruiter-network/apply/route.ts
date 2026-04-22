@@ -8,9 +8,22 @@ import { notifySlack } from "@/lib/slackNotifier";
 import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTemplate";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
+import { isEeaCandidatePhone } from "@/lib/candidates/euEeaCandidateGeo";
 
 const PARTNER_TYPES = new Set(["influencer", "recruiter", "learner"]);
 const HAS_COMPANY = new Set(["yes", "want_setup", "not_yet"]);
+const PREMIUM_ROLE_CARDS = new Set([
+  "independent_recruiter",
+  "staffing_agency",
+  "hr_professional",
+  "community_influencer",
+]);
+const PREMIUM_INVOICE_CARDS = new Set([
+  "registered_company",
+  "sole_trader",
+  "freelancer_platform",
+  "no_business_yet",
+]);
 
 function parseReach(raw: string): number | null {
   const digits = raw.replace(/\D/g, "");
@@ -31,16 +44,22 @@ export async function POST(request: NextRequest) {
 
     const body = sanitizeStringRecord(rawBody) as Record<string, string>;
 
+    const applyFlow =
+      typeof rawBody.apply_flow === "string"
+        ? rawBody.apply_flow.trim()
+        : (body.apply_flow || "").trim();
+    const premiumCards = applyFlow === "premium_cards";
+
     const full_name = (body.full_name || "").trim();
     const email = (body.email || "").trim().toLowerCase();
     const country = (body.country || "").trim();
     const regionPart = (body.region || "").trim();
     const cityPart = (body.city || "").trim();
-    const partner_type = (body.partner_type || "").trim();
-    const social_url = (body.social_url || "").trim();
+    let partner_type = (body.partner_type || "").trim();
+    let social_url = (body.social_url || "").trim();
     const monthly_reach_raw = (body.monthly_reach || "").trim();
-    const has_company = (body.has_company || "").trim();
-    const motivation = (body.motivation || "").trim().slice(0, 500);
+    let has_company = (body.has_company || "").trim();
+    let motivation = (body.motivation || "").trim();
     const gdpr =
       rawBody.gdpr_consent === true ||
       rawBody.gdpr_consent === "true" ||
@@ -57,15 +76,54 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "City is required." }, { status: 400 });
     }
     const region = `${regionPart}, ${cityPart}`;
+
+    let monthly_reach: number;
+
+    if (premiumCards) {
+      const role_card = (body.role_card || "").trim();
+      const invoice_card = (body.invoice_card || "").trim();
+      const phone = (body.phone || "").trim();
+
+      if (!PREMIUM_ROLE_CARDS.has(role_card)) {
+        return NextResponse.json({ success: false, error: "Please select how you identify as a partner." }, { status: 400 });
+      }
+      if (!PREMIUM_INVOICE_CARDS.has(invoice_card)) {
+        return NextResponse.json({ success: false, error: "Please select how you prefer to invoice." }, { status: 400 });
+      }
+      if (!isEeaCandidatePhone(phone)) {
+        return NextResponse.json(
+          { success: false, error: "Please enter a valid phone number with an EU/EEA country prefix." },
+          { status: 400 },
+        );
+      }
+
+      partner_type = role_card === "community_influencer" ? "influencer" : "recruiter";
+      has_company = invoice_card === "no_business_yet" ? "not_yet" : "yes";
+      if (!social_url.startsWith("http")) {
+        social_url = "https://www.arbeidmatch.no/recruiter-network";
+      }
+      monthly_reach = Math.max(1, parseReach(monthly_reach_raw) ?? 1);
+      motivation = motivation.slice(0, 4000);
+    } else {
+      if (!PARTNER_TYPES.has(partner_type)) {
+        return NextResponse.json({ success: false, error: "Please select a partner path." }, { status: 400 });
+      }
+      if (!social_url || !social_url.startsWith("http")) {
+        return NextResponse.json({ success: false, error: "A valid profile or social URL is required." }, { status: 400 });
+      }
+      const parsedReach = parseReach(monthly_reach_raw);
+      if (parsedReach === null || parsedReach < 1) {
+        return NextResponse.json({ success: false, error: "Monthly reach / visitors is required." }, { status: 400 });
+      }
+      monthly_reach = parsedReach;
+      if (!HAS_COMPANY.has(has_company)) {
+        return NextResponse.json({ success: false, error: "Please answer the company question." }, { status: 400 });
+      }
+      motivation = motivation.slice(0, 500);
+    }
+
     if (!PARTNER_TYPES.has(partner_type)) {
       return NextResponse.json({ success: false, error: "Please select a partner path." }, { status: 400 });
-    }
-    if (!social_url || !social_url.startsWith("http")) {
-      return NextResponse.json({ success: false, error: "A valid profile or social URL is required." }, { status: 400 });
-    }
-    const monthly_reach = parseReach(monthly_reach_raw);
-    if (monthly_reach === null || monthly_reach < 1) {
-      return NextResponse.json({ success: false, error: "Monthly reach / visitors is required." }, { status: 400 });
     }
     if (!HAS_COMPANY.has(has_company)) {
       return NextResponse.json({ success: false, error: "Please answer the company question." }, { status: 400 });
@@ -118,17 +176,20 @@ export async function POST(request: NextRequest) {
     });
 
     const safeName = escapeHtml(full_name);
+    const premiumPhone = premiumCards ? (body.phone || "").trim() : "";
+    const applicantSummaryRows = [
+      { label: "Name", value: full_name },
+      ...(premiumCards && premiumPhone ? [{ label: "Phone", value: premiumPhone }] : []),
+      { label: "Country", value: country },
+      { label: "Region", value: regionPart },
+      { label: "City", value: cityPart },
+      { label: "Partner type", value: typeLabel },
+      { label: "Monthly reach", value: String(monthly_reach) },
+    ];
     const applicantHtml = [
       emailBodyParagraph(`Hi ${safeName},`),
       emailBodyParagraph("Thank you for applying to the ArbeidMatch Recruiter Network."),
-      emailFieldRows([
-        { label: "Name", value: full_name },
-        { label: "Country", value: country },
-        { label: "Region", value: regionPart },
-        { label: "City", value: cityPart },
-        { label: "Partner type", value: typeLabel },
-        { label: "Monthly reach", value: String(monthly_reach) },
-      ]),
+      emailFieldRows(applicantSummaryRows),
       emailBodyParagraph("Our team will review your application and contact you within 48 hours."),
       emailBodyParagraph("We look forward to potentially building together."),
     ].join("");
@@ -136,6 +197,7 @@ export async function POST(request: NextRequest) {
     const internalRows = [
       { label: "Full name", value: full_name },
       { label: "Email", value: email },
+      ...(premiumCards && premiumPhone ? [{ label: "Phone", value: premiumPhone }] : []),
       { label: "Country", value: country },
       { label: "Region", value: regionPart },
       { label: "City", value: cityPart },

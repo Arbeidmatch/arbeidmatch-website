@@ -163,10 +163,6 @@ export default function RecruiterNetworkClient() {
     return () => document.removeEventListener("mousedown", onDocMouseDown);
   }, []);
 
-  const scrollToForm = () => {
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   const heroFade = (delaySec: number) =>
     reduce
       ? {}
@@ -420,7 +416,7 @@ export default function RecruiterNetworkClient() {
               <div className="mt-10 flex flex-wrap items-center gap-4">
                 <button
                   type="button"
-                  onClick={scrollToForm}
+                  onClick={() => setPremiumApplyOpen(true)}
                   className="btn-gold-premium inline-block min-h-[48px] rounded-md bg-gold px-8 py-3.5 text-base font-semibold text-white hover:bg-gold-hover"
                 >
                   Apply to Join →
@@ -988,5 +984,7 @@ export default function RecruiterNetworkClient() {
         </div>
       </section>
     </div>
+    <RecruiterNetworkPremiumApplyModal open={premiumApplyOpen} onClose={() => setPremiumApplyOpen(false)} />
+    </>
   );
 }
