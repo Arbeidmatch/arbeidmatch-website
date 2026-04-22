@@ -13,8 +13,12 @@ type SlackPayload = {
 function isValidSlackSignature(request: NextRequest, rawBody: string): boolean {
   const secret = process.env.SLACK_SIGNING_SECRET;
   const signature = request.headers.get("x-slack-signature") || "";
-  const timestamp = request.headers.get("x-slack-timestamp") || "";
+  const timestamp = request.headers.get("x-slack-request-timestamp") || "";
   if (!secret || !signature.startsWith("v0=") || !timestamp) return false;
+
+  const ts = Number.parseInt(timestamp, 10);
+  if (!Number.isFinite(ts)) return false;
+  if (Math.abs(Math.floor(Date.now() / 1000) - ts) > 60 * 5) return false;
 
   const base = `v0:${timestamp}:${rawBody}`;
   const digest = createHmac("sha256", secret).update(base).digest("hex");
