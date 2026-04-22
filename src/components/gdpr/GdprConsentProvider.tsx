@@ -7,12 +7,18 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { readGdprConsent, writeGdprConsent, type GdprStoredConsent } from "@/lib/gdpr/consentStorage";
+import {
+  readGdprConsent,
+  writeGdprConsentAccepted,
+  writeGdprConsentDismissed,
+  type GdprStoredConsent,
+} from "@/lib/gdpr/consentStorage";
 import { isInternalNoIndexPath } from "@/lib/gdpr/noindexRoutes";
 import GdprConsentForm from "@/components/gdpr/GdprConsentForm";
 
@@ -23,7 +29,7 @@ type GdprConsentContextValue = {
   status: GdprConsentStatus;
   isNoIndexPath: boolean;
   accept: () => void;
-  learnMoreDecline: () => void;
+  learnMoreOpenPrivacy: () => void;
   reopenForAcceptance: () => void;
 };
 
@@ -42,14 +48,26 @@ export function useGdprConsentOptional(): GdprConsentContextValue | null {
   return useContext(GdprConsentContext);
 }
 
+function isJobApplyPath(pathname: string | null): boolean {
+  if (!pathname) return false;
+  const path = pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
+  return /^\/jobs\/[^/]+\/apply$/.test(path);
+}
+
+const snackTransition = { duration: 0.3, ease: [0.22, 1, 0.36, 1] as const };
+
 export default function GdprConsentProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const [hydrated, setHydrated] = useState(false);
   const [status, setStatus] = useState<GdprConsentStatus>("unset");
   const [catchupOpen, setCatchupOpen] = useState(false);
+  /** Hides initial snack to run exit animation; cleared in onExitComplete. */
+  const [initialSnackClosing, setInitialSnackClosing] = useState(false);
+  const dismissInitialAfterExitRef = useRef(false);
 
   const isNoIndexPath = useMemo(() => isInternalNoIndexPath(pathname), [pathname]);
+  const hideInitialOnApplyPage = useMemo(() => isJobApplyPath(pathname), [pathname]);
 
   useEffect(() => {
     try {
@@ -67,17 +85,17 @@ export default function GdprConsentProvider({ children }: { children: React.Reac
   }, []);
 
   const accept = useCallback(() => {
-    writeGdprConsent("accepted");
+    dismissInitialAfterExitRef.current = false;
+    writeGdprConsentAccepted();
     setStatus("accepted");
     setCatchupOpen(false);
+    setInitialSnackClosing(false);
   }, []);
 
-  const learnMoreDecline = useCallback(() => {
-    writeGdprConsent("declined");
-    setStatus("declined");
-    setCatchupOpen(false);
-    router.push("/privacy");
-  }, [router]);
+  const learnMoreOpenPrivacy = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.open(new URL("/privacy", window.location.origin).href, "_blank", "noopener,noreferrer");
+  }, []);
 
   const reopenForAcceptance = useCallback(() => {
     setCatchupOpen(true);
@@ -87,18 +105,37 @@ export default function GdprConsentProvider({ children }: { children: React.Reac
     setCatchupOpen(false);
   }, []);
 
-  const showInitialOverlay = hydrated && status === "unset" && !isNoIndexPath;
-  const showCatchupOverlay = hydrated && catchupOpen && status === "declined";
-  const scrollLocked = showInitialOverlay || showCatchupOverlay;
+  const requestDismissInitial = useCallback(() => {
+    dismissInitialAfterExitRef.current = true;
+    setInitialSnackClosing(true);
+  }, []);
 
-  useEffect(() => {
-    if (!scrollLocked) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [scrollLocked]);
+  const onInitialSnackExitComplete = useCallback(() => {
+    setInitialSnackClosing(false);
+    if (!dismissInitialAfterExitRef.current) return;
+    dismissInitialAfterExitRef.current = false;
+    writeGdprConsentDismissed();
+    setStatus("dismissed");
+  }, []);
+
+  const showInitialSnack =
+    hydrated &&
+    status === "unset" &&
+    !initialSnackClosing &&
+    !isNoIndexPath &&
+    !catchupOpen &&
+    !hideInitialOnApplyPage;
+
+  const showCatchupSnack =
+    hydrated && catchupOpen && status !== "accepted" && (status === "declined" || status === "dismissed" || status === "unset");
+
+  const motionSnack = reduceMotion
+    ? { initial: false, animate: {}, exit: {} }
+    : {
+        initial: { opacity: 0, x: 28, y: 28 },
+        animate: { opacity: 1, x: 0, y: 0 },
+        exit: { opacity: 0, x: 20, y: 20 },
+      };
 
   const value = useMemo(
     () => ({
@@ -106,76 +143,71 @@ export default function GdprConsentProvider({ children }: { children: React.Reac
       status,
       isNoIndexPath,
       accept,
-      learnMoreDecline,
+      learnMoreOpenPrivacy,
       reopenForAcceptance,
     }),
-    [hydrated, status, isNoIndexPath, accept, learnMoreDecline, reopenForAcceptance],
+    [hydrated, status, isNoIndexPath, accept, learnMoreOpenPrivacy, reopenForAcceptance],
   );
 
   return (
     <GdprConsentContext.Provider value={value}>
       {children}
-      <AnimatePresence>
-        {showInitialOverlay ? (
+      <AnimatePresence onExitComplete={onInitialSnackExitComplete}>
+        {showInitialSnack ? (
           <motion.div
-            key="gdpr-initial"
-            role="presentation"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[480] flex items-center justify-center bg-[#0D1B2A]/92 px-4 py-8 backdrop-blur-[10px]"
-            aria-hidden={false}
+            key="gdpr-initial-snack"
+            role="dialog"
+            aria-modal="false"
+            aria-label="Privacy notice"
+            {...motionSnack}
+            transition={reduceMotion ? { duration: 0 } : snackTransition}
+            className="fixed bottom-4 right-4 z-[480] w-[min(100vw-2rem,420px)] max-w-[420px] sm:bottom-6 sm:right-6"
           >
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Your Privacy Matters"
-              initial={{ opacity: 0, y: 16, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.98 }}
-              transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-[min(100%,440px)] rounded-[20px] border border-[#C9A84C]/30 bg-[#0A0F18] p-6 shadow-[0_32px_80px_rgba(0,0,0,0.55)] sm:p-8"
+            <div
+              className="relative rounded-xl border border-[#C9A84C]/22 px-4 pb-4 pt-10 shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
+              style={{ background: "rgba(13, 27, 42, 0.95)" }}
             >
-              <GdprConsentForm showLearnMore onAccept={accept} onLearnMore={learnMoreDecline} />
-            </motion.div>
+              <GdprConsentForm
+                compact
+                showLearnMore
+                showDismiss
+                onDismiss={requestDismissInitial}
+                onAccept={accept}
+                onLearnMore={learnMoreOpenPrivacy}
+              />
+            </div>
           </motion.div>
         ) : null}
-        {showCatchupOverlay ? (
+      </AnimatePresence>
+      <AnimatePresence>
+        {showCatchupSnack ? (
           <motion.div
-            key="gdpr-catchup"
-            role="presentation"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.28 }}
-            className="fixed inset-0 z-[485] flex items-center justify-center bg-[#0D1B2A]/92 px-4 py-8 backdrop-blur-[10px]"
+            key="gdpr-catchup-snack"
+            role="dialog"
+            aria-modal="false"
+            aria-label="Update privacy consent"
+            {...motionSnack}
+            transition={reduceMotion ? { duration: 0 } : snackTransition}
+            className="fixed bottom-4 right-4 z-[485] w-[min(100vw-2rem,420px)] max-w-[420px] sm:bottom-6 sm:right-6"
           >
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Update privacy consent"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-[min(100%,440px)] rounded-[20px] border border-[#C9A84C]/30 bg-[#0A0F18] p-6 shadow-[0_32px_80px_rgba(0,0,0,0.55)] sm:p-8"
+            <div
+              className="relative rounded-xl border border-[#C9A84C]/22 px-4 pb-4 pt-3 shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
+              style={{ background: "rgba(13, 27, 42, 0.95)" }}
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">
-                Update consent
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#C9A84C]">Consent required</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-white/68">
+                Accept below to unlock applications and candidate profile features.
               </p>
-              <p className="mt-2 text-sm text-white/75">
-                Accept the terms below to unlock applications and candidate profile features.
-              </p>
-              <div className="mt-5">
+              <div className="mt-4">
                 <GdprConsentForm
+                  compact
                   showLearnMore={false}
                   catchupMode
                   onAccept={accept}
                   onCatchupCancel={closeCatchup}
                 />
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         ) : null}
       </AnimatePresence>

@@ -9,7 +9,7 @@ import StaggerHero from "@/components/premium/StaggerHero";
 export const metadata: Metadata = {
   title: "Candidates | Legal work & support in Norway | ArbeidMatch",
   description:
-    "Understand legal employment in Norway, official resources, and accommodation support. Create your profile with ArbeidMatch to connect with vetted employers.",
+    "Explore legal work in Norway on your terms: official resources, accommodation context, and a profile flow where you choose the pace and what happens next.",
   robots: { index: false, follow: false },
 };
 
@@ -33,16 +33,16 @@ const LEGAL_LINKS = [
 
 const HOW_STEPS = [
   {
-    title: "Tell us about you",
-    body: "Share your trade, experience, and preferences in a structured profile — no guesswork for employers.",
+    title: "Tell us what you're looking for",
+    body: "Share your trade, experience, and what matters to you in a role — location, contract type, salary expectations.",
   },
   {
-    title: "We match carefully",
-    body: "We align your profile with roles that fit your skills, location wishes, and contract expectations.",
+    title: "See what fits you",
+    body: "You'll only see roles that match what you told us. No irrelevant offers. You decide what's worth your time.",
   },
   {
-    title: "Move forward with clarity",
-    body: "When there is a fit, next steps are explained plainly so you always know what to expect.",
+    title: "You choose what happens next",
+    body: "If something interests you, you take the next step. No pressure, no commitment until you're ready.",
   },
 ] as const;
 
@@ -94,14 +94,15 @@ export default function ForCandidatesPage() {
               Your path to <span className="text-[#C9A84C]">dignified work</span> in Norway
             </h1>
             <p className="subtitle-premium mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
-              ArbeidMatch helps EU/EEA professionals present themselves clearly, understand the essentials of Norwegian
-              employment, and connect with employers who value compliance and fair conditions.
+              You decide your pace and what you share. Clear structure and plain-language context on Norwegian
+              employment help you present yourself confidently — and you&apos;ll see roles that fit your expectations, on
+              your timeline.
             </p>
             <Link
               href="/candidates"
               className="btn-gold-premium mt-10 inline-flex min-h-[48px] items-center justify-center rounded-md bg-[#C9A84C] px-10 py-3.5 text-base font-bold text-[#0D1B2A] shadow-[0_8px_32px_rgba(201,168,76,0.25)] transition-transform hover:bg-[#b8953f] hover:opacity-[0.98] md:px-12"
             >
-              Create your profile
+              Start on your own terms
             </Link>
           </StaggerHero>
         </div>
@@ -138,8 +139,8 @@ export default function ForCandidatesPage() {
               </div>
               <h2 className="heading-premium-xl mt-5 font-display text-3xl text-white md:text-4xl">Accommodation support</h2>
               <p className="mt-4 text-base leading-relaxed text-white/70">
-                Where roles require relocation, many employers help newcomers settle. Arrangements depend on the
-                contract and site — we surface what is realistic so you are not surprised after you sign.
+                Where roles require relocation, many employers help newcomers settle. Arrangements depend on the contract
+                and site — you&apos;ll see what&apos;s realistic in each role so you can decide before you commit.
               </p>
               <ul className="mt-8 space-y-4">
                 <li className="flex gap-4 rounded-xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-5">
@@ -169,11 +170,12 @@ export default function ForCandidatesPage() {
                 <div className="absolute left-6 top-6 h-1 w-12 rounded-full bg-[#C9A84C]" />
                 <p className="mt-10 text-sm font-medium uppercase tracking-[0.14em] text-[#C9A84C]/80">Peace of mind</p>
                 <p className="mt-4 text-2xl font-semibold leading-snug text-white">
-                  Clear housing expectations, documented terms, and a team that speaks plainly.
+                  Clear housing expectations, documented terms, and plain language so you always know what you&apos;re
+                  signing up for.
                 </p>
                 <p className="mt-4 text-sm leading-relaxed text-white/50">
-                  Your profile helps us advocate for arrangements that match how you actually want to live while you
-                  work in Norway.
+                  When you spell out what you need in your profile, employers see what housing setup actually fits you —
+                  you stay in control of what you&apos;re willing to accept.
                 </p>
               </div>
             </ScrollReveal>
@@ -185,7 +187,9 @@ export default function ForCandidatesPage() {
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
             <h2 className="heading-premium-xl font-display text-3xl text-white md:text-4xl">How it works</h2>
-            <p className="mx-auto mt-4 max-w-xl text-base text-white/60">Three simple steps from interest to meaningful conversations.</p>
+            <p className="mx-auto mt-4 max-w-xl text-base text-white/60">
+              Three steps — you choose the pace, the detail, and what happens next.
+            </p>
           </ScrollReveal>
           <ol className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-3">
             {HOW_STEPS.map((item, index) => (
@@ -207,11 +211,11 @@ export default function ForCandidatesPage() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(201,168,76,0.12),transparent_55%)]" aria-hidden />
         <div className="relative mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <h2 className="heading-premium-xl font-display text-3xl text-white md:text-4xl">Ready when you are</h2>
+            <h2 className="heading-premium-xl font-display text-3xl text-white md:text-4xl">Your terms, your timeline</h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
             <p className="mx-auto mt-4 max-w-lg text-base text-white/65">
-              A complete profile is the fastest way to be considered for roles that fit your skills and life plans.
+              Complete your profile when you&apos;re ready. We&apos;ll have relevant roles waiting for you.
             </p>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
@@ -219,7 +223,7 @@ export default function ForCandidatesPage() {
               href="/candidates"
               className="btn-gold-premium mt-8 inline-flex min-h-[52px] items-center justify-center rounded-md bg-[#C9A84C] px-12 py-3.5 text-base font-bold text-[#0D1B2A] transition-transform hover:bg-[#b8953f]"
             >
-              Create your profile
+              Start on your own terms
             </Link>
           </ScrollReveal>
         </div>

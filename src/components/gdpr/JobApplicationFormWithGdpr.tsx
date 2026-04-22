@@ -16,7 +16,7 @@ export default function JobApplicationFormWithGdpr({ job }: { job: JobRecord }) 
     );
   }
 
-  if (status === "declined") {
+  if (status !== "accepted") {
     return <GdprDeclinedGate variant="apply" onOpenAcceptance={reopenForAcceptance} />;
   }
 

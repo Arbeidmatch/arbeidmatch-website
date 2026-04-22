@@ -15,7 +15,7 @@ export default function GdprProfileWizardGate({ children }: { children: React.Re
     );
   }
 
-  if (status === "declined") {
+  if (status === "declined" || status === "dismissed") {
     return <GdprDeclinedGate variant="profile" onOpenAcceptance={reopenForAcceptance} />;
   }
 

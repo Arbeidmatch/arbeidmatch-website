@@ -7,7 +7,7 @@ import GdprConsentForm from "@/components/gdpr/GdprConsentForm";
 
 /** Shown on noindex routes when the user has not chosen accept vs read-only yet (no full-site overlay there). */
 export default function GdprInlineConsentPanel() {
-  const { hydrated, status, isNoIndexPath, accept, learnMoreDecline } = useGdprConsent();
+  const { hydrated, status, isNoIndexPath, accept, learnMoreOpenPrivacy } = useGdprConsent();
 
   if (!hydrated || status !== "unset" || !isNoIndexPath) return null;
 
@@ -21,7 +21,7 @@ export default function GdprInlineConsentPanel() {
         role="region"
         aria-label="Privacy and consent"
       >
-        <GdprConsentForm showLearnMore onAccept={accept} onLearnMore={learnMoreDecline} />
+        <GdprConsentForm showLearnMore onAccept={accept} onLearnMore={learnMoreOpenPrivacy} />
       </motion.div>
     </div>
   );
