@@ -101,17 +101,17 @@ export default function OurServicesSection() {
         Everything you need to find, hire, and onboard qualified EU/EEA workers.
       </p>
 
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-6">
         {SERVICES.map((item, i) => {
           const shown = reducedMotion || shownCount > i;
           const Icon = item.Icon;
           return (
             <article
               key={item.title}
-              className="group rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-7 py-8 transition-[border-color,transform] duration-[220ms] ease-out hover:-translate-y-1 hover:border-[rgba(201,168,76,0.3)]"
+              className="group flex h-full min-h-0 flex-col rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-7 py-8 transition-[border-color] duration-[220ms] ease-out hover:border-[rgba(201,168,76,0.3)]"
             >
               <div
-                className="flex flex-col"
+                className="flex min-h-0 flex-1 flex-col"
                 style={{
                   opacity: shown ? 1 : 0,
                   transform: shown ? "translateY(0)" : "translateY(20px)",
@@ -119,14 +119,14 @@ export default function OurServicesSection() {
                 }}
               >
                 <div
-                  className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] transition-all duration-200 ease-out group-hover:scale-110 group-hover:bg-[rgba(201,168,76,0.15)]"
+                  className="mb-5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] transition-all duration-200 ease-out group-hover:bg-[rgba(201,168,76,0.15)]"
                 >
                   <Icon size={22} color={GOLD} strokeWidth={1.5} aria-hidden />
                 </div>
-                <h3 className="mb-2 text-base font-bold" style={{ color: NAVY }}>
+                <h3 className="mb-2 shrink-0 text-base font-bold" style={{ color: NAVY }}>
                   {item.title}
                 </h3>
-                <p className="text-sm leading-[1.7] text-white/70">{item.body}</p>
+                <p className="min-h-0 flex-1 text-sm leading-[1.7] text-white/70">{item.body}</p>
               </div>
             </article>
           );
