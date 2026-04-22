@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ApplyWithProfileGate from "@/components/jobs/ApplyWithProfileGate";
+import { JobMarkdownBody } from "@/components/jobs/JobMarkdown";
 import ShareJobButton from "@/components/jobs/ShareJobButton";
 import type { JobRecord } from "@/lib/jobs/types";
 import JobCard from "@/components/jobs/JobCard";
@@ -32,8 +33,59 @@ function DetailSection({ title, items }: { title: string; items: string[] }) {
 
 function normalizeList(items?: string[] | string | null): string[] {
   if (!items) return [];
-  if (Array.isArray(items)) return items;
+  if (Array.isArray(items)) return items.map((item) => item.trim()).filter(Boolean);
   return items.split("\n").map((item) => item.trim()).filter(Boolean);
+}
+
+function normalizeComparableText(text: string): string {
+  return text.replace(/\r\n/g, "\n").trim().replace(/\n{3,}/g, "\n\n");
+}
+
+function requirementsPlainText(requirements?: string[] | string | null): string {
+  return normalizeList(requirements).join("\n");
+}
+
+function isRequirementsDuplicateOfDescription(description: string, requirements?: string[] | string | null): boolean {
+  const req = normalizeComparableText(requirementsPlainText(requirements));
+  if (!req) return false;
+  return normalizeComparableText(description) === req;
+}
+
+function formatJobLocationHeadline(location: string): string {
+  const loc = location.trim();
+  if (!loc) return "Norway";
+  const lower = loc.toLowerCase();
+  if (/\bnorway\b|\bnorge\b/.test(lower)) return loc;
+  return `${loc}, Norway`;
+}
+
+/** Turn list-ish job fields into markdown (plain lines become GFM bullets). */
+function listFieldToMarkdown(items?: string[] | string | null): string {
+  const lines = normalizeList(items);
+  if (!lines.length) return "";
+  return lines
+    .map((line) => {
+      const t = line.trim();
+      if (!t) return "";
+      if (/^[-*+]\s/.test(t) || /^\d+\.\s/.test(t) || /^#{1,6}\s/.test(t)) return t;
+      return `- ${t}`;
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
+function MarkdownSection({ title, markdown }: { title: string; markdown: string }) {
+  const trimmed = markdown?.trim() ?? "";
+  if (!trimmed) return null;
+
+  return (
+    <section className="rounded-[18px] border border-white/10 bg-white/[0.03] p-5 md:p-8">
+      <h2 className="border-b border-[rgba(201,168,76,0.22)] pb-3 text-xl font-semibold tracking-tight text-white">{title}</h2>
+      <div className="mt-6">
+        <JobMarkdownBody markdown={trimmed} />
+      </div>
+    </section>
+  );
 }
 
 export default function JobDetailView({
@@ -55,6 +107,16 @@ export default function JobDetailView({
         : `/jobs/${job.slug}/apply`;
   const applyExternal = job.applicationMethod === "external_url";
 
+  const requirementsMarkdown = (() => {
+    const raw = job.requirements;
+    if (!raw) return "";
+    if (typeof raw === "string") return raw.trim();
+    return listFieldToMarkdown(raw);
+  })();
+
+  const showQualifications =
+    requirementsMarkdown.trim().length > 0 && !isRequirementsDuplicateOfDescription(job.description, job.requirements);
+
   return (
     <div className="container-site pb-16 pt-6 md:pt-8">
       <Link href="/jobs" className="link-text-premium inline-flex text-sm font-medium text-[#C9A84C]">
@@ -70,7 +132,7 @@ export default function JobDetailView({
           }`}
         >
           <header>
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/65">{job.location}, Norway</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/65">{formatJobLocationHeadline(job.location)}</p>
             <h1 className="mt-3 text-3xl font-bold leading-tight text-white md:text-4xl">{job.title}</h1>
             <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/75">{job.summary ?? job.description}</p>
           </header>
@@ -93,11 +155,11 @@ export default function JobDetailView({
 
           <div className="mt-6 flex flex-wrap gap-2">{job.trade ? <span className="rounded-full border border-white/15 px-3 py-1 text-xs text-white/75">{job.trade}</span> : null}</div>
 
-          <div className="mt-8 space-y-4">
-            <DetailSection title="About the role" items={[job.description]} />
-            <DetailSection title="Responsibilities" items={normalizeList(job.responsibilities)} />
-            <DetailSection title="Requirements" items={normalizeList(job.requirements)} />
-            <DetailSection title="What we offer" items={normalizeList(job.benefits)} />
+          <div className="mt-10 space-y-8 md:space-y-10">
+            <MarkdownSection title="About the role" markdown={job.description} />
+            <MarkdownSection title="Work tasks" markdown={listFieldToMarkdown(job.responsibilities)} />
+            {showQualifications ? <MarkdownSection title="Qualifications" markdown={requirementsMarkdown} /> : null}
+            <MarkdownSection title="We offer" markdown={listFieldToMarkdown(job.benefits)} />
             <DetailSection
               title="Application method"
               items={[
