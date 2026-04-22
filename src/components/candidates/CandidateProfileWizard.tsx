@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Check, Shield } from "lucide-react";
+import { ArrowRight, Check, Lightbulb, Shield, X } from "lucide-react";
 
 import { sanitizeApplyReturnPath } from "@/lib/candidates/applyReturnPath";
 import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
@@ -14,6 +14,8 @@ import {
   housingPrefs,
   jobTypes,
   hoursPrefs,
+  normalizeCandidateVideoUrlInput,
+  resolveWorkTypeFromCategoryString,
   rotationHumanLabels,
   rotationPrefs,
   salaryHourlyHumanLabels,
@@ -207,6 +209,10 @@ export default function CandidateProfileWizard({
   const [housing, setHousing] = useState<JobPreferencesPayload["housing"] | null>(null);
   const [videoUrl, setVideoUrl] = useState("");
 
+  const [videoHintTimerReady, setVideoHintTimerReady] = useState(false);
+  const [videoHintClosedByUser, setVideoHintClosedByUser] = useState(false);
+  const [videoHintManualOpen, setVideoHintManualOpen] = useState(false);
+
   const [shareWithEmployers, setShareWithEmployers] = useState<boolean | null>(null);
 
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
@@ -223,6 +229,29 @@ export default function CandidateProfileWizard({
     const v = videoUrl.trim();
     return v ? getEmbedUrl(v) : null;
   }, [videoUrl]);
+
+  useEffect(() => {
+    if (wizardStep !== 8) {
+      setVideoHintTimerReady(false);
+      setVideoHintClosedByUser(false);
+      setVideoHintManualOpen(false);
+      return;
+    }
+    if (videoUrl.trim()) {
+      setVideoHintTimerReady(false);
+      setVideoHintManualOpen(false);
+      return;
+    }
+    if (videoHintManualOpen) return;
+    if (videoHintClosedByUser) return;
+    const id = window.setTimeout(() => setVideoHintTimerReady(true), 3000);
+    return () => window.clearTimeout(id);
+  }, [wizardStep, videoUrl, videoHintClosedByUser, videoHintManualOpen]);
+
+  const showVideoHintCard =
+    wizardStep === 8 &&
+    !videoUrl.trim() &&
+    (videoHintManualOpen || (videoHintTimerReady && !videoHintClosedByUser));
 
   const transition = reduceMotion
     ? { duration: 0 }
@@ -293,6 +322,9 @@ export default function CandidateProfileWizard({
     setLicenseCategories("");
     setHousing(null);
     setVideoUrl("");
+    setVideoHintTimerReady(false);
+    setVideoHintClosedByUser(false);
+    setVideoHintManualOpen(false);
     setShareWithEmployers(null);
     setSaveStatus("idle");
     setSaveMessage("");
@@ -355,7 +387,9 @@ export default function CandidateProfileWizard({
 
     const resolvedVideoUrl = (() => {
       const v = videoUrl.trim();
-      return v ? (normalizeVideoUrlInput(v) ?? v) : "";
+      if (!v) return "";
+      const n = normalizeCandidateVideoUrlInput(v);
+      return typeof n === "string" ? n.trim() : "";
     })();
 
     const payload: CandidateProfilePayload = buildCandidateProfilePayload({
@@ -454,20 +488,46 @@ export default function CandidateProfileWizard({
         }
         if (typeof d.city === "string") setCity(d.city);
         if (typeof d.videoUrl === "string") setVideoUrl(d.videoUrl);
-        if (jobTypes.includes(d.jobType as JobPreferencesPayload["jobType"])) {
-          setJobType(d.jobType as JobPreferencesPayload["jobType"]);
+        if (typeof d.jobType === "string") {
+          const coerced = resolveWorkTypeFromCategoryString(d.jobType);
+          if (coerced) setJobType(coerced);
         }
         if (experienceBands.includes(d.experienceBand as JobPreferencesPayload["experienceBand"])) {
           setExperienceBand(d.experienceBand as JobPreferencesPayload["experienceBand"]);
         }
-        if (salaryHourlyOptions.includes(d.salaryHourly as JobPreferencesPayload["salaryHourly"])) {
-          setSalaryHourly(d.salaryHourly as JobPreferencesPayload["salaryHourly"]);
+        const draftSalary = d.salaryHourly;
+        const salaryNormalized =
+          typeof draftSalary === "string" && draftSalary.trim() === "400_500"
+            ? "400_450"
+            : typeof draftSalary === "string" && draftSalary.trim() === "500_600"
+              ? "500_550"
+              : draftSalary;
+        if (salaryHourlyOptions.includes(salaryNormalized as JobPreferencesPayload["salaryHourly"])) {
+          setSalaryHourly(salaryNormalized as JobPreferencesPayload["salaryHourly"]);
         }
-        if (hoursPrefs.includes(d.hoursPerWeek as JobPreferencesPayload["hoursPerWeek"])) {
-          setHoursPerWeek(d.hoursPerWeek as JobPreferencesPayload["hoursPerWeek"]);
+        const draftHours = d.hoursPerWeek;
+        const hoursNormalized =
+          draftHours === 37.5 || draftHours === "37,5"
+            ? "37.5"
+            : draftHours === 48
+              ? "48"
+              : typeof draftHours === "string" && (draftHours.trim() === "54+" || draftHours.trim() === "54 +")
+                ? "54_plus"
+                : draftHours;
+        if (hoursPrefs.includes(hoursNormalized as JobPreferencesPayload["hoursPerWeek"])) {
+          setHoursPerWeek(hoursNormalized as JobPreferencesPayload["hoursPerWeek"]);
         }
-        if (rotationPrefs.includes(d.rotation as JobPreferencesPayload["rotation"])) {
-          setRotation(d.rotation as JobPreferencesPayload["rotation"]);
+        const draftRot = d.rotation;
+        const rotationNormalized =
+          typeof draftRot === "string" && draftRot.trim() === "4_weeks_on_2_weeks_off"
+            ? "4on_2off"
+            : typeof draftRot === "string" && draftRot.trim() === "6_weeks_on_2_weeks_off"
+              ? "6on_2off"
+              : typeof draftRot === "string" && (draftRot.trim() === "1_2" || draftRot.trim() === "2_4" || draftRot.trim() === "flexible")
+                ? "4on_2off"
+                : draftRot;
+        if (rotationPrefs.includes(rotationNormalized as JobPreferencesPayload["rotation"])) {
+          setRotation(rotationNormalized as JobPreferencesPayload["rotation"]);
         }
         if (typeof d.hasPermit === "boolean") {
           setHasDriverLicense(d.hasPermit);
@@ -517,7 +577,7 @@ export default function CandidateProfileWizard({
       case 7:
         return housing !== null;
       case 8: {
-        const v = videoUrl.trim();
+        const v = String(normalizeCandidateVideoUrlInput(videoUrl.trim()) ?? "").trim();
         return Boolean(v && getEmbedUrl(v));
       }
       case 9:
@@ -805,17 +865,80 @@ export default function CandidateProfileWizard({
 
                   {wizardStep === 8 ? (
                     <div className="space-y-5">
-                      <p className="text-sm text-white/70">Paste your intro video link. A live preview appears below when the URL is supported.</p>
-                      <label className="flex flex-col gap-2 text-sm text-white/80">
-                        Video link
-                        <input
-                          value={videoUrl}
-                          onChange={(event) => setVideoUrl(event.target.value)}
-                          placeholder="https://"
-                          className="min-h-[44px] rounded-[10px] border border-white/15 bg-[#0A0F18] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)]"
-                        />
-                      </label>
-                      <p className="text-xs leading-relaxed text-white/50">Accepted platforms: YouTube, Vimeo, Loom, TikTok</p>
+                      <p className="whitespace-pre-line text-sm leading-relaxed text-white/75">
+                        {`Record a short video CV — introduce yourself in English.
+Tell us your name, your trade, your experience, and what
+kind of role you are looking for in Norway. Keep it under
+2 minutes. Paste the link below.`}
+                      </p>
+                      <div className="space-y-2">
+                        <span className="text-sm font-medium text-white/80">Video link</span>
+                        <div className="flex gap-2">
+                          <input
+                            id="candidate-video-url"
+                            aria-describedby="video-platforms-hint video-filming-tip"
+                            value={videoUrl}
+                            onChange={(event) => setVideoUrl(event.target.value)}
+                            placeholder="https://"
+                            className="min-h-[44px] flex-1 rounded-[10px] border border-white/15 bg-[#0A0F18] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)]"
+                          />
+                          <button
+                            type="button"
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.45)] text-sm font-semibold text-[#C9A84C] transition hover:bg-[rgba(201,168,76,0.1)]"
+                            aria-label="Show video script help"
+                            onClick={() => {
+                              setVideoHintClosedByUser(false);
+                              setVideoHintManualOpen(true);
+                              setVideoHintTimerReady(true);
+                            }}
+                          >
+                            ?
+                          </button>
+                        </div>
+                      </div>
+                      <p id="video-platforms-hint" className="text-xs leading-relaxed text-white/50">
+                        Accepted platforms: YouTube, Vimeo, Loom, TikTok
+                      </p>
+                      <p id="video-filming-tip" className="text-[11px] leading-relaxed text-white/42">
+                        Tip: Film in a quiet place with good lighting. Speak clearly and professionally.
+                      </p>
+                      <AnimatePresence>
+                        {showVideoHintCard ? (
+                          <motion.div
+                            key="video-intro-hint"
+                            initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
+                            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+                            exit={reduceMotion ? undefined : { opacity: 0, y: 8 }}
+                            transition={{ duration: reduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+                            className="relative rounded-xl border border-[rgba(201,168,76,0.38)] bg-[#0D1B2A]/95 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
+                          >
+                            <button
+                              type="button"
+                              className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg text-white/50 transition hover:bg-white/[0.06] hover:text-white/80"
+                              aria-label="Dismiss help"
+                              onClick={() => {
+                                setVideoHintClosedByUser(true);
+                                setVideoHintManualOpen(false);
+                                setVideoHintTimerReady(false);
+                              }}
+                            >
+                              <X className="h-4 w-4" strokeWidth={2} aria-hidden />
+                            </button>
+                            <div className="flex gap-3 pr-8">
+                              <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-[#C9A84C]" strokeWidth={1.75} aria-hidden />
+                              <div className="min-w-0 space-y-2">
+                                <p className="text-sm font-semibold text-[#C9A84C]">Need help? Here&apos;s what to say:</p>
+                                <p className="whitespace-pre-line text-xs leading-relaxed text-white/70">
+                                  {`Hi, my name is [your name]. I am a [your trade] with [X] years of experience. I have worked in [country/company type].
+I am looking for work in Norway, preferably in [region].
+I am available from [date] and I am open to [rotation type].
+I speak [languages]. Thank you for watching.`}
+                                </p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ) : null}
+                      </AnimatePresence>
                       <div className="rounded-[12px] border border-[rgba(201,168,76,0.18)] bg-[#0A0F18] p-4">
                         {!videoUrl.trim() ? (
                           <p className="text-sm text-white/55">Preview will appear here.</p>
