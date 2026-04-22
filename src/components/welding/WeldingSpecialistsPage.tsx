@@ -44,7 +44,7 @@ export default function WeldingSpecialistsPage() {
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
-              href="/request"
+              href="/request?role=Welder"
               className="inline-flex min-h-[48px] items-center justify-center rounded-[10px] bg-[#C9A84C] px-8 py-3.5 text-[15px] font-bold text-[#0f1923] transition-colors duration-200 hover:bg-[#b8953f]"
             >
               Request Welding Specialists
@@ -361,7 +361,7 @@ export default function WeldingSpecialistsPage() {
             Tell us your project requirements. Our goal is to present pre-screened candidates within about two weeks.
           </p>
           <Link
-            href="/request"
+            href="/request?role=Welder"
             className="mt-10 inline-flex min-h-[52px] items-center justify-center rounded-[10px] bg-[#C9A84C] px-12 py-4 text-[16px] font-bold text-[#0f1923] transition-colors duration-200 hover:bg-[#b8953f]"
           >
             Request Welding Specialists Now

@@ -80,7 +80,7 @@ export default function WeldingSpecialistsCard() {
               projects.
             </p>
             <Link
-              href="/request"
+              href="/request?role=Welder"
               className="group mt-6 inline-flex w-full min-h-[48px] items-center justify-center gap-2 whitespace-nowrap rounded-[10px] bg-[#C9A84C] px-8 py-4 text-[15px] font-bold text-[#0f1923] transition-[background,transform] duration-200 hover:scale-[1.02] hover:bg-[#b8953f] md:hidden"
             >
               Request Welding Specialists
@@ -89,7 +89,7 @@ export default function WeldingSpecialistsCard() {
           </div>
           <div className="hidden shrink-0 self-center md:block">
             <Link
-              href="/request"
+              href="/request?role=Welder"
               className="group inline-flex min-h-[48px] items-center justify-center gap-2 whitespace-nowrap rounded-[10px] bg-[#C9A84C] px-8 py-4 text-[15px] font-bold text-[#0f1923] transition-[background,transform] duration-200 hover:scale-[1.02] hover:bg-[#b8953f]"
             >
               Request Welding Specialists
