@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import TermsUpdateClient from "./TermsUpdateClient";
+import { requireFeatureFlag } from "@/lib/featureFlag";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,7 @@ type PageProps = {
 };
 
 export default async function TermsUpdatePage({ searchParams }: PageProps) {
+  requireFeatureFlag();
   const params = await searchParams;
   const version = params.version?.trim() || "";
   const type = params.type === "privacy" ? "privacy" : "terms";
