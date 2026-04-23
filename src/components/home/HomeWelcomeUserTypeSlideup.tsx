@@ -12,6 +12,7 @@ import { setNavigationUserType } from "@/lib/navigationUserType";
 const TRANSITION = { duration: 0.3, ease: "easeOut" as const };
 
 const WELCOME_DELAY_MS = 600;
+const WELCOME_SHOWN_KEY = "welcome_shown";
 
 export default function HomeWelcomeUserTypeSlideup() {
   const router = useRouter();
@@ -19,8 +20,23 @@ export default function HomeWelcomeUserTypeSlideup() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    let alreadyShown = false;
+    try {
+      alreadyShown = window.localStorage.getItem(WELCOME_SHOWN_KEY) === "true";
+    } catch {
+      alreadyShown = false;
+    }
+    if (alreadyShown) return;
     const timer = window.setTimeout(() => setOpen(true), WELCOME_DELAY_MS);
     return () => window.clearTimeout(timer);
+  }, []);
+
+  const markWelcomeShown = useCallback(() => {
+    try {
+      window.localStorage.setItem(WELCOME_SHOWN_KEY, "true");
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   useEffect(() => {
@@ -34,16 +50,18 @@ export default function HomeWelcomeUserTypeSlideup() {
 
   const pick = useCallback(
     (role: "employer" | "candidate") => {
+      markWelcomeShown();
       trackEvent("home_user_type", { userType: role, source: "welcome_slideup" });
       writeHomeUserType(role);
       setNavigationUserType(role);
       setOpen(false);
       router.push(role === "employer" ? "/for-employers" : "/for-candidates");
     },
-    [router],
+    [markWelcomeShown, router],
   );
 
   const dismissBrowse = useCallback(() => {
+    markWelcomeShown();
     trackEvent("home_user_type", { source: "welcome_slideup_browse", choice: "none" });
     try {
       window.sessionStorage.removeItem("roleSelected");
@@ -52,7 +70,7 @@ export default function HomeWelcomeUserTypeSlideup() {
     }
     setNavigationUserType(null);
     setOpen(false);
-  }, []);
+  }, [markWelcomeShown]);
 
   return (
     <AnimatePresence>

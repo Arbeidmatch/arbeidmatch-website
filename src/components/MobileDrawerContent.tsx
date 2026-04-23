@@ -107,10 +107,6 @@ export default function MobileDrawerContent({
     }
   }, [pathname]);
 
-  const clearUserType = () => {
-    setNavigationUserType(null);
-  };
-
   return (
     <>
       <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-6 py-5">
@@ -151,28 +147,8 @@ export default function MobileDrawerContent({
       <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))]">
         {userType === null ? (
           <>
-            <p className="px-6 py-4 text-[13px] text-white/50">Choose your path for a tailored menu</p>
             <SectionLabel>Menu</SectionLabel>
             {neutralNavLinks.map((link) => {
-              if (link.userType) {
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => {
-                      setNavigationUserType(link.userType!);
-                      onClose();
-                    }}
-                    className={`block border-b border-white/[0.04] px-6 py-3.5 text-[15px] transition-colors ${
-                      linkActive(pathname, link.href)
-                        ? "border-l-2 border-l-[#C9A84C] pl-[22px] font-medium text-[#C9A84C]"
-                        : "border-l-2 border-l-transparent font-normal text-white"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              }
               return (
                 <DrawerRowLink key={link.href} href={link.href} pathname={pathname} onClose={onClose}>
                   {link.label}
@@ -184,18 +160,6 @@ export default function MobileDrawerContent({
 
         {userType === "employer" ? (
           <>
-            <div
-              className="flex items-center justify-between border-b border-white/[0.06] px-6 py-3"
-              style={{ background: "rgba(201,168,76,0.08)" }}
-            >
-              <span className="inline-flex items-center gap-2 text-[12px] font-medium" style={{ color: GOLD }}>
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
-                Employer
-              </span>
-              <button type="button" onClick={clearUserType} className="text-[11px] text-white/40 hover:text-white/60">
-                Change
-              </button>
-            </div>
             <SectionLabel>Main</SectionLabel>
             {premiumEmployerCenter.map((item) => (
               <DrawerRowLink key={item.href} href={item.href} pathname={pathname} external={item.external} onClose={onClose}>
@@ -223,18 +187,6 @@ export default function MobileDrawerContent({
 
         {userType === "candidate" ? (
           <>
-            <div
-              className="flex items-center justify-between border-b border-white/[0.06] px-6 py-3"
-              style={{ background: "rgba(201,168,76,0.08)" }}
-            >
-              <span className="inline-flex items-center gap-2 text-[12px] font-medium" style={{ color: GOLD }}>
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
-                Candidate
-              </span>
-              <button type="button" onClick={clearUserType} className="text-[11px] text-white/40 hover:text-white/60">
-                Change
-              </button>
-            </div>
             <SectionLabel>Main</SectionLabel>
             {premiumCandidateCenter.map((item) => (
               <DrawerRowLink key={item.href + item.label} href={item.href} pathname={pathname} external={item.external} onClose={onClose}>

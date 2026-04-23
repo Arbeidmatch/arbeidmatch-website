@@ -9,6 +9,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { EASE_PREMIUM } from "@/lib/animationConstants";
 import { trackEvent } from "@/lib/analytics";
 import { readHomeUserType, writeHomeUserType } from "@/lib/homeUserType";
+import { setNavigationUserType } from "@/lib/navigationUserType";
 import {
   Building2,
   Check,
@@ -38,16 +39,32 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
   const reduce = useReducedMotion();
   const router = useRouter();
   const [sessionRoleBanner, setSessionRoleBanner] = useState<null | "employer" | "candidate">(null);
+  const [browsingAs, setBrowsingAs] = useState<"Employer" | "Candidate" | "Guest">("Guest");
 
   useEffect(() => {
     try {
       const role = window.sessionStorage.getItem("roleSelected");
       const ut = readHomeUserType();
+      if (ut === "employer") setBrowsingAs("Employer");
+      else if (ut === "candidate") setBrowsingAs("Candidate");
+      else setBrowsingAs("Guest");
       if (role === "employer" || ut === "employer") startTransition(() => setSessionRoleBanner("employer"));
       else if (role === "candidate" || ut === "candidate") startTransition(() => setSessionRoleBanner("candidate"));
     } catch {
       /* ignore */
     }
+  }, []);
+
+  const switchBrowsingMode = useCallback(() => {
+    try {
+      window.localStorage.removeItem("userType");
+      window.localStorage.removeItem("welcome_shown");
+      window.sessionStorage.removeItem("roleSelected");
+    } catch {
+      /* ignore */
+    }
+    setNavigationUserType(null);
+    window.location.reload();
   }, []);
 
   const goHire = useCallback(() => {
@@ -158,7 +175,13 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
     <div className="min-h-screen bg-[#0D1B2A]">
       <HomeWelcomeUserTypeSlideup />
       <section className="section-y-home flex items-center bg-[#0D1B2A]">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+        <div className="relative mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+          <div className="absolute right-6 top-0 text-xs text-white/40 md:right-12 lg:right-20">
+            <span>Browsing as: {browsingAs}</span>{" "}
+            <button type="button" onClick={switchBrowsingMode} className="text-white/55 underline underline-offset-2 hover:text-white/75">
+              Switch
+            </button>
+          </div>
           {hero}
         </div>
       </section>
