@@ -16,8 +16,8 @@ export default function DsbAccessDenied({ kind, guideSlug }: Props) {
 
   const detail =
     kind === "expired"
-      ? "Your 30-day access period has ended. Purchase again to continue."
-      : "Purchase required to access this guide, or your link may be invalid.";
+      ? "This link has expired. Please use the free information page for current guidance."
+      : "This secure link is no longer valid. Please use the public information page.";
 
   return (
     <section className="min-h-[60vh] bg-surface py-16">
@@ -30,13 +30,13 @@ export default function DsbAccessDenied({ kind, guideSlug }: Props) {
               href="/electricians-norway?section=dsb"
               className="inline-flex justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
             >
-              Get access
+              Open free DSB information
             </Link>
             <Link
               href="/electricians-norway?section=dsb#dsb-authorization-guide"
               className="inline-flex justify-center rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface"
             >
-              View guide & pricing
+              View authorization details
             </Link>
           </div>
         </div>

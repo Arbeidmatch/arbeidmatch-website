@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { verifyDsbEmailVerifyToken } from "@/lib/dsbEmailVerifyToken";
-import { createDsbGuideStripeCheckout } from "@/lib/dsbGuideCheckout";
-
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -12,49 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default async function DsbSupportVerifyPage({
-  searchParams,
+  searchParams: _searchParams,
 }: {
   searchParams: Promise<{ token?: string }>;
 }) {
-  try {
-    const { token } = await searchParams;
-    const normalizedToken = token?.trim();
-
-    if (!normalizedToken) {
-      redirect("/dsb-support/eu?error=link_expired");
-    }
-
-    const payload = verifyDsbEmailVerifyToken(normalizedToken);
-
-    if (!payload) {
-      redirect("/dsb-support/eu?error=link_expired");
-    }
-
-    let result: Awaited<ReturnType<typeof createDsbGuideStripeCheckout>>;
-    try {
-      result = await createDsbGuideStripeCheckout({
-        guideSlug: payload.guide_slug,
-        email: payload.email,
-      });
-    } catch (stripeErr) {
-      if (isRedirectError(stripeErr)) {
-        throw stripeErr;
-      }
-      console.error("[Verify Page] Stripe session threw:", stripeErr);
-      redirect("/dsb-support/eu?error=checkout_failed");
-    }
-
-    if (!result.ok) {
-      console.error("[Verify Page] Checkout failed:", result.error);
-      redirect("/dsb-support/eu?error=checkout_failed");
-    }
-
-    redirect(result.checkoutUrl);
-  } catch (error) {
-    if (isRedirectError(error)) {
-      throw error;
-    }
-    console.error("[Verify Page] Unexpected error:", error);
-    redirect("/electricians-norway?section=dsb&error=verify_error");
-  }
+  redirect("/electricians-norway?section=dsb");
 }

@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
-import { DsbGuidePage } from "@/components/dsb/DsbGuidePage";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "DSB Guide: EU/EEA Electricians",
+  title: "DSB Information: EU/EEA Electricians",
   robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
 };
 
-export default async function DsbGuideEuPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ token?: string }>;
-}) {
-  const params = await searchParams;
-  return <DsbGuidePage guideSlug="eu" token={params.token} />;
+export default function DsbGuideEuPage() {
+  redirect("/electricians-norway?section=dsb");
 }

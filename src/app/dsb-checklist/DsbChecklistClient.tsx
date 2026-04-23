@@ -113,7 +113,7 @@ export default function DsbChecklistClient() {
                         href="/electricians-norway?section=dsb"
                         className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#b8923f] to-gold py-3 text-sm font-semibold text-[#0a0f14] transition-transform duration-300 ease-premium hover:scale-[1.02]"
                       >
-                        Explore paid guides
+                        Open free DSB information page
                       </Link>
                     </motion.div>
                   ) : (

@@ -1,24 +1,12 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import DsbExitDiscountPopup from "@/components/dsb/DsbExitDiscountPopup";
-import DsbGuideCheckoutNonEU from "@/components/dsb/DsbGuideCheckoutNonEU";
-import { DSB_SUPPORT_AVAILABLE, DSB_PRODUCTS_AVAILABLE } from "@/lib/dsbAvailability";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "DSB Guide for Non-EU Electricians in Norway · 39 EUR",
-  description: "Non-EU DSB authorization guide for Norway with visa and assessment guidance, secure one-time access.",
+  title: "DSB Information for Non-EU Electricians in Norway",
+  description: "Free DSB authorization information for non-EU electricians who plan to work in Norway.",
   robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
 };
 
 export default function DsbSupportNonEuPage() {
-  if (!DSB_SUPPORT_AVAILABLE || !DSB_PRODUCTS_AVAILABLE) {
-    notFound();
-  }
-
-  return (
-    <>
-      <DsbGuideCheckoutNonEU />
-      <DsbExitDiscountPopup guideType="non-eu" />
-    </>
-  );
+  redirect("/electricians-norway?section=dsb");
 }

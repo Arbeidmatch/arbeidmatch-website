@@ -4,8 +4,8 @@ import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
 export const metadata: Metadata = nbPageMetadata(
   "/for-staffing-agencies",
-  "For bemanningsbyråer | ArbeidMatch: din kilde til EU/EEA-kandidater",
-  "ArbeidMatch er ikke en konkurrent, vi er din sourcing-partner. Få tilgang til pre-screene EU/EEA-kandidater for dine kunder. Vi konkurrerer ikke med deg. Vi hjelper deg å vokse.",
+  "For Staffing Agencies | ArbeidMatch Partner Sourcing",
+  "Scale your recruitment with ArbeidMatch. We source and pre-screen EU/EEA candidates so your team can focus on clients, interviews, and placements.",
 );
 
 export default function ForStaffingAgenciesRoute() {

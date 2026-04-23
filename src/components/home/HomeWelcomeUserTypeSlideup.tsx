@@ -9,7 +9,7 @@ import { trackEvent } from "@/lib/analytics";
 import { writeHomeUserType } from "@/lib/homeUserType";
 import { setNavigationUserType } from "@/lib/navigationUserType";
 
-const TRANSITION = { duration: 0.38, ease: [0.22, 1, 0.36, 1] as const };
+const TRANSITION = { duration: 0.3, ease: "easeOut" as const };
 
 const WELCOME_DELAY_MS = 600;
 
@@ -57,52 +57,44 @@ export default function HomeWelcomeUserTypeSlideup() {
   return (
     <AnimatePresence>
       {open ? (
-        <>
-          <motion.button
-            key="home-welcome-backdrop"
-            type="button"
-            aria-label="Close welcome"
-            className="fixed inset-0 z-[218] bg-[rgba(13,27,42,0.75)] backdrop-blur-[8px]"
-            style={{ WebkitBackdropFilter: "blur(8px)" }}
-            initial={reduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={reduceMotion ? undefined : { opacity: 0 }}
-            transition={TRANSITION}
-            onClick={dismissBrowse}
-          />
+        <motion.div
+          key="home-welcome-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="home-welcome-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
+          initial={reduceMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={reduceMotion ? undefined : { opacity: 0 }}
+          transition={TRANSITION}
+          onClick={dismissBrowse}
+        >
           <motion.div
-            key="home-welcome-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="home-welcome-title"
-            className="pointer-events-none fixed inset-x-0 bottom-0 z-[219] flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-6"
-            initial={reduceMotion ? false : { y: 120, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={reduceMotion ? undefined : { y: 140, opacity: 0 }}
+            className="w-[90%] max-w-[480px] rounded-2xl border border-white/10 bg-gradient-to-b from-[#0D1B2A] to-[#111f30] p-10 shadow-2xl sm:p-12"
+            initial={reduceMotion ? false : { scale: 0.95 }}
+            animate={{ scale: 1 }}
+            exit={reduceMotion ? undefined : { scale: 0.95 }}
             transition={TRANSITION}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="pointer-events-auto w-full max-w-[440px] rounded-[22px] border border-[rgba(201,168,76,0.28)] bg-[linear-gradient(168deg,rgba(16,30,48,0.98),rgba(10,15,24,0.99))] px-6 py-7 shadow-[0_-20px_80px_rgba(0,0,0,0.45)] sm:px-8 sm:py-8"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <p id="home-welcome-title" className="text-center text-xl font-bold tracking-tight text-white sm:text-2xl">
+              <p id="home-welcome-title" className="text-center text-3xl font-semibold tracking-tight text-white">
                 Welcome to ArbeidMatch
               </p>
-              <p className="mt-2 text-center text-sm leading-relaxed text-white/65">
+              <p className="mt-2 text-center text-sm leading-relaxed text-white/60">
                 Tell us who you are for a better experience
               </p>
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:gap-3">
+              <div className="mt-8 flex flex-col gap-3">
                 <button
                   type="button"
                   onClick={() => pick("employer")}
-                  className="inline-flex min-h-[48px] flex-1 items-center justify-center rounded-xl bg-[#C9A84C] px-4 text-sm font-bold text-[#0D1B2A] transition hover:brightness-105"
+                  className="inline-flex h-14 w-full items-center justify-center rounded-xl bg-[#C9A84C] px-4 text-base font-medium text-[#0D1B2A] transition hover:brightness-105"
                 >
                   I&apos;m an Employer
                 </button>
                 <button
                   type="button"
                   onClick={() => pick("candidate")}
-                  className="inline-flex min-h-[48px] flex-1 items-center justify-center rounded-xl border border-[rgba(201,168,76,0.45)] bg-transparent px-4 text-sm font-semibold text-[#C9A84C] transition hover:bg-[rgba(201,168,76,0.08)]"
+                  className="inline-flex h-14 w-full items-center justify-center rounded-xl border border-white/30 bg-transparent px-4 text-base font-medium text-white transition hover:bg-white/5"
                 >
                   I&apos;m a Candidate
                 </button>
@@ -110,24 +102,23 @@ export default function HomeWelcomeUserTypeSlideup() {
               <button
                 type="button"
                 onClick={dismissBrowse}
-                className="mt-5 w-full text-center text-xs font-medium text-white/40 underline-offset-2 transition hover:text-white/65"
+                className="mt-5 w-full text-center text-sm font-medium text-white/40 underline-offset-2 transition hover:text-white/70"
               >
                 Just browsing
               </button>
-              <p className="mt-5 text-center text-[11px] leading-relaxed text-white/38">
+              <p className="mt-6 text-center text-xs leading-relaxed text-white/30">
                 By continuing you agree to our{" "}
-                <Link href="/privacy" className="text-[#C9A84C]/90 underline-offset-2 hover:underline">
+                <Link href="/privacy" className="text-white/50 underline-offset-2 hover:text-white/75 hover:underline">
                   Privacy Policy
                 </Link>{" "}
                 and{" "}
-                <Link href="/terms" className="text-[#C9A84C]/90 underline-offset-2 hover:underline">
+                <Link href="/terms" className="text-white/50 underline-offset-2 hover:text-white/75 hover:underline">
                   Terms of Service
                 </Link>
                 .
               </p>
-            </div>
           </motion.div>
-        </>
+        </motion.div>
       ) : null}
     </AnimatePresence>
   );

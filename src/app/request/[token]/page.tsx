@@ -17,6 +17,7 @@ import {
 import { trackEvent } from "@/lib/analytics";
 
 type CompanyCountry = "Norway" | "Denmark" | "Sweden";
+type PhonePrefix = "+47" | "+46" | "+45";
 
 type TokenData = {
   company: string;
@@ -38,7 +39,10 @@ type RequestForm = {
   trade: string;
   tradeOther: string;
   experience: string;
+  dNumber: string;
+  rotationWeeksOn: string;
   certification: string[];
+  driverLicenses: string[];
   certificationsOther: string;
   candidates: number;
   contractType: string;
@@ -47,6 +51,7 @@ type RequestForm = {
   overtime: string;
   accommodation: string;
   accommodationSupport: string;
+  accommodationCost: string;
   internationalTransport: string;
   localTransport: string;
   urgency: string;
@@ -335,7 +340,10 @@ const initialForm: RequestForm = {
   trade: "",
   tradeOther: "",
   experience: "",
+  dNumber: "",
+  rotationWeeksOn: "",
   certification: [],
+  driverLicenses: [],
   certificationsOther: "",
   candidates: 1,
   contractType: "",
@@ -344,6 +352,7 @@ const initialForm: RequestForm = {
   overtime: "",
   accommodation: "",
   accommodationSupport: "",
+  accommodationCost: "",
   internationalTransport: "",
   localTransport: "",
   urgency: "",
@@ -354,6 +363,37 @@ const initialForm: RequestForm = {
   notes: "",
   brandingChoice: "",
 };
+
+const NORWEGIAN_DRIVER_LICENSE_OPTIONS = [
+  "AM",
+  "A1",
+  "A2",
+  "A",
+  "B",
+  "B+E",
+  "C1",
+  "C1+E",
+  "C",
+  "C+E",
+  "D1",
+  "D1+E",
+  "D",
+  "D+E",
+  "T",
+] as const;
+
+const SALARY_OPTIONS = [
+  "From 200 NOK/hour",
+  "From 220 NOK/hour",
+  "From 250 NOK/hour",
+  "From 300 NOK/hour",
+  "From 350 NOK/hour",
+  "From 400 NOK/hour",
+  "From 450 NOK/hour",
+  "From 500 NOK/hour",
+  "600+ NOK/hour",
+  "To be discussed",
+] as const;
 
 const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]";
 const inputClass =
@@ -553,14 +593,112 @@ export default function RequestTokenPage() {
   const [companyCountry, setCompanyCountry] = useState<CompanyCountry>("Norway");
   const [employerCompany, setEmployerCompany] = useState("");
   const [employerOrgNumber, setEmployerOrgNumber] = useState("");
+  const [phonePrefix, setPhonePrefix] = useState<PhonePrefix>("+47");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [registryQuery, setRegistryQuery] = useState("");
   const [companySuggestions, setCompanySuggestions] = useState<Array<{ name: string; orgNumber: string }>>([]);
   const [companySearchLoading, setCompanySearchLoading] = useState(false);
   const registrySearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const scrollToTop = () => {
     if (typeof window === "undefined") return;
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const setFieldRef = (field: string) => (node: HTMLElement | null) => {
+    fieldRefs.current[field] = node;
+  };
+
+  const inputErrorClass = (field: string) => (fieldErrors[field] ? "border-red-500" : "");
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const validateCurrentStep = () => {
+    const errors: Record<string, string> = {};
+
+    if (step === 0 && wizardSubstep === "company") {
+      if (!employerCompany.trim()) {
+        errors.employerCompany = "This field is required";
+      }
+      if (!isPartnerFlow) {
+        if (companyCountry === "Sweden") {
+          if (!SWEDISH_ORG_PATTERN.test(employerOrgNumber.trim())) {
+            errors.employerOrgNumber = "This field is required";
+          }
+        } else if (employerOrgNumber.trim().length < 6) {
+          errors.employerOrgNumber = "This field is required";
+        }
+      }
+      if (!phoneNumber.trim()) {
+        errors.phoneNumber = "This field is required";
+      }
+    }
+
+    if (step === 0 && wizardSubstep === "industry" && !form.industry) {
+      errors.industry = "This field is required";
+    }
+
+    if (step === 1) {
+      if (!form.workerType) errors.workerType = "This field is required";
+      if (form.workerType === "Other" && !form.tradeOther.trim()) errors.tradeOther = "This field is required";
+      if (!form.experience) errors.experience = "This field is required";
+      if (!form.dNumber) errors.dNumber = "This field is required";
+      if (!form.rotationWeeksOn) errors.rotationWeeksOn = "This field is required";
+    }
+
+    if (step === 2) {
+      if (!form.contractType) errors.contractType = "This field is required";
+      if (!form.salary.trim()) errors.salary = "This field is required";
+    }
+
+    if (step === 3 && form.locations.length === 0) {
+      errors.locations = "This field is required";
+    }
+
+    if (step === 4) {
+      if (!form.accommodation) errors.accommodation = "This field is required";
+      if (form.accommodation === "Not provided" && !form.accommodationSupport) {
+        errors.accommodationSupport = "This field is required";
+      }
+      if (form.accommodation === "Not provided" && form.accommodationSupport === "We help find it" && !form.accommodationCost.trim()) {
+        errors.accommodationCost = "This field is required";
+      }
+      if (!form.internationalTransport) errors.internationalTransport = "This field is required";
+      if (!form.localTransport) errors.localTransport = "This field is required";
+    }
+
+    if (step === 5 && !form.urgency) {
+      errors.urgency = "This field is required";
+    }
+
+    if (step === 6 && !(form.brandingChoice === "yes" || form.brandingChoice === "no")) {
+      errors.brandingChoice = "This field is required";
+    }
+
+    return errors;
+  };
+
+  const applyStepValidation = () => {
+    const errors = validateCurrentStep();
+    setFieldErrors(errors);
+    const firstInvalidField = Object.keys(errors)[0];
+    if (firstInvalidField) {
+      const node = fieldRefs.current[firstInvalidField];
+      if (node) {
+        node.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return false;
+    }
+    return true;
   };
 
   useEffect(() => {
@@ -605,6 +743,20 @@ export default function RequestTokenPage() {
     setEmployerCompany(co);
     setEmployerOrgNumber(org);
     setRegistryQuery(co);
+    const rawPhone = tokenData.phone?.trim() || "";
+    if (rawPhone.startsWith("+46")) {
+      setPhonePrefix("+46");
+      setPhoneNumber(rawPhone.replace(/^\+46\s*/, ""));
+    } else if (rawPhone.startsWith("+45")) {
+      setPhonePrefix("+45");
+      setPhoneNumber(rawPhone.replace(/^\+45\s*/, ""));
+    } else if (rawPhone.startsWith("+47")) {
+      setPhonePrefix("+47");
+      setPhoneNumber(rawPhone.replace(/^\+47\s*/, ""));
+    } else {
+      setPhonePrefix("+47");
+      setPhoneNumber(rawPhone.replace(/[^\d]/g, ""));
+    }
     const cc = tokenData.company_country;
     if (cc === "Denmark" || cc === "Sweden" || cc === "Norway") {
       setCompanyCountry(cc);
@@ -726,6 +878,14 @@ export default function RequestTokenPage() {
     });
   };
 
+  const toggleDriverLicense = (value: string) => {
+    setForm((prev) => {
+      const exists = prev.driverLicenses.includes(value);
+      const nextLicenses = exists ? prev.driverLicenses.filter((item) => item !== value) : [...prev.driverLicenses, value];
+      return { ...prev, driverLicenses: nextLicenses };
+    });
+  };
+
   const isCompanySubstepValid = () => {
     const co = employerCompany.trim();
     const org = employerOrgNumber.trim();
@@ -742,13 +902,16 @@ export default function RequestTokenPage() {
     }
     if (value === 1) {
       if (form.workerType === "Other" && !form.tradeOther.trim()) return false;
-      return !!(form.workerType && form.experience && form.candidates >= 1);
+      return !!(form.workerType && form.experience && form.dNumber && form.rotationWeeksOn && form.candidates >= 1);
     }
     if (value === 2) return !!(form.contractType && form.salary.trim());
     if (value === 3) return form.locations.length > 0;
     if (value === 4) {
       if (!form.accommodation) return false;
       if (form.accommodation === "Not provided" && !form.accommodationSupport) return false;
+      if (form.accommodation === "Not provided" && form.accommodationSupport === "We help find it" && !form.accommodationCost.trim()) {
+        return false;
+      }
       return !!(form.internationalTransport && form.localTransport);
     }
     if (value === 5) return !!form.urgency;
@@ -758,12 +921,17 @@ export default function RequestTokenPage() {
 
   const handleNext = () => {
     if (step === 0 && wizardSubstep === "company") {
-      if (!isCompanySubstepValid()) return;
+      if (!applyStepValidation()) return;
       setWizardSubstep("industry");
+      setFieldErrors({});
       scrollToTop();
       return;
     }
-    if (step < TOTAL_STEPS - 1) goTo(step + 1);
+    if (step < TOTAL_STEPS - 1) {
+      if (!applyStepValidation()) return;
+      setFieldErrors({});
+      goTo(step + 1);
+    }
   };
 
   const handleSubmit = async (event?: FormEvent) => {
@@ -782,8 +950,8 @@ export default function RequestTokenPage() {
       email: tokenData?.email ?? "",
       full_name: tokenData?.full_name ?? "Contact person",
       phonePrefix: "",
-      phoneNumber: "",
-      phone: tokenData?.phone && tokenData.phone.trim().length >= 6 ? tokenData.phone.trim() : "00000000",
+      phoneNumber: phoneNumber.trim(),
+      phone: `${phonePrefix}${phoneNumber.trim()}`,
       job_summary: tokenData?.job_summary ?? "",
       hiringType: "Recruitment of personnel for companies",
       category: form.industry,
@@ -796,13 +964,13 @@ export default function RequestTokenPage() {
       experience: "",
       norwegianLevel: "",
       englishLevel: "",
-      driverLicense: "",
+      driverLicense: form.driverLicenses.join(", "),
       driverLicenseOther: "",
-      dNumber: "",
+      dNumber: form.dNumber,
       dNumberOther: "",
       requirements: "",
       contractType: form.contractType,
-      salaryPeriod: form.salaryPeriod === "per hour" ? "Per hour" : "Per month",
+      salaryPeriod: "Per hour",
       salaryMode: "Range",
       salary: form.salary,
       salaryAmount: "",
@@ -817,14 +985,14 @@ export default function RequestTokenPage() {
             ? false
             : null,
       maxOvertimeHours: "",
-      hasRotation: "",
-      rotationWeeksOn: "",
+      hasRotation: form.rotationWeeksOn ? "Yes" : "",
+      rotationWeeksOn: form.rotationWeeksOn.replace(" week", "").replace(" weeks", ""),
       rotationWeeksOff: "",
       internationalTravel: typeof form.internationalTransport === "string" ? form.internationalTransport : "",
       localTravel: typeof form.localTransport === "string" ? form.localTransport : "",
       localTravelOther: "",
       accommodation: form.accommodation ?? "",
-      accommodationCost: "",
+      accommodationCost: form.accommodationCost,
       accommodationOther: form.accommodationSupport,
       equipment: "",
       equipmentOther: "",
@@ -1028,16 +1196,14 @@ export default function RequestTokenPage() {
             </svg>
             <h1 className="mt-6 text-[2rem] font-bold tracking-[-0.02em] text-white">Request Received</h1>
             <p className="mt-3 text-base font-normal text-[#C9A84C]">
-              Thank you, {successCompanyName}. We have received your request.
+              Thank you, {tokenData?.full_name?.trim() || "there"}!
             </p>
             {submitNotice ? <p className="mt-3 text-xs text-amber-300">{submitNotice}</p> : null}
 
             <div className="mx-auto mt-8 w-[320px] border-t border-[rgba(201,168,76,0.15)]" />
 
             <div className="mt-8 space-y-3 text-sm text-white">
-              <p>Our team will now review your request details.</p>
-              <p>We will validate requirements and matching availability.</p>
-              <p>We will return to you as soon as possible with next steps.</p>
+              <p>We will review your request and be in touch soon.</p>
             </div>
 
             <div className="mx-auto mt-8 w-[320px] border-t border-[rgba(201,168,76,0.15)]" />
@@ -1053,7 +1219,7 @@ export default function RequestTokenPage() {
               href="/"
               className="mt-7 inline-flex rounded-[8px] border border-[rgba(201,168,76,0.3)] px-7 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#C9A84C]"
             >
-              Back to home
+              Back to Home
             </Link>
           </div>
         </div>
@@ -1576,32 +1742,40 @@ export default function RequestTokenPage() {
 
                 {companyCountry === "Sweden" ? (
                   <>
-                    <div>
+                    <div ref={setFieldRef("employerCompany")}>
                       <label htmlFor="employer-company-se" className={labelClass}>
                         Company name
                       </label>
                       <input
                         id="employer-company-se"
-                        className={inputClass}
+                        className={`${inputClass} ${inputErrorClass("employerCompany")}`}
                         value={employerCompany}
-                        onChange={(e) => setEmployerCompany(e.target.value)}
+                        onChange={(e) => {
+                          setEmployerCompany(e.target.value);
+                          clearFieldError("employerCompany");
+                        }}
                         placeholder="Registered company name"
                         autoComplete="organization"
                       />
+                      {fieldErrors.employerCompany ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                     </div>
-                    <div>
+                    <div ref={setFieldRef("employerOrgNumber")}>
                       <label htmlFor="employer-org-se" className={labelClass}>
                         Organisation number
                       </label>
                       <input
                         id="employer-org-se"
-                        className={inputClass}
+                        className={`${inputClass} ${inputErrorClass("employerOrgNumber")}`}
                         value={employerOrgNumber}
-                        onChange={(e) => setEmployerOrgNumber(e.target.value)}
+                        onChange={(e) => {
+                          setEmployerOrgNumber(e.target.value);
+                          clearFieldError("employerOrgNumber");
+                        }}
                         placeholder="XXXXXX-XXXX"
                         inputMode="text"
                         autoComplete="off"
                       />
+                      {fieldErrors.employerOrgNumber ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                       <p className="mt-2 text-xs leading-relaxed text-white/45">
                         Swedish company details verified manually by our team.
                       </p>
@@ -1645,35 +1819,72 @@ export default function RequestTokenPage() {
                         ))}
                       </ul>
                     ) : null}
-                    <div>
+                    <div ref={setFieldRef("employerCompany")}>
                       <label htmlFor="employer-company" className={labelClass}>
                         Company name
                       </label>
                       <input
                         id="employer-company"
-                        className={inputClass}
+                        className={`${inputClass} ${inputErrorClass("employerCompany")}`}
                         value={employerCompany}
-                        onChange={(e) => setEmployerCompany(e.target.value)}
+                        onChange={(e) => {
+                          setEmployerCompany(e.target.value);
+                          clearFieldError("employerCompany");
+                        }}
                         placeholder="As registered"
                         autoComplete="organization"
                       />
+                      {fieldErrors.employerCompany ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                     </div>
-                    <div>
+                    <div ref={setFieldRef("employerOrgNumber")}>
                       <label htmlFor="employer-org" className={labelClass}>
                         Organisation number
                       </label>
                       <input
                         id="employer-org"
-                        className={inputClass}
+                        className={`${inputClass} ${inputErrorClass("employerOrgNumber")}`}
                         value={employerOrgNumber}
-                        onChange={(e) => setEmployerOrgNumber(e.target.value)}
+                        onChange={(e) => {
+                          setEmployerOrgNumber(e.target.value);
+                          clearFieldError("employerOrgNumber");
+                        }}
                         placeholder={companyCountry === "Denmark" ? "8-digit CVR" : "9-digit org.nr"}
                         inputMode="numeric"
                         autoComplete="off"
                       />
+                      {fieldErrors.employerOrgNumber ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                     </div>
                   </>
                 )}
+                <div ref={setFieldRef("phoneNumber")}>
+                  <label htmlFor="employer-phone" className={labelClass}>
+                    Phone
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={phonePrefix}
+                      onChange={(e) => setPhonePrefix(e.target.value as PhonePrefix)}
+                      className="w-[96px] rounded-[12px] border border-white/10 bg-white/[0.05] px-3 py-3 text-sm text-white focus:outline-none focus:border-[rgba(201,168,76,0.5)]"
+                    >
+                      <option value="+47">+47</option>
+                      <option value="+46">+46</option>
+                      <option value="+45">+45</option>
+                    </select>
+                    <input
+                      id="employer-phone"
+                      className={`${inputClass} ${inputErrorClass("phoneNumber")}`}
+                      value={phoneNumber}
+                      onChange={(e) => {
+                        setPhoneNumber(e.target.value.replace(/[^\d]/g, ""));
+                        clearFieldError("phoneNumber");
+                      }}
+                      placeholder="Phone number"
+                      inputMode="tel"
+                      autoComplete="tel"
+                    />
+                  </div>
+                  {fieldErrors.phoneNumber ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
+                </div>
               </div>
             )}
 
@@ -1682,13 +1893,12 @@ export default function RequestTokenPage() {
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step 1 of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Which industry is this request for?</h2>
                 <p className="text-sm text-white/50">Select the primary industry first.</p>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  {INDUSTRY_OPTIONS.map((option) => (
+                <div className="flex w-full flex-col gap-3">
+                  <div ref={setFieldRef("industry")} className="contents">
+                    {INDUSTRY_OPTIONS.map((option) => (
                     <OptionCard
                       key={option}
                       label={option}
-                      className="md:h-[52px] md:items-center"
-                      labelClassName="md:text-[13px] md:whitespace-nowrap"
                       selected={form.industry === option}
                       onClick={() =>
                         setForm((prev) => ({
@@ -1697,14 +1907,14 @@ export default function RequestTokenPage() {
                           workerType: "",
                           tradeOther: "",
                           certification: [],
+                          driverLicenses: [],
                         }))
                       }
                     />
-                  ))}
+                    ))}
+                  </div>
                 </div>
-                {!form.industry && (
-                  <p className="mb-2 text-right text-[12px] text-[rgba(255,255,255,0.4)]">Select an industry to continue</p>
-                )}
+                {fieldErrors.industry ? <p className="text-xs text-red-500">This field is required</p> : null}
               </div>
             )}
 
@@ -1714,32 +1924,38 @@ export default function RequestTokenPage() {
                 <h2 className="text-2xl font-extrabold">Worker type and requirements</h2>
                 <p className="text-sm text-white/50">Worker roles and certifications depend on selected industry.</p>
 
-                <div>
+                <div ref={setFieldRef("workerType")}>
                   <p className={labelClass}>Worker type</p>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div className="flex w-full flex-col gap-3">
                     {workerTypeOptions.map((option) => (
                       <OptionCard
                         key={option}
                         label={option}
                         selected={form.workerType === option}
-                        onClick={() => setForm((prev) => ({ ...prev, workerType: option, certification: [] }))}
+                        onClick={() => setForm((prev) => ({ ...prev, workerType: option, certification: [], driverLicenses: [] }))}
                       />
                     ))}
                   </div>
+                  {fieldErrors.workerType ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                 </div>
 
                 {form.workerType === "Other" && (
                   <input
-                    className={inputClass}
+                    ref={setFieldRef("tradeOther")}
+                    className={`${inputClass} ${inputErrorClass("tradeOther")}`}
                     placeholder="Describe the role"
                     value={form.tradeOther}
-                    onChange={(e) => setForm((prev) => ({ ...prev, tradeOther: e.target.value }))}
+                    onChange={(e) => {
+                      setForm((prev) => ({ ...prev, tradeOther: e.target.value }));
+                      clearFieldError("tradeOther");
+                    }}
                   />
                 )}
+                {fieldErrors.tradeOther ? <p className="text-xs text-red-500">This field is required</p> : null}
 
-                <div>
+                <div ref={setFieldRef("experience")}>
                   <p className={labelClass}>Minimum experience</p>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div className="flex w-full flex-col gap-3">
                     {["No minimum", "1 to 2 years", "3 to 5 years", "5+ years"].map((option) => (
                       <OptionCard
                         key={option}
@@ -1749,11 +1965,12 @@ export default function RequestTokenPage() {
                       />
                     ))}
                   </div>
+                  {fieldErrors.experience ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                 </div>
 
                 <div>
                   <p className={labelClass}>Certifications required</p>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div className="flex w-full flex-col gap-3">
                     {certificationOptions.map((option) => (
                       <OptionCard
                         key={option}
@@ -1771,6 +1988,77 @@ export default function RequestTokenPage() {
                       onChange={(e) => setForm((prev) => ({ ...prev, certificationsOther: e.target.value }))}
                     />
                   )}
+                </div>
+
+                <div>
+                  <p className={labelClass}>Driving license required</p>
+                  <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+                    {NORWEGIAN_DRIVER_LICENSE_OPTIONS.map((license) => {
+                      const checked = form.driverLicenses.includes(license);
+                      return (
+                        <label
+                          key={license}
+                          className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+                            checked
+                              ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
+                              : "border-white/10 bg-white/[0.03] text-white/80 hover:border-white/20"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleDriverLicense(license)}
+                            className="h-4 w-4 rounded border-white/30 accent-[#C9A84C]"
+                          />
+                          <span>{license}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div ref={setFieldRef("dNumber")}>
+                  <p className={labelClass}>D-number status</p>
+                  <div className="flex w-full flex-col gap-3">
+                    {["Already has a D-number", "We can handle the procedure"].map((option) => (
+                      <OptionCard
+                        key={option}
+                        label={option}
+                        selected={form.dNumber === option}
+                        onClick={() => {
+                          setForm((prev) => ({ ...prev, dNumber: option }));
+                          clearFieldError("dNumber");
+                        }}
+                      />
+                    ))}
+                  </div>
+                  {fieldErrors.dNumber ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
+                </div>
+
+                <div ref={setFieldRef("rotationWeeksOn")}>
+                  <label htmlFor="rotation-weeks-on" className={labelClass}>
+                    Rotation
+                  </label>
+                  <select
+                    id="rotation-weeks-on"
+                    value={form.rotationWeeksOn}
+                    onChange={(e) => {
+                      setForm((prev) => ({ ...prev, rotationWeeksOn: e.target.value }));
+                      clearFieldError("rotationWeeksOn");
+                    }}
+                    className={`${inputClass} cursor-pointer`}
+                  >
+                    <option value="">Select rotation</option>
+                    <option value="1 week">1 week</option>
+                    <option value="2 weeks">2 weeks</option>
+                    <option value="3 weeks">3 weeks</option>
+                    <option value="4 weeks">4 weeks</option>
+                    <option value="5 weeks">5 weeks</option>
+                    <option value="6 weeks">6 weeks</option>
+                    <option value="7 weeks">7 weeks</option>
+                    <option value="8 weeks">8 weeks</option>
+                  </select>
+                  {fieldErrors.rotationWeeksOn ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                 </div>
 
                 <div>
@@ -1804,7 +2092,7 @@ export default function RequestTokenPage() {
                 <h2 className="text-2xl font-extrabold">What are you offering?</h2>
                 <p className="text-sm text-white/50">Help candidates understand the conditions.</p>
 
-                <div>
+                <div ref={setFieldRef("contractType")}>
                   <p className={labelClass}>Contract type</p>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                     {["Permanent employment", "Temporary hire", "Staffing (innleie)", "Project-based"].map(
@@ -1818,39 +2106,35 @@ export default function RequestTokenPage() {
                       ),
                     )}
                   </div>
+                  {fieldErrors.contractType ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                 </div>
 
-                <div>
-                  <p className={labelClass}>Salary range</p>
-                  <div className="mb-3 flex gap-2">
-                    {(["per hour", "per month"] as const).map((period) => (
-                      <button
-                        key={period}
-                        type="button"
-                        className={`rounded-lg border px-4 py-2 text-sm transition ${
-                          form.salaryPeriod === period
-                            ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]"
-                            : "border-white/10 bg-white/[0.03] text-white/60"
-                        }`}
-                        onClick={() => setForm((prev) => ({ ...prev, salaryPeriod: period }))}
-                      >
-                        {period === "per hour" ? "Per hour" : "Per month"}
-                      </button>
+                <div ref={setFieldRef("salary")}>
+                  <p className={labelClass}>Salary</p>
+                  <select
+                    className={`${inputClass} ${inputErrorClass("salary")} cursor-pointer`}
+                    value={form.salary}
+                    onChange={(e) => {
+                      setForm((prev) => ({ ...prev, salary: e.target.value, salaryPeriod: "per hour" }));
+                      clearFieldError("salary");
+                    }}
+                  >
+                    <option value="">Select salary</option>
+                    {SALARY_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
                     ))}
-                  </div>
-                  <div className="relative">
-                    <input
-                      className={inputClass}
-                      placeholder={
-                        form.salaryPeriod === "per hour" ? "e.g. 280 to 330" : "e.g. 45000 to 55000"
-                      }
-                      value={form.salary}
-                      onChange={(e) => setForm((prev) => ({ ...prev, salary: e.target.value }))}
-                    />
-                    <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-white/40">
-                      NOK
-                    </span>
-                  </div>
+                  </select>
+                  <a
+                    href="https://www.arbeidstilsynet.no/arbeidsforhold/lonn/minstelonn/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block text-xs text-white/65 underline underline-offset-2 transition hover:text-white"
+                  >
+                    See minimum wages → arbeidstilsynet.no/minstelonn
+                  </a>
+                  {fieldErrors.salary ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                 </div>
 
                 <div>
@@ -1885,7 +2169,7 @@ export default function RequestTokenPage() {
                   />
                 </div>
 
-                <div className="max-h-[280px] space-y-2 overflow-y-auto pr-1">
+                <div ref={setFieldRef("locations")} className="max-h-[280px] space-y-2 overflow-y-auto pr-1">
                   {filteredCities.map((city) => (
                     <button
                       key={city}
@@ -1904,6 +2188,7 @@ export default function RequestTokenPage() {
                     </button>
                   ))}
                 </div>
+                {fieldErrors.locations ? <p className="text-xs text-red-500">This field is required</p> : null}
               </div>
             )}
 
@@ -1913,7 +2198,7 @@ export default function RequestTokenPage() {
                 <h2 className="text-2xl font-extrabold">Final details</h2>
                 <p className="text-sm text-white/50">Almost done. A few last questions.</p>
 
-                <div>
+                <div ref={setFieldRef("accommodation")}>
                   <p className={labelClass}>Accommodation</p>
                   <div className="flex flex-wrap gap-2">
                     {["Provided", "Not provided"].map((option) => (
@@ -1931,30 +2216,57 @@ export default function RequestTokenPage() {
                       />
                     ))}
                   </div>
+                  {fieldErrors.accommodation ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                 </div>
 
                 {form.accommodation === "Not provided" && (
-                  <div>
+                  <div ref={setFieldRef("accommodationSupport")}>
                     <p className={labelClass}>If not provided, can you help candidate find accommodation?</p>
                     <div className="flex flex-wrap gap-2">
-                      {["Can help candidate find accommodation", "Cannot help candidate find accommodation"].map(
+                      {["We help find it", "Candidate handles it"].map(
                         (option) => (
                           <OptionCard
                             key={option}
                             label={option}
                             selected={form.accommodationSupport === option}
-                            onClick={() => setForm((prev) => ({ ...prev, accommodationSupport: option }))}
+                            onClick={() =>
+                              setForm((prev) => ({
+                                ...prev,
+                                accommodationSupport: option,
+                                accommodationCost: option === "We help find it" ? prev.accommodationCost : "",
+                              }))
+                            }
                           />
                         ),
                       )}
                     </div>
+                    {fieldErrors.accommodationSupport ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                   </div>
                 )}
 
-                <div>
+                {form.accommodation === "Not provided" && form.accommodationSupport === "We help find it" && (
+                  <div ref={setFieldRef("accommodationCost")}>
+                    <label htmlFor="accommodation-cost" className={labelClass}>
+                      Accommodation cost (NOK/month)
+                    </label>
+                    <input
+                      id="accommodation-cost"
+                      className={`${inputClass} ${inputErrorClass("accommodationCost")}`}
+                      placeholder="e.g. 5000"
+                      value={form.accommodationCost}
+                      onChange={(e) => {
+                        setForm((prev) => ({ ...prev, accommodationCost: e.target.value }));
+                        clearFieldError("accommodationCost");
+                      }}
+                    />
+                    {fieldErrors.accommodationCost ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
+                  </div>
+                )}
+
+                <div ref={setFieldRef("internationalTransport")}>
                   <p className={labelClass}>International transport</p>
                   <div className="flex flex-wrap gap-2">
-                    {["Covered", "Not covered", "Negotiable"].map((option) => (
+                    {["Covered by company", "Candidate's own responsibility"].map((option) => (
                       <OptionCard
                         key={option}
                         label={option}
@@ -1963,9 +2275,10 @@ export default function RequestTokenPage() {
                       />
                     ))}
                   </div>
+                  {fieldErrors.internationalTransport ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                 </div>
 
-                <div>
+                <div ref={setFieldRef("localTransport")}>
                   <p className={labelClass}>Local transport</p>
                   <div className="flex flex-wrap gap-2">
                     {["Covered", "Not covered", "Negotiable"].map((option) => (
@@ -1977,6 +2290,7 @@ export default function RequestTokenPage() {
                       />
                     ))}
                   </div>
+                  {fieldErrors.localTransport ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                 </div>
 
                 <div>
@@ -2011,7 +2325,7 @@ export default function RequestTokenPage() {
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step 6 of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">What is your hiring priority?</h2>
                 <p className="text-sm text-white/50">We use this to prioritize delivery and response time.</p>
-                <div className="grid grid-cols-1 gap-3">
+                <div ref={setFieldRef("urgency")} className="grid grid-cols-1 gap-3">
                   {[
                     { title: "Urgent", sub: "I need candidates within 1 to 2 weeks", icon: "⚡" },
                     { title: "Normal", sub: "I need candidates within 3 to 4 weeks", icon: "🕒" },
@@ -2028,6 +2342,7 @@ export default function RequestTokenPage() {
                     />
                   ))}
                 </div>
+                {fieldErrors.urgency ? <p className="text-xs text-red-500">This field is required</p> : null}
               </div>
             )}
 
@@ -2036,7 +2351,7 @@ export default function RequestTokenPage() {
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step 7 of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Would you like to add your company branding?</h2>
                 <p className="text-sm text-white/50">Your company name and identity will be visible on the job post.</p>
-                <div className="grid grid-cols-1 gap-3">
+                <div ref={setFieldRef("brandingChoice")} className="grid grid-cols-1 gap-3">
                   <OptionCard
                     label="Yes, add branding"
                     sublabel={
@@ -2054,6 +2369,7 @@ export default function RequestTokenPage() {
                     onClick={() => setForm((prev) => ({ ...prev, brandingChoice: "no" }))}
                   />
                 </div>
+                {fieldErrors.brandingChoice ? <p className="text-xs text-red-500">This field is required</p> : null}
                 <p className="rounded-[12px] border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.08)] px-4 py-3 text-center text-sm font-semibold text-[#C9A84C]">
                   {form.brandingChoice === "yes"
                     ? `Selected: ${brandingPriceNok} NOK`
@@ -2097,14 +2413,11 @@ export default function RequestTokenPage() {
               <button
                 type="button"
                 onClick={() => {
-                  if (step === 1 && form.workerType === "Other" && !form.tradeOther.trim()) {
-                    setSubmitStatus("error");
-                    setSubmitError("Please specify the trade type.");
-                    return;
-                  }
                   if (step < TOTAL_STEPS - 1) {
                     handleNext();
                   } else {
+                    if (!applyStepValidation()) return;
+                    setFieldErrors({});
                     void handleSubmit();
                   }
                 }}

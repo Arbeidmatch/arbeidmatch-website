@@ -36,11 +36,11 @@ export default function DsbTypeSelector({
       try {
         const savedType = localStorage.getItem(STORAGE_KEY);
         if (savedType === "eu") {
-          router.replace("/dsb-support/eu");
+          router.replace("/electricians-norway?section=dsb&audience=eu");
           return;
         }
         if (savedType === "non-eu") {
-          router.replace("/dsb-support/non-eu");
+          router.replace("/electricians-norway?section=dsb&audience=non-eu");
           return;
         }
       } catch {
@@ -71,7 +71,7 @@ export default function DsbTypeSelector({
     } catch {
       // ignore storage errors
     }
-    router.push(type === "eu" ? "/dsb-support/eu" : "/dsb-support/non-eu");
+    router.push(type === "eu" ? "/electricians-norway?section=dsb&audience=eu" : "/electricians-norway?section=dsb&audience=non-eu");
   };
 
   const dismissWithoutSelection = () => {
@@ -110,11 +110,9 @@ export default function DsbTypeSelector({
                 <X className="h-5 w-5" strokeWidth={2} aria-hidden />
               </motion.button>
             )}
-            <h2 className="pr-10 text-center text-2xl font-bold leading-tight text-white sm:pr-0 sm:text-3xl md:text-4xl">
-              Are you an EU/EEA citizen?
-            </h2>
+            <h2 className="pr-10 text-center text-2xl font-bold leading-tight text-white sm:pr-0 sm:text-3xl md:text-4xl">Are you an EU/EEA citizen?</h2>
             <p className="mt-3 text-center text-sm text-white/85 sm:text-base">
-              Select your category to see the right guide for you
+              Select your category to open the right free DSB information.
             </p>
 
             <div className="mt-8 grid gap-5 md:grid-cols-2">
@@ -127,15 +125,14 @@ export default function DsbTypeSelector({
                 <ul className="mt-4 space-y-2 text-sm text-[#1D9E75]">
                   <li>- Faster process (2-4 months)</li>
                   <li>- No visa required</li>
-                  <li>- Job placement available</li>
+                  <li>- DSB requirements can vary by background</li>
                 </ul>
-                <p className="mt-4 text-2xl font-bold text-gold">15 EUR</p>
                 <button
                   type="button"
                   onClick={() => selectType("eu")}
                   className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold py-3 text-sm font-bold text-navy transition hover:bg-gold-hover"
                 >
-                  I am EU/EEA →
+                  Open EU/EEA information
                 </button>
               </article>
 
@@ -150,13 +147,12 @@ export default function DsbTypeSelector({
                   <li>- Work visa required</li>
                   <li>- Individual DSB assessment</li>
                 </ul>
-                <p className="mt-4 text-2xl font-bold text-gold">39 EUR</p>
                 <button
                   type="button"
                   onClick={() => selectType("non-eu")}
                   className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-md border border-[#C9A84C] py-3 text-sm font-bold text-white transition hover:bg-[rgba(201,168,76,0.15)]"
                 >
-                  Outside EU/EEA →
+                  Open non-EU information
                 </button>
               </article>
             </div>

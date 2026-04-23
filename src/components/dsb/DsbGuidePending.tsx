@@ -38,9 +38,9 @@ export default function DsbGuidePending({ token }: Props) {
     <section className="min-h-[50vh] bg-surface py-16">
       <div className="mx-auto w-full max-w-lg px-4 text-center md:px-6">
         <div className="rounded-xl border border-border bg-white p-8 shadow-[0_10px_30px_rgba(13,27,42,0.08)]">
-          <p className="text-lg font-semibold text-navy">Confirming your payment…</p>
+          <p className="text-lg font-semibold text-navy">This access flow is disabled.</p>
           <p className="mt-2 text-sm text-text-secondary">
-            This usually takes a few seconds. If nothing happens, refresh the page or check your email for the access link.
+            Paid DSB guide access is no longer active. Use the free information page for current guidance.
           </p>
           <div className="mt-6 flex justify-center">
             <span

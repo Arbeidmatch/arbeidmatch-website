@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { FileText, MapPin, RefreshCw, Search, UserCheck, Users, type LucideIcon } from "lucide-react";
+import { ClipboardCheck, MapPin, Presentation, RefreshCw, Search, Users, type LucideIcon } from "lucide-react";
 
 const GOLD = "#C9A84C";
 const NAVY = "#ffffff";
@@ -16,33 +16,33 @@ type ServiceItem = {
 const SERVICES: ServiceItem[] = [
   {
     Icon: Search,
-    title: "Sourcing",
-    body: "Targeted outreach across EU and EEA countries to identify candidates that match your exact requirements. We use direct networks, not just job boards.",
-  },
-  {
-    Icon: UserCheck,
-    title: "Pre-screening",
-    body: "Structured interviews, document checks, and trade relevance validation before any candidate is presented to you. We aim to present profiles that meet agreed criteria. Final hiring decisions remain with the employer.",
-  },
-  {
-    Icon: FileText,
-    title: "Staffing Administration",
-    body: "We act as the employer of record. We handle employment contracts, payroll, and daily staffing administration on your behalf.",
+    title: "Sourcing & Headhunting",
+    body: "We identify qualified EU/EEA candidates through direct networks, not just job boards. Blue-collar, English-speaking, ready to work in Norway.",
   },
   {
     Icon: Users,
-    title: "Candidate Presentation",
-    body: "You receive a structured presentation of shortlisted candidates with relevant experience, certifications, and references. You make the final selection.",
+    title: "Staffing & Bemanning",
+    body: "As an Arbeidstilsynet-authorized staffing company, we handle employment contracts, payroll, and daily staffing administration on your behalf.",
+  },
+  {
+    Icon: ClipboardCheck,
+    title: "Candidate Screening",
+    body: "Structured interviews, document verification, and skills validation before any candidate is presented to you. You make the final decision.",
   },
   {
     Icon: MapPin,
     title: "Onboarding Support",
-    body: "We coordinate pre-arrival logistics, documentation, and practical onboarding. The candidate arrives prepared and ready to start on day one.",
+    body: "We coordinate pre-arrival logistics, documentation, and practical onboarding. Your new employee arrives prepared and ready to start on day one.",
   },
   {
     Icon: RefreshCw,
-    title: "Follow-up",
-    body: "Weekly follow-up with both client and candidate after placement. We follow up to identify and resolve issues early.",
+    title: "Follow-up & Retention",
+    body: "Regular follow-up with both you and the candidate after placement. We identify and resolve issues early to ensure long-term success.",
+  },
+  {
+    Icon: Presentation,
+    title: "Candidate Presentation",
+    body: "You receive a structured profile of shortlisted candidates with experience, certifications, and references. Clear, actionable, no noise.",
   },
 ];
 
