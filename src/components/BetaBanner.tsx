@@ -2,25 +2,10 @@
 
 export default function BetaBanner() {
   return (
-    <div
-      className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-[rgba(201,168,76,0.12)] bg-[#0D1B2A]/95 backdrop-blur-md"
-      style={{ paddingBottom: "calc(10px + env(safe-area-inset-bottom))" }}
-      role="status"
-      aria-live="polite"
-    >
-      <div className="mx-auto flex max-w-content items-center justify-center gap-3 px-4 py-2.5 text-center md:px-8">
-        <span
-          className="hidden h-1 w-1 shrink-0 rounded-full bg-[#C9A84C] sm:block"
-          style={{ boxShadow: "0 0 12px rgba(201,168,76,0.35)" }}
-          aria-hidden
-        />
-        <p className="text-[11px] font-medium leading-snug tracking-wide text-white/55 md:text-xs">
-          <span className="text-[#C9A84C]/95">Beta</span>
-          <span className="mx-2 text-white/25" aria-hidden>
-            ·
-          </span>
-          Some features are still rolling out; we ship improvements continuously.
-        </p>
+    <div className="pointer-events-none fixed bottom-3 right-3 z-50 sm:bottom-4 sm:right-4" role="status" aria-live="polite">
+      <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#0D1B2A]/80 px-2.5 py-1 text-[11px] text-white/50 backdrop-blur-sm sm:px-3 sm:py-1.5 sm:text-xs">
+        <span className="h-2 w-2 rounded-full bg-[#C9A84C] motion-reduce:animate-none animate-pulse" aria-hidden />
+        <span>We're building something great</span>
       </div>
     </div>
   );
