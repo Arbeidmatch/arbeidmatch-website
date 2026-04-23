@@ -4,6 +4,8 @@ import { z } from "zod";
 import { buildInternalEmailHtml, mailHeaders } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { safeSendEmail } from "@/lib/email/safeSend";
+import { notifyError as notifySlackError, notifyNewPartnerRequest } from "@/lib/slack/notify";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 const freeEmailDomains = new Set([
@@ -97,10 +99,8 @@ export async function POST(request: NextRequest) {
           { label: "Message", value: parsed.data.message || "-" },
         ],
       });
-      await transporter.sendMail({
+      await safeSendEmail("post@arbeidmatch.no", `Partner application: ${parsed.data.companyName}`, html, {
         ...mailHeaders(),
-        to: "post@arbeidmatch.no",
-        subject: `Partner application: ${parsed.data.companyName}`,
         text:
           `New recruitment partner application\n` +
           `Request ID: ${requestId}\n` +
@@ -113,10 +113,12 @@ export async function POST(request: NextRequest) {
           `Placements/month: ${parsed.data.placementsPerMonth}\n` +
           `Sectors: ${parsed.data.sectors.join(", ")}\n` +
           `Message: ${parsed.data.message || "-"}`,
-        html,
+        ipAddress: request.headers.get("x-forwarded-for") || undefined,
+        transporter,
       });
     }
 
+    await notifyNewPartnerRequest(parsed.data.companyName, email, parsed.data.sectors);
     await sendSlackPartnerRequest({
       blocks: [
         { type: "header", text: { type: "plain_text", text: "New Recruitment Partner Application" } },
@@ -176,6 +178,11 @@ export async function POST(request: NextRequest) {
       );
     }
     await notifyError({ route: "/api/partner-request/start", error });
+    await notifySlackError(
+      error instanceof Error ? `${error.message}\n${error.stack || ""}` : String(error),
+      "/api/partner-request/start",
+      "critical",
+    );
     return NextResponse.json({ success: false, error: "Could not start partner request." }, { status: 500 });
   }
 }

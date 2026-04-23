@@ -18,7 +18,8 @@ const CANDIDATE_SUBJECTS = [
   "Technical issue",
   "Other",
 ] as const;
-const NEUTRAL_SUBJECTS = Array.from(new Set([...EMPLOYER_SUBJECTS, ...CANDIDATE_SUBJECTS]));
+type SubjectOption = (typeof EMPLOYER_SUBJECTS)[number] | (typeof CANDIDATE_SUBJECTS)[number];
+const NEUTRAL_SUBJECTS: SubjectOption[] = Array.from(new Set<SubjectOption>([...EMPLOYER_SUBJECTS, ...CANDIDATE_SUBJECTS]));
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -35,7 +36,7 @@ export default function ContactPage() {
   const [userType, setUserType] = useState<UserType>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [subject, setSubject] = useState("");
+  const [subject, setSubject] = useState<SubjectOption | "">("");
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -167,7 +168,7 @@ export default function ContactPage() {
             <select
               value={subject}
               onChange={(e) => {
-                setSubject(e.target.value);
+                setSubject(e.target.value as SubjectOption);
                 if (errors.subject) setErrors((prev) => ({ ...prev, subject: undefined }));
               }}
               className={`${inputClasses(Boolean(errors.subject))} mt-1.5`}

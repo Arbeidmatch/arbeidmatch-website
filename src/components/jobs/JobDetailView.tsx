@@ -572,7 +572,7 @@ export default function JobDetailView({
               </div>
             ))}
           </div>
-          <JobReactions jobId={job.id} />
+          <JobReactions jobId={job.id} viewCount={job.viewCount ?? 0} variant="detail" />
 
           <div className="mt-6 flex flex-wrap gap-2">{job.trade ? <span className="rounded-full border border-white/15 px-3 py-1 text-xs text-white/75">{job.trade}</span> : null}</div>
 

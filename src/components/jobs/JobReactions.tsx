@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Eye, ThumbsDown, ThumbsUp } from "lucide-react";
 
-type Counts = { likes: number; dislikes: number; views: number };
-type FieldCounts = Record<"salary" | "location" | "rotation" | "contract_type", Record<"happy" | "neutral" | "concerned", number>>;
-type UserState = {
-  reaction: "like" | "dislike" | null;
-  fieldReactions: Partial<Record<"salary" | "location" | "rotation" | "contract_type", "happy" | "neutral" | "concerned" | null>>;
+type FieldKey = "salary" | "location" | "rotation";
+type FieldFeeling = "happy" | "neutral" | "sad";
+type FieldCounts = Record<FieldKey, Record<FieldFeeling, number>>;
+type ApiResponse = {
+  likes: number;
+  dislikes: number;
+  field_reactions: FieldCounts;
+  user_reaction: "like" | "dislike" | null;
+  user_field_reactions: Partial<Record<FieldKey, FieldFeeling>>;
 };
 
 function useAnimatedNumber(target: number, duration = 300): number {
@@ -41,39 +45,34 @@ function getCandidateEmail(): string | null {
   }
 }
 
-function getViewerId(): string {
-  try {
-    const key = "am_job_reaction_viewer_id";
-    const existing = window.localStorage.getItem(key);
-    if (existing) return existing;
-    const next = crypto.randomUUID();
-    window.localStorage.setItem(key, next);
-    return next;
-  } catch {
-    return "anonymous-viewer";
-  }
+function emptyFieldCounts(): FieldCounts {
+  return {
+    salary: { happy: 0, neutral: 0, sad: 0 },
+    location: { happy: 0, neutral: 0, sad: 0 },
+    rotation: { happy: 0, neutral: 0, sad: 0 },
+  };
 }
 
-export default function JobReactions({ jobId }: { jobId: string }) {
-  const [counts, setCounts] = useState<Counts>({ likes: 0, dislikes: 0, views: 0 });
-  const [fieldCounts, setFieldCounts] = useState<FieldCounts>({
-    salary: { happy: 0, neutral: 0, concerned: 0 },
-    location: { happy: 0, neutral: 0, concerned: 0 },
-    rotation: { happy: 0, neutral: 0, concerned: 0 },
-    contract_type: { happy: 0, neutral: 0, concerned: 0 },
-  });
-  const [user, setUser] = useState<UserState>({ reaction: null, fieldReactions: {} });
+export default function JobReactions({
+  jobId,
+  viewCount = 0,
+  variant = "card",
+}: {
+  jobId: string;
+  viewCount?: number;
+  variant?: "card" | "detail";
+}) {
+  const [likesRaw, setLikesRaw] = useState(0);
+  const [dislikesRaw, setDislikesRaw] = useState(0);
+  const [viewsRaw, setViewsRaw] = useState(Math.max(0, viewCount));
+  const [fieldCounts, setFieldCounts] = useState<FieldCounts>(emptyFieldCounts());
+  const [userReaction, setUserReaction] = useState<"like" | "dislike" | null>(null);
+  const [userFieldReactions, setUserFieldReactions] = useState<Partial<Record<FieldKey, FieldFeeling>>>({});
   const [candidateEmail, setCandidateEmail] = useState<string | null>(null);
 
-  const likes = useAnimatedNumber(counts.likes);
-  const dislikes = useAnimatedNumber(counts.dislikes);
-  const views = useAnimatedNumber(counts.views);
-
-  const headers = useMemo(() => {
-    const h: HeadersInit = {};
-    if (candidateEmail) h["x-candidate-email"] = candidateEmail;
-    return h;
-  }, [candidateEmail]);
+  const likes = useAnimatedNumber(likesRaw);
+  const dislikes = useAnimatedNumber(dislikesRaw);
+  const views = useAnimatedNumber(viewsRaw);
 
   useEffect(() => {
     setCandidateEmail(getCandidateEmail());
@@ -82,20 +81,25 @@ export default function JobReactions({ jobId }: { jobId: string }) {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const res = await fetch(`/api/jobs/reactions?job_id=${encodeURIComponent(jobId)}`, { headers });
-      const data = (await res.json().catch(() => ({}))) as { counts?: Counts; fieldCounts?: FieldCounts; user?: UserState };
+      const params = new URLSearchParams({ job_id: jobId });
+      if (candidateEmail) params.set("candidate_email", candidateEmail);
+      const res = await fetch(`/api/jobs/reactions?${params.toString()}`);
+      const data = (await res.json().catch(() => ({}))) as Partial<ApiResponse>;
       if (cancelled) return;
-      if (data.counts) setCounts(data.counts);
-      if (data.fieldCounts) setFieldCounts(data.fieldCounts);
-      if (data.user) setUser(data.user);
+      setLikesRaw(Number(data.likes ?? 0));
+      setDislikesRaw(Number(data.dislikes ?? 0));
+      if (data.field_reactions) setFieldCounts(data.field_reactions);
+      setUserReaction(data.user_reaction ?? null);
+      setUserFieldReactions(data.user_field_reactions ?? {});
     };
     void load();
     return () => {
       cancelled = true;
     };
-  }, [headers, jobId]);
+  }, [candidateEmail, jobId]);
 
   useEffect(() => {
+    if (variant !== "detail") return;
     const key = `am_job_viewed_${jobId}`;
     try {
       if (sessionStorage.getItem(key) === "1") return;
@@ -103,114 +107,140 @@ export default function JobReactions({ jobId }: { jobId: string }) {
     } catch {
       // ignore
     }
-    void fetch("/api/jobs/reactions", {
+    void fetch(`/api/jobs/${jobId}/view`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-viewer-id": getViewerId() },
-      body: JSON.stringify({ job_id: jobId, action: "view" }),
-    }).then(async (r) => {
-      const data = (await r.json().catch(() => ({}))) as { counts?: Counts; fieldCounts?: FieldCounts };
-      if (data.counts) setCounts(data.counts);
-      if (data.fieldCounts) setFieldCounts(data.fieldCounts);
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ candidate_email: candidateEmail ?? undefined }),
+    }).then(async (res) => {
+      const data = (await res.json().catch(() => ({}))) as { view_count?: number };
+      if (typeof data.view_count === "number") {
+        setViewsRaw(data.view_count);
+      }
     });
-  }, [jobId]);
+  }, [candidateEmail, jobId, variant]);
 
-  const submitJobReaction = async (reaction: "like" | "dislike") => {
-    const email = getCandidateEmail();
+  const submitReaction = async (nextReactionType: "like" | "dislike", nextFieldReactions?: Partial<Record<FieldKey, FieldFeeling>>) => {
+    const email = candidateEmail ?? getCandidateEmail();
     if (!email) return;
     setCandidateEmail(email);
     const res = await fetch("/api/jobs/reactions", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-candidate-email": email },
-      body: JSON.stringify({ job_id: jobId, action: "job_reaction", reaction, premium_only_reactions: false }),
-    });
-    const data = (await res.json().catch(() => ({}))) as { counts?: Counts; fieldCounts?: FieldCounts; user?: UserState };
-    if (data.counts) setCounts(data.counts);
-    if (data.fieldCounts) setFieldCounts(data.fieldCounts);
-    if (data.user) setUser(data.user);
-  };
-
-  const submitFieldReaction = async (
-    fieldKey: "salary" | "location" | "rotation" | "contract_type",
-    fieldReaction: "happy" | "neutral" | "concerned",
-  ) => {
-    const email = getCandidateEmail();
-    if (!email) return;
-    setCandidateEmail(email);
-    const res = await fetch("/api/jobs/reactions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-candidate-email": email },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         job_id: jobId,
-        action: "field_reaction",
-        field_key: fieldKey,
-        field_reaction: fieldReaction,
-        premium_only_reactions: false,
+        reaction_type: nextReactionType,
+        field_reactions: nextFieldReactions ?? userFieldReactions,
+        candidate_email: email,
       }),
     });
-    const data = (await res.json().catch(() => ({}))) as { counts?: Counts; fieldCounts?: FieldCounts; user?: UserState };
-    if (data.counts) setCounts(data.counts);
-    if (data.fieldCounts) setFieldCounts(data.fieldCounts);
-    if (data.user) setUser(data.user);
+    const data = (await res.json().catch(() => ({}))) as Partial<ApiResponse>;
+    setLikesRaw(Number(data.likes ?? likesRaw));
+    setDislikesRaw(Number(data.dislikes ?? dislikesRaw));
+    if (data.field_reactions) setFieldCounts(data.field_reactions);
+    setUserReaction(data.user_reaction ?? null);
+    setUserFieldReactions(data.user_field_reactions ?? {});
   };
 
-  return (
-    <>
-      <div className="mt-4 flex items-center gap-4 text-sm text-white/50">
+  const submitFieldReaction = async (fieldKey: FieldKey, fieldFeeling: FieldFeeling) => {
+    if (!candidateEmail) return;
+    const next = { ...userFieldReactions, [fieldKey]: fieldFeeling };
+    await submitReaction(userReaction ?? "like", next);
+  };
+
+  const reactTooltip = candidateEmail ? "React to this job (registered candidates only)" : "Create a profile to react";
+
+  if (variant === "card") {
+    return (
+      <div className="mt-1 flex items-center gap-3 text-xs text-white/40">
+        <span className="inline-flex items-center gap-1">
+          <Eye className="h-[14px] w-[14px]" />
+          <AnimatedCount value={views} />
+        </span>
         <button
           type="button"
-          onClick={() => void submitJobReaction("like")}
-          className={`inline-flex items-center gap-1.5 transition-colors hover:text-white/80 ${user.reaction === "like" ? "text-white/80" : ""}`}
+          title="React to this job (registered candidates only)"
+          onClick={() => void submitReaction("like")}
+          className={`inline-flex items-center gap-1 transition-colors hover:text-white/70 ${userReaction === "like" ? "text-[#C9A84C]" : ""}`}
         >
-          <ThumbsUp className="h-4 w-4" />
+          <ThumbsUp className="h-[14px] w-[14px]" />
           <AnimatedCount value={likes} />
         </button>
         <button
           type="button"
-          onClick={() => void submitJobReaction("dislike")}
-          className={`inline-flex items-center gap-1.5 transition-colors hover:text-white/80 ${
-            user.reaction === "dislike" ? "text-white/80" : ""
-          }`}
+          title="React to this job (registered candidates only)"
+          onClick={() => void submitReaction("dislike")}
+          className={`inline-flex items-center gap-1 transition-colors hover:text-white/70 ${userReaction === "dislike" ? "text-[#C9A84C]" : ""}`}
         >
-          <ThumbsDown className="h-4 w-4" />
+          <ThumbsDown className="h-[14px] w-[14px]" />
           <AnimatedCount value={dislikes} />
         </button>
-        <span className="inline-flex items-center gap-1.5">
-          <Eye className="h-4 w-4" />
-          <AnimatedCount value={views} />
-        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6 rounded-[18px] border border-white/10 bg-white/[0.03] p-4 md:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex items-center gap-2 text-white">
+          <Eye className="h-5 w-5 animate-pulse text-[#C9A84C]" />
+          <span className="text-base font-semibold">
+            <AnimatedCount value={views} /> views
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-sm text-white/70">
+          <button
+            type="button"
+            title={reactTooltip}
+            onClick={() => void submitReaction("like")}
+            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 transition ${
+              userReaction === "like" ? "border-[#C9A84C]/30 bg-[#C9A84C]/10 text-[#C9A84C]" : "border-white/15 hover:border-white/30"
+            }`}
+          >
+            <ThumbsUp className="h-4 w-4" /> <AnimatedCount value={likes} />
+          </button>
+          <button
+            type="button"
+            title={reactTooltip}
+            onClick={() => void submitReaction("dislike")}
+            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 transition ${
+              userReaction === "dislike" ? "border-[#C9A84C]/30 bg-[#C9A84C]/10 text-[#C9A84C]" : "border-white/15 hover:border-white/30"
+            }`}
+          >
+            <ThumbsDown className="h-4 w-4" /> <AnimatedCount value={dislikes} />
+          </button>
+        </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-white/55 sm:grid-cols-4">
+      <div className="mt-4 grid grid-cols-1 gap-2 text-xs text-white/70 sm:grid-cols-3">
         <FieldMicro
           label="Salary"
           fieldKey="salary"
           counts={fieldCounts.salary}
-          active={user.fieldReactions.salary ?? null}
+          active={userFieldReactions.salary ?? null}
+          canReact={Boolean(candidateEmail)}
+          tooltip={reactTooltip}
           onReact={submitFieldReaction}
         />
         <FieldMicro
           label="Location"
           fieldKey="location"
           counts={fieldCounts.location}
-          active={user.fieldReactions.location ?? null}
+          active={userFieldReactions.location ?? null}
+          canReact={Boolean(candidateEmail)}
+          tooltip={reactTooltip}
           onReact={submitFieldReaction}
         />
         <FieldMicro
           label="Rotation"
           fieldKey="rotation"
           counts={fieldCounts.rotation}
-          active={user.fieldReactions.rotation ?? null}
-          onReact={submitFieldReaction}
-        />
-        <FieldMicro
-          label="Contract"
-          fieldKey="contract_type"
-          counts={fieldCounts.contract_type}
-          active={user.fieldReactions.contract_type ?? null}
+          active={userFieldReactions.rotation ?? null}
+          canReact={Boolean(candidateEmail)}
+          tooltip={reactTooltip}
           onReact={submitFieldReaction}
         />
       </div>
-    </>
+    </div>
   );
 }
 
@@ -223,28 +253,32 @@ function FieldMicro({
   fieldKey,
   counts,
   active,
+  canReact,
+  tooltip,
   onReact,
 }: {
   label: string;
-  fieldKey: "salary" | "location" | "rotation" | "contract_type";
-  counts: Record<"happy" | "neutral" | "concerned", number>;
-  active: "happy" | "neutral" | "concerned" | null;
-  onReact: (
-    fieldKey: "salary" | "location" | "rotation" | "contract_type",
-    fieldReaction: "happy" | "neutral" | "concerned",
-  ) => Promise<void>;
+  fieldKey: FieldKey;
+  counts: Record<FieldFeeling, number>;
+  active: FieldFeeling | null;
+  canReact: boolean;
+  tooltip: string;
+  onReact: (fieldKey: FieldKey, fieldReaction: FieldFeeling) => Promise<void>;
 }) {
   const happy = useAnimatedNumber(counts.happy);
   const neutral = useAnimatedNumber(counts.neutral);
-  const concerned = useAnimatedNumber(counts.concerned);
+  const sad = useAnimatedNumber(counts.sad);
   return (
     <div className="rounded-md border border-white/10 bg-white/[0.02] p-2">
-      <p className="mb-1 text-[10px] uppercase tracking-wide text-white/45">{label}</p>
-      <div className="flex items-center gap-2">
+      <p className="mb-1 text-[10px] uppercase tracking-wide text-white/55">{label}</p>
+      <div className="flex items-center gap-1.5">
         <button
           type="button"
-          onClick={() => void onReact(fieldKey, "happy")}
-          className={`inline-flex items-center gap-1 hover:text-white/80 ${active === "happy" ? "text-white/80" : ""}`}
+          title={tooltip}
+          onClick={() => canReact && void onReact(fieldKey, "happy")}
+          className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 ${
+            active === "happy" ? "border-[#C9A84C]/30 bg-[#C9A84C]/10 text-[#C9A84C]" : "border-transparent hover:border-white/20"
+          }`}
           aria-label={`${label} happy`}
         >
           <span>😊</span>
@@ -252,8 +286,11 @@ function FieldMicro({
         </button>
         <button
           type="button"
-          onClick={() => void onReact(fieldKey, "neutral")}
-          className={`inline-flex items-center gap-1 hover:text-white/80 ${active === "neutral" ? "text-white/80" : ""}`}
+          title={tooltip}
+          onClick={() => canReact && void onReact(fieldKey, "neutral")}
+          className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 ${
+            active === "neutral" ? "border-[#C9A84C]/30 bg-[#C9A84C]/10 text-[#C9A84C]" : "border-transparent hover:border-white/20"
+          }`}
           aria-label={`${label} neutral`}
         >
           <span>😐</span>
@@ -261,12 +298,15 @@ function FieldMicro({
         </button>
         <button
           type="button"
-          onClick={() => void onReact(fieldKey, "concerned")}
-          className={`inline-flex items-center gap-1 hover:text-white/80 ${active === "concerned" ? "text-white/80" : ""}`}
-          aria-label={`${label} concerned`}
+          title={tooltip}
+          onClick={() => canReact && void onReact(fieldKey, "sad")}
+          className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 ${
+            active === "sad" ? "border-[#C9A84C]/30 bg-[#C9A84C]/10 text-[#C9A84C]" : "border-transparent hover:border-white/20"
+          }`}
+          aria-label={`${label} sad`}
         >
           <span>😕</span>
-          <span>{concerned}</span>
+          <span>{sad}</span>
         </button>
       </div>
     </div>

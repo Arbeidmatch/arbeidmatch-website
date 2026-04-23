@@ -37,6 +37,7 @@ type EmployerJobRow = {
   updated_at: string | null;
   image_main?: string | null;
   image_gallery?: string[] | null;
+  view_count?: number | null;
 };
 
 const GALLERY_SLOT_COUNT = 4;
@@ -115,6 +116,7 @@ function rowToJobRecord(row: EmployerJobRow): JobRecord {
     employerBoardMeta: meta,
     imageMain: row.image_main?.trim() || null,
     imageGallery: normalizeEmployerGallerySlots(row.image_gallery).map((u) => u.trim()),
+    viewCount: typeof row.view_count === "number" ? row.view_count : 0,
   };
 }
 

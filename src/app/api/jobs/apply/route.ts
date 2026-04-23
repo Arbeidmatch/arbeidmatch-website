@@ -5,6 +5,7 @@ import { notifyError } from "@/lib/errorNotifier";
 import { createSmtpTransporter, PROFILE_TRANSACTIONAL_FROM } from "@/lib/candidates/smtpShared";
 import { getSiteOrigin } from "@/lib/candidates/siteOrigin";
 import { buildEmail } from "@/lib/emailTemplate";
+import { safeSendEmail } from "@/lib/email/safeSend";
 import { jobApplicationSchema } from "@/lib/jobs/application";
 import { getJobBySlug, getSupabaseAdminClient } from "@/lib/jobs/applyService";
 import { isRateLimited } from "@/lib/requestProtection";
@@ -12,6 +13,7 @@ import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { logApiError } from "@/lib/secureLogger";
 import { candidateProfilePayloadSchema } from "@/lib/candidates/profileSchema";
 import { computeJobMatchScore } from "@/lib/candidates/jobMatchScore";
+import { notifyError as notifySlackError } from "@/lib/slack/notify";
 import { computeEmployerBoardMatch, employerBoardMeetsThreshold } from "@/lib/employer-flow/employerBoardMatch";
 import {
   sendCandidateApplicationReceivedEmail,
@@ -45,6 +47,9 @@ function sanitizeFileName(name: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  const report500 = async (context: string, err: unknown) => {
+    await notifySlackError(err instanceof Error ? `${err.message}\n${err.stack || ""}` : String(err), context, "critical");
+  };
   try {
     if (isRateLimited(request, "jobs-apply", 10, 10 * 60 * 1000)) {
       return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
@@ -103,6 +108,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdminClient();
     if (!supabase) {
+      await report500("/api/jobs/apply supabase_missing", "Supabase is not configured.");
       return NextResponse.json({ error: "Supabase is not configured." }, { status: 500 });
     }
 
@@ -122,6 +128,7 @@ export async function POST(request: NextRequest) {
 
     if (profileRow.error && !missingCandidatesTable) {
       logApiError("/api/jobs/apply candidate lookup", profileRow.error, { email: emailKey });
+      await report500("/api/jobs/apply candidate_lookup", profileRow.error.message || "Candidate lookup failed");
       return NextResponse.json({ error: "Could not verify candidate profile." }, { status: 500 });
     }
 
@@ -218,6 +225,7 @@ export async function POST(request: NextRequest) {
 
     if (uploadRes.error) {
       logApiError("/api/jobs/apply upload", uploadRes.error, { bucket });
+      await report500("/api/jobs/apply upload", uploadRes.error.message || "CV upload failed");
       return NextResponse.json(
         { error: "CV upload failed. Please contact support if this continues." },
         { status: 500 },
@@ -268,6 +276,7 @@ export async function POST(request: NextRequest) {
     if (insertRes.error) {
       await supabase.storage.from(bucket).remove([filePath]);
       logApiError("/api/jobs/apply insert", insertRes.error);
+      await report500("/api/jobs/apply insert", insertRes.error.message || "Application insert failed");
       return NextResponse.json(
         {
           error: "Application could not be saved.",
@@ -324,12 +333,11 @@ export async function POST(request: NextRequest) {
           ctaText: "Open candidate profile in ATS",
           ctaUrl: internalAtsUrl,
         });
-        await transport.sendMail({
+        await safeSendEmail("post@arbeidmatch.no", `New candidate application – ${job.title}`, internalHtml, {
           from: PROFILE_TRANSACTIONAL_FROM,
-          to: "post@arbeidmatch.no",
-          subject: `New candidate application – ${job.title}`,
-          html: internalHtml,
           text: `New candidate application for ${job.title}\nCandidate: ${candidateDisplayName}\nEmail: ${parsedPayload.data.email}\nATS link: ${internalAtsUrl}`,
+          ipAddress: request.headers.get("x-forwarded-for") || undefined,
+          transporter: transport,
         });
         void logAuditEvent("email_sent_internal_application_notification", "email", newApplicationId, "system", {
           template: "internal_application_notification",
@@ -355,6 +363,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     await notifyError({ route: "/api/jobs/apply", error });
+    await report500("/api/jobs/apply", error);
     logApiError("/api/jobs/apply", error);
     return NextResponse.json({ error: "Failed to submit application." }, { status: 500 });
   }

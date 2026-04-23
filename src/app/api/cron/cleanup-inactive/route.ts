@@ -7,7 +7,9 @@ import { signAvailabilityToken } from "@/lib/candidates/availabilityToken";
 import { getSiteOrigin } from "@/lib/candidates/siteOrigin";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { safeSendEmail } from "@/lib/email/safeSend";
 import { notifyError } from "@/lib/errorNotifier";
+import { notifyCronFailed } from "@/lib/slack/notify";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 
 export const dynamic = "force-dynamic";
@@ -111,16 +113,19 @@ export async function POST(request: NextRequest) {
 
       const token = await signAvailabilityToken({ candidateId: candidate.id, email });
       const keepActiveUrl = `${getSiteOrigin()}/api/candidates/availability?token=${encodeURIComponent(token)}&status=available`;
-      await transporter.sendMail({
-        ...mailHeaders(),
-        to: email,
-        subject: "Profile inactivity warning",
-        html: buildInactiveWarningEmailHtml({ firstName: candidate.first_name?.trim() || "there", keepActiveUrl }),
-        text:
-          "Your profile will be removed in 7 days due to inactivity.\n" +
-          "Keep profile active: " +
-          keepActiveUrl,
-      });
+      await safeSendEmail(
+        email,
+        "Profile inactivity warning",
+        buildInactiveWarningEmailHtml({ firstName: candidate.first_name?.trim() || "there", keepActiveUrl }),
+        {
+          ...mailHeaders(),
+          text:
+            "Your profile will be removed in 7 days due to inactivity.\n" +
+            "Keep profile active: " +
+            keepActiveUrl,
+          transporter,
+        },
+      );
       warningsSent += 1;
       await logAuditEvent("candidate_inactivity_warning_sent", "candidate", candidate.id, "system", {
         email,
@@ -141,15 +146,18 @@ export async function POST(request: NextRequest) {
     for (const candidate of anonymizeCandidates) {
       const rawEmail = candidate.email?.trim().toLowerCase() ?? "";
       if (transporter && rawEmail.includes("@")) {
-        await transporter.sendMail({
-          ...mailHeaders(),
-          to: rawEmail,
-          subject: "Profile anonymized confirmation",
-          html: buildAnonymizedConfirmationEmailHtml({ firstName: candidate.first_name?.trim() || "there" }),
-          text:
-            "Your data has been anonymized per your request or due to inactivity.\n" +
-            "Contact post@arbeidmatch.no for data requests.",
-        });
+        await safeSendEmail(
+          rawEmail,
+          "Profile anonymized confirmation",
+          buildAnonymizedConfirmationEmailHtml({ firstName: candidate.first_name?.trim() || "there" }),
+          {
+            ...mailHeaders(),
+            text:
+              "Your data has been anonymized per your request or due to inactivity.\n" +
+              "Contact post@arbeidmatch.no for data requests.",
+            transporter,
+          },
+        );
       }
 
       const hashedEmail = rawEmail ? `deleted+${hashEmail(rawEmail)}@anonymized.local` : `deleted+${candidate.id}@anonymized.local`;
@@ -195,6 +203,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     await notifyError({ route: "/api/cron/cleanup-inactive", error });
+    await notifyCronFailed(
+      "cleanup-inactive",
+      error instanceof Error ? `${error.message}\n${error.stack || ""}` : String(error),
+    );
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }

@@ -9,6 +9,7 @@ import { getRateLimitResult, hasHoneypotValue, noStoreJson } from "@/lib/apiSecu
 import { notifyError } from "@/lib/errorNotifier";
 import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { logApiError } from "@/lib/secureLogger";
+import { notifyError as notifySlackError } from "@/lib/slack/notify";
 
 const requestSchema = z
   .object({
@@ -183,6 +184,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdminClient();
     if (!supabase) {
+      await notifySlackError("Supabase configuration missing", "/api/save-employer-request", "critical");
       return noStoreJson(
         { success: false, error: "Supabase configuration missing" },
         { status: 500 }
@@ -383,6 +385,11 @@ export async function POST(request: NextRequest) {
         normalizedBooleanFields,
       },
     });
+    await notifySlackError(
+      error instanceof Error ? `${error.message}\n${error.stack || ""}` : String(error),
+      "/api/save-employer-request",
+      "critical",
+    );
     return noStoreJson({ success: false, error: "Could not save employer request." }, { status: 500 });
   }
 }

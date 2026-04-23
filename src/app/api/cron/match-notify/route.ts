@@ -4,7 +4,9 @@ import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { buildEmail } from "@/lib/emailTemplate";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { safeSendEmail } from "@/lib/email/safeSend";
 import { notifyError } from "@/lib/errorNotifier";
+import { notifyCronFailed } from "@/lib/slack/notify";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { resolveWorkTypeFromCategoryString } from "@/lib/candidates/profileSchema";
 
@@ -169,12 +171,10 @@ export async function POST(request: NextRequest) {
           ctaUrl,
         });
 
-        await transporter.sendMail({
+        await safeSendEmail(employerEmail, "New candidates available for your request", html, {
           ...mailHeaders(),
-          to: employerEmail,
-          subject: "New candidates available for your request",
-          html,
           text: `New candidates available for your request.\n\nWe found ${matched.length} new matched candidate(s) for ${requiredCategory}.\n\nView candidates: ${ctaUrl}`,
+          transporter,
         });
       }
 
@@ -197,6 +197,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     await notifyError({ route: "/api/cron/match-notify", error });
+    await notifyCronFailed("match-notify", error instanceof Error ? `${error.message}\n${error.stack || ""}` : String(error));
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }

@@ -1,121 +1,102 @@
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
+const fieldReactionValueSchema = z.enum(["happy", "neutral", "sad"]);
+const fieldReactionsSchema = z
+  .object({
+    salary: fieldReactionValueSchema.optional(),
+    location: fieldReactionValueSchema.optional(),
+    rotation: fieldReactionValueSchema.optional(),
+  })
+  .default({});
+
 const getSchema = z.object({
-  job_id: z.string().trim().min(1),
+  job_id: z.string().trim().uuid(),
+  candidate_email: z.string().trim().email().optional(),
 });
 
 const postSchema = z.object({
-  job_id: z.string().trim().min(1),
-  action: z.enum(["view", "job_reaction", "field_reaction"]),
-  reaction: z.enum(["like", "dislike"]).optional(),
-  field_key: z.enum(["salary", "location", "rotation", "contract_type"]).optional(),
-  field_reaction: z.enum(["happy", "neutral", "concerned"]).optional(),
-  premium_only_reactions: z.boolean().optional().default(false),
+  job_id: z.string().trim().uuid(),
+  reaction_type: z.enum(["like", "dislike"]),
+  field_reactions: fieldReactionsSchema.optional(),
+  candidate_email: z.string().trim().email(),
 });
 
-function fingerprintFromEmail(email: string): string {
+type FieldAggregate = Record<"salary" | "location" | "rotation", Record<"happy" | "neutral" | "sad", number>>;
+
+function hashEmail(email: string): string {
   return createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
 }
 
-async function getCandidateFingerprintFromRequest(request: NextRequest): Promise<string | null> {
-  const email = (request.headers.get("x-candidate-email") || "").trim().toLowerCase();
-  if (!email.includes("@")) return null;
-  const supabase = getSupabaseAdminClient();
-  if (!supabase) return null;
-  const candidate = await supabase
-    .from("candidates")
-    .select("id,profile_completion_step")
-    .eq("email", email)
-    .maybeSingle();
-  if (candidate.error || !candidate.data) return null;
-  if ((candidate.data.profile_completion_step ?? 0) < 1) return null;
-  return fingerprintFromEmail(email);
+function emptyFieldAggregate(): FieldAggregate {
+  return {
+    salary: { happy: 0, neutral: 0, sad: 0 },
+    location: { happy: 0, neutral: 0, sad: 0 },
+    rotation: { happy: 0, neutral: 0, sad: 0 },
+  };
 }
 
-async function aggregateForJob(jobId: string, candidateFingerprint: string | null) {
+async function buildAggregate(jobId: string, candidateHash?: string) {
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
     return {
-      counts: { likes: 0, dislikes: 0, views: 0 },
-      fieldCounts: {
-        salary: { happy: 0, neutral: 0, concerned: 0 },
-        location: { happy: 0, neutral: 0, concerned: 0 },
-        rotation: { happy: 0, neutral: 0, concerned: 0 },
-        contract_type: { happy: 0, neutral: 0, concerned: 0 },
-      },
-      user: {
-        reaction: null as "like" | "dislike" | null,
-        fieldReactions: {} as Record<string, "happy" | "neutral" | "concerned" | null>,
-      },
+      likes: 0,
+      dislikes: 0,
+      field_reactions: emptyFieldAggregate(),
+      user_reaction: null as "like" | "dislike" | null,
+      user_field_reactions: {} as Partial<Record<"salary" | "location" | "rotation", "happy" | "neutral" | "sad">>,
     };
   }
 
-  const allRowsRes = await supabase
+  const result = await supabase
     .from("job_reactions")
-    .select("candidate_fingerprint,reaction,viewed_at,field_key,field_reaction")
+    .select("candidate_hash,reaction_type,field_reactions")
     .eq("job_id", jobId);
 
-  const rows =
-    !allRowsRes.error && allRowsRes.data
-      ? (allRowsRes.data as Array<{
-          candidate_fingerprint: string;
-          reaction: "like" | "dislike" | null;
-          viewed_at: string | null;
-          field_key: "salary" | "location" | "rotation" | "contract_type" | null;
-          field_reaction: "happy" | "neutral" | "concerned" | null;
-        }>)
-      : [];
+  const rows = (result.data ?? []) as Array<{
+    candidate_hash: string;
+    reaction_type: "like" | "dislike" | null;
+    field_reactions: Partial<Record<"salary" | "location" | "rotation", "happy" | "neutral" | "sad">> | null;
+  }>;
 
-  const likes = rows.filter((r) => r.reaction === "like").length;
-  const dislikes = rows.filter((r) => r.reaction === "dislike").length;
-  const views = rows.filter((r) => r.viewed_at !== null).length;
-
-  const fieldCounts = {
-    salary: { happy: 0, neutral: 0, concerned: 0 },
-    location: { happy: 0, neutral: 0, concerned: 0 },
-    rotation: { happy: 0, neutral: 0, concerned: 0 },
-    contract_type: { happy: 0, neutral: 0, concerned: 0 },
-  };
-
+  const fieldAgg = emptyFieldAggregate();
   for (const row of rows) {
-    if (!row.field_key || !row.field_reaction) continue;
-    fieldCounts[row.field_key][row.field_reaction] += 1;
-  }
-
-  const user = {
-    reaction: null as "like" | "dislike" | null,
-    fieldReactions: {} as Record<string, "happy" | "neutral" | "concerned" | null>,
-  };
-  if (candidateFingerprint) {
-    const userRows = rows.filter(
-      (r) => r.candidate_fingerprint === candidateFingerprint || r.candidate_fingerprint.startsWith(`${candidateFingerprint}:`),
-    );
-    const latestJobReaction = userRows.find((r) => r.reaction === "like" || r.reaction === "dislike");
-    user.reaction = latestJobReaction?.reaction ?? null;
-    for (const key of ["salary", "location", "rotation", "contract_type"] as const) {
-      const f = userRows.find((r) => r.field_key === key && r.field_reaction);
-      user.fieldReactions[key] = f?.field_reaction ?? null;
+    const fields = row.field_reactions ?? {};
+    for (const key of ["salary", "location", "rotation"] as const) {
+      const value = fields[key];
+      if (value === "happy" || value === "neutral" || value === "sad") {
+        fieldAgg[key][value] += 1;
+      }
     }
   }
 
-  return { counts: { likes, dislikes, views }, fieldCounts, user };
+  const likes = rows.filter((row) => row.reaction_type === "like").length;
+  const dislikes = rows.filter((row) => row.reaction_type === "dislike").length;
+  const me = candidateHash ? rows.find((row) => row.candidate_hash === candidateHash) : null;
+
+  return {
+    likes,
+    dislikes,
+    field_reactions: fieldAgg,
+    user_reaction: me?.reaction_type ?? null,
+    user_field_reactions: me?.field_reactions ?? {},
+  };
 }
 
 export async function GET(request: NextRequest) {
   const parsed = getSchema.safeParse({
     job_id: request.nextUrl.searchParams.get("job_id"),
+    candidate_email: request.nextUrl.searchParams.get("candidate_email") ?? undefined,
   });
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid job_id." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid query parameters." }, { status: 400 });
   }
 
-  const candidateFingerprint = await getCandidateFingerprintFromRequest(request);
-  const summary = await aggregateForJob(parsed.data.job_id, candidateFingerprint);
-  return NextResponse.json(summary);
+  const candidateHash = parsed.data.candidate_email ? hashEmail(parsed.data.candidate_email) : undefined;
+  const aggregate = await buildAggregate(parsed.data.job_id, candidateHash);
+  return NextResponse.json(aggregate);
 }
 
 export async function POST(request: NextRequest) {
@@ -123,75 +104,32 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
   }
+
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
-    return NextResponse.json({ error: "Supabase is not configured." }, { status: 500 });
+    return NextResponse.json({ error: "Supabase unavailable." }, { status: 503 });
   }
 
-  const body = parsed.data;
-
-  if (body.action === "view") {
-    const viewerId = (request.headers.get("x-viewer-id") || "").trim();
-    if (!viewerId) return NextResponse.json({ success: true });
-    const upsertRes = await supabase.from("job_reactions").upsert(
-      {
-        job_id: body.job_id,
-        candidate_fingerprint: viewerId,
-        viewed_at: new Date().toISOString(),
-        premium_only_reactions: false,
-      },
-      { onConflict: "job_id,candidate_fingerprint" },
-    );
-    if (upsertRes.error) {
-      return NextResponse.json({ error: "Could not register view." }, { status: 500 });
-    }
-    const summary = await aggregateForJob(body.job_id, null);
-    return NextResponse.json({ success: true, ...summary });
+  const email = parsed.data.candidate_email.trim().toLowerCase();
+  const candidateRes = await supabase.from("candidates").select("id").eq("email", email).maybeSingle();
+  if (candidateRes.error || !candidateRes.data) {
+    return NextResponse.json({ error: "Candidate must be registered to react." }, { status: 401 });
   }
 
-  const candidateFingerprint = await getCandidateFingerprintFromRequest(request);
-  if (!candidateFingerprint) {
-    return NextResponse.json({ error: "Only registered candidates can react." }, { status: 403 });
-  }
-
-  if (body.action === "job_reaction") {
-    if (!body.reaction) {
-      return NextResponse.json({ error: "Missing reaction." }, { status: 400 });
-    }
-    const upsertRes = await supabase.from("job_reactions").upsert(
-      {
-        job_id: body.job_id,
-        candidate_fingerprint: candidateFingerprint,
-        reaction: body.reaction,
-        premium_only_reactions: body.premium_only_reactions,
-        viewed_at: new Date().toISOString(),
-      },
-      { onConflict: "job_id,candidate_fingerprint" },
-    );
-    if (upsertRes.error) {
-      return NextResponse.json({ error: "Could not save reaction." }, { status: 500 });
-    }
-    const summary = await aggregateForJob(body.job_id, candidateFingerprint);
-    return NextResponse.json({ success: true, ...summary });
-  }
-
-  if (!body.field_key || !body.field_reaction) {
-    return NextResponse.json({ error: "Missing field reaction." }, { status: 400 });
-  }
-  const upsertField = await supabase.from("job_reactions").upsert(
+  const candidate_hash = hashEmail(email);
+  const upsertRes = await supabase.from("job_reactions").upsert(
     {
-      job_id: body.job_id,
-      candidate_fingerprint: `${candidateFingerprint}:${body.field_key}`,
-      field_key: body.field_key,
-      field_reaction: body.field_reaction,
-      premium_only_reactions: body.premium_only_reactions,
-      viewed_at: new Date().toISOString(),
+      job_id: parsed.data.job_id,
+      candidate_hash,
+      reaction_type: parsed.data.reaction_type,
+      field_reactions: parsed.data.field_reactions ?? {},
     },
-    { onConflict: "job_id,candidate_fingerprint" },
+    { onConflict: "job_id,candidate_hash" },
   );
-  if (upsertField.error) {
-    return NextResponse.json({ error: "Could not save field reaction." }, { status: 500 });
+  if (upsertRes.error) {
+    return NextResponse.json({ error: "Failed to save reaction." }, { status: 500 });
   }
-  const summary = await aggregateForJob(body.job_id, candidateFingerprint);
-  return NextResponse.json({ success: true, ...summary });
+
+  const aggregate = await buildAggregate(parsed.data.job_id, candidate_hash);
+  return NextResponse.json(aggregate);
 }

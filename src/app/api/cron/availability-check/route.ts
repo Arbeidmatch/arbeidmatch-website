@@ -6,7 +6,9 @@ import { signAvailabilityToken } from "@/lib/candidates/availabilityToken";
 import { getSiteOrigin } from "@/lib/candidates/siteOrigin";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { safeSendEmail } from "@/lib/email/safeSend";
 import { notifyError } from "@/lib/errorNotifier";
+import { notifyCronFailed } from "@/lib/slack/notify";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 
 export const dynamic = "force-dynamic";
@@ -85,16 +87,14 @@ export async function POST(request: NextRequest) {
             unavailableUrl,
           });
 
-          await transporter.sendMail({
+          await safeSendEmail(email, "Are you still available for work?", html, {
             ...mailHeaders(),
-            to: email,
-            subject: "Are you still available for work?",
-            html,
             text:
               `Quick check-in from ArbeidMatch.\n\n` +
               `Are you still looking for work in Norway?\n` +
               `Yes: ${availableUrl}\n` +
               `Not right now: ${unavailableUrl}`,
+            transporter,
           });
 
           sent += 1;
@@ -122,6 +122,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, selected: candidates.length, sent, failed, batches: batches.length });
   } catch (error) {
     await notifyError({ route: "/api/cron/availability-check", error });
+    await notifyCronFailed(
+      "availability-check",
+      error instanceof Error ? `${error.message}\n${error.stack || ""}` : String(error),
+    );
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }

@@ -99,6 +99,7 @@ export function sanitizeJob(job: JobRecord): JobRecord {
     syncError: normalizeOptionalText(job.syncError),
     imageMain: normalizeOptionalText(job.imageMain),
     imageGallery: normalizeImageGallerySlots(job.imageGallery),
+    viewCount: typeof job.viewCount === "number" ? job.viewCount : 0,
   };
 }
 

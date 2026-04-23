@@ -26,6 +26,7 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
     typeof (job as JobRecord & { matchScore?: number }).matchScore === "number"
       ? (job as JobRecord & { matchScore?: number }).matchScore
       : null;
+  const showMatchBadge = typeof matchScore === "number" && matchScore >= 60;
   const applyHref =
     job.applicationMethod === "external_url"
       ? job.applicationUrl || jobsBoardAbsoluteUrl(`/jobs/${job.slug}/apply`)
@@ -65,8 +66,12 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 pr-[5.5rem] sm:pr-24">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          {matchScore !== null ? (
-            <span className="shrink-0 rounded-full bg-[#C9A84C]/20 px-3 py-1 text-xs font-semibold text-[#C9A84C]">
+          {showMatchBadge ? (
+            <span
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
+                (matchScore ?? 0) > 80 ? "bg-[#C9A84C]/20 text-[#C9A84C]" : "bg-white/10 text-white/60"
+              }`}
+            >
               {Math.round(Number(matchScore ?? 0))}% Match
             </span>
           ) : null}
@@ -163,7 +168,7 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
             <JobFitCheckButton job={job} browseOnly={browseOnly} className="flex-1" />
           </div>
         </div>
-        <JobReactions jobId={job.id} />
+        <JobReactions jobId={job.id} viewCount={job.viewCount ?? 0} />
       </div>
     </article>
   );

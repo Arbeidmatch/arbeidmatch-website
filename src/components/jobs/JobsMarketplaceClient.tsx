@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BriefcaseBusiness, Search } from "lucide-react";
 import type { JobRecord } from "@/lib/jobs/types";
 import JobCard from "@/components/jobs/JobCard";
@@ -23,6 +23,8 @@ function inferCategory(job: JobRecord): EmployerJobWorkType {
 }
 
 export default function JobsMarketplaceClient({ jobs, browseOnly }: { jobs: JobRecord[]; browseOnly: boolean }) {
+  const [candidateEmail, setCandidateEmail] = useState("");
+  const isCandidateLoggedIn = candidateEmail.includes("@");
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<JobCategory>("All");
   const [smartMode, setSmartMode] = useState<"default" | "match">("default");
@@ -36,7 +38,7 @@ export default function JobsMarketplaceClient({ jobs, browseOnly }: { jobs: JobR
   const [panelExperience, setPanelExperience] = useState(3);
 
   const runSmartMatch = async () => {
-    const email = (typeof window !== "undefined" ? window.localStorage.getItem("am_candidate_profile_email") : "") || "";
+    const email = (candidateEmail || "").trim().toLowerCase();
     if (!email.includes("@")) return;
     setSmartLoading(true);
     try {
@@ -73,6 +75,20 @@ export default function JobsMarketplaceClient({ jobs, browseOnly }: { jobs: JobR
       })),
     [jobs],
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const email = (window.localStorage.getItem("am_candidate_profile_email") || "").trim().toLowerCase();
+    setCandidateEmail(email);
+  }, []);
+
+  useEffect(() => {
+    if (!showFilters || smartMode !== "match" || !isCandidateLoggedIn) return;
+    const timer = window.setTimeout(() => {
+      void runSmartMatch();
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [showFilters, smartMode, panelCategory, panelLocation, panelSalaryFrom, panelDriving, panelExperience, isCandidateLoggedIn]);
 
   const visibleJobs = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -134,24 +150,29 @@ export default function JobsMarketplaceClient({ jobs, browseOnly }: { jobs: JobR
       </section>
 
       <section className="container-site pb-8">
-        <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
-          <button
-            type="button"
-            onClick={() => void runSmartMatch()}
-            className={`rounded-xl bg-[#C9A84C] px-8 py-4 font-bold text-[#0D1B2A] transition ${smartLoading ? "animate-pulse" : "hover:bg-[#b8953f]"}`}
-          >
-            Find My Best Match
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowFilters((v) => !v)}
-            className="rounded-xl border border-white/40 px-6 py-4 font-semibold text-white transition hover:bg-white/10"
-          >
-            Search My Way
-          </button>
-        </div>
+        {isCandidateLoggedIn ? (
+          <div className="mb-4 rounded-[16px] border border-[#C9A84C]/25 bg-white/[0.03] p-4">
+            <p className="text-sm font-semibold text-white">Find jobs that match your profile</p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => void runSmartMatch()}
+                className={`rounded-xl bg-[#C9A84C] px-6 py-3 font-bold text-[#0D1B2A] transition ${smartLoading ? "animate-pulse" : "hover:bg-[#b8953f]"}`}
+              >
+                Show My Matches
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFilters((v) => !v)}
+                className="rounded-xl border border-white/40 px-6 py-3 font-semibold text-white transition hover:bg-white/10"
+              >
+                Advanced Search
+              </button>
+            </div>
+          </div>
+        ) : null}
 
-        {showFilters ? (
+        {isCandidateLoggedIn && showFilters ? (
           <div className="mb-4 rounded-xl border border-white/15 bg-white/[0.03] p-4">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <select
@@ -205,11 +226,10 @@ export default function JobsMarketplaceClient({ jobs, browseOnly }: { jobs: JobR
                 type="button"
                 onClick={() => {
                   setShowFilters(false);
-                  if (smartMode === "match") void runSmartMatch();
                 }}
                 className="rounded-xl bg-[#C9A84C] px-6 py-3 text-sm font-bold text-[#0D1B2A] hover:bg-[#b8953f]"
               >
-                Apply Filters
+                Hide Filters
               </button>
             </div>
           </div>

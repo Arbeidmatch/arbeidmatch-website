@@ -4,8 +4,10 @@ import { z } from "zod";
 import { candidateProfilePayloadSchema, salaryHourlyBandMidNok } from "@/lib/candidates/profileSchema";
 import { createSmtpTransporter, PROFILE_TRANSACTIONAL_FROM } from "@/lib/candidates/smtpShared";
 import { emailParagraph, premiumCtaButton, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
+import { safeSendEmail } from "@/lib/email/safeSend";
 import { getSupabaseAdminClient } from "@/lib/jobs/applyService";
 import { notifyError } from "@/lib/errorNotifier";
+import { notifyError as notifySlackError, notifyNewCandidateProfile } from "@/lib/slack/notify";
 import { isRateLimited } from "@/lib/requestProtection";
 import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { logApiError } from "@/lib/secureLogger";
@@ -51,6 +53,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdminClient();
     if (!supabase) {
+      await notifySlackError("Supabase is not configured", "/api/candidate-profile", "critical");
       return NextResponse.json({ error: "Supabase is not configured." }, { status: 500 });
     }
 
@@ -103,6 +106,11 @@ export async function POST(request: NextRequest) {
     const upsert = await supabase.from("candidates").upsert(row, { onConflict: "email" }).select("id").maybeSingle();
     if (upsert.error) {
       logApiError("/api/candidate-profile upsert", upsert.error);
+      await notifySlackError(
+        upsert.error.message || "Could not save candidate profile.",
+        "/api/candidate-profile upsert",
+        "critical",
+      );
       return NextResponse.json(
         {
           error: "Could not save profile.",
@@ -114,6 +122,7 @@ export async function POST(request: NextRequest) {
 
     const cid = upsert.data && typeof (upsert.data as { id?: string }).id === "string" ? (upsert.data as { id: string }).id : null;
     void logAuditEvent("candidate_profile_completed", "candidate", cid, "candidate", { email: data.email });
+    await notifyNewCandidateProfile(`${data.firstName} ${data.lastName}`.trim(), data.preferences.jobType, 100);
 
     const transporter = createSmtpTransporter();
     if (transporter) {
@@ -132,11 +141,10 @@ export async function POST(request: NextRequest) {
         ].join(""),
       );
       try {
-        await transporter.sendMail({
+        await safeSendEmail(data.email, subject, html, {
           from: PROFILE_TRANSACTIONAL_FROM,
-          to: data.email,
-          subject,
-          html,
+          ipAddress: request.headers.get("x-forwarded-for") || undefined,
+          transporter,
         });
       } catch (mailError) {
         logApiError("/api/candidate-profile confirmation-email", mailError);
@@ -146,6 +154,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, shareWithEmployers: data.shareWithEmployers, candidateId: cid });
   } catch (error) {
     await notifyError({ route: "/api/candidate-profile", error });
+    await notifySlackError(error instanceof Error ? `${error.message}\n${error.stack || ""}` : String(error), "/api/candidate-profile", "critical");
     logApiError("/api/candidate-profile", error);
     return NextResponse.json({ error: "Failed to save profile." }, { status: 500 });
   }
@@ -181,6 +190,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ profile: res.data });
   } catch (error) {
     await notifyError({ route: "/api/candidate-profile", error });
+    await notifySlackError(error instanceof Error ? `${error.message}\n${error.stack || ""}` : String(error), "/api/candidate-profile GET", "warning");
     return NextResponse.json({ profile: null }, { status: 200 });
   }
 }

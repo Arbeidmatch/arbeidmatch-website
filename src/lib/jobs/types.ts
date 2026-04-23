@@ -57,6 +57,8 @@ export interface JobRecord {
   imageMain?: string | null;
   /** Up to four gallery URLs in slot order (empty strings allowed between slots). */
   imageGallery?: string[] | null;
+  /** Total public job detail views (employer board jobs). */
+  viewCount?: number | null;
 }
 
 export interface JobFilters {

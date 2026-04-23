@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { safeSendEmail } from "@/lib/email/safeSend";
 import { getRateLimitResult, hasHoneypotValue, noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import { notifySlack } from "@/lib/slackNotifier";
+import { notifyEmailFailed } from "@/lib/slack/notify";
 import { buildEmail, buildEmailFieldRow, emailBodyParagraph } from "@/lib/emailTemplate";
 import { logEmailSent } from "@/lib/audit/masterAuditLog";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
@@ -209,34 +211,32 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join("");
 
-    await transporter.sendMail({
-      ...mailHeaders(),
-      to: "post@arbeidmatch.no",
-      subject: `New candidate request: ${companyName} from ${cityLabel}`,
-      html: buildEmail({
+    await safeSendEmail("post@arbeidmatch.no", `New candidate request: ${companyName} from ${cityLabel}`, buildEmail({
         title: `New candidate request: ${companyName} from ${cityLabel}`,
         preheader: nowLabel,
         body: adminBody,
         ctaText: "View Full Request in Admin",
         ctaUrl: adminUrl,
-      }),
+      }), {
+      ...mailHeaders(),
+      ipAddress: request.headers.get("x-forwarded-for") || undefined,
+      transporter,
     });
     logEmailSent("employer_request_admin_notify", { company: companyName, city: cityLabel });
 
     if (data.email && !(await isUnsubscribed(data.email))) {
       const unsubToken = await getOrCreateSubscription(data.email, "employer-request");
-      await transporter.sendMail({
-        ...mailHeaders(),
-        to: data.email,
-        subject: `Thank you for your request | ${data.company ?? "ArbeidMatch"}`,
-        html: buildEmail({
+      await safeSendEmail(data.email, `Thank you for your request | ${data.company ?? "ArbeidMatch"}`, buildEmail({
           title: "Thank you for your request",
           preheader: "We will contact you as soon as possible",
           body: employerInner,
           ctaText: "Share feedback",
           ctaUrl: "https://arbeidmatch.no/feedback",
           unsubscribeToken: unsubToken,
-        }),
+        }), {
+        ...mailHeaders(),
+        ipAddress: request.headers.get("x-forwarded-for") || undefined,
+        transporter,
       });
       logEmailSent("employer_request_thank_you_employer", {
         company: data.company ?? "",
@@ -254,18 +254,17 @@ export async function POST(request: NextRequest) {
         ),
         emailBodyParagraph("We appreciate your trust. If we can support your hiring needs in the future, we would be happy to help."),
       ].join("");
-      await transporter.sendMail({
-        ...mailHeaders(),
-        to: data.referralEmail,
-        subject: "Thank you for the referral - ArbeidMatch Norge",
-        html: buildEmail({
+      await safeSendEmail(data.referralEmail, "Thank you for the referral - ArbeidMatch Norge", buildEmail({
           title: "Thank you for the referral",
           preheader: "We appreciate your recommendation",
           body: referralInner,
           ctaText: "Contact us",
           ctaUrl: "https://arbeidmatch.no/contact",
           unsubscribeToken: referralUnsubToken,
-        }),
+        }), {
+        ...mailHeaders(),
+        ipAddress: request.headers.get("x-forwarded-for") || undefined,
+        transporter,
       });
       logEmailSent("employer_request_referral_thank_you", {
         toDomain: data.referralEmail.includes("@") ? data.referralEmail.split("@")[1] ?? "" : "",
@@ -363,6 +362,7 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString(),
       },
     });
+    await notifyEmailFailed("post@arbeidmatch.no", "send-request-email", error instanceof Error ? error.message : String(error), 3);
     return noStoreJson({ success: false, error: "Failed to send email." }, { status: 500 });
   }
 }
