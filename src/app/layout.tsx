@@ -10,6 +10,8 @@ import CookieConsent from "@/components/CookieConsent";
 import GdprConsentProvider from "@/components/gdpr/GdprConsentProvider";
 import HomeJsonLd from "@/components/seo/HomeJsonLd";
 import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
+import Toast from "@/components/ui/Toast";
+import { ToastProvider } from "@/lib/toast-context";
 
 const DeferredAppOverlays = dynamic(() => import("@/components/client/DeferredAppOverlays"), { loading: () => null });
 
@@ -92,18 +94,21 @@ export default function RootLayout({
   return (
     <html lang="nb" className={`h-full overflow-x-hidden antialiased ${fontSans.variable}`}>
       <body className="flex min-h-full flex-col overflow-x-hidden bg-[#0D1B2A] font-sans text-white">
-        <GdprConsentProvider>
-          <GlobalErrorBoundary>
-            <BetaBanner />
-            <ScrollProgressBar />
-            <Navbar />
-            <main className="flex min-w-0 flex-1 flex-col overflow-x-clip">{children}</main>
-            <Footer />
-            <DeferredAppOverlays />
-            <CookieConsent />
-            <HomeJsonLd />
-          </GlobalErrorBoundary>
-        </GdprConsentProvider>
+        <ToastProvider>
+          <GdprConsentProvider>
+            <GlobalErrorBoundary>
+              <BetaBanner />
+              <ScrollProgressBar />
+              <Navbar />
+              <main className="flex min-w-0 flex-1 flex-col overflow-x-clip">{children}</main>
+              <Footer />
+              <DeferredAppOverlays />
+              <CookieConsent />
+              <HomeJsonLd />
+              <Toast />
+            </GlobalErrorBoundary>
+          </GdprConsentProvider>
+        </ToastProvider>
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Bolt, Check, Clock, Factory, Handshake, HardHat, HeartPulse, Search, Sparkles, TrendingUp, Truck } from "lucide-react";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
+import { useToast } from "@/lib/toast-context";
 
 type VerifyPartnerResponse = {
   verified?: boolean;
@@ -59,6 +60,7 @@ const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "yahoo.com", "hotmail.com", "ou
 
 export default function RequestPage() {
   const router = useRouter();
+  const toast = useToast();
 
   const navigateBackOrHome = useCallback(() => {
     if (typeof window === "undefined") {
@@ -181,7 +183,10 @@ export default function RequestPage() {
 
   const verifyAccess = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!accessEmail.includes("@")) return;
+    if (!accessEmail.includes("@")) {
+      toast.error("Please enter a valid company email address.");
+      return;
+    }
     setAccessStatus("submitting");
     setAccessErrorMessage("");
     setIsLoadingExit(false);
@@ -196,8 +201,10 @@ export default function RequestPage() {
       if (response.ok && data.verified) {
         setCompanyName(data.company_name || "your company");
         nextStatus = "partner";
+        toast.success("Partner verified. Check your inbox for secure access.");
       } else if (data.reason === "personal_email") {
         setAccessErrorMessage("Please use your company email address.");
+        toast.error("Please use your company email address.");
         setIsLoadingExit(true);
         await new Promise((resolve) => setTimeout(resolve, 200));
         setAccessStatus("error");
@@ -215,6 +222,7 @@ export default function RequestPage() {
       setIsLoadingExit(false);
     } catch {
       setAccessErrorMessage("Could not check access right now. Please try again.");
+      toast.error("Could not verify partner access right now.");
       setIsLoadingExit(true);
       await new Promise((resolve) => setTimeout(resolve, 200));
       setAccessStatus("error");
@@ -223,7 +231,10 @@ export default function RequestPage() {
   };
 
   const submitFeatureWaitlist = async () => {
-    if (!notifyEmail.includes("@") || !selectedOption) return;
+    if (!notifyEmail.includes("@") || !selectedOption) {
+      toast.error("Please provide a valid email before subscribing.");
+      return;
+    }
     setNotifyStatus("submitting");
     try {
       const response = await fetch("/api/feature-waitlist", {
@@ -235,9 +246,16 @@ export default function RequestPage() {
           consent: true,
         }),
       });
-      setNotifyStatus(response.ok ? "success" : "error");
+      if (response.ok) {
+        setNotifyStatus("success");
+        toast.info("You are subscribed. We'll notify you when this opens.");
+      } else {
+        setNotifyStatus("error");
+        toast.error("Could not save your subscription right now.");
+      }
     } catch {
       setNotifyStatus("error");
+      toast.error("Could not save your subscription right now.");
     }
   };
 
@@ -322,10 +340,14 @@ export default function RequestPage() {
     event.preventDefault();
     const email = partnerApplicationEmail.trim().toLowerCase();
     const domain = email.split("@")[1]?.trim() || "";
-    if (!email.includes("@") || !domain) return;
+    if (!email.includes("@") || !domain) {
+      toast.error("Please enter a valid company email address.");
+      return;
+    }
     if (FREE_EMAIL_DOMAINS.has(domain)) {
       setPartnerApplicationError("Please use your company email address.");
       setPartnerApplicationStatus("error");
+      toast.error("Please use your company email address.");
       return;
     }
 
@@ -347,12 +369,15 @@ export default function RequestPage() {
           setPartnerApplicationError("Could not start partner application right now.");
         }
         setPartnerApplicationStatus("error");
+        toast.error("Could not start partner application right now.");
         return;
       }
       setPartnerApplicationStatus("success");
+      toast.success("Application link sent. Please check your inbox.");
     } catch {
       setPartnerApplicationStatus("error");
       setPartnerApplicationError("Could not start partner application right now.");
+      toast.error("Could not start partner application right now.");
     }
   };
 
