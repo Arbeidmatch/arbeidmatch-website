@@ -11,7 +11,6 @@ import { trackEvent } from "@/lib/analytics";
 import { writeHomeUserType } from "@/lib/homeUserType";
 import {
   Building2,
-  Check,
   Factory,
   Forklift,
   HardHat,
@@ -27,7 +26,22 @@ import BemanningCard from "@/components/home/BemanningCard";
 import HomeWelcomeUserTypeSlideup from "@/components/home/HomeWelcomeUserTypeSlideup";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 import ScrollReveal, { ScrollRevealGrid } from "@/components/ScrollReveal";
-const HERO_DURATION = 0.78;
+
+const HERO_DURATION = 0.72;
+const HERO_TITLE_LINES = [
+  "Qualified workers,",
+  "delivered to your",
+  "Norwegian business.",
+] as const;
+
+const homeCtaPrimary =
+  "btn-gold-premium relative inline-flex min-h-[52px] w-full min-w-[44px] items-center justify-center rounded-xl bg-gold px-8 py-3.5 text-[15px] font-semibold tracking-tight text-[#0D1B2A] transition-colors hover:bg-gold-hover sm:w-auto";
+
+const homeCtaSecondary =
+  "inline-flex min-h-[52px] w-full min-w-[44px] items-center justify-center rounded-xl border border-[rgba(201,168,76,0.35)] bg-transparent px-8 py-3.5 text-[15px] font-medium tracking-tight text-white/90 transition-colors duration-300 hover:border-[#C9A84C]/55 hover:bg-[rgba(201,168,76,0.08)] sm:w-auto";
+
+const homeCtaPrimaryLg =
+  "btn-gold-premium relative mx-auto inline-flex min-h-[54px] w-full max-w-md items-center justify-center rounded-xl bg-gold px-10 py-4 text-[16px] font-semibold tracking-tight text-[#0D1B2A] transition-colors hover:bg-gold-hover sm:inline-block sm:w-auto sm:max-w-none";
 
 type Props = {
   howItWorksSlot: ReactNode;
@@ -65,77 +79,63 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
     reduce
       ? {}
       : {
-          initial: { opacity: 0, y: 20 } as const,
+          initial: { opacity: 0, y: 18 } as const,
           animate: { opacity: 1, y: 0 } as const,
           transition: { duration: HERO_DURATION, delay: delaySec, ease: EASE_PREMIUM },
         };
 
+  const heroTitleClass =
+    "mb-10 min-w-0 max-w-full text-balance break-words font-sans font-extrabold tracking-[-0.04em] text-white sm:max-w-[22ch]";
+
   const hero = !reduce ? (
     <div className="min-w-0">
       <motion.p
-        className="am-eyebrow mb-6 font-semibold uppercase tracking-[0.14em] text-[#C9A84C]"
+        className="am-eyebrow mb-8 font-semibold uppercase tracking-[0.14em] text-[#C9A84C]"
         {...fade(0)}
       >
         EU/EEA Workforce Solutions · Norway
       </motion.p>
-      <motion.h1
-        className="am-h1 mb-8 max-w-full text-balance break-words text-3xl font-sans font-extrabold leading-[1.06] tracking-tight text-white md:text-5xl lg:text-7xl sm:max-w-[22ch]"
-        {...fade(0.1)}
-      >
-        Qualified workers,
-        <br />
-        delivered to your
-        <br />
-        Norwegian business.
-      </motion.h1>
-      <motion.p className="text-home-lead mb-12" {...fade(0.25)}>
+      <h1 className={heroTitleClass} style={{ fontSize: "clamp(2.2rem, 6.2vw, 5.35rem)", lineHeight: 1.04 }}>
+        {HERO_TITLE_LINES.map((line, i) => (
+          <motion.span key={line} className="block" {...fade(0.08 + i * 0.1)}>
+            {line}
+          </motion.span>
+        ))}
+      </h1>
+      <motion.p className="text-home-lead mb-14 max-w-[40rem]" {...fade(0.42)}>
         We source and screen pre-qualified EU/EEA workers for Norwegian businesses in construction, logistics, and industry.
         Employers remain responsible for compliance with applicable Norwegian labor law and collective agreements.
       </motion.p>
-      <motion.div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5" {...fade(0.42)}>
-        <Link
-          href="/request"
-          className="btn-gold-premium relative inline-flex min-h-[52px] w-full min-w-[44px] items-center justify-center rounded-xl bg-gold px-8 py-3.5 text-[15px] font-semibold tracking-tight text-[#0D1B2A] hover:bg-gold-hover sm:w-auto"
-        >
+      <motion.div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5" {...fade(0.58)}>
+        <Link href="/request" className={homeCtaPrimary}>
           Request candidates
         </Link>
-        <Link
-          href="/#how-it-works"
-          className="inline-flex min-h-[52px] w-full min-w-[44px] items-center justify-center rounded-xl border border-[rgba(201,168,76,0.22)] px-8 py-3.5 text-[15px] font-medium tracking-tight text-white/90 transition-colors duration-300 hover:border-[rgba(201,168,76,0.4)] hover:bg-[rgba(201,168,76,0.06)] sm:w-auto"
-        >
+        <Link href="/#how-it-works" className={homeCtaSecondary}>
           How it works
         </Link>
       </motion.div>
     </div>
   ) : (
     <div className="min-w-0">
-      <p className="am-eyebrow mb-6 font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">
+      <p className="am-eyebrow mb-8 font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">
         EU/EEA Workforce Solutions · Norway
       </p>
-      <h1
-        className="am-h1 mb-8 max-w-full text-balance break-words text-3xl font-sans font-extrabold leading-[1.06] tracking-tight text-white md:text-5xl lg:text-7xl sm:max-w-[22ch]"
-      >
-        Qualified workers,
-        <br />
-        delivered to your
-        <br />
-        Norwegian business.
+      <h1 className={heroTitleClass} style={{ fontSize: "clamp(2.2rem, 6.2vw, 5.35rem)", lineHeight: 1.04 }}>
+        {HERO_TITLE_LINES.map((line) => (
+          <span key={line} className="block">
+            {line}
+          </span>
+        ))}
       </h1>
-      <p className="text-home-lead mb-12">
+      <p className="text-home-lead mb-14 max-w-[40rem]">
         We source and screen pre-qualified EU/EEA workers for Norwegian businesses in construction, logistics, and industry.
         Employers remain responsible for compliance with applicable Norwegian labor law and collective agreements.
       </p>
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
-        <Link
-          href="/request"
-          className="btn-gold-premium relative inline-flex min-h-[52px] w-full min-w-[44px] items-center justify-center rounded-xl bg-gold px-8 py-3.5 text-[15px] font-semibold tracking-tight text-[#0D1B2A] hover:bg-gold-hover sm:w-auto"
-        >
+        <Link href="/request" className={homeCtaPrimary}>
           Request candidates
         </Link>
-        <Link
-          href="/#how-it-works"
-          className="inline-flex min-h-[52px] w-full min-w-[44px] items-center justify-center rounded-xl border border-[rgba(201,168,76,0.22)] px-8 py-3.5 text-[15px] font-medium tracking-tight text-white/90 transition-colors duration-300 hover:border-[rgba(201,168,76,0.4)] hover:bg-[rgba(201,168,76,0.06)] sm:w-auto"
-        >
+        <Link href="/#how-it-works" className={homeCtaSecondary}>
           How it works
         </Link>
       </div>
@@ -151,53 +151,99 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
     [HeartPulse, "Care & Health", "Support workers for care-driven services."],
   ];
 
+  const hireWorkCardClass =
+    "group flex min-h-[220px] flex-col rounded-2xl border border-white/[0.08] bg-white/[0.04] p-8 text-left shadow-none backdrop-blur-md transition duration-300 hover:border-[#C9A84C]/25 hover:bg-white/[0.06] md:min-h-[260px] md:p-10 md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_56px_rgba(0,0,0,0.22)]";
+
+  const hireWorkGridVariants = {
+    hidden: {},
+    visible: {
+      transition: { staggerChildren: 0.14, delayChildren: 0.06 },
+    },
+  } as const;
+
+  const hireWorkItemVariants = {
+    hidden: { opacity: 0, y: 22 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.58, ease: EASE_PREMIUM },
+    },
+  } as const;
+
   return (
     <div className="min-h-screen bg-[#0D1B2A]">
       <HomeWelcomeUserTypeSlideup />
-      <section className="section-y-home flex items-center bg-[#0D1B2A]">
-        <div className="relative mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
-          {hero}
+      <section className="relative flex min-h-[100dvh] flex-col justify-center overflow-hidden bg-[#0D1B2A] py-20 md:py-24 lg:py-28">
+        <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
+          <div className="absolute inset-0 bg-[#0D1B2A]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_72%_58%_at_50%_42%,rgba(201,168,76,0.11),transparent_58%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_95%_65%_at_50%_115%,rgba(13,27,42,0.92),transparent_52%)]" />
+          <div className="absolute inset-0 opacity-[0.035] [background-image:repeating-linear-gradient(-12deg,transparent,transparent_2px,rgba(255,255,255,0.05)_2px,rgba(255,255,255,0.05)_3px)]" />
         </div>
+        <div className="relative z-10 mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">{hero}</div>
       </section>
 
-      <section className="border-b border-[rgba(201,168,76,0.08)] bg-[#0D1B2A] px-4 py-12 md:px-12 md:py-16 lg:px-20">
-        <div className="mx-auto grid max-w-content grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
-          <button
-            type="button"
-            onClick={goHire}
-            className="group flex min-h-[220px] flex-col rounded-[22px] border border-[rgba(201,168,76,0.22)] bg-[linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-8 text-left transition duration-300 hover:-translate-y-1 hover:border-[rgba(201,168,76,0.4)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.28)] md:min-h-[260px] md:p-10"
+      <section className="border-b border-white/[0.06] bg-[#0D1B2A] px-4 py-16 md:px-12 md:py-24 lg:px-20 lg:py-28">
+        {!reduce ? (
+          <motion.div
+            className="mx-auto grid max-w-content grid-cols-1 gap-8 md:grid-cols-2 md:gap-10"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.22 }}
+            variants={hireWorkGridVariants}
           >
-            <Building2 className="text-[#C9A84C]" size={32} strokeWidth={1.5} aria-hidden />
-            <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-[1.65rem]">I&apos;m looking to hire</h2>
-            <p className="mt-3 max-w-md text-[15px] leading-relaxed text-white/60">
-              Find qualified EU/EEA candidates for your Norwegian business
-            </p>
-            <span className="mt-auto pt-8 text-sm font-semibold text-[#C9A84C] transition group-hover:translate-x-0.5">
-              Continue as employer →
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={goWork}
-            className="group flex min-h-[220px] flex-col rounded-[22px] border border-[rgba(201,168,76,0.22)] bg-[linear-gradient(165deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-8 text-left transition duration-300 hover:-translate-y-1 hover:border-[rgba(201,168,76,0.4)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.28)] md:min-h-[260px] md:p-10"
-          >
-            <User className="text-[#C9A84C]" size={32} strokeWidth={1.5} aria-hidden />
-            <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-[1.65rem]">I&apos;m looking for work</h2>
-            <p className="mt-3 max-w-md text-[15px] leading-relaxed text-white/60">
-              Discover job opportunities in Norway matched to your skills
-            </p>
-            <span className="mt-auto pt-8 text-sm font-semibold text-[#C9A84C] transition group-hover:translate-x-0.5">
-              Continue as candidate →
-            </span>
-          </button>
-        </div>
+            <motion.button type="button" onClick={goHire} className={hireWorkCardClass} variants={hireWorkItemVariants}>
+              <Building2 className="text-[#C9A84C]" size={32} strokeWidth={1.5} aria-hidden />
+              <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-[1.65rem]">I&apos;m looking to hire</h2>
+              <p className="mt-3 max-w-md text-[15px] leading-relaxed text-white/60">
+                Find qualified EU/EEA candidates for your Norwegian business
+              </p>
+              <span className="mt-auto pt-8 text-sm font-semibold text-[#C9A84C] transition group-hover:translate-x-0.5">
+                Continue as employer →
+              </span>
+            </motion.button>
+            <motion.button type="button" onClick={goWork} className={hireWorkCardClass} variants={hireWorkItemVariants}>
+              <User className="text-[#C9A84C]" size={32} strokeWidth={1.5} aria-hidden />
+              <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-[1.65rem]">I&apos;m looking for work</h2>
+              <p className="mt-3 max-w-md text-[15px] leading-relaxed text-white/60">
+                Discover job opportunities in Norway matched to your skills
+              </p>
+              <span className="mt-auto pt-8 text-sm font-semibold text-[#C9A84C] transition group-hover:translate-x-0.5">
+                Continue as candidate →
+              </span>
+            </motion.button>
+          </motion.div>
+        ) : (
+          <div className="mx-auto grid max-w-content grid-cols-1 gap-8 md:grid-cols-2 md:gap-10">
+            <button type="button" onClick={goHire} className={hireWorkCardClass}>
+              <Building2 className="text-[#C9A84C]" size={32} strokeWidth={1.5} aria-hidden />
+              <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-[1.65rem]">I&apos;m looking to hire</h2>
+              <p className="mt-3 max-w-md text-[15px] leading-relaxed text-white/60">
+                Find qualified EU/EEA candidates for your Norwegian business
+              </p>
+              <span className="mt-auto pt-8 text-sm font-semibold text-[#C9A84C] transition group-hover:translate-x-0.5">
+                Continue as employer →
+              </span>
+            </button>
+            <button type="button" onClick={goWork} className={hireWorkCardClass}>
+              <User className="text-[#C9A84C]" size={32} strokeWidth={1.5} aria-hidden />
+              <h2 className="mt-6 text-2xl font-bold tracking-tight text-white md:text-[1.65rem]">I&apos;m looking for work</h2>
+              <p className="mt-3 max-w-md text-[15px] leading-relaxed text-white/60">
+                Discover job opportunities in Norway matched to your skills
+              </p>
+              <span className="mt-auto pt-8 text-sm font-semibold text-[#C9A84C] transition group-hover:translate-x-0.5">
+                Continue as candidate →
+              </span>
+            </button>
+          </div>
+        )}
       </section>
 
       <BemanningCard />
 
       {sessionRoleBanner === "employer" ? (
         <motion.div
-          className="border-b border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] px-4 py-2.5 md:px-12 lg:px-20"
+          className="border-b border-white/[0.06] bg-white/[0.04] px-4 py-3 backdrop-blur-sm md:px-12 lg:px-20"
           initial={reduce ? false : { opacity: 0, y: -8 }}
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: EASE_PREMIUM }}
@@ -217,7 +263,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       ) : null}
       {sessionRoleBanner === "candidate" ? (
         <motion.div
-          className="border-b border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] px-4 py-2.5 md:px-12 lg:px-20"
+          className="border-b border-white/[0.06] bg-white/[0.04] px-4 py-3 backdrop-blur-sm md:px-12 lg:px-20"
           initial={reduce ? false : { opacity: 0, y: -8 }}
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: EASE_PREMIUM }}
@@ -236,16 +282,16 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         </motion.div>
       ) : null}
 
-      <section className="bg-[#0D1B2A] py-6">
+      <section className="bg-[#0D1B2A] py-10 md:py-12">
         <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <div className="mx-auto flex w-[90%] max-w-2xl items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-6">
+            <div className="mx-auto flex w-[90%] max-w-2xl items-center justify-between gap-6 rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 shadow-none backdrop-blur-md md:gap-8 md:p-8">
               <div className="flex min-w-0 items-start gap-3">
                 <span className="mt-0.5 shrink-0 text-[#C9A84C]" aria-hidden>
                   <Zap size={20} strokeWidth={1.8} />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-lg font-semibold text-white">Electricians in Norway</p>
+                  <p className="text-lg font-semibold tracking-tight text-white">Electricians in Norway</p>
                   <p className="mt-1 text-sm text-white/60">
                     Authorization guide, DSB requirements and official resources.
                   </p>
@@ -253,7 +299,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
               </div>
               <Link
                 href="/electricians-norway"
-                className="shrink-0 rounded-xl border border-white/30 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
+                className="shrink-0 rounded-xl border border-[rgba(201,168,76,0.35)] px-5 py-2.5 text-sm font-medium tracking-tight text-white/90 transition-colors duration-300 hover:border-[#C9A84C]/55 hover:bg-[rgba(201,168,76,0.08)]"
               >
                 Learn More
               </Link>
@@ -264,17 +310,19 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
 
       <ScrollReveal variant="fadeIn">{howItWorksSlot}</ScrollReveal>
 
-      <section className="section-y-home bg-[#0D1B2A]">
+      <section className="bg-[#0D1B2A] py-20 md:py-28 lg:py-36">
         <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="am-h2 heading-premium-xl text-balance break-words font-sans font-extrabold tracking-tight text-white">Industries we serve</h2>
+            <h2 className="am-h2 heading-premium-xl text-balance break-words font-sans font-extrabold tracking-[-0.03em] text-white">
+              Industries we serve
+            </h2>
           </ScrollReveal>
           <ScrollRevealGrid
-            className="mt-16 grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:gap-14"
+            className="mt-20 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-14 lg:grid-cols-3 lg:gap-16"
             items={industries}
             itemKey={([, title]) => title}
             renderItem={([Icon, title, text]) => (
-              <article className="industry-card card-premium group rounded-2xl border border-[rgba(201,168,76,0.1)] bg-[rgba(255,255,255,0.025)] p-9 transition-[transform,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-[rgba(201,168,76,0.24)] md:hover:-translate-y-1 md:hover:shadow-[0_20px_48px_rgba(0,0,0,0.28)]">
+              <article className="industry-card card-premium group rounded-2xl border border-white/[0.08] bg-white/[0.04] p-9 shadow-none backdrop-blur-md transition-[transform,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-[#C9A84C]/22 md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_52px_rgba(0,0,0,0.22)]">
                 <Icon className="shrink-0 text-[#C9A84C]" size={22} strokeWidth={1.5} />
                 <h3 className="mt-6 text-lg font-semibold tracking-tight text-white">{title}</h3>
                 <p className="text-home-subtle mt-3 text-[14px] md:text-[15px]">{text}</p>
@@ -295,11 +343,11 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         </div>
       </section>
 
-      <section className="section-y-home bg-[#0D1B2A]">
+      <section className="bg-[#0D1B2A] py-20 md:py-28 lg:py-36">
         <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <div className="mx-auto max-w-4xl rounded-[22px] border border-[rgba(201,168,76,0.14)] bg-[linear-gradient(165deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015))] p-10 md:p-14 lg:p-[4.25rem]">
-              <h2 className="am-h2 heading-premium-xl mb-8 text-balance break-words font-extrabold tracking-tight text-white">
+            <div className="mx-auto max-w-4xl rounded-2xl border border-white/[0.08] bg-white/[0.04] p-10 shadow-none backdrop-blur-md md:p-14 lg:p-[4.5rem]">
+              <h2 className="am-h2 heading-premium-xl mb-10 text-balance break-words font-extrabold tracking-[-0.03em] text-white">
                 Recruitment that works. For everyone.
               </h2>
               <p className="text-home-lead max-w-none">
@@ -311,7 +359,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
                 And we believe that good work, done with dignity and mutual respect, is something everyone deserves access
                 to.
               </p>
-              <ul className="mt-12 space-y-6">
+              <ul className="mt-14 space-y-8">
                 {[
                   "Cultural and religious sensitivity throughout our screening process",
                   "Clear communication across languages and expectations",
@@ -338,27 +386,24 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
 
       {testimonialsSlot}
 
-      <section className="section-y-home bg-[#0D1B2A]">
+      <section className="bg-[#0D1B2A] py-20 md:py-28 lg:py-36">
         <WeldingSpecialistsCard />
       </section>
 
-      <section className="mesh-cta-wrap section-y-home bg-[#0D1B2A] text-center">
+      <section className="mesh-cta-wrap bg-[#0D1B2A] py-20 text-center md:py-28 lg:py-36">
         <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <h2 className="am-h2 heading-premium-xl mb-7 text-balance break-words font-extrabold tracking-tight text-white">
+            <h2 className="am-h2 heading-premium-xl mb-8 text-balance break-words font-extrabold tracking-[-0.03em] text-white">
               Ready to find your next workers?
             </h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
-            <p className="text-home-lead mx-auto mb-12 max-w-xl">
+            <p className="text-home-lead mx-auto mb-14 max-w-xl">
               Contact us today. Our goal is to connect you with pre-qualified candidates within about two weeks.
             </p>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
-            <Link
-              href="/request"
-              className="btn-gold-premium relative mx-auto inline-flex min-h-[54px] w-full max-w-md items-center justify-center rounded-xl bg-gold px-10 py-4 text-[16px] font-semibold tracking-tight text-[#0D1B2A] hover:bg-gold-hover sm:inline-block sm:w-auto sm:max-w-none"
-            >
+            <Link href="/request" className={homeCtaPrimaryLg}>
               Request candidates now
             </Link>
           </ScrollReveal>

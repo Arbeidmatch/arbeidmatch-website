@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   return (
-    <div className="min-h-screen bg-[#0D1B2A] text-white">
+    <div className="relative min-h-screen overflow-x-hidden bg-[#0D1B2A] text-white">
       <HomeFaqJsonLd />
       <TikTokLiveBanner />
       <HomePageClient
