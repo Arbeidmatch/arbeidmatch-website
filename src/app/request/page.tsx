@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Bolt, Check, Clock, Factory, Handshake, HardHat, HeartPulse, Search, Sparkles, TrendingUp, Truck, Zap } from "lucide-react";
 
@@ -110,7 +110,7 @@ function PremiumIndustryCard({
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const [bursts, setBursts] = useState<Particle[]>([]);
 
-  const handleTap = (event: MouseEvent<HTMLButtonElement>) => {
+  const handleTap = (event: ReactMouseEvent<HTMLButtonElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const ripple: Ripple = {
       id: Date.now() + Math.floor(Math.random() * 1000),
@@ -638,7 +638,7 @@ export default function RequestPage() {
   }, []);
 
   useEffect(() => {
-    const onDocumentClick = (event: MouseEvent) => {
+    const onDocumentClick = (event: Event) => {
       if (allowNextNavigationRef.current) return;
       if (!isPastFirstStep) return;
       const raw = event.target;
