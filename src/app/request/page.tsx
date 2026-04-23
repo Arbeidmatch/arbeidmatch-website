@@ -746,20 +746,14 @@ export default function RequestPage() {
                   }}
                   className="h-14 w-full rounded-xl bg-[#C9A84C] font-semibold text-[#0D1B2A]"
                 >
-                  I have partner access
+                  See who's available
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setResultAction("non_partner");
-                    setAccessStatus("idle");
-                    setSelectedOption(null);
-                    setNotifyEmail("");
-                    setNotifyStatus("idle");
-                  }}
-                  className="h-14 w-full rounded-xl border border-white/10 py-3 text-white hover:bg-white/5"
+                  disabled
+                  className="h-14 w-full cursor-not-allowed rounded-xl border border-white/10 py-3 text-white opacity-50"
                 >
-                  Become a Partner
+                  Let's work together
                 </button>
               </div>
 
