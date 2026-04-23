@@ -70,7 +70,7 @@ const ACCESS_OPTION_BENEFITS = {
     "Priority matching and faster turnaround",
     "Advanced filters and search tools",
     "Monthly reporting and analytics",
-    "Premium support response within 2 hours",
+    "Premium support response within 1 to 2 business days",
   ],
   payPerUse: [
     "No monthly commitment",

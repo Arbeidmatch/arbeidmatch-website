@@ -179,7 +179,7 @@ export default function PrivacyPage() {
         <p>
           We implement technical and organisational measures appropriate to the risk, including encryption in transit,
           access controls, separation of environments and staff training. No method of transmission over the Internet is
-          100% secure; we encourage you to use strong passwords and protect your devices.
+          completely secure; we encourage you to use strong passwords and protect your devices.
         </p>
       </LegalSection>
 

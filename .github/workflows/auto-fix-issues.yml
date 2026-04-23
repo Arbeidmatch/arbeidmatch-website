@@ -26,10 +26,10 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node.js 18
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
           cache: npm
 
       - name: Install dependencies
@@ -49,96 +49,139 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { execSync } = require("node:child_process");
             const fs = require("node:fs");
             const path = require("node:path");
 
             const issueTitle = process.env.ISSUE_TITLE || "";
             const issueBody = process.env.ISSUE_BODY || "";
-            const issueContext = `# ${issueTitle}\n\n${issueBody}`.toLowerCase();
-            const packageJsonPath = path.join(process.cwd(), "package.json");
-            const scripts = fs.existsSync(packageJsonPath)
-              ? (JSON.parse(fs.readFileSync(packageJsonPath, "utf8")).scripts || {})
-              : {};
+            const issueContext = `# ${issueTitle}\n\n${issueBody}`;
+            const workspaceRoot = process.cwd();
 
-            const runSafely = (command) => {
-              try {
-                core.info(`Running: ${command}`);
-                execSync(command, { stdio: "inherit" });
-                return true;
-              } catch (error) {
-                core.warning(`Command failed: ${command}`);
-                core.warning(error.message);
-                return false;
+            const normalizeRepoPath = (inputPath) => {
+              if (!inputPath || typeof inputPath !== "string") {
+                return null;
               }
+              const cleaned = inputPath
+                .trim()
+                .replace(/^["'`]|["'`]$/g, "")
+                .replace(/\\/g, "/")
+                .replace(/^\.\//, "");
+              if (!cleaned || cleaned.startsWith("/") || cleaned.includes("..")) {
+                return null;
+              }
+              return cleaned;
+            };
+
+            const extractEditsFromJsonBlocks = (content) => {
+              const edits = [];
+              const jsonBlocks = [...content.matchAll(/```json\s*([\s\S]*?)```/gi)];
+              for (const block of jsonBlocks) {
+                try {
+                  const parsed = JSON.parse(block[1]);
+                  const candidates = Array.isArray(parsed?.edits) ? parsed.edits : Array.isArray(parsed) ? parsed : [];
+                  for (const candidate of candidates) {
+                    const file = normalizeRepoPath(candidate.file || candidate.path);
+                    const find = typeof candidate.find === "string" ? candidate.find : "";
+                    const replace = typeof candidate.replace === "string" ? candidate.replace : "";
+                    if (file && find) {
+                      edits.push({ file, find, replace });
+                    }
+                  }
+                } catch (error) {
+                  core.warning(`Skipping invalid JSON block: ${error.message}`);
+                }
+              }
+              return edits;
+            };
+
+            const extractEditsFromReplacePhrases = (content) => {
+              const edits = [];
+              const replacePattern = /(?:in|file)\s+[`"]([^`"\n]+)[`"][^.\n]*?replace\s+[`"]([\s\S]*?)[`"]\s+with\s+[`"]([\s\S]*?)[`"]/gi;
+              for (const match of content.matchAll(replacePattern)) {
+                const file = normalizeRepoPath(match[1]);
+                const find = match[2];
+                const replace = match[3];
+                if (file && find) {
+                  edits.push({ file, find, replace });
+                }
+              }
+              return edits;
+            };
+
+            const extractEditsFromFindReplaceBlocks = (content) => {
+              const edits = [];
+              const filePattern = /(?:^|\n)(?:file|path)\s*:\s*([^\n]+)\n([\s\S]*?)(?=\n(?:file|path)\s*:|$)/gi;
+              for (const fileBlock of content.matchAll(filePattern)) {
+                const file = normalizeRepoPath(fileBlock[1]);
+                if (!file) {
+                  continue;
+                }
+                const section = fileBlock[2];
+                const findMatch = section.match(/(?:^|\n)find\s*:\s*([\s\S]*?)(?=\nreplace\s*:|$)/i);
+                const replaceMatch = section.match(/(?:^|\n)replace\s*:\s*([\s\S]*?)$/i);
+                const find = findMatch ? findMatch[1].trim() : "";
+                const replace = replaceMatch ? replaceMatch[1].trim() : "";
+                if (find) {
+                  edits.push({ file, find, replace });
+                }
+              }
+              return edits;
             };
 
             try {
-              let implementationRan = false;
-              const triedCommands = [];
-              const skippedCommands = [];
+              const edits = [
+                ...extractEditsFromJsonBlocks(issueContext),
+                ...extractEditsFromFindReplaceBlocks(issueContext),
+                ...extractEditsFromReplacePhrases(issueContext),
+              ];
 
-              const runScriptIfDefined = (scriptName) => {
-                if (!scripts[scriptName]) {
-                  skippedCommands.push(scriptName);
-                  core.info(`Skipping missing script: npm run ${scriptName}`);
-                  return false;
+              const uniqueEdits = [];
+              const seen = new Set();
+              for (const edit of edits) {
+                const key = `${edit.file}\n${edit.find}\n${edit.replace}`;
+                if (!seen.has(key)) {
+                  seen.add(key);
+                  uniqueEdits.push(edit);
                 }
-                triedCommands.push(scriptName);
-                return runSafely(`npm run ${scriptName}`);
-              };
-
-              if (runScriptIfDefined("auto-fix:issue")) {
-                implementationRan = true;
-              } else if (runScriptIfDefined("issue:fix")) {
-                implementationRan = true;
-              } else if (runScriptIfDefined("fix:issue")) {
-                implementationRan = true;
-              } else if (issueContext.includes("contact form")) {
-                core.info("Applying contact form fix path.");
-                implementationRan = runScriptIfDefined("fix:contact-form");
-              } else if (issueContext.includes("feature request") || issueContext.includes("feature")) {
-                core.info("Applying feature implementation path.");
-                implementationRan = runScriptIfDefined("implement:feature");
-              } else {
-                const notesPath = path.join(process.cwd(), "AUTO_FIX_NOTES.md");
-                const notes = [
-                  "# Automated issue analysis",
-                  "",
-                  `Issue #${process.env.ISSUE_NUMBER}: ${process.env.ISSUE_TITLE}`,
-                  "",
-                  "No dedicated project auto-fix script was found or all script attempts failed.",
-                  "",
-                  "Scripts available in package.json:",
-                  ...Object.keys(scripts).sort().map((script) => `- ${script}`),
-                  "",
-                  "Scripts attempted by automation:",
-                  ...(triedCommands.length ? triedCommands.map((script) => `- ${script}`) : ["- (none)"]),
-                  "",
-                  "Scripts skipped because they are missing:",
-                  ...(skippedCommands.length ? skippedCommands.map((script) => `- ${script}`) : ["- (none)"]),
-                  "",
-                  "Expected auto-fix scripts:",
-                  "- npm run auto-fix:issue",
-                  "- npm run issue:fix",
-                  "- npm run fix:issue",
-                  "- npm run fix:contact-form",
-                  "- npm run implement:feature",
-                  "",
-                  "Issue body:",
-                  process.env.ISSUE_BODY || "(empty)"
-                ].join("\n");
-                fs.writeFileSync(notesPath, notes, "utf8");
-                implementationRan = false;
               }
 
-              core.setOutput("implementation_ran", implementationRan ? "true" : "false");
-              if (!implementationRan) {
-                core.setFailed(
-                  `Could not run any auto-fix implementation command. Tried: ${triedCommands.join(", ") || "(none)"}. Missing: ${skippedCommands.join(", ") || "(none)"}.`
+              if (!uniqueEdits.length) {
+                throw new Error(
+                  "No actionable edit instructions found in issue body. Provide JSON edits or explicit file/replace directives."
                 );
               }
+
+              let appliedCount = 0;
+              const appliedFiles = new Set();
+
+              for (const edit of uniqueEdits) {
+                const absolutePath = path.resolve(workspaceRoot, edit.file);
+                if (!absolutePath.startsWith(workspaceRoot)) {
+                  throw new Error(`Blocked path outside repository: ${edit.file}`);
+                }
+                if (!fs.existsSync(absolutePath)) {
+                  throw new Error(`Target file does not exist: ${edit.file}`);
+                }
+
+                const current = fs.readFileSync(absolutePath, "utf8");
+                if (!current.includes(edit.find)) {
+                  throw new Error(`Could not find target text in ${edit.file}`);
+                }
+
+                const occurrences = current.split(edit.find).length - 1;
+                const next = current.replace(edit.find, edit.replace);
+                fs.writeFileSync(absolutePath, next, "utf8");
+
+                appliedCount += 1;
+                appliedFiles.add(edit.file);
+                core.info(`Applied edit in ${edit.file} (${occurrences} match(es), replaced first occurrence).`);
+              }
+
+              core.setOutput("implementation_ran", "true");
+              core.setOutput("applied_edits", String(appliedCount));
+              core.setOutput("applied_files", Array.from(appliedFiles).join(", "));
             } catch (error) {
+              core.setOutput("implementation_ran", "false");
               core.setFailed(`Auto-fix implementation failed: ${error.message}`);
             }
 
