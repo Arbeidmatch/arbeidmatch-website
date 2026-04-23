@@ -22,6 +22,9 @@ export async function GET(request: NextRequest) {
       .eq("session_token", token)
       .maybeSingle();
 
+    // TEMP debug — remove after investigating partner session validation
+    console.log("[verify-partner-session] token=", token, "result=", { data, error });
+
     if (error || !data) {
       return NextResponse.json({ valid: false, reason: "invalid" });
     }
