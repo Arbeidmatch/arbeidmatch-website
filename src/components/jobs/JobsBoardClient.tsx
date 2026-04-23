@@ -11,8 +11,26 @@ interface JobsBoardClientProps {
 export default function JobsBoardClient({ jobs: _jobs, filterOptions: _filterOptions }: JobsBoardClientProps) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [countdown, setCountdown] = useState(0);
+  const [canResend, setCanResend] = useState(true);
+
+  const startCountdown = () => {
+    setCanResend(false);
+    setCountdown(60);
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const submitWaitlist = async () => {
+    if (!canResend) return;
     if (!email.includes("@")) return;
     setStatus("loading");
     try {
@@ -25,7 +43,12 @@ export default function JobsBoardClient({ jobs: _jobs, filterOptions: _filterOpt
           consent: true,
         }),
       });
-      setStatus(response.ok ? "success" : "error");
+      if (response.ok) {
+        setStatus("success");
+        startCountdown();
+      } else {
+        setStatus("error");
+      }
     } catch {
       setStatus("error");
     }
@@ -73,10 +96,12 @@ export default function JobsBoardClient({ jobs: _jobs, filterOptions: _filterOpt
             <button
               type="button"
               onClick={() => void submitWaitlist()}
-              disabled={status === "loading" || !email.includes("@")}
-              className="mt-3 inline-flex min-h-[48px] w-full items-center justify-center rounded-[10px] bg-[#C9A84C] px-6 py-3 text-sm font-bold text-[#0D1B2A] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={status === "loading" || !email.includes("@") || !canResend}
+              className={`mt-3 inline-flex min-h-[48px] w-full items-center justify-center rounded-[10px] px-6 py-3 text-sm font-bold ${
+                canResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+              }`}
             >
-              {status === "loading" ? "Submitting..." : "Notify me when available"}
+              {status === "loading" ? "Submitting..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend email"}
             </button>
             {status === "error" ? (
               <p className="mt-3 text-xs text-[#E24B4A]">Could not save your request. Please try again.</p>

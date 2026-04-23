@@ -34,6 +34,23 @@ export default function ContactPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [statusMessage, setStatusMessage] = useState("");
+  const [countdown, setCountdown] = useState(0);
+  const [canResend, setCanResend] = useState(true);
+
+  const startCountdown = () => {
+    setCanResend(false);
+    setCountdown(60);
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -107,6 +124,7 @@ export default function ContactPage() {
       setStatus("success");
       setStatusMessage("Message sent successfully. Our team will get back to you shortly.");
       setMessage("");
+      startCountdown();
     } catch {
       setStatus("error");
       setStatusMessage("Could not send your message right now. Please try again.");
@@ -187,10 +205,12 @@ export default function ContactPage() {
 
           <button
             type="submit"
-            disabled={status === "submitting"}
-            className="mt-6 inline-flex w-full justify-center rounded-xl bg-[#C9A84C] px-6 py-3 text-sm font-semibold text-[#0D1B2A] disabled:opacity-60 sm:w-auto"
+            disabled={status === "submitting" || !canResend}
+            className={`mt-6 inline-flex w-full justify-center rounded-xl px-6 py-3 text-sm font-semibold sm:w-auto ${
+              canResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+            }`}
           >
-            {status === "submitting" ? "Sending..." : "Send message"}
+            {status === "submitting" ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend email"}
           </button>
 
           {status !== "idle" && statusMessage ? (

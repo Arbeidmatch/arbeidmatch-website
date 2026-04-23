@@ -11,8 +11,26 @@ export default function BlogComingSoonCapture() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [canResend, setCanResend] = useState(true);
+
+  const startCountdown = () => {
+    setCanResend(false);
+    setCountdown(60);
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const submit = async () => {
+    if (!canResend) return;
     setError("");
     const trimmed = email.trim();
     if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
@@ -35,6 +53,7 @@ export default function BlogComingSoonCapture() {
         setSuccess(true);
         setEmail("");
         setConsent(false);
+        startCountdown();
       } else {
         setError("Something went wrong. Please try again.");
       }
@@ -89,11 +108,12 @@ export default function BlogComingSoonCapture() {
         <button
           type="button"
           onClick={() => void submit()}
-          disabled={loading}
-          className="w-fit rounded-lg px-5 py-2.5 text-[13px] font-bold text-[#0f1923] disabled:opacity-70"
-          style={{ background: GOLD }}
+          disabled={loading || !canResend}
+          className={`w-fit rounded-lg px-5 py-2.5 text-[13px] font-bold ${
+            canResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+          }`}
         >
-          {loading ? "Sending..." : "Notify me of new articles"}
+          {loading ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend email"}
         </button>
       </div>
       {error ? <p className="mt-3 text-[13px] text-red-600">{error}</p> : null}

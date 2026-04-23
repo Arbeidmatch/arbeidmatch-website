@@ -57,10 +57,27 @@ export default function ContactPageClient() {
   const [submitted, setSubmitted] = useState(false);
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [countdown, setCountdown] = useState(0);
+  const [canResend, setCanResend] = useState(true);
   const [need, setNeed] = useState<string>(NEED_OPTIONS[0]);
   const [needOther, setNeedOther] = useState("");
   const [needDropdownOpen, setNeedDropdownOpen] = useState(false);
   const needDropdownRef = useRef<HTMLDivElement>(null);
+
+  const startCountdown = () => {
+    setCanResend(false);
+    setCountdown(60);
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   useEffect(() => {
     if (!needDropdownOpen) return;
@@ -82,6 +99,7 @@ export default function ContactPageClient() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!canResend) return;
     const form = event.currentTarget;
     const formData = new FormData(form);
     const payload = {
@@ -113,6 +131,7 @@ export default function ContactPageClient() {
         throw new Error(data.error || "Failed");
       }
       setSubmitted(true);
+      startCountdown();
       trackEvent("contact_form_submitted");
       form.reset();
       setNeed("Qualified workers");
@@ -329,18 +348,20 @@ export default function ContactPageClient() {
               </label>
               <button
                 type="submit"
-                disabled={status === "submitting"}
-                className="btn-micro btn-gold-shine w-full rounded-[10px] bg-[#C9A84C] py-[14px] font-bold text-[#0D1B2A] transition-colors hover:bg-[#d8bc6a]"
+                disabled={status === "submitting" || !canResend}
+                className={`btn-micro btn-gold-shine w-full rounded-[10px] py-[14px] font-bold transition-colors ${
+                  canResend ? "bg-[#C9A84C] text-[#0D1B2A] hover:bg-[#d8bc6a]" : "bg-white/10 text-white/30 cursor-not-allowed"
+                }`}
                 style={{
-                  background: "#C9A84C",
-                  color: "#0D1B2A",
+                  background: canResend ? "#C9A84C" : "rgba(255,255,255,0.1)",
+                  color: canResend ? "#0D1B2A" : "rgba(255,255,255,0.3)",
                   fontWeight: 700,
                   borderRadius: 10,
                   padding: "14px",
                   width: "100%",
                 }}
               >
-                {status === "submitting" ? "Sending..." : "Send message →"}
+                {status === "submitting" ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend email"}
               </button>
               <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>
                 By submitting this form you agree to our{" "}

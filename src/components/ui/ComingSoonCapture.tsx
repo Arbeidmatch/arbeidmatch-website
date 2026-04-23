@@ -16,6 +16,8 @@ export default function ComingSoonCapture({ featureName, isOpen, onClose }: Comi
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [countdown, setCountdown] = useState(0);
+  const [canResend, setCanResend] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [mounted, setMounted] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
@@ -52,11 +54,29 @@ export default function ComingSoonCapture({ featureName, isOpen, onClose }: Comi
       setEmail("");
       setConsent(false);
       setStatus("idle");
+      setCountdown(0);
+      setCanResend(true);
     }
   }, [isOpen]);
 
+  const startCountdown = () => {
+    setCanResend(false);
+    setCountdown(60);
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canResend) return;
     if (!consent) return;
     setStatus("loading");
     try {
@@ -71,6 +91,7 @@ export default function ComingSoonCapture({ featureName, isOpen, onClose }: Comi
         return;
       }
       setStatus("success");
+      startCountdown();
     } catch {
       setStatus("error");
     }
@@ -151,11 +172,12 @@ export default function ComingSoonCapture({ featureName, isOpen, onClose }: Comi
             </label>
             <button
               type="submit"
-              disabled={status === "loading"}
-              className="mt-4 w-full rounded-[10px] py-3 text-[14px] font-bold text-[#0f1923] transition-opacity disabled:opacity-60"
-              style={{ background: "#C9A84C" }}
+              disabled={status === "loading" || !canResend}
+              className={`mt-4 w-full rounded-[10px] py-3 text-[14px] font-bold transition-opacity ${
+                canResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+              }`}
             >
-              Notify Me When Ready
+              {status === "loading" ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend email"}
             </button>
             {status === "error" ? (
               <p className="mt-2 text-center text-[13px] text-red-400">Something went wrong. Please try again.</p>

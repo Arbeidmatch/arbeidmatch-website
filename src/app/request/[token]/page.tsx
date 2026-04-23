@@ -604,6 +604,10 @@ export default function RequestTokenPage() {
   const [selectedOffer, setSelectedOffer] = useState("");
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifyStatus, setNotifyStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [notifyCountdown, setNotifyCountdown] = useState(0);
+  const [notifyCanResend, setNotifyCanResend] = useState(true);
+  const [partnerCountdown, setPartnerCountdown] = useState(0);
+  const [partnerCanResend, setPartnerCanResend] = useState(true);
   const isPartnerFlow = tokenData?.job_summary === "Partner candidate request";
 
   const brandingPartnerRate = useMemo(
@@ -1133,7 +1137,7 @@ export default function RequestTokenPage() {
   }, [checkState, reducedMotion, pitchMessages.length]);
 
   const submitFeatureWaitlist = async () => {
-    if (!notifyEmail.includes("@") || !selectedOffer) return;
+    if (!notifyEmail.includes("@") || !selectedOffer || !notifyCanResend) return;
     setNotifyStatus("submitting");
     try {
       const response = await fetch("/api/feature-waitlist", {
@@ -1145,14 +1149,30 @@ export default function RequestTokenPage() {
           consent: true,
         }),
       });
-      setNotifyStatus(response.ok ? "success" : "error");
+      if (response.ok) {
+        setNotifyStatus("success");
+        setNotifyCanResend(false);
+        setNotifyCountdown(60);
+        const timer = setInterval(() => {
+          setNotifyCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              setNotifyCanResend(true);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        setNotifyStatus("error");
+      }
     } catch {
       setNotifyStatus("error");
     }
   };
 
   const verifyPartner = async () => {
-    if (!partnerEmail.includes("@") || !token) return;
+    if (!partnerEmail.includes("@") || !token || !partnerCanResend) return;
     setPartnerStatus("submitting");
     try {
       const response = await fetch("/api/verify-partner", {
@@ -1163,6 +1183,18 @@ export default function RequestTokenPage() {
       const data = (await response.json()) as { verified?: boolean };
       if (response.ok && data.verified) {
         setPartnerStatus("verified");
+        setPartnerCanResend(false);
+        setPartnerCountdown(60);
+        const timer = setInterval(() => {
+          setPartnerCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              setPartnerCanResend(true);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
         return;
       }
       setPartnerStatus("not_found");
@@ -1388,10 +1420,12 @@ export default function RequestTokenPage() {
                     <button
                       type="button"
                       onClick={() => void verifyPartner()}
-                      disabled={partnerStatus === "submitting" || !partnerEmail.includes("@")}
-                      className="rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
+                      disabled={partnerStatus === "submitting" || !partnerEmail.includes("@") || !partnerCanResend}
+                      className={`rounded-[12px] px-5 py-3 text-sm font-bold ${
+                        partnerCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+                      }`}
                     >
-                      {partnerStatus === "submitting" ? "Verifying..." : "Verify partnership"}
+                      {partnerStatus === "submitting" ? "Verifying..." : partnerCountdown > 0 ? `Resend in ${partnerCountdown}s` : "Resend email"}
                     </button>
                   </div>
                   {partnerStatus === "verified" && (
@@ -1679,10 +1713,12 @@ export default function RequestTokenPage() {
                         <button
                           type="button"
                           onClick={submitFeatureWaitlist}
-                          disabled={notifyStatus === "submitting" || !notifyEmail.includes("@")}
-                          className="rounded-[10px] bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A] disabled:opacity-60"
+                          disabled={notifyStatus === "submitting" || !notifyEmail.includes("@") || !notifyCanResend}
+                          className={`rounded-[10px] px-4 py-2 text-sm font-semibold ${
+                            notifyCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+                          }`}
                         >
-                          {notifyStatus === "submitting" ? "Sending..." : "Notify me"}
+                          {notifyStatus === "submitting" ? "Sending..." : notifyCountdown > 0 ? `Resend in ${notifyCountdown}s` : "Resend email"}
                         </button>
                       </div>
                       {notifyStatus === "success" && (

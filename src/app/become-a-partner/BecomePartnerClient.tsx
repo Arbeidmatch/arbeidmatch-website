@@ -103,6 +103,23 @@ export default function BecomePartnerClient() {
   const [trialTc, setTrialTc] = useState(false);
   const [trialStatus, setTrialStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [trialMessage, setTrialMessage] = useState("");
+  const [trialCountdown, setTrialCountdown] = useState(0);
+  const [trialCanResend, setTrialCanResend] = useState(true);
+
+  const startCountdown = () => {
+    setTrialCanResend(false);
+    setTrialCountdown(60);
+    const timer = setInterval(() => {
+      setTrialCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setTrialCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const canSubmit = useMemo(
     () =>
@@ -206,6 +223,7 @@ export default function BecomePartnerClient() {
   };
 
   const submitTrial = async () => {
+    if (!trialCanResend) return;
     if (!trialEmail.trim().includes("@") || !trialTc) return;
     setTrialStatus("loading");
     setTrialMessage("");
@@ -223,6 +241,7 @@ export default function BecomePartnerClient() {
       }
       setTrialStatus("success");
       setTrialMessage("Trial activated. Please check your email.");
+      startCountdown();
     } catch {
       setTrialStatus("error");
       setTrialMessage("Could not start trial.");
@@ -583,10 +602,12 @@ export default function BecomePartnerClient() {
               <button
                 type="button"
                 onClick={() => void submitTrial()}
-                disabled={trialStatus === "loading" || !trialTc || !trialEmail.includes("@")}
-                className="mt-4 w-full rounded-xl bg-[#C9A84C] px-5 py-3 font-semibold text-[#0D1B2A] disabled:opacity-60"
+                disabled={trialStatus === "loading" || !trialTc || !trialEmail.includes("@") || !trialCanResend}
+                className={`mt-4 w-full rounded-xl px-5 py-3 font-semibold ${
+                  trialCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+                }`}
               >
-                {trialStatus === "loading" ? "Starting..." : "Start Trial"}
+                {trialStatus === "loading" ? "Starting..." : trialCountdown > 0 ? `Resend in ${trialCountdown}s` : "Resend email"}
               </button>
               {trialMessage ? <p className={`mt-2 text-sm ${trialStatus === "error" ? "text-red-300" : "text-white/70"}`}>{trialMessage}</p> : null}
               <button type="button" onClick={() => setTrialOpen(false)} className="mt-4 w-full text-xs text-white/50 hover:text-white/80">

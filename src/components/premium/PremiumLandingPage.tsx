@@ -117,6 +117,23 @@ export default function PremiumLandingPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [bannerMsg, setBannerMsg] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(0);
+  const [canResend, setCanResend] = useState(true);
+
+  const startCountdown = () => {
+    setCanResend(false);
+    setCountdown(60);
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const locked = searchParams.get("locked") === "true";
   const checkoutFailed = searchParams.get("checkout") === "failed";
@@ -130,6 +147,7 @@ export default function PremiumLandingPage() {
   }, [checkoutFailed]);
 
   const handleNotify = async () => {
+    if (!canResend) return;
     setError("");
     setSuccess(false);
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -152,6 +170,7 @@ export default function PremiumLandingPage() {
         setSuccess(true);
         setEmail("");
         setConsent(false);
+        startCountdown();
       } else {
         setError("Something went wrong. Please try again.");
       }
@@ -276,21 +295,21 @@ export default function PremiumLandingPage() {
               <button
                 type="button"
                 onClick={() => void handleNotify()}
-                disabled={loading}
+                disabled={loading || !canResend}
                 style={{
-                  background: "#C9A84C",
-                  color: "#0f1923",
+                  background: canResend ? "#C9A84C" : "rgba(255,255,255,0.1)",
+                  color: canResend ? "#0f1923" : "rgba(255,255,255,0.3)",
                   fontWeight: 700,
                   fontSize: 15,
                   padding: "14px 28px",
                   borderRadius: 10,
                   border: "none",
-                  cursor: loading ? "not-allowed" : "pointer",
+                  cursor: loading || !canResend ? "not-allowed" : "pointer",
                   opacity: loading ? 0.7 : 1,
                   whiteSpace: "nowrap",
                 }}
               >
-                {loading ? "Sending..." : "Notify Me at Launch"}
+                {loading ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend email"}
               </button>
             </div>
 
