@@ -13,6 +13,7 @@ import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
 import Toast from "@/components/ui/Toast";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import { ToastProvider } from "@/lib/toast-context";
+import { Analytics } from "@vercel/analytics/react";
 
 const DeferredAppOverlays = dynamic(() => import("@/components/client/DeferredAppOverlays"), { loading: () => null });
 
@@ -111,6 +112,7 @@ export default function RootLayout({
             </GlobalErrorBoundary>
           </GdprConsentProvider>
         </ToastProvider>
+        <Analytics />
       </body>
     </html>
   );
