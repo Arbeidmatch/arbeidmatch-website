@@ -1,7 +1,16 @@
 import Link from "next/link";
 import { FileCheck, Megaphone, UserSearch, Users, type LucideIcon } from "lucide-react";
 
-const CARDS = [
+type ExtendedServiceCard = {
+  title: string;
+  text: string;
+  href: string;
+  cta: string;
+  icon: LucideIcon;
+  badge?: string;
+};
+
+const CARDS: ExtendedServiceCard[] = [
   {
     title: "Full Recruitment",
     text: "We manage the entire process: sourcing, pre-screening, and candidate presentation. You make the final hiring decision.",
@@ -31,7 +40,7 @@ const CARDS = [
     icon: FileCheck,
     badge: "Subject to sector eligibility",
   },
-] as const;
+];
 
 export default function ForEmployersExtendedServices() {
   return (
@@ -42,7 +51,7 @@ export default function ForEmployersExtendedServices() {
         </h2>
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
           {CARDS.map((card) => {
-            const Icon = card.icon as LucideIcon;
+            const Icon = card.icon;
             return (
               <Link
                 key={card.title}
