@@ -7,7 +7,6 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Bolt, Check, Clock, Factory, Handshake, HardHat, HeartPulse, Search, Sparkles, Star, TrendingUp, Truck } from "lucide-react";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
-import LogoALoader from "@/components/ui/LogoALoader";
 
 type VerifyPartnerResponse = {
   verified?: boolean;
@@ -567,9 +566,7 @@ export default function RequestPage() {
           <div className="flex flex-col items-center py-10 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
             <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
-            <div className="mx-auto">
-              <LogoALoader complete={false} />
-            </div>
+            <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-[#C9A84C]" />
             <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
           </div>
         )}
@@ -583,9 +580,7 @@ export default function RequestPage() {
               className="mx-auto w-[90%] max-w-lg rounded-2xl border border-white/10 bg-white/5 p-10 text-center"
             >
               <Star className="mx-auto h-10 w-10 text-[#C9A84C]" aria-hidden />
-              <div className="mt-4 flex justify-center">
-                <LogoALoader complete />
-              </div>
+              <div className="mx-auto mt-4 h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-[#C9A84C]" />
               <div className="mt-5 inline-flex rounded-full bg-[#C9A84C]/10 px-3 py-1 text-xs font-semibold tracking-widest text-[#C9A84C]">
                 PARTNER ACCESS
               </div>
@@ -685,9 +680,14 @@ export default function RequestPage() {
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />No contact details</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />No commitment</li>
                       </ul>
-                      <Link href="/become-a-partner#trial" className="mt-6 inline-flex w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
-                        Start Free Trial
-                      </Link>
+                      <button
+                        type="button"
+                        disabled
+                        className="mt-6 inline-flex h-14 w-full cursor-not-allowed items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/30"
+                      >
+                        Coming Soon
+                      </button>
+                      <p className="mt-2 text-center text-xs text-white/40">We&apos;re working on it.</p>
                     </article>
 
                     <article className="request-option-card h-full text-left">
