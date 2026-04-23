@@ -9,16 +9,55 @@ export default function BecomePartnerWaitlistClient() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
+  const [countdown, setCountdown] = useState(0);
+  const [canResend, setCanResend] = useState(true);
+
+  const startCountdown = () => {
+    setCanResend(false);
+    setCountdown(60);
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const submit = async () => {
-    if (!email.includes("@")) return;
+    const normalizedEmail = email.trim().toLowerCase();
+    const personalDomains = [
+      "gmail.com",
+      "yahoo.com",
+      "hotmail.com",
+      "outlook.com",
+      "icloud.com",
+      "live.com",
+      "msn.com",
+      "aol.com",
+      "mail.com",
+      "protonmail.com",
+      "ymail.com",
+      "googlemail.com",
+    ];
+    const domain = normalizedEmail.split("@")[1]?.toLowerCase();
+
+    if (!domain || personalDomains.includes(domain)) {
+      setStatus("error");
+      setError("Please use your company email address.");
+      return;
+    }
+
     setStatus("submitting");
     setError("");
     try {
       const response = await fetch("/api/employer/trial/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+        body: JSON.stringify({ email: normalizedEmail }),
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
@@ -27,6 +66,7 @@ export default function BecomePartnerWaitlistClient() {
         return;
       }
       setStatus("success");
+      startCountdown();
     } catch {
       setStatus("error");
       setError("Could not start access flow right now.");
@@ -62,14 +102,27 @@ export default function BecomePartnerWaitlistClient() {
             <button
               type="button"
               onClick={() => void submit()}
-              disabled={status === "submitting" || !email.includes("@")}
-              className="inline-flex h-12 shrink-0 items-center justify-center rounded-xl bg-[#C9A84C] px-6 font-bold text-[#0D1B2A] transition hover:bg-[#b8953f] disabled:opacity-60"
+              disabled={status === "submitting" || !email.includes("@") || !canResend}
+              className={`inline-flex h-12 shrink-0 items-center justify-center rounded-xl px-6 font-bold transition ${
+                canResend
+                  ? "bg-[#C9A84C] text-[#0D1B2A] hover:bg-[#b8953f]"
+                  : "bg-white/10 text-white/30 cursor-not-allowed"
+              }`}
             >
-              {status === "submitting" ? "Sending..." : "Get Access"}
+              {status === "submitting" ? "Sending..." : countdown > 0 ? `Resend in ${countdown}s` : "Resend email"}
             </button>
           </div>
         )}
-        {status === "error" ? <p className="mt-3 text-sm text-red-300">{error}</p> : null}
+        {status === "error" ? (
+          <div className="mt-3">
+            <p className="text-sm text-red-300">{error}</p>
+            {error === "Please use your company email address." ? (
+              <a href="/contact" className="text-[#C9A84C] text-xs hover:underline mt-1 inline-block">
+                Need help? Contact us →
+              </a>
+            ) : null}
+          </div>
+        ) : null}
       </motion.section>
     </main>
   );

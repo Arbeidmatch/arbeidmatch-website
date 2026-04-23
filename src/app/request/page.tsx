@@ -271,6 +271,14 @@ export default function RequestPage() {
   const [workTogetherEmail, setWorkTogetherEmail] = useState("");
   const [workTogetherError, setWorkTogetherError] = useState("");
   const [workTogetherStatus, setWorkTogetherStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [workTogetherCountdown, setWorkTogetherCountdown] = useState(0);
+  const [workTogetherCanResend, setWorkTogetherCanResend] = useState(true);
+  const [waitlistCountdown, setWaitlistCountdown] = useState(0);
+  const [waitlistCanResend, setWaitlistCanResend] = useState(true);
+  const [verifyCountdown, setVerifyCountdown] = useState(0);
+  const [verifyCanResend, setVerifyCanResend] = useState(true);
+  const [partnerApplicationCountdown, setPartnerApplicationCountdown] = useState(0);
+  const [partnerApplicationCanResend, setPartnerApplicationCanResend] = useState(true);
   const [flowDirection, setFlowDirection] = useState(1);
   const [industryPreview, setIndustryPreview] = useState("");
   const [optionsDirection, setOptionsDirection] = useState(1);
@@ -282,6 +290,21 @@ export default function RequestPage() {
   const candidateSearchGenerationRef = useRef(0);
   const rareProfileTrackedRef = useRef(false);
   const industryAdvanceTimerRef = useRef<number | null>(null);
+
+  const startCountdown = (setCountdown: (value: number | ((prev: number) => number)) => void, setCanResend: (value: boolean) => void) => {
+    setCanResend(false);
+    setCountdown(60);
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setCanResend(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const filteredRoles = useMemo(() => {
     if (!selectedIndustry) return [];
@@ -332,6 +355,8 @@ export default function RequestPage() {
     setSelectedOption(null);
     setNotifyEmail("");
     setNotifyStatus("idle");
+    setWaitlistCountdown(0);
+    setWaitlistCanResend(true);
     setResultAction("none");
     setFlowDirection(1);
     setCheckState("searching");
@@ -384,6 +409,7 @@ export default function RequestPage() {
 
   const verifyAccess = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!verifyCanResend) return;
     if (!accessEmail.includes("@")) {
       toast.error("Please enter a valid company email address.");
       return;
@@ -402,6 +428,7 @@ export default function RequestPage() {
       if (response.ok && data.verified) {
         setCompanyName(data.company_name || "your company");
         nextStatus = "partner";
+        startCountdown(setVerifyCountdown, setVerifyCanResend);
         trackRequestSubmit(selectedIndustry || searchTerm || "unknown", checkCount);
         toast.success("Partner verified. Check your inbox for secure access.");
       } else if (data.reason === "personal_email") {
@@ -441,7 +468,7 @@ export default function RequestPage() {
   };
 
   const submitFeatureWaitlist = async () => {
-    if (!notifyEmail.includes("@") || !selectedOption) {
+    if (!notifyEmail.includes("@") || !selectedOption || !waitlistCanResend) {
       toast.error("Please provide a valid email before subscribing.");
       return;
     }
@@ -458,6 +485,7 @@ export default function RequestPage() {
       });
       if (response.ok) {
         setNotifyStatus("success");
+        startCountdown(setWaitlistCountdown, setWaitlistCanResend);
         toast.info("You are subscribed. We'll notify you when this opens.");
       } else {
         setNotifyStatus("error");
@@ -470,6 +498,7 @@ export default function RequestPage() {
   };
 
   const submitWorkTogetherEmail = async () => {
+    if (!workTogetherCanResend) return;
     const email = workTogetherEmail.trim().toLowerCase();
     if (!email.includes("@")) {
       setWorkTogetherError("Please use your company email address.");
@@ -514,6 +543,7 @@ export default function RequestPage() {
         return;
       }
       setWorkTogetherStatus("success");
+      startCountdown(setWorkTogetherCountdown, setWorkTogetherCanResend);
     } catch {
       setWorkTogetherStatus("error");
     }
@@ -544,7 +574,13 @@ export default function RequestPage() {
     setShowWorkTogetherInlineModal(false);
     setWorkTogetherEmail("");
     setWorkTogetherStatus("idle");
+    setWorkTogetherCountdown(0);
+    setWorkTogetherCanResend(true);
     setResultAction("none");
+    setVerifyCountdown(0);
+    setVerifyCanResend(true);
+    setPartnerApplicationCountdown(0);
+    setPartnerApplicationCanResend(true);
   };
 
   const resetToFirstStep = () => {
@@ -570,9 +606,13 @@ export default function RequestPage() {
     setSelectedOption(null);
     setNotifyEmail("");
     setNotifyStatus("idle");
+    setWaitlistCountdown(0);
+    setWaitlistCanResend(true);
     setShowWorkTogetherInlineModal(false);
     setWorkTogetherEmail("");
     setWorkTogetherStatus("idle");
+    setWorkTogetherCountdown(0);
+    setWorkTogetherCanResend(true);
     setResultAction("none");
     setPartnerModalView("not_found");
     setPartnerIssueStatus("idle");
@@ -583,6 +623,10 @@ export default function RequestPage() {
     setPartnerApplicationEmail("");
     setPartnerApplicationStatus("idle");
     setPartnerApplicationError("");
+    setVerifyCountdown(0);
+    setVerifyCanResend(true);
+    setPartnerApplicationCountdown(0);
+    setPartnerApplicationCanResend(true);
     hasAutoStartedRoleCheck.current = false;
   };
 
@@ -613,6 +657,7 @@ export default function RequestPage() {
 
   const startPartnerApplication = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!partnerApplicationCanResend) return;
     const email = partnerApplicationEmail.trim().toLowerCase();
     const domain = email.split("@")[1]?.trim() || "";
     if (!email.includes("@") || !domain) {
@@ -648,6 +693,7 @@ export default function RequestPage() {
         return;
       }
       setPartnerApplicationStatus("success");
+      startCountdown(setPartnerApplicationCountdown, setPartnerApplicationCanResend);
       toast.success("Application link sent. Please check your inbox.");
     } catch {
       setPartnerApplicationStatus("error");
@@ -1006,14 +1052,29 @@ export default function RequestPage() {
                   placeholder="Enter your work email"
                   className="h-12 w-full rounded-xl border border-white/15 bg-[#0D1B2A] px-4 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#C9A84C]/60"
                 />
-                {workTogetherError ? <p className="text-red-400 text-sm">{workTogetherError}</p> : null}
+                {workTogetherError ? (
+                  <div>
+                    <p className="text-red-400 text-sm">{workTogetherError}</p>
+                    <a href="/contact" className="text-[#C9A84C] text-xs hover:underline mt-1 inline-block">
+                      Need help? Contact us →
+                    </a>
+                  </div>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => void submitWorkTogetherEmail()}
-                  disabled={workTogetherStatus === "submitting" || !workTogetherEmail.includes("@")}
-                  className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-[#C9A84C] px-5 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
+                    disabled={workTogetherStatus === "submitting" || !workTogetherEmail.includes("@") || !workTogetherCanResend}
+                    className={`inline-flex h-12 w-full items-center justify-center rounded-xl px-5 text-sm font-bold ${
+                      workTogetherCanResend
+                        ? "bg-[#C9A84C] text-[#0D1B2A]"
+                        : "bg-white/10 text-white/30 cursor-not-allowed"
+                    }`}
                 >
-                  {workTogetherStatus === "submitting" ? "Sending..." : "Send me the link"}
+                    {workTogetherStatus === "submitting"
+                      ? "Sending..."
+                      : workTogetherCountdown > 0
+                        ? `Resend in ${workTogetherCountdown}s`
+                        : "Resend email"}
                 </button>
               </div>
               {workTogetherStatus === "success" ? (
@@ -1163,6 +1224,8 @@ export default function RequestPage() {
                         setSelectedOption(null);
                         setNotifyStatus("idle");
                         setNotifyEmail("");
+                        setWaitlistCountdown(0);
+                        setWaitlistCanResend(true);
                       }}
                       className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-[13px] text-[15px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]"
                     >
@@ -1220,10 +1283,12 @@ export default function RequestPage() {
                         <button
                           type="button"
                           onClick={() => void submitFeatureWaitlist()}
-                          disabled={!notifyEmail.includes("@") || notifyStatus === "submitting"}
-                          className="result-cta-primary min-h-[52px] w-full rounded-[12px] px-5 py-3.5 text-[15px] font-bold text-[#0D1B2A] disabled:opacity-50"
+                          disabled={!notifyEmail.includes("@") || notifyStatus === "submitting" || !waitlistCanResend}
+                          className={`min-h-[52px] w-full rounded-[12px] px-5 py-3.5 text-[15px] font-bold ${
+                            waitlistCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+                          }`}
                         >
-                          {notifyStatus === "submitting" ? "Sending..." : "Notify Me"}
+                          {notifyStatus === "submitting" ? "Sending..." : waitlistCountdown > 0 ? `Resend in ${waitlistCountdown}s` : "Resend email"}
                         </button>
                         {notifyStatus === "error" ? (
                           <p className="text-center text-[13px] text-red-300/90">Could not save your request. Please try again.</p>
@@ -1510,10 +1575,12 @@ export default function RequestPage() {
                   <p className="mt-2 text-center text-xs text-white/30">Use your company email address for verification.</p>
                   <button
                     type="submit"
-                    disabled={!accessEmail.includes("@")}
-                    className="result-cta-primary mt-3 w-full rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-semibold text-[#0D1B2A] disabled:opacity-60"
+                    disabled={!accessEmail.includes("@") || !verifyCanResend}
+                    className={`mt-3 w-full rounded-[12px] px-5 py-3 text-sm font-semibold ${
+                      verifyCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+                    }`}
                   >
-                    Let&apos;s get started →
+                    {verifyCountdown > 0 ? `Resend in ${verifyCountdown}s` : "Resend email"}
                   </button>
                 </form>
               </>
@@ -1620,14 +1687,27 @@ export default function RequestPage() {
                     className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
                   />
                   {partnerApplicationError ? (
-                    <p className="mt-3 text-[13px] text-red-300">{partnerApplicationError}</p>
+                    <div className="mt-3">
+                      <p className="text-[13px] text-red-300">{partnerApplicationError}</p>
+                      {partnerApplicationError === "Please use your company email address." ? (
+                        <a href="/contact" className="text-[#C9A84C] text-xs hover:underline mt-1 inline-block">
+                          Need help? Contact us →
+                        </a>
+                      ) : null}
+                    </div>
                   ) : null}
                   <button
                     type="submit"
-                    disabled={!partnerApplicationEmail.includes("@") || partnerApplicationStatus === "submitting"}
-                    className="result-cta-primary mt-3 w-full rounded-[12px] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
+                    disabled={!partnerApplicationEmail.includes("@") || partnerApplicationStatus === "submitting" || !partnerApplicationCanResend}
+                    className={`mt-3 w-full rounded-[12px] px-5 py-3 text-sm font-bold ${
+                      partnerApplicationCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+                    }`}
                   >
-                    {partnerApplicationStatus === "submitting" ? "Sending..." : "Continue"}
+                    {partnerApplicationStatus === "submitting"
+                      ? "Sending..."
+                      : partnerApplicationCountdown > 0
+                        ? `Resend in ${partnerApplicationCountdown}s`
+                        : "Resend email"}
                   </button>
                 </form>
               </>
