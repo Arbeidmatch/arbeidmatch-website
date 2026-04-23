@@ -115,7 +115,7 @@ export default function ForCandidatesPage() {
           </p>
           <div className="mt-10">
             <a
-              href="https://jobs.arbeidmatch.no"
+              href="https://jobs.arbeidmatch.no/sign-up"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-4 text-base font-semibold text-[#0D1B2A] transition hover:bg-[#b8953f]"
@@ -247,7 +247,7 @@ export default function ForCandidatesPage() {
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
-              href="https://jobs.arbeidmatch.no"
+              href="https://jobs.arbeidmatch.no/sign-up"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex min-w-[210px] items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-4 text-base font-semibold text-[#0D1B2A] transition hover:bg-[#b8953f]"

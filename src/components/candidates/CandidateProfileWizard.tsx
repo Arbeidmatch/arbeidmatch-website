@@ -382,11 +382,6 @@ export default function CandidateProfileWizard({
     setExtractedEnglishLevel(null);
   }
 
-  function startMatchedFlow() {
-    setMode("wizard");
-    resetWizard();
-  }
-
   function mapYearsExperienceToBand(value: string | number | null): JobPreferencesPayload["experienceBand"] | null {
     if (value === null || value === undefined) return null;
     const raw = typeof value === "number" ? String(value) : value.trim();
@@ -907,14 +902,15 @@ export default function CandidateProfileWizard({
                 >
                   Browse Jobs
                 </a>
-                <button
-                  type="button"
-                  onClick={startMatchedFlow}
+                <a
+                  href="https://jobs.arbeidmatch.no/sign-up"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-[12px] border border-[rgba(201,168,76,0.4)] px-5 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:border-[rgba(201,168,76,0.6)] hover:bg-[rgba(201,168,76,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/55 md:min-h-[52px]"
                 >
                   {entryMode === "complete-only" ? "Complete Profile" : "Create My Profile"}
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden />
-                </button>
+                </a>
               </div>
 
               <div className="mt-5 rounded-[12px] border border-white/12 bg-[rgba(255,255,255,0.03)] p-4">

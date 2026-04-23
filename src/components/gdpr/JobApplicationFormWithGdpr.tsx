@@ -115,7 +115,7 @@ export default function JobApplicationFormWithGdpr({ job }: { job: JobRecord }) 
 
             <div className="mt-8 flex flex-col gap-3">
               <a
-                href="https://jobs.arbeidmatch.no"
+                href="https://jobs.arbeidmatch.no/sign-up"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex h-14 w-full items-center justify-center rounded-xl bg-[#C9A84C] text-base font-medium text-[#0D1B2A]"
