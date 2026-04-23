@@ -443,7 +443,7 @@ export default function RequestPage() {
               {!selectedIndustry ? (
                 <motion.div
                   key="industry-grid"
-                  className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3"
+                  className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                   initial={reduceMotion ? false : { opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
@@ -481,16 +481,16 @@ export default function RequestPage() {
                             : { scale: 1, boxShadow: "0 0 0 0 rgba(201,168,76,0)" }
                         }
                         transition={{ duration: reduceMotion ? 0 : 0.3, ease: "easeInOut" }}
-                        className={`h-32 w-full cursor-pointer rounded-[12px] border p-4 transition-all duration-200 ease-in-out md:h-36 ${
+                        className={`w-full cursor-pointer rounded-[12px] border px-2 py-2 transition-all duration-200 ease-in-out md:px-4 md:py-4 ${
                           isSelected
                             ? "border-[#C9A84C] bg-white/10"
                             : "border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.07)]"
                         }`}
                       >
-                        <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+                        <div className="flex min-h-[84px] flex-col items-center justify-center gap-2 text-center md:min-h-[112px]">
                           <Icon className="h-5 w-5 text-[#C9A84C]" />
                           <p
-                            className={`text-sm font-semibold md:text-base ${isSelected ? "text-[#C9A84C]" : "text-white"} whitespace-nowrap`}
+                            className={`line-clamp-2 text-xs font-semibold leading-tight md:text-sm ${isSelected ? "text-[#C9A84C]" : "text-white"}`}
                           >
                             {industry}
                           </p>
