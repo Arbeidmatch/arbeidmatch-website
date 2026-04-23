@@ -493,7 +493,7 @@ export default function RequestPage() {
                   exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
                   transition={{ duration: reduceMotion ? 0 : 0.2, ease: EASE_PREMIUM }}
                 >
-                  <div className="md:hidden">
+                  <div className="lg:hidden">
                     <select
                       className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white"
                       value={selectedIndustry}
@@ -522,7 +522,7 @@ export default function RequestPage() {
                     </button>
                   </div>
 
-                  <div className="hidden grid-cols-1 gap-3 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  <div className="hidden grid-cols-3 gap-4 lg:grid">
                     {CHECK_ROLE_GROUPS.map(({ industry, icon: Icon }) => {
                       const isSelected = selectedIndustry === industry;
                       return (
@@ -555,13 +555,13 @@ export default function RequestPage() {
                               : { scale: 1, boxShadow: "0 0 0 0 rgba(201,168,76,0)" }
                           }
                           transition={{ duration: reduceMotion ? 0 : 0.3, ease: "easeInOut" }}
-                          className={`w-full cursor-pointer rounded-[12px] border px-2 py-2 transition-all duration-200 ease-in-out md:px-4 md:py-4 ${
+                          className={`h-32 w-full cursor-pointer rounded-[12px] border px-2 py-2 transition-all duration-200 ease-in-out md:h-36 md:px-4 md:py-4 ${
                             isSelected
                               ? "border-[#C9A84C] bg-white/10"
                               : "border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.07)]"
                           }`}
                         >
-                          <div className="flex min-h-[84px] flex-col items-center justify-center gap-2 text-center md:min-h-[112px]">
+                          <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
                             <Icon className="h-5 w-5 text-[#C9A84C]" />
                             <p
                               className={`line-clamp-2 text-xs font-semibold leading-tight md:text-sm ${isSelected ? "text-[#C9A84C]" : "text-white"}`}
@@ -585,28 +585,30 @@ export default function RequestPage() {
                 >
                   <h2 className="text-xl font-semibold text-white">Select a Role</h2>
                   <p className="mt-1 text-sm text-white/50">Type to search or choose from the list below</p>
-                  <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#C9A84C]/40 bg-[#C9A84C]/15 px-3 py-1 text-xs font-medium text-[#C9A84C]">
-                    <span>{selectedIndustry}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedIndustry("");
-                        setRoleQuery("");
-                      }}
-                      className="inline-flex items-center justify-center text-[#C9A84C]"
-                      aria-label="Clear selected industry"
-                    >
-                      <span className="text-sm">x</span>
-                    </button>
-                  </div>
-                  <div className="relative mt-4">
-                    <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                    <input
-                      value={roleQuery}
-                      onChange={(event) => setRoleQuery(event.target.value)}
-                      placeholder="Search for a role..."
-                      className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-white placeholder:text-white/30 outline-none ring-0 transition-colors duration-200 focus:border-[#C9A84C]/60"
-                    />
+                  <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[#C9A84C]/40 bg-[#C9A84C]/15 px-3 py-1 text-xs font-medium text-[#C9A84C]">
+                      <span>{selectedIndustry}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedIndustry("");
+                          setRoleQuery("");
+                        }}
+                        className="inline-flex items-center justify-center text-[#C9A84C]"
+                        aria-label="Clear selected industry"
+                      >
+                        <span className="text-sm">x</span>
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                      <input
+                        value={roleQuery}
+                        onChange={(event) => setRoleQuery(event.target.value)}
+                        placeholder="Search for a role..."
+                        className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-white placeholder:text-white/30 outline-none ring-0 transition-colors duration-200 focus:border-[#C9A84C]/60"
+                      />
+                    </div>
                   </div>
                   {filteredRoles.length > 0 ? (
                     <motion.div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
