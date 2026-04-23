@@ -580,7 +580,7 @@ export default function RequestPage() {
               ) : (
                 <motion.div
                   key="role-search"
-                  className="mx-auto mt-5 w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-6 md:max-w-2xl md:p-8"
+                  className="mx-auto mt-5 w-full max-w-2xl"
                   initial={reduceMotion ? false : { opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
@@ -614,7 +614,7 @@ export default function RequestPage() {
                     </div>
                   </div>
                   {filteredRoles.length > 0 ? (
-                    <motion.div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+                    <motion.div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
                       {filteredRoles.map((role, index) => (
                         <motion.button
                           key={role}
@@ -623,7 +623,7 @@ export default function RequestPage() {
                           initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ duration: reduceMotion ? 0 : 0.2, delay: reduceMotion ? 0 : index * 0.03 }}
-                          className={`rounded-xl border px-4 py-3 text-sm transition-all duration-200 ${
+                          className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition-all duration-200 ${
                             roleQuery.trim().toLowerCase() === role.toLowerCase()
                               ? "border-[#C9A84C] bg-[#C9A84C]/10 font-medium text-[#C9A84C]"
                               : "border-white/10 bg-white/5 text-white/80 hover:border-[#C9A84C]/60 hover:bg-white/10 hover:text-white"
@@ -645,7 +645,7 @@ export default function RequestPage() {
         {checkState === "searching" && (
           <>
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D1B2A] p-4 md:hidden">
-              <div className="flex w-full max-w-lg flex-col items-center rounded-2xl border border-white/10 bg-white/5 p-10 text-center">
+              <div className="flex w-full max-w-lg flex-col items-center p-10 text-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
                 <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
                 <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-[#C9A84C]" />
