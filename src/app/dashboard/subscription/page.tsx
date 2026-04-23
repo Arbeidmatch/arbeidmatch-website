@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { requireFeatureFlag } from "@/lib/featureFlag";
 
 type UsageResponse = {
   plan: string;
@@ -13,6 +14,7 @@ type UsageResponse = {
 };
 
 export default function SubscriptionDashboardPage() {
+  requireFeatureFlag();
   const [email, setEmail] = useState("");
   const [usage, setUsage] = useState<UsageResponse | null>(null);
   const [loading, setLoading] = useState(false);
