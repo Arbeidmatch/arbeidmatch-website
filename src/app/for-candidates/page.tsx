@@ -1,298 +1,268 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
-import { Handshake, House, ShieldCheck, UserCheck } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import {
+  Bolt,
+  Briefcase,
+  Building2,
+  Factory,
+  HardHat,
+  HeartPulse,
+  House,
+  Landmark,
+  ShieldCheck,
+  Sparkles,
+  Truck,
+  UserCheck,
+} from "lucide-react";
 
 import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
 
-const JOBS_URL = "https://jobs.arbeidmatch.no";
-const SIGN_UP_URL = "https://jobs.arbeidmatch.no/sign-up";
+export const metadata: Metadata = {
+  title: "Find Your Next Job in Norway | ArbeidMatch",
+  description:
+    "EU/EEA workers. English-speaking roles. Legal employment through an Arbeidstilsynet-authorized company.",
+  robots: { index: false, follow: false },
+  openGraph: {
+    title: "Find Your Next Job in Norway | ArbeidMatch",
+    description:
+      "EU/EEA workers. English-speaking roles. Legal employment through an Arbeidstilsynet-authorized company.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Find Your Next Job in Norway | ArbeidMatch",
+    description:
+      "EU/EEA workers. English-speaking roles. Legal employment through an Arbeidstilsynet-authorized company.",
+  },
+};
 
-const WHY_ITEMS = [
+const WHY_CARDS = [
   {
-    title: "Legal employment",
-    line: "Contracts and rights aligned with Norwegian labour rules.",
+    title: "Legal Employment",
+    description:
+      "Norwegian employment contracts, full worker rights, and legal hiring through an Arbeidstilsynet-authorized company.",
     icon: ShieldCheck,
   },
   {
-    title: "Accommodation support",
-    line: "Help finding housing where single rooms are prioritised when possible.",
+    title: "Accommodation Support",
+    description: "We help you secure accommodation and prioritize single room setups where possible.",
     icon: House,
   },
   {
-    title: "English-speaking process",
-    line: "Clear communication without Norwegian as a barrier for many roles.",
+    title: "English-Friendly",
+    description: "Most open roles are available in English, so Norwegian language is not required for many positions.",
     icon: UserCheck,
   },
   {
-    title: "Direct employer contact",
-    line: "Matched with employers who are actively hiring in your trade.",
-    icon: Handshake,
+    title: "Pre-departure Support",
+    description: "Guidance with documentation, D-number setup, and key certifications before your departure.",
+    icon: Building2,
   },
 ] as const;
 
-const TIMELINE_STEPS = [
-  { title: "Create your profile", body: "Add your trade, experience and availability on the job portal." },
-  { title: "Get matched", body: "We connect your profile with relevant Norwegian employers." },
-  { title: "Start working", body: "Agree terms, travel with a plan and begin legal employment." },
+const HOW_IT_WORKS = [
+  { title: "Create Profile", description: "Share your trade, experience, and availability." },
+  { title: "We Match You", description: "Our team connects your profile with relevant employers." },
+  { title: "Interview", description: "Meet the employer and confirm fit, terms, and start date." },
+  { title: "Start Working", description: "Travel with a clear plan and begin your legal employment in Norway." },
 ] as const;
 
-const CATEGORY_PILLS = [
-  "Construction",
-  "Electrical",
-  "Logistics",
-  "Industry",
-  "Cleaning",
-  "Hospitality",
+const CATEGORIES = [
+  { title: "Construction & Civil", icon: HardHat },
+  { title: "Electrical & Technical", icon: Bolt },
+  { title: "Logistics & Transport", icon: Truck },
+  { title: "Industry & Production", icon: Factory },
+  { title: "Cleaning & Facility", icon: Sparkles },
+  { title: "Hospitality & Healthcare", icon: HeartPulse },
 ] as const;
 
-const LEGAL_LINKS = [
-  { label: "arbeidstilsynet.no", href: "https://www.arbeidstilsynet.no/en/", hint: "Workplace rights and safety" },
-  { label: "nav.no", href: "https://www.nav.no/en", hint: "Employment services and benefits" },
-  { label: "skatteetaten.no", href: "https://www.skatteetaten.no/en/", hint: "Tax and D-number" },
+const LEGAL_RIGHTS_LINKS = [
+  {
+    title: "Arbeidstilsynet",
+    description: "Official guidance on workplace rights, contracts, safety, and legal conditions in Norway.",
+    href: "https://www.arbeidstilsynet.no/en/",
+  },
+  {
+    title: "NAV",
+    description: "Norway's social welfare and employment services for workers and residents.",
+    href: "https://www.nav.no/en",
+  },
+  {
+    title: "Skatteetaten",
+    description: "Tax registration, tax card requirements, and D-number related tax information.",
+    href: "https://www.skatteetaten.no/en/",
+  },
 ] as const;
-
-function easeOutCubic(t: number) {
-  return 1 - (1 - t) ** 3;
-}
-
-function ForCandidatesStatsRow() {
-  const reduceMotion = useReducedMotion();
-  const ref = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(false);
-  const [n6, setN6] = useState(0);
-  const [n48, setN48] = useState(0);
-  const [showRegion, setShowRegion] = useState(false);
-
-  useEffect(() => {
-    if (reduceMotion) {
-      setN6(6);
-      setN48(48);
-      setShowRegion(true);
-      setActive(true);
-      return;
-    }
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e?.isIntersecting) setActive(true);
-      },
-      { rootMargin: "0px 0px -10% 0px", threshold: 0.2 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [reduceMotion]);
-
-  useEffect(() => {
-    if (!active || reduceMotion) return;
-    const durationMs = 1400;
-    const start = performance.now();
-    let raf = 0;
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / durationMs);
-      const e = easeOutCubic(t);
-      setN6(Math.round(6 * e));
-      setN48(Math.round(48 * e));
-      if (t >= 0.35) setShowRegion(true);
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [active, reduceMotion]);
-
-  return (
-    <div ref={ref} className="border-y border-white/5 bg-[#0a1624]/80 py-12 md:py-16">
-      <div className="mx-auto grid max-w-4xl grid-cols-1 gap-10 px-6 sm:grid-cols-3 sm:gap-6 md:px-8">
-        <div className="text-center sm:text-left">
-          <p className="text-[#C9A84C] text-5xl font-bold tabular-nums">{n6}</p>
-          <p className="mt-2 text-white/50 text-sm">categories available</p>
-        </div>
-        <div className="text-center sm:text-left">
-          <p
-            className={`text-[#C9A84C] text-5xl font-bold transition-opacity duration-500 ${
-              showRegion ? "opacity-100" : "opacity-30"
-            }`}
-          >
-            EU/EEA
-          </p>
-          <p className="mt-2 text-white/50 text-sm">only</p>
-        </div>
-        <div className="text-center sm:text-left">
-          <p className="text-[#C9A84C] text-5xl font-bold tabular-nums">{`${n48}h`}</p>
-          <p className="mt-2 text-white/50 text-sm">response time</p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function ForCandidatesPage() {
   return (
     <div className="bg-[#0D1B2A] text-white">
-      {/* HERO */}
-      <section
-        className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pb-16 pt-20 md:px-10"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 55% at 50% 40%, rgba(201,168,76,0.12), transparent 55%), #0D1B2A",
-        }}
-      >
-        <div className="relative z-[1] mx-auto flex max-w-4xl flex-col items-center text-center">
-          <span className="inline-flex rounded-full border border-[#C9A84C]/40 bg-[#C9A84C]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">
-            EU/EEA Workers · Norway
-          </span>
-          <h1 className="mt-8 text-balance text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl">
+      <section className="relative overflow-hidden border-b border-[#C9A84C]/15 py-16 md:py-24">
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden
+          style={{
+            background:
+              "radial-gradient(ellipse 75% 60% at 50% -10%, rgba(201,168,76,0.18), transparent 58%), radial-gradient(ellipse 50% 35% at 100% 50%, rgba(201,168,76,0.09), transparent 55%)",
+          }}
+        />
+        <div className="relative mx-auto w-full max-w-content px-4 text-center md:px-12 lg:px-20">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C9A84C]">For Candidates</p>
+          <h1 className="mt-5 text-balance break-words text-3xl font-bold leading-tight text-white md:text-5xl lg:text-7xl">
             Find Your Next Job in Norway
           </h1>
-          <p className="mt-6 max-w-2xl text-lg text-white/70 md:text-xl">
-            Legal employment. English-speaking roles. Real opportunities.
+          <p className="mx-auto mt-6 max-w-3xl text-base leading-relaxed text-white/70 md:text-lg">
+            EU/EEA workers. English-speaking roles. Legal employment through an Arbeidstilsynet-authorized company.
           </p>
-          <div className="mt-10 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center sm:gap-4">
+          <div className="mt-10">
             <a
-              href={JOBS_URL}
+              href="https://jobs.arbeidmatch.no/sign-up"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-[52px] w-full items-center justify-center rounded-[10px] bg-[#C9A84C] px-8 py-3.5 text-base font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f] sm:w-auto"
+              className="inline-flex items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-4 text-base font-semibold text-[#0D1B2A] transition hover:bg-[#b8953f]"
             >
-              Browse open positions
-            </a>
-            <a
-              href={SIGN_UP_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-[52px] w-full items-center justify-center rounded-[10px] border border-[#C9A84C]/45 bg-transparent px-8 py-3.5 text-base font-semibold text-[#C9A84C] transition-colors hover:bg-[#C9A84C]/10 sm:w-auto"
-            >
-              Create your profile
+              Create Your Profile
             </a>
           </div>
         </div>
       </section>
 
-      <ForCandidatesStatsRow />
+      <section className="py-8 md:py-10">
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
+          <div className="w-full rounded-2xl border border-[#C9A84C]/30 bg-gradient-to-r from-[#C9A84C]/20 to-[#C9A84C]/5 p-8">
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div>
+                <Briefcase size={36} className="text-[#C9A84C]" aria-hidden />
+                <h2 className="mt-4 text-2xl font-bold text-white">Browse Open Positions</h2>
+                <p className="mt-2 text-white/60">Find your next job in Norway. New positions added regularly.</p>
+              </div>
+              <a
+                href="https://jobs.arbeidmatch.no"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-4 text-lg font-semibold text-[#0D1B2A]"
+              >
+                View All Jobs
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      {/* WHY */}
-      <section className="py-16 md:py-24">
-        <div className="mx-auto max-w-content px-6 md:px-10">
-          <h2 className="text-center text-2xl font-bold text-white md:text-3xl">Why ArbeidMatch</h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-sm text-white/50">
-            Built for EU and EEA workers who want structure, clarity and a serious path into Norway.
-          </p>
-          <div className="mt-10 flex gap-6 overflow-x-auto pb-2 md:grid md:grid-cols-2 md:gap-x-10 md:gap-y-12 md:overflow-visible md:pb-0">
-            {WHY_ITEMS.map((item) => {
-              const Icon = item.icon;
+      <section className="border-y border-white/10 bg-[#0a1624] py-16 md:py-20">
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
+          <h2 className="text-balance break-words text-center text-3xl font-bold text-white md:text-4xl">Why Work Through ArbeidMatch</h2>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {WHY_CARDS.map((card) => {
+              const Icon = card.icon;
               return (
-                <div
-                  key={item.title}
-                  className="min-w-[240px] shrink-0 md:min-w-0"
-                >
-                  <Icon className="h-12 w-12 text-[#C9A84C]" strokeWidth={1.25} aria-hidden />
-                  <h3 className="mt-5 text-lg font-semibold text-white">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/60">{item.line}</p>
-                </div>
+                <article key={card.title} className="rounded-2xl border border-[#C9A84C]/20 bg-white/[0.03] p-6">
+                  <div className="inline-flex rounded-xl border border-[#C9A84C]/35 bg-[#C9A84C]/10 p-2.5">
+                    <Icon className="h-5 w-5 text-[#C9A84C]" aria-hidden />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-white">{card.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-white/70">{card.description}</p>
+                </article>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS — timeline */}
-      <section className="border-y border-white/5 bg-[#0a1624]/50 py-16 md:py-24">
-        <div className="mx-auto max-w-xl px-6 md:px-10">
-          <h2 className="text-center text-2xl font-bold text-white md:text-3xl">How it works</h2>
-          <ol className="relative mt-12 space-y-0">
-            {TIMELINE_STEPS.map((step, i) => (
-              <li key={step.title} className="relative flex gap-5 pb-12 last:pb-0">
-                {i < TIMELINE_STEPS.length - 1 ? (
-                  <div
-                    className="absolute left-[19px] top-10 h-[calc(100%-2.5rem)] w-px bg-gradient-to-b from-[#C9A84C]/50 to-white/10"
-                    aria-hidden
-                  />
-                ) : null}
-                <div className="relative z-[1] flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#C9A84C] text-sm font-bold text-[#0D1B2A]">
-                  {i + 1}
+      <section className="py-16 md:py-20">
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
+          <h2 className="text-balance break-words text-center text-3xl font-bold text-white md:text-4xl">How It Works</h2>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {HOW_IT_WORKS.map((step, index) => (
+              <article key={step.title} className="rounded-2xl border border-[#C9A84C]/20 bg-white/[0.03] p-6">
+                <div className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 text-sm font-bold text-[#C9A84C]">
+                  {index + 1}
                 </div>
-                <div className="min-w-0 pt-0.5">
-                  <h3 className="text-lg font-semibold text-white">{step.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/60">{step.body}</p>
-                </div>
-              </li>
+                <h3 className="mt-4 text-lg font-semibold text-white">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/70">{step.description}</p>
+              </article>
             ))}
-          </ol>
+          </div>
         </div>
       </section>
 
-      {/* CATEGORIES — pills */}
-      <section className="py-16 md:py-24">
-        <div className="mx-auto max-w-content px-6 md:px-10">
-          <h2 className="text-center text-2xl font-bold text-white md:text-3xl">Categories</h2>
-          <p className="mx-auto mt-3 max-w-lg text-center text-sm text-white/50">
-            Explore roles on the job portal. Tap a category to open listings.
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-3 md:gap-4">
-            {CATEGORY_PILLS.map((label) => (
+      <section className="border-y border-white/10 bg-[#0a1624] py-16 md:py-20">
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
+          <h2 className="text-balance break-words text-center text-3xl font-bold text-white md:text-4xl">Available Categories</h2>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {CATEGORIES.map((category) => {
+              const Icon = category.icon;
+              return (
+                <a
+                  key={category.title}
+                  href="https://jobs.arbeidmatch.no"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cursor-pointer rounded-2xl border border-[#C9A84C]/20 bg-white/[0.03] p-6 transition duration-200 hover:scale-[1.02] hover:border-[#C9A84C]/60"
+                >
+                  <div className="inline-flex rounded-xl border border-[#C9A84C]/35 bg-[#C9A84C]/10 p-2.5">
+                    <Icon className="h-5 w-5 text-[#C9A84C]" aria-hidden />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-white">{category.title}</h3>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 md:py-20">
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
+          <h2 className="text-balance break-words text-center text-3xl font-bold text-white md:text-4xl">Legal &amp; Your Rights</h2>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+            {LEGAL_RIGHTS_LINKS.map((resource) => (
               <a
-                key={label}
-                href={JOBS_URL}
+                key={resource.title}
+                href={resource.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-white/90 transition-colors hover:border-[#C9A84C]/55 hover:text-[#C9A84C] md:px-8 md:py-4 md:text-base"
+                className="group rounded-2xl border border-[#C9A84C]/20 bg-white/[0.03] p-6 transition hover:border-[#C9A84C]/45 hover:bg-[#C9A84C]/5"
               >
-                {label}
+                <div className="inline-flex rounded-xl border border-[#C9A84C]/35 bg-[#C9A84C]/10 p-2.5">
+                  <Landmark className="h-5 w-5 text-[#C9A84C]" aria-hidden />
+                </div>
+                <h3 className="mt-4 text-lg font-semibold text-white group-hover:text-[#C9A84C]">{resource.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/70">{resource.description}</p>
+                <span className="mt-4 inline-block text-sm font-semibold text-[#C9A84C]">Visit official site →</span>
               </a>
             ))}
           </div>
         </div>
       </section>
 
-      {/* LEGAL — single card */}
-      <section className="pb-16 md:pb-24">
-        <div className="mx-auto max-w-3xl px-6 md:px-10">
-          <h2 className="text-center text-2xl font-bold text-white md:text-3xl">Legal and your rights</h2>
-          <p className="mx-auto mt-3 max-w-lg text-center text-sm text-white/50">
-            ArbeidMatch is not an official Norwegian authority. Use these official sources for rules and tax.
+      <section className="relative overflow-hidden border-t border-[#C9A84C]/15 py-16 text-center md:py-20">
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden
+          style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.14), transparent 58%)" }}
+        />
+        <div className="relative mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
+          <h2 className="text-balance break-words text-3xl font-bold text-white md:text-4xl">Ready to Start?</h2>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/70">
+            Build your profile in minutes and explore open jobs for legal, structured work in Norway.
           </p>
-          <div className="mt-10 rounded-2xl border border-white/5 bg-white/[0.03] p-6 md:p-8">
-            <ul className="divide-y divide-white/10">
-              {LEGAL_LINKS.map((link) => (
-                <li key={link.href} className="py-4 first:pt-0 last:pb-0">
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <span className="text-base font-semibold text-[#C9A84C] group-hover:underline">{link.label}</span>
-                    <span className="text-sm text-white/45">{link.hint}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
+          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <a
+              href="https://jobs.arbeidmatch.no/sign-up"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-w-[210px] items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-4 text-base font-semibold text-[#0D1B2A] transition hover:bg-[#b8953f]"
+            >
+              Create Your Profile
+            </a>
+            <a
+              href="https://jobs.arbeidmatch.no"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-w-[210px] items-center justify-center rounded-xl border border-[#C9A84C]/45 bg-transparent px-8 py-4 text-base font-semibold text-[#C9A84C] transition hover:bg-[#C9A84C]/10"
+            >
+              Browse Jobs
+            </a>
           </div>
-        </div>
-      </section>
-
-      {/* CTA FINAL */}
-      <section
-        className="border-t border-white/5 py-20 md:py-28"
-        style={{
-          background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(201,168,76,0.08), transparent 60%)",
-        }}
-      >
-        <div className="mx-auto max-w-content px-6 text-center md:px-10">
-          <h2 className="text-balance text-4xl font-bold tracking-tight text-white md:text-5xl">Ready to start?</h2>
-          <p className="mx-auto mt-4 max-w-lg text-white/60">
-            Open the job portal to browse listings or create your profile in a few minutes.
-          </p>
-          <a
-            href={JOBS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-10 inline-flex min-h-[52px] items-center justify-center rounded-[10px] bg-[#C9A84C] px-10 py-3.5 text-base font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
-          >
-            Browse jobs in Norway
-          </a>
         </div>
       </section>
 
