@@ -11,6 +11,7 @@ import GdprConsentProvider from "@/components/gdpr/GdprConsentProvider";
 import HomeJsonLd from "@/components/seo/HomeJsonLd";
 import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
 import Toast from "@/components/ui/Toast";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 import { ToastProvider } from "@/lib/toast-context";
 
 const DeferredAppOverlays = dynamic(() => import("@/components/client/DeferredAppOverlays"), { loading: () => null });
@@ -100,6 +101,7 @@ export default function RootLayout({
               <BetaBanner />
               <ScrollProgressBar />
               <Navbar />
+              <ScrollToTop />
               <main className="flex min-w-0 flex-1 flex-col overflow-x-clip">{children}</main>
               <Footer />
               <DeferredAppOverlays />
