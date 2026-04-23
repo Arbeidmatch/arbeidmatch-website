@@ -165,42 +165,68 @@ export function buildInternalEmailHtml(opts: { title: string; rows: { label: str
 </body></html>`;
 }
 
-export function buildRoleAlertNotificationEmail(opts: {
+function emailPremiumTemplate(title: string, bodyHtml: string, preheader?: string): string {
+  const preheaderBlock = preheader
+    ? `<p style="margin:0 0 16px;font-size:13px;color:rgba(255,255,255,0.7);">${escapeHtml(preheader)}</p>`
+    : "";
+  return wrapPremiumEmail(`
+    <h1 style="margin:0 0 14px;font-size:24px;line-height:1.2;color:#ffffff;">${escapeHtml(title)}</h1>
+    ${preheaderBlock}
+    ${bodyHtml}
+  `);
+}
+
+type RoleAlertEmailOptions = {
   role: string;
   count: number;
   alertId: string;
   ctaUrl: string;
   manageUrl: string;
-}): string {
-  const safeRole = escapeHtml(opts.role);
-  const safeCount = Number.isFinite(opts.count) ? Math.max(0, Math.trunc(opts.count)) : 0;
-  const safeCta = escapeHtml(opts.ctaUrl);
-  const safeManage = escapeHtml(opts.manageUrl);
-  return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0a1628;font-family:Arial,sans-serif;">
-  <div style="max-width:600px;margin:0 auto;">
-    <div style="background:#0D1B2A;padding:28px 32px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);">
-      <div style="font-size:28px;font-weight:700;color:#C9A84C;">ArbeidMatch</div>
-      <div style="margin-top:8px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.6);">Role Alert Notification</div>
-    </div>
-    <div style="background:#0f1f30;padding:32px;color:#ffffff;line-height:1.6;">
-      <p style="margin:0 0 16px;font-size:15px;color:#ffffff;">We found <strong>${safeCount} qualified candidates</strong> for <strong>${safeRole}</strong>.</p>
-      <div style="margin:24px 0 12px;">
-        <a href="${safeCta}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;text-decoration:none;font-size:15px;font-weight:700;padding:14px 28px;border-radius:8px;">View Candidates</a>
-      </div>
-      <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.55);">Alert ID: ${escapeHtml(opts.alertId)}</p>
-    </div>
-    <div style="background:#0D1B2A;padding:24px;text-align:center;border-top:1px solid rgba(255,255,255,0.1);">
-      <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);">ArbeidMatch Norge AS · Sverre Svendsens veg 38, 7056 Ranheim · post@arbeidmatch.no · arbeidmatch.no</p>
-      <p style="margin:10px 0 0;font-size:12px;color:rgba(255,255,255,0.55);">
-        <a href="${safeManage}" style="color:rgba(255,255,255,0.75);text-decoration:underline;">Pause alerts</a>
-        &nbsp;/&nbsp;
-        <a href="${safeManage}" style="color:rgba(255,255,255,0.75);text-decoration:underline;">Manage preferences</a>
-      </p>
-    </div>
-  </div>
-</body>
-</html>`;
+};
+
+export function buildRoleAlertNotificationEmail(
+  roleName: string,
+  candidatesCount: number,
+  viewLink: string,
+): string;
+export function buildRoleAlertNotificationEmail(opts: RoleAlertEmailOptions): string;
+export function buildRoleAlertNotificationEmail(
+  arg1: string | RoleAlertEmailOptions,
+  arg2?: number,
+  arg3?: string,
+): string {
+  if (typeof arg1 === "string") {
+    const roleName = arg1;
+    const candidatesCount = Number.isFinite(arg2) ? Number(arg2) : 0;
+    const viewLink = typeof arg3 === "string" ? arg3 : "#";
+    return emailPremiumTemplate(
+      "New candidates available for " + roleName,
+      `
+    <p style="color: white; margin-bottom: 20px;">
+      We found <strong>${candidatesCount}</strong> qualified candidates for <strong>${escapeHtml(roleName)}</strong>.
+    </p>
+    <a href="${escapeHtml(viewLink)}" style="display: inline-block; background-color: #C9A84C; color: #0D1B2A; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0;">
+      View Candidates
+    </a>
+    `,
+      "View your role alert notifications",
+    );
+  }
+
+  const opts = arg1;
+  return emailPremiumTemplate(
+    "New candidates available for " + opts.role,
+    `
+    <p style="color: white; margin-bottom: 20px;">
+      We found <strong>${Math.max(0, Math.trunc(opts.count))}</strong> qualified candidates for <strong>${escapeHtml(opts.role)}</strong>.
+    </p>
+    <a href="${escapeHtml(opts.ctaUrl)}" style="display: inline-block; background-color: #C9A84C; color: #0D1B2A; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0;">
+      View Candidates
+    </a>
+    <p style="margin-top:14px;color:rgba(255,255,255,0.55);font-size:12px;">
+      Alert ID: ${escapeHtml(opts.alertId)} · <a href="${escapeHtml(opts.manageUrl)}" style="color:rgba(255,255,255,0.75);text-decoration:underline;">Manage preferences</a>
+    </p>
+    `,
+    "View your role alert notifications",
+  );
 }
