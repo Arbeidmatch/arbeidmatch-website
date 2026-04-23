@@ -269,6 +269,7 @@ export default function RequestPage() {
   const [partnerApplicationError, setPartnerApplicationError] = useState("");
   const [showWorkTogetherInlineModal, setShowWorkTogetherInlineModal] = useState(false);
   const [workTogetherEmail, setWorkTogetherEmail] = useState("");
+  const [workTogetherError, setWorkTogetherError] = useState("");
   const [workTogetherStatus, setWorkTogetherStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [flowDirection, setFlowDirection] = useState(1);
   const [industryPreview, setIndustryPreview] = useState("");
@@ -469,17 +470,42 @@ export default function RequestPage() {
   };
 
   const submitWorkTogetherEmail = async () => {
-    if (!workTogetherEmail.includes("@")) {
+    const email = workTogetherEmail.trim().toLowerCase();
+    if (!email.includes("@")) {
+      setWorkTogetherError("Please use your company email address.");
       setWorkTogetherStatus("error");
       return;
     }
+
+    const personalDomains = [
+      "gmail.com",
+      "yahoo.com",
+      "hotmail.com",
+      "outlook.com",
+      "icloud.com",
+      "live.com",
+      "msn.com",
+      "aol.com",
+      "mail.com",
+      "protonmail.com",
+      "ymail.com",
+      "googlemail.com",
+    ];
+    const domain = email.split("@")[1]?.toLowerCase();
+
+    if (!domain || personalDomains.includes(domain)) {
+      setWorkTogetherError("Please use your company email address.");
+      return;
+    }
+
+    setWorkTogetherError("");
     setWorkTogetherStatus("submitting");
     try {
       const response = await fetch("/api/employer/trial/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: workTogetherEmail.trim().toLowerCase(),
+          email,
           category: selectedIndustry || searchTerm || "unknown",
         }),
       });
@@ -973,10 +999,14 @@ export default function RequestPage() {
                 <input
                   type="email"
                   value={workTogetherEmail}
-                  onChange={(event) => setWorkTogetherEmail(event.target.value)}
+                  onChange={(event) => {
+                    setWorkTogetherEmail(event.target.value);
+                    if (workTogetherError) setWorkTogetherError("");
+                  }}
                   placeholder="Enter your work email"
                   className="h-12 w-full rounded-xl border border-white/15 bg-[#0D1B2A] px-4 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#C9A84C]/60"
                 />
+                {workTogetherError ? <p className="text-red-400 text-sm">{workTogetherError}</p> : null}
                 <button
                   type="button"
                   onClick={() => void submitWorkTogetherEmail()}
