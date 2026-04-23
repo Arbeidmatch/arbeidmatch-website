@@ -26,8 +26,8 @@ const SERVICES: ServiceItem[] = [
   },
   {
     Icon: ClipboardCheck,
-    title: "Candidate Screening",
-    body: "Structured interviews, document verification, and skills validation before any candidate is presented to you. You make the final decision.",
+    title: "Candidate Pre-Screening",
+    body: "We pre-screen candidates based on their profile responses, CV, and compatibility score before presenting them to you. Full screening applies to candidates employed directly through ArbeidMatch.",
   },
   {
     Icon: MapPin,
