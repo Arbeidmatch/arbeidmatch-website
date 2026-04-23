@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 
 type SessionCheck = {
   valid: boolean;
-  reason?: "expired" | "invalid";
+  reason?: "expired" | "invalid" | "used";
 };
 
 type SelectableMode = "quick" | "custom";

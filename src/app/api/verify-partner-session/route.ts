@@ -6,37 +6,32 @@ import { getSupabaseServiceClient } from "@/lib/supabaseService";
 export async function GET(request: NextRequest) {
   const token = (request.nextUrl.searchParams.get("token") || "").trim();
   if (!token) {
-    return NextResponse.json({ valid: false, reason: "invalid" });
+    return NextResponse.json({ valid: false });
   }
 
   try {
     const supabase = getSupabaseServiceClient();
     if (!supabase) {
-      return NextResponse.json({ valid: false, reason: "invalid" }, { status: 500 });
+      return NextResponse.json({ valid: false });
     }
 
-    const nowIso = new Date().toISOString();
-    const { data, error } = await supabase
-      .from("partner_sessions")
-      .select("id, email, request_token, expires_at, used")
-      .eq("session_token", token)
-      .maybeSingle();
+    const { data, error } = await supabase.from("request_tokens").select("*").eq("token", token).single();
 
     if (error || !data) {
-      return NextResponse.json({ valid: false, reason: "invalid" });
+      return NextResponse.json({ valid: false });
     }
 
-    if (data.used || data.expires_at <= nowIso) {
+    if (data.used) {
+      return NextResponse.json({ valid: false, reason: "used" });
+    }
+
+    if (new Date(data.expires_at as string) < new Date()) {
       return NextResponse.json({ valid: false, reason: "expired" });
     }
 
-    return NextResponse.json({
-      valid: true,
-      request_token: data.request_token,
-      email: data.email,
-    });
+    return NextResponse.json({ valid: true, email: data.email });
   } catch (error) {
     await notifyError({ route: "/api/verify-partner-session", error });
-    return NextResponse.json({ valid: false, reason: "invalid" }, { status: 500 });
+    return NextResponse.json({ valid: false }, { status: 500 });
   }
 }

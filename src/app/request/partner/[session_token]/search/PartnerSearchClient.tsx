@@ -18,7 +18,7 @@ type CandidateResult = {
   skills_preview: string[];
 };
 
-type SessionCheck = { valid: boolean; reason?: "expired" | "invalid" };
+type SessionCheck = { valid: boolean; reason?: "expired" | "invalid" | "used" };
 interface Props {
   session_token: string;
 }
