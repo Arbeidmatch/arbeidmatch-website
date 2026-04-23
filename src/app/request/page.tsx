@@ -754,12 +754,12 @@ export default function RequestPage() {
                   </p>
                   <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
 
-                  <div className="request-options-container">
-                    <article className="request-option-card min-h-96 text-left">
+                  <div className="request-options-container grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    <article className="request-option-card flex h-full min-h-[480px] flex-col text-left">
                       <div className="w-full">
                         <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">7 days free</span>
                       </div>
-                      <div className="mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 self-center">
+                      <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
                         <Clock className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                       </div>
                       <p className="mt-4 text-[18px] font-bold text-white">Coming Soon</p>
@@ -777,14 +777,13 @@ export default function RequestPage() {
                       >
                         Coming Soon
                       </button>
-                      <p className="mt-2 text-center text-xs text-white/40">We&apos;re working on it.</p>
                     </article>
 
-                    <article className="request-option-card min-h-96 text-left">
+                    <article className="request-option-card flex h-full min-h-[480px] flex-col text-left">
                       <div className="w-full">
                         <span className="inline-flex rounded-full bg-[#C9A84C] px-2.5 py-1 text-[11px] font-semibold text-[#0D1B2A]">Most Popular</span>
                       </div>
-                      <div className="mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 self-center">
+                      <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
                         <TrendingUp className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                       </div>
                       <p className="mt-4 text-[18px] font-bold text-white">Professional Presentations</p>
@@ -801,11 +800,11 @@ export default function RequestPage() {
                       </Link>
                     </article>
 
-                    <article className="request-option-card min-h-96 text-left">
+                    <article className="request-option-card flex h-full min-h-[480px] flex-col text-left">
                       <div className="w-full">
                         <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">Scale</span>
                       </div>
-                      <div className="mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 self-center">
+                      <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
                         <Bolt className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                       </div>
                       <p className="mt-4 text-[18px] font-bold text-white">Professional Presentations Unlimited</p>
@@ -823,11 +822,11 @@ export default function RequestPage() {
                       </Link>
                     </article>
 
-                    <article className="request-option-card min-h-96 text-left">
+                    <article className="request-option-card flex h-full min-h-[480px] flex-col text-left">
                       <div className="w-full">
                         <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">For Recruitment Firms</span>
                       </div>
-                      <div className="mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 self-center">
+                      <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
                         <Handshake className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                       </div>
                       <p className="mt-4 text-[18px] font-bold text-white">Candidate Presentation Service</p>
@@ -1339,9 +1338,9 @@ export default function RequestPage() {
         }
         .request-options-container {
           display: grid;
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           align-items: stretch;
-          gap: 24px;
+          gap: 16px;
           padding: 40px 20px;
           max-width: 1200px;
           width: 100%;
@@ -1358,13 +1357,8 @@ export default function RequestPage() {
           border-radius: 16px;
           padding: 32px;
           text-align: left;
-          min-height: 24rem;
+          min-height: 480px;
           transition: border-color 200ms ease, background 200ms ease, transform 200ms ease;
-        }
-        @media (min-width: 768px) {
-          .request-options-container {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
         }
         @media (min-width: 1024px) {
           .request-options-container {
@@ -1600,8 +1594,6 @@ export default function RequestPage() {
             padding-bottom: 24px;
           }
           .request-options-container {
-            grid-template-columns: 1fr;
-            gap: 16px;
             padding: 16px 0;
           }
           .request-option-card {
