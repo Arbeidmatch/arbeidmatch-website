@@ -19,7 +19,6 @@ export const employerMegaSolutions: DualNavLink[] = [
 
 /** Mega menu column: Resources */
 export const employerMegaResources: DualNavLink[] = [
-  { href: "/faq", label: "FAQ" },
   { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/electricians-norway", label: "Electricians Norway" },
 ];
