@@ -970,60 +970,6 @@ button:focus:not(:focus-visible) {
   }
 }
 
-@keyframes led-trace {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-.am-logo-a {
-  position: relative;
-  font-size: 80px;
-  font-weight: 900;
-  color: transparent;
-  -webkit-text-stroke: 2px rgba(201, 168, 76, 0.3);
-  display: inline-block;
-}
-
-.am-logo-a::before {
-  content: "A";
-  position: absolute;
-  inset: 0;
-  color: transparent;
-  -webkit-text-stroke: 2px #c9a84c;
-  filter: drop-shadow(0 0 6px #c9a84c) drop-shadow(0 0 12px #c9a84c);
-  background: linear-gradient(90deg, transparent 0%, #c9a84c 50%, transparent 100%);
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: led-trace 2s linear infinite;
-}
-
-.am-logo-a-complete {
-  color: #c9a84c;
-  -webkit-text-stroke: 2px #c9a84c;
-  filter: drop-shadow(0 0 8px #c9a84c) drop-shadow(0 0 20px rgba(201, 168, 76, 0.6));
-  animation: pulse-glow 1s ease-in-out 3;
-}
-
-.am-logo-a-complete::before {
-  animation: none;
-  opacity: 0;
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 8px #c9a84c) drop-shadow(0 0 20px rgba(201, 168, 76, 0.4));
-  }
-  50% {
-    filter: drop-shadow(0 0 16px #c9a84c) drop-shadow(0 0 40px rgba(201, 168, 76, 0.8));
-  }
-}
-
 @media (hover: none) and (pointer: coarse) {
   .btn-gold-premium::after {
     display: none;
