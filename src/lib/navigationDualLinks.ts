@@ -16,6 +16,7 @@ export const premiumEmployerMore: DualNavLink[] = [
   { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/partners", label: "Trusted Partners" },
+  { href: "/faq", label: "FAQ" },
 ];
 
 /** Desktop center row — candidate */
@@ -32,6 +33,7 @@ export const premiumCandidateMore: DualNavLink[] = [
   { href: "/non-eu-candidates", label: "Outside EU/EEA" },
   { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/partners", label: "Trusted Partners" },
+  { href: "/faq", label: "FAQ" },
 ];
 
 /** Full lists for mobile drawer (center + more). */
