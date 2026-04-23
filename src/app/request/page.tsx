@@ -554,9 +554,9 @@ export default function RequestPage() {
           <div className="flex flex-col items-center py-10 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
             <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
-            <svg className="spinner-arc" viewBox="0 0 24 24" aria-hidden>
-              <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="46 18" />
-            </svg>
+            <div className="am-logo-shimmer-a" aria-hidden>
+              A
+            </div>
             <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
           </div>
         )}
