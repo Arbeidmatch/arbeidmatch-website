@@ -892,26 +892,28 @@ export default function CandidateProfileWizard({
             <div className="mx-auto max-w-3xl rounded-[18px] border border-[#C9A84C]/20 bg-[linear-gradient(165deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 shadow-[0_16px_48px_rgba(0,0,0,0.35)] sm:p-8 md:rounded-[20px] md:p-12">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#C9A84C]">Candidates</p>
               <h1 className="mt-3 text-2xl font-extrabold tracking-[-0.02em] sm:mt-4 sm:text-4xl md:text-5xl">
-                Choose how you want to explore roles
+                Find Your Next Job in Norway
               </h1>
               <p className="mt-4 text-sm leading-relaxed text-white/75 sm:mt-5 sm:text-base">
-                Browse jobs in read-only mode, or build a focused profile to unlock applications and stronger job matching.
+                Browse open positions or create your profile for personalised job matching.
               </p>
 
-              <div className="mt-8 grid grid-cols-1 gap-3 sm:mt-10 sm:gap-4 md:grid-cols-2">
-                <Link
-                  href={jobsBoardAbsoluteUrl("/jobs?browse=1")}
-                  className="group inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-[12px] border border-[rgba(201,168,76,0.4)] px-5 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:border-[rgba(201,168,76,0.6)] hover:bg-[rgba(201,168,76,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/55 md:min-h-[52px]"
+              <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:gap-4">
+                <a
+                  href="https://jobs.arbeidmatch.no"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-[12px] bg-[#C9A84C] px-5 py-3.5 text-sm font-bold text-[#0D1B2A] transition-all duration-300 hover:bg-[#b8953f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D1B2A] md:min-h-[52px]"
                 >
                   Browse Jobs
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden />
-                </Link>
+                </a>
                 <button
                   type="button"
                   onClick={startMatchedFlow}
-                  className="inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-[12px] bg-[#C9A84C] px-5 py-3.5 text-sm font-bold text-[#0D1B2A] transition-all duration-300 hover:bg-[#b8953f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D1B2A] md:min-h-[52px]"
+                  className="group inline-flex min-h-[48px] w-full touch-manipulation items-center justify-center rounded-[12px] border border-[rgba(201,168,76,0.4)] px-5 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:border-[rgba(201,168,76,0.6)] hover:bg-[rgba(201,168,76,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/55 md:min-h-[52px]"
                 >
-                  Get Matched Jobs
+                  {entryMode === "complete-only" ? "Complete Profile" : "Create My Profile"}
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden />
                 </button>
               </div>
 
@@ -937,9 +939,6 @@ export default function CandidateProfileWizard({
                 ) : null}
               </div>
 
-              <p className="mt-6 text-xs leading-relaxed text-white/55 sm:mt-8 sm:text-sm">
-                If you continue with matching, you will review GDPR consent first, then complete a short premium profile flow.
-              </p>
             </div>
           </motion.div>
         ) : null}
