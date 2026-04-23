@@ -1,8 +1,7 @@
 import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 
-// TODO(next16): Migrate this file to `proxy.ts` once routing behavior is validated in staging.
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   /** Article routes stay public for SEO; access control is enforced client-side via PaywallOverlay. */
   const isBrowse = pathname.startsWith("/premium/browse");
@@ -32,3 +31,4 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/premium/browse", "/premium/article/:path*"],
 };
+

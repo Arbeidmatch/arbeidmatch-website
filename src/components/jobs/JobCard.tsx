@@ -67,7 +67,7 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {matchScore !== null ? (
             <span className="shrink-0 rounded-full bg-[#C9A84C]/20 px-3 py-1 text-xs font-semibold text-[#C9A84C]">
-              {Math.round(matchScore)}% Match
+              {Math.round(Number(matchScore ?? 0))}% Match
             </span>
           ) : null}
           <span className="shrink-0 rounded-full border border-[#C9A84C]/30 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
