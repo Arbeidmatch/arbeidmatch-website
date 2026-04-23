@@ -74,8 +74,9 @@ export default function ElectriciansNorwayPage() {
           <article className="rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-7 md:p-9">
             <h2 className="text-2xl font-bold text-white">How ArbeidMatch Helps</h2>
             <p className="mt-4 text-sm leading-relaxed text-white/75 md:text-base">
-              We connect you with Norwegian employers looking for qualified electricians. In many cases, employers cover
-              authorization-related costs. We also help simplify the process by guiding you through each practical step.
+              We connect you with Norwegian employers looking for qualified electricians. Authorization costs are the
+              candidate&apos;s responsibility. We guide you through each step of the process to make it as straightforward as
+              possible.
             </p>
           </article>
         </div>
