@@ -907,7 +907,7 @@ export default function RequestPage() {
                     setAccessStatus("idle");
                     trackPartnerAccessRequest();
                   }}
-                  className="h-14 w-full rounded-xl bg-[#C9A84C] font-semibold text-[#0D1B2A]"
+                  className="h-14 w-full rounded-xl bg-[#C9A84C] text-base font-bold text-[#0D1B2A]"
                 >
                   See who's available
                 </button>
@@ -917,48 +917,11 @@ export default function RequestPage() {
                     setShowWorkTogetherInlineModal(true);
                     setWorkTogetherStatus("idle");
                   }}
-                  className="h-14 w-full rounded-xl border border-white/10 py-3 text-white hover:bg-white/5"
+                  className="h-14 w-full rounded-xl border border-white/20 py-3 text-base font-semibold text-white transition-colors hover:bg-white/5"
                 >
                   Let's work together
                 </button>
               </div>
-
-              <AnimatePresence>
-                {showWorkTogetherInlineModal ? (
-                  <motion.div
-                    initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
-                    transition={{ duration: reduceMotion ? 0 : 0.22 }}
-                    className="mt-4 rounded-2xl border border-[rgba(201,168,76,0.28)] bg-[rgba(255,255,255,0.04)] p-4 text-left"
-                  >
-                    <p className="text-sm font-medium text-white/80">Enter your work email</p>
-                    <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                      <input
-                        type="email"
-                        value={workTogetherEmail}
-                        onChange={(event) => setWorkTogetherEmail(event.target.value)}
-                        placeholder="you@company.com"
-                        className="h-12 w-full rounded-xl border border-white/15 bg-[#0D1B2A] px-4 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#C9A84C]/60"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => void submitWorkTogetherEmail()}
-                        disabled={workTogetherStatus === "submitting" || !workTogetherEmail.includes("@")}
-                        className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-[#C9A84C] px-5 text-sm font-bold text-[#0D1B2A] disabled:opacity-60 sm:w-auto"
-                      >
-                        {workTogetherStatus === "submitting" ? "Sending..." : "Send me the link"}
-                      </button>
-                    </div>
-                    {workTogetherStatus === "success" ? (
-                      <p className="mt-3 text-sm text-[#C9A84C]">Check your inbox - we&apos;ve sent you a secure link to get started.</p>
-                    ) : null}
-                    {workTogetherStatus === "error" ? (
-                      <p className="mt-3 text-sm text-red-300">Could not send the link right now. Please try again.</p>
-                    ) : null}
-                  </motion.div>
-                ) : null}
-              </AnimatePresence>
 
               <button
                 type="button"
@@ -974,6 +937,65 @@ export default function RequestPage() {
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {showWorkTogetherInlineModal ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D1B2A]/95 px-4 backdrop-blur-md"
+            onClick={(event) => {
+              if (event.target !== event.currentTarget) return;
+              setShowWorkTogetherInlineModal(false);
+            }}
+          >
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={reduceMotion ? undefined : { opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-8"
+            >
+              <button
+                type="button"
+                aria-label="Close work together modal"
+                onClick={() => setShowWorkTogetherInlineModal(false)}
+                className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-md text-white/40 transition-colors hover:text-white"
+              >
+                <span className="text-lg leading-none">x</span>
+              </button>
+              <h3 className="text-2xl font-bold text-white">Let&apos;s work together</h3>
+              <p className="mt-3 text-sm leading-relaxed text-white/65">
+                Enter your work email and we&apos;ll send you a secure link to get started.
+              </p>
+              <div className="mt-5 space-y-3">
+                <input
+                  type="email"
+                  value={workTogetherEmail}
+                  onChange={(event) => setWorkTogetherEmail(event.target.value)}
+                  placeholder="Enter your work email"
+                  className="h-12 w-full rounded-xl border border-white/15 bg-[#0D1B2A] px-4 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#C9A84C]/60"
+                />
+                <button
+                  type="button"
+                  onClick={() => void submitWorkTogetherEmail()}
+                  disabled={workTogetherStatus === "submitting" || !workTogetherEmail.includes("@")}
+                  className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-[#C9A84C] px-5 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
+                >
+                  {workTogetherStatus === "submitting" ? "Sending..." : "Send me the link"}
+                </button>
+              </div>
+              {workTogetherStatus === "success" ? (
+                <p className="mt-3 text-sm text-[#C9A84C]">Check your inbox - we&apos;ve sent you a secure link to get started.</p>
+              ) : null}
+              {workTogetherStatus === "error" ? (
+                <p className="mt-3 text-sm text-red-300">Could not send the link right now. Please try again.</p>
+              ) : null}
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       {showNonPartnerOptions && (
         <div className="request-options-overlay">
