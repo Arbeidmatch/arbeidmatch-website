@@ -594,21 +594,31 @@ export default function RequestPage() {
         )}
 
         {checkState === "searching" && (
-          <div className="flex flex-col items-center py-10 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
-            <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
-            <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-[#C9A84C]" />
-            <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
-          </div>
+          <>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D1B2A] p-4 md:hidden">
+              <div className="flex w-full max-w-lg flex-col items-center rounded-2xl border border-white/10 bg-white/5 p-10 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
+                <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
+                <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-[#C9A84C]" />
+                <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
+              </div>
+            </div>
+            <div className="hidden flex-col items-center py-10 text-center md:flex">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
+              <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
+              <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-[#C9A84C]" />
+              <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
+            </div>
+          </>
         )}
 
         {checkState === "result" && (
-          <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D1B2A] p-4 md:static md:min-h-[60vh] md:bg-transparent">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
-              className="mx-auto w-[90%] max-w-lg rounded-2xl border border-white/10 bg-white/5 p-10 text-center"
+              className="mx-auto w-full max-w-lg rounded-2xl border border-white/10 bg-white/5 p-10 text-center md:w-[90%]"
             >
               <div className="mt-5 inline-flex rounded-full bg-[#C9A84C]/10 px-3 py-1 text-xs font-semibold tracking-widest text-[#C9A84C]">
                 PARTNER ACCESS
