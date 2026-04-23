@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, Bolt, Check, Clock, Factory, Handshake, HardHat, HeartPulse, Search, Sparkles, Star, TrendingUp, Truck } from "lucide-react";
+import { ArrowLeft, Bolt, Check, Clock, Factory, Handshake, HardHat, HeartPulse, Search, Sparkles, TrendingUp, Truck } from "lucide-react";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
 
@@ -579,8 +579,6 @@ export default function RequestPage() {
               transition={{ duration: 0.4, ease: "easeOut" }}
               className="mx-auto w-[90%] max-w-lg rounded-2xl border border-white/10 bg-white/5 p-10 text-center"
             >
-              <Star className="mx-auto h-10 w-10 text-[#C9A84C]" aria-hidden />
-              <div className="mx-auto mt-4 h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-[#C9A84C]" />
               <div className="mt-5 inline-flex rounded-full bg-[#C9A84C]/10 px-3 py-1 text-xs font-semibold tracking-widest text-[#C9A84C]">
                 PARTNER ACCESS
               </div>
@@ -602,9 +600,7 @@ export default function RequestPage() {
                 </motion.div>
               ) : null}
               <h2 className="mt-5 text-center text-2xl font-bold text-white">{(searchTerm.trim() || "ROLE").toUpperCase()}</h2>
-              <p className="mt-2 text-center text-sm text-white/60">
-                This position is currently available for ArbeidMatch partners only.
-              </p>
+              <p className="mt-2 text-center text-sm text-white/60">Viewing available candidates for this role is a partner-only feature.</p>
 
               <div className="mt-8 flex flex-col gap-3">
                 <button
