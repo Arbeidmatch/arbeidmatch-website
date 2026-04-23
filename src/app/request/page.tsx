@@ -563,7 +563,7 @@ export default function RequestPage() {
           <div className="flex flex-col items-center py-10 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
             <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
-            <div className="am-logo-shimmer-a" aria-hidden>
+            <div className="am-logo-a" aria-hidden>
               A
             </div>
             <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
@@ -579,6 +579,9 @@ export default function RequestPage() {
               className="mx-auto w-[90%] max-w-lg rounded-2xl border border-white/10 bg-white/5 p-10 text-center"
             >
               <Star className="mx-auto h-10 w-10 text-[#C9A84C]" aria-hidden />
+              <div className="mt-4 am-logo-a am-logo-a-complete" aria-hidden>
+                A
+              </div>
               <div className="mt-5 inline-flex rounded-full bg-[#C9A84C]/10 px-3 py-1 text-xs font-semibold tracking-widest text-[#C9A84C]">
                 PARTNER ACCESS
               </div>
