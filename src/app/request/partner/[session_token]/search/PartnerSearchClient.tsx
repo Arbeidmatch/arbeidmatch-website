@@ -169,8 +169,6 @@ export default function PartnerSearchClient({ session_token }: Props) {
       try {
         const res = await fetch(`/api/verify-partner-session?token=${encodeURIComponent(sessionToken)}`);
         const data = (await res.json()) as SessionCheck;
-        // TEMP debug — remove after investigating partner session validation
-        console.log("[PartnerSearchClient verify-partner-session]", sessionToken, { ok: res.ok, body: data });
         if (res.ok && data.valid) {
           setSessionState("ready");
           return;

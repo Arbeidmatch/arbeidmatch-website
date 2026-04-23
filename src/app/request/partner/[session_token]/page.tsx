@@ -139,6 +139,14 @@ export default function PartnerSessionPage() {
       <header className="shrink-0 text-center">
         <h1 className="text-2xl font-bold tracking-tight text-white">Find Candidates</h1>
         <p className="mt-1 text-sm text-white/40">Choose how to search</p>
+        {requestContext?.role || requestContext?.industry ? (
+          <p className="mt-4 text-pretty text-sm leading-relaxed text-[#C9A84C]/90">
+            Showing results for{" "}
+            <span className="font-semibold text-white">{requestContext.role || "your role"}</span>
+            {" in "}
+            <span className="font-semibold text-white">{requestContext.industry || "your sector"}</span>
+          </p>
+        ) : null}
       </header>
 
       <motion.div
