@@ -1,67 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { SlidersHorizontal, Zap } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Check, SlidersHorizontal, Zap } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 type SessionCheck = {
   valid: boolean;
   reason?: "expired" | "invalid";
 };
 
-type CandidateCard = {
-  candidateId: string;
-  initials: string;
-  category: string;
-  experienceYears: number;
-  compatibilityScore: number;
-};
+type SelectableMode = "quick" | "custom";
 
-type MonetizationPayload = {
-  tier?: "growth_scale" | "alert_subscriber" | "free";
-  delay_hours?: number;
-  slots_used?: number;
-  slots_max?: number;
-  alert_full?: boolean;
-  full_message?: string | null;
-  campaign_message?: string | null;
-};
-
-type FilterState = {
-  jobCategory: string;
-  experienceMin: string;
-  experienceMax: string;
-  drivingLicense: boolean;
-  language: string;
-  availability: string;
-};
-
-type Mode = "quick" | "custom";
-
-const DEFAULT_FILTERS: FilterState = {
-  jobCategory: "",
-  experienceMin: "",
-  experienceMax: "",
-  drivingLicense: false,
-  language: "",
-  availability: "",
+const cardVariants = {
+  hidden: { opacity: 0, y: 14 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.36, ease: [0.16, 1, 0.3, 1] as const },
+  },
 };
 
 export default function PartnerSessionPage() {
   const { session_token } = useParams<{ session_token: string }>();
+  const router = useRouter();
+  const reduce = useReducedMotion();
+  const listVariants = useMemo(
+    () => ({
+      hidden: {},
+      visible: {
+        transition: { staggerChildren: reduce ? 0 : 0.1 },
+      },
+    }),
+    [reduce],
+  );
   const [state, setState] = useState<"loading" | "ready" | "expired" | "invalid">("loading");
-  const [mode, setMode] = useState<Mode>("quick");
-  const [quickLoading, setQuickLoading] = useState(false);
-  const [quickResults, setQuickResults] = useState<CandidateCard[]>([]);
-  const [customFilters, setCustomFilters] = useState<FilterState>(DEFAULT_FILTERS);
-  const [customResults, setCustomResults] = useState<CandidateCard[]>([]);
-  const [customLoading, setCustomLoading] = useState(false);
-  const [requestingIds, setRequestingIds] = useState<Record<string, boolean>>({});
-  const [requestedIds, setRequestedIds] = useState<Record<string, boolean>>({});
-  const [feedback, setFeedback] = useState<string | null>(null);
-  const [monetization, setMonetization] = useState<MonetizationPayload | null>(null);
-  const [referralUrl, setReferralUrl] = useState("");
+  const [selectedMode, setSelectedMode] = useState<SelectableMode | null>(null);
 
   useEffect(() => {
     const run = async () => {
@@ -84,119 +59,11 @@ export default function PartnerSessionPage() {
     void run();
   }, [session_token]);
 
-  const activeResults = mode === "quick" ? quickResults : customResults;
-  const isActiveLoading = mode === "quick" ? quickLoading : customLoading;
-
-  async function runQuickMatch() {
-    setQuickLoading(true);
-    setFeedback(null);
-    try {
-      const response = await fetch("/api/partner/quick-match", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_token }),
-      });
-      const payload = (await response.json().catch(() => null)) as
-        | { candidates?: CandidateCard[]; error?: string; monetization?: MonetizationPayload }
-        | null;
-      if (!response.ok) {
-        setFeedback(payload?.error || "Quick Match failed.");
-        if (payload?.monetization) setMonetization(payload.monetization);
-        return;
-      }
-      setQuickResults(payload?.candidates || []);
-      if (payload?.monetization) setMonetization(payload.monetization);
-    } finally {
-      setQuickLoading(false);
-    }
-  }
-
-  async function loadReferralLink() {
-    try {
-      const res = await fetch("/api/partner/referral-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_token }),
-      });
-      const payload = (await res.json().catch(() => null)) as { invite_url?: string } | null;
-      if (res.ok && payload?.invite_url) {
-        setReferralUrl(payload.invite_url);
-      }
-    } catch {
-      // ignore non-blocking referral link errors
-    }
-  }
-
-  useEffect(() => {
-    if (mode !== "custom" || state !== "ready") return;
-    const t = window.setTimeout(async () => {
-      setCustomLoading(true);
-      try {
-        const response = await fetch("/api/partner/custom-search", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            session_token,
-            jobCategory: customFilters.jobCategory || undefined,
-            experienceMin: customFilters.experienceMin ? Number(customFilters.experienceMin) : undefined,
-            experienceMax: customFilters.experienceMax ? Number(customFilters.experienceMax) : undefined,
-            drivingLicense: customFilters.drivingLicense,
-            language: customFilters.language || undefined,
-            availability: customFilters.availability || undefined,
-          }),
-        });
-        const payload = (await response.json().catch(() => null)) as
-          | { candidates?: CandidateCard[]; monetization?: MonetizationPayload }
-          | null;
-        if (response.ok) {
-          setCustomResults(payload?.candidates || []);
-          if (payload?.monetization) setMonetization(payload.monetization);
-        }
-      } finally {
-        setCustomLoading(false);
-      }
-    }, 300);
-
-    return () => window.clearTimeout(t);
-  }, [customFilters, mode, session_token, state]);
-
-  useEffect(() => {
-    if (state !== "ready") return;
-    void loadReferralLink();
-  }, [state, session_token]);
-
-  async function requestFullProfile(candidateId: string) {
-    if (requestingIds[candidateId] || requestedIds[candidateId]) return;
-    setRequestingIds((prev) => ({ ...prev, [candidateId]: true }));
-    setFeedback(null);
-    try {
-      const partnerDomain = typeof window !== "undefined" ? window.location.hostname : "arbeidmatch.no";
-      const response = await fetch("/api/candidate-interest", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-session-token": session_token,
-        },
-        body: JSON.stringify({
-          candidateId,
-          role: mode === "quick" ? "Quick Match Request" : "Custom Search Request",
-          partnerDomain,
-        }),
-      });
-      if (response.ok) {
-        setRequestedIds((prev) => ({ ...prev, [candidateId]: true }));
-        setFeedback("Request sent. Our team will review and follow up on post@arbeidmatch.no.");
-      } else {
-        setFeedback("Could not send request right now.");
-      }
-    } finally {
-      setRequestingIds((prev) => ({ ...prev, [candidateId]: false }));
-    }
-  }
-
-  function updateFilter<Key extends keyof FilterState>(key: Key, value: FilterState[Key]) {
-    setCustomFilters((prev) => ({ ...prev, [key]: value }));
-  }
+  const goSearch = () => {
+    if (!selectedMode) return;
+    const mode = selectedMode === "quick" ? "quick_match" : "custom_search";
+    router.push(`/request/partner/${encodeURIComponent(session_token)}/search?mode=${mode}`);
+  };
 
   if (state === "loading") {
     return (
@@ -240,153 +107,96 @@ export default function PartnerSessionPage() {
     );
   }
 
+  const tapProps = reduce ? {} : { whileHover: { scale: 1.02 }, whileTap: { scale: 0.98 } };
+
   return (
-    <section className="min-h-screen bg-[#0D1B2A] px-4 py-12 text-white md:px-8">
-      <div className="mx-auto max-w-[1200px]">
-        <h1 className="text-3xl font-bold text-white">Find Candidates</h1>
-        <p className="mt-3 text-white/75">Choose how you want to discover anonymized candidate profiles.</p>
-        <div className="mt-4 rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 py-3 text-sm text-[#f3dba0]">
-          Limited time: 3 alerts free for March.
-          <span className="ml-2 text-white/80">Upgrade to Growth/Scale for instant alert access and priority slots.</span>
-        </div>
-        {referralUrl ? (
-          <div className="mt-3 rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm text-white/80">
-            <p className="font-semibold text-white">Referral bonus: Get 1 free alert for 1 month.</p>
-            <p className="mt-1 break-all text-white/70">{referralUrl}</p>
-          </div>
-        ) : null}
+    <section className="flex min-h-[100dvh] flex-col bg-[#0D1B2A] px-4 pb-8 pt-10 text-white md:mx-auto md:max-w-lg md:px-6 md:pt-12">
+      <header className="shrink-0 text-center">
+        <h1 className="text-2xl font-bold tracking-tight text-white">Find Candidates</h1>
+        <p className="mt-1 text-sm text-white/40">Choose how to search</p>
+      </header>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setMode("quick")}
-            className={`rounded-2xl border p-6 text-left transition ${
-              mode === "quick" ? "border-[#C9A84C] bg-[#C9A84C]/10" : "border-white/15 bg-white/[0.04] hover:border-white/30"
-            }`}
-          >
-            <Zap className="h-8 w-8 text-[#C9A84C]" />
-            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Quick Match</p>
-            <h2 className="mt-3 text-xl font-semibold text-white">Get matched automatically</h2>
-            <p className="mt-2 text-sm text-white/70">Receive candidates with 80%+ compatibility score based on your requirements</p>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("custom")}
-            className={`rounded-2xl border p-6 text-left transition ${
-              mode === "custom" ? "border-[#C9A84C] bg-[#C9A84C]/10" : "border-white/15 bg-white/[0.04] hover:border-white/30"
-            }`}
-          >
-            <SlidersHorizontal className="h-8 w-8 text-[#C9A84C]" />
-            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Custom Search</p>
-            <h2 className="mt-3 text-xl font-semibold text-white">Define your own criteria</h2>
-            <p className="mt-2 text-sm text-white/70">Filter candidates manually by skills, experience, location and more</p>
-          </button>
-        </div>
-
-        {mode === "quick" ? (
-          <div className="mt-6 rounded-2xl border border-white/15 bg-white/[0.04] p-5">
-            <button
-              type="button"
-              onClick={() => void runQuickMatch()}
-              disabled={quickLoading}
-              className="inline-flex rounded-xl bg-[#C9A84C] px-5 py-3 text-sm font-semibold text-[#0D1B2A] disabled:opacity-60"
+      <motion.div
+        className="mt-10 flex flex-1 flex-col gap-4"
+        variants={listVariants}
+        initial={reduce ? "visible" : "hidden"}
+        animate="visible"
+      >
+        <motion.button
+          type="button"
+          variants={cardVariants}
+          onClick={() => setSelectedMode("quick")}
+          className={`relative w-full rounded-2xl border p-6 text-left transition-colors duration-200 ${
+            selectedMode === "quick"
+              ? "border-[#C9A84C] bg-[#C9A84C]/10"
+              : "border-white/12 bg-white/[0.04] hover:border-white/22"
+          }`}
+          {...tapProps}
+        >
+          {selectedMode === "quick" ? (
+            <motion.span
+              initial={reduce ? false : { scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 520, damping: 22 }}
+              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-[#C9A84C] text-[#0D1B2A]"
+              aria-hidden
             >
-              {quickLoading ? "Matching..." : "Start Quick Match"}
-            </button>
-          </div>
-        ) : (
-          <div className="mt-6 rounded-2xl border border-white/15 bg-white/[0.04] p-5">
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <input
-                value={customFilters.jobCategory}
-                onChange={(e) => updateFilter("jobCategory", e.target.value)}
-                placeholder="Job category"
-                className="rounded-lg border border-white/20 bg-[#0A1624] px-3 py-2 text-sm text-white placeholder:text-white/40"
-              />
-              <input
-                type="number"
-                value={customFilters.experienceMin}
-                onChange={(e) => updateFilter("experienceMin", e.target.value)}
-                placeholder="Experience min (years)"
-                className="rounded-lg border border-white/20 bg-[#0A1624] px-3 py-2 text-sm text-white placeholder:text-white/40"
-              />
-              <input
-                type="number"
-                value={customFilters.experienceMax}
-                onChange={(e) => updateFilter("experienceMax", e.target.value)}
-                placeholder="Experience max (years)"
-                className="rounded-lg border border-white/20 bg-[#0A1624] px-3 py-2 text-sm text-white placeholder:text-white/40"
-              />
-              <input
-                value={customFilters.language}
-                onChange={(e) => updateFilter("language", e.target.value)}
-                placeholder="Languages"
-                className="rounded-lg border border-white/20 bg-[#0A1624] px-3 py-2 text-sm text-white placeholder:text-white/40"
-              />
-              <input
-                value={customFilters.availability}
-                onChange={(e) => updateFilter("availability", e.target.value)}
-                placeholder="Availability"
-                className="rounded-lg border border-white/20 bg-[#0A1624] px-3 py-2 text-sm text-white placeholder:text-white/40"
-              />
-              <label className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-[#0A1624] px-3 py-2 text-sm text-white/85">
-                <input
-                  type="checkbox"
-                  checked={customFilters.drivingLicense}
-                  onChange={(e) => updateFilter("drivingLicense", e.target.checked)}
-                />
-                Driving license required
-              </label>
-            </div>
-          </div>
-        )}
-
-        {feedback ? <p className="mt-4 text-sm text-[#C9A84C]">{feedback}</p> : null}
-        {monetization?.campaign_message ? <p className="mt-2 text-sm text-white/70">{monetization.campaign_message}</p> : null}
-        {monetization?.tier ? (
-          <p className="mt-1 text-xs text-white/50">
-            Tier: {monetization.tier} · Delay: {monetization.delay_hours ?? 0}h · Slots: {monetization.slots_used ?? 0}/
-            {monetization.slots_max ?? 5}
-          </p>
-        ) : null}
-        {monetization?.alert_full ? <p className="mt-2 text-sm text-[#C9A84C]">{monetization.full_message}</p> : null}
-
-        <div className="mt-8">
-          {isActiveLoading ? <p className="text-white/70">Loading candidates...</p> : null}
-          {!isActiveLoading && activeResults.length === 0 ? (
-            <p className="text-white/70">No candidates found for this selection yet.</p>
+              <Check className="h-4 w-4" strokeWidth={2.5} />
+            </motion.span>
           ) : null}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {activeResults.map((candidate) => {
-              const score = Math.max(0, Math.min(100, candidate.compatibilityScore));
-              return (
-                <article key={candidate.candidateId} className="rounded-2xl border border-white/15 bg-white/[0.04] p-5">
-                  <div className="flex items-center justify-between">
-                    <p className="text-lg font-semibold text-white">{candidate.initials}</p>
-                    <span className="rounded-full bg-[#C9A84C]/20 px-2 py-1 text-xs font-semibold text-[#C9A84C]">{score}%</span>
-                  </div>
-                  <p className="mt-3 text-sm text-white/80">Category: {candidate.category}</p>
-                  <p className="mt-1 text-sm text-white/70">Experience: {candidate.experienceYears} years</p>
-                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
-                    <div className="h-full rounded-full bg-[#C9A84C]" style={{ width: `${score}%` }} />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => void requestFullProfile(candidate.candidateId)}
-                    disabled={requestingIds[candidate.candidateId] || requestedIds[candidate.candidateId]}
-                    className="mt-4 w-full rounded-xl border border-[#C9A84C]/45 bg-transparent px-4 py-2 text-sm font-semibold text-[#C9A84C] disabled:opacity-60"
-                  >
-                    {requestedIds[candidate.candidateId]
-                      ? "Request Sent"
-                      : requestingIds[candidate.candidateId]
-                        ? "Sending..."
-                        : "Request Full Profile"}
-                  </button>
-                </article>
-              );
-            })}
-          </div>
-        </div>
+          <Zap className="text-[#C9A84C]" size={40} strokeWidth={1.35} aria-hidden />
+          <p className="mt-4 text-lg font-bold tracking-tight text-white">Quick Match</p>
+          <p className="mt-1.5 text-sm leading-snug text-white/55">Instant matches. 80%+ compatibility.</p>
+        </motion.button>
+
+        <motion.button
+          type="button"
+          variants={cardVariants}
+          onClick={() => setSelectedMode("custom")}
+          className={`relative w-full rounded-2xl border p-6 text-left transition-colors duration-200 ${
+            selectedMode === "custom"
+              ? "border-[#C9A84C] bg-[#C9A84C]/10"
+              : "border-white/12 bg-white/[0.04] hover:border-white/22"
+          }`}
+          {...tapProps}
+        >
+          {selectedMode === "custom" ? (
+            <motion.span
+              initial={reduce ? false : { scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 520, damping: 22 }}
+              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-[#C9A84C] text-[#0D1B2A]"
+              aria-hidden
+            >
+              <Check className="h-4 w-4" strokeWidth={2.5} />
+            </motion.span>
+          ) : null}
+          <SlidersHorizontal className="text-[#C9A84C]" size={40} strokeWidth={1.35} aria-hidden />
+          <p className="mt-4 text-lg font-bold tracking-tight text-white">Custom Search</p>
+          <p className="mt-1.5 text-sm leading-snug text-white/55">Filter by skills, location, experience.</p>
+        </motion.button>
+      </motion.div>
+
+      <div className="mt-auto shrink-0 space-y-4 pt-10">
+        <AnimatePresence>
+          {selectedMode ? (
+            <motion.button
+              key="start"
+              type="button"
+              onClick={goSearch}
+              initial={reduce ? false : { opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? undefined : { opacity: 0, y: 8 }}
+              transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 26 }}
+              className="w-full rounded-xl bg-[#C9A84C] py-3.5 text-[15px] font-semibold tracking-tight text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
+            >
+              Start →
+            </motion.button>
+          ) : null}
+        </AnimatePresence>
+        <p className="mx-auto w-max rounded-full border border-[#C9A84C]/20 bg-[#C9A84C]/15 px-3 py-1 text-xs font-medium text-[#C9A84C]/95">
+          3 free alerts this month
+        </p>
       </div>
     </section>
   );

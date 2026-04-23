@@ -3,7 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { SlidersHorizontal, Zap } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 
 type Mode = "quick_match" | "custom_search";
 
@@ -91,9 +92,16 @@ function ResultCard({
 
 export default function PartnerSearchClient({ session_token }: Props) {
   const sessionToken = session_token;
+  const searchParams = useSearchParams();
 
   const [sessionState, setSessionState] = useState<"loading" | "ready" | "expired" | "invalid">("loading");
   const [mode, setMode] = useState<Mode>("quick_match");
+
+  useLayoutEffect(() => {
+    const p = searchParams.get("mode");
+    if (p === "custom_search") setMode("custom_search");
+    else setMode("quick_match");
+  }, [searchParams]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [results, setResults] = useState<CandidateResult[]>([]);
