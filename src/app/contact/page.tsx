@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import PremiumDropdown from "@/components/ui/premium/PremiumDropdown";
+import PremiumInputField from "@/components/ui/premium/PremiumInputField";
 
 type UserType = "employer" | "candidate" | null;
 type FormErrors = {
@@ -22,15 +24,6 @@ type SubjectOption = (typeof EMPLOYER_SUBJECTS)[number] | (typeof CANDIDATE_SUBJ
 const NEUTRAL_SUBJECTS: SubjectOption[] = Array.from(new Set<SubjectOption>([...EMPLOYER_SUBJECTS, ...CANDIDATE_SUBJECTS]));
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function inputClasses(hasError: boolean): string {
-  return [
-    "w-full rounded-xl border bg-[#0A1624] px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none transition",
-    hasError
-      ? "border-red-400/80 focus:border-red-300"
-      : "border-white/15 focus:border-[#C9A84C]/60",
-  ].join(" ");
-}
 
 export default function ContactPage() {
   const [userType, setUserType] = useState<UserType>(null);
@@ -133,69 +126,64 @@ export default function ContactPage() {
 
         <form onSubmit={handleSubmit} className="mt-6 rounded-2xl border border-white/15 bg-white/[0.04] p-6 md:p-8">
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="text-sm text-white/80">
-              Name
-              <input
+            <div>
+              <PremiumInputField
+                label="Name"
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
+                onChange={(next) => {
+                  setName(next);
                   if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
                 }}
-                className={`${inputClasses(Boolean(errors.name))} mt-1.5`}
                 placeholder="Your full name"
+                className={errors.name ? "border-red-400/80 focus-within:border-red-300 focus-within:shadow-none" : ""}
               />
               {errors.name ? <span className="mt-1 block text-xs text-red-300">{errors.name}</span> : null}
-            </label>
+            </div>
 
-            <label className="text-sm text-white/80">
-              Email
-              <input
+            <div>
+              <PremiumInputField
+                label="Email"
                 type="email"
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
+                onChange={(next) => {
+                  setEmail(next);
                   if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
-                className={`${inputClasses(Boolean(errors.email))} mt-1.5`}
                 placeholder="name@example.com"
+                className={errors.email ? "border-red-400/80 focus-within:border-red-300 focus-within:shadow-none" : ""}
               />
               {errors.email ? <span className="mt-1 block text-xs text-red-300">{errors.email}</span> : null}
-            </label>
+            </div>
           </div>
 
-          <label className="mt-4 block text-sm text-white/80">
-            Subject
-            <select
+          <div className="mt-4">
+            <p className="mb-1.5 text-sm text-white/80">Subject</p>
+            <PremiumDropdown
               value={subject}
-              onChange={(e) => {
-                setSubject(e.target.value as SubjectOption);
+              onChange={(next) => {
+                setSubject(next as SubjectOption);
                 if (errors.subject) setErrors((prev) => ({ ...prev, subject: undefined }));
               }}
-              className={`${inputClasses(Boolean(errors.subject))} mt-1.5`}
-            >
-              {subjectOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+              options={subjectOptions.map((option) => ({ value: option, label: option }))}
+            />
             {errors.subject ? <span className="mt-1 block text-xs text-red-300">{errors.subject}</span> : null}
-          </label>
+          </div>
 
-          <label className="mt-4 block text-sm text-white/80">
-            Message
-            <textarea
+          <div className="mt-4">
+            <PremiumInputField
+              multiline
+              rows={7}
+              label="Message"
               value={message}
-              onChange={(e) => {
-                setMessage(e.target.value);
+              onChange={(next) => {
+                setMessage(next);
                 if (errors.message) setErrors((prev) => ({ ...prev, message: undefined }));
               }}
-              rows={7}
-              className={`${inputClasses(Boolean(errors.message))} mt-1.5 min-h-[150px]`}
               placeholder="Describe your request in as much detail as possible."
+              className={`min-h-[150px] ${errors.message ? "border-red-400/80 focus-within:border-red-300 focus-within:shadow-none" : ""}`}
             />
             {errors.message ? <span className="mt-1 block text-xs text-red-300">{errors.message}</span> : null}
-          </label>
+          </div>
 
           <button
             type="submit"

@@ -64,6 +64,30 @@ const SEARCH_MESSAGES = [
 ];
 
 const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "live.com", "msn.com"]);
+const slideVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 1000 : -1000,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 300,
+      damping: 30,
+    },
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? 1000 : -1000,
+    opacity: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 300,
+      damping: 30,
+    },
+  }),
+};
 
 export default function RequestPage() {
   const router = useRouter();
@@ -110,6 +134,8 @@ export default function RequestPage() {
   const [partnerApplicationEmail, setPartnerApplicationEmail] = useState("");
   const [partnerApplicationStatus, setPartnerApplicationStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [partnerApplicationError, setPartnerApplicationError] = useState("");
+  const [flowDirection, setFlowDirection] = useState(1);
+  const [optionsDirection, setOptionsDirection] = useState(1);
   const reduceMotion = useReducedMotion();
   const hasMountedHistoryGuard = useRef(false);
   const allowNextNavigationRef = useRef(false);
@@ -160,6 +186,7 @@ export default function RequestPage() {
     setNotifyEmail("");
     setNotifyStatus("idle");
     setResultAction("none");
+    setFlowDirection(1);
     setCheckState("searching");
     setSearchMessageIndex(0);
     rareProfileTrackedRef.current = false;
@@ -170,6 +197,7 @@ export default function RequestPage() {
     for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
     setCheckCount((hash % 36) + 12);
     setShowAccessCheck(true);
+    setFlowDirection(1);
     setCheckState("result");
     trackRequestStepComplete(1, analyticsCategory);
   };
@@ -274,6 +302,7 @@ export default function RequestPage() {
 
   const handleAvailabilityBack = () => {
     if (selectedIndustry) {
+      setFlowDirection(-1);
       setSelectedIndustry("");
       setRoleQuery("");
       return;
@@ -283,6 +312,7 @@ export default function RequestPage() {
 
   const backToRoleSearch = () => {
     candidateSearchGenerationRef.current += 1;
+    setFlowDirection(-1);
     setCheckState("idle");
     setSearchTerm("");
     setCheckCount(0);
@@ -297,6 +327,7 @@ export default function RequestPage() {
   const resetToFirstStep = () => {
     candidateSearchGenerationRef.current += 1;
     setShowLeaveDialog(false);
+    setFlowDirection(-1);
     setCheckState("idle");
     setSelectedIndustry("");
     setRoleQuery("");
@@ -483,23 +514,25 @@ export default function RequestPage() {
               Back
             </button>
             <h1 className="text-2xl font-bold">Check candidate availability</h1>
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" custom={flowDirection}>
               {!selectedIndustry ? (
                 <motion.div
                   key="industry-grid"
                   className="mt-5"
-                  initial={reduceMotion ? false : { opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
-                  transition={{ duration: reduceMotion ? 0 : 0.2, ease: EASE_PREMIUM }}
+                  custom={flowDirection}
+                  variants={slideVariants}
+                  initial={reduceMotion ? false : "enter"}
+                  animate="center"
+                  exit={reduceMotion ? undefined : "exit"}
                 >
                   <div className="lg:hidden">
                     <div className="relative">
                       <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                       <select
-                        className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-white placeholder:text-white/30 outline-none ring-0 transition-colors duration-200 focus:border-[#C9A84C]/60"
+                        className="w-full rounded-xl border border-white/10 bg-[#0D1B2A] py-3 pl-11 pr-4 text-white placeholder:text-white/30 outline-none ring-0 transition-[border,box-shadow] duration-200 focus:border-[#C9A84C]/60 focus:shadow-[0_0_0_3px_rgba(201,168,76,0.14)]"
                         value={selectedIndustry}
                         onChange={(event) => {
+                          setFlowDirection(1);
                           setSelectedIndustry(event.target.value);
                           setRoleQuery("");
                         }}
@@ -533,6 +566,7 @@ export default function RequestPage() {
                           key={industry}
                           type="button"
                           onClick={() => {
+                            setFlowDirection(1);
                             setSelectedIndustry(industry);
                             setRoleQuery("");
                           }}
@@ -581,10 +615,11 @@ export default function RequestPage() {
                 <motion.div
                   key="role-search"
                   className="mx-auto mt-5 w-full max-w-2xl"
-                  initial={reduceMotion ? false : { opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
-                  transition={{ duration: reduceMotion ? 0 : 0.2, ease: EASE_PREMIUM }}
+                  custom={flowDirection}
+                  variants={slideVariants}
+                  initial={reduceMotion ? false : "enter"}
+                  animate="center"
+                  exit={reduceMotion ? undefined : "exit"}
                 >
                   <h2 className="text-xl font-semibold text-white">Select a Role</h2>
                   <p className="mt-1 text-sm text-white/50">Type to search or choose from the list below</p>
@@ -594,6 +629,7 @@ export default function RequestPage() {
                       <button
                         type="button"
                         onClick={() => {
+                          setFlowDirection(-1);
                           setSelectedIndustry("");
                           setRoleQuery("");
                         }}
@@ -609,7 +645,7 @@ export default function RequestPage() {
                         value={roleQuery}
                         onChange={(event) => setRoleQuery(event.target.value)}
                         placeholder="Search for a role..."
-                        className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-white placeholder:text-white/30 outline-none ring-0 transition-colors duration-200 focus:border-[#C9A84C]/60"
+                        className="w-full rounded-xl border border-white/10 bg-[#0D1B2A] py-3 pl-11 pr-4 text-white placeholder:text-white/30 outline-none ring-0 transition-[border,box-shadow] duration-200 focus:border-[#C9A84C]/60 focus:shadow-[0_0_0_3px_rgba(201,168,76,0.14)]"
                       />
                     </div>
                   </div>
@@ -737,15 +773,16 @@ export default function RequestPage() {
       {showNonPartnerOptions && (
         <div className="request-options-overlay">
           <div className="request-options-panel flex min-h-[100dvh] w-full flex-col items-center justify-center px-5 py-12">
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" custom={optionsDirection}>
               {selectedOption == null ? (
                 <motion.div
                   key="access-options"
                   className="w-full max-w-[1200px]"
-                  initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
-                  transition={{ duration: reduceMotion ? 0 : 0.26, ease: EASE_PREMIUM }}
+                  custom={optionsDirection}
+                  variants={slideVariants}
+                  initial={reduceMotion ? false : "enter"}
+                  animate="center"
+                  exit={reduceMotion ? undefined : "exit"}
                 >
                   <p className="text-center text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Choose access option</p>
                   <h2 className="mt-3 text-center text-[24px] font-bold text-white">How would you like to continue?</h2>
@@ -755,92 +792,108 @@ export default function RequestPage() {
                   <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
 
                   <div className="request-options-container grid grid-cols-2 gap-4 lg:grid-cols-4">
-                    <article className="request-option-card flex min-h-[480px] flex-col text-left">
-                      <div className="w-full">
-                        <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">7 days free</span>
+                    <article className="flex min-h-[520px] flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
+                      <div className="flex flex-1 flex-col">
+                        <div className="w-full">
+                          <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">7 days free</span>
+                        </div>
+                        <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
+                          <Clock className="h-5 w-5 shrink-0 text-[#C9A84C]" />
+                        </div>
+                        <p className="mt-4 text-[18px] font-bold text-white">Coming Soon</p>
+                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">We&apos;re building this feature. Join the waitlist.</p>
+                        <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />1 candidate request</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Anonymous presentation preview</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />No contact details</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />No commitment</li>
+                        </ul>
                       </div>
-                      <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
-                        <Clock className="h-5 w-5 shrink-0 text-[#C9A84C]" />
+                      <div className="mt-6">
+                        <button
+                          type="button"
+                          disabled
+                          className="inline-flex h-12 w-full cursor-not-allowed items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/30"
+                        >
+                          Coming Soon
+                        </button>
                       </div>
-                      <p className="mt-4 text-[18px] font-bold text-white">Coming Soon</p>
-                      <p className="mt-1 text-sm font-semibold text-[#C9A84C]">We&apos;re building this feature. Join the waitlist.</p>
-                      <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />1 candidate request</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Anonymous presentation preview</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />No contact details</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />No commitment</li>
-                      </ul>
-                      <button
-                        type="button"
-                        disabled
-                        className="mt-auto inline-flex h-12 w-full cursor-not-allowed items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/30"
-                      >
-                        Coming Soon
-                      </button>
                     </article>
 
-                    <article className="request-option-card flex min-h-[480px] flex-col text-left">
-                      <div className="w-full">
-                        <span className="inline-flex rounded-full bg-[#C9A84C] px-2.5 py-1 text-[11px] font-semibold text-[#0D1B2A]">Most Popular</span>
+                    <article className="flex min-h-[520px] flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
+                      <div className="flex flex-1 flex-col">
+                        <div className="w-full">
+                          <span className="inline-flex rounded-full bg-[#C9A84C] px-2.5 py-1 text-[11px] font-semibold text-[#0D1B2A]">Most Popular</span>
+                        </div>
+                        <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
+                          <TrendingUp className="h-5 w-5 shrink-0 text-[#C9A84C]" />
+                        </div>
+                        <p className="mt-4 text-[18px] font-bold text-white">Professional Presentations</p>
+                        <p className="mt-1 text-sm text-white/70">Matched candidate presentations tailored to your role</p>
+                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">1,499 NOK/month</p>
+                        <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Presentations: 5/month</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Quick Match: 3x/month</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />2 active job posts</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority-ready delivery format</li>
+                        </ul>
                       </div>
-                      <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
-                        <TrendingUp className="h-5 w-5 shrink-0 text-[#C9A84C]" />
+                      <div className="mt-6">
+                        <Link href="/pricing" className="inline-flex h-12 w-full items-center justify-center rounded-[10px] bg-[linear-gradient(135deg,#C9A84C,#b8953f)] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] transition-[filter,transform] duration-200 hover:scale-[1.02] hover:brightness-105">
+                          Get Started
+                        </Link>
                       </div>
-                      <p className="mt-4 text-[18px] font-bold text-white">Professional Presentations</p>
-                      <p className="mt-1 text-sm text-white/70">Matched candidate presentations tailored to your role</p>
-                      <p className="mt-1 text-sm font-semibold text-[#C9A84C]">1,499 NOK/month</p>
-                      <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Presentations: 5/month</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Quick Match: 3x/month</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />2 active job posts</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority-ready delivery format</li>
-                      </ul>
-                      <Link href="/pricing" className="mt-auto inline-flex h-12 w-full items-center justify-center rounded-[10px] bg-[linear-gradient(135deg,#C9A84C,#b8953f)] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] transition-[filter,transform] duration-200 hover:scale-[1.02] hover:brightness-105">
-                        Get Started
-                      </Link>
                     </article>
 
-                    <article className="request-option-card flex min-h-[480px] flex-col text-left">
-                      <div className="w-full">
-                        <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">Scale</span>
+                    <article className="flex min-h-[520px] flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
+                      <div className="flex flex-1 flex-col">
+                        <div className="w-full">
+                          <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">Scale</span>
+                        </div>
+                        <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
+                          <Bolt className="h-5 w-5 shrink-0 text-[#C9A84C]" />
+                        </div>
+                        <p className="mt-4 text-[18px] font-bold text-white">Professional Presentations Unlimited</p>
+                        <p className="mt-1 text-sm text-white/70">Unlimited matched presentations with priority processing</p>
+                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">3,999 NOK/month</p>
+                        <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Presentations unlimited</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority Matching</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Unlimited job posts</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority processing</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Quick Match unlimited</li>
+                        </ul>
                       </div>
-                      <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
-                        <Bolt className="h-5 w-5 shrink-0 text-[#C9A84C]" />
+                      <div className="mt-6">
+                        <Link href="/pricing" className="inline-flex h-12 w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
+                          Get Started
+                        </Link>
                       </div>
-                      <p className="mt-4 text-[18px] font-bold text-white">Professional Presentations Unlimited</p>
-                      <p className="mt-1 text-sm text-white/70">Unlimited matched presentations with priority processing</p>
-                      <p className="mt-1 text-sm font-semibold text-[#C9A84C]">3,999 NOK/month</p>
-                      <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Presentations unlimited</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority Matching</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Unlimited job posts</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority processing</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Quick Match unlimited</li>
-                      </ul>
-                      <Link href="/pricing" className="mt-auto inline-flex h-12 w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
-                        Get Started
-                      </Link>
                     </article>
 
-                    <article className="request-option-card flex min-h-[480px] flex-col text-left">
-                      <div className="w-full">
-                        <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">For Recruitment Firms</span>
+                    <article className="flex min-h-[520px] flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
+                      <div className="flex flex-1 flex-col">
+                        <div className="w-full">
+                          <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">For Recruitment Firms</span>
+                        </div>
+                        <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
+                          <Handshake className="h-5 w-5 shrink-0 text-[#C9A84C]" />
+                        </div>
+                        <p className="mt-4 text-[18px] font-bold text-white">Candidate Presentation Service</p>
+                        <p className="mt-1 text-sm text-white/70">Professional presentations with white-label sourcing</p>
+                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">Custom pricing</p>
+                        <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Access to presentation database</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Automated presentation sourcing</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Branded presentations</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Dedicated ATS dashboard</li>
+                        </ul>
                       </div>
-                      <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
-                        <Handshake className="h-5 w-5 shrink-0 text-[#C9A84C]" />
+                      <div className="mt-6">
+                        <Link href="/become-a-partner" className="inline-flex h-12 w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
+                          Apply for Partnership
+                        </Link>
                       </div>
-                      <p className="mt-4 text-[18px] font-bold text-white">Candidate Presentation Service</p>
-                      <p className="mt-1 text-sm text-white/70">Professional presentations with white-label sourcing</p>
-                      <p className="mt-1 text-sm font-semibold text-[#C9A84C]">Custom pricing</p>
-                      <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Access to presentation database</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Automated presentation sourcing</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Branded presentations</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Dedicated ATS dashboard</li>
-                      </ul>
-                      <Link href="/become-a-partner" className="mt-auto inline-flex h-12 w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
-                        Apply for Partnership
-                      </Link>
                     </article>
                   </div>
 
@@ -848,6 +901,7 @@ export default function RequestPage() {
                     <button
                       type="button"
                       onClick={() => {
+                        setOptionsDirection(-1);
                         setResultAction("none");
                         setSelectedOption(null);
                         setNotifyStatus("idle");
@@ -863,10 +917,11 @@ export default function RequestPage() {
                 <motion.div
                   key="waitlist-single"
                   className="flex w-full max-w-[440px] flex-col items-stretch"
-                  initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -14 }}
-                  transition={{ duration: reduceMotion ? 0 : 0.28, ease: EASE_PREMIUM }}
+                  custom={optionsDirection}
+                  variants={slideVariants}
+                  initial={reduceMotion ? false : "enter"}
+                  animate="center"
+                  exit={reduceMotion ? undefined : "exit"}
                 >
                   <div className="rounded-[22px] border border-[rgba(201,168,76,0.28)] border-t-2 border-t-[rgba(201,168,76,0.55)] bg-[#0f1923] px-8 py-10 md:px-10 md:py-12">
                     <p className="text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">
@@ -922,6 +977,7 @@ export default function RequestPage() {
                     <button
                       type="button"
                       onClick={() => {
+                        setOptionsDirection(-1);
                         setSelectedOption(null);
                         setNotifyStatus("idle");
                         setNotifyEmail("");

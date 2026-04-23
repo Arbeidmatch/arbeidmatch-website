@@ -1262,18 +1262,23 @@ I speak [languages]. Thank you for watching.`}
                           any time by contacting support@arbeidmatch.no.
                         </p>
                         <div className="mt-5 space-y-3">
-                          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/12 bg-white/[0.02] p-4">
+                          <label className="relative flex cursor-pointer items-start gap-3 rounded-xl border border-white/12 bg-white/[0.02] p-4 transition duration-200 hover:scale-[1.01] hover:border-white/30">
                             <input
                               type="checkbox"
                               checked={gdprConsentProcessing}
                               onChange={(event) => setGdprConsentProcessing(event.target.checked)}
-                              className="mt-0.5 h-5 w-5 shrink-0 appearance-none rounded border border-[#C9A84C]/55 bg-transparent checked:bg-[#C9A84C] checked:shadow-[inset_0_0_0_2px_#0D1B2A]"
+                              className="sr-only"
                             />
+                            {gdprConsentProcessing ? (
+                              <span className="absolute right-3 top-3 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#C9A84C] text-[#0D1B2A]">
+                                <Check className="h-3.5 w-3.5" />
+                              </span>
+                            ) : null}
                             <span className="text-sm leading-relaxed text-white/80">
                               I consent to ArbeidMatch storing and processing my personal data for recruitment purposes.
                             </span>
                           </label>
-                          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/12 bg-white/[0.02] p-4">
+                          <label className="relative flex cursor-pointer items-start gap-3 rounded-xl border border-white/12 bg-white/[0.02] p-4 transition duration-200 hover:scale-[1.01] hover:border-white/30">
                             <input
                               type="checkbox"
                               checked={gdprConsentShareProfile}
@@ -1282,19 +1287,29 @@ I speak [languages]. Thank you for watching.`}
                                 setGdprConsentShareProfile(checked);
                                 setShareWithEmployers(checked);
                               }}
-                              className="mt-0.5 h-5 w-5 shrink-0 appearance-none rounded border border-[#C9A84C]/55 bg-transparent checked:bg-[#C9A84C] checked:shadow-[inset_0_0_0_2px_#0D1B2A]"
+                              className="sr-only"
                             />
+                            {gdprConsentShareProfile ? (
+                              <span className="absolute right-3 top-3 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#C9A84C] text-[#0D1B2A]">
+                                <Check className="h-3.5 w-3.5" />
+                              </span>
+                            ) : null}
                             <span className="text-sm leading-relaxed text-white/80">
                               I consent to my profile being shared with Norwegian employers relevant to my skills.
                             </span>
                           </label>
-                          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/12 bg-white/[0.02] p-4">
+                          <label className="relative flex cursor-pointer items-start gap-3 rounded-xl border border-white/12 bg-white/[0.02] p-4 transition duration-200 hover:scale-[1.01] hover:border-white/30">
                             <input
                               type="checkbox"
                               checked={gdprConsentMarketing}
                               onChange={(event) => setGdprConsentMarketing(event.target.checked)}
-                              className="mt-0.5 h-5 w-5 shrink-0 appearance-none rounded border border-[#C9A84C]/55 bg-transparent checked:bg-[#C9A84C] checked:shadow-[inset_0_0_0_2px_#0D1B2A]"
+                              className="sr-only"
                             />
+                            {gdprConsentMarketing ? (
+                              <span className="absolute right-3 top-3 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#C9A84C] text-[#0D1B2A]">
+                                <Check className="h-3.5 w-3.5" />
+                              </span>
+                            ) : null}
                             <span className="text-sm leading-relaxed text-white/80">I agree to receive relevant job notifications by email.</span>
                           </label>
                         </div>
@@ -1514,13 +1529,18 @@ I speak [languages]. Thank you for watching.`}
               </div>
 
               {currentCountry && currentCountry !== OUTSIDE_EEA_RESIDENCE_VALUE ? (
-                <label className="mt-5 flex min-h-[48px] cursor-pointer items-start gap-3 rounded-[12px] border border-white/12 bg-[#0D1B2A] p-4 text-sm text-white/75 focus-within:ring-2 focus-within:ring-[#C9A84C]/45">
+                <label className="relative mt-5 flex min-h-[48px] cursor-pointer items-start gap-3 rounded-[12px] border border-white/12 bg-[#0D1B2A] p-4 text-sm text-white/75 transition duration-200 hover:scale-[1.01] hover:border-white/30 focus-within:ring-2 focus-within:ring-[#C9A84C]/45">
                   <input
                     type="checkbox"
                     checked={gdprEntryAccepted}
                     onChange={(event) => setGdprEntryAccepted(event.target.checked)}
-                    className="mt-1 h-5 w-5 shrink-0 rounded border-white/30 accent-[#C9A84C] focus-visible:outline-none"
+                    className="sr-only"
                   />
+                  {gdprEntryAccepted ? (
+                    <span className="absolute right-3 top-3 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#C9A84C] text-[#0D1B2A]">
+                      <Check className="h-3.5 w-3.5" />
+                    </span>
+                  ) : null}
                   <span>
                     I agree to the processing of my personal data according to the{" "}
                     <Link href="/privacy" className="font-semibold text-[#C9A84C] hover:underline">
@@ -1687,8 +1707,10 @@ function RadioRow({
   return (
     <label
       htmlFor={id}
-      className={`flex min-h-[56px] cursor-pointer touch-manipulation items-center gap-3 rounded-[12px] border p-4 text-sm transition-all duration-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-[#C9A84C]/50 focus-within:ring-offset-2 focus-within:ring-offset-[#0D1B2A] md:min-h-[48px] md:px-4 md:py-3.5 ${
-        checked ? "border-[#C9A84C]/55 bg-[rgba(201,168,76,0.14)] text-white shadow-[0_0_0_1px_rgba(201,168,76,0.12)]" : "border-white/12 text-white/78 hover:border-[#C9A84C]/35"
+      className={`relative flex min-h-[56px] cursor-pointer touch-manipulation items-center gap-3 rounded-[12px] border p-4 text-sm transition-all duration-200 focus-within:outline-none focus-within:ring-2 focus-within:ring-[#C9A84C]/50 focus-within:ring-offset-2 focus-within:ring-offset-[#0D1B2A] md:min-h-[48px] md:px-4 md:py-3.5 ${
+        checked
+          ? "border-[#C9A84C] bg-[#C9A84C]/10 text-white drop-shadow-[0_0_8px_rgba(201,168,76,0.3)]"
+          : "border-white/12 text-white/78 hover:scale-[1.01] hover:border-white/30"
       }`}
     >
       <input
@@ -1697,8 +1719,13 @@ function RadioRow({
         name={name}
         checked={checked}
         onChange={onChange}
-        className="h-[18px] w-[18px] shrink-0 accent-[#C9A84C] focus:outline-none"
+        className="sr-only"
       />
+      {checked ? (
+        <span className="absolute right-3 top-3 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#C9A84C] text-[#0D1B2A]">
+          <Check className="h-3.5 w-3.5" />
+        </span>
+      ) : null}
       <span className="flex flex-1 items-center justify-between gap-3 leading-snug">
         <span>{label}</span>
         {prefilled ? <CheckCircle className="h-4 w-4 shrink-0 text-[#C9A84C]" /> : null}

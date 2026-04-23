@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Bolt,
   Factory,
@@ -65,6 +66,30 @@ type RequestForm = {
 };
 
 const TOTAL_STEPS = 7;
+const slideVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 1000 : -1000,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 300,
+      damping: 30,
+    },
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? 1000 : -1000,
+    opacity: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 300,
+      damping: 30,
+    },
+  }),
+};
 
 const CITY_OPTIONS = [
   "Oslo", "Bergen", "Trondheim", "Stavanger", "Kristiansand", "Drammen", "Tromso", "Fredrikstad",
@@ -398,7 +423,7 @@ const SALARY_OPTIONS = [
 
 const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]";
 const inputClass =
-  "w-full rounded-[12px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[rgba(201,168,76,0.5)]";
+  "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#C9A84C]/60 focus:shadow-[0_0_0_3px_rgba(201,168,76,0.14)]";
 
 const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: LucideIcon; roles: string[] }> = [
   {
@@ -494,10 +519,10 @@ function OptionCard({
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full min-h-[56px] items-center justify-between gap-3 rounded-[12px] border p-4 text-left transition-all duration-180 md:min-h-0 md:px-4 md:py-3 ${
+      className={`relative flex w-full min-h-[56px] items-center justify-between gap-3 rounded-xl border p-4 text-left transition-all duration-200 md:min-h-0 md:px-4 md:py-3 ${
         selected
-          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
-          : "border-white/10 bg-white/[0.03] text-white hover:border-white/20 hover:bg-white/[0.05]"
+          ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#C9A84C] drop-shadow-[0_0_8px_rgba(201,168,76,0.3)]"
+          : "border-white/10 bg-white/[0.03] text-white hover:scale-[1.01] hover:border-white/30 hover:bg-white/[0.05]"
       } ${className || ""}`}
     >
       <span className="flex items-center gap-3">
@@ -507,11 +532,7 @@ function OptionCard({
           {sublabel ? <span className="block text-xs text-white/50">{sublabel}</span> : null}
         </span>
       </span>
-      <span
-        className={`flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 ${
-          selected ? "border-[#C9A84C] bg-[#C9A84C]" : "border-white/20"
-        }`}
-      >
+      <span className={`absolute right-3 top-3 flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 ${selected ? "border-[#C9A84C] bg-[#C9A84C]" : "border-white/20"}`}>
         {selected ? (
           <svg viewBox="0 0 20 20" className="h-[10px] w-[10px] text-[#0f1923]" fill="none" stroke="currentColor" strokeWidth="3">
             <path d="M4 10l4 4 8-8" />
@@ -552,6 +573,7 @@ export default function RequestTokenPage() {
   ] as const;
 
   const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [animating, setAnimating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -808,21 +830,13 @@ export default function RequestTokenPage() {
 
   const goTo = (next: number) => {
     if (next < 0 || next > TOTAL_STEPS - 1 || animating) return;
+    setDirection(next > step ? 1 : -1);
     if (next === 0) setWizardSubstep("industry");
     if (next > step) {
       trackEvent("wizard_step_complete", { step: step + 1 });
     }
-    if (reducedMotion) {
-      setStep(next);
-      scrollToTop();
-      return;
-    }
-    setAnimating(true);
-    setTimeout(() => {
-      setStep(next);
-      setAnimating(false);
-      scrollToTop();
-    }, 180);
+    setStep(next);
+    scrollToTop();
   };
 
   useEffect(() => {
@@ -923,6 +937,7 @@ export default function RequestTokenPage() {
   const handleNext = () => {
     if (step === 0 && wizardSubstep === "company") {
       if (!applyStepValidation()) return;
+      setDirection(1);
       setWizardSubstep("industry");
       setFieldErrors({});
       scrollToTop();
@@ -1703,13 +1718,18 @@ export default function RequestTokenPage() {
 
       <main className="flex min-h-dvh items-center justify-center px-4 pt-[72px] md:px-6 md:pt-[80px]">
         <form onSubmit={handleSubmit} className="w-full max-w-[560px]">
-          <div
-            key={step}
-            className={`relative overflow-hidden rounded-[24px] border border-[rgba(201,168,76,0.15)] bg-white/[0.03] px-5 py-6 md:px-9 md:py-10 ${
-              animating ? "card-exit" : "card-enter"
-            }`}
-            style={reducedMotion ? { opacity: 1, transform: "translateX(0)" } : undefined}
-          >
+          <div className="overflow-hidden">
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={`${step}-${wizardSubstep}`}
+                custom={direction}
+                variants={slideVariants}
+                initial={reducedMotion ? false : "enter"}
+                animate="center"
+                exit={reducedMotion ? undefined : "exit"}
+                className="relative overflow-hidden rounded-[24px] border border-[rgba(201,168,76,0.15)] bg-white/[0.03] px-5 py-6 md:px-9 md:py-10"
+                style={reducedMotion ? { opacity: 1, transform: "translateX(0)" } : undefined}
+              >
             <div className="absolute left-[10%] right-[10%] top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(201,168,76,0.5),transparent)]" />
 
             {step === 0 && wizardSubstep === "company" && (
@@ -2019,18 +2039,25 @@ export default function RequestTokenPage() {
                       return (
                         <label
                           key={license}
-                          className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+                          className={`relative flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm transition duration-200 ${
                             checked
-                              ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
-                              : "border-white/10 bg-white/[0.03] text-white/80 hover:border-white/20"
+                              ? "border-[#C9A84C] bg-[#C9A84C]/10 text-[#C9A84C] drop-shadow-[0_0_8px_rgba(201,168,76,0.3)]"
+                              : "border-white/10 bg-white/[0.03] text-white/80 hover:scale-[1.01] hover:border-white/30"
                           }`}
                         >
                           <input
                             type="checkbox"
                             checked={checked}
                             onChange={() => toggleDriverLicense(license)}
-                            className="h-4 w-4 rounded border-white/30 accent-[#C9A84C]"
+                            className="sr-only"
                           />
+                          {checked ? (
+                            <span className="absolute right-2 top-2 inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#C9A84C] text-[#0D1B2A]">
+                              <svg viewBox="0 0 20 20" className="h-[9px] w-[9px]" fill="none" stroke="currentColor" strokeWidth="3">
+                                <path d="M4 10l4 4 8-8" />
+                              </svg>
+                            </span>
+                          ) : null}
                           <span>{license}</span>
                         </label>
                       );
@@ -2428,6 +2455,7 @@ export default function RequestTokenPage() {
                   <button
                     type="button"
                     onClick={() => {
+                      setDirection(-1);
                       setWizardSubstep("company");
                       scrollToTop();
                     }}
@@ -2465,6 +2493,8 @@ export default function RequestTokenPage() {
                 )}
               </button>
             </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </form>
       </main>

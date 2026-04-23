@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import PremiumChoiceCard from "@/components/ui/premium/PremiumChoiceCard";
+import PremiumDropdown from "@/components/ui/premium/PremiumDropdown";
+import PremiumInputField from "@/components/ui/premium/PremiumInputField";
 
 const WHY_CARDS = [
   {
@@ -43,6 +46,30 @@ const PARTNERSHIP_STEPS = [
 const SECTORS = ["Construction", "Electrical", "Logistics", "Industry", "Cleaning", "Hospitality"] as const;
 const MONTHLY_OPTIONS = ["1-5", "6-20", "21-50", "50+"] as const;
 const PREFIX_OPTIONS = ["+47", "+46", "+45"] as const;
+const slideVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 1000 : -1000,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 300,
+      damping: 30,
+    },
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? 1000 : -1000,
+    opacity: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 300,
+      damping: 30,
+    },
+  }),
+};
 
 type Suggestion = { name: string; orgNumber: string };
 
@@ -64,6 +91,7 @@ export default function BecomePartnerClient() {
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState(false);
   const [formStep, setFormStep] = useState<1 | 2 | 3>(1);
+  const [formDirection, setFormDirection] = useState(1);
 
   const [companyQuery, setCompanyQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -317,23 +345,33 @@ export default function BecomePartnerClient() {
             >
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#C9A84C]">Apply for Partnership</p>
               <h2 className="mt-2 text-2xl font-bold text-white">Step {formStep} of 3</h2>
-
-              {formStep === 1 ? (
-                <div className="mt-5 space-y-4">
+              <div className="mt-5 overflow-hidden">
+                <AnimatePresence mode="wait" custom={formDirection}>
+                  {formStep === 1 ? (
+                    <motion.div
+                      key="step-1"
+                      custom={formDirection}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      className="space-y-4"
+                    >
                   <div className="relative">
                     <label className="mb-1 block text-xs text-white/60">Company name</label>
-                    <input
+                    <PremiumInputField
+                      label="Company name"
                       value={companyQuery}
-                      onChange={(e) => {
-                        setCompanyQuery(e.target.value);
-                        setCompanyName(e.target.value);
+                      onChange={(next) => {
+                        setCompanyQuery(next);
+                        setCompanyName(next);
                         setOrgNumber("");
                         setShowSuggestions(true);
                       }}
                       onFocus={() => setShowSuggestions(true)}
                       onBlur={() => window.setTimeout(() => setShowSuggestions(false), 130)}
-                      className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
                       placeholder="Search in Brønnøysund register..."
+                      className="pt-4"
                     />
                     {showSuggestions && suggestions.length > 0 ? (
                       <div className="absolute z-20 mt-1 w-full rounded-xl border border-white/15 bg-[#0A1624] p-1">
@@ -362,109 +400,122 @@ export default function BecomePartnerClient() {
                   <div className="flex justify-end">
                     <button
                       type="button"
-                      onClick={() => setFormStep(2)}
+                      onClick={() => {
+                        setFormDirection(1);
+                        setFormStep(2);
+                      }}
                       disabled={!canGoStep2}
                       className="rounded-xl bg-[#C9A84C] px-5 py-2.5 font-semibold text-[#0D1B2A] disabled:opacity-60"
                     >
                       Next
                     </button>
                   </div>
-                </div>
-              ) : null}
+                    </motion.div>
+                  ) : null}
 
-              {formStep === 2 ? (
-                <div className="mt-5 space-y-4">
+                  {formStep === 2 ? (
+                    <motion.div
+                      key="step-2"
+                      custom={formDirection}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      className="space-y-4"
+                    >
                   <div>
                     <label className="mb-1 block text-xs text-white/60">Phone</label>
                     <div className="flex gap-2">
-                      <select
+                      <PremiumDropdown
                         value={phonePrefix}
-                        onChange={(e) => setPhonePrefix(e.target.value as (typeof PREFIX_OPTIONS)[number])}
-                        className="rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
-                      >
-                        {PREFIX_OPTIONS.map((p) => (
-                          <option key={p} value={p}>
-                            {p}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
+                        onChange={(next) => setPhonePrefix(next as (typeof PREFIX_OPTIONS)[number])}
+                        options={PREFIX_OPTIONS.map((p) => ({ value: p, label: p }))}
+                        className="w-[120px]"
                       />
+                      <PremiumInputField label="Phone number" value={phone} onChange={setPhone} className="w-full pt-4" />
                     </div>
                   </div>
                   <Field label="Website" value={website} onChange={setWebsite} placeholder="https://..." />
                   <div>
                     <label className="mb-1 block text-xs text-white/60">Organisation number</label>
-                    <input value={orgNumber} readOnly className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white/80" />
+                    <PremiumInputField label="Organisation number" value={orgNumber} onChange={setOrgNumber} disabled className="pt-4 text-white/80" />
                   </div>
                   <div className="flex justify-between gap-3">
                     <button
                       type="button"
-                      onClick={() => setFormStep(1)}
+                      onClick={() => {
+                        setFormDirection(-1);
+                        setFormStep(1);
+                      }}
                       className="rounded-xl border border-white/20 px-5 py-2.5 font-semibold text-white"
                     >
                       Back
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormStep(3)}
+                      onClick={() => {
+                        setFormDirection(1);
+                        setFormStep(3);
+                      }}
                       disabled={!canGoStep3}
                       className="rounded-xl bg-[#C9A84C] px-5 py-2.5 font-semibold text-[#0D1B2A] disabled:opacity-60"
                     >
                       Next
                     </button>
                   </div>
-                </div>
-              ) : null}
+                    </motion.div>
+                  ) : null}
 
-              {formStep === 3 ? (
-                <div className="mt-5 space-y-4">
+                  {formStep === 3 ? (
+                    <motion.div
+                      key="step-3"
+                      custom={formDirection}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      className="space-y-4"
+                    >
                   <div>
                     <label className="mb-1 block text-xs text-white/60">How many candidates do you place per month?</label>
-                    <select
+                    <PremiumDropdown
                       value={monthlyPlacements}
-                      onChange={(e) => setMonthlyPlacements(e.target.value)}
-                      className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
-                    >
-                      <option value="">Select</option>
-                      {MONTHLY_OPTIONS.map((o) => (
-                        <option key={o} value={o}>
-                          {o}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setMonthlyPlacements}
+                      options={[{ value: "", label: "Select" }, ...MONTHLY_OPTIONS.map((o) => ({ value: o, label: o }))]}
+                    />
                   </div>
                   <div>
                     <p className="mb-2 text-xs text-white/60">Which sectors do you recruit for?</p>
                     <div className="grid gap-2 sm:grid-cols-2">
                       {SECTORS.map((sector) => (
-                        <label key={sector} className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.02] px-3 py-2 text-sm">
-                          <input type="checkbox" checked={sectors.includes(sector)} onChange={() => toggleSector(sector)} className="accent-[#C9A84C]" />
-                          {sector}
-                        </label>
+                        <PremiumChoiceCard
+                          key={sector}
+                          type="checkbox"
+                          selected={sectors.includes(sector)}
+                          onClick={() => toggleSector(sector)}
+                          title={sector}
+                          className="py-3"
+                        />
                       ))}
                     </div>
                   </div>
                   <div>
                     <label className="mb-1 block text-xs text-white/60">Message (optional)</label>
-                    <textarea
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      rows={4}
-                      className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
-                    />
+                    <PremiumInputField multiline rows={4} label="Message (optional)" value={message} onChange={setMessage} className="min-h-[120px]" />
                   </div>
-                  <label className="inline-flex items-start gap-2 text-sm text-white/75">
-                    <input type="checkbox" checked={tcAccepted} onChange={(e) => setTcAccepted(e.target.checked)} className="mt-0.5 accent-[#C9A84C]" />
-                    <span>I agree to terms and privacy policy.</span>
-                  </label>
+                  <PremiumChoiceCard
+                    type="checkbox"
+                    selected={tcAccepted}
+                    onClick={() => setTcAccepted((prev) => !prev)}
+                    title="I agree to terms and privacy policy."
+                  />
                   <div className="flex justify-between gap-3">
                     <button
                       type="button"
-                      onClick={() => setFormStep(2)}
+                      onClick={() => {
+                        setFormDirection(-1);
+                        setFormStep(2);
+                      }}
                       className="rounded-xl border border-white/20 px-5 py-2.5 font-semibold text-white"
                     >
                       Back
@@ -478,8 +529,10 @@ export default function BecomePartnerClient() {
                     </button>
                   </div>
                   {submitError ? <p className="text-sm text-red-300">{submitError}</p> : null}
-                </div>
-              ) : null}
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
             </motion.form>
           )}
         </AnimatePresence>
@@ -511,17 +564,22 @@ export default function BecomePartnerClient() {
             >
               <h3 className="text-xl font-bold">Start Free Trial</h3>
               <p className="mt-2 text-sm text-white/70">Enter your business email to activate a 7-day trial.</p>
-              <input
+              <PremiumInputField
                 type="email"
+                label="Business email"
                 value={trialEmail}
-                onChange={(e) => setTrialEmail(e.target.value)}
-                className="mt-4 w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
+                onChange={setTrialEmail}
+                className="mt-4 pt-4"
                 placeholder="name@agency.no"
               />
-              <label className="mt-3 inline-flex items-start gap-2 text-sm text-white/75">
-                <input type="checkbox" checked={trialTc} onChange={(e) => setTrialTc(e.target.checked)} className="mt-0.5 accent-[#C9A84C]" />
-                <span>I accept terms and trial conditions.</span>
-              </label>
+              <div className="mt-3">
+                <PremiumChoiceCard
+                  type="checkbox"
+                  selected={trialTc}
+                  onClick={() => setTrialTc((prev) => !prev)}
+                  title="I accept terms and trial conditions."
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => void submitTrial()}
@@ -556,15 +614,6 @@ function Field({
   placeholder?: string;
 }) {
   return (
-    <div>
-      <label className="mb-1 block text-xs text-white/60">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
-      />
-    </div>
+    <PremiumInputField type={type} label={label} value={value} onChange={onChange} placeholder={placeholder} className="pt-4" />
   );
 }
