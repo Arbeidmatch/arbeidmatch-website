@@ -462,12 +462,12 @@ export default function RequestPage() {
   }, [checkCount, checkState, searchTerm, selectedIndustry]);
 
   return (
-    <section className="min-h-dvh bg-[#0a0f18] px-4 py-10 text-white md:px-6">
+    <section className="flex min-h-screen flex-col items-center justify-center bg-[#0D1B2A] px-4 py-6 text-white md:block md:min-h-dvh md:px-6 md:py-10">
       <div
-        className={`mx-auto w-full rounded-[16px] p-9 transition-all duration-300 ${
+        className={`mx-auto w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-6 transition-all duration-300 md:max-w-[980px] md:rounded-[16px] md:p-9 ${
           checkState === "result"
-            ? "max-w-[680px] border border-transparent bg-transparent"
-            : "max-w-[980px] border border-[rgba(201,168,76,0.15)] border-t-2 border-t-[rgba(201,168,76,0.4)] bg-[rgba(255,255,255,0.03)]"
+            ? "md:max-w-[680px] md:border md:border-transparent md:bg-transparent"
+            : "md:border-[rgba(201,168,76,0.15)] md:border-t-2 md:border-t-[rgba(201,168,76,0.4)] md:bg-[rgba(255,255,255,0.03)]"
         } ${
           showNonPartnerOptions ? "pointer-events-none translate-y-2 opacity-0" : "translate-y-0 opacity-100"
         }`}
@@ -494,21 +494,24 @@ export default function RequestPage() {
                   transition={{ duration: reduceMotion ? 0 : 0.2, ease: EASE_PREMIUM }}
                 >
                   <div className="lg:hidden">
-                    <select
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white"
-                      value={selectedIndustry}
-                      onChange={(event) => {
-                        setSelectedIndustry(event.target.value);
-                        setRoleQuery("");
-                      }}
-                    >
-                      <option value="">Select a role...</option>
-                      {CHECK_ROLE_GROUPS.map(({ industry }) => (
-                        <option key={industry} value={industry}>
-                          {industry}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                      <select
+                        className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-white placeholder:text-white/30 outline-none ring-0 transition-colors duration-200 focus:border-[#C9A84C]/60"
+                        value={selectedIndustry}
+                        onChange={(event) => {
+                          setSelectedIndustry(event.target.value);
+                          setRoleQuery("");
+                        }}
+                      >
+                        <option value="">Select a role...</option>
+                        {CHECK_ROLE_GROUPS.map(({ industry }) => (
+                          <option key={industry} value={industry}>
+                            {industry}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
@@ -516,7 +519,7 @@ export default function RequestPage() {
                         setRoleQuery("");
                       }}
                       disabled={!selectedIndustry}
-                      className="result-cta-primary mt-3 h-12 w-full rounded-xl px-4 text-sm font-semibold text-[#0D1B2A] disabled:opacity-50"
+                      className="mt-3 w-full rounded-xl bg-[#C9A84C] py-3 font-semibold text-[#0D1B2A] disabled:opacity-50"
                     >
                       Continue
                     </button>
@@ -577,7 +580,7 @@ export default function RequestPage() {
               ) : (
                 <motion.div
                   key="role-search"
-                  className="mx-auto mt-5 w-full max-w-2xl rounded-2xl border border-white/10 bg-white/5 p-8"
+                  className="mx-auto mt-5 w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-6 md:max-w-2xl md:p-8"
                   initial={reduceMotion ? false : { opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
@@ -710,7 +713,7 @@ export default function RequestPage() {
                     setNotifyEmail("");
                     setNotifyStatus("idle");
                   }}
-                  className="h-14 w-full rounded-xl border border-white/20 text-white"
+                  className="h-14 w-full rounded-xl border border-white/10 py-3 text-white hover:bg-white/5"
                 >
                   Become a Partner
                 </button>
