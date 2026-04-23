@@ -60,6 +60,7 @@ export default function BecomePartnerClient() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [formStep, setFormStep] = useState<1 | 2 | 3>(1);
 
   const [companyQuery, setCompanyQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -83,6 +84,13 @@ export default function BecomePartnerClient() {
       tcAccepted,
     [companyName, contactName, email, phone, monthlyPlacements, sectors, tcAccepted],
   );
+
+  const canGoStep2 = useMemo(
+    () => companyName.trim().length >= 2 && contactName.trim().length >= 2 && email.trim().includes("@"),
+    [companyName, contactName, email],
+  );
+
+  const canGoStep3 = useMemo(() => phone.trim().length >= 5, [phone]);
 
   useEffect(() => {
     if (companyQuery.trim().length < 2) {
@@ -114,6 +122,17 @@ export default function BecomePartnerClient() {
       controller.abort();
     };
   }, [companyQuery]);
+
+  useEffect(() => {
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, []);
 
   const toggleSector = (sector: string) => {
     setSectors((prev) => (prev.includes(sector) ? prev.filter((s) => s !== sector) : [...prev, sector]));
@@ -272,10 +291,7 @@ export default function BecomePartnerClient() {
         </motion.div>
       </section>
 
-      <section id="apply" className="container-site py-14">
-        <h2 className="text-3xl font-bold">Apply for Partnership</h2>
-        <p className="mt-2 text-sm text-white/70">For recruitment agencies serving client companies in Norway.</p>
-
+      <section id="apply" className="fixed inset-0 z-40 flex items-center justify-center bg-[#0D1B2A] px-4 py-5">
         <AnimatePresence mode="wait">
           {success ? (
             <motion.div
@@ -283,7 +299,7 @@ export default function BecomePartnerClient() {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
-              className="mt-6 rounded-2xl border border-[#C9A84C]/35 bg-[#C9A84C]/10 p-6"
+              className="max-h-[95vh] w-[90%] max-w-2xl overflow-y-auto rounded-2xl border border-[#C9A84C]/35 bg-[#C9A84C]/10 p-6"
             >
               <p className="text-xl font-semibold text-white">Application received. We&apos;ll review and be in touch shortly.</p>
             </motion.div>
@@ -293,131 +309,173 @@ export default function BecomePartnerClient() {
               onSubmit={submitPartner}
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-6 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-6 md:grid-cols-2"
+              className="max-h-[95vh] w-[90%] max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:p-6"
             >
-              <div className="relative md:col-span-2">
-                <label className="mb-1 block text-xs text-white/60">Company name</label>
-                <input
-                  value={companyQuery}
-                  onChange={(e) => {
-                    setCompanyQuery(e.target.value);
-                    setCompanyName(e.target.value);
-                    setOrgNumber("");
-                    setShowSuggestions(true);
-                  }}
-                  onFocus={() => setShowSuggestions(true)}
-                  onBlur={() => window.setTimeout(() => setShowSuggestions(false), 130)}
-                  className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
-                  placeholder="Search in Brønnøysund register..."
-                />
-                {showSuggestions && suggestions.length > 0 ? (
-                  <div className="absolute z-20 mt-1 w-full rounded-xl border border-white/15 bg-[#0A1624] p-1">
-                    {suggestions.map((s) => (
-                      <button
-                        key={`${s.orgNumber}-${s.name}`}
-                        type="button"
-                        onMouseDown={() => {
-                          setCompanyName(s.name);
-                          setCompanyQuery(s.name);
-                          setOrgNumber(s.orgNumber);
-                          setShowSuggestions(false);
-                        }}
-                        className="w-full rounded-lg px-3 py-2 text-left hover:bg-white/10"
-                      >
-                        <p className="text-sm font-semibold">{s.name}</p>
-                        <p className="text-xs text-white/60">Org: {s.orgNumber}</p>
-                      </button>
-                    ))}
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#C9A84C]">Apply for Partnership</p>
+              <h2 className="mt-2 text-2xl font-bold text-white">Step {formStep} of 3</h2>
+
+              {formStep === 1 ? (
+                <div className="mt-5 space-y-4">
+                  <div className="relative">
+                    <label className="mb-1 block text-xs text-white/60">Company name</label>
+                    <input
+                      value={companyQuery}
+                      onChange={(e) => {
+                        setCompanyQuery(e.target.value);
+                        setCompanyName(e.target.value);
+                        setOrgNumber("");
+                        setShowSuggestions(true);
+                      }}
+                      onFocus={() => setShowSuggestions(true)}
+                      onBlur={() => window.setTimeout(() => setShowSuggestions(false), 130)}
+                      className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
+                      placeholder="Search in Brønnøysund register..."
+                    />
+                    {showSuggestions && suggestions.length > 0 ? (
+                      <div className="absolute z-20 mt-1 w-full rounded-xl border border-white/15 bg-[#0A1624] p-1">
+                        {suggestions.map((s) => (
+                          <button
+                            key={`${s.orgNumber}-${s.name}`}
+                            type="button"
+                            onMouseDown={() => {
+                              setCompanyName(s.name);
+                              setCompanyQuery(s.name);
+                              setOrgNumber(s.orgNumber);
+                              setShowSuggestions(false);
+                            }}
+                            className="w-full rounded-lg px-3 py-2 text-left hover:bg-white/10"
+                          >
+                            <p className="text-sm font-semibold">{s.name}</p>
+                            <p className="text-xs text-white/60">Org: {s.orgNumber}</p>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                    {lookupStatus === "loading" ? <p className="mt-1 text-xs text-white/50">Searching...</p> : null}
                   </div>
-                ) : null}
-                {lookupStatus === "loading" ? <p className="mt-1 text-xs text-white/50">Searching...</p> : null}
-              </div>
-
-              <Field label="Contact name" value={contactName} onChange={setContactName} />
-              <Field label="Email" value={email} onChange={setEmail} type="email" />
-
-              <div>
-                <label className="mb-1 block text-xs text-white/60">Phone</label>
-                <div className="flex gap-2">
-                  <select
-                    value={phonePrefix}
-                    onChange={(e) => setPhonePrefix(e.target.value as (typeof PREFIX_OPTIONS)[number])}
-                    className="rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
-                  >
-                    {PREFIX_OPTIONS.map((p) => (
-                      <option key={p} value={p}>
-                        {p}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
-                  />
+                  <Field label="Contact name" value={contactName} onChange={setContactName} />
+                  <Field label="Email" value={email} onChange={setEmail} type="email" />
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setFormStep(2)}
+                      disabled={!canGoStep2}
+                      className="rounded-xl bg-[#C9A84C] px-5 py-2.5 font-semibold text-[#0D1B2A] disabled:opacity-60"
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : null}
 
-              <Field label="Website" value={website} onChange={setWebsite} placeholder="https://..." />
-
-              <div>
-                <label className="mb-1 block text-xs text-white/60">How many candidates do you place per month?</label>
-                <select
-                  value={monthlyPlacements}
-                  onChange={(e) => setMonthlyPlacements(e.target.value)}
-                  className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
-                >
-                  <option value="">Select</option>
-                  {MONTHLY_OPTIONS.map((o) => (
-                    <option key={o} value={o}>
-                      {o}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs text-white/60">Organisation number</label>
-                <input value={orgNumber} readOnly className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white/80" />
-              </div>
-
-              <div className="md:col-span-2">
-                <p className="mb-2 text-xs text-white/60">Which sectors do you recruit for?</p>
-                <div className="grid gap-2 sm:grid-cols-3">
-                  {SECTORS.map((sector) => (
-                    <label key={sector} className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.02] px-3 py-2 text-sm">
-                      <input type="checkbox" checked={sectors.includes(sector)} onChange={() => toggleSector(sector)} className="accent-[#C9A84C]" />
-                      {sector}
-                    </label>
-                  ))}
+              {formStep === 2 ? (
+                <div className="mt-5 space-y-4">
+                  <div>
+                    <label className="mb-1 block text-xs text-white/60">Phone</label>
+                    <div className="flex gap-2">
+                      <select
+                        value={phonePrefix}
+                        onChange={(e) => setPhonePrefix(e.target.value as (typeof PREFIX_OPTIONS)[number])}
+                        className="rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
+                      >
+                        {PREFIX_OPTIONS.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
+                      />
+                    </div>
+                  </div>
+                  <Field label="Website" value={website} onChange={setWebsite} placeholder="https://..." />
+                  <div>
+                    <label className="mb-1 block text-xs text-white/60">Organisation number</label>
+                    <input value={orgNumber} readOnly className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white/80" />
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormStep(1)}
+                      className="rounded-xl border border-white/20 px-5 py-2.5 font-semibold text-white"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormStep(3)}
+                      disabled={!canGoStep3}
+                      className="rounded-xl bg-[#C9A84C] px-5 py-2.5 font-semibold text-[#0D1B2A] disabled:opacity-60"
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : null}
 
-              <div className="md:col-span-2">
-                <label className="mb-1 block text-xs text-white/60">Message (optional)</label>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={4}
-                  className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
-                />
-              </div>
-
-              <label className="md:col-span-2 inline-flex items-start gap-2 text-sm text-white/75">
-                <input type="checkbox" checked={tcAccepted} onChange={(e) => setTcAccepted(e.target.checked)} className="mt-0.5 accent-[#C9A84C]" />
-                <span>I agree to terms and privacy policy.</span>
-              </label>
-
-              <div className="md:col-span-2">
-                <button
-                  type="submit"
-                  disabled={!canSubmit || submitting}
-                  className="w-full rounded-xl bg-[#C9A84C] px-5 py-3 font-bold text-[#0D1B2A] disabled:opacity-60"
-                >
-                  {submitting ? "Submitting..." : "Apply for Partnership"}
-                </button>
-                {submitError ? <p className="mt-2 text-sm text-red-300">{submitError}</p> : null}
-              </div>
+              {formStep === 3 ? (
+                <div className="mt-5 space-y-4">
+                  <div>
+                    <label className="mb-1 block text-xs text-white/60">How many candidates do you place per month?</label>
+                    <select
+                      value={monthlyPlacements}
+                      onChange={(e) => setMonthlyPlacements(e.target.value)}
+                      className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
+                    >
+                      <option value="">Select</option>
+                      {MONTHLY_OPTIONS.map((o) => (
+                        <option key={o} value={o}>
+                          {o}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <p className="mb-2 text-xs text-white/60">Which sectors do you recruit for?</p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {SECTORS.map((sector) => (
+                        <label key={sector} className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.02] px-3 py-2 text-sm">
+                          <input type="checkbox" checked={sectors.includes(sector)} onChange={() => toggleSector(sector)} className="accent-[#C9A84C]" />
+                          {sector}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs text-white/60">Message (optional)</label>
+                    <textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      rows={4}
+                      className="w-full rounded-xl border border-white/15 bg-[#0A1624] px-3 py-2.5 text-sm text-white"
+                    />
+                  </div>
+                  <label className="inline-flex items-start gap-2 text-sm text-white/75">
+                    <input type="checkbox" checked={tcAccepted} onChange={(e) => setTcAccepted(e.target.checked)} className="mt-0.5 accent-[#C9A84C]" />
+                    <span>I agree to terms and privacy policy.</span>
+                  </label>
+                  <div className="flex justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormStep(2)}
+                      className="rounded-xl border border-white/20 px-5 py-2.5 font-semibold text-white"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!canSubmit || submitting}
+                      className="rounded-xl bg-[#C9A84C] px-5 py-2.5 font-bold text-[#0D1B2A] disabled:opacity-60"
+                    >
+                      {submitting ? "Submitting..." : "Submit"}
+                    </button>
+                  </div>
+                  {submitError ? <p className="text-sm text-red-300">{submitError}</p> : null}
+                </div>
+              ) : null}
             </motion.form>
           )}
         </AnimatePresence>
