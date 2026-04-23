@@ -60,19 +60,26 @@ export default function EmployerTrialClient({ token }: Props) {
   const [accessLevel, setAccessLevel] = useState<AccessLevel | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [applicationKind, setApplicationKind] = useState<"employer_trial" | "partner_application">("employer_trial");
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     void (async () => {
       try {
         const response = await fetch(`/api/employer/trial/token/${encodeURIComponent(token)}`);
-        const data = (await response.json()) as { success?: boolean; data?: { email?: string } };
+        const data = (await response.json()) as {
+          success?: boolean;
+          data?: { email?: string; applicationKind?: "employer_trial" | "partner_application" };
+        };
         if (!response.ok || !data.success) {
           setStatus("error");
           return;
         }
         const tokenEmail = data.data?.email?.trim().toLowerCase() || "";
         setEmail(tokenEmail);
+        if (data.data?.applicationKind === "partner_application") {
+          setApplicationKind("partner_application");
+        }
         setStatus("ready");
       } catch {
         setStatus("error");
@@ -184,6 +191,7 @@ export default function EmployerTrialClient({ token }: Props) {
     );
   }
   if (status === "submitted") {
+    const partnerCopy = applicationKind === "partner_application";
     return (
       <main className="min-h-screen bg-[#0D1B2A] px-6 py-14 text-white">
         <div className="mx-auto max-w-xl rounded-2xl border border-[#C9A84C]/30 bg-white/[0.03] p-8 text-center">
@@ -195,8 +203,14 @@ export default function EmployerTrialClient({ token }: Props) {
           >
             <Check className="h-7 w-7" />
           </motion.div>
-          <p className="mt-5 text-2xl font-bold">Request received. We'll be in touch within 48 hours.</p>
-          <p className="mt-2 text-sm text-white/70">We appreciate you choosing ArbeidMatch.</p>
+          <p className="mt-5 text-2xl font-bold">
+            {partnerCopy
+              ? "Your application is under review. We'll be in touch within 48 hours."
+              : "Request received. We'll be in touch within 48 hours."}
+          </p>
+          <p className="mt-2 text-sm text-white/70">
+            {partnerCopy ? "Thank you for applying to partner with ArbeidMatch." : "We appreciate you choosing ArbeidMatch."}
+          </p>
           <Link href="/" className="mt-6 inline-flex rounded-xl bg-[#C9A84C] px-6 py-3 font-semibold text-[#0D1B2A]">
             Back to Home
           </Link>
@@ -208,7 +222,9 @@ export default function EmployerTrialClient({ token }: Props) {
   return (
     <main className="min-h-screen bg-[#0D1B2A] px-4 py-10 text-white md:px-6">
       <div className="mx-auto w-full max-w-3xl rounded-2xl border border-[#C9A84C]/20 bg-white/[0.03] p-6 md:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#C9A84C]">Employer Trial Flow</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#C9A84C]">
+          {applicationKind === "partner_application" ? "Partner application" : "Employer Trial Flow"}
+        </p>
         <p className="mt-2 text-sm text-white/60">{`Step ${step} of 4`}</p>
 
         <AnimatePresence mode="wait" custom={direction}>
