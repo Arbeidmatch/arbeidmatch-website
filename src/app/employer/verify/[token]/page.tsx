@@ -24,8 +24,9 @@ async function getVerifyStatus(token: string): Promise<VerifyStatus> {
   if (data.used === true) return "invalid";
   if (new Date(data.expires_at).getTime() <= Date.now()) return "invalid";
 
+  const tokenType = (data.type || "").trim().toLowerCase();
   const summaryType = (data.job_summary || "").trim().toLowerCase();
-  if (summaryType !== "employer_trial" && summaryType !== "partner_application") return "invalid";
+  if (tokenType !== "employer_trial" && summaryType !== "employer_trial") return "invalid";
 
   return "valid";
 }
