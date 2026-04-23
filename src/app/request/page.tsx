@@ -279,6 +279,11 @@ export default function RequestPage() {
   const [verifyCanResend, setVerifyCanResend] = useState(true);
   const [partnerApplicationCountdown, setPartnerApplicationCountdown] = useState(0);
   const [partnerApplicationCanResend, setPartnerApplicationCanResend] = useState(true);
+  const [newPartnerEmail, setNewPartnerEmail] = useState("");
+  const [newPartnerApplyStatus, setNewPartnerApplyStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [newPartnerApplyError, setNewPartnerApplyError] = useState("");
+  const [newPartnerCountdown, setNewPartnerCountdown] = useState(0);
+  const [newPartnerCanResend, setNewPartnerCanResend] = useState(true);
   const [flowDirection, setFlowDirection] = useState(1);
   const [industryPreview, setIndustryPreview] = useState("");
   const [optionsDirection, setOptionsDirection] = useState(1);
@@ -581,6 +586,11 @@ export default function RequestPage() {
     setVerifyCanResend(true);
     setPartnerApplicationCountdown(0);
     setPartnerApplicationCanResend(true);
+    setNewPartnerEmail("");
+    setNewPartnerApplyStatus("idle");
+    setNewPartnerApplyError("");
+    setNewPartnerCountdown(0);
+    setNewPartnerCanResend(true);
   };
 
   const resetToFirstStep = () => {
@@ -628,6 +638,11 @@ export default function RequestPage() {
     setPartnerApplicationCountdown(0);
     setPartnerApplicationCanResend(true);
     hasAutoStartedRoleCheck.current = false;
+    setNewPartnerEmail("");
+    setNewPartnerApplyStatus("idle");
+    setNewPartnerApplyError("");
+    setNewPartnerCountdown(0);
+    setNewPartnerCanResend(true);
   };
 
   const showNonPartnerOptions = resultAction === "non_partner";
@@ -699,6 +714,50 @@ export default function RequestPage() {
       setPartnerApplicationStatus("error");
       setPartnerApplicationError("Could not start partner application right now.");
       toast.error("Could not start partner application right now.");
+    }
+  };
+
+  const submitNewPartnerApplication = async () => {
+    if (!newPartnerCanResend) return;
+    const email = newPartnerEmail.trim().toLowerCase();
+    const domain = email.split("@")[1]?.toLowerCase() ?? "";
+    if (!email.includes("@") || !domain) {
+      setNewPartnerApplyError("Please enter a valid company email address.");
+      setNewPartnerApplyStatus("error");
+      return;
+    }
+    if (FREE_EMAIL_DOMAINS.has(domain)) {
+      setNewPartnerApplyError("Please use your company email address.");
+      setNewPartnerApplyStatus("error");
+      return;
+    }
+
+    setNewPartnerApplyStatus("submitting");
+    setNewPartnerApplyError("");
+    try {
+      const response = await fetch("/api/employer/trial/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, type: "partner_application" }),
+      });
+      const data = (await response.json().catch(() => ({}))) as { success?: boolean; error?: string; reason?: string };
+      if (!response.ok || !data.success) {
+        if (data.reason === "personal_email" || data.error === "personal_email") {
+          setNewPartnerApplyError("Please use your company email address.");
+        } else {
+          setNewPartnerApplyError("Could not send the application link right now.");
+        }
+        setNewPartnerApplyStatus("error");
+        toast.error("Could not send the application link right now.");
+        return;
+      }
+      setNewPartnerApplyStatus("success");
+      startCountdown(setNewPartnerCountdown, setNewPartnerCanResend);
+      toast.success("Check your inbox — we've sent you an application link.");
+    } catch {
+      setNewPartnerApplyError("Could not send the application link right now.");
+      setNewPartnerApplyStatus("error");
+      toast.error("Could not send the application link right now.");
     }
   };
 
@@ -978,6 +1037,11 @@ export default function RequestPage() {
                   onClick={() => {
                     setResultAction("partner");
                     setAccessStatus("idle");
+                    setNewPartnerEmail("");
+                    setNewPartnerApplyStatus("idle");
+                    setNewPartnerApplyError("");
+                    setNewPartnerCountdown(0);
+                    setNewPartnerCanResend(true);
                     trackPartnerAccessRequest();
                   }}
                   className="h-14 w-full rounded-xl bg-[#C9A84C] text-base font-bold text-[#0D1B2A]"
@@ -1399,13 +1463,18 @@ export default function RequestPage() {
               setAccessStatus("idle");
               setPartnerModalView("not_found");
               setAccessErrorMessage("");
+              setNewPartnerEmail("");
+              setNewPartnerApplyStatus("idle");
+              setNewPartnerApplyError("");
+              setNewPartnerCountdown(0);
+              setNewPartnerCanResend(true);
             }}
           />
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="partner-verify-title"
-            className="partner-modal pointer-events-auto fixed left-1/2 top-1/2 z-[10101] w-[90%] max-w-[440px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10 isolation-isolate"
+            className="partner-modal pointer-events-auto fixed left-1/2 top-1/2 z-[10101] max-h-[90vh] w-[90%] max-w-[480px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[20px] border border-[rgba(201,168,76,0.25)] border-t-2 border-t-[rgba(201,168,76,0.5)] bg-[#0f1923] px-9 py-10 isolation-isolate"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -1416,6 +1485,11 @@ export default function RequestPage() {
                 setAccessStatus("idle");
                 setPartnerModalView("not_found");
                 setAccessErrorMessage("");
+                setNewPartnerEmail("");
+                setNewPartnerApplyStatus("idle");
+                setNewPartnerApplyError("");
+                setNewPartnerCountdown(0);
+                setNewPartnerCanResend(true);
               }}
               aria-label="Close partner verification modal"
               className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.9)]"
@@ -1432,6 +1506,9 @@ export default function RequestPage() {
             <p className="mt-2 text-center text-sm leading-relaxed text-white/60">
               Let&apos;s find great candidates together. Enter your email and we&apos;ll send you a secure link to start your
               search.
+            </p>
+            <p className="mt-3 text-center text-xs text-white/40">
+              This access is reserved for existing ArbeidMatch partners. If you&apos;re not yet a partner, you can apply below.
             </p>
 
             {accessStatus === "submitting" ? (
@@ -1564,27 +1641,93 @@ export default function RequestPage() {
                 )}
               </div>
             ) : accessStatus !== "partner" ? (
-              <>
-                <form onSubmit={verifyAccess} className="mt-5">
-                  <input
-                    type="email"
-                    value={accessEmail}
-                    onChange={(event) => setAccessEmail(event.target.value)}
-                    placeholder="your@company.no"
-                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
-                  />
-                  <p className="mt-2 text-center text-xs text-white/30">Use your company email address for verification.</p>
-                  <button
-                    type="submit"
-                    disabled={!accessEmail.includes("@") || !verifyCanResend}
-                    className={`mt-3 w-full rounded-[12px] px-5 py-3 text-sm font-semibold ${
-                      verifyCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
-                    }`}
+              <div className="mt-6 space-y-8">
+                <div>
+                  <p className="text-center text-[13px] font-semibold uppercase tracking-[0.12em] text-white/90">
+                    I&apos;m an existing partner
+                  </p>
+                  <form onSubmit={verifyAccess} className="mt-4 space-y-3">
+                    <input
+                      type="email"
+                      value={accessEmail}
+                      onChange={(event) => setAccessEmail(event.target.value)}
+                      placeholder="your@company.no"
+                      className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
+                    />
+                    <p className="text-center text-xs text-white/30">Use your company email address for verification.</p>
+                    <button
+                      type="submit"
+                      disabled={!accessEmail.includes("@") || !verifyCanResend}
+                      className={`w-full rounded-[12px] px-5 py-3 text-sm font-semibold ${
+                        verifyCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+                      }`}
+                    >
+                      {verifyCountdown > 0 ? `Resend in ${verifyCountdown}s` : "Let&apos;s get started →"}
+                    </button>
+                  </form>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-white/10" aria-hidden />
+                  <span className="shrink-0 text-xs font-medium uppercase tracking-widest text-white/35">or</span>
+                  <div className="h-px flex-1 bg-white/10" aria-hidden />
+                </div>
+
+                <div>
+                  <p className="text-center text-[13px] font-semibold uppercase tracking-[0.12em] text-white/90">
+                    New to ArbeidMatch?
+                  </p>
+                  <form
+                    className="mt-4 space-y-3"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void submitNewPartnerApplication();
+                    }}
                   >
-                    {verifyCountdown > 0 ? `Resend in ${verifyCountdown}s` : "Resend email"}
-                  </button>
-                </form>
-              </>
+                    <input
+                      type="email"
+                      value={newPartnerEmail}
+                      onChange={(event) => {
+                        setNewPartnerEmail(event.target.value);
+                        if (newPartnerApplyError) setNewPartnerApplyError("");
+                      }}
+                      placeholder="your@company.no"
+                      disabled={newPartnerApplyStatus === "submitting"}
+                      className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none disabled:opacity-50"
+                    />
+                    <button
+                      type="submit"
+                      disabled={
+                        newPartnerApplyStatus === "submitting" ||
+                        !newPartnerEmail.includes("@") ||
+                        !newPartnerCanResend
+                      }
+                      className="w-full rounded-[12px] border border-[rgba(201,168,76,0.35)] bg-transparent px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.55)] hover:bg-[rgba(201,168,76,0.08)] disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {newPartnerApplyStatus === "submitting"
+                        ? "Sending…"
+                        : newPartnerCountdown > 0
+                          ? `Resend in ${newPartnerCountdown}s`
+                          : newPartnerApplyStatus === "success"
+                            ? "Resend application link →"
+                            : "Apply to become a partner →"}
+                    </button>
+                    {newPartnerApplyStatus === "success" ? (
+                      <p className="text-center text-sm leading-relaxed text-[#C9A84C]">
+                        Check your inbox — we&apos;ve sent you an application link.
+                      </p>
+                    ) : null}
+                    {newPartnerApplyError ? (
+                      <p className="text-center text-xs text-red-300/90">{newPartnerApplyError}</p>
+                    ) : null}
+                    <p className="text-center text-[11px] leading-relaxed text-white/35">
+                      <Link href="/recruiter-network" className="text-[#C9A84C] underline-offset-2 hover:underline">
+                        Prefer the Recruiter Network program? Learn more →
+                      </Link>
+                    </p>
+                  </form>
+                </div>
+              </div>
             ) : (
               <div className="partner-success-enter mt-6 text-center">
                 <svg className="mx-auto h-6 w-6 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>

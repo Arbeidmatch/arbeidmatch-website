@@ -24,7 +24,7 @@ export async function GET(
 
     const { data, error } = await supabase
       .from("request_tokens")
-      .select("token,email,expires_at,used,job_summary")
+      .select("token,email,expires_at,used,job_summary,type")
       .eq("token", token)
       .maybeSingle();
     if (error || !data) {
@@ -37,15 +37,19 @@ export async function GET(
     if (new Date(data.expires_at).getTime() <= Date.now()) {
       return NextResponse.json({ success: false, error: "Token expired." }, { status: 410 });
     }
-    if ((data.job_summary || "").trim().toLowerCase() !== "employer_trial") {
+    const summary = (data.job_summary || "").trim().toLowerCase();
+    if (summary !== "employer_trial" && summary !== "partner_application") {
       return NextResponse.json({ success: false, error: "Invalid trial token." }, { status: 403 });
     }
+
+    const applicationKind = summary === "partner_application" ? "partner_application" : "employer_trial";
 
     return NextResponse.json({
       success: true,
       data: {
         token: data.token,
         email: data.email,
+        applicationKind,
       },
     });
   } catch (error) {

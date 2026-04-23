@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     const tokenRes = await supabase
       .from("request_tokens")
-      .select("token,email,expires_at,used,job_summary")
+      .select("token,email,expires_at,used,job_summary,type")
       .eq("token", parsed.data.token)
       .maybeSingle();
     if (tokenRes.error || !tokenRes.data) {
@@ -59,13 +59,18 @@ export async function POST(request: NextRequest) {
     if (new Date(tokenRes.data.expires_at).getTime() <= Date.now()) {
       return NextResponse.json({ success: false, error: "Token expired." }, { status: 410 });
     }
-    if ((tokenRes.data.job_summary || "").trim().toLowerCase() !== "employer_trial") {
+    const summary = (tokenRes.data.job_summary || "").trim().toLowerCase();
+    if (summary !== "employer_trial" && summary !== "partner_application") {
       return NextResponse.json({ success: false, error: "Invalid trial token." }, { status: 403 });
     }
 
     const employerEmail = tokenRes.data.email.trim().toLowerCase();
     const payload = parsed.data;
     const accessLevelText = payload.access_level === "connect_hire" ? "Connect & Hire" : "See Who's Available";
+    const isPartnerApplication = summary === "partner_application";
+    const jobSummaryLabel = isPartnerApplication ? "Partner application (welcome modal)" : "Employer trial request";
+    const hiringTypeLabel = isPartnerApplication ? "Partner application" : "Trial flow";
+    const notesSource = isPartnerApplication ? "partner_application_welcome_modal" : "employer_trial_flow";
 
     const insertRes = await supabase
       .from("employer_requests")
@@ -75,15 +80,15 @@ export async function POST(request: NextRequest) {
         email: employerEmail,
         full_name: payload.company.contact_name,
         phone: "N/A",
-        job_summary: "Employer trial request",
-        hiring_type: "Trial flow",
+        job_summary: jobSummaryLabel,
+        hiring_type: hiringTypeLabel,
         category: payload.category,
         position: `${payload.category} candidate overview`,
         qualification: "General",
         city: "Not specified",
         requirements: accessLevelText,
         notes: JSON.stringify({
-          source: "employer_trial_flow",
+          source: notesSource,
           access_level: payload.access_level,
           access_label: accessLevelText,
         }),
@@ -99,7 +104,10 @@ export async function POST(request: NextRequest) {
     const transporter = createSmtpTransporter();
     if (transporter) {
       const employerHtml = buildEmployerConfirmationHtml(payload.access_level);
-      await safeSendEmail(employerEmail, "We've received your request - Thank you", employerHtml, {
+      const employerSubject = isPartnerApplication
+        ? "Partner application received — ArbeidMatch"
+        : "We've received your request - Thank you";
+      await safeSendEmail(employerEmail, employerSubject, employerHtml, {
         ...mailHeaders(),
         text:
           "Thank you for your interest in working with ArbeidMatch. We appreciate that you chose us and we'll be in touch within 48 hours.\n\n" +
@@ -110,8 +118,9 @@ export async function POST(request: NextRequest) {
         ipAddress: request.headers.get("x-forwarded-for") || undefined,
       });
 
+      const internalTitle = isPartnerApplication ? "Partner Application Received" : "Employer Trial Request Received";
       const internalHtml = buildInternalEmailHtml({
-        title: "Employer Trial Request Received",
+        title: internalTitle,
         rows: [
           { label: "Company", value: payload.company.company_name },
           { label: "Contact", value: payload.company.contact_name },
@@ -120,15 +129,16 @@ export async function POST(request: NextRequest) {
           { label: "Access level", value: accessLevelText },
         ],
       });
-      await safeSendEmail("post@arbeidmatch.no", `Employer trial request: ${payload.company.company_name}`, internalHtml, {
+      const internalSubjectPrefix = isPartnerApplication ? "Partner application" : "Employer trial request";
+      await safeSendEmail("post@arbeidmatch.no", `${internalSubjectPrefix}: ${payload.company.company_name}`, internalHtml, {
         ...mailHeaders(),
-        text: `Employer trial request received\nCompany: ${payload.company.company_name}\nContact: ${payload.company.contact_name}\nEmail: ${employerEmail}\nCategory: ${payload.category}\nAccess level: ${accessLevelText}`,
+        text: `${internalTitle}\nCompany: ${payload.company.company_name}\nContact: ${payload.company.contact_name}\nEmail: ${employerEmail}\nCategory: ${payload.category}\nAccess level: ${accessLevelText}`,
         transporter,
       });
     }
 
     await notifySlack("employers", {
-      title: "Employer trial request",
+      title: isPartnerApplication ? "Partner application (trial flow)" : "Employer trial request",
       fields: {
         Company: payload.company.company_name,
         Contact: payload.company.contact_name,
@@ -138,12 +148,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    await logAuditEvent("employer_trial_submitted", "employer_request", insertRes.data?.id ?? null, "employer", {
-      company: payload.company.company_name,
-      email: employerEmail,
-      category: payload.category,
-      access_level: payload.access_level,
-    });
+    await logAuditEvent(
+      isPartnerApplication ? "partner_application_submitted" : "employer_trial_submitted",
+      "employer_request",
+      insertRes.data?.id ?? null,
+      "employer",
+      {
+        company: payload.company.company_name,
+        email: employerEmail,
+        category: payload.category,
+        access_level: payload.access_level,
+      },
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {
