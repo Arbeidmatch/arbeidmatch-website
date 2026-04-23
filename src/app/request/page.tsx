@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, Bolt, Check, Clock, Factory, Handshake, HardHat, HeartPulse, Search, Sparkles, TrendingUp, Truck } from "lucide-react";
+import { ArrowLeft, Bolt, Check, Clock, Factory, Handshake, HardHat, HeartPulse, Search, Sparkles, TrendingUp, Truck, Zap } from "lucide-react";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
 import {
@@ -30,7 +30,7 @@ const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: typeof HardHat; roles: 
   },
   {
     industry: "Electrical & Technical",
-    icon: Bolt,
+    icon: Zap,
     roles: ["Electrician", "DSB Authorized Electrician", "Plumber", "HVAC Technician", "Automation Engineer", "Welder", "Pipefitter"],
   },
   {
@@ -89,6 +89,139 @@ const slideVariants = {
   }),
 };
 
+type Ripple = { id: number; x: number; y: number };
+type Particle = { id: number; dx: number; dy: number };
+
+function PremiumIndustryCard({
+  industry,
+  Icon,
+  index,
+  selected,
+  reduceMotion,
+  onSelect,
+}: {
+  industry: string;
+  Icon: typeof HardHat;
+  index: number;
+  selected: boolean;
+  reduceMotion: boolean | null;
+  onSelect: (industry: string) => void;
+}) {
+  const [ripples, setRipples] = useState<Ripple[]>([]);
+  const [bursts, setBursts] = useState<Particle[]>([]);
+
+  const handleTap = (event: MouseEvent<HTMLButtonElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const ripple: Ripple = {
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    };
+    setRipples((prev) => [...prev, ripple]);
+    window.setTimeout(() => {
+      setRipples((prev) => prev.filter((r) => r.id !== ripple.id));
+    }, 420);
+
+    const burstSeed = Date.now();
+    const particles: Particle[] = Array.from({ length: 6 }, (_, i) => {
+      const angle = (Math.PI * 2 * i) / 6 + Math.random() * 0.7;
+      const radius = 22 + Math.random() * 18;
+      return {
+        id: burstSeed + i,
+        dx: Math.cos(angle) * radius,
+        dy: Math.sin(angle) * radius,
+      };
+    });
+    setBursts(particles);
+    window.setTimeout(() => setBursts([]), 520);
+
+    onSelect(industry);
+  };
+
+  return (
+    <motion.button
+      type="button"
+      onClick={handleTap}
+      initial={reduceMotion ? false : { y: 30, opacity: 0, scale: 0.93 }}
+      animate={
+        selected && !reduceMotion
+          ? { y: 0, opacity: 1, scale: [0.96, 1.04, 1] }
+          : { y: 0, opacity: 1, scale: 1 }
+      }
+      transition={{
+        duration: reduceMotion ? 0 : 0.45,
+        delay: reduceMotion ? 0 : index * 0.08,
+        type: "spring",
+        stiffness: 260,
+        damping: 24,
+      }}
+      whileHover={
+        reduceMotion
+          ? undefined
+          : {
+              scale: 1.04,
+              borderColor: "rgba(255,255,255,0.2)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
+              transition: { type: "spring", stiffness: 500, damping: 30 },
+            }
+      }
+      whileTap={reduceMotion ? undefined : { scale: 0.97, transition: { duration: 0.1 } }}
+      className={`group relative w-full overflow-hidden rounded-3xl border p-5 text-left ${
+        selected
+          ? "border-[#C9A84C] bg-[radial-gradient(circle_at_center,rgba(201,168,76,0.08),transparent_65%)] shadow-[0_0_24px_rgba(201,168,76,0.4)]"
+          : "border-white/10 bg-gradient-to-br from-[#0f2035] to-[#0a1628]"
+      }`}
+    >
+      <motion.span
+        aria-hidden
+        initial={{ x: "-120%", opacity: 0 }}
+        whileHover={reduceMotion ? undefined : { x: "140%", opacity: 0.9 }}
+        transition={{ duration: 0.65, ease: "easeOut" }}
+        className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+      />
+
+      {ripples.map((ripple) => (
+        <motion.span
+          key={ripple.id}
+          className="pointer-events-none absolute h-8 w-8 rounded-full bg-white/20"
+          style={{ left: ripple.x - 16, top: ripple.y - 16 }}
+          initial={{ scale: 0, opacity: 0.3 }}
+          animate={{ scale: 3, opacity: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        />
+      ))}
+      {bursts.map((particle) => (
+        <motion.span
+          key={particle.id}
+          className="pointer-events-none absolute left-1/2 top-1/2 h-2 w-2 rounded-full bg-[#C9A84C]"
+          initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
+          animate={{ x: particle.dx, y: particle.dy, scale: 1.5, opacity: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        />
+      ))}
+
+      {selected ? (
+        <motion.span
+          className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#C9A84C] text-[#0D1B2A]"
+          initial={{ scale: 0 }}
+          animate={{ scale: [0, 1.3, 1] }}
+          transition={{ type: "spring", stiffness: 360, damping: 22 }}
+        >
+          <Check className="h-4 w-4" />
+        </motion.span>
+      ) : null}
+
+      <div className="relative z-10 flex h-full flex-col items-start justify-between gap-4">
+        <Icon className={`h-8 w-8 ${selected ? "text-[#C9A84C] drop-shadow-[0_0_10px_rgba(201,168,76,0.5)]" : "text-[#C9A84C]"}`} />
+        <div>
+          <p className={`text-base tracking-tight ${selected ? "font-semibold text-white" : "font-semibold text-white/90"}`}>{industry}</p>
+          <p className="mt-1 text-xs text-white/40">Tap to explore available specialist pools</p>
+        </div>
+      </div>
+    </motion.button>
+  );
+}
+
 export default function RequestPage() {
   const router = useRouter();
   const toast = useToast();
@@ -138,6 +271,7 @@ export default function RequestPage() {
   const [workTogetherEmail, setWorkTogetherEmail] = useState("");
   const [workTogetherStatus, setWorkTogetherStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [flowDirection, setFlowDirection] = useState(1);
+  const [industryPreview, setIndustryPreview] = useState("");
   const [optionsDirection, setOptionsDirection] = useState(1);
   const reduceMotion = useReducedMotion();
   const hasMountedHistoryGuard = useRef(false);
@@ -146,6 +280,7 @@ export default function RequestPage() {
   /** Bumped on reset / back so in-flight `runCandidateSearch` cannot apply after leaving the flow. */
   const candidateSearchGenerationRef = useRef(0);
   const rareProfileTrackedRef = useRef(false);
+  const industryAdvanceTimerRef = useRef<number | null>(null);
 
   const filteredRoles = useMemo(() => {
     if (!selectedIndustry) return [];
@@ -159,6 +294,14 @@ export default function RequestPage() {
     );
     return [...startsWith, ...contains].slice(0, 8);
   }, [roleQuery, selectedIndustry]);
+
+  useEffect(() => {
+    return () => {
+      if (industryAdvanceTimerRef.current) {
+        window.clearTimeout(industryAdvanceTimerRef.current);
+      }
+    };
+  }, []);
 
   const isPastFirstStep = useMemo(() => {
     if (checkState !== "idle") return true;
@@ -204,6 +347,20 @@ export default function RequestPage() {
     setCheckState("result");
     trackRequestStepComplete(1, analyticsCategory);
   };
+
+  const handlePremiumIndustrySelect = useCallback((industry: string) => {
+    if (industryAdvanceTimerRef.current) {
+      window.clearTimeout(industryAdvanceTimerRef.current);
+    }
+    setFlowDirection(1);
+    setIndustryPreview(industry);
+    setRoleQuery("");
+    industryAdvanceTimerRef.current = window.setTimeout(() => {
+      setSelectedIndustry(industry);
+      setIndustryPreview("");
+      industryAdvanceTimerRef.current = null;
+    }, 350);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -339,6 +496,7 @@ export default function RequestPage() {
   const handleAvailabilityBack = () => {
     if (selectedIndustry) {
       setFlowDirection(-1);
+      setIndustryPreview("");
       setSelectedIndustry("");
       setRoleQuery("");
       return;
@@ -365,9 +523,14 @@ export default function RequestPage() {
 
   const resetToFirstStep = () => {
     candidateSearchGenerationRef.current += 1;
+    if (industryAdvanceTimerRef.current) {
+      window.clearTimeout(industryAdvanceTimerRef.current);
+      industryAdvanceTimerRef.current = null;
+    }
     setShowLeaveDialog(false);
     setFlowDirection(-1);
     setCheckState("idle");
+    setIndustryPreview("");
     setSelectedIndustry("");
     setRoleQuery("");
     setSearchTerm("");
@@ -575,6 +738,7 @@ export default function RequestPage() {
                         value={selectedIndustry}
                         onChange={(event) => {
                           setFlowDirection(1);
+                          setIndustryPreview("");
                           setSelectedIndustry(event.target.value);
                           setRoleQuery("");
                         }}
@@ -601,54 +765,18 @@ export default function RequestPage() {
                   </div>
 
                   <div className="hidden grid-cols-3 gap-4 lg:grid">
-                    {CHECK_ROLE_GROUPS.map(({ industry, icon: Icon }) => {
-                      const isSelected = selectedIndustry === industry;
+                    {CHECK_ROLE_GROUPS.map(({ industry, icon: Icon }, index) => {
+                      const isSelected = (industryPreview || selectedIndustry) === industry;
                       return (
-                        <motion.button
+                        <PremiumIndustryCard
                           key={industry}
-                          type="button"
-                          onClick={() => {
-                            setFlowDirection(1);
-                            setSelectedIndustry(industry);
-                            setRoleQuery("");
-                          }}
-                          whileHover={
-                            reduceMotion
-                              ? undefined
-                              : {
-                                  scale: 1.03,
-                                  borderColor: "#C9A84C",
-                                  transition: { duration: 0.2, ease: "easeInOut" },
-                                }
-                          }
-                          animate={
-                            isSelected && !reduceMotion
-                              ? {
-                                  scale: [1, 1.05, 1.02],
-                                  boxShadow: [
-                                    "0 0 0 0 rgba(201,168,76,0)",
-                                    "0 0 0 3px rgba(201,168,76,0.4)",
-                                    "0 0 0 0 rgba(201,168,76,0)",
-                                  ],
-                                }
-                              : { scale: 1, boxShadow: "0 0 0 0 rgba(201,168,76,0)" }
-                          }
-                          transition={{ duration: reduceMotion ? 0 : 0.3, ease: "easeInOut" }}
-                          className={`h-32 w-full cursor-pointer rounded-[12px] border px-2 py-2 transition-all duration-200 ease-in-out md:h-36 md:px-4 md:py-4 ${
-                            isSelected
-                              ? "border-[#C9A84C] bg-white/10"
-                              : "border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.07)]"
-                          }`}
-                        >
-                          <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-                            <Icon className="h-5 w-5 text-[#C9A84C]" />
-                            <p
-                              className={`line-clamp-2 text-xs font-semibold leading-tight md:text-sm ${isSelected ? "text-[#C9A84C]" : "text-white"}`}
-                            >
-                              {industry}
-                            </p>
-                          </div>
-                        </motion.button>
+                          industry={industry}
+                          Icon={Icon}
+                          index={index}
+                          selected={isSelected}
+                          reduceMotion={reduceMotion}
+                          onSelect={handlePremiumIndustrySelect}
+                        />
                       );
                     })}
                   </div>
@@ -672,6 +800,7 @@ export default function RequestPage() {
                         type="button"
                         onClick={() => {
                           setFlowDirection(-1);
+                          setIndustryPreview("");
                           setSelectedIndustry("");
                           setRoleQuery("");
                         }}
