@@ -5,16 +5,15 @@ import { getSupabaseServiceClient } from "@/lib/supabaseService";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
-  const role = request.nextUrl.searchParams.get("role") || "";
+async function resolveCandidateCount(role: string) {
   const normalizedRole = role.trim().toLowerCase();
   if (normalizedRole.length < 2) {
-    return NextResponse.json({ count: 0, role });
+    return { count: 0, role };
   }
 
   try {
     const supabase = getSupabaseServiceClient();
-    if (!supabase) return NextResponse.json({ count: 0, role });
+    if (!supabase) return { count: 0, role };
 
     const rolePattern = `%${normalizedRole}%`;
     const { count, error } = await supabase
@@ -23,12 +22,25 @@ export async function GET(request: NextRequest) {
       .or(`role.ilike.${rolePattern},trade.ilike.${rolePattern},job_title.ilike.${rolePattern}`);
 
     if (error) {
-      return NextResponse.json({ count: 0, role });
+      return { count: 0, role };
     }
 
-    return NextResponse.json({ count: count ?? 0, role });
+    return { count: count ?? 0, role };
   } catch (error) {
     await notifyError({ route: "/api/check-candidates", error });
-    return NextResponse.json({ count: 0, role });
+    return { count: 0, role };
   }
+}
+
+export async function GET(request: NextRequest) {
+  const role = request.nextUrl.searchParams.get("role") || "";
+  const payload = await resolveCandidateCount(role);
+  return NextResponse.json(payload);
+}
+
+export async function POST(request: NextRequest) {
+  const body = (await request.json().catch(() => null)) as { category?: string } | null;
+  const role = (body?.category || "").trim();
+  const payload = await resolveCandidateCount(role);
+  return NextResponse.json(payload);
 }
