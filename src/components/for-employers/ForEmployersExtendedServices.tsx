@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FileCheck, Megaphone, UserSearch, Users, type LucideIcon } from "lucide-react";
 
-type ExtendedServiceCard = {
+type ServiceCard = {
   title: string;
   text: string;
   href: string;
@@ -10,7 +10,7 @@ type ExtendedServiceCard = {
   badge?: string;
 };
 
-const CARDS: ExtendedServiceCard[] = [
+const CARDS: ServiceCard[] = [
   {
     title: "Full Recruitment",
     text: "We manage the entire process: sourcing, pre-screening, and candidate presentation. You make the final hiring decision.",
