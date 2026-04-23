@@ -4,10 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, Bolt, Check, Clock, Factory, Handshake, HardHat, HeartPulse, Sparkles, Star, TrendingUp, Truck } from "lucide-react";
+import { ArrowLeft, Bolt, Check, Clock, Factory, Handshake, HardHat, HeartPulse, Search, Sparkles, Star, TrendingUp, Truck } from "lucide-react";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
-import MobileCardPager from "@/components/ui/MobileCardPager";
 
 type VerifyPartnerResponse = {
   verified?: boolean;
@@ -434,7 +433,7 @@ export default function RequestPage() {
             <button
               type="button"
               onClick={handleAvailabilityBack}
-              className="mb-4 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
+              className="mb-4 inline-flex items-center gap-2 rounded-[10px] border border-[#C9A84C]/25 bg-[#C9A84C]/5 px-3 py-1.5 text-sm text-[#C9A84C] transition-colors duration-200 hover:border-[#C9A84C]/55 hover:bg-[#C9A84C]/10"
             >
               <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
               Back
@@ -503,12 +502,15 @@ export default function RequestPage() {
               ) : (
                 <motion.div
                   key="role-search"
+                  className="mx-auto mt-5 w-full max-w-2xl rounded-2xl border border-white/10 bg-white/5 p-8"
                   initial={reduceMotion ? false : { opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
                   transition={{ duration: reduceMotion ? 0 : 0.2, ease: EASE_PREMIUM }}
                 >
-                  <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#C9A84C] bg-[rgba(201,168,76,0.08)] px-3 py-1 text-xs font-semibold text-[#C9A84C]">
+                  <h2 className="text-xl font-semibold text-white">Select a Role</h2>
+                  <p className="mt-1 text-sm text-white/50">Type to search or choose from the list below</p>
+                  <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#C9A84C]/40 bg-[#C9A84C]/15 px-3 py-1 text-xs font-medium text-[#C9A84C]">
                     <span>{selectedIndustry}</span>
                     <button
                       type="button"
@@ -522,34 +524,35 @@ export default function RequestPage() {
                       <span className="text-sm">x</span>
                     </button>
                   </div>
-                  <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.4)]">Type to search or select from the list</p>
-                  <input
-                    value={roleQuery}
-                    onChange={(event) => setRoleQuery(event.target.value)}
-                    placeholder="Search for a role..."
-                    className="mt-4 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
-                  />
+                  <div className="relative mt-4">
+                    <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                    <input
+                      value={roleQuery}
+                      onChange={(event) => setRoleQuery(event.target.value)}
+                      placeholder="Search for a role..."
+                      className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-white placeholder:text-white/30 outline-none ring-0 transition-colors duration-200 focus:border-[#C9A84C]/60"
+                    />
+                  </div>
                   {filteredRoles.length > 0 ? (
-                    <div className="mt-4">
-                      <MobileCardPager
-                        items={filteredRoles}
-                        pageSize={4}
-                        getKey={(role) => role}
-                        desktopClassName="flex flex-wrap gap-[10px]"
-                        mobileClassName="space-y-2 px-3"
-                        dotsClassName="mt-3"
-                        renderItem={(role) => (
-                        <button
+                    <motion.div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+                      {filteredRoles.map((role, index) => (
+                        <motion.button
                           key={role}
                           type="button"
                           onClick={() => void runCandidateSearch(role)}
-                          className="inline-flex w-full cursor-pointer rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-4 py-4 text-[14px] text-[rgba(255,255,255,0.8)] transition-all duration-200 ease-in-out hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.08)] hover:text-white min-h-[56px] md:inline-flex md:w-auto md:rounded-[20px] md:px-[18px] md:py-[10px] md:min-h-0"
+                          initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: reduceMotion ? 0 : 0.2, delay: reduceMotion ? 0 : index * 0.03 }}
+                          className={`rounded-xl border px-4 py-3 text-sm transition-all duration-200 ${
+                            roleQuery.trim().toLowerCase() === role.toLowerCase()
+                              ? "border-[#C9A84C] bg-[#C9A84C]/10 font-medium text-[#C9A84C]"
+                              : "border-white/10 bg-white/5 text-white/80 hover:border-[#C9A84C]/60 hover:bg-white/10 hover:text-white"
+                          }`}
                         >
                           {role}
-                        </button>
-                        )}
-                      />
-                    </div>
+                        </motion.button>
+                      ))}
+                    </motion.div>
                   ) : (
                     <p className="mt-4 text-sm text-[rgba(255,255,255,0.4)]">No roles found. Try a different search.</p>
                   )}
