@@ -588,6 +588,23 @@ export default function RequestPage() {
               <div className="mt-5 inline-flex rounded-full bg-[#C9A84C]/10 px-3 py-1 text-xs font-semibold tracking-widest text-[#C9A84C]">
                 PARTNER ACCESS
               </div>
+              {checkCount < 5 ? (
+                <motion.div
+                  initial={reduceMotion ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.25, delay: reduceMotion ? 0 : 0.3 }}
+                  className="mx-auto mt-4 max-w-xs text-center"
+                >
+                  <div className="inline-flex rounded-full border border-[#C9A84C]/40 bg-[#C9A84C]/15 px-3 py-1 text-xs font-medium text-[#C9A84C]">
+                    Rare Profile
+                  </div>
+                  <p className="mt-2 text-center text-sm leading-relaxed text-white/50">
+                    {checkCount === 0
+                      ? "No profiles currently available for this role. We'll notify you as soon as one joins our network."
+                      : "This is a rare profile in our network. We'll put extra effort into finding the right match for you."}
+                  </p>
+                </motion.div>
+              ) : null}
               <h2 className="mt-5 text-center text-2xl font-bold text-white">{(searchTerm.trim() || "ROLE").toUpperCase()}</h2>
               <p className="mt-2 text-center text-sm text-white/60">
                 This position is currently available for ArbeidMatch partners only.
