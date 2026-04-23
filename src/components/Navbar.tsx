@@ -2,200 +2,43 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { startTransition, useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
 import {
-  neutralNavLinks,
-  premiumCandidateCenter,
-  premiumCandidateMore,
+  employerMegaResources,
+  employerMegaSolutions,
   premiumEmployerCenter,
-  premiumEmployerMore,
 } from "@/lib/navigationDualLinks";
-import {
-  getNavigationUserType,
-  setNavigationUserType,
-  subscribeNavigationUserType,
-  type NavigationUserType,
-} from "@/lib/navigationUserType";
-
-import type { DualNavLink } from "@/lib/navigationDualLinks";
 
 const DRAWER_EASE = [0.32, 0.72, 0, 1] as const;
-const MORE_EASE = [0.22, 1, 0.36, 1] as const;
 
 function linkActive(pathname: string, href: string): boolean {
   if (href === "/" || href.startsWith("http")) return false;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function moreHasActive(pathname: string, links: DualNavLink[]): boolean {
-  return links.some((l) => !l.external && linkActive(pathname, l.href));
-}
-
 const navLinkClass =
   "text-sm font-medium text-white/70 transition-colors duration-200 hover:text-white";
 const navLinkActiveClass = "text-white";
 
-function NavRowLink({
-  pathname,
-  item,
-  onNavigate,
-}: {
-  pathname: string;
-  item: DualNavLink;
-  onNavigate?: () => void;
-}) {
-  const active = item.external ? false : linkActive(pathname, item.href);
-  const cls = `${navLinkClass} ${active ? navLinkActiveClass : ""}`;
-
-  if (item.external) {
-    return (
-      <a href={item.href} target="_blank" rel="noopener noreferrer" className={cls} onClick={onNavigate}>
-        {item.label}
-      </a>
-    );
-  }
-
-  return (
-    <Link href={item.href} className={cls} onClick={onNavigate}>
-      {item.label}
-    </Link>
-  );
-}
-
-function MoreMenu({
-  pathname,
-  label,
-  links,
-  isOpen,
-  onOpenChange,
-}: {
-  pathname: string;
-  label: string;
-  links: DualNavLink[];
-  isOpen: boolean;
-  onOpenChange: (v: boolean) => void;
-}) {
-  const wrapRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const onDoc = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) onOpenChange(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onOpenChange(false);
-    };
-    document.addEventListener("mousedown", onDoc);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDoc);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [isOpen, onOpenChange]);
-
-  const activeMore = moreHasActive(pathname, links);
-
-  return (
-    <div ref={wrapRef} className="relative">
-      <button
-        type="button"
-        aria-expanded={isOpen}
-        aria-haspopup="menu"
-        onClick={() => onOpenChange(!isOpen)}
-        onMouseEnter={() => onOpenChange(true)}
-        className={`inline-flex items-center gap-1 rounded-md px-1 py-1.5 text-sm font-medium transition-colors duration-200 ${
-          activeMore || isOpen ? "text-white" : "text-white/70 hover:text-white"
-        }`}
-      >
-        {label}
-        <ChevronDown className={`h-3.5 w-3.5 opacity-50 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} aria-hidden />
-      </button>
-      <AnimatePresence>
-        {isOpen ? (
-          <motion.div
-            key="more-dd"
-            role="menu"
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.18, ease: MORE_EASE }}
-            className="absolute right-0 top-full z-[60] mt-2 min-w-[220px] rounded-xl border border-[rgba(201,168,76,0.12)] bg-[rgba(13,27,42,0.98)] py-2 shadow-[0_16px_48px_rgba(0,0,0,0.45)] backdrop-blur-md"
-            onMouseLeave={() => onOpenChange(false)}
-          >
-            {links.map((item) => (
-              <div key={item.href + item.label} role="none">
-                {item.external ? (
-                  <a
-                    role="menuitem"
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block px-4 py-2.5 text-sm font-medium text-white/75 transition-colors hover:bg-white/[0.06] hover:text-white"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    {item.label}
-                  </a>
-                ) : (
-                  <Link
-                    role="menuitem"
-                    href={item.href}
-                    className={`block px-4 py-2.5 text-sm font-medium transition-colors hover:bg-white/[0.06] ${
-                      linkActive(pathname, item.href) ? "text-[#C9A84C]" : "text-white/75 hover:text-white"
-                    }`}
-                    onClick={() => onOpenChange(false)}
-                  >
-                    {item.label}
-                  </Link>
-                )}
-              </div>
-            ))}
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </div>
-  );
-}
-
 export default function Navbar() {
   const pathname = usePathname();
-  const [userType, setUserType] = useState<NavigationUserType | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     startTransition(() => setMounted(true));
   }, []);
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
-    const hasPremium = document.cookie.split(";").some((c) => c.trim().startsWith("premium_token="));
-    setIsPremium(hasPremium);
-  }, []);
-
-  useEffect(() => {
-    setUserType(getNavigationUserType());
-    return subscribeNavigationUserType(() => setUserType(getNavigationUserType()));
-  }, []);
-
-  useEffect(() => {
-    if (pathname === "/for-employers" || pathname.startsWith("/for-employers/")) {
-      if (getNavigationUserType() !== "employer") setNavigationUserType("employer");
-    } else if (pathname === "/for-candidates" || pathname.startsWith("/for-candidates/")) {
-      if (getNavigationUserType() !== "candidate") setNavigationUserType("candidate");
-    }
-  }, [pathname]);
-
-  useEffect(() => {
     startTransition(() => {
       setIsOpen(false);
-      setMoreOpen(false);
+      setMegaOpen(false);
     });
   }, [pathname]);
 
@@ -253,9 +96,9 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.32, ease: DRAWER_EASE }}
-              className="fixed bottom-0 right-0 top-0 z-[281] flex h-[100dvh] w-[min(100vw,360px)] flex-col overflow-hidden border-l border-[rgba(201,168,76,0.12)] bg-[#0D1B2A] shadow-[-12px_0_40px_rgba(0,0,0,0.35)] lg:hidden"
+              className="fixed inset-0 z-[281] flex h-[100dvh] w-full flex-col overflow-hidden bg-[#0D1B2A] lg:hidden"
             >
-              <MobileDrawerContent pathname={pathname} onClose={closeMenu} isPremium={isPremium} />
+              <MobileDrawerContent onClose={closeMenu} />
             </motion.aside>
           </>
         ) : null}
@@ -277,62 +120,62 @@ export default function Navbar() {
           </Link>
 
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-8 lg:flex">
-            {userType === null ? (
-              <>
-                {neutralNavLinks.map((link) => {
-                  const active = linkActive(pathname, link.href);
-                  if (link.userType) {
-                    return (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        onClick={() => setNavigationUserType(link.userType!)}
-                        className={`${navLinkClass} ${active ? navLinkActiveClass : ""}`}
-                      >
-                        {link.label}
-                      </Link>
-                    );
-                  }
-                  return (
-                    <Link key={link.href} href={link.href} className={`${navLinkClass} ${active ? navLinkActiveClass : ""}`}>
-                      {link.label}
-                    </Link>
-                  );
-                })}
-              </>
-            ) : userType === "employer" ? (
-              <>
-                {premiumEmployerCenter.map((item) => (
-                  <NavRowLink key={item.href} pathname={pathname} item={item} />
-                ))}
-                <MoreMenu pathname={pathname} label="More" links={premiumEmployerMore} isOpen={moreOpen} onOpenChange={setMoreOpen} />
-              </>
-            ) : (
-              <>
-                {premiumCandidateCenter.map((item) => (
-                  <NavRowLink key={item.href + item.label} pathname={pathname} item={item} />
-                ))}
-                <MoreMenu pathname={pathname} label="More" links={premiumCandidateMore} isOpen={moreOpen} onOpenChange={setMoreOpen} />
-              </>
-            )}
+            <div className="relative" onMouseEnter={() => setMegaOpen(true)} onMouseLeave={() => setMegaOpen(false)}>
+              <button type="button" className={`${navLinkClass} ${linkActive(pathname, "/for-employers") ? navLinkActiveClass : ""} inline-flex items-center gap-1`}>
+                For Employers
+                <ChevronDown className={`h-3.5 w-3.5 opacity-60 transition-transform ${megaOpen ? "rotate-180" : ""}`} />
+              </button>
+              <AnimatePresence>
+                {megaOpen ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute left-1/2 top-full z-[70] mt-3 w-[620px] -translate-x-1/2 rounded-2xl border border-white/10 bg-[#0D1B2A]/95 p-6 shadow-2xl backdrop-blur-xl"
+                  >
+                    <div className="grid grid-cols-2 gap-8">
+                      <div>
+                        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.1em] text-[#C9A84C]">Solutions</p>
+                        <div className="space-y-2">
+                          {employerMegaSolutions.map((item) => (
+                            <Link key={item.href} href={item.href} className="block rounded-lg px-3 py-2 text-sm text-white/80 transition hover:bg-white/5 hover:text-white">
+                              {item.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.1em] text-[#C9A84C]">Resources</p>
+                        <div className="space-y-2">
+                          {employerMegaResources.map((item) => (
+                            <Link key={item.href} href={item.href} className="block rounded-lg px-3 py-2 text-sm text-white/80 transition hover:bg-white/5 hover:text-white">
+                              {item.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
+            {premiumEmployerCenter
+              .filter((item) => item.label !== "For Employers")
+              .map((item) => (
+                <Link key={item.href} href={item.href} className={`${navLinkClass} ${linkActive(pathname, item.href) ? navLinkActiveClass : ""}`}>
+                  {item.label}
+                </Link>
+              ))}
           </nav>
 
           <div className="hidden shrink-0 items-center gap-3 lg:flex">
-            {userType === "candidate" ? (
-              <Link
-                href="/candidates"
-                className="inline-flex min-h-[40px] items-center justify-center rounded-lg bg-[#C9A84C] px-5 py-2 text-sm font-bold text-[#0D1B2A] transition hover:brightness-105"
-              >
-                Create Profile
-              </Link>
-            ) : (
-              <Link
-                href="/request"
-                className="inline-flex min-h-[40px] items-center justify-center rounded-lg bg-[#C9A84C] px-5 py-2 text-sm font-bold text-[#0D1B2A] transition hover:brightness-105"
-              >
-                Request Candidates
-              </Link>
-            )}
+            <Link
+              href="/request"
+              className="inline-flex min-h-[40px] items-center justify-center rounded-lg bg-[#C9A84C] px-5 py-2 text-sm font-bold text-[#0D1B2A] transition hover:brightness-105"
+            >
+              Request Candidates
+            </Link>
           </div>
 
           <button

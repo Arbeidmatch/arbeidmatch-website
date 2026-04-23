@@ -2,24 +2,29 @@ import type { NavigationUserType } from "@/lib/navigationUserType";
 
 export type DualNavLink = { href: string; label: string; external?: boolean };
 
-/** Desktop center row (max 4) — employer */
+/** Main top-level desktop navigation. */
 export const premiumEmployerCenter: DualNavLink[] = [
   { href: "/for-employers", label: "For Employers" },
-  { href: "/become-a-partner", label: "Recruiter Network" },
+  { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/about", label: "About us" },
   { href: "/contact", label: "Contact" },
 ];
 
-/** Desktop “More” dropdown — employer */
-export const premiumEmployerMore: DualNavLink[] = [
+/** Mega menu column: Solutions */
+export const employerMegaSolutions: DualNavLink[] = [
+  { href: "/for-employers", label: "For Employers" },
   { href: "/for-staffing-agencies", label: "For Staffing Agencies" },
-  { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/recruiter-network", label: "Recruiter Network" },
-  { href: "/partners", label: "Trusted Partners" },
-  { href: "/faq", label: "FAQ" },
 ];
 
-/** Desktop center row — candidate */
+/** Mega menu column: Resources */
+export const employerMegaResources: DualNavLink[] = [
+  { href: "/faq", label: "FAQ" },
+  { href: "/welding-specialists", label: "Welding Specialists" },
+  { href: "/electricians-norway", label: "Electricians Norway" },
+];
+
+/** Candidate desktop row kept for compatibility in other UIs. */
 export const premiumCandidateCenter: DualNavLink[] = [
   { href: "/for-candidates", label: "For Candidates" },
   { href: "https://jobs.arbeidmatch.no", label: "Browse Jobs", external: true },
@@ -27,15 +32,9 @@ export const premiumCandidateCenter: DualNavLink[] = [
   { href: "/contact", label: "Contact" },
 ];
 
-/** Desktop “More” dropdown — candidate */
-export const premiumCandidateMore: DualNavLink[] = [
-  { href: "/candidates", label: "Create Profile" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/non-eu-candidates", label: "Outside EU/EEA" },
-  { href: "/recruiter-network", label: "Recruiter Network" },
-  { href: "/partners", label: "Trusted Partners" },
-  { href: "/faq", label: "FAQ" },
-];
+/** "More" dropdown removed from premium navbar. */
+export const premiumEmployerMore: DualNavLink[] = [];
+export const premiumCandidateMore: DualNavLink[] = [];
 
 /** Full lists for mobile drawer (center + more). */
 export const employerNavLinks: DualNavLink[] = [...premiumEmployerCenter, ...premiumEmployerMore];
@@ -48,7 +47,7 @@ export const neutralNavLinks: {
   userType?: NavigationUserType;
 }[] = [
   { href: "/for-employers", label: "For Employers", userType: "employer" },
-  { href: "/for-candidates", label: "For Candidates", userType: "candidate" },
+  { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/about", label: "About us" },
   { href: "/contact", label: "Contact" },
 ];
