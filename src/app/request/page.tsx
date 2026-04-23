@@ -769,6 +769,9 @@ export default function RequestPage() {
     rareProfileTrackedRef.current = true;
   }, [checkCount, checkState, searchTerm, selectedIndustry]);
 
+  const currentMessage = SEARCH_MESSAGES[searchMessageIndex];
+  const selectedRole = searchTerm;
+
   return (
     <section className="flex min-h-screen flex-col items-center bg-[#0D1B2A] px-4 py-6 text-white md:min-h-dvh md:px-6 md:py-10">
       <div
@@ -778,7 +781,7 @@ export default function RequestPage() {
             : "md:border-[rgba(201,168,76,0.15)] md:border-t-2 md:border-t-[rgba(201,168,76,0.4)] md:bg-[rgba(255,255,255,0.03)]"
         } ${
           showNonPartnerOptions ? "pointer-events-none translate-y-2 opacity-0" : "translate-y-0 opacity-100"
-        }`}
+        } ${checkState === "searching" ? "max-md:border-0 max-md:bg-transparent max-md:p-0 max-md:shadow-none" : ""}`}
       >
         {checkState === "idle" && (
           <>
@@ -923,13 +926,11 @@ export default function RequestPage() {
 
         {checkState === "searching" && (
           <>
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D1B2A] p-4 md:hidden">
-              <div className="flex w-full max-w-lg flex-col items-center p-10 text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
-                <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
-                <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-[#C9A84C]" />
-                <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
-              </div>
+            <div className="fixed inset-0 z-50 bg-[#0D1B2A] flex flex-col items-center justify-center gap-6 md:hidden">
+              <p className="text-[#C9A84C] text-xs font-semibold tracking-widest uppercase">SEARCHING FOR</p>
+              <p className="text-white text-2xl font-bold">{selectedRole}</p>
+              <div className="w-12 h-12 rounded-full border-2 border-white/10 border-t-[#C9A84C] animate-spin" />
+              <p className="text-white/40 text-sm">{currentMessage}</p>
             </div>
             <div className="hidden flex-col items-center py-10 text-center md:flex">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
