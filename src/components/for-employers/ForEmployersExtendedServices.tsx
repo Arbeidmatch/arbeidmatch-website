@@ -1,5 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { FileCheck, Megaphone, UserSearch, Users, type LucideIcon } from "lucide-react";
+
+const HERO_EASE = [0.16, 1, 0.3, 1] as const;
 
 type ServiceCard = {
   title: string;
@@ -42,43 +48,92 @@ const CARDS: ServiceCard[] = [
   },
 ];
 
+function useIsMobileWidth(): boolean {
+  const [m, setM] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const fn = () => setM(mq.matches);
+    fn();
+    mq.addEventListener("change", fn);
+    return () => mq.removeEventListener("change", fn);
+  }, []);
+  return m;
+}
+
 export default function ForEmployersExtendedServices() {
+  const reduce = useReducedMotion();
+  const isMobile = useIsMobileWidth();
+  const gridRef = useRef(null);
+  const headRef = useRef(null);
+  const gridInView = useInView(gridRef, { once: true, margin: "0px 0px -8% 0px", amount: 0.12 });
+  const headInView = useInView(headRef, { once: true, amount: 0.2 });
+  const stagger = isMobile ? 0.06 : 0.1;
+
   return (
-    <section className="border-t border-[rgba(201,168,76,0.15)] bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
-      <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-        <h2 className="am-h2 text-center font-display font-bold text-white">
-          Need candidates but want to hire directly?
-        </h2>
-        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
-          {CARDS.map((card) => {
+    <section className="border-t border-white/5 bg-[#06090e] py-16 md:py-24 lg:py-32">
+      <div className="mx-auto w-full max-w-content px-4 md:px-6">
+        <motion.div
+          ref={headRef}
+          initial={reduce ? false : { opacity: 0, y: 18 }}
+          animate={headInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: isMobile ? 0.45 : 0.6, ease: HERO_EASE }}
+        >
+          <h2 className="text-center font-sans text-3xl font-extrabold tracking-[-0.03em] text-white md:text-4xl">
+            Need candidates but want to hire directly?
+          </h2>
+        </motion.div>
+        <div ref={gridRef} className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:mt-20 lg:gap-10">
+          {CARDS.map((card, i) => {
             const Icon = card.icon;
             return (
-              <Link
+              <motion.div
                 key={card.title}
-                href={card.href}
-                className="group flex h-full flex-col rounded-2xl border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.03)] px-6 py-7 transition-all duration-200 hover:scale-[1.02] hover:border-[#C9A84C]/60"
+                initial={reduce ? false : { opacity: 0, y: 22 }}
+                animate={gridInView ? { opacity: 1, y: 0 } : {}}
+                transition={{
+                  delay: reduce ? 0 : i * stagger,
+                  duration: isMobile ? 0.45 : 0.58,
+                  ease: HERO_EASE,
+                }}
+                className="h-full"
               >
-                <div className="text-gold transition-transform duration-200 group-hover:scale-110">
-                  <Icon className="block h-6 w-6 md:h-9 md:w-9" />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-white">{card.title}</h3>
-                {card.badge ? (
-                  <span className="mt-3 inline-flex w-fit rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 px-2.5 py-1 text-[11px] font-medium text-[#C9A84C]">
-                    {card.badge}
+                <Link
+                  href={card.href}
+                  className="rn-card-net group flex h-full flex-col p-8 no-underline transition-transform duration-200 md:p-9"
+                >
+                  <span className="rn-icon-inner inline-flex text-[#C9A84C] transition-transform duration-200 group-hover:scale-105">
+                    <Icon className="block h-7 w-7 md:h-9 md:w-9" aria-hidden />
                   </span>
-                ) : null}
-                <p className="mt-3 flex-1 text-sm leading-relaxed text-white/70">{card.text}</p>
-                <span className="mt-5 inline-flex min-h-[44px] items-center text-sm font-semibold text-gold hover:underline">
-                  {card.cta}
-                </span>
-              </Link>
+                  <h3 className="mt-5 text-lg font-bold text-white">{card.title}</h3>
+                  {card.badge ? (
+                    <span className="mt-4 inline-flex w-fit rounded-full border border-[#B8860B]/50 bg-[#B8860B]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">
+                      {card.badge}
+                    </span>
+                  ) : null}
+                  <p className="mt-4 flex-1 text-sm leading-relaxed text-white/65 md:text-[15px] md:leading-[1.72]">
+                    {card.text}
+                  </p>
+                  <span className="mt-6 inline-flex min-h-[44px] items-center text-sm font-semibold text-[#B8860B] underline-offset-4 group-hover:text-gold-hover group-hover:underline">
+                    {card.cta}
+                  </span>
+                </Link>
+              </motion.div>
             );
           })}
         </div>
-        <p className="mx-auto mt-10 max-w-3xl text-center text-[13px] italic leading-relaxed text-white/70">
+        <motion.p
+          className="mx-auto mt-16 max-w-3xl text-center text-[13px] italic leading-relaxed text-white/55 md:mt-20"
+          initial={reduce ? false : { opacity: 0, y: 12 }}
+          animate={gridInView ? { opacity: 1, y: 0 } : {}}
+          transition={{
+            delay: reduce ? 0 : CARDS.length * stagger + 0.12,
+            duration: 0.55,
+            ease: HERO_EASE,
+          }}
+        >
           ArbeidMatch takes responsibility for what is within our control. We are transparent about process, expectations
           and limitations, and we continuously improve.
-        </p>
+        </motion.p>
       </div>
     </section>
   );

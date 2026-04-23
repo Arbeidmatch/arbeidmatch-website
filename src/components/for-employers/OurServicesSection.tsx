@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { ClipboardCheck, MapPin, Presentation, RefreshCw, Search, Users, type LucideIcon } from "lucide-react";
 
+const HERO_EASE = [0.16, 1, 0.3, 1] as const;
 const GOLD = "#C9A84C";
-const NAVY = "#ffffff";
 
 type ServiceItem = {
   Icon: LucideIcon;
@@ -46,101 +47,76 @@ const SERVICES: ServiceItem[] = [
   },
 ];
 
-function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
+function useIsMobileWidth(): boolean {
+  const [m, setM] = useState(false);
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const on = () => setReduced(mq.matches);
-    on();
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
+    const mq = window.matchMedia("(max-width: 768px)");
+    const fn = () => setM(mq.matches);
+    fn();
+    mq.addEventListener("change", fn);
+    return () => mq.removeEventListener("change", fn);
   }, []);
-  return reduced;
+  return m;
 }
 
 export default function OurServicesSection() {
-  const reducedMotion = usePrefersReducedMotion();
-  const [shownCount, setShownCount] = useState(reducedMotion ? 6 : 0);
-  const triggerRef = useRef<HTMLDivElement>(null);
-  const started = useRef(false);
-
-  useEffect(() => {
-    if (reducedMotion) {
-      setShownCount(6);
-      return;
-    }
-    const el = triggerRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (!e?.isIntersecting || started.current) return;
-        started.current = true;
-        for (let i = 1; i <= 6; i++) {
-          window.setTimeout(() => setShownCount(i), (i - 1) * 80);
-        }
-        io.disconnect();
-      },
-      { threshold: 0.08, rootMargin: "0px 0px -5% 0px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [reducedMotion]);
+  const reduce = useReducedMotion();
+  const isMobile = useIsMobileWidth();
+  const gridRef = useRef(null);
+  const isInView = useInView(gridRef, { once: true, margin: "0px 0px -8% 0px", amount: 0.12 });
+  const stagger = isMobile ? 0.05 : 0.09;
 
   return (
-    <div ref={triggerRef} className="mx-auto w-full max-w-[1100px] px-6">
-      <p className="mb-3 text-center text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: GOLD }}>
-        What we do
-      </p>
-      <h2 className="mb-2 text-center text-[36px] font-bold leading-tight" style={{ color: NAVY }}>
-        Our services
-      </h2>
-      <p
-        className="mx-auto mb-14 max-w-[720px] text-center text-base leading-snug md:mb-[56px]"
-        style={{ color: "rgba(255,255,255,0.5)" }}
-      >
-        Everything you need to find, hire, and onboard qualified EU/EEA workers.
-      </p>
+    <section className="border-t border-white/5 bg-[#06090e] py-16 md:py-24 lg:py-32">
+      <div ref={gridRef} className="mx-auto w-full max-w-content px-4 md:px-6">
+        <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-[#B8860B]">What we do</p>
+        <h2 className="mt-5 text-center font-sans text-3xl font-extrabold tracking-[-0.03em] text-white md:text-4xl">
+          Our services
+        </h2>
+        <p className="mx-auto mt-5 max-w-2xl text-center text-base leading-relaxed text-white/60 md:text-[17px]">
+          Everything you need to find, hire, and onboard qualified EU/EEA workers.
+        </p>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-6">
-        {SERVICES.map((item, i) => {
-          const shown = reducedMotion || shownCount > i;
-          const Icon = item.Icon;
-          return (
-            <article
-              key={item.title}
-              className="group flex h-full min-h-0 flex-col rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-7 py-8 transition-[border-color] duration-[220ms] ease-out hover:border-[rgba(201,168,76,0.3)]"
-            >
-              <div
-                className="flex min-h-0 flex-1 flex-col"
-                style={{
-                  opacity: shown ? 1 : 0,
-                  transform: shown ? "translateY(0)" : "translateY(20px)",
-                  transition: reducedMotion ? "none" : "opacity 500ms ease-out, transform 500ms ease-out",
+        <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-10">
+          {SERVICES.map((item, i) => {
+            const Icon = item.Icon;
+            return (
+              <motion.article
+                key={item.title}
+                className="rn-card-net flex h-full min-h-0 flex-col p-8 md:p-9"
+                initial={reduce ? false : { opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{
+                  delay: reduce ? 0 : i * stagger,
+                  duration: isMobile ? 0.45 : 0.58,
+                  ease: HERO_EASE,
                 }}
               >
-                <div
-                  className="mb-5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] transition-all duration-200 ease-out group-hover:bg-[rgba(201,168,76,0.15)]"
-                >
-                  <Icon size={22} color={GOLD} strokeWidth={1.5} aria-hidden />
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <div className="mb-5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[rgba(201,168,76,0.2)] bg-[rgba(201,168,76,0.08)]">
+                    <span className="rn-icon-inner inline-flex">
+                      <Icon size={22} color={GOLD} strokeWidth={1.5} aria-hidden />
+                    </span>
+                  </div>
+                  <h3 className="mb-2 shrink-0 text-lg font-bold text-white">{item.title}</h3>
+                  <p className="min-h-0 flex-1 text-sm leading-relaxed text-white/65 md:text-[15px] md:leading-[1.72]">
+                    {item.body}
+                  </p>
                 </div>
-                <h3 className="mb-2 shrink-0 text-base font-bold" style={{ color: NAVY }}>
-                  {item.title}
-                </h3>
-                <p className="min-h-0 flex-1 text-sm leading-[1.7] text-white/70">{item.body}</p>
-              </div>
-            </article>
-          );
-        })}
-      </div>
+              </motion.article>
+            );
+          })}
+        </div>
 
-      <div className="mt-12 text-center md:mt-[48px]">
-        <Link
-          href="/request"
-          className="inline-flex items-center justify-center rounded-[10px] bg-[#C9A84C] px-10 py-4 text-[15px] font-bold text-[#0f1923] transition-[transform,background-color] duration-[180ms] ease-out hover:scale-[1.02] hover:bg-[#b8953f]"
-        >
-          Request candidates
-        </Link>
+        <div className="mt-16 text-center md:mt-20">
+          <Link
+            href="/request"
+            className="btn-gold-premium inline-flex min-h-[48px] items-center justify-center rounded-md bg-gold px-10 py-4 text-[15px] font-semibold text-[#0D1B2A] hover:bg-gold-hover"
+          >
+            Request candidates
+          </Link>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

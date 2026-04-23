@@ -47,13 +47,17 @@ function StarRow() {
   );
 }
 
-export default function Testimonials() {
+type TestimonialsProps = {
+  sectionClassName?: string;
+};
+
+export default function Testimonials({ sectionClassName }: TestimonialsProps = {}) {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   const inView = useInView(ref, { once: true, amount: 0.12 });
 
   return (
-    <section ref={ref} className="section-y-home bg-[#0D1B2A]">
+    <section ref={ref} className={sectionClassName ?? "section-y-home bg-[#0D1B2A]"}>
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <motion.div
           className="text-center"

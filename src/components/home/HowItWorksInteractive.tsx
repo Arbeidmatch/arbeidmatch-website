@@ -76,7 +76,12 @@ function desktopGridCols(selected: number | null, reduceMotion: boolean): string
   return "md:grid-cols-[0.75fr_0.75fr_2fr]";
 }
 
-export default function HowItWorksInteractive() {
+type HowItWorksInteractiveProps = {
+  /** When set, replaces the default section shell (background, rhythm). */
+  sectionClassName?: string;
+};
+
+export default function HowItWorksInteractive({ sectionClassName }: HowItWorksInteractiveProps = {}) {
   const [selected, setSelected] = useState<number | null>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
   const fmReduce = useReducedMotion();
@@ -100,7 +105,10 @@ export default function HowItWorksInteractive() {
   const gridTransition = reduceMotion ? "" : "md:transition-[grid-template-columns] md:duration-[420ms] md:ease-[cubic-bezier(0.16,1,0.3,1)]";
 
   return (
-    <section id="how-it-works" className="section-y-home bg-[#0D1B2A]">
+    <section
+      id="how-it-works"
+      className={sectionClassName ?? "section-y-home bg-[#0D1B2A]"}
+    >
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <motion.div
           initial={fmReduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}

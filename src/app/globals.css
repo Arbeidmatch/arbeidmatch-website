@@ -1132,6 +1132,10 @@ button:focus:not(:focus-visible) {
 @media (hover: hover) and (pointer: fine) {
   .rn-card-net:hover {
     border-color: #c9a84c;
+    box-shadow:
+      0 0 0 1px rgba(201, 168, 76, 0.14),
+      0 22px 48px rgba(0, 0, 0, 0.38),
+      0 0 42px rgba(201, 168, 76, 0.14);
   }
 
   .rn-card-net:hover::before {
