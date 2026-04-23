@@ -190,12 +190,18 @@ export default function ForCandidatesPage() {
             {CATEGORIES.map((category) => {
               const Icon = category.icon;
               return (
-                <article key={category.title} className="rounded-2xl border border-[#C9A84C]/20 bg-white/[0.03] p-6">
+                <a
+                  key={category.title}
+                  href="https://jobs.arbeidmatch.no"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cursor-pointer rounded-2xl border border-[#C9A84C]/20 bg-white/[0.03] p-6 transition duration-200 hover:scale-[1.02] hover:border-[#C9A84C]/60"
+                >
                   <div className="inline-flex rounded-xl border border-[#C9A84C]/35 bg-[#C9A84C]/10 p-2.5">
                     <Icon className="h-5 w-5 text-[#C9A84C]" aria-hidden />
                   </div>
                   <h3 className="mt-4 text-lg font-semibold text-white">{category.title}</h3>
-                </article>
+                </a>
               );
             })}
           </div>
