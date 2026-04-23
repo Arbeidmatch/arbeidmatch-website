@@ -9,7 +9,6 @@ import { mailHeaders } from "@/lib/emailPremiumTemplate";
 
 const schema = z.object({
   email: z.string().trim().min(3),
-  token: z.string().uuid().optional(),
 });
 
 const DEFAULT_PUBLIC_EMAIL_DOMAINS_BLOCKLIST = [
@@ -197,24 +196,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ verified: false, reason: "not_found" }, { status: 200 });
     }
 
-    let requestToken = parsed.data.token;
-    if (!requestToken) {
-      requestToken = crypto.randomUUID();
-      const requestExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
-      const { error: requestTokenError } = await supabase.from("request_tokens").insert({
-        token: requestToken,
-        full_name: "Partner Contact",
-        company: partner.company_name || domain,
-        email,
-        phone: "N/A",
-        job_summary: "Partner candidate request",
-        gdpr_consent: true,
-        expires_at: requestExpiresAt,
-        used: false,
-      });
-      if (requestTokenError) {
-        throw requestTokenError;
-      }
+    const requestToken = crypto.randomUUID();
+    const requestExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    const { error: requestTokenError } = await supabase.from("request_tokens").insert({
+      token: requestToken,
+      full_name: "Partner Contact",
+      company: partner.company_name || domain,
+      email,
+      phone: "N/A",
+      job_summary: "Partner candidate request",
+      gdpr_consent: true,
+      expires_at: requestExpiresAt,
+      used: false,
+    });
+    if (requestTokenError) {
+      throw requestTokenError;
     }
 
     const sessionToken = crypto.randomUUID();
