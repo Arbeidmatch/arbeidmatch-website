@@ -7,6 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Bolt, Check, Clock, Factory, Handshake, HardHat, HeartPulse, Search, Sparkles, Star, TrendingUp, Truck } from "lucide-react";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
+import LogoALoader from "@/components/ui/LogoALoader";
 
 type VerifyPartnerResponse = {
   verified?: boolean;
@@ -566,8 +567,8 @@ export default function RequestPage() {
           <div className="flex flex-col items-center py-10 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
             <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
-            <div className="am-logo-a" aria-hidden>
-              A
+            <div className="mx-auto">
+              <LogoALoader complete={false} />
             </div>
             <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
           </div>
@@ -582,8 +583,8 @@ export default function RequestPage() {
               className="mx-auto w-[90%] max-w-lg rounded-2xl border border-white/10 bg-white/5 p-10 text-center"
             >
               <Star className="mx-auto h-10 w-10 text-[#C9A84C]" aria-hidden />
-              <div className="mt-4 am-logo-a am-logo-a-complete" aria-hidden>
-                A
+              <div className="mt-4 flex justify-center">
+                <LogoALoader complete />
               </div>
               <div className="mt-5 inline-flex rounded-full bg-[#C9A84C]/10 px-3 py-1 text-xs font-semibold tracking-widest text-[#C9A84C]">
                 PARTNER ACCESS
