@@ -85,7 +85,7 @@ export default function PartnerSessionPage() {
   }, [requestContext]);
 
   const goSearch = () => {
-    if (!selectedMode) return;
+    if (state !== "ready" || !selectedMode) return;
     const mode = selectedMode === "quick" ? "quick_match" : "custom_search";
     router.push(`/request/partner/${encodeURIComponent(session_token)}/search?mode=${mode}`);
   };
@@ -130,6 +130,10 @@ export default function PartnerSessionPage() {
         </div>
       </section>
     );
+  }
+
+  if (state !== "ready") {
+    return null;
   }
 
   const tapProps = reduce ? {} : { whileHover: { scale: 1.02 }, whileTap: { scale: 0.98 } };
