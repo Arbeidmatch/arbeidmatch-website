@@ -15,10 +15,14 @@ const bodySchema = z.object({
 
 function buildTrialStartEmailHtml(accessUrl: string): string {
   return wrapPremiumEmail(`
-    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#ffffff;">You're one step away from finding your next hire.</p>
+    <h1 style="margin:0 0 14px;font-size:24px;line-height:1.2;color:#ffffff;">Confirm your email address</h1>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#ffffff;">
+      Someone (hopefully you) requested access to ArbeidMatch. Click below to confirm your email and continue setting up your account. If this wasn't you, simply ignore this email — no action needed.
+    </p>
     <div style="margin:24px 0 12px;">
-      <a href="${accessUrl}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;text-decoration:none;font-size:15px;font-weight:700;padding:14px 28px;border-radius:8px;">Access Candidate Overview</a>
+      <a href="${accessUrl}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;text-decoration:none;font-size:15px;font-weight:700;padding:14px 28px;border-radius:8px;">Confirm my email →</a>
     </div>
+    <p style="margin:0;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.7);">This link expires in 48 hours.</p>
   `);
 }
 
@@ -68,13 +72,16 @@ export async function POST(request: NextRequest) {
     }
 
     const origin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://arbeidmatch.no";
-    const accessUrl = `${origin}/employer/trial/${token}`;
+    const accessUrl = `${origin}/employer/verify/${token}`;
     const transporter = createSmtpTransporter();
     if (transporter) {
       const html = buildTrialStartEmailHtml(accessUrl);
-      await safeSendEmail(email, "Your ArbeidMatch Access Link", html, {
+      await safeSendEmail(email, "Confirm your email — ArbeidMatch", html, {
         ...mailHeaders(),
-        text: `You're one step away from finding your next hire.\n\nAccess Candidate Overview: ${accessUrl}`,
+        text:
+          "Confirm your email address.\n\nSomeone (hopefully you) requested access to ArbeidMatch. Click below to confirm your email and continue setting up your account. If this wasn't you, simply ignore this email — no action needed.\n\nConfirm my email: " +
+          accessUrl +
+          "\n\nThis link expires in 48 hours.",
         transporter,
         ipAddress: request.headers.get("x-forwarded-for") || undefined,
       });
