@@ -755,7 +755,7 @@ export default function RequestPage() {
                   <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
 
                   <div className="request-options-container grid grid-cols-2 gap-4 lg:grid-cols-4">
-                    <article className="request-option-card flex h-full min-h-[480px] flex-col text-left">
+                    <article className="request-option-card flex min-h-[480px] flex-col text-left">
                       <div className="w-full">
                         <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">7 days free</span>
                       </div>
@@ -766,7 +766,7 @@ export default function RequestPage() {
                       <p className="mt-1 text-sm font-semibold text-[#C9A84C]">We&apos;re building this feature. Join the waitlist.</p>
                       <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />1 candidate request</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Anonymous candidate preview</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Anonymous presentation preview</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />No contact details</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />No commitment</li>
                       </ul>
@@ -779,7 +779,7 @@ export default function RequestPage() {
                       </button>
                     </article>
 
-                    <article className="request-option-card flex h-full min-h-[480px] flex-col text-left">
+                    <article className="request-option-card flex min-h-[480px] flex-col text-left">
                       <div className="w-full">
                         <span className="inline-flex rounded-full bg-[#C9A84C] px-2.5 py-1 text-[11px] font-semibold text-[#0D1B2A]">Most Popular</span>
                       </div>
@@ -800,7 +800,7 @@ export default function RequestPage() {
                       </Link>
                     </article>
 
-                    <article className="request-option-card flex h-full min-h-[480px] flex-col text-left">
+                    <article className="request-option-card flex min-h-[480px] flex-col text-left">
                       <div className="w-full">
                         <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">Scale</span>
                       </div>
@@ -822,7 +822,7 @@ export default function RequestPage() {
                       </Link>
                     </article>
 
-                    <article className="request-option-card flex h-full min-h-[480px] flex-col text-left">
+                    <article className="request-option-card flex min-h-[480px] flex-col text-left">
                       <div className="w-full">
                         <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">For Recruitment Firms</span>
                       </div>
