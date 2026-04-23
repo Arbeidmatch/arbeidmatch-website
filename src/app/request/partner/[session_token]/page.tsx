@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, SlidersHorizontal, Zap } from "lucide-react";
+import { readPartnerRequestContext } from "@/lib/partnerRequestContext";
 import { useEffect, useMemo, useState } from "react";
 
 type SessionCheck = {
@@ -37,6 +38,7 @@ export default function PartnerSessionPage() {
   );
   const [state, setState] = useState<"loading" | "ready" | "expired" | "invalid">("loading");
   const [selectedMode, setSelectedMode] = useState<SelectableMode | null>(null);
+  const [requestContext, setRequestContext] = useState<{ industry: string; role: string } | null>(null);
 
   useEffect(() => {
     const run = async () => {
@@ -58,6 +60,29 @@ export default function PartnerSessionPage() {
     };
     void run();
   }, [session_token]);
+
+  useEffect(() => {
+    if (state !== "ready") return;
+    const refreshContext = () => setRequestContext(readPartnerRequestContext());
+    window.addEventListener("focus", refreshContext);
+    return () => window.removeEventListener("focus", refreshContext);
+  }, [state]);
+
+  useEffect(() => {
+    if (state !== "ready") return;
+    const ctx = readPartnerRequestContext();
+    setRequestContext(ctx);
+    if (ctx?.industry || ctx?.role) {
+      setSelectedMode("quick");
+    }
+  }, [state]);
+
+  const quickMatchContextBadge = useMemo(() => {
+    if (!requestContext) return "";
+    const r = requestContext.role?.trim() ?? "";
+    const i = requestContext.industry?.trim() ?? "";
+    return [r, i].filter(Boolean).join(" · ");
+  }, [requestContext]);
 
   const goSearch = () => {
     if (!selectedMode) return;
@@ -145,8 +170,15 @@ export default function PartnerSessionPage() {
             </motion.span>
           ) : null}
           <Zap className="text-[#C9A84C]" size={40} strokeWidth={1.35} aria-hidden />
-          <p className="mt-4 text-lg font-bold tracking-tight text-white">Quick Match</p>
-          <p className="mt-1.5 text-sm leading-snug text-white/55">Instant matches. 80%+ compatibility.</p>
+          <p className="mt-4 text-lg font-bold tracking-tight text-white">See who&apos;s available</p>
+          <p className="mt-1.5 text-sm leading-snug text-white/55">
+            Browse available candidates for this role and sector.
+          </p>
+          {quickMatchContextBadge ? (
+            <p className="mt-3 inline-flex max-w-full rounded-full border border-[#C9A84C]/15 bg-[#C9A84C]/15 px-3 py-1 text-xs text-[#C9A84C]">
+              <span className="truncate">{quickMatchContextBadge}</span>
+            </p>
+          ) : null}
         </motion.button>
 
         <motion.button
