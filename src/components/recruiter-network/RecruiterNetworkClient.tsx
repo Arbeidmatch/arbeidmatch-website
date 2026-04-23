@@ -2,7 +2,7 @@
 
 import type { FormEvent, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, type Variants, useInView, useReducedMotion } from "framer-motion";
 import {
   IconBookUp,
   IconCheckCircle,
@@ -24,6 +24,8 @@ import {
   regionsForCountry,
 } from "@/lib/recruiterNetworkGeo";
 import RecruiterNetworkPremiumApplyModal from "@/components/recruiter-network/RecruiterNetworkPremiumApplyModal";
+import PremiumChoiceCard from "@/components/ui/premium/PremiumChoiceCard";
+import PremiumInputField from "@/components/ui/premium/PremiumInputField";
 
 const HERO_EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -31,9 +33,15 @@ const RN_LABEL = "mb-2.5 block text-[11px] font-semibold uppercase tracking-[0.1
 const RN_INPUT =
   "rn-recruiter-field w-full rounded-[12px] border border-[rgba(201,168,76,0.22)] bg-[#0D1B2A] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/40 shadow-none transition-[border-color,box-shadow] duration-200 focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]/35";
 const RN_LIST =
-  "absolute z-[80] mt-1.5 max-h-[min(280px,50vh)] w-full overflow-y-auto overscroll-contain rounded-[12px] border border-[rgba(201,168,76,0.35)] bg-[#0D1B2A] py-1 shadow-[0_20px_50px_rgba(0,0,0,0.55)]";
+  "absolute z-[80] mt-1.5 max-h-[min(280px,50vh)] w-full overflow-y-auto overscroll-contain rounded-xl border border-white/10 bg-[#0D1B2A] py-1 shadow-[0_20px_50px_rgba(0,0,0,0.55)]";
 const RN_LIST_ITEM =
-  "w-full cursor-pointer px-4 py-2.5 text-left text-[14px] text-white/90 transition-colors hover:bg-[rgba(201,168,76,0.14)] focus:bg-[rgba(201,168,76,0.14)] focus:outline-none";
+  "w-full cursor-pointer px-4 py-2.5 text-left text-[14px] text-white transition-colors hover:bg-white/10 focus:bg-white/10 focus:outline-none";
+
+const slideVariants: Variants = {
+  enter: (dir: number) => ({ opacity: 0, y: dir >= 0 ? 18 : -18 }),
+  center: { opacity: 1, y: 0 },
+  exit: (dir: number) => ({ opacity: 0, y: dir >= 0 ? -18 : 18 }),
+};
 
 function useIsMobileWidth(): boolean {
   const [m, setM] = useState(false);
@@ -150,6 +158,15 @@ export default function RecruiterNetworkClient() {
   const [regionTypeahead, setRegionTypeahead] = useState("");
   const [regionOpen, setRegionOpen] = useState(false);
   const [premiumApplyOpen, setPremiumApplyOpen] = useState(false);
+  const [applyOpen, setApplyOpen] = useState(false);
+  const [formStep, setFormStep] = useState(1);
+  const [stepDirection, setStepDirection] = useState(1);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [socialUrl, setSocialUrl] = useState("");
+  const [monthlyReach, setMonthlyReach] = useState("");
+  const [partnerType, setPartnerType] = useState("");
+  const [gdprConsent, setGdprConsent] = useState(false);
   const countryComboRef = useRef<HTMLDivElement | null>(null);
   const regionComboRef = useRef<HTMLDivElement | null>(null);
 
@@ -280,6 +297,18 @@ export default function RecruiterNetworkClient() {
 
     setSubmitting(true);
     try {
+      if (!fullName.trim() || !email.trim() || !socialUrl.trim() || !monthlyReach.trim()) {
+        setError("Please complete all required fields before submitting.");
+        return;
+      }
+      if (!partnerType.trim()) {
+        setError("Please select which partner path fits you best.");
+        return;
+      }
+      if (!gdprConsent) {
+        setError("Please accept GDPR consent to continue.");
+        return;
+      }
       let resolvedCountry = form.country.trim();
       if (!resolvedCountry && countryTypeahead.trim()) {
         const guess = RECRUITER_EEA_COUNTRIES.find((c) => c.toLowerCase() === countryTypeahead.trim().toLowerCase());
@@ -299,18 +328,18 @@ export default function RecruiterNetworkClient() {
       }
 
       const payload = {
-        full_name: String(fd.get("full_name") || "").trim(),
-        email: String(fd.get("email") || "").trim(),
+        full_name: fullName.trim(),
+        email: email.trim(),
         country: resolvedCountry,
         region: form.region.trim(),
         city: form.city.trim(),
-        partner_type: String(fd.get("partner_type") || "").trim(),
-        social_url: String(fd.get("social_url") || "").trim(),
-        monthly_reach: String(fd.get("monthly_reach") || "").trim(),
+        partner_type: partnerType.trim(),
+        social_url: socialUrl.trim(),
+        monthly_reach: monthlyReach.trim(),
         has_company: mapBusinessTypeToHasCompany(form.businessType),
         business_type: form.businessType,
-        motivation: String(fd.get("motivation") || "").trim(),
-        gdpr_consent: fd.get("gdpr_consent") === "on",
+        motivation: motivation.trim(),
+        gdpr_consent: gdprConsent,
       };
 
       const res = await fetch("/api/recruiter-network/apply", {
@@ -326,8 +355,17 @@ export default function RecruiterNetworkClient() {
       setSuccessEmail(payload.email);
       e.currentTarget.reset();
       setForm({ country: "", region: "", city: "", businessType: "" });
+      setFullName("");
+      setEmail("");
+      setSocialUrl("");
+      setMonthlyReach("");
+      setPartnerType("");
+      setGdprConsent(false);
+      setMotivation("");
       setCountryTypeahead("");
       setRegionTypeahead("");
+      setApplyOpen(false);
+      setFormStep(1);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -615,375 +653,240 @@ export default function RecruiterNetworkClient() {
                 </p>
               </motion.div>
             ) : (
-              <form onSubmit={onSubmit} className="rn-card-net space-y-8 border border-white/15 bg-white/[0.05] p-7 md:p-10">
-                <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
-
-                <div>
-                  <label htmlFor="rn-full-name" className={RN_LABEL}>
-                    Full name *
-                  </label>
-                  <input
-                    id="rn-full-name"
-                    name="full_name"
-                    required
-                    placeholder="Your name"
-                    className={RN_INPUT}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="rn-email" className={RN_LABEL}>
-                    Email address *
-                  </label>
-                  <input
-                    id="rn-email"
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="you@company.com"
-                    className={RN_INPUT}
-                  />
-                </div>
-
-                <div ref={countryComboRef} className="relative">
-                  <label htmlFor="rn-country-input" className={RN_LABEL}>
-                    Country *
-                  </label>
-                  <p className="mb-2.5 text-[12px] leading-relaxed text-white/45">
-                    Type a letter to filter. All EU/EEA countries; Norway, Denmark and Sweden appear first in the list.
-                  </p>
-                  <input
-                    id="rn-country-input"
-                    type="text"
-                    autoComplete="off"
-                    value={countryTypeahead}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setCountryTypeahead(v);
-                      setCountryOpen(true);
-                      setForm((f) => ({ ...f, country: "", region: "", city: "" }));
-                      setRegionTypeahead("");
-                    }}
-                    onFocus={() => setCountryOpen(true)}
-                    onBlur={() => {
-                      const match = RECRUITER_EEA_COUNTRIES.find(
-                        (c) => c.toLowerCase() === countryTypeahead.trim().toLowerCase(),
-                      );
-                      if (match) {
-                        setForm((f) => ({ ...f, country: match, region: "", city: "" }));
-                        setCountryTypeahead(match);
-                        setRegionTypeahead("");
-                      }
-                      setCountryOpen(false);
-                    }}
-                    placeholder="Start typing a country…"
-                    className={RN_INPUT}
-                    aria-autocomplete="list"
-                    aria-expanded={countryOpen}
-                    aria-controls="rn-country-listbox"
-                  />
-                  {countryOpen && countryFiltered.length > 0 ? (
-                    <ul
-                      id="rn-country-listbox"
-                      role="listbox"
-                      className={RN_LIST}
-                    >
-                      {countryFiltered.map((c) => (
-                        <li key={c} role="none">
-                          <button
-                            type="button"
-                            role="option"
-                            className={RN_LIST_ITEM}
-                            onMouseDown={(ev) => {
-                              ev.preventDefault();
-                              setForm((f) => ({ ...f, country: c, region: "", city: "" }));
-                              setCountryTypeahead(c);
-                              setCountryOpen(false);
-                              setRegionTypeahead("");
-                              setRegionOpen(false);
-                            }}
-                          >
-                            {c}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
-
-                {hasCommittedCountry ? (
-                  <div className="space-y-1">
-                    <label htmlFor={regionChoicesList ? "rn-region-input" : "rn-region-manual"} className={RN_LABEL}>
-                      Region *
-                    </label>
-                    <p className="mb-2.5 text-[12px] leading-relaxed text-white/45">
-                      {regionChoicesList
-                        ? "Choose your county or region (Norway, Denmark, Sweden). Type to narrow the list."
-                        : "Enter your region, county or state as used locally in your country."}
-                    </p>
-                    {regionChoicesList ? (
-                      <div ref={regionComboRef} className="relative">
-                        <input
-                          id="rn-region-input"
-                          type="text"
-                          autoComplete="off"
-                          value={regionTypeahead}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            setRegionTypeahead(v);
-                            setRegionOpen(true);
-                            setForm((f) => ({ ...f, region: "", city: "" }));
-                          }}
-                          onFocus={() => {
-                            setRegionOpen(true);
-                            if (form.region) setRegionTypeahead(form.region);
-                          }}
-                          onBlur={() => {
-                            const list = regionChoicesList;
-                            const match = list.find((r) => r.toLowerCase() === regionTypeahead.trim().toLowerCase());
-                            if (match) {
-                              setForm((f) => ({ ...f, region: match, city: "" }));
-                              setRegionTypeahead(match);
-                            }
-                            setRegionOpen(false);
-                          }}
-                          placeholder="Search regions…"
-                          className={RN_INPUT}
-                          aria-autocomplete="list"
-                          aria-expanded={regionOpen}
-                          aria-controls="rn-region-listbox"
-                        />
-                        {regionOpen && regionFiltered.length > 0 ? (
-                          <ul id="rn-region-listbox" role="listbox" className={RN_LIST}>
-                            {regionFiltered.map((r) => (
-                              <li key={r} role="none">
-                                <button
-                                  type="button"
-                                  role="option"
-                                  className={RN_LIST_ITEM}
-                                  onMouseDown={(ev) => {
-                                    ev.preventDefault();
-                                    setForm((f) => ({ ...f, region: r, city: "" }));
-                                    setRegionTypeahead(r);
-                                    setRegionOpen(false);
-                                  }}
-                                >
-                                  {r}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <input
-                        id="rn-region-manual"
-                        type="text"
-                        value={form.region}
-                        onChange={(e) => {
-                          const r = e.target.value;
-                          setForm((f) => ({
-                            ...f,
-                            region: r,
-                            city: r.trim() ? f.city : "",
-                          }));
-                        }}
-                        placeholder="Enter your region"
-                        className={RN_INPUT}
-                      />
-                    )}
-                  </div>
-                ) : null}
-
-                {hasCommittedCountry && hasRegion ? (
-                  <div>
-                    <label htmlFor="rn-city" className={RN_LABEL}>
-                      City *
-                    </label>
-                    <input
-                      id="rn-city"
-                      type="text"
-                      value={form.city}
-                      onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-                      placeholder="Enter your city"
-                      className={RN_INPUT}
-                    />
-                  </div>
-                ) : null}
-
-                <fieldset>
-                  <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
-                    How do you invoice?
-                  </legend>
-                  <p className="mb-3 text-xs text-white/40">
-                    We work with invoicing only. Select how you prefer to invoice.
-                  </p>
-                  <div className="space-y-2.5">
-                    {[
-                      {
-                        value: "company",
-                        title: "Registered company (e.g. Norwegian AS/ENK or local equivalent)",
-                        subtitle: "I invoice through my own registered business",
-                      },
-                      {
-                        value: "sole_trader",
-                        title: "Sole trader / self-employed (e.g. ENK in Norway)",
-                        subtitle: "I am self-employed and invoice under my personal business number",
-                      },
-                      {
-                        value: "freelancer_platform",
-                        title: "Freelancer via invoicing platform",
-                        subtitle: "I use a platform such as Factofly, Frilansfinans, or similar to invoice",
-                      },
-                      {
-                        value: "no_business",
-                        title: "I do not have a business yet",
-                        subtitle: "I am interested but need to set up invoicing first. We can help guide you.",
-                      },
-                    ].map((option) => {
-                      const checked = form.businessType === option.value;
-                      return (
-                        <label
-                          key={option.value}
-                          className="flex cursor-pointer items-start gap-3 rounded-[10px] border p-[14px_16px]"
-                          style={{
-                            background: checked ? "rgba(201,168,76,0.10)" : "rgba(255,255,255,0.06)",
-                            borderColor: checked ? "#C9A84C" : "rgba(255,255,255,0.18)",
-                            transition: "all 180ms",
-                          }}
-                        >
-                          <input
-                            type="radio"
-                            name="business_type"
-                            value={option.value}
-                            checked={checked}
-                            onChange={(e) => setForm({ ...form, businessType: e.target.value })}
-                            required
-                            className="sr-only"
-                          />
-                          <span
-                            style={{
-                              width: 18,
-                              height: 18,
-                              borderRadius: "50%",
-                              border: `2px solid ${checked ? "#C9A84C" : "rgba(255,255,255,0.2)"}`,
-                              marginTop: 2,
-                              position: "relative",
-                              flexShrink: 0,
-                            }}
-                          >
-                            {checked ? (
-                              <span
-                                style={{
-                                  width: 8,
-                                  height: 8,
-                                  borderRadius: "50%",
-                                  background: "#C9A84C",
-                                  position: "absolute",
-                                  left: "50%",
-                                  top: "50%",
-                                  transform: "translate(-50%, -50%)",
-                                }}
-                              />
-                            ) : null}
-                          </span>
-                          <span>
-                            <span className="block text-sm font-semibold text-white">{option.title}</span>
-                            <span className="block text-xs text-white/50">{option.subtitle}</span>
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </fieldset>
-
-                <fieldset>
-                  <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
-                    Which path fits you best? *
-                  </legend>
-                  <div className="space-y-2 text-sm text-white/85">
-                    {[
-                      ["influencer", "The Influencer"],
-                      ["recruiter", "The Recruiter"],
-                      ["learner", "The Learner"],
-                    ].map(([value, label]) => (
-                      <label key={value} className="flex cursor-pointer items-center gap-2">
-                        <input type="radio" name="partner_type" value={value} required className="accent-[#B8860B]" />
-                        {label}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-
-                <div>
-                  <label htmlFor="rn-social" className={RN_LABEL}>
-                    Social media or professional profile link *
-                  </label>
-                  <input
-                    id="rn-social"
-                    name="social_url"
-                    type="url"
-                    required
-                    placeholder="https://"
-                    className={RN_INPUT}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="rn-reach" className={RN_LABEL}>
-                    Monthly reach / visitors *
-                  </label>
-                  <input
-                    id="rn-reach"
-                    name="monthly_reach"
-                    type="text"
-                    inputMode="numeric"
-                    required
-                    placeholder="e.g. 150,000"
-                    className={RN_INPUT}
-                  />
-                </div>
-
-                <input type="hidden" name="has_company" value={mapBusinessTypeToHasCompany(form.businessType)} />
-
-                <div>
-                  <label htmlFor="rn-motivation" className={RN_LABEL}>
-                    Tell us why you want to join
-                  </label>
-                  <textarea
-                    id="rn-motivation"
-                    name="motivation"
-                    maxLength={500}
-                    rows={4}
-                    placeholder="What drives you? What is your market? What makes you the right partner?"
-                    value={motivation}
-                    onChange={(ev) => setMotivation(ev.target.value)}
-                    className={`${RN_INPUT} min-h-[120px] resize-y`}
-                  />
-                  <p className="mt-1 text-right text-[11px] text-white/40">{motivation.length}/500</p>
-                </div>
-
-                <label className="flex cursor-pointer items-start gap-3 text-sm leading-snug text-white/80">
-                  <input name="gdpr_consent" type="checkbox" required className="mt-1 accent-[#B8860B]" />
-                  <span>
-                    I agree that ArbeidMatch Norge AS may store and process my information to evaluate my partnership
-                    application. *
-                  </span>
-                </label>
-
-                {error ? <p className="text-sm text-red-300">{error}</p> : null}
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="btn-gold-premium w-full min-h-[48px] rounded-md bg-gold py-3.5 text-base font-semibold text-white hover:bg-gold-hover disabled:opacity-60"
-                >
-                  {submitting ? "Sending…" : "Submit Application →"}
-                </button>
-              </form>
+              <button
+                type="button"
+                onClick={() => setApplyOpen(true)}
+                className="w-full rounded-xl bg-[#C9A84C] px-6 py-4 text-base font-semibold text-[#0D1B2A] transition hover:brightness-105"
+              >
+                Open Application Form
+              </button>
             )}
           </Reveal>
         </div>
       </section>
     </div>
+    <AnimatePresence>
+      {applyOpen ? (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-md"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setApplyOpen(false);
+          }}
+        >
+          <motion.form
+            onSubmit={onSubmit}
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ type: "spring", stiffness: 240, damping: 24 }}
+            className="relative max-h-[92vh] w-[90%] max-w-md overflow-y-auto rounded-2xl border border-white/10 bg-[#0D1B2A] p-8"
+          >
+            <button type="button" onClick={() => setApplyOpen(false)} className="absolute right-4 top-4 text-white/60 hover:text-white">
+              ✕
+            </button>
+            <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#C9A84C]">Apply • Step {formStep} of 3</p>
+            <AnimatePresence mode="wait" custom={stepDirection}>
+              <motion.div
+                key={`rn-step-${formStep}`}
+                custom={stepDirection}
+                variants={slideVariants}
+                initial={reduce ? false : "enter"}
+                animate="center"
+                exit={reduce ? undefined : "exit"}
+                transition={{ type: "spring", stiffness: 220, damping: 24 }}
+                className="space-y-4"
+              >
+                {formStep === 1 ? (
+                  <>
+                    <PremiumInputField label="Full name *" value={fullName} onChange={setFullName} placeholder="Your name" />
+                    <PremiumInputField label="Email address *" type="email" value={email} onChange={setEmail} placeholder="you@company.com" />
+                    <div ref={countryComboRef} className="relative">
+                      <label htmlFor="rn-country-input" className={RN_LABEL}>Country *</label>
+                      <input
+                        id="rn-country-input"
+                        type="text"
+                        autoComplete="off"
+                        value={countryTypeahead}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setCountryTypeahead(v);
+                          setCountryOpen(true);
+                          setForm((f) => ({ ...f, country: "", region: "", city: "" }));
+                          setRegionTypeahead("");
+                        }}
+                        onFocus={() => setCountryOpen(true)}
+                        placeholder="Start typing a country..."
+                        className={RN_INPUT}
+                      />
+                      {countryOpen && countryFiltered.length > 0 ? (
+                        <ul id="rn-country-listbox" role="listbox" className={RN_LIST}>
+                          {countryFiltered.map((c) => (
+                            <li key={c} role="none">
+                              <button
+                                type="button"
+                                role="option"
+                                className={RN_LIST_ITEM}
+                                onMouseDown={(ev) => {
+                                  ev.preventDefault();
+                                  setForm((f) => ({ ...f, country: c, region: "", city: "" }));
+                                  setCountryTypeahead(c);
+                                  setCountryOpen(false);
+                                }}
+                              >
+                                {c}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </div>
+                  </>
+                ) : null}
+
+                {formStep === 2 ? (
+                  <>
+                    {hasCommittedCountry ? (
+                      <div className="space-y-3">
+                        {regionChoicesList ? (
+                          <div ref={regionComboRef} className="relative">
+                            <label htmlFor="rn-region-input" className={RN_LABEL}>Region *</label>
+                            <input
+                              id="rn-region-input"
+                              type="text"
+                              autoComplete="off"
+                              value={regionTypeahead}
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                setRegionTypeahead(v);
+                                setRegionOpen(true);
+                                setForm((f) => ({ ...f, region: "", city: "" }));
+                              }}
+                              onFocus={() => setRegionOpen(true)}
+                              placeholder="Search regions..."
+                              className={RN_INPUT}
+                            />
+                            {regionOpen && regionFiltered.length > 0 ? (
+                              <ul id="rn-region-listbox" role="listbox" className={RN_LIST}>
+                                {regionFiltered.map((r) => (
+                                  <li key={r} role="none">
+                                    <button
+                                      type="button"
+                                      role="option"
+                                      className={RN_LIST_ITEM}
+                                      onMouseDown={(ev) => {
+                                        ev.preventDefault();
+                                        setForm((f) => ({ ...f, region: r, city: "" }));
+                                        setRegionTypeahead(r);
+                                        setRegionOpen(false);
+                                      }}
+                                    >
+                                      {r}
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <PremiumInputField label="Region *" value={form.region} onChange={(region) => setForm((f) => ({ ...f, region }))} />
+                        )}
+                        <PremiumInputField label="City *" value={form.city} onChange={(city) => setForm((f) => ({ ...f, city }))} />
+                      </div>
+                    ) : (
+                      <p className="text-sm text-white/65">Select country in step 1 to continue.</p>
+                    )}
+                    <p className="text-xs text-white/50">How do you invoice?</p>
+                    {[
+                      ["company", "Registered company (AS/ENK or local equivalent)"],
+                      ["sole_trader", "Sole trader / self-employed"],
+                      ["freelancer_platform", "Freelancer via invoicing platform"],
+                      ["no_business", "I do not have a business yet"],
+                    ].map(([value, title]) => (
+                      <PremiumChoiceCard
+                        key={value}
+                        selected={form.businessType === value}
+                        onClick={() => setForm((f) => ({ ...f, businessType: value }))}
+                        title={title}
+                        type="radio"
+                      />
+                    ))}
+                  </>
+                ) : null}
+
+                {formStep === 3 ? (
+                  <>
+                    <p className="text-xs text-white/50">Which path fits you best? *</p>
+                    {[
+                      ["influencer", "The Influencer"],
+                      ["recruiter", "The Recruiter"],
+                      ["learner", "The Learner"],
+                    ].map(([value, label]) => (
+                      <PremiumChoiceCard
+                        key={value}
+                        selected={partnerType === value}
+                        onClick={() => setPartnerType(value)}
+                        title={label}
+                        type="radio"
+                      />
+                    ))}
+                    <PremiumInputField label="Social media/profile link *" value={socialUrl} onChange={setSocialUrl} placeholder="https://" />
+                    <PremiumInputField label="Monthly reach / visitors *" value={monthlyReach} onChange={setMonthlyReach} placeholder="e.g. 150,000" />
+                    <PremiumInputField multiline rows={4} label="Tell us why you want to join" value={motivation} onChange={setMotivation} />
+                    <PremiumChoiceCard
+                      selected={gdprConsent}
+                      onClick={() => setGdprConsent((prev) => !prev)}
+                      title="I agree that ArbeidMatch Norge AS may store and process my information to evaluate my partnership application. *"
+                      type="checkbox"
+                    />
+                    <p className="mt-1 text-right text-[11px] text-white/40">{motivation.length}/500</p>
+                  </>
+                ) : null}
+              </motion.div>
+            </AnimatePresence>
+
+            {error ? <p className="mt-4 text-sm text-red-300">{error}</p> : null}
+            <div className="mt-6 flex gap-3">
+              {formStep > 1 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStepDirection(-1);
+                    setFormStep((prev) => Math.max(1, prev - 1));
+                  }}
+                  className="w-full rounded-xl border border-white/20 py-3 text-sm font-semibold text-white"
+                >
+                  Back
+                </button>
+              ) : null}
+              {formStep < 3 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStepDirection(1);
+                    setFormStep((prev) => Math.min(3, prev + 1));
+                  }}
+                  className="w-full rounded-xl bg-[#C9A84C] py-3 text-sm font-bold text-[#0D1B2A]"
+                >
+                  Continue
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full rounded-xl bg-[#C9A84C] py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
+                >
+                  {submitting ? "Sending..." : "Submit Application"}
+                </button>
+              )}
+            </div>
+          </motion.form>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
     <RecruiterNetworkPremiumApplyModal open={premiumApplyOpen} onClose={() => setPremiumApplyOpen(false)} />
     </>
   );
