@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
     }
 
     const requestToken = crypto.randomUUID();
-    const requestExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    const requestExpiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
     const { error: requestTokenError } = await supabase.from("request_tokens").insert({
       token: requestToken,
       full_name: "Partner Contact",
@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
       body: `
         <p style="margin:0 0 10px 0;font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.12em;">YOU ARE VERIFIED AS A PARTNER</p>
         <p style="margin:0 0 16px 0;font-size:15px;color:rgba(255,255,255,0.8);line-height:1.7;">
-          Click the button below to access candidate profiles. Your link is personal and valid for 14 days from the moment it was generated.
+          Click the button below to access candidate profiles. Your link is personal and valid for 30 minutes from the moment it was generated.
         </p>
         <p style="font-size:12px;color:rgba(255,255,255,0.35);line-height:1.6;margin:0;">
           This link is linked to your partner account. Do not share it with others. If you did not request this, contact post@arbeidmatch.no immediately.
@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
       ...mailHeaders(),
       to: email,
       subject: "Your ArbeidMatch secure access link",
-      text: `Here is your secure link to access candidate profiles and submit requests: ${secureUrl}\n\nThis link is valid for 14 days and is linked to your partner account.`,
+      text: `Here is your secure link to access candidate profiles and submit requests: ${secureUrl}\n\nThis link is valid for 30 minutes and is linked to your partner account.`,
       html,
     });
 
