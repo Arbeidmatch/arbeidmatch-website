@@ -1,10 +1,11 @@
 "use client";
 
+import { readPartnerRequestContext } from "@/lib/partnerRequestContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { SlidersHorizontal, Zap } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 type Mode = "quick_match" | "custom_search";
 
@@ -32,6 +33,21 @@ const CATEGORY_OPTIONS = [
 ];
 
 const LANGUAGE_OPTIONS = ["English", "Norwegian", "Romanian", "Polish"];
+
+function mergeIndustryIntoCategoryOptions(industry: string): string[] {
+  const t = industry.trim();
+  if (!t) return [...CATEGORY_OPTIONS];
+  const exists = CATEGORY_OPTIONS.some((c) => c.toLowerCase() === t.toLowerCase());
+  if (exists) return [...CATEGORY_OPTIONS];
+  return [t, ...CATEGORY_OPTIONS];
+}
+
+function pickQuickCategory(industry: string, options: string[]): string {
+  const t = industry.trim();
+  if (!t) return options[0] ?? CATEGORY_OPTIONS[0];
+  const exact = options.find((c) => c.toLowerCase() === t.toLowerCase());
+  return exact ?? options[0] ?? CATEGORY_OPTIONS[0];
+}
 
 function ProgressBar({ value }: { value: number }) {
   const pct = Math.max(0, Math.min(100, value));
@@ -116,6 +132,7 @@ export default function PartnerSearchClient({ session_token }: Props) {
   const [quickLanguage, setQuickLanguage] = useState("English");
 
   const [customCategory, setCustomCategory] = useState("");
+  const [customJobRole, setCustomJobRole] = useState("");
   const [customExperienceMin, setCustomExperienceMin] = useState("");
   const [customExperienceMax, setCustomExperienceMax] = useState("");
   const [customDrivingLicense, setCustomDrivingLicense] = useState(false);
@@ -127,6 +144,7 @@ export default function PartnerSearchClient({ session_token }: Props) {
       session_token: sessionToken,
       filters: {
         category: customCategory || undefined,
+        role: customJobRole.trim() || undefined,
         experience_min: customExperienceMin ? Number(customExperienceMin) : undefined,
         experience_max: customExperienceMax ? Number(customExperienceMax) : undefined,
         driving_license: customDrivingLicense || undefined,
@@ -134,8 +152,17 @@ export default function PartnerSearchClient({ session_token }: Props) {
         availability: customAvailability,
       },
     }),
-    [sessionToken, customCategory, customExperienceMin, customExperienceMax, customDrivingLicense, customLanguage, customAvailability],
+    [sessionToken, customCategory, customJobRole, customExperienceMin, customExperienceMax, customDrivingLicense, customLanguage, customAvailability],
   );
+
+  const [requestHandoff, setRequestHandoff] = useState<{ industry: string; role: string } | null>(null);
+  const handoffFormAppliedRef = useRef(false);
+  const autoQuickMatchStartedRef = useRef(false);
+
+  useEffect(() => {
+    handoffFormAppliedRef.current = false;
+    autoQuickMatchStartedRef.current = false;
+  }, [sessionToken]);
 
   useEffect(() => {
     async function verify() {
@@ -153,6 +180,35 @@ export default function PartnerSearchClient({ session_token }: Props) {
     }
     void verify();
   }, [sessionToken]);
+
+  useEffect(() => {
+    if (sessionState !== "ready") return;
+    const ctx = readPartnerRequestContext();
+    if (ctx?.industry || ctx?.role) {
+      setRequestHandoff(ctx);
+    } else {
+      setRequestHandoff(null);
+    }
+
+    if (!ctx?.industry && !ctx?.role) return;
+    if (handoffFormAppliedRef.current) return;
+    handoffFormAppliedRef.current = true;
+    const options = mergeIndustryIntoCategoryOptions(ctx.industry);
+    const picked = pickQuickCategory(ctx.industry, options);
+    setQuickCategory(picked);
+    setCustomCategory(ctx.industry ? picked : "");
+    setCustomJobRole(ctx.role ?? "");
+  }, [sessionState]);
+
+  useEffect(() => {
+    if (sessionState !== "ready" || mode !== "quick_match") return;
+    const ctx = readPartnerRequestContext();
+    if (!ctx?.industry && !ctx?.role) return;
+    if (autoQuickMatchStartedRef.current) return;
+    autoQuickMatchStartedRef.current = true;
+    const picked = pickQuickCategory(ctx.industry, mergeIndustryIntoCategoryOptions(ctx.industry));
+    void runQuickMatchForCategory(picked);
+  }, [sessionState, mode]);
 
   useEffect(() => {
     if (sessionState !== "ready" || mode !== "custom_search") return;
@@ -180,7 +236,7 @@ export default function PartnerSearchClient({ session_token }: Props) {
     return () => window.clearTimeout(timer);
   }, [customPayload, mode, sessionState]);
 
-  async function runQuickMatch() {
+  async function runQuickMatchForCategory(jobCategory: string) {
     setLoading(true);
     setMessage(null);
     try {
@@ -189,7 +245,7 @@ export default function PartnerSearchClient({ session_token }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           session_token: sessionToken,
-          job_category: quickCategory,
+          job_category: jobCategory,
           experience_min: quickExperienceMin,
           driving_license_required: quickDrivingLicense,
           languages: [quickLanguage],
@@ -206,6 +262,10 @@ export default function PartnerSearchClient({ session_token }: Props) {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function runQuickMatch() {
+    await runQuickMatchForCategory(quickCategory);
   }
 
   async function loadMore() {
@@ -286,7 +346,8 @@ export default function PartnerSearchClient({ session_token }: Props) {
           >
             <Zap className="h-8 w-8 text-[#C9A84C]" />
             <h2 className="mt-3 text-xl font-semibold text-white">Quick Match</h2>
-            <p className="mt-2 text-sm text-white/70">Automatically find high-compatibility candidate profiles.</p>
+            <p className="mt-2 text-sm font-semibold text-white">See who&apos;s available</p>
+            <p className="mt-1 text-sm text-white/70">Browse available candidates for this role and sector.</p>
           </button>
           <button
             type="button"
@@ -303,13 +364,14 @@ export default function PartnerSearchClient({ session_token }: Props) {
 
         {mode === "quick_match" ? (
           <div className="mt-6 rounded-2xl border border-white/15 bg-white/[0.04] p-5">
+            <p className="mb-3 text-sm text-white/65">Browse available candidates for this role and sector.</p>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <select
                 value={quickCategory}
                 onChange={(e) => setQuickCategory(e.target.value)}
                 className="rounded-lg border border-white/20 bg-[#0A1624] px-3 py-2 text-sm text-white"
               >
-                {CATEGORY_OPTIONS.map((category) => (
+                {mergeIndustryIntoCategoryOptions(requestHandoff?.industry ?? "").map((category) => (
                   <option key={category} value={category}>
                     {category}
                   </option>
@@ -354,19 +416,33 @@ export default function PartnerSearchClient({ session_token }: Props) {
           </div>
         ) : (
           <div className="mt-6 rounded-2xl border border-white/15 bg-white/[0.04] p-5">
+            <p className="mb-3 text-sm text-white/65">Change sector and role, then refine with optional filters.</p>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <select
-                value={customCategory}
-                onChange={(e) => setCustomCategory(e.target.value)}
-                className="rounded-lg border border-white/20 bg-[#0A1624] px-3 py-2 text-sm text-white"
-              >
-                <option value="">All categories</option>
-                {CATEGORY_OPTIONS.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
+              <label className="grid gap-1.5 text-xs font-medium text-white/55">
+                Sector
+                <select
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  className="rounded-lg border border-white/20 bg-[#0A1624] px-3 py-2 text-sm font-normal text-white"
+                >
+                  <option value="">All sectors</option>
+                  {mergeIndustryIntoCategoryOptions(requestHandoff?.industry ?? "").map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-1.5 text-xs font-medium text-white/55 md:col-span-1">
+                Role
+                <input
+                  type="text"
+                  value={customJobRole}
+                  onChange={(e) => setCustomJobRole(e.target.value)}
+                  placeholder="e.g. Electrician"
+                  className="rounded-lg border border-white/20 bg-[#0A1624] px-3 py-2 text-sm font-normal text-white placeholder:text-white/40"
+                />
+              </label>
               <input
                 type="number"
                 value={customExperienceMin}

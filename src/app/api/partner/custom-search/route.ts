@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 
 const filterSchema = z.object({
   category: z.string().trim().optional(),
+  role: z.string().trim().max(120).optional(),
   experience_min: z.number().min(0).max(50).optional(),
   experience_max: z.number().min(0).max(50).optional(),
   driving_license: z.boolean().optional(),
@@ -79,6 +80,9 @@ export async function POST(request: NextRequest) {
 
     if (filters.category?.trim()) {
       query = query.ilike("job_type_pref", `%${filters.category.trim()}%`);
+    }
+    if (filters.role?.trim()) {
+      query = query.ilike("job_type_pref", `%${filters.role.trim()}%`);
     }
     if (typeof filters.experience_min === "number") {
       query = query.gte("experience_years", filters.experience_min);
