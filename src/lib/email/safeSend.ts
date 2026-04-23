@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createHash } from "crypto";
+import type Mail from "nodemailer/lib/mailer";
 import type SMTPTransport from "nodemailer/lib/smtp-transport";
 import type { Transporter } from "nodemailer";
 
@@ -18,6 +19,7 @@ type SafeSendOptions = {
   headers?: MailHeaders;
   cc?: string | string[];
   bcc?: string | string[];
+  attachments?: Mail.Attachment[];
   ipAddress?: string;
   transporter?: Transporter<SMTPTransport.SentMessageInfo>;
 };
@@ -112,6 +114,7 @@ export async function safeSendEmail(
         headers: options.headers,
         cc: options.cc,
         bcc: options.bcc,
+        attachments: options.attachments,
       });
       await logAuditEvent("email_sent", "email", null, "system", {
         to_hash: sha256(normalizedTo),

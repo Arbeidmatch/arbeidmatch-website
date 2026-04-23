@@ -13,6 +13,8 @@ export const premiumEmployerCenter: DualNavLink[] = [
 /** Desktop “More” dropdown — employer */
 export const premiumEmployerMore: DualNavLink[] = [
   { href: "/for-staffing-agencies", label: "For Staffing Agencies" },
+  { href: "/employer/invoices", label: "Invoices" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/partners", label: "Trusted Partners" },
@@ -30,6 +32,7 @@ export const premiumCandidateCenter: DualNavLink[] = [
 /** Desktop “More” dropdown — candidate */
 export const premiumCandidateMore: DualNavLink[] = [
   { href: "/candidates", label: "Create Profile" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/non-eu-candidates", label: "Outside EU/EEA" },
   { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/partners", label: "Trusted Partners" },

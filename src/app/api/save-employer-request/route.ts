@@ -194,6 +194,40 @@ export async function POST(request: NextRequest) {
     const payload = parsed.data;
     companySnapshot = payload.company?.trim() || "unknown";
     normalizedBooleanFields = [];
+    const normalizedEmail = payload.email.trim().toLowerCase();
+
+    const subscriptionRes = await supabase
+      .from("subscriptions")
+      .select("id,plan,status,requests_used,requests_limit")
+      .eq("employer_email", normalizedEmail)
+      .in("status", ["active", "trialing"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!subscriptionRes.error && subscriptionRes.data) {
+      const sub = subscriptionRes.data as {
+        id: string;
+        plan: "trial" | "growth" | "scale" | "enterprise";
+        status: "active" | "trialing" | "past_due" | "cancelled";
+        requests_used: number | null;
+        requests_limit: number | null;
+      };
+      if (sub.plan === "growth") {
+        const used = Number(sub.requests_used ?? 0);
+        const limit = 5;
+        if (used >= limit) {
+          return noStoreJson(
+            {
+              success: false,
+              error: "Growth limit reached (5 requests this month). Upgrade to Scale for unlimited requests.",
+              code: "subscription_limit_reached",
+            },
+            { status: 402 },
+          );
+        }
+      }
+    }
     const parsedHasRotation = toBool(payload.hasRotation);
     if (hasNonEmptyString(payload.hasRotation) && parsedHasRotation === null) {
       normalizedBooleanFields.push("hasRotation");
@@ -311,6 +345,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (insertedRequest?.id) {
+      if (!subscriptionRes.error && subscriptionRes.data) {
+        const sub = subscriptionRes.data as { id: string; plan: string; requests_used: number | null; requests_limit: number | null };
+        await supabase
+          .from("subscriptions")
+          .update({
+            requests_used: Number(sub.requests_used ?? 0) + 1,
+            requests_limit: sub.plan === "growth" ? 5 : sub.requests_limit,
+          })
+          .eq("id", sub.id);
+      }
       void logAuditEvent("employer_request_created", "employer_request", insertedRequest.id, "employer", {
         company: payload.company,
         brandingRequested: wantsBranding,
