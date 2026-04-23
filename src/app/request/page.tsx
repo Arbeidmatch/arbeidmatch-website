@@ -735,7 +735,8 @@ export default function RequestPage() {
                         <Clock className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                         <span className="rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">7 days free</span>
                       </div>
-                      <p className="mt-4 text-[18px] font-bold text-white">Free Trial</p>
+                      <p className="mt-4 text-[18px] font-bold text-white">Coming Soon</p>
+                      <p className="mt-1 text-sm font-semibold text-[#C9A84C]">We&apos;re building this feature. Join the waitlist.</p>
                       <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />1 candidate request</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Anonymous candidate preview</li>
@@ -757,13 +758,14 @@ export default function RequestPage() {
                         <TrendingUp className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                         <span className="rounded-full bg-[#C9A84C] px-2.5 py-1 text-[11px] font-semibold text-[#0D1B2A]">Most Popular</span>
                       </div>
-                      <p className="mt-4 text-[18px] font-bold text-white">Growth</p>
+                      <p className="mt-4 text-[18px] font-bold text-white">Professional Presentations</p>
+                      <p className="mt-1 text-sm text-white/70">Matched candidate presentations tailored to your role</p>
                       <p className="mt-1 text-sm font-semibold text-[#C9A84C]">1,499 NOK/month</p>
                       <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />5 requests/month</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Full candidate contact details</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Presentations: 5/month</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Quick Match: 3x/month</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />2 active job posts</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Quick Match 3x/month</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority-ready delivery format</li>
                       </ul>
                       <Link href="/pricing" className="mt-6 inline-flex w-full items-center justify-center rounded-[10px] bg-[linear-gradient(135deg,#C9A84C,#b8953f)] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] transition-[filter,transform] duration-200 hover:scale-[1.02] hover:brightness-105">
                         Get Started
@@ -774,11 +776,12 @@ export default function RequestPage() {
                       <div className="flex items-center justify-between">
                         <Bolt className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                       </div>
-                      <p className="mt-4 text-[18px] font-bold text-white">Scale</p>
+                      <p className="mt-4 text-[18px] font-bold text-white">Professional Presentations Unlimited</p>
+                      <p className="mt-1 text-sm text-white/70">Unlimited matched presentations with priority processing</p>
                       <p className="mt-1 text-sm font-semibold text-[#C9A84C]">3,999 NOK/month</p>
                       <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Unlimited requests</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Unlimited contact details</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Presentations unlimited</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority Matching</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Unlimited job posts</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority processing</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Quick Match unlimited</li>
@@ -793,11 +796,12 @@ export default function RequestPage() {
                         <Handshake className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                         <span className="rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">For Recruitment Firms</span>
                       </div>
-                      <p className="mt-4 text-[18px] font-bold text-white">Partner</p>
+                      <p className="mt-4 text-[18px] font-bold text-white">Candidate Presentation Service</p>
+                      <p className="mt-1 text-sm text-white/70">Professional presentations with white-label sourcing</p>
                       <p className="mt-1 text-sm font-semibold text-[#C9A84C]">Custom pricing</p>
                       <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Access to candidate database</li>
-                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Automated sourcing workflow</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Access to presentation database</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Automated presentation sourcing</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Branded presentations</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Dedicated ATS dashboard</li>
                       </ul>
