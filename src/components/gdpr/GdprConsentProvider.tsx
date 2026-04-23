@@ -12,15 +12,15 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import Link from "next/link";
+import { Shield } from "lucide-react";
 
 import {
   readGdprConsent,
   writeGdprConsentAccepted,
-  writeGdprConsentDismissed,
   type GdprStoredConsent,
 } from "@/lib/gdpr/consentStorage";
 import { isInternalNoIndexPath } from "@/lib/gdpr/noindexRoutes";
-import GdprConsentForm from "@/components/gdpr/GdprConsentForm";
 
 export type GdprConsentStatus = "unset" | GdprStoredConsent;
 
@@ -55,6 +55,7 @@ function isJobApplyPath(pathname: string | null): boolean {
 }
 
 const snackTransition = { duration: 0.3, ease: [0.22, 1, 0.36, 1] as const };
+const COOKIE_CONSENT_SHOWN_KEY = "cookie_consent_shown";
 
 export default function GdprConsentProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -62,6 +63,7 @@ export default function GdprConsentProvider({ children }: { children: React.Reac
   const [hydrated, setHydrated] = useState(false);
   const [status, setStatus] = useState<GdprConsentStatus>("unset");
   const [catchupOpen, setCatchupOpen] = useState(false);
+  const [cookieConsentShown, setCookieConsentShown] = useState(false);
   /** Hides initial snack to run exit animation; cleared in onExitComplete. */
   const [initialSnackClosing, setInitialSnackClosing] = useState(false);
   const dismissInitialAfterExitRef = useRef(false);
@@ -74,14 +76,33 @@ export default function GdprConsentProvider({ children }: { children: React.Reac
       const stored = readGdprConsent();
       startTransition(() => {
         setStatus(stored ?? "unset");
+        setCookieConsentShown(localStorage.getItem(COOKIE_CONSENT_SHOWN_KEY) === "true");
         setHydrated(true);
       });
     } catch {
       startTransition(() => {
         setStatus("unset");
+        setCookieConsentShown(false);
         setHydrated(true);
       });
     }
+  }, []);
+
+  useEffect(() => {
+    const refreshCookieState = () => {
+      try {
+        setCookieConsentShown(localStorage.getItem(COOKIE_CONSENT_SHOWN_KEY) === "true");
+      } catch {
+        setCookieConsentShown(false);
+      }
+    };
+    if (typeof window === "undefined") return;
+    window.addEventListener("cookie-consent-updated", refreshCookieState);
+    window.addEventListener("storage", refreshCookieState);
+    return () => {
+      window.removeEventListener("cookie-consent-updated", refreshCookieState);
+      window.removeEventListener("storage", refreshCookieState);
+    };
   }, []);
 
   const accept = useCallback(() => {
@@ -106,20 +127,18 @@ export default function GdprConsentProvider({ children }: { children: React.Reac
   }, []);
 
   const requestDismissInitial = useCallback(() => {
-    dismissInitialAfterExitRef.current = true;
+    dismissInitialAfterExitRef.current = false;
     setInitialSnackClosing(true);
   }, []);
 
   const onInitialSnackExitComplete = useCallback(() => {
     setInitialSnackClosing(false);
     if (!dismissInitialAfterExitRef.current) return;
-    dismissInitialAfterExitRef.current = false;
-    writeGdprConsentDismissed();
-    setStatus("dismissed");
   }, []);
 
   const showInitialSnack =
     hydrated &&
+    cookieConsentShown &&
     status === "unset" &&
     !initialSnackClosing &&
     !isNoIndexPath &&
@@ -127,7 +146,11 @@ export default function GdprConsentProvider({ children }: { children: React.Reac
     !hideInitialOnApplyPage;
 
   const showCatchupSnack =
-    hydrated && catchupOpen && status !== "accepted" && (status === "declined" || status === "dismissed" || status === "unset");
+    hydrated &&
+    cookieConsentShown &&
+    catchupOpen &&
+    status !== "accepted" &&
+    (status === "declined" || status === "dismissed" || status === "unset");
 
   const motionSnack = reduceMotion
     ? { initial: false, animate: {}, exit: {} }
@@ -161,20 +184,30 @@ export default function GdprConsentProvider({ children }: { children: React.Reac
             aria-label="Privacy notice"
             {...motionSnack}
             transition={reduceMotion ? { duration: 0 } : snackTransition}
-            className="fixed bottom-4 right-4 z-[480] w-[min(100vw-2rem,420px)] max-w-[420px] sm:bottom-6 sm:right-6"
+            className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-6 md:max-w-sm"
           >
-            <div
-              className="relative rounded-xl border border-[#C9A84C]/22 px-4 pb-4 pt-10 shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
-              style={{ background: "rgba(13, 27, 42, 0.95)" }}
-            >
-              <GdprConsentForm
-                compact
-                showLearnMore
-                showDismiss
-                onDismiss={requestDismissInitial}
-                onAccept={accept}
-                onLearnMore={learnMoreOpenPrivacy}
-              />
+            <div className="relative rounded-2xl border border-white/10 bg-[#0D1B2A]/95 p-5 shadow-2xl backdrop-blur-xl">
+              <div className="flex items-start gap-2.5">
+                <Shield className="mt-0.5 h-4 w-4 text-[#C9A84C]" />
+                <div>
+                  <p className="text-sm font-semibold text-white">Your data, your rights</p>
+                  <p className="mt-1 text-xs text-white/50">
+                    You have the right to access, correct or delete your data at any time.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={accept}
+                  className="rounded-xl border border-white/10 px-4 py-2 text-xs text-white transition-colors hover:border-white/20 hover:text-white"
+                >
+                  Got it
+                </button>
+                <Link href="/privacy" className="text-xs text-[#C9A84C] hover:underline">
+                  Learn more
+                </Link>
+              </div>
             </div>
           </motion.div>
         ) : null}
@@ -188,24 +221,32 @@ export default function GdprConsentProvider({ children }: { children: React.Reac
             aria-label="Update privacy consent"
             {...motionSnack}
             transition={reduceMotion ? { duration: 0 } : snackTransition}
-            className="fixed bottom-4 right-4 z-[485] w-[min(100vw-2rem,420px)] max-w-[420px] sm:bottom-6 sm:right-6"
+            className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-6 md:max-w-sm"
           >
-            <div
-              className="relative rounded-xl border border-[#C9A84C]/22 px-4 pb-4 pt-3 shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
-              style={{ background: "rgba(13, 27, 42, 0.95)" }}
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#C9A84C]">Consent required</p>
-              <p className="mt-1.5 text-xs leading-relaxed text-white/68">
-                Accept below to unlock applications and candidate profile features.
-              </p>
-              <div className="mt-4">
-                <GdprConsentForm
-                  compact
-                  showLearnMore={false}
-                  catchupMode
-                  onAccept={accept}
-                  onCatchupCancel={closeCatchup}
-                />
+            <div className="relative rounded-2xl border border-white/10 bg-[#0D1B2A]/95 p-5 shadow-2xl backdrop-blur-xl">
+              <div className="flex items-start gap-2.5">
+                <Shield className="mt-0.5 h-4 w-4 text-[#C9A84C]" />
+                <div>
+                  <p className="text-sm font-semibold text-white">Your data, your rights</p>
+                  <p className="mt-1 text-xs text-white/50">
+                    You have the right to access, correct or delete your data at any time.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={accept}
+                  className="rounded-xl border border-white/10 px-4 py-2 text-xs text-white transition-colors hover:border-white/20 hover:text-white"
+                >
+                  Got it
+                </button>
+                <Link href="/privacy" className="text-xs text-[#C9A84C] hover:underline">
+                  Learn more
+                </Link>
+                <button type="button" onClick={closeCatchup} className="text-xs text-white/40 hover:text-white">
+                  Close
+                </button>
               </div>
             </div>
           </motion.div>
