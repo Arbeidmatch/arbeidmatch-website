@@ -443,61 +443,92 @@ export default function RequestPage() {
               {!selectedIndustry ? (
                 <motion.div
                   key="industry-grid"
-                  className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                  className="mt-5"
                   initial={reduceMotion ? false : { opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
                   transition={{ duration: reduceMotion ? 0 : 0.2, ease: EASE_PREMIUM }}
                 >
-                  {CHECK_ROLE_GROUPS.map(({ industry, icon: Icon }) => {
-                    const isSelected = selectedIndustry === industry;
-                    return (
-                      <motion.button
-                        key={industry}
-                        type="button"
-                        onClick={() => {
-                          setSelectedIndustry(industry);
-                          setRoleQuery("");
-                        }}
-                        whileHover={
-                          reduceMotion
-                            ? undefined
-                            : {
-                                scale: 1.03,
-                                borderColor: "#C9A84C",
-                                transition: { duration: 0.2, ease: "easeInOut" },
-                              }
-                        }
-                        animate={
-                          isSelected && !reduceMotion
-                            ? {
-                                scale: [1, 1.05, 1.02],
-                                boxShadow: [
-                                  "0 0 0 0 rgba(201,168,76,0)",
-                                  "0 0 0 3px rgba(201,168,76,0.4)",
-                                  "0 0 0 0 rgba(201,168,76,0)",
-                                ],
-                              }
-                            : { scale: 1, boxShadow: "0 0 0 0 rgba(201,168,76,0)" }
-                        }
-                        transition={{ duration: reduceMotion ? 0 : 0.3, ease: "easeInOut" }}
-                        className={`w-full cursor-pointer rounded-[12px] border px-2 py-2 transition-all duration-200 ease-in-out md:px-4 md:py-4 ${
-                          isSelected
-                            ? "border-[#C9A84C] bg-white/10"
-                            : "border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.07)]"
-                        }`}
-                      >
-                        <div className="flex min-h-[84px] flex-col items-center justify-center gap-2 text-center md:min-h-[112px]">
-                          <Icon className="h-5 w-5 text-[#C9A84C]" />
-                          <p
-                            className={`line-clamp-2 text-xs font-semibold leading-tight md:text-sm ${isSelected ? "text-[#C9A84C]" : "text-white"}`}
-                          >
-                            {industry}
-                          </p>
-                        </div>
-                      </motion.button>
-                    );
-                  })}
+                  <div className="md:hidden">
+                    <select
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white"
+                      value={selectedIndustry}
+                      onChange={(event) => {
+                        setSelectedIndustry(event.target.value);
+                        setRoleQuery("");
+                      }}
+                    >
+                      <option value="">Select a role...</option>
+                      {CHECK_ROLE_GROUPS.map(({ industry }) => (
+                        <option key={industry} value={industry}>
+                          {industry}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!selectedIndustry) return;
+                        setRoleQuery("");
+                      }}
+                      disabled={!selectedIndustry}
+                      className="result-cta-primary mt-3 h-12 w-full rounded-xl px-4 text-sm font-semibold text-[#0D1B2A] disabled:opacity-50"
+                    >
+                      Continue
+                    </button>
+                  </div>
+
+                  <div className="hidden grid-cols-1 gap-3 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {CHECK_ROLE_GROUPS.map(({ industry, icon: Icon }) => {
+                      const isSelected = selectedIndustry === industry;
+                      return (
+                        <motion.button
+                          key={industry}
+                          type="button"
+                          onClick={() => {
+                            setSelectedIndustry(industry);
+                            setRoleQuery("");
+                          }}
+                          whileHover={
+                            reduceMotion
+                              ? undefined
+                              : {
+                                  scale: 1.03,
+                                  borderColor: "#C9A84C",
+                                  transition: { duration: 0.2, ease: "easeInOut" },
+                                }
+                          }
+                          animate={
+                            isSelected && !reduceMotion
+                              ? {
+                                  scale: [1, 1.05, 1.02],
+                                  boxShadow: [
+                                    "0 0 0 0 rgba(201,168,76,0)",
+                                    "0 0 0 3px rgba(201,168,76,0.4)",
+                                    "0 0 0 0 rgba(201,168,76,0)",
+                                  ],
+                                }
+                              : { scale: 1, boxShadow: "0 0 0 0 rgba(201,168,76,0)" }
+                          }
+                          transition={{ duration: reduceMotion ? 0 : 0.3, ease: "easeInOut" }}
+                          className={`w-full cursor-pointer rounded-[12px] border px-2 py-2 transition-all duration-200 ease-in-out md:px-4 md:py-4 ${
+                            isSelected
+                              ? "border-[#C9A84C] bg-white/10"
+                              : "border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.07)]"
+                          }`}
+                        >
+                          <div className="flex min-h-[84px] flex-col items-center justify-center gap-2 text-center md:min-h-[112px]">
+                            <Icon className="h-5 w-5 text-[#C9A84C]" />
+                            <p
+                              className={`line-clamp-2 text-xs font-semibold leading-tight md:text-sm ${isSelected ? "text-[#C9A84C]" : "text-white"}`}
+                            >
+                              {industry}
+                            </p>
+                          </div>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
                 </motion.div>
               ) : (
                 <motion.div
