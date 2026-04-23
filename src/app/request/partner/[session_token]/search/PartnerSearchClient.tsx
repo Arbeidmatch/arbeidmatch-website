@@ -17,7 +17,7 @@ type CandidateResult = {
 };
 
 type SessionCheck = { valid: boolean; reason?: "expired" | "invalid" };
-interface PartnerSearchClientProps {
+interface Props {
   session_token: string;
 }
 
@@ -89,7 +89,7 @@ function ResultCard({
   );
 }
 
-export default function PartnerSearchClient({ session_token }: PartnerSearchClientProps) {
+export default function PartnerSearchClient({ session_token }: Props) {
   const sessionToken = session_token;
 
   const [sessionState, setSessionState] = useState<"loading" | "ready" | "expired" | "invalid">("loading");
