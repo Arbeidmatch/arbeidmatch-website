@@ -8,8 +8,7 @@ import { motion, useReducedMotion } from "framer-motion";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
 import { trackEvent } from "@/lib/analytics";
-import { readHomeUserType, writeHomeUserType } from "@/lib/homeUserType";
-import { setNavigationUserType } from "@/lib/navigationUserType";
+import { writeHomeUserType } from "@/lib/homeUserType";
 import {
   Building2,
   Check,
@@ -39,32 +38,15 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
   const reduce = useReducedMotion();
   const router = useRouter();
   const [sessionRoleBanner, setSessionRoleBanner] = useState<null | "employer" | "candidate">(null);
-  const [browsingAs, setBrowsingAs] = useState<"Employer" | "Candidate" | "Guest">("Guest");
 
   useEffect(() => {
     try {
       const role = window.sessionStorage.getItem("roleSelected");
-      const ut = readHomeUserType();
-      if (ut === "employer") setBrowsingAs("Employer");
-      else if (ut === "candidate") setBrowsingAs("Candidate");
-      else setBrowsingAs("Guest");
-      if (role === "employer" || ut === "employer") startTransition(() => setSessionRoleBanner("employer"));
-      else if (role === "candidate" || ut === "candidate") startTransition(() => setSessionRoleBanner("candidate"));
+      if (role === "employer") startTransition(() => setSessionRoleBanner("employer"));
+      else if (role === "candidate") startTransition(() => setSessionRoleBanner("candidate"));
     } catch {
       /* ignore */
     }
-  }, []);
-
-  const switchBrowsingMode = useCallback(() => {
-    try {
-      window.localStorage.removeItem("userType");
-      window.localStorage.removeItem("welcome_shown");
-      window.sessionStorage.removeItem("roleSelected");
-    } catch {
-      /* ignore */
-    }
-    setNavigationUserType(null);
-    window.location.reload();
   }, []);
 
   const goHire = useCallback(() => {
@@ -97,8 +79,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         EU/EEA Workforce Solutions · Norway
       </motion.p>
       <motion.h1
-        className="am-h1 mb-8 max-w-full break-words font-sans font-extrabold tracking-tight text-white sm:max-w-[22ch]"
-        style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", lineHeight: 1.06 }}
+        className="am-h1 mb-8 max-w-full text-balance break-words text-3xl font-sans font-extrabold leading-[1.06] tracking-tight text-white md:text-5xl lg:text-7xl sm:max-w-[22ch]"
         {...fade(0.1)}
       >
         Qualified workers,
@@ -132,8 +113,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         EU/EEA Workforce Solutions · Norway
       </p>
       <h1
-        className="am-h1 mb-8 max-w-full break-words font-sans font-extrabold tracking-tight text-white sm:max-w-[22ch]"
-        style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", lineHeight: 1.06 }}
+        className="am-h1 mb-8 max-w-full text-balance break-words text-3xl font-sans font-extrabold leading-[1.06] tracking-tight text-white md:text-5xl lg:text-7xl sm:max-w-[22ch]"
       >
         Qualified workers,
         <br />
@@ -175,18 +155,12 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
     <div className="min-h-screen bg-[#0D1B2A]">
       <HomeWelcomeUserTypeSlideup />
       <section className="section-y-home flex items-center bg-[#0D1B2A]">
-        <div className="relative mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-          <div className="absolute right-6 top-0 text-xs text-white/40 md:right-12 lg:right-20">
-            <span>Browsing as: {browsingAs}</span>{" "}
-            <button type="button" onClick={switchBrowsingMode} className="text-white/55 underline underline-offset-2 hover:text-white/75">
-              Switch
-            </button>
-          </div>
+        <div className="relative mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           {hero}
         </div>
       </section>
 
-      <section className="border-b border-[rgba(201,168,76,0.08)] bg-[#0D1B2A] px-6 py-12 md:px-12 md:py-16 lg:px-20">
+      <section className="border-b border-[rgba(201,168,76,0.08)] bg-[#0D1B2A] px-4 py-12 md:px-12 md:py-16 lg:px-20">
         <div className="mx-auto grid max-w-content grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
           <button
             type="button"
@@ -223,7 +197,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
 
       {sessionRoleBanner === "employer" ? (
         <motion.div
-          className="border-b border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] px-6 py-2.5 md:px-12 lg:px-20"
+          className="border-b border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] px-4 py-2.5 md:px-12 lg:px-20"
           initial={reduce ? false : { opacity: 0, y: -8 }}
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: EASE_PREMIUM }}
@@ -243,7 +217,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       ) : null}
       {sessionRoleBanner === "candidate" ? (
         <motion.div
-          className="border-b border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] px-6 py-2.5 md:px-12 lg:px-20"
+          className="border-b border-[rgba(201,168,76,0.15)] bg-[rgba(201,168,76,0.08)] px-4 py-2.5 md:px-12 lg:px-20"
           initial={reduce ? false : { opacity: 0, y: -8 }}
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: EASE_PREMIUM }}
@@ -263,7 +237,7 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       ) : null}
 
       <section className="bg-[#0D1B2A] py-6">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
             <div className="mx-auto flex w-[90%] max-w-2xl items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-6">
               <div className="flex min-w-0 items-start gap-3">
@@ -291,9 +265,9 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       <ScrollReveal variant="fadeIn">{howItWorksSlot}</ScrollReveal>
 
       <section className="section-y-home bg-[#0D1B2A]">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="am-h2 heading-premium-xl font-sans font-extrabold tracking-tight text-white">Industries we serve</h2>
+            <h2 className="am-h2 heading-premium-xl text-balance break-words font-sans font-extrabold tracking-tight text-white">Industries we serve</h2>
           </ScrollReveal>
           <ScrollRevealGrid
             className="mt-16 grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:gap-14"
@@ -322,10 +296,10 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       </section>
 
       <section className="section-y-home bg-[#0D1B2A]">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
             <div className="mx-auto max-w-4xl rounded-[22px] border border-[rgba(201,168,76,0.14)] bg-[linear-gradient(165deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015))] p-10 md:p-14 lg:p-[4.25rem]">
-              <h2 className="am-h2 heading-premium-xl mb-8 font-extrabold tracking-tight text-white">
+              <h2 className="am-h2 heading-premium-xl mb-8 text-balance break-words font-extrabold tracking-tight text-white">
                 Recruitment that works. For everyone.
               </h2>
               <p className="text-home-lead max-w-none">
@@ -369,9 +343,9 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
       </section>
 
       <section className="mesh-cta-wrap section-y-home bg-[#0D1B2A] text-center">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <h2 className="am-h2 heading-premium-xl mb-7 font-extrabold tracking-tight text-white">
+            <h2 className="am-h2 heading-premium-xl mb-7 text-balance break-words font-extrabold tracking-tight text-white">
               Ready to find your next workers?
             </h2>
           </ScrollReveal>

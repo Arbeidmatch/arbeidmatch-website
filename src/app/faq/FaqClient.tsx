@@ -75,7 +75,7 @@ function FaqAccordionSection({ title, items, sectionKey }: { title: string; item
 
   return (
     <section className="rounded-2xl border border-[#C9A84C]/25 bg-white/[0.03] p-5 md:p-7">
-      <h2 className="text-2xl font-semibold text-white">{title}</h2>
+      <h2 className="text-balance break-words text-2xl font-semibold text-white">{title}</h2>
       <div className="mt-5 space-y-3">
         {items.map((item, index) => {
           const isOpen = openIndex === index;
@@ -115,7 +115,7 @@ export default function FaqClient() {
       <div className="mx-auto w-full max-w-[1080px] space-y-8">
         <header className="rounded-2xl border border-[#C9A84C]/30 bg-gradient-to-b from-[#0d1b2a] to-[#12243a] p-6 md:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#C9A84C]">ArbeidMatch Help Center</p>
-          <h1 className="mt-3 text-3xl font-semibold text-white md:text-4xl">Frequently Asked Questions</h1>
+          <h1 className="mt-3 text-balance break-words text-3xl font-semibold text-white md:text-4xl">Frequently Asked Questions</h1>
           <p className="mt-3 max-w-3xl text-sm text-white/70 md:text-base">
             Answers for candidates and employers. If you still need help, contact us and our team will assist you directly.
           </p>

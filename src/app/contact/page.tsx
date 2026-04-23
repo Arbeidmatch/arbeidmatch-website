@@ -118,7 +118,7 @@ export default function ContactPage() {
       <div className="mx-auto w-full max-w-[900px]">
         <header className="rounded-2xl border border-[#C9A84C]/30 bg-gradient-to-b from-[#0d1b2a] to-[#12243a] p-6 md:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#C9A84C]">Contact ArbeidMatch</p>
-          <h1 className="mt-3 text-3xl font-semibold text-white md:text-4xl">How can we help?</h1>
+          <h1 className="mt-3 text-balance break-words text-3xl font-semibold text-white md:text-4xl">How can we help?</h1>
           <p className="mt-3 text-sm text-white/70 md:text-base">
             Send us your question and we will reply as soon as possible.
           </p>
@@ -188,7 +188,7 @@ export default function ContactPage() {
           <button
             type="submit"
             disabled={status === "submitting"}
-            className="mt-6 inline-flex rounded-xl bg-[#C9A84C] px-6 py-3 text-sm font-semibold text-[#0D1B2A] disabled:opacity-60"
+            className="mt-6 inline-flex w-full justify-center rounded-xl bg-[#C9A84C] px-6 py-3 text-sm font-semibold text-[#0D1B2A] disabled:opacity-60 sm:w-auto"
           >
             {status === "submitting" ? "Sending..." : "Send message"}
           </button>

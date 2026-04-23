@@ -244,18 +244,19 @@ export default function RequestPage() {
         trackRequestSubmit(selectedIndustry || searchTerm || "unknown", checkCount);
         toast.success("Partner verified. Check your inbox for secure access.");
       } else if (data.reason === "personal_email") {
-        setAccessErrorMessage("Please use your company email address.");
-        toast.error("Please use your company email address.");
+        setAccessErrorMessage("email_not_recognized");
         setIsLoadingExit(true);
         await new Promise((resolve) => setTimeout(resolve, 200));
         setAccessStatus("error");
         setIsLoadingExit(false);
         return;
       } else {
-        setPartnerIssueStatus("idle");
-        setPartnerModalView("not_found");
-        setPartnerIssueMessage("");
-        nextStatus = "non_partner";
+        setAccessErrorMessage("email_not_recognized");
+        setIsLoadingExit(true);
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        setAccessStatus("error");
+        setIsLoadingExit(false);
+        return;
       }
       setIsLoadingExit(true);
       await new Promise((resolve) => setTimeout(resolve, 200));
@@ -269,6 +270,13 @@ export default function RequestPage() {
       setAccessStatus("error");
       setIsLoadingExit(false);
     }
+  };
+
+  const resetEmail = () => {
+    setAccessEmail("");
+    setAccessErrorMessage("");
+    setAccessStatus("idle");
+    setIsLoadingExit(false);
   };
 
   const submitFeatureWaitlist = async () => {
@@ -493,7 +501,7 @@ export default function RequestPage() {
   }, [checkCount, checkState, searchTerm, selectedIndustry]);
 
   return (
-    <section className="flex min-h-screen flex-col items-center justify-center bg-[#0D1B2A] px-4 py-6 text-white md:block md:min-h-dvh md:px-6 md:py-10">
+    <section className="flex min-h-screen flex-col items-center bg-[#0D1B2A] px-4 py-6 text-white md:min-h-dvh md:px-6 md:py-10">
       <div
         className={`mx-auto w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-6 transition-all duration-300 md:max-w-[980px] md:rounded-[16px] md:p-9 ${
           checkState === "result"
@@ -1276,7 +1284,31 @@ export default function RequestPage() {
             )}
 
             {accessStatus === "error" && (
-              <p className="mt-4 text-sm text-red-300">{accessErrorMessage || "Could not check access right now. Please try again."}</p>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-center"
+              >
+                <p className="mb-1 font-semibold text-white">Hmm, we couldn&apos;t place you.</p>
+                <p className="mb-4 text-sm text-white/50">
+                  This email wasn&apos;t recognised as a partner account. You may have a typo - or you&apos;re not yet in our network.
+                </p>
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={resetEmail}
+                    className="w-full rounded-xl border border-white/10 bg-white/10 py-2 text-sm text-white hover:bg-white/20"
+                  >
+                    ← Try a different email
+                  </button>
+                  <a
+                    href="/recruiter-network"
+                    className="w-full rounded-xl bg-[#C9A84C] py-2 text-center text-sm font-semibold text-[#0D1B2A]"
+                  >
+                    Join the Recruiter Network
+                  </a>
+                </div>
+              </motion.div>
             )}
           </div>
         </>

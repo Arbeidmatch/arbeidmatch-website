@@ -20,9 +20,9 @@ export default function ForEmployersPage() {
   return (
     <div className="bg-[#0D1B2A] text-white">
       <section className="bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
-        <div className="mx-auto w-full max-w-content px-6 text-center md:px-12 lg:px-20">
+        <div className="mx-auto w-full max-w-content px-4 text-center md:px-12 lg:px-20">
           <StaggerHero className="flex flex-col items-center">
-            <h1 className="heading-premium-xl font-display text-4xl text-white md:text-5xl">
+            <h1 className="heading-premium-xl text-balance break-words font-display text-3xl text-white md:text-5xl lg:text-7xl">
               Qualified EU/EEA workforce for Norwegian businesses
             </h1>
             <p className="subtitle-premium mx-auto mt-5 max-w-2xl text-lg text-white/70">
@@ -42,7 +42,7 @@ export default function ForEmployersPage() {
       <HowItWorksInteractive />
 
       <section className="bg-[#0D1B2A] py-10 md:py-12 lg:py-14">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <BemanningLegalSection />
         </div>
       </section>
@@ -60,9 +60,9 @@ export default function ForEmployersPage() {
       <Testimonials />
 
       <section className="mesh-cta-wrap bg-navy py-12 text-center md:py-16 lg:py-[100px]">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <h2 className="am-h2 heading-premium-xl font-extrabold text-white">Need workers now?</h2>
+            <h2 className="am-h2 heading-premium-xl text-balance break-words font-extrabold text-white">Need workers now?</h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
             <p className="mx-auto mt-4 max-w-2xl text-white/70">

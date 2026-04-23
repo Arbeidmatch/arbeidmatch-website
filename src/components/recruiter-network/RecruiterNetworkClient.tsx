@@ -211,7 +211,7 @@ export default function RecruiterNetworkClient() {
             initial={reduce ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
-            className="mt-6 text-3xl font-extrabold tracking-tight text-white md:text-5xl"
+            className="mt-6 text-balance break-words text-3xl font-extrabold tracking-tight text-white md:text-5xl lg:text-7xl"
           >
             Join the ArbeidMatch Recruiter Network
           </motion.h1>
@@ -228,7 +228,7 @@ export default function RecruiterNetworkClient() {
           <button
             type="button"
             onClick={() => setApplyOpen(true)}
-            className="mt-8 rounded-xl bg-[#C9A84C] px-8 py-3 text-base font-bold text-[#0D1B2A] transition hover:bg-[#b8953f]"
+            className="mt-8 w-full rounded-xl bg-[#C9A84C] px-8 py-3 text-base font-bold text-[#0D1B2A] transition hover:bg-[#b8953f] sm:w-auto"
           >
             Apply to Join
           </button>
@@ -251,7 +251,7 @@ export default function RecruiterNetworkClient() {
           <button
             type="button"
             onClick={() => setApplyOpen(true)}
-            className="mt-9 rounded-xl bg-[#C9A84C] px-10 py-3.5 text-lg font-bold text-[#0D1B2A] transition hover:bg-[#b8953f]"
+            className="mt-9 w-full rounded-xl bg-[#C9A84C] px-10 py-3.5 text-lg font-bold text-[#0D1B2A] transition hover:bg-[#b8953f] sm:w-auto"
           >
             Apply to Join the Network
           </button>

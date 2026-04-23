@@ -105,9 +105,9 @@ export default function ForCandidatesPage() {
               "radial-gradient(ellipse 75% 60% at 50% -10%, rgba(201,168,76,0.18), transparent 58%), radial-gradient(ellipse 50% 35% at 100% 50%, rgba(201,168,76,0.09), transparent 55%)",
           }}
         />
-        <div className="relative mx-auto w-full max-w-content px-6 text-center md:px-12 lg:px-20">
+        <div className="relative mx-auto w-full max-w-content px-4 text-center md:px-12 lg:px-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C9A84C]">For Candidates</p>
-          <h1 className="mt-5 text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl">
+          <h1 className="mt-5 text-balance break-words text-3xl font-bold leading-tight text-white md:text-5xl lg:text-7xl">
             Find Your Next Job in Norway
           </h1>
           <p className="mx-auto mt-6 max-w-3xl text-base leading-relaxed text-white/70 md:text-lg">
@@ -125,7 +125,7 @@ export default function ForCandidatesPage() {
       </section>
 
       <section className="py-8 md:py-10">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <div className="w-full rounded-2xl border border-[#C9A84C]/30 bg-gradient-to-r from-[#C9A84C]/20 to-[#C9A84C]/5 p-8">
             <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
               <div>
@@ -147,8 +147,8 @@ export default function ForCandidatesPage() {
       </section>
 
       <section className="border-y border-white/10 bg-[#0a1624] py-16 md:py-20">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-          <h2 className="text-center text-3xl font-bold text-white md:text-4xl">Why Work Through ArbeidMatch</h2>
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
+          <h2 className="text-balance break-words text-center text-3xl font-bold text-white md:text-4xl">Why Work Through ArbeidMatch</h2>
           <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
             {WHY_CARDS.map((card) => {
               const Icon = card.icon;
@@ -167,8 +167,8 @@ export default function ForCandidatesPage() {
       </section>
 
       <section className="py-16 md:py-20">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-          <h2 className="text-center text-3xl font-bold text-white md:text-4xl">How It Works</h2>
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
+          <h2 className="text-balance break-words text-center text-3xl font-bold text-white md:text-4xl">How It Works</h2>
           <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
             {HOW_IT_WORKS.map((step, index) => (
               <article key={step.title} className="rounded-2xl border border-[#C9A84C]/20 bg-white/[0.03] p-6">
@@ -184,8 +184,8 @@ export default function ForCandidatesPage() {
       </section>
 
       <section className="border-y border-white/10 bg-[#0a1624] py-16 md:py-20">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-          <h2 className="text-center text-3xl font-bold text-white md:text-4xl">Available Categories</h2>
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
+          <h2 className="text-balance break-words text-center text-3xl font-bold text-white md:text-4xl">Available Categories</h2>
           <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {CATEGORIES.map((category) => {
               const Icon = category.icon;
@@ -209,8 +209,8 @@ export default function ForCandidatesPage() {
       </section>
 
       <section className="py-16 md:py-20">
-        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-          <h2 className="text-center text-3xl font-bold text-white md:text-4xl">Legal &amp; Your Rights</h2>
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
+          <h2 className="text-balance break-words text-center text-3xl font-bold text-white md:text-4xl">Legal &amp; Your Rights</h2>
           <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
             {LEGAL_RIGHTS_LINKS.map((resource) => (
               <a
@@ -238,8 +238,8 @@ export default function ForCandidatesPage() {
           aria-hidden
           style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.14), transparent 58%)" }}
         />
-        <div className="relative mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-          <h2 className="text-3xl font-bold text-white md:text-4xl">Ready to Start?</h2>
+        <div className="relative mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
+          <h2 className="text-balance break-words text-3xl font-bold text-white md:text-4xl">Ready to Start?</h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/70">
             Build your profile in minutes and explore open jobs for legal, structured work in Norway.
           </p>
