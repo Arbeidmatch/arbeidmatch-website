@@ -246,13 +246,12 @@ export async function POST(request: NextRequest) {
         <p style="margin:0 0 16px 0;font-size:15px;color:rgba(255,255,255,0.8);line-height:1.7;">
           Click the button below to access candidate profiles. Your link is personal and valid for 30 minutes from the moment it was generated.
         </p>
-        <div style="text-align:center;margin:8px 0 20px;">
-          <a href="${secureUrl}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;">Access Candidate Profiles</a>
-        </div>
         <p style="font-size:12px;color:rgba(255,255,255,0.35);line-height:1.6;margin:0;">
           This link is linked to your partner account. Do not share it with others. If you did not request this, contact post@arbeidmatch.no immediately.
         </p>
       `,
+      ctaText: "Access Candidate Profiles",
+      ctaUrl: secureUrl,
     });
 
     await transporter.sendMail({

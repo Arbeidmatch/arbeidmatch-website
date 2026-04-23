@@ -31,77 +31,72 @@ export function wrapPremiumEmail(bodyHtml: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 </head>
-<body style="margin:0;padding:0;background:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
-
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f2f5;padding:40px 20px;">
-    <tr>
-      <td align="center">
-
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-
-          <tr>
-            <td style="background:linear-gradient(135deg,#B8860B,#C9A84C);padding:32px 40px;text-align:center;">
-              <div style="font-size:24px;font-weight:800;color:#ffffff;letter-spacing:-0.02em;">
-                Arbeid<span style="color:rgba(255,255,255,0.7);">Match</span>
-              </div>
-              <div style="font-size:11px;color:rgba(255,255,255,0.8);letter-spacing:0.1em;text-transform:uppercase;margin-top:4px;">
-                Norge AS
-              </div>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:40px 40px 32px;">
-              ${bodyHtml}
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:24px 40px;border-top:1px solid #eeeeee;text-align:center;">
-              <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#0D1B2A;">ArbeidMatch Norge AS</p>
-              <p style="margin:0 0 8px;font-size:11px;color:#888888;line-height:1.6;">
-                Org. nr. 935 667 089 (MVA) · Sverre Svendsens veg 38, 7056 Ranheim, Norway
-              </p>
-              <p style="margin:0;font-size:10px;color:#aaaaaa;">
-                Questions? Contact us at
-                <a href="mailto:support@arbeidmatch.no" style="color:#B8860B;text-decoration:none;">support@arbeidmatch.no</a>
-              </p>
-              <p style="margin:12px 0 0;font-size:10px;color:#aaaaaa;line-height:1.5;">
-                This email was sent by ArbeidMatch Norge AS in connection with your activity on our website.<br />
-                Transactional notice - not a marketing message.
-              </p>
-            </td>
-          </tr>
-
-        </table>
-
-      </td>
-    </tr>
-  </table>
-
+<body style="margin:0;padding:0;background:#0a1628;font-family:Arial,sans-serif;">
+  <div style="max-width:600px;margin:0 auto;">
+    <div style="background:#0D1B2A;padding:32px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);">
+      <span style="font-size:28px;font-weight:700;color:#C9A84C;">ArbeidMatch</span>
+    </div>
+    <div style="background:#0f1f30;padding:32px;color:#ffffff;line-height:1.6;">
+      <div style="padding-top:2px;border-top:1px solid rgba(255,255,255,0.08);">
+        ${bodyHtml}
+      </div>
+    </div>
+    <!--AM_FOOTER_START-->
+    <div style="background:#0D1B2A;padding:24px;text-align:center;border-top:1px solid rgba(255,255,255,0.1);">
+      <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);text-align:center;">
+        ArbeidMatch Norge AS<br>
+        Org.nr: 935 667 089 MVA<br>
+        Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway<br>
+        post@arbeidmatch.no · arbeidmatch.no
+      </p>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;">
+        <a href="https://arbeidmatch.no/unsubscribed?email=%5Bemail_destinatar%5D" style="font-size:11px;color:rgba(255,255,255,0.4);text-decoration:underline;">
+          Unsubscribe from these emails
+        </a>
+      </div>
+      <p style="margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;">
+        This email was sent by ArbeidMatch Norge AS. We process your data in accordance with GDPR. You have the right to access,
+        correct, or delete your personal data at any time. Contact us at post@arbeidmatch.no for data requests.
+      </p>
+    </div>
+  </div>
 </body>
 </html>`;
+}
+
+export function withRecipientUnsubscribeLink(emailHtml: string, recipientEmail?: string | null): string {
+  const safeEmail = encodeURIComponent((recipientEmail || "[email_destinatar]").trim() || "[email_destinatar]");
+  return emailHtml.replace(
+    "https://arbeidmatch.no/unsubscribed?email=%5Bemail_destinatar%5D",
+    `https://arbeidmatch.no/unsubscribed?email=${safeEmail}`,
+  );
+}
+
+export function addFollowUpFooter(emailHtml: string, followUpText: string): string {
+  const banner = `<div style="background:rgba(201,168,76,0.08);border-top:1px solid rgba(201,168,76,0.15);padding:16px 32px;text-align:center;color:rgba(255,255,255,0.6);font-size:13px;">
+${escapeHtml(followUpText)}
+</div>`;
+  return emailHtml.replace("<!--AM_FOOTER_START-->", `${banner}\n<!--AM_FOOTER_START-->`);
 }
 
 export function premiumCtaButton(href: string, label: string): string {
   const safeHref = escapeHtml(href);
   const safeLabel = escapeHtml(label);
   return `<a href="${safeHref}"
-   style="display:inline-block;background:linear-gradient(135deg,#B8860B,#C9A84C);
-          color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;
-          padding:16px 36px;border-radius:10px;letter-spacing:-0.01em;
-          box-shadow:0 4px 15px rgba(184,134,11,0.3);">
+   style="display:inline-block;background:#C9A84C;
+          color:#0D1B2A;text-decoration:none;font-size:15px;font-weight:700;
+          padding:14px 28px;border-radius:8px;">
   ${safeLabel}
 </a>`;
 }
 
 export function emailParagraph(html: string): string {
-  return `<p style="margin:0 0 16px;line-height:1.7;color:#0D1B2A;font-size:15px;">${html}</p>`;
+  return `<p style="margin:0 0 16px;line-height:1.7;color:#ffffff;font-size:15px;">${html}</p>`;
 }
 
 /** Short CTA fallback - support address lives in the shared footer only. */
 export function emailSupportAfterCta(): string {
-  return `<p style="margin:20px 0 0;line-height:1.65;color:#555555;font-size:13px;">${escapeHtml(
+  return `<p style="margin:20px 0 0;line-height:1.65;color:rgba(255,255,255,0.65);font-size:13px;">${escapeHtml(
     "If the button does not work, reply to this email and we will help you on business days.",
   )}</p>`;
 }
@@ -109,30 +104,30 @@ export function emailSupportAfterCta(): string {
 export function emailDataTable(rows: { label: string; value: string }[]): string {
   const cells = rows
     .map(
-      (r) => `<tr>
-      <td style="padding:10px 0;border-bottom:1px solid #eeeeee;font-size:14px;font-weight:600;color:#0D1B2A;width:38%;vertical-align:top;">${escapeHtml(r.label)}</td>
-      <td style="padding:10px 0;border-bottom:1px solid #eeeeee;font-size:14px;line-height:1.6;color:#333333;vertical-align:top;">${escapeHtml(r.value)}</td>
-    </tr>`,
+      (r) => `<div style="margin:16px 0 0;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);">
+      <p style="margin:0 0 6px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.5);">${escapeHtml(r.label)}</p>
+      <p style="margin:0;font-size:16px;color:#ffffff;">${escapeHtml(r.value)}</p>
+    </div>`,
     )
     .join("");
-  return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 8px;">${cells}</table>`;
+  return `<div style="margin:0 0 8px;">${cells}</div>`;
 }
 
 export function emailNoteBox(html: string): string {
-  return `<div style="margin:20px 0;padding:16px 18px;border-radius:10px;border:1px solid #e8e0c8;background:#fffbf0;">
-    <div style="font-size:14px;line-height:1.7;color:#0D1B2A;">${html}</div>
+  return `<div style="margin:20px 0;padding:16px 18px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);">
+    <div style="font-size:14px;line-height:1.7;color:#ffffff;">${html}</div>
   </div>`;
 }
 
 export function emailCtaSection(titleHtml: string, buttonHtml: string): string {
-  return `<div style="margin:24px 0;padding:20px 22px;border-radius:12px;border:1px solid rgba(184,134,11,0.25);background:#fffef8;text-align:center;">
-    <div style="font-size:15px;font-weight:700;color:#0D1B2A;margin-bottom:14px;line-height:1.5;">${titleHtml}</div>
+  return `<div style="margin:24px 0;padding:20px 22px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);text-align:center;">
+    <div style="font-size:15px;font-weight:700;color:#ffffff;margin-bottom:14px;line-height:1.5;">${titleHtml}</div>
     ${buttonHtml}
   </div>`;
 }
 
 export function inDevelopmentBadgeStatic(): string {
-  return `<div style="display:inline-block;margin:12px 0;padding:8px 14px;border-radius:999px;border:1px solid rgba(184,134,11,0.45);background:rgba(184,134,11,0.1);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8a6a12;">
+  return `<div style="display:inline-block;margin:12px 0;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);background:rgba(201,168,76,0.2);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#C9A84C;">
     In Development
   </div>`;
 }
@@ -142,19 +137,30 @@ export function buildInternalEmailHtml(opts: { title: string; rows: { label: str
   const ts = formatEmailTimestampCet();
   const rowsHtml = opts.rows
     .map(
-      (r) => `<tr>
-      <td style="padding:8px 12px;border-bottom:1px solid #e5e5e5;font-weight:600;color:#0D1B2A;vertical-align:top;width:200px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;">${escapeHtml(r.label)}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #e5e5e5;vertical-align:top;font-family:ui-monospace,Consolas,'Courier New',monospace;font-size:12px;color:#111;word-break:break-all;">${escapeHtml(r.value)}</td>
-    </tr>`,
+      (r) => `<div style="margin:16px 0 0;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);">
+      <p style="margin:0 0 6px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.5);">${escapeHtml(r.label)}</p>
+      <p style="margin:0;font-size:16px;line-height:1.6;color:#ffffff;word-break:break-word;">${escapeHtml(r.value)}</p>
+    </div>`,
     )
     .join("");
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:20px;background:#fafafa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#111;">
-  <h1 style="font-size:18px;margin:0 0 8px;font-weight:800;color:#0D1B2A;">${escapeHtml(opts.title)}</h1>
-  <p style="margin:0 0 16px;font-size:12px;color:#666;">${escapeHtml(ts)}</p>
-  <table style="width:100%;max-width:720px;border-collapse:collapse;background:#fff;border:1px solid #e5e5e5;">${rowsHtml}</table>
-  <p style="margin:16px 0 0;font-size:10px;color:#aaaaaa;line-height:1.5;">ArbeidMatch internal notification.<br />Operational use only - do not forward.</p>
+<body style="margin:0;padding:0;background:#0a1628;font-family:Arial,sans-serif;color:#ffffff;">
+  <div style="max-width:600px;margin:0 auto;">
+    <div style="background:#0D1B2A;padding:32px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);">
+      <span style="font-size:28px;font-weight:700;color:#C9A84C;">ArbeidMatch</span>
+    </div>
+    <div style="background:#0f1f30;padding:32px;color:#ffffff;line-height:1.6;">
+      <h1 style="font-size:22px;margin:0 0 8px;font-weight:800;color:#ffffff;">${escapeHtml(opts.title)}</h1>
+      <p style="margin:0 0 16px;font-size:12px;color:rgba(255,255,255,0.7);">${escapeHtml(ts)}</p>
+      <div style="padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);">
+        ${rowsHtml}
+      </div>
+    </div>
+    <div style="background:#0D1B2A;padding:24px;text-align:center;border-top:1px solid rgba(255,255,255,0.1);">
+      <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);">ArbeidMatch Norge AS · Sverre Svendsens veg 38, 7056 Ranheim · post@arbeidmatch.no · arbeidmatch.no</p>
+    </div>
+  </div>
 </body></html>`;
 }

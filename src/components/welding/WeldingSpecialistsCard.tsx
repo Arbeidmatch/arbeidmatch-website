@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, GraduationCap } from "lucide-react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
@@ -74,25 +74,25 @@ export default function WeldingSpecialistsCard() {
 
         <WeldingCertGrid variant="dark" />
 
-        <div className="mt-10 flex flex-col gap-6 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-8">
-            {[
-              "Basic certificate validity check included in our screening",
-              "EU/EEA documentation support",
-              "Our goal is to connect you with candidates within about two weeks",
-            ].map((t) => (
-              <div key={t} className="flex items-center gap-2.5">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: GOLD }} aria-hidden />
-                <span className="text-[13px] font-normal leading-snug text-white/52">{t}</span>
-              </div>
-            ))}
+        <div className="mt-10 space-y-6">
+          <p className="max-w-[760px] text-[14px] leading-relaxed text-white/60">
+            Basic certificate validity checks are included in our screening, and we support candidates with EU/EEA
+            documentation requirements so onboarding stays efficient from selection to arrival.
+          </p>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <GraduationCap className="h-6 w-6 text-[#C9A84C]" aria-hidden />
+            <h3 className="mt-4 text-lg font-semibold text-white">Need certification before arriving in Norway?</h3>
+            <p className="mt-2 text-sm leading-relaxed text-white/70">
+              We help candidates obtain the required certifications before leaving their home country. No delays, no
+              surprises on arrival.
+            </p>
+            <Link
+              href="/contact"
+              className="mt-5 inline-flex rounded-xl bg-[#C9A84C] px-6 py-3 font-medium text-[#0D1B2A]"
+            >
+              Get in Touch
+            </Link>
           </div>
-          <Link
-            href="/contact"
-            className="text-[14px] font-medium text-[#C9A84C]/90 underline-offset-[5px] transition-colors hover:text-[#C9A84C] hover:underline lg:mt-0"
-          >
-            Not sure what certification your project requires? Contact us
-          </Link>
         </div>
       </div>
     </motion.section>

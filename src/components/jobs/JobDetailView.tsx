@@ -16,6 +16,7 @@ import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 import type { JobRecord } from "@/lib/jobs/types";
 import JobCard from "@/components/jobs/JobCard";
 import JobPostMediaSection from "@/components/jobs/JobPostMediaSection";
+import JobReactions from "@/components/jobs/JobReactions";
 
 function formatDate(date: string): string {
   return new Intl.DateTimeFormat("en-GB", {
@@ -571,6 +572,7 @@ export default function JobDetailView({
               </div>
             ))}
           </div>
+          <JobReactions jobId={job.id} />
 
           <div className="mt-6 flex flex-wrap gap-2">{job.trade ? <span className="rounded-full border border-white/15 px-3 py-1 text-xs text-white/75">{job.trade}</span> : null}</div>
 

@@ -273,6 +273,7 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
                   <th className="px-4 py-2">Candidate</th>
                   <th className="px-4 py-2">Status</th>
                   <th className="px-4 py-2">Compatibility</th>
+                  <th className="px-4 py-2">Profile score</th>
                   <th className="px-4 py-2">Submitted</th>
                 </tr>
               </thead>
@@ -286,6 +287,21 @@ export default function AdminDashboardClient({ data }: { data: AdminDashboardDat
                     </td>
                     <td className="px-4 py-2 text-white/75">{a.status ?? "N/A"}</td>
                     <td className="px-4 py-2 text-white/70">{a.match_score != null ? `${a.match_score}%` : "N/A"}</td>
+                    <td className="px-4 py-2">
+                      {a.profile_score != null ? (
+                        <div className="min-w-[120px]">
+                          <div className="mb-1 text-xs tabular-nums text-white/75">{a.profile_score}%</div>
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-[#5c4a24] to-[#C9A84C]"
+                              style={{ width: `${Math.max(0, Math.min(100, a.profile_score))}%` }}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-white/45">N/A</span>
+                      )}
+                    </td>
                     <td className="px-4 py-2 text-white/60">{a.submitted_at ? a.submitted_at.slice(0, 16) : "N/A"}</td>
                   </tr>
                 ))}

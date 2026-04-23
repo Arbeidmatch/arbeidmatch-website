@@ -2,6 +2,9 @@ import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { notifyError } from "@/lib/errorNotifier";
+import { createSmtpTransporter, PROFILE_TRANSACTIONAL_FROM } from "@/lib/candidates/smtpShared";
+import { getSiteOrigin } from "@/lib/candidates/siteOrigin";
+import { buildEmail } from "@/lib/emailTemplate";
 import { jobApplicationSchema } from "@/lib/jobs/application";
 import { getJobBySlug, getSupabaseAdminClient } from "@/lib/jobs/applyService";
 import { isRateLimited } from "@/lib/requestProtection";
@@ -106,7 +109,7 @@ export async function POST(request: NextRequest) {
     const emailKey = parsedPayload.data.email.trim().toLowerCase();
     const profileRow = await supabase
       .from("candidates")
-      .select("can_apply,share_with_employers,profile_completion_step,profile_completed_at")
+      .select("id,can_apply,share_with_employers,profile_completion_step,profile_completed_at,profile_score")
       .eq("email", emailKey)
       .maybeSingle();
 
@@ -124,23 +127,19 @@ export async function POST(request: NextRequest) {
 
     if (!missingCandidatesTable) {
       if (!profileRow.data) {
-        return NextResponse.json({ error: "Complete your candidate profile before applying." }, { status: 403 });
+        return NextResponse.json({ error: "Complete your candidate profile before applying.", profileScore: 0 }, { status: 403 });
       }
-      const completionStep =
-        profileRow.data.profile_completion_step ??
-        (profileRow.data.profile_completed_at ? 9 : 0);
-      if (completionStep < 9) {
-        return NextResponse.json(
-          { error: "Complete your candidate profile (all 9 steps) before applying." },
-          { status: 403 },
-        );
+      const profileScore = Number(profileRow.data.profile_score ?? 0);
+      const normalizedProfileScore = Number.isFinite(profileScore) ? profileScore : 0;
+      if (normalizedProfileScore < 60) {
+        return NextResponse.json({ error: "Complete your candidate profile before applying.", profileScore: normalizedProfileScore }, { status: 403 });
       }
       if (!profileRow.data.can_apply) {
-        return NextResponse.json({ error: "Complete your candidate profile before applying." }, { status: 403 });
+        return NextResponse.json({ error: "Complete your candidate profile before applying.", profileScore: normalizedProfileScore }, { status: 403 });
       }
       if (!profileRow.data.share_with_employers) {
         return NextResponse.json(
-          { error: "Your profile is set to browse-only. Update sharing consent to apply." },
+          { error: "Your profile is set to browse-only. Update sharing consent to apply.", profileScore: normalizedProfileScore },
           { status: 403 },
         );
       }
@@ -225,9 +224,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const employerAccessToken = job.source === "employer_board" ? randomUUID() : null;
-    const employerAccessExpiresAt =
-      job.source === "employer_board" ? new Date(Date.now() + 7 * 86400000).toISOString() : null;
+    const employerAccessToken = randomUUID();
+    const employerAccessExpiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
     const behavioralAnswers = {
       deliveryUnderPressure: validatedClientSchema.data.behavioralStory,
       safetyOnSite: validatedClientSchema.data.behavioralSafety,
@@ -293,14 +291,51 @@ export async function POST(request: NextRequest) {
     }
 
     try {
+      const transport = createSmtpTransporter();
+      const origin = getSiteOrigin();
+      const candidateDisplayName = `${parsedPayload.data.firstName} ${parsedPayload.data.lastName}`.trim();
+      const internalAtsUrl = `${origin}/employer/candidates/${newApplicationId}?token=${employerAccessToken}`;
+
       await sendCandidateApplicationReceivedEmail({
         to: parsedPayload.data.email.trim(),
         jobTitle: job.title,
+        jobLocation: job.location,
+        nextStepNote: "Next step: we review your application with the employer. If shortlisted, we will contact you by email or phone.",
       });
       void logAuditEvent("email_sent_candidate_application_received", "email", newApplicationId, "system", {
         template: "candidate_application_received",
         jobSlug: job.slug,
       });
+      if (transport && newApplicationId) {
+        const internalHtml = buildEmail({
+          title: "New job application received",
+          preheader: "A candidate submitted a new application.",
+          body: `
+            <p style="margin:0 0 14px 0;font-size:15px;line-height:1.7;color:rgba(255,255,255,0.82);">
+              <strong>${candidateDisplayName}</strong> applied for <strong>${job.title}</strong>.
+            </p>
+            <p style="margin:0 0 10px 0;font-size:14px;line-height:1.7;color:rgba(255,255,255,0.74);">
+              Candidate email: ${parsedPayload.data.email}<br/>
+              Phone: ${parsedPayload.data.phone}<br/>
+              Trade: ${parsedPayload.data.trade}<br/>
+              Experience: ${parsedPayload.data.yearsExperience}
+            </p>
+          `,
+          ctaText: "Open candidate profile in ATS",
+          ctaUrl: internalAtsUrl,
+        });
+        await transport.sendMail({
+          from: PROFILE_TRANSACTIONAL_FROM,
+          to: "post@arbeidmatch.no",
+          subject: `New candidate application – ${job.title}`,
+          html: internalHtml,
+          text: `New candidate application for ${job.title}\nCandidate: ${candidateDisplayName}\nEmail: ${parsedPayload.data.email}\nATS link: ${internalAtsUrl}`,
+        });
+        void logAuditEvent("email_sent_internal_application_notification", "email", newApplicationId, "system", {
+          template: "internal_application_notification",
+          jobSlug: job.slug,
+        });
+      }
       if (employerInbox && newApplicationId && employerAccessToken && job.source === "employer_board") {
         await sendEmployerNewCandidateEmail({
           to: employerInbox,

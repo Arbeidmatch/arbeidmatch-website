@@ -25,6 +25,45 @@ function inferCategory(job: JobRecord): EmployerJobWorkType {
 export default function JobsMarketplaceClient({ jobs, browseOnly }: { jobs: JobRecord[]; browseOnly: boolean }) {
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<JobCategory>("All");
+  const [smartMode, setSmartMode] = useState<"default" | "match">("default");
+  const [smartLoading, setSmartLoading] = useState(false);
+  const [smartJobs, setSmartJobs] = useState<(JobRecord & { matchScore?: number })[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [panelCategory, setPanelCategory] = useState("All");
+  const [panelLocation, setPanelLocation] = useState("");
+  const [panelSalaryFrom, setPanelSalaryFrom] = useState("");
+  const [panelDriving, setPanelDriving] = useState(false);
+  const [panelExperience, setPanelExperience] = useState(3);
+
+  const runSmartMatch = async () => {
+    const email = (typeof window !== "undefined" ? window.localStorage.getItem("am_candidate_profile_email") : "") || "";
+    if (!email.includes("@")) return;
+    setSmartLoading(true);
+    try {
+      const response = await fetch("/api/jobs/compatibility", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "smart_match",
+          email,
+          filters: {
+            category: panelCategory === "All" ? "" : panelCategory,
+            location: panelLocation,
+            salaryFrom: panelSalaryFrom ? Number(panelSalaryFrom) : undefined,
+            drivingLicenseRequired: panelDriving,
+            experienceYears: panelExperience,
+          },
+        }),
+      });
+      const data = (await response.json().catch(() => ({}))) as { jobs?: (JobRecord & { matchScore?: number })[] };
+      if (response.ok && Array.isArray(data.jobs)) {
+        setSmartJobs(data.jobs);
+        setSmartMode("match");
+      }
+    } finally {
+      setSmartLoading(false);
+    }
+  };
 
   const enriched = useMemo(
     () =>
@@ -45,6 +84,8 @@ export default function JobsMarketplaceClient({ jobs, browseOnly }: { jobs: JobR
       return haystack.includes(normalized);
     });
   }, [activeFilter, enriched, query]);
+
+  const finalJobs = smartMode === "match" ? smartJobs : visibleJobs.map((x) => x.job);
 
   const stats = useMemo(() => {
     const categories = new Set(enriched.map((item) => item.category));
@@ -93,6 +134,87 @@ export default function JobsMarketplaceClient({ jobs, browseOnly }: { jobs: JobR
       </section>
 
       <section className="container-site pb-8">
+        <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => void runSmartMatch()}
+            className={`rounded-xl bg-[#C9A84C] px-8 py-4 font-bold text-[#0D1B2A] transition ${smartLoading ? "animate-pulse" : "hover:bg-[#b8953f]"}`}
+          >
+            Find My Best Match
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowFilters((v) => !v)}
+            className="rounded-xl border border-white/40 px-6 py-4 font-semibold text-white transition hover:bg-white/10"
+          >
+            Search My Way
+          </button>
+        </div>
+
+        {showFilters ? (
+          <div className="mb-4 rounded-xl border border-white/15 bg-white/[0.03] p-4">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <select
+                value={panelCategory}
+                onChange={(e) => setPanelCategory(e.target.value)}
+                className="min-h-[44px] rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-[#0a0f18] px-3 text-sm text-white"
+              >
+                <option value="All">Job category</option>
+                {EMPLOYER_JOB_WORK_TYPES.map((x) => (
+                  <option key={x} value={x}>
+                    {x}
+                  </option>
+                ))}
+              </select>
+              <input
+                value={panelLocation}
+                onChange={(e) => setPanelLocation(e.target.value)}
+                placeholder="Location"
+                className="min-h-[44px] rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-[#0a0f18] px-3 text-sm text-white"
+              />
+              <select
+                value={panelSalaryFrom}
+                onChange={(e) => setPanelSalaryFrom(e.target.value)}
+                className="min-h-[44px] rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-[#0a0f18] px-3 text-sm text-white"
+              >
+                <option value="">Salary from (NOK/hour)</option>
+                {[180, 200, 220, 250, 300, 350].map((v) => (
+                  <option key={v} value={String(v)}>
+                    {v} NOK/hour
+                  </option>
+                ))}
+              </select>
+              <label className="inline-flex min-h-[44px] items-center gap-2 rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-[#0a0f18] px-3 text-sm text-white">
+                <input type="checkbox" checked={panelDriving} onChange={(e) => setPanelDriving(e.target.checked)} className="accent-[#C9A84C]" />
+                Driving license required
+              </label>
+              <label className="md:col-span-2">
+                <span className="mb-1 block text-xs text-white/70">Experience years: {panelExperience}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={10}
+                  value={panelExperience}
+                  onChange={(e) => setPanelExperience(Number(e.target.value))}
+                  className="w-full accent-[#C9A84C]"
+                />
+              </label>
+            </div>
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowFilters(false);
+                  if (smartMode === "match") void runSmartMatch();
+                }}
+                className="rounded-xl bg-[#C9A84C] px-6 py-3 text-sm font-bold text-[#0D1B2A] hover:bg-[#b8953f]"
+              >
+                Apply Filters
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         <div className="min-w-0 rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-4 md:p-5">
           <label className="relative block min-w-0">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A84C]" />
@@ -123,14 +245,20 @@ export default function JobsMarketplaceClient({ jobs, browseOnly }: { jobs: JobR
       </section>
 
       <section className="container-site min-w-0 pb-20">
-        {visibleJobs.length === 0 ? (
+        {smartLoading ? (
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-64 animate-pulse rounded-[18px] border border-[#C9A84C]/20 bg-white/[0.03]" />
+            ))}
+          </div>
+        ) : finalJobs.length === 0 ? (
           <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-4 py-14 text-center sm:px-6">
             <p className="text-balance text-lg font-semibold text-white sm:text-xl">No matching opportunities right now.</p>
             <p className="mt-2 text-pretty text-sm text-white/70">Try another keyword or switch category filters.</p>
           </div>
         ) : (
           <div className="grid min-w-0 grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {visibleJobs.map(({ job }) => (
+            {finalJobs.map((job) => (
               <JobCard key={job.id} job={job} browseOnly={browseOnly} />
             ))}
           </div>

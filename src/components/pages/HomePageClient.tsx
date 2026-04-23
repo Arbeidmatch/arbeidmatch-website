@@ -18,6 +18,7 @@ import {
   HeartPulse,
   Hotel,
   Sparkles,
+  Zap,
   User,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -238,15 +239,28 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
         </motion.div>
       ) : null}
 
-      <section className="section-y-home bg-[#0D1B2A]">
+      <section className="bg-[#0D1B2A] py-6">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-          <ScrollReveal variant="fadeUp" className="text-center">
-            <Link
-              href="/electricians-norway#dsb-authorization-guide"
-              className="text-[13px] font-medium tracking-wide text-white/45 transition-colors hover:text-[#C9A84C]/90"
-            >
-              Electricians in Norway: authorization guide →
-            </Link>
+          <ScrollReveal variant="fadeUp">
+            <div className="mx-auto flex w-[90%] max-w-2xl items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-6">
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="mt-0.5 shrink-0 text-[#C9A84C]" aria-hidden>
+                  <Zap size={20} strokeWidth={1.8} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-lg font-semibold text-white">Electricians in Norway</p>
+                  <p className="mt-1 text-sm text-white/60">
+                    Authorization guide, DSB requirements and official resources.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/electricians-norway"
+                className="shrink-0 rounded-xl border border-white/30 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
+              >
+                Learn More
+              </Link>
+            </div>
           </ScrollReveal>
         </div>
       </section>

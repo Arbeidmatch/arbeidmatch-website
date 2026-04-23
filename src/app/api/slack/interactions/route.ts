@@ -85,40 +85,15 @@ function isValidSlackSignature(request: NextRequest, rawBody: string): boolean {
 }
 
 function premiumEmailLayout(title: string, message: string, ctaLabel?: string, ctaHref?: string, note?: string): string {
-  const cta =
-    ctaLabel && ctaHref
-      ? `<div style="margin-top:28px;text-align:center;">
-           <a href="${ctaHref}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;padding:14px 28px;">
-             ${ctaLabel}
-           </a>
-         </div>`
-      : "";
   const noteBlock = note
-    ? `<p style="margin:20px 0 0;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.35);">${note}</p>`
+    ? `<p style="margin:16px 0 0;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.65);">${note}</p>`
     : "";
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
-<body style="margin:0;padding:0;background:#0a0f18;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0f18;padding:32px 16px;">
-    <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#0D1B2A;border:1px solid rgba(201,168,76,0.2);border-top:2px solid rgba(201,168,76,0.45);border-radius:16px;overflow:hidden;">
-        <tr><td style="padding:30px 34px 16px;text-align:center;">
-          <span style="color:#ffffff;font-weight:700;font-size:24px;">Arbeid</span><span style="color:#C9A84C;font-weight:700;font-size:24px;">Match</span>
-          <div style="width:60px;height:2px;background:#C9A84C;margin:12px auto 0;"></div>
-        </td></tr>
-        <tr><td style="padding:12px 34px 34px;">
-          <h1 style="margin:0;font-size:26px;line-height:1.25;color:#ffffff;">${title}</h1>
-          <p style="margin:14px 0 0;font-size:15px;line-height:1.7;color:rgba(255,255,255,0.62);">${message}</p>
-          ${cta}
-          ${noteBlock}
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
+  return buildEmail({
+    title,
+    body: `<p style="margin:0;font-size:15px;line-height:1.7;color:rgba(255,255,255,0.82);">${message}</p>${noteBlock}`,
+    ctaText: ctaLabel,
+    ctaUrl: ctaHref,
+  });
 }
 
 export async function POST(request: NextRequest) {

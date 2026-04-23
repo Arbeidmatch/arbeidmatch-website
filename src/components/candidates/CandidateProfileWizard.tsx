@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Children, useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Check, Lightbulb, Shield, X } from "lucide-react";
+import { ArrowRight, Check, CheckCircle, Lightbulb, Shield, Upload, X } from "lucide-react";
 
 import { sanitizeApplyReturnPath } from "@/lib/candidates/applyReturnPath";
 import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
@@ -30,6 +30,7 @@ import {
   isEeaResidenceCountryName,
   splitEeaPhoneToParts,
 } from "@/lib/candidates/euEeaCandidateGeo";
+import MobileCardPager from "@/components/ui/MobileCardPager";
 
 type Mode = "choose" | "wizard";
 
@@ -139,6 +140,22 @@ type CandidateProfileWizardProps = {
 };
 
 const TOTAL_STEPS = 9;
+const MAX_CV_UPLOAD_BYTES = 5 * 1024 * 1024;
+
+type CvExtractResult = {
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  nationality: string | null;
+  current_location: string | null;
+  job_categories: string[] | null;
+  years_experience: string | number | null;
+  skills: string[] | null;
+  languages: { language: string; level?: string | null }[] | null;
+  education: string[] | null;
+  certifications: string[] | null;
+  driving_license: string[] | null;
+};
 
 const STEP_TITLES = [
   "Work type",
@@ -149,7 +166,7 @@ const STEP_TITLES = [
   "Driving licence",
   "Housing",
   "Video intro",
-  "Employer sharing consent",
+  "Data Privacy & Consent",
 ] as const;
 
 const EXPERIENCE_LABELS: Record<(typeof experienceBands)[number], string> = {
@@ -214,14 +231,27 @@ export default function CandidateProfileWizard({
   const [videoHintManualOpen, setVideoHintManualOpen] = useState(false);
 
   const [shareWithEmployers, setShareWithEmployers] = useState<boolean | null>(null);
+  const [gdprConsentProcessing, setGdprConsentProcessing] = useState(false);
+  const [gdprConsentShareProfile, setGdprConsentShareProfile] = useState(false);
+  const [gdprConsentMarketing, setGdprConsentMarketing] = useState(false);
 
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState("");
+  const [cvUploadStatus, setCvUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [cvUploadMessage, setCvUploadMessage] = useState("");
+  const [cvUploaded, setCvUploaded] = useState(false);
+  const [extractedCertifications, setExtractedCertifications] = useState<string[]>([]);
+  const [extractedEnglishLevel, setExtractedEnglishLevel] = useState<string | null>(null);
 
   const tokenTrim = resumeToken?.trim() ?? "";
   const [resumeBoot, setResumeBoot] = useState<"loading" | "ok" | "error">(() =>
     entryMode === "complete-only" && tokenTrim ? "loading" : "ok",
   );
+  const [prefilledFields, setPrefilledFields] = useState<Record<string, boolean>>({});
+  const [showResumeAnalyzedBanner, setShowResumeAnalyzedBanner] = useState(false);
+  const [showWelcomeBackModal, setShowWelcomeBackModal] = useState(false);
+  const [welcomeBackStatus, setWelcomeBackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [welcomeBackMessage, setWelcomeBackMessage] = useState("");
 
   const progress = useMemo(() => Math.round((wizardStep / TOTAL_STEPS) * 100), [wizardStep]);
 
@@ -261,6 +291,12 @@ export default function CandidateProfileWizard({
     ? { duration: 0 }
     : { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const };
 
+  const markPrefilled = useCallback((field: string) => {
+    setPrefilledFields((prev) => ({ ...prev, [field]: true }));
+  }, []);
+
+  const isPrefilled = useCallback((field: string) => Boolean(prefilledFields[field]), [prefilledFields]);
+
   const buildDraft = useCallback((): Record<string, unknown> => {
     return {
       gdprEntryAccepted,
@@ -284,6 +320,7 @@ export default function CandidateProfileWizard({
         return normalizeVideoUrlInput(v) ?? v;
       })(),
       shareWithEmployers,
+      gdprMarketing: gdprConsentMarketing,
     };
   }, [
     city,
@@ -302,6 +339,7 @@ export default function CandidateProfileWizard({
     rotation,
     salaryHourly,
     shareWithEmployers,
+    gdprConsentMarketing,
     videoUrl,
   ]);
 
@@ -330,13 +368,137 @@ export default function CandidateProfileWizard({
     setVideoHintClosedByUser(false);
     setVideoHintManualOpen(false);
     setShareWithEmployers(null);
+    setGdprConsentProcessing(false);
+    setGdprConsentShareProfile(false);
+    setGdprConsentMarketing(false);
+    setPrefilledFields({});
+    setShowResumeAnalyzedBanner(false);
     setSaveStatus("idle");
     setSaveMessage("");
+    setCvUploadStatus("idle");
+    setCvUploadMessage("");
+    setCvUploaded(false);
+    setExtractedCertifications([]);
+    setExtractedEnglishLevel(null);
   }
 
   function startMatchedFlow() {
     setMode("wizard");
     resetWizard();
+  }
+
+  function mapYearsExperienceToBand(value: string | number | null): JobPreferencesPayload["experienceBand"] | null {
+    if (value === null || value === undefined) return null;
+    const raw = typeof value === "number" ? String(value) : value.trim();
+    const match = raw.match(/\d+(\.\d+)?/);
+    const numericYears = match ? Number.parseFloat(match[0]) : Number.NaN;
+    if (Number.isNaN(numericYears)) return null;
+    if (numericYears < 2) return "0_2";
+    if (numericYears < 5) return "2_5";
+    if (numericYears < 10) return "5_10";
+    return "10_plus";
+  }
+
+  async function applyExtractedCvFields(extracted: CvExtractResult) {
+    let appliedAny = false;
+    const applyWithDelay = async (field: string, apply: () => void) => {
+      apply();
+      markPrefilled(field);
+      appliedAny = true;
+      await new Promise((resolve) => window.setTimeout(resolve, 50));
+    };
+
+    if (extracted.full_name) {
+      const parts = extracted.full_name.trim().split(/\s+/).filter(Boolean);
+      if (parts.length > 0) {
+        await applyWithDelay("firstName", () => setFirstName(parts[0]));
+        await applyWithDelay("lastName", () => setLastName(parts.slice(1).join(" ")));
+      }
+    }
+
+    if (extracted.email && extracted.email.includes("@")) {
+      const emailValue = extracted.email.trim().toLowerCase();
+      await applyWithDelay("email", () => setEmail(emailValue));
+    }
+
+    if (extracted.phone && isEeaCandidatePhone(extracted.phone)) {
+      const parts = splitEeaPhoneToParts(extracted.phone);
+      await applyWithDelay("phone", () => {
+        setPhoneDial(parts.dial);
+        setPhoneNational(parts.nationalDigits);
+      });
+    }
+
+    const locationCandidate = (extracted.current_location || extracted.nationality || "").trim();
+    if (locationCandidate && isEeaResidenceCountryName(locationCandidate)) {
+      await applyWithDelay("currentCountry", () => setCurrentCountry(locationCandidate));
+    }
+
+    if (extracted.job_categories?.length) {
+      const mapped = extracted.job_categories
+        .map((category) => resolveWorkTypeFromCategoryString(category))
+        .find((value): value is JobPreferencesPayload["jobType"] => value !== null);
+      if (mapped) await applyWithDelay("jobType", () => setJobType(mapped));
+    }
+
+    const experienceMapped = mapYearsExperienceToBand(extracted.years_experience);
+    if (experienceMapped) await applyWithDelay("experienceBand", () => setExperienceBand(experienceMapped));
+
+    if (extracted.driving_license?.length) {
+      const licenseList = extracted.driving_license.join(", ");
+      await applyWithDelay("hasDriverLicense", () => setHasDriverLicense(true));
+      await applyWithDelay("licenseCategories", () => setLicenseCategories(licenseList));
+    }
+
+    if (Array.isArray(extracted.certifications) && extracted.certifications.length > 0) {
+      setExtractedCertifications(extracted.certifications);
+    }
+    if (Array.isArray(extracted.languages) && extracted.languages.length > 0) {
+      const english = extracted.languages.find((item) => /english/i.test(item.language || ""));
+      if (english?.level?.trim()) setExtractedEnglishLevel(english.level.trim());
+    }
+
+    setShowResumeAnalyzedBanner(appliedAny);
+  }
+
+  async function uploadCvForExtraction(file: File) {
+    const extension = file.name.split(".").pop()?.toLowerCase() || "";
+    if (!["pdf", "doc", "docx"].includes(extension)) {
+      setCvUploadStatus("error");
+      setCvUploadMessage("Invalid file format. Please upload PDF, DOC, or DOCX.");
+      return;
+    }
+    if (file.size > MAX_CV_UPLOAD_BYTES) {
+      setCvUploadStatus("error");
+      setCvUploadMessage("File too large. Maximum allowed size is 5MB.");
+      return;
+    }
+
+    setCvUploadStatus("uploading");
+    setCvUploadMessage("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/candidate-profile/resume", {
+        method: "POST",
+        body: formData,
+      });
+      const data = (await response.json().catch(() => ({}))) as { error?: string; extracted?: CvExtractResult };
+      if (!response.ok || !data.extracted) {
+        setCvUploadStatus("error");
+        setCvUploadMessage(data.error || "Could not extract CV details right now.");
+        return;
+      }
+      await applyExtractedCvFields(data.extracted);
+      setCvUploaded(true);
+      setCvUploadStatus("success");
+      setCvUploadMessage("CV uploaded. We pre-filled the profile fields we could extract.");
+      setMode("wizard");
+      setShowGdprEntry(true);
+    } catch {
+      setCvUploadStatus("error");
+      setCvUploadMessage("Unexpected error while uploading your CV.");
+    }
   }
 
   function goBack() {
@@ -364,9 +526,10 @@ export default function CandidateProfileWizard({
   }
 
   async function saveProfile() {
+    const gdprConsent = gdprConsentProcessing && gdprConsentShareProfile;
     if (
       !gdprEntryAccepted ||
-      shareWithEmployers === null ||
+      !gdprConsent ||
       !jobType ||
       !experienceBand ||
       !salaryHourly ||
@@ -405,8 +568,11 @@ export default function CandidateProfileWizard({
       city,
       preferences,
       videoUrl: resolvedVideoUrl,
-      shareWithEmployers,
+      shareWithEmployers: gdprConsentShareProfile,
     });
+    payload.cvUploaded = cvUploaded;
+    if (extractedCertifications.length > 0) payload.extractedCertifications = extractedCertifications;
+    if (extractedEnglishLevel) payload.englishLevel = extractedEnglishLevel;
 
     setSaveStatus("saving");
     setSaveMessage("");
@@ -414,12 +580,17 @@ export default function CandidateProfileWizard({
     try {
       window.localStorage.setItem("am_candidate_profile_json", JSON.stringify(payload));
       window.localStorage.setItem("am_candidate_profile_email", payload.email.toLowerCase());
-      window.localStorage.setItem("am_candidate_share_employers", shareWithEmployers ? "yes" : "no");
+      window.localStorage.setItem("am_candidate_share_employers", gdprConsentShareProfile ? "yes" : "no");
 
       const response = await fetch("/api/candidate-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...payload,
+          gdpr_consent: gdprConsent,
+          gdpr_marketing: gdprConsentMarketing,
+          gdpr_version: "1.0",
+        }),
       });
 
       if (!response.ok) {
@@ -427,6 +598,15 @@ export default function CandidateProfileWizard({
         setSaveStatus("error");
         setSaveMessage(body.hint || body.error || "Could not save profile to database yet.");
         return;
+      }
+
+      const body = (await response.json().catch(() => ({}))) as { candidateId?: string };
+      if (body.candidateId) {
+        await fetch("/api/candidates/score", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ candidate_id: body.candidateId }),
+        }).catch(() => null);
       }
 
       setSaveStatus("done");
@@ -455,6 +635,48 @@ export default function CandidateProfileWizard({
       resetWizard();
     });
   }, [entryMode, tokenTrim]);
+
+  useEffect(() => {
+    if (tokenTrim) return;
+    if (!initialEmailHint || !initialEmailHint.includes("@")) return;
+    setEmail(initialEmailHint.trim().toLowerCase());
+    setShowWelcomeBackModal(true);
+  }, [initialEmailHint, tokenTrim]);
+
+  async function continueWithEmailMagicLink() {
+    const emailKey = email.trim().toLowerCase();
+    if (!emailKey.includes("@")) return;
+    setWelcomeBackStatus("sending");
+    setWelcomeBackMessage("");
+    try {
+      const continueRes = await fetch("/api/candidate-profile/reminder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailKey, mode: "continue_url" }),
+      });
+      const continueJson = (await continueRes.json().catch(() => ({}))) as { continueUrl?: string };
+      if (continueRes.ok && continueJson.continueUrl) {
+        window.location.assign(continueJson.continueUrl);
+        return;
+      }
+
+      const sendRes = await fetch("/api/candidate-profile/reminder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailKey, mode: "send_email" }),
+      });
+      if (!sendRes.ok) {
+        setWelcomeBackStatus("error");
+        setWelcomeBackMessage("Could not send login link right now. Please try again.");
+        return;
+      }
+      setWelcomeBackStatus("sent");
+      setWelcomeBackMessage("We sent you a secure login link by email.");
+    } catch {
+      setWelcomeBackStatus("error");
+      setWelcomeBackMessage("Could not send login link right now. Please try again.");
+    }
+  }
 
   useEffect(() => {
     if (entryMode !== "complete-only" || !tokenTrim) return;
@@ -541,7 +763,14 @@ export default function CandidateProfileWizard({
         if (housingPrefs.includes(d.housing as JobPreferencesPayload["housing"])) {
           setHousing(d.housing as JobPreferencesPayload["housing"]);
         }
-        if (typeof d.shareWithEmployers === "boolean") setShareWithEmployers(d.shareWithEmployers);
+        if (typeof d.shareWithEmployers === "boolean") {
+          setShareWithEmployers(d.shareWithEmployers);
+          setGdprConsentShareProfile(d.shareWithEmployers);
+          setGdprConsentProcessing(d.shareWithEmployers);
+        }
+        if (typeof d.gdprMarketing === "boolean") {
+          setGdprConsentMarketing(d.gdprMarketing);
+        }
         if (d.shareWithEmployers === null) setShareWithEmployers(null);
         if (typeof d.gdprEntryAccepted === "boolean") setGdprEntryAccepted(d.gdprEntryAccepted);
 
@@ -586,7 +815,7 @@ export default function CandidateProfileWizard({
         return Boolean(v && getEmbedUrl(v));
       }
       case 9:
-        return shareWithEmployers !== null;
+        return gdprConsentProcessing && gdprConsentShareProfile;
       default:
         return false;
     }
@@ -686,6 +915,28 @@ export default function CandidateProfileWizard({
                 </button>
               </div>
 
+              <div className="mt-5 rounded-[12px] border border-white/12 bg-[rgba(255,255,255,0.03)] p-4">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[rgba(201,168,76,0.4)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[rgba(201,168,76,0.08)]">
+                  <Upload className="h-4 w-4 text-[#C9A84C]" aria-hidden />
+                  <span>{cvUploadStatus === "uploading" ? "Uploading CV..." : "Upload CV (PDF, DOC, DOCX, max 5MB)"}</span>
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    className="sr-only"
+                    disabled={cvUploadStatus === "uploading"}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      void uploadCvForExtraction(file);
+                      event.currentTarget.value = "";
+                    }}
+                  />
+                </label>
+                {cvUploadMessage ? (
+                  <p className={`mt-3 text-xs ${cvUploadStatus === "error" ? "text-red-300" : "text-white/70"}`}>{cvUploadMessage}</p>
+                ) : null}
+              </div>
+
               <p className="mt-6 text-xs leading-relaxed text-white/55 sm:mt-8 sm:text-sm">
                 If you continue with matching, you will review GDPR consent first, then complete a short premium profile flow.
               </p>
@@ -700,6 +951,11 @@ export default function CandidateProfileWizard({
             animate={{ opacity: 1 }}
             transition={transition}
           >
+            {showResumeAnalyzedBanner ? (
+              <div className="mb-4 rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 p-4 text-sm text-white/80 md:mb-6">
+                Your CV has been analysed. Please review and complete the fields below.
+              </div>
+            ) : null}
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#C9A84C]">Profile builder</p>
@@ -767,6 +1023,7 @@ export default function CandidateProfileWizard({
                           name="jobType"
                           label={value}
                           checked={jobType === value}
+                          prefilled={isPrefilled("jobType") && jobType === value}
                           onChange={() => setJobType(value)}
                         />
                       ))}
@@ -781,6 +1038,7 @@ export default function CandidateProfileWizard({
                           name="experienceBand"
                           label={EXPERIENCE_LABELS[value]}
                           checked={experienceBand === value}
+                          prefilled={isPrefilled("experienceBand") && experienceBand === value}
                           onChange={() => setExperienceBand(value)}
                         />
                       ))}
@@ -795,6 +1053,7 @@ export default function CandidateProfileWizard({
                           name="salaryHourly"
                           label={SALARY_LABELS[value]}
                           checked={salaryHourly === value}
+                          prefilled={isPrefilled("salaryHourly") && salaryHourly === value}
                           onChange={() => setSalaryHourly(value)}
                         />
                       ))}
@@ -809,6 +1068,7 @@ export default function CandidateProfileWizard({
                           name="hoursPerWeek"
                           label={HOURS_LABELS[value]}
                           checked={hoursPerWeek === value}
+                          prefilled={isPrefilled("hoursPerWeek") && hoursPerWeek === value}
                           onChange={() => setHoursPerWeek(value)}
                         />
                       ))}
@@ -824,6 +1084,7 @@ export default function CandidateProfileWizard({
                             name="rotation"
                             label={ROTATION_LABELS[value]}
                             checked={rotation === value}
+                            prefilled={isPrefilled("rotation") && rotation === value}
                             onChange={() => setRotation(value)}
                           />
                         ))}
@@ -837,18 +1098,37 @@ export default function CandidateProfileWizard({
                   {wizardStep === 6 ? (
                     <div className="space-y-5">
                       <RadioFieldset legend="Do you hold a valid driving licence for work in Norway?">
-                        <RadioRow name="dl" label="Yes" checked={hasDriverLicense === true} onChange={() => setHasDriverLicense(true)} />
-                        <RadioRow name="dl" label="No" checked={hasDriverLicense === false} onChange={() => setHasDriverLicense(false)} />
+                        <RadioRow
+                          name="dl"
+                          label="Yes"
+                          checked={hasDriverLicense === true}
+                          prefilled={isPrefilled("hasDriverLicense") && hasDriverLicense === true}
+                          onChange={() => setHasDriverLicense(true)}
+                        />
+                        <RadioRow
+                          name="dl"
+                          label="No"
+                          checked={hasDriverLicense === false}
+                          prefilled={isPrefilled("hasDriverLicense") && hasDriverLicense === false}
+                          onChange={() => setHasDriverLicense(false)}
+                        />
                       </RadioFieldset>
                       {hasDriverLicense === true ? (
                         <label className="flex flex-col gap-2 text-sm text-white/80">
                           Licence categories (for example CE, C1, BE)
-                          <input
-                            value={licenseCategories}
-                            onChange={(event) => setLicenseCategories(event.target.value)}
-                            className="min-h-[44px] rounded-[10px] border border-white/15 bg-[#0A0F18] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)]"
-                            autoComplete="off"
-                          />
+                          <div className="relative">
+                            <input
+                              value={licenseCategories}
+                              onChange={(event) => setLicenseCategories(event.target.value)}
+                              className={`min-h-[44px] w-full rounded-[10px] border bg-[#0A0F18] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)] ${
+                                isPrefilled("licenseCategories") ? "border-[#C9A84C]/40 pr-10" : "border-white/15"
+                              }`}
+                              autoComplete="off"
+                            />
+                            {isPrefilled("licenseCategories") ? (
+                              <CheckCircle className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A84C]" />
+                            ) : null}
+                          </div>
                         </label>
                       ) : null}
                     </div>
@@ -862,6 +1142,7 @@ export default function CandidateProfileWizard({
                           name="housing"
                           label={HOUSING_LABELS[value]}
                           checked={housing === value}
+                          prefilled={isPrefilled("housing") && housing === value}
                           onChange={() => setHousing(value)}
                         />
                       ))}
@@ -879,14 +1160,21 @@ kind of role you are looking for in Norway. Keep it under
                       <div className="space-y-2">
                         <span className="text-sm font-medium text-white/80">Video link</span>
                         <div className="flex gap-2">
-                          <input
-                            id="candidate-video-url"
-                            aria-describedby="video-platforms-hint video-filming-tip"
-                            value={videoUrl}
-                            onChange={(event) => setVideoUrl(event.target.value)}
-                            placeholder="https://"
-                            className="min-h-[44px] flex-1 rounded-[10px] border border-white/15 bg-[#0A0F18] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)]"
-                          />
+                          <div className="relative flex-1">
+                            <input
+                              id="candidate-video-url"
+                              aria-describedby="video-platforms-hint video-filming-tip"
+                              value={videoUrl}
+                              onChange={(event) => setVideoUrl(event.target.value)}
+                              placeholder="https://"
+                              className={`min-h-[44px] w-full rounded-[10px] border bg-[#0A0F18] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)] ${
+                                isPrefilled("videoUrl") ? "border-[#C9A84C]/40 pr-10" : "border-white/15"
+                              }`}
+                            />
+                            {isPrefilled("videoUrl") ? (
+                              <CheckCircle className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A84C]" />
+                            ) : null}
+                          </div>
                           <button
                             type="button"
                             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.45)] text-sm font-semibold text-[#C9A84C] transition hover:bg-[rgba(201,168,76,0.1)]"
@@ -966,23 +1254,52 @@ I speak [languages]. Thank you for watching.`}
 
                   {wizardStep === 9 ? (
                     <div className="space-y-5">
-                      <RadioFieldset legend="Share profile with employers?">
-                        <RadioRow
-                          name="share"
-                          label="Yes, share for hiring matches"
-                          checked={shareWithEmployers === true}
-                          onChange={() => setShareWithEmployers(true)}
-                        />
-                        <RadioRow
-                          name="share"
-                          label="No, browse only"
-                          checked={shareWithEmployers === false}
-                          onChange={() => setShareWithEmployers(false)}
-                        />
-                      </RadioFieldset>
-                      <p className="text-xs text-white/50">
-                        YES enables applications and employer matching. NO still saves your profile, but keeps browsing read-only.
-                      </p>
+                      <div className="rounded-2xl border border-[#C9A84C]/30 bg-[linear-gradient(165deg,rgba(13,27,42,0.9),rgba(10,15,24,0.95))] p-5 md:p-6">
+                        <h3 className="text-xl font-bold text-white">Data Privacy & Consent</h3>
+                        <p className="mt-3 text-sm leading-relaxed text-white/75">
+                          ArbeidMatch collects your profile data, contact details, work preferences, and video introduction to match
+                          you with relevant opportunities. We use this data for recruitment processes and communication with relevant
+                          employers. Your profile data is retained for up to 2 years, and you can request correction or deletion at
+                          any time by contacting support@arbeidmatch.no.
+                        </p>
+                        <div className="mt-5 space-y-3">
+                          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/12 bg-white/[0.02] p-4">
+                            <input
+                              type="checkbox"
+                              checked={gdprConsentProcessing}
+                              onChange={(event) => setGdprConsentProcessing(event.target.checked)}
+                              className="mt-0.5 h-5 w-5 shrink-0 appearance-none rounded border border-[#C9A84C]/55 bg-transparent checked:bg-[#C9A84C] checked:shadow-[inset_0_0_0_2px_#0D1B2A]"
+                            />
+                            <span className="text-sm leading-relaxed text-white/80">
+                              I consent to ArbeidMatch storing and processing my personal data for recruitment purposes.
+                            </span>
+                          </label>
+                          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/12 bg-white/[0.02] p-4">
+                            <input
+                              type="checkbox"
+                              checked={gdprConsentShareProfile}
+                              onChange={(event) => {
+                                const checked = event.target.checked;
+                                setGdprConsentShareProfile(checked);
+                                setShareWithEmployers(checked);
+                              }}
+                              className="mt-0.5 h-5 w-5 shrink-0 appearance-none rounded border border-[#C9A84C]/55 bg-transparent checked:bg-[#C9A84C] checked:shadow-[inset_0_0_0_2px_#0D1B2A]"
+                            />
+                            <span className="text-sm leading-relaxed text-white/80">
+                              I consent to my profile being shared with Norwegian employers relevant to my skills.
+                            </span>
+                          </label>
+                          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/12 bg-white/[0.02] p-4">
+                            <input
+                              type="checkbox"
+                              checked={gdprConsentMarketing}
+                              onChange={(event) => setGdprConsentMarketing(event.target.checked)}
+                              className="mt-0.5 h-5 w-5 shrink-0 appearance-none rounded border border-[#C9A84C]/55 bg-transparent checked:bg-[#C9A84C] checked:shadow-[inset_0_0_0_2px_#0D1B2A]"
+                            />
+                            <span className="text-sm leading-relaxed text-white/80">I agree to receive relevant job notifications by email.</span>
+                          </label>
+                        </div>
+                      </div>
                       {saveStatus === "error" ? <p className="text-sm text-red-300">{saveMessage}</p> : null}
                       {saveStatus === "saving" ? <p className="text-sm text-white/70">Saving…</p> : null}
                       {saveStatus === "done" ? (
@@ -1011,7 +1328,7 @@ I speak [languages]. Thank you for watching.`}
                   </button>
                   <button
                     type="submit"
-                    disabled={saveStatus === "saving" || (wizardStep === 9 && shareWithEmployers === null)}
+                    disabled={saveStatus === "saving" || (wizardStep === 9 && !(gdprConsentProcessing && gdprConsentShareProfile))}
                     className="min-h-[48px] w-full touch-manipulation rounded-[12px] bg-[#C9A84C] px-6 text-sm font-bold text-[#0D1B2A] shadow-[0_8px_24px_rgba(201,168,76,0.22)] transition-colors hover:bg-[#b8953f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D1B2A] disabled:pointer-events-none disabled:opacity-50 sm:w-auto sm:min-w-[180px]"
                   >
                     {wizardStep === 9 ? (saveStatus === "saving" ? "Saving…" : "Confirm & Next") : "Confirm & Next"}
@@ -1070,33 +1387,60 @@ I speak [languages]. Thank you for watching.`}
               </p>
 
               <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <GdprInput label="First name" value={firstName} onChange={setFirstName} autoComplete="given-name" />
-                <GdprInput label="Last name" value={lastName} onChange={setLastName} autoComplete="family-name" />
-                <GdprInput label="Email" type="email" value={email} onChange={setEmail} className="sm:col-span-2" autoComplete="email" />
+                <GdprInput
+                  label="First name"
+                  value={firstName}
+                  onChange={setFirstName}
+                  autoComplete="given-name"
+                  prefilled={isPrefilled("firstName")}
+                />
+                <GdprInput
+                  label="Last name"
+                  value={lastName}
+                  onChange={setLastName}
+                  autoComplete="family-name"
+                  prefilled={isPrefilled("lastName")}
+                />
+                <GdprInput
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={setEmail}
+                  className="sm:col-span-2"
+                  autoComplete="email"
+                  prefilled={isPrefilled("email")}
+                />
 
                 <label className="flex flex-col gap-2 text-sm text-white/80 sm:col-span-2">
                   <span className="font-medium text-white">Country of residence</span>
                   <span className="text-xs font-normal leading-snug text-white/55">
                     Candidate registration on ArbeidMatch is for people who live in the EU or EEA.
                   </span>
-                  <select
-                    value={currentCountry}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setCurrentCountry(v);
-                      if (v !== OUTSIDE_EEA_RESIDENCE_VALUE) setOutsideRedirectPending(false);
-                    }}
-                    className="min-h-[48px] w-full rounded-[10px] border border-white/15 bg-[#0D1B2A] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)]"
-                    autoComplete="country"
-                  >
-                    <option value="">Select your country</option>
-                    {eeaDialOptionsSortedByCountry().map((c) => (
-                      <option key={c.iso} value={c.country}>
-                        {c.country}
-                      </option>
-                    ))}
-                    <option value={OUTSIDE_EEA_RESIDENCE_VALUE}>I live outside the EU / EEA</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={currentCountry}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setCurrentCountry(v);
+                        if (v !== OUTSIDE_EEA_RESIDENCE_VALUE) setOutsideRedirectPending(false);
+                      }}
+                      className={`min-h-[48px] w-full rounded-[10px] border bg-[#0D1B2A] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)] ${
+                        isPrefilled("currentCountry") ? "border-[#C9A84C]/40 pr-10" : "border-white/15"
+                      }`}
+                      autoComplete="country"
+                    >
+                      <option value="">Select your country</option>
+                      {eeaDialOptionsSortedByCountry().map((c) => (
+                        <option key={c.iso} value={c.country}>
+                          {c.country}
+                        </option>
+                      ))}
+                      <option value={OUTSIDE_EEA_RESIDENCE_VALUE}>I live outside the EU / EEA</option>
+                    </select>
+                    {isPrefilled("currentCountry") ? (
+                      <CheckCircle className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A84C]" />
+                    ) : null}
+                  </div>
                 </label>
 
                 {currentCountry === OUTSIDE_EEA_RESIDENCE_VALUE ? (
@@ -1140,18 +1484,32 @@ I speak [languages]. Thank you for watching.`}
                       </label>
                       <label className="flex min-w-0 flex-[1.4] flex-col gap-2 text-sm text-white/80">
                         <span className="font-medium text-white">Mobile number</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          autoComplete="tel-national"
-                          value={phoneNational}
-                          onChange={(e) => setPhoneNational(e.target.value.replace(/\D/g, ""))}
-                          placeholder="Digits only, no leading 0"
-                          className="min-h-[48px] w-full rounded-[10px] border border-white/15 bg-[#0D1B2A] px-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-[rgba(201,168,76,0.45)]"
-                        />
+                        <div className="relative">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="tel-national"
+                            value={phoneNational}
+                            onChange={(e) => setPhoneNational(e.target.value.replace(/\D/g, ""))}
+                            placeholder="Digits only, no leading 0"
+                            className={`min-h-[48px] w-full rounded-[10px] border bg-[#0D1B2A] px-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-[rgba(201,168,76,0.45)] ${
+                              isPrefilled("phone") ? "border-[#C9A84C]/40 pr-10" : "border-white/15"
+                            }`}
+                          />
+                          {isPrefilled("phone") ? (
+                            <CheckCircle className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A84C]" />
+                          ) : null}
+                        </div>
                       </label>
                     </div>
-                    <GdprInput label="City" value={city} onChange={setCity} className="sm:col-span-2" autoComplete="address-level2" />
+                    <GdprInput
+                      label="City"
+                      value={city}
+                      onChange={setCity}
+                      className="sm:col-span-2"
+                      autoComplete="address-level2"
+                      prefilled={isPrefilled("city")}
+                    />
                   </>
                 ) : null}
               </div>
@@ -1203,6 +1561,56 @@ I speak [languages]. Thank you for watching.`}
           </motion.div>
         ) : null}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {showWelcomeBackModal ? (
+          <motion.div
+            className="fixed inset-0 z-[290] flex items-center justify-center bg-[rgba(13,27,42,0.85)] px-4 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, y: 14, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={reduceMotion ? undefined : { opacity: 0, y: 10, scale: 0.98 }}
+              transition={transition}
+              className="w-full max-w-md rounded-2xl border border-[rgba(201,168,76,0.28)] bg-[#0A0F18] p-6 shadow-[0_22px_60px_rgba(0,0,0,0.5)]"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="candidate-welcome-back-title"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">Candidates</p>
+              <h2 id="candidate-welcome-back-title" className="mt-2 text-2xl font-bold text-white">
+                Welcome back
+              </h2>
+              <p className="mt-2 text-sm text-white/70">
+                Continue with <span className="font-semibold text-white">{email.trim().toLowerCase()}</span>.
+              </p>
+              <button
+                type="button"
+                onClick={() => void continueWithEmailMagicLink()}
+                disabled={welcomeBackStatus === "sending"}
+                className="mt-5 inline-flex min-h-[48px] w-full items-center justify-center rounded-xl bg-[#C9A84C] px-6 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
+              >
+                {welcomeBackStatus === "sending" ? "Sending..." : "Continue with Email"}
+              </button>
+              {welcomeBackMessage ? (
+                <p className={`mt-3 text-xs ${welcomeBackStatus === "error" ? "text-red-300" : "text-white/70"}`}>
+                  {welcomeBackMessage}
+                </p>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => setShowWelcomeBackModal(false)}
+                className="mt-4 w-full text-center text-xs text-white/50 hover:text-white/75"
+              >
+                Continue without email link
+              </button>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
@@ -1214,6 +1622,7 @@ function GdprInput({
   type = "text",
   className = "",
   autoComplete,
+  prefilled = false,
 }: {
   label: string;
   value: string;
@@ -1221,26 +1630,43 @@ function GdprInput({
   type?: string;
   className?: string;
   autoComplete?: string;
+  prefilled?: boolean;
 }) {
   return (
     <label className={`flex flex-col gap-2 text-sm text-white/80 ${className}`}>
       {label}
-      <input
-        type={type}
-        value={value}
-        autoComplete={autoComplete}
-        onChange={(event) => onChange(event.target.value)}
-        className="min-h-[44px] rounded-[10px] border border-white/15 bg-[#0D1B2A] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)]"
-      />
+      <div className="relative">
+        <input
+          type={type}
+          value={value}
+          autoComplete={autoComplete}
+          onChange={(event) => onChange(event.target.value)}
+          className={`min-h-[44px] w-full rounded-[10px] border bg-[#0D1B2A] px-3 text-sm text-white outline-none focus:border-[rgba(201,168,76,0.45)] ${
+            prefilled ? "border-[#C9A84C]/40 pr-10" : "border-white/15"
+          }`}
+        />
+        {prefilled ? (
+          <CheckCircle className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C9A84C]" />
+        ) : null}
+      </div>
     </label>
   );
 }
 
 function RadioFieldset({ legend, children }: { legend: string; children: React.ReactNode }) {
+  const rows = Children.toArray(children);
   return (
     <fieldset className="space-y-3 border-0 p-0">
       <legend className="mb-4 text-lg font-semibold text-white">{legend}</legend>
-      <div className="space-y-2">{children}</div>
+      <MobileCardPager
+        items={rows}
+        pageSize={4}
+        getKey={(_, index) => `radio-row-${index}`}
+        renderItem={(row) => row}
+        desktopClassName="space-y-2"
+        mobileClassName="space-y-2 px-0"
+        dotsClassName="mt-3"
+      />
     </fieldset>
   );
 }
@@ -1249,18 +1675,20 @@ function RadioRow({
   name,
   label,
   checked,
+  prefilled = false,
   onChange,
 }: {
   name: string;
   label: string;
   checked: boolean;
+  prefilled?: boolean;
   onChange: () => void;
 }) {
   const id = `${name}-${label.replace(/\s+/g, "-").toLowerCase().replace(/[^a-z0-9-]/g, "")}`;
   return (
     <label
       htmlFor={id}
-      className={`flex min-h-[48px] cursor-pointer touch-manipulation items-center gap-3 rounded-[12px] border px-4 py-3.5 text-sm transition-all duration-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-[#C9A84C]/50 focus-within:ring-offset-2 focus-within:ring-offset-[#0D1B2A] ${
+      className={`flex min-h-[56px] cursor-pointer touch-manipulation items-center gap-3 rounded-[12px] border p-4 text-sm transition-all duration-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-[#C9A84C]/50 focus-within:ring-offset-2 focus-within:ring-offset-[#0D1B2A] md:min-h-[48px] md:px-4 md:py-3.5 ${
         checked ? "border-[#C9A84C]/55 bg-[rgba(201,168,76,0.14)] text-white shadow-[0_0_0_1px_rgba(201,168,76,0.12)]" : "border-white/12 text-white/78 hover:border-[#C9A84C]/35"
       }`}
     >
@@ -1272,7 +1700,10 @@ function RadioRow({
         onChange={onChange}
         className="h-[18px] w-[18px] shrink-0 accent-[#C9A84C] focus:outline-none"
       />
-      <span className="leading-snug">{label}</span>
+      <span className="flex flex-1 items-center justify-between gap-3 leading-snug">
+        <span>{label}</span>
+        {prefilled ? <CheckCircle className="h-4 w-4 shrink-0 text-[#C9A84C]" /> : null}
+      </span>
     </label>
   );
 }

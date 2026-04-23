@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ImageIcon } from "lucide-react";
 import ApplyWithProfileGate from "@/components/jobs/ApplyWithProfileGate";
 import JobFitCheckButton from "@/components/jobs/JobFitCheckButton";
+import JobReactions from "@/components/jobs/JobReactions";
 import { jobsBoardAbsoluteUrl } from "@/lib/jobs/jobsBoardOrigin";
 import type { JobRecord } from "@/lib/jobs/types";
 
@@ -21,6 +22,10 @@ const btnBase =
   "inline-flex min-h-[44px] w-full touch-manipulation items-center justify-center rounded-md px-4 text-sm font-semibold transition-opacity sm:w-auto";
 
 export default function JobCard({ job, browseOnly = false }: { job: JobRecord; browseOnly?: boolean }) {
+  const matchScore =
+    typeof (job as JobRecord & { matchScore?: number }).matchScore === "number"
+      ? (job as JobRecord & { matchScore?: number }).matchScore
+      : null;
   const applyHref =
     job.applicationMethod === "external_url"
       ? job.applicationUrl || jobsBoardAbsoluteUrl(`/jobs/${job.slug}/apply`)
@@ -60,6 +65,11 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 pr-[5.5rem] sm:pr-24">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {matchScore !== null ? (
+            <span className="shrink-0 rounded-full bg-[#C9A84C]/20 px-3 py-1 text-xs font-semibold text-[#C9A84C]">
+              {Math.round(matchScore)}% Match
+            </span>
+          ) : null}
           <span className="shrink-0 rounded-full border border-[#C9A84C]/30 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
             {job.category ?? "General"}
           </span>
@@ -153,6 +163,7 @@ export default function JobCard({ job, browseOnly = false }: { job: JobRecord; b
             <JobFitCheckButton job={job} browseOnly={browseOnly} className="flex-1" />
           </div>
         </div>
+        <JobReactions jobId={job.id} />
       </div>
     </article>
   );

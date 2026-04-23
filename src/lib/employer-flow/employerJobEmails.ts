@@ -88,22 +88,30 @@ export async function sendEmployerNewCandidateEmail(input: {
   });
 }
 
-export async function sendCandidateApplicationReceivedEmail(input: { to: string; jobTitle: string }) {
+export async function sendCandidateApplicationReceivedEmail(input: {
+  to: string;
+  jobTitle: string;
+  jobLocation?: string | null;
+  nextStepNote?: string;
+}) {
   const transport = createSmtpTransporter();
   if (!transport) return;
 
   const inner = `
     <p style="margin:0 0 12px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#C9A84C;">ArbeidMatch</p>
-    <h1 style="margin:0 0 12px;font-size:22px;color:#fff;">Application received</h1>
+    <h1 style="margin:0 0 12px;font-size:22px;color:#fff;">Application received – ${escapeHtml(input.jobTitle)}</h1>
+    <p style="margin:0 0 12px;line-height:1.5;color:rgba(232,238,245,0.85);">
+      Thank you. We have received your application for <strong style="color:#fff;">${escapeHtml(input.jobTitle)}</strong>${input.jobLocation ? ` in ${escapeHtml(input.jobLocation)}` : ""}.
+    </p>
     <p style="margin:0;line-height:1.5;color:rgba(232,238,245,0.85);">
-      Thank you. Your application for <strong style="color:#fff;">${escapeHtml(input.jobTitle)}</strong> is with the employer for review.
+      ${escapeHtml(input.nextStepNote || "Next step: our team reviews your profile and contacts you if there is a strong match with the role.")}
     </p>
   `;
 
   await transport.sendMail({
     from: PROFILE_TRANSACTIONAL_FROM,
     to: input.to,
-    subject: "We received your ArbeidMatch application",
+    subject: `Application received – ${input.jobTitle}`,
     html: wrapHtml(inner),
   });
 }

@@ -117,8 +117,8 @@ export function buildPartnerOfferDraft(
 ): PartnerEmailDraft {
   const actionButtons = `
   <div style="margin-top:26px;display:flex;gap:12px;flex-wrap:wrap;">
-    <a href="${escapeHtml(data.acceptUrl)}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-size:14px;font-weight:700;text-decoration:none;border-radius:10px;padding:12px 22px;">Semnez</a>
-    <a href="${escapeHtml(data.declineUrl)}" style="display:inline-block;border:1px solid rgba(201,168,76,0.4);color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:10px;padding:12px 22px;">Refuz</a>
+    <a href="${escapeHtml(data.acceptUrl)}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-size:14px;font-weight:700;text-decoration:none;border-radius:8px;padding:12px 24px;">Semnez</a>
+    <a href="${escapeHtml(data.declineUrl)}" style="display:inline-block;border:1px solid rgba(255,255,255,0.35);color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;padding:12px 24px;">Refuz</a>
   </div>`;
 
   return {

@@ -4,6 +4,7 @@ export type DualNavLink = { href: string; label: string; external?: boolean };
 
 /** Desktop center row (max 4) — employer */
 export const premiumEmployerCenter: DualNavLink[] = [
+  { href: "/for-employers", label: "For Employers" },
   { href: "/become-a-partner", label: "Become a Partner" },
   { href: "/about", label: "About us" },
   { href: "/contact", label: "Contact" },
@@ -11,6 +12,7 @@ export const premiumEmployerCenter: DualNavLink[] = [
 
 /** Desktop “More” dropdown — employer */
 export const premiumEmployerMore: DualNavLink[] = [
+  { href: "/for-staffing-agencies", label: "For Staffing Agencies" },
   { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/partners", label: "Trusted Partners" },

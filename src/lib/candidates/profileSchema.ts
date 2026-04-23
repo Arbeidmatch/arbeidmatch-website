@@ -318,6 +318,10 @@ export const candidateProfilePayloadSchema = z.object({
   experiences: z.array(workExperienceSchema).min(1).max(6),
   preferences: jobPreferencesSchema,
   shareWithEmployers: z.boolean(),
+  cvUploaded: z.boolean().optional(),
+  extractedCertifications: z.array(z.string().trim().min(1)).max(50).optional(),
+  englishLevel: z.string().trim().max(20).optional(),
+  profilePhotoUrl: z.string().trim().url().optional(),
 });
 
 export type CandidateProfilePayload = z.infer<typeof candidateProfilePayloadSchema>;

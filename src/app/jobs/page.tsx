@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 
-import JobsComingSoonClient from "@/components/jobs/JobsComingSoonClient";
+import JobsMarketplaceClient from "@/components/jobs/JobsMarketplaceClient";
+import { listPublicActiveJobs } from "@/lib/jobs/repository";
 
 export const metadata: Metadata = {
-  title: "Jobs Coming Soon",
-  description: "We are preparing exciting job opportunities. Get notified when the jobs board launches.",
+  title: "Jobs in Norway | ArbeidMatch",
+  description: "Browse open jobs and use Smart Match to find your best fit.",
   robots: {
     index: false,
     follow: false,
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function JobsPage() {
-  return <JobsComingSoonClient />;
+export default async function JobsPage() {
+  const jobs = await listPublicActiveJobs();
+  return <JobsMarketplaceClient jobs={jobs} browseOnly={false} />;
 }

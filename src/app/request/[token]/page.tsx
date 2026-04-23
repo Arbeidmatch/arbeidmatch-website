@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+import MobileCardPager from "@/components/ui/MobileCardPager";
 
 type CompanyCountry = "Norway" | "Denmark" | "Sweden";
 type PhonePrefix = "+47" | "+46" | "+45";
@@ -493,7 +494,7 @@ function OptionCard({
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full items-center justify-between gap-3 rounded-[12px] border px-4 py-3 text-left transition-all duration-180 ${
+      className={`flex w-full min-h-[56px] items-center justify-between gap-3 rounded-[12px] border p-4 text-left transition-all duration-180 md:min-h-0 md:px-4 md:py-3 ${
         selected
           ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
           : "border-white/10 bg-white/[0.03] text-white hover:border-white/20 hover:bg-white/[0.05]"
@@ -1895,23 +1896,31 @@ export default function RequestTokenPage() {
                 <p className="text-sm text-white/50">Select the primary industry first.</p>
                 <div className="flex w-full flex-col gap-3">
                   <div ref={setFieldRef("industry")} className="contents">
-                    {INDUSTRY_OPTIONS.map((option) => (
-                    <OptionCard
-                      key={option}
-                      label={option}
-                      selected={form.industry === option}
-                      onClick={() =>
-                        setForm((prev) => ({
-                          ...prev,
-                          industry: option,
-                          workerType: "",
-                          tradeOther: "",
-                          certification: [],
-                          driverLicenses: [],
-                        }))
-                      }
+                    <MobileCardPager
+                      items={INDUSTRY_OPTIONS}
+                      pageSize={4}
+                      getKey={(option) => option}
+                      desktopClassName="space-y-3"
+                      mobileClassName="space-y-3 px-3"
+                      dotsClassName="mt-3"
+                      renderItem={(option) => (
+                        <OptionCard
+                          key={option}
+                          label={option}
+                          selected={form.industry === option}
+                          onClick={() =>
+                            setForm((prev) => ({
+                              ...prev,
+                              industry: option,
+                              workerType: "",
+                              tradeOther: "",
+                              certification: [],
+                              driverLicenses: [],
+                            }))
+                          }
+                        />
+                      )}
                     />
-                    ))}
                   </div>
                 </div>
                 {fieldErrors.industry ? <p className="text-xs text-red-500">This field is required</p> : null}
@@ -1926,16 +1935,22 @@ export default function RequestTokenPage() {
 
                 <div ref={setFieldRef("workerType")}>
                   <p className={labelClass}>Worker type</p>
-                  <div className="flex w-full flex-col gap-3">
-                    {workerTypeOptions.map((option) => (
+                  <MobileCardPager
+                    items={workerTypeOptions}
+                    pageSize={4}
+                    getKey={(option) => option}
+                    desktopClassName="space-y-3"
+                    mobileClassName="space-y-3 px-3"
+                    dotsClassName="mt-3"
+                    renderItem={(option) => (
                       <OptionCard
                         key={option}
                         label={option}
                         selected={form.workerType === option}
                         onClick={() => setForm((prev) => ({ ...prev, workerType: option, certification: [], driverLicenses: [] }))}
                       />
-                    ))}
-                  </div>
+                    )}
+                  />
                   {fieldErrors.workerType ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                 </div>
 
@@ -1970,16 +1985,22 @@ export default function RequestTokenPage() {
 
                 <div>
                   <p className={labelClass}>Certifications required</p>
-                  <div className="flex w-full flex-col gap-3">
-                    {certificationOptions.map((option) => (
+                  <MobileCardPager
+                    items={certificationOptions}
+                    pageSize={4}
+                    getKey={(option) => option}
+                    desktopClassName="space-y-3"
+                    mobileClassName="space-y-3 px-3"
+                    dotsClassName="mt-3"
+                    renderItem={(option) => (
                       <OptionCard
                         key={option}
                         label={option}
                         selected={form.certification.includes(option)}
                         onClick={() => toggleCert(option)}
                       />
-                    ))}
-                  </div>
+                    )}
+                  />
                   {form.certification.includes("Other") && (
                     <input
                       className={`${inputClass} mt-3`}
@@ -2169,24 +2190,32 @@ export default function RequestTokenPage() {
                   />
                 </div>
 
-                <div ref={setFieldRef("locations")} className="max-h-[280px] space-y-2 overflow-y-auto pr-1">
-                  {filteredCities.map((city) => (
-                    <button
-                      key={city}
-                      type="button"
-                      onClick={() => toggleLocation(city)}
-                      className={`w-full rounded-lg border px-4 py-2 text-left text-sm transition ${
-                        form.locations.includes(city)
-                          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
-                          : "border-white/10 bg-white/[0.03] text-white hover:border-white/20"
-                      }`}
-                    >
-                      <span className="flex items-center justify-between">
-                        <span>{city}</span>
-                        {form.locations.includes(city) ? <span>✓</span> : null}
-                      </span>
-                    </button>
-                  ))}
+                <div ref={setFieldRef("locations")}>
+                  <MobileCardPager
+                    items={filteredCities}
+                    pageSize={4}
+                    getKey={(city) => city}
+                    desktopClassName="max-h-[280px] space-y-2 overflow-y-auto pr-1"
+                    mobileClassName="space-y-2 px-3"
+                    dotsClassName="mt-3"
+                    renderItem={(city) => (
+                      <button
+                        key={city}
+                        type="button"
+                        onClick={() => toggleLocation(city)}
+                        className={`w-full min-h-[56px] rounded-[12px] border px-4 py-4 text-left text-sm transition ${
+                          form.locations.includes(city)
+                            ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
+                            : "border-white/10 bg-white/[0.03] text-white hover:border-white/20"
+                        }`}
+                      >
+                        <span className="flex items-center justify-between">
+                          <span>{city}</span>
+                          {form.locations.includes(city) ? <span>✓</span> : null}
+                        </span>
+                      </button>
+                    )}
+                  />
                 </div>
                 {fieldErrors.locations ? <p className="text-xs text-red-500">This field is required</p> : null}
               </div>
@@ -2381,7 +2410,7 @@ export default function RequestTokenPage() {
             )}
 
             <div
-              className={`mt-6 flex w-full items-center gap-3 border-t border-white/10 pt-5 ${
+              className={`mt-6 flex w-full items-center gap-3 border-t border-white/10 pt-5 pb-6 pr-6 ${
                 step > 0 || (step === 0 && wizardSubstep === "industry") ? "justify-between" : "justify-end"
               }`}
             >
@@ -2422,7 +2451,7 @@ export default function RequestTokenPage() {
                   }
                 }}
                 disabled={animating || isSubmitting || !isStepValid(step)}
-                className="inline-flex min-w-[150px] items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-7 py-3 text-sm font-bold text-[#0f1923] transition-all duration-200 hover:scale-[1.02] hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40"
+                className="ml-auto inline-flex min-w-[150px] items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-7 py-3 text-sm font-bold text-[#0f1923] transition-all duration-200 hover:scale-[1.02] hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isSubmitting ? (
                   <>

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { candidateProfilePayloadSchema, salaryHourlyBandMidNok } from "@/lib/candidates/profileSchema";
+import { createSmtpTransporter, PROFILE_TRANSACTIONAL_FROM } from "@/lib/candidates/smtpShared";
+import { emailParagraph, premiumCtaButton, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
 import { getSupabaseAdminClient } from "@/lib/jobs/applyService";
 import { notifyError } from "@/lib/errorNotifier";
 import { isRateLimited } from "@/lib/requestProtection";
@@ -29,6 +31,12 @@ function salaryMinFromHourly(hourly: z.infer<typeof candidateProfilePayloadSchem
   return Math.round(mid * hoursPerYear);
 }
 
+const candidateProfileSubmitSchema = candidateProfilePayloadSchema.extend({
+  gdpr_consent: z.boolean(),
+  gdpr_marketing: z.boolean().optional().default(false),
+  gdpr_version: z.string().trim().min(1).default("1.0"),
+});
+
 export async function POST(request: NextRequest) {
   try {
     if (isRateLimited(request, "candidate-profile", 12, 10 * 60 * 1000)) {
@@ -36,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     const json = (await request.json()) as unknown;
-    const parsed = candidateProfilePayloadSchema.safeParse(json);
+    const parsed = candidateProfileSubmitSchema.safeParse(json);
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid profile data.", details: parsed.error.flatten() }, { status: 400 });
     }
@@ -47,6 +55,9 @@ export async function POST(request: NextRequest) {
     }
 
     const data = parsed.data;
+    if (!data.gdpr_consent) {
+      return NextResponse.json({ error: "GDPR consent is required." }, { status: 400 });
+    }
     const experienceYears = experienceYearsFromBand(data.preferences.experienceBand);
     const salaryMin = salaryMinFromHourly(data.preferences.salaryHourly);
 
@@ -58,6 +69,10 @@ export async function POST(request: NextRequest) {
       current_country: data.currentCountry,
       city: data.city,
       gdpr_entry_accepted: data.gdprEntryAccepted,
+      gdpr_consent: true,
+      gdpr_consent_date: new Date().toISOString(),
+      gdpr_marketing: Boolean(data.gdpr_marketing),
+      gdpr_version: data.gdpr_version || "1.0",
       privacy_policy_version: data.privacyPolicyVersion ?? "2026-04-22",
       video_link: data.videoUrl,
       experiences: data.experiences,
@@ -71,6 +86,10 @@ export async function POST(request: NextRequest) {
       job_type_pref: data.preferences.jobType,
       has_permit: data.preferences.hasPermit,
       permit_categories: data.preferences.permitCategories ?? null,
+      cv_uploaded: data.cvUploaded ?? false,
+      certifications: data.extractedCertifications ?? [],
+      english_level: data.englishLevel ?? null,
+      profile_photo_url: data.profilePhotoUrl ?? null,
       share_with_employers: data.shareWithEmployers,
       can_apply: data.shareWithEmployers,
       profile_completed_at: new Date().toISOString(),
@@ -96,7 +115,35 @@ export async function POST(request: NextRequest) {
     const cid = upsert.data && typeof (upsert.data as { id?: string }).id === "string" ? (upsert.data as { id: string }).id : null;
     void logAuditEvent("candidate_profile_completed", "candidate", cid, "candidate", { email: data.email });
 
-    return NextResponse.json({ success: true, shareWithEmployers: data.shareWithEmployers });
+    const transporter = createSmtpTransporter();
+    if (transporter) {
+      const subject = "Your profile has been received – ArbeidMatch";
+      const viewProfileUrl = `https://arbeidmatch.no/candidates?email=${encodeURIComponent(data.email.toLowerCase())}`;
+      const html = wrapPremiumEmail(
+        [
+          emailParagraph(`Hi ${data.firstName},`),
+          emailParagraph("Your candidate profile has been received successfully."),
+          emailParagraph(
+            "Our team will review your details and use your profile to match you with relevant Norwegian employers based on your skills and preferences.",
+          ),
+          `<div style="margin:20px 0;text-align:left;"><a href="${viewProfileUrl}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-weight:bold;border-radius:8px;padding:14px 28px;text-decoration:none;font-size:16px;">View My Profile</a></div>`,
+          `<div style="margin:20px 0;text-align:left;">${premiumCtaButton("https://jobs.arbeidmatch.no", "Browse jobs")}</div>`,
+          emailParagraph("If you want your data deleted, contact us at support@arbeidmatch.no."),
+        ].join(""),
+      );
+      try {
+        await transporter.sendMail({
+          from: PROFILE_TRANSACTIONAL_FROM,
+          to: data.email,
+          subject,
+          html,
+        });
+      } catch (mailError) {
+        logApiError("/api/candidate-profile confirmation-email", mailError);
+      }
+    }
+
+    return NextResponse.json({ success: true, shareWithEmployers: data.shareWithEmployers, candidateId: cid });
   } catch (error) {
     await notifyError({ route: "/api/candidate-profile", error });
     logApiError("/api/candidate-profile", error);
@@ -122,7 +169,7 @@ export async function GET(request: NextRequest) {
 
     const res = await supabase
       .from("candidates")
-      .select("email,share_with_employers,can_apply,profile_completed_at,profile_completion_step,first_name")
+      .select("email,share_with_employers,can_apply,profile_completed_at,profile_completion_step,profile_score,first_name")
       .eq("email", email)
       .maybeSingle();
 

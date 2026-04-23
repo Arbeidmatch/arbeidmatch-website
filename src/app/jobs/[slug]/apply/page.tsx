@@ -115,7 +115,7 @@ export default async function JobApplyPage({ params, searchParams }: Props) {
         <section>
           <h1 className="am-h3 font-bold text-white">Apply for {job.title}</h1>
           <p className="mt-2 max-w-2xl text-sm text-white/75">
-            Complete the form in a few simple steps. We only ask for information relevant to recruitment.
+            Complete the form in a few simple steps. You need at least 60% profile completion to submit an application.
           </p>
           <div className="mt-5">
             <JobApplicationFormWithGdpr job={job} />

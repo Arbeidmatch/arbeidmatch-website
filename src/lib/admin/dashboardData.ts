@@ -34,6 +34,7 @@ export type AdminDashboardData = {
     last_name: string | null;
     status: string | null;
     match_score: number | null;
+    profile_score: number | null;
     submitted_at: string | null;
   }[];
   recentEmployers: { id: string; company: string; email: string; created_at: string }[];
@@ -211,6 +212,28 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
     .order("submitted_at", { ascending: false })
     .limit(10);
 
+  let recentApplications: AdminDashboardData["recentApplications"] = [];
+  if (!ra.error && ra.data) {
+    const base = ra.data as Omit<AdminDashboardData["recentApplications"][number], "profile_score">[];
+    const emails = [...new Set(base.map((row) => row.email.trim().toLowerCase()).filter(Boolean))];
+    let scoreByEmail = new Map<string, number | null>();
+    if (emails.length > 0) {
+      const scoreRes = await supabase.from("candidates").select("email,profile_score").in("email", emails);
+      if (!scoreRes.error && scoreRes.data) {
+        scoreByEmail = new Map(
+          (scoreRes.data as { email: string; profile_score: number | null }[]).map((row) => [
+            row.email.trim().toLowerCase(),
+            row.profile_score,
+          ]),
+        );
+      }
+    }
+    recentApplications = base.map((row) => ({
+      ...row,
+      profile_score: scoreByEmail.get(row.email.trim().toLowerCase()) ?? null,
+    }));
+  }
+
   const re = await supabase
     .from("employer_requests")
     .select("id, company, email, created_at")
@@ -254,7 +277,7 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardData> {
     categoryDistribution,
     avgMatchScore,
     recentJobs,
-    recentApplications: !ra.error && ra.data ? (ra.data as AdminDashboardData["recentApplications"]) : [],
+    recentApplications,
     recentEmployers: !re.error && re.data ? (re.data as AdminDashboardData["recentEmployers"]) : [],
     expiringSoon: !ex.error && ex.data ? (ex.data as AdminDashboardData["expiringSoon"]) : [],
     auditRecent,

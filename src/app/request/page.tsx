@@ -7,6 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Bolt, Check, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
+import MobileCardPager from "@/components/ui/MobileCardPager";
 
 type VerifyPartnerResponse = {
   verified?: boolean;
@@ -467,64 +468,122 @@ export default function RequestPage() {
               Back
             </button>
             <h1 className="text-2xl font-bold">Check candidate availability</h1>
-            {!selectedIndustry ? (
-              <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
-                {CHECK_ROLE_GROUPS.map(({ industry, icon: Icon }) => (
-                  <button
-                    key={industry}
-                    type="button"
-                    onClick={() => {
-                      setSelectedIndustry(industry);
-                      setRoleQuery("");
-                    }}
-                    className="cursor-pointer rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-5 py-4 text-left transition-all duration-200 ease-in-out hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.07)]"
-                  >
-                    <Icon className="mb-2 h-5 w-5 text-[#C9A84C]" />
-                    <p className="text-sm font-semibold text-white">{industry}</p>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <>
-                <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#C9A84C] bg-[rgba(201,168,76,0.08)] px-3 py-1 text-xs font-semibold text-[#C9A84C]">
-                  <span>{selectedIndustry}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedIndustry("");
-                      setRoleQuery("");
-                    }}
-                    className="inline-flex items-center justify-center text-[#C9A84C]"
-                    aria-label="Clear selected industry"
-                  >
-                    <span className="text-sm">x</span>
-                  </button>
-                </div>
-                <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.4)]">Type to search or select from the list</p>
-                <input
-                  value={roleQuery}
-                  onChange={(event) => setRoleQuery(event.target.value)}
-                  placeholder="Search for a role..."
-                  className="mt-4 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
-                />
-                {filteredRoles.length > 0 ? (
-                  <div className="mt-4 flex flex-wrap gap-[10px]">
-                    {filteredRoles.map((role) => (
-                      <button
-                        key={role}
+            <AnimatePresence mode="wait">
+              {!selectedIndustry ? (
+                <motion.div
+                  key="industry-grid"
+                  className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3"
+                  initial={reduceMotion ? false : { opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.2, ease: EASE_PREMIUM }}
+                >
+                  {CHECK_ROLE_GROUPS.map(({ industry, icon: Icon }) => {
+                    const isSelected = selectedIndustry === industry;
+                    return (
+                      <motion.button
+                        key={industry}
                         type="button"
-                        onClick={() => void runCandidateSearch(role)}
-                        className="inline-flex cursor-pointer rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[10px] text-[14px] text-[rgba(255,255,255,0.8)] transition-all duration-200 ease-in-out hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.08)] hover:text-white"
+                        onClick={() => {
+                          setSelectedIndustry(industry);
+                          setRoleQuery("");
+                        }}
+                        whileHover={
+                          reduceMotion
+                            ? undefined
+                            : {
+                                scale: 1.03,
+                                borderColor: "#C9A84C",
+                                transition: { duration: 0.2, ease: "easeInOut" },
+                              }
+                        }
+                        animate={
+                          isSelected && !reduceMotion
+                            ? {
+                                scale: [1, 1.05, 1.02],
+                                boxShadow: [
+                                  "0 0 0 0 rgba(201,168,76,0)",
+                                  "0 0 0 3px rgba(201,168,76,0.4)",
+                                  "0 0 0 0 rgba(201,168,76,0)",
+                                ],
+                              }
+                            : { scale: 1, boxShadow: "0 0 0 0 rgba(201,168,76,0)" }
+                        }
+                        transition={{ duration: reduceMotion ? 0 : 0.3, ease: "easeInOut" }}
+                        className={`h-32 w-full cursor-pointer rounded-[12px] border p-4 transition-all duration-200 ease-in-out md:h-36 ${
+                          isSelected
+                            ? "border-[#C9A84C] bg-white/10"
+                            : "border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.07)]"
+                        }`}
                       >
-                        {role}
-                      </button>
-                    ))}
+                        <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+                          <Icon className="h-5 w-5 text-[#C9A84C]" />
+                          <p
+                            className={`text-sm font-semibold md:text-base ${isSelected ? "text-[#C9A84C]" : "text-white"} whitespace-nowrap`}
+                          >
+                            {industry}
+                          </p>
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="role-search"
+                  initial={reduceMotion ? false : { opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.2, ease: EASE_PREMIUM }}
+                >
+                  <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#C9A84C] bg-[rgba(201,168,76,0.08)] px-3 py-1 text-xs font-semibold text-[#C9A84C]">
+                    <span>{selectedIndustry}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedIndustry("");
+                        setRoleQuery("");
+                      }}
+                      className="inline-flex items-center justify-center text-[#C9A84C]"
+                      aria-label="Clear selected industry"
+                    >
+                      <span className="text-sm">x</span>
+                    </button>
                   </div>
-                ) : (
-                  <p className="mt-4 text-sm text-[rgba(255,255,255,0.4)]">No roles found. Try a different search.</p>
-                )}
-              </>
-            )}
+                  <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.4)]">Type to search or select from the list</p>
+                  <input
+                    value={roleQuery}
+                    onChange={(event) => setRoleQuery(event.target.value)}
+                    placeholder="Search for a role..."
+                    className="mt-4 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                  />
+                  {filteredRoles.length > 0 ? (
+                    <div className="mt-4">
+                      <MobileCardPager
+                        items={filteredRoles}
+                        pageSize={4}
+                        getKey={(role) => role}
+                        desktopClassName="flex flex-wrap gap-[10px]"
+                        mobileClassName="space-y-2 px-3"
+                        dotsClassName="mt-3"
+                        renderItem={(role) => (
+                        <button
+                          key={role}
+                          type="button"
+                          onClick={() => void runCandidateSearch(role)}
+                          className="inline-flex w-full cursor-pointer rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-4 py-4 text-[14px] text-[rgba(255,255,255,0.8)] transition-all duration-200 ease-in-out hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(255,255,255,0.08)] hover:text-white min-h-[56px] md:inline-flex md:w-auto md:rounded-[20px] md:px-[18px] md:py-[10px] md:min-h-0"
+                        >
+                          {role}
+                        </button>
+                        )}
+                      />
+                    </div>
+                  ) : (
+                    <p className="mt-4 text-sm text-[rgba(255,255,255,0.4)]">No roles found. Try a different search.</p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </>
         )}
 
@@ -540,57 +599,59 @@ export default function RequestPage() {
         )}
 
         {checkState === "result" && (
-          <div className="relative text-center">
-            <button
-              type="button"
-              onClick={() => backToRoleSearch()}
-              className="mb-4 inline-flex items-center gap-2 rounded-[8px] border border-transparent px-2 py-1 text-sm text-[#C9A84C]"
+          <div className="min-h-[60vh] flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="mx-auto w-[90%] max-w-lg rounded-2xl border border-white/10 bg-white/5 p-10 text-center"
             >
-              <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
-              Back
-            </button>
-            <div className="pointer-events-none absolute left-1/2 top-[120px] h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(201,168,76,0.08)_0%,transparent_70%)]" />
-            <p className="mt-3 text-[12px] uppercase tracking-[0.15em] text-[rgba(201,168,76,0.7)]">{searchTerm.trim() || "ROLE"}</p>
-            <div className="mx-auto mt-3 inline-flex rounded-full border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.06)] px-3 py-1 text-[11px] text-[rgba(255,255,255,0.6)]">
-              Feature in development. Partner access only.
-            </div>
-            <div className="mx-auto my-8 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
-            <div className="mx-auto grid w-full max-w-[560px] grid-cols-1 gap-3 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setResultAction("partner");
-                  setAccessStatus("idle");
-                }}
-                className="result-cta-primary rounded-[12px] px-9 py-4 text-[15px] font-bold text-[#0D1B2A]"
-              >
-                I am a partner
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setResultAction("non_partner");
-                  setAccessStatus("idle");
-                  setSelectedOption(null);
-                  setNotifyEmail("");
-                  setNotifyStatus("idle");
-                }}
-                className="result-cta-secondary rounded-[12px] border border-[rgba(201,168,76,0.25)] bg-transparent px-9 py-4 text-[15px] font-medium text-[rgba(255,255,255,0.7)]"
-              >
-                I am not a partner
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                resetToFirstStep();
-                void router.replace("/request");
-              }}
-              className="mx-auto mt-4 block cursor-pointer text-center text-[13px] text-[rgba(201,168,76,0.6)] underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
-            >
-              Search another role
-            </button>
+              <Star className="mx-auto h-10 w-10 text-[#C9A84C]" aria-hidden />
+              <div className="mt-5 inline-flex rounded-full bg-[#C9A84C]/10 px-3 py-1 text-xs font-semibold tracking-widest text-[#C9A84C]">
+                PARTNER ACCESS
+              </div>
+              <h2 className="mt-5 text-center text-2xl font-bold text-white">{(searchTerm.trim() || "ROLE").toUpperCase()}</h2>
+              <p className="mt-2 text-center text-sm text-white/60">
+                This position is currently available for ArbeidMatch partners only.
+              </p>
 
+              <div className="mt-8 flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResultAction("partner");
+                    setAccessStatus("idle");
+                  }}
+                  className="h-14 w-full rounded-xl bg-[#C9A84C] font-semibold text-[#0D1B2A]"
+                >
+                  I have partner access
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResultAction("non_partner");
+                    setAccessStatus("idle");
+                    setSelectedOption(null);
+                    setNotifyEmail("");
+                    setNotifyStatus("idle");
+                  }}
+                  className="h-14 w-full rounded-xl border border-white/20 text-white"
+                >
+                  Become a Partner
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  resetToFirstStep();
+                  void router.replace("/request");
+                }}
+                className="mx-auto mt-5 block text-sm text-white/40 transition-colors hover:text-white/70"
+              >
+                Search another role
+              </button>
+            </motion.div>
           </div>
         )}
       </div>

@@ -1,242 +1,258 @@
-import Link from "next/link";
-import { Building2, Landmark, Scale, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
+import {
+  Bolt,
+  Briefcase,
+  Building2,
+  Factory,
+  HardHat,
+  HeartPulse,
+  House,
+  Landmark,
+  ShieldCheck,
+  Sparkles,
+  Truck,
+  UserCheck,
+} from "lucide-react";
 
 import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
-import ScrollReveal from "@/components/ScrollReveal";
-import StaggerHero from "@/components/premium/StaggerHero";
 
 export const metadata: Metadata = {
-  title: "Candidates | Legal work & support in Norway | ArbeidMatch",
+  title: "Find Your Next Job in Norway | ArbeidMatch",
   description:
-    "Explore legal work in Norway on your terms: official resources, accommodation context, and a profile flow where you choose the pace and what happens next.",
+    "EU/EEA workers. English-speaking roles. Legal employment through an Arbeidstilsynet-authorized company.",
   robots: { index: false, follow: false },
   openGraph: {
-    title: "Candidates | Legal work & support in Norway | ArbeidMatch",
+    title: "Find Your Next Job in Norway | ArbeidMatch",
     description:
-      "Explore legal work in Norway on your terms: official resources, accommodation context, and a profile flow where you choose the pace and what happens next.",
+      "EU/EEA workers. English-speaking roles. Legal employment through an Arbeidstilsynet-authorized company.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Candidates | Legal work & support in Norway | ArbeidMatch",
+    title: "Find Your Next Job in Norway | ArbeidMatch",
     description:
-      "Explore legal work in Norway on your terms: official resources, accommodation context, and a profile flow where you choose the pace and what happens next.",
+      "EU/EEA workers. English-speaking roles. Legal employment through an Arbeidstilsynet-authorized company.",
   },
 };
 
-const LEGAL_LINKS = [
+const WHY_CARDS = [
   {
-    name: "Arbeidstilsynet",
-    description: "The Norwegian Labour Inspection Authority: rights, safety, and working conditions.",
+    title: "Legal Employment",
+    description:
+      "Norwegian employment contracts, full worker rights, and legal hiring through an Arbeidstilsynet-authorized company.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Accommodation Support",
+    description: "We help you secure accommodation and prioritize single room setups where possible.",
+    icon: House,
+  },
+  {
+    title: "English-Friendly",
+    description: "Most open roles are available in English, so Norwegian language is not required for many positions.",
+    icon: UserCheck,
+  },
+  {
+    title: "Pre-departure Support",
+    description: "Guidance with documentation, D-number setup, and key certifications before your departure.",
+    icon: Building2,
+  },
+] as const;
+
+const HOW_IT_WORKS = [
+  { title: "Create Profile", description: "Share your trade, experience, and availability." },
+  { title: "We Match You", description: "Our team connects your profile with relevant employers." },
+  { title: "Interview", description: "Meet the employer and confirm fit, terms, and start date." },
+  { title: "Start Working", description: "Travel with a clear plan and begin your legal employment in Norway." },
+] as const;
+
+const CATEGORIES = [
+  { title: "Construction & Civil", icon: HardHat },
+  { title: "Electrical & Technical", icon: Bolt },
+  { title: "Logistics & Transport", icon: Truck },
+  { title: "Industry & Production", icon: Factory },
+  { title: "Cleaning & Facility", icon: Sparkles },
+  { title: "Hospitality & Healthcare", icon: HeartPulse },
+] as const;
+
+const LEGAL_RIGHTS_LINKS = [
+  {
+    title: "Arbeidstilsynet",
+    description: "Official guidance on workplace rights, contracts, safety, and legal conditions in Norway.",
     href: "https://www.arbeidstilsynet.no/en/",
   },
   {
-    name: "NAV",
-    description: "Norwegian Labour and Welfare Administration: benefits, registration, and guidance.",
+    title: "NAV",
+    description: "Norway's social welfare and employment services for workers and residents.",
     href: "https://www.nav.no/en",
   },
   {
-    name: "Skatteetaten",
-    description: "The Norwegian Tax Administration: tax ID, reporting, and deductions.",
+    title: "Skatteetaten",
+    description: "Tax registration, tax card requirements, and D-number related tax information.",
     href: "https://www.skatteetaten.no/en/",
   },
 ] as const;
 
-const HOW_STEPS = [
-  {
-    title: "Tell us what you're looking for",
-    body: "Share your trade, experience, and what matters to you in a role: location, contract type, salary expectations.",
-  },
-  {
-    title: "See what fits you",
-    body: "You'll only see roles that match what you told us. No irrelevant offers. You decide what's worth your time.",
-  },
-  {
-    title: "You choose what happens next",
-    body: "If something interests you, you take the next step. No pressure, no commitment until you're ready.",
-  },
-] as const;
-
-function ExternalResourceCard({
-  name,
-  description,
-  href,
-}: {
-  name: string;
-  description: string;
-  href: string;
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group flex flex-col rounded-2xl border border-[rgba(201,168,76,0.22)] bg-[rgba(255,255,255,0.04)] p-6 transition-all duration-200 hover:border-[rgba(201,168,76,0.45)] hover:bg-[rgba(201,168,76,0.06)]"
-    >
-      <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.1em] text-[#C9A84C]">
-        <Landmark className="h-4 w-4 shrink-0" aria-hidden />
-        Official resource
-      </span>
-      <span className="mt-3 text-lg font-semibold text-white group-hover:text-[#C9A84C]">{name}</span>
-      <p className="mt-2 flex-1 text-sm leading-relaxed text-white/65">{description}</p>
-      <span className="mt-4 text-sm font-medium text-[#C9A84C] underline-offset-2 group-hover:underline">
-        Visit website →
-      </span>
-    </a>
-  );
-}
-
 export default function ForCandidatesPage() {
   return (
     <div className="bg-[#0D1B2A] text-white">
-      <section className="relative overflow-hidden border-b border-[rgba(201,168,76,0.12)] bg-[#0D1B2A] py-16 md:py-24 lg:py-28">
+      <section className="relative overflow-hidden border-b border-[#C9A84C]/15 py-16 md:py-24">
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.35]"
+          className="pointer-events-none absolute inset-0"
           aria-hidden
           style={{
             background:
-              "radial-gradient(ellipse 80% 55% at 50% -20%, rgba(201,168,76,0.18), transparent 55%), radial-gradient(ellipse 60% 40% at 100% 50%, rgba(201,168,76,0.06), transparent 50%)",
+              "radial-gradient(ellipse 75% 60% at 50% -10%, rgba(201,168,76,0.18), transparent 58%), radial-gradient(ellipse 50% 35% at 100% 50%, rgba(201,168,76,0.09), transparent 55%)",
           }}
         />
         <div className="relative mx-auto w-full max-w-content px-6 text-center md:px-12 lg:px-20">
-          <StaggerHero className="flex flex-col items-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#C9A84C]/90">For candidates</p>
-            <h1 className="heading-premium-xl mt-4 max-w-3xl font-display text-4xl leading-tight tracking-tight text-white md:text-5xl lg:text-[3.25rem]">
-              Your path to <span className="text-[#C9A84C]">dignified work</span> in Norway
-            </h1>
-            <p className="subtitle-premium mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
-              You decide your pace and what you share. Clear structure and plain-language context on Norwegian
-              employment help you present yourself confidently, and you&apos;ll see roles that fit your expectations, on
-              your timeline.
-            </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C9A84C]">For Candidates</p>
+          <h1 className="mt-5 text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl">
+            Find Your Next Job in Norway
+          </h1>
+          <p className="mx-auto mt-6 max-w-3xl text-base leading-relaxed text-white/70 md:text-lg">
+            EU/EEA workers. English-speaking roles. Legal employment through an Arbeidstilsynet-authorized company.
+          </p>
+          <div className="mt-10">
             <Link
               href="/candidates"
-              className="btn-gold-premium mt-10 inline-flex min-h-[48px] items-center justify-center rounded-md bg-[#C9A84C] px-10 py-3.5 text-base font-bold text-[#0D1B2A] shadow-[0_8px_32px_rgba(201,168,76,0.25)] transition-transform hover:bg-[#b8953f] hover:opacity-[0.98] md:px-12"
+              className="inline-flex items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-4 text-base font-semibold text-[#0D1B2A] transition hover:bg-[#b8953f]"
             >
-              Start on your own terms
+              Create Your Profile
             </Link>
-          </StaggerHero>
+          </div>
         </div>
       </section>
 
-      <section className="border-b border-white/[0.06] bg-[#0a1624] py-16 md:py-20">
+      <section className="py-8 md:py-10">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-          <ScrollReveal variant="fadeUp" className="mx-auto max-w-2xl text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.08)]">
-              <Scale className="h-6 w-6 text-[#C9A84C]" aria-hidden />
+          <div className="w-full rounded-2xl border border-[#C9A84C]/30 bg-gradient-to-r from-[#C9A84C]/20 to-[#C9A84C]/5 p-8">
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div>
+                <Briefcase size={36} className="text-[#C9A84C]" aria-hidden />
+                <h2 className="mt-4 text-2xl font-bold text-white">Browse Open Positions</h2>
+                <p className="mt-2 text-white/60">Find your next job in Norway. New positions added regularly.</p>
+              </div>
+              <a
+                href="https://jobs.arbeidmatch.no"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-4 text-lg font-semibold text-[#0D1B2A]"
+              >
+                View All Jobs
+              </a>
             </div>
-            <h2 className="heading-premium-xl mt-5 font-display text-3xl text-white md:text-4xl">Legal employment in Norway</h2>
-            <p className="mt-4 text-base leading-relaxed text-white/65">
-              Norwegian rules protect workers and set clear expectations for employers. These official sites are the
-              authoritative source for rights, welfare, and tax obligations. Bookmark them as you plan your move.
-            </p>
-          </ScrollReveal>
-          <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3">
-            {LEGAL_LINKS.map((item) => (
-              <ScrollReveal key={item.href} variant="fadeUp">
-                <ExternalResourceCard {...item} />
-              </ScrollReveal>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-white/10 bg-[#0a1624] py-16 md:py-20">
+        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+          <h2 className="text-center text-3xl font-bold text-white md:text-4xl">Why Work Through ArbeidMatch</h2>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {WHY_CARDS.map((card) => {
+              const Icon = card.icon;
+              return (
+                <article key={card.title} className="rounded-2xl border border-[#C9A84C]/20 bg-white/[0.03] p-6">
+                  <div className="inline-flex rounded-xl border border-[#C9A84C]/35 bg-[#C9A84C]/10 p-2.5">
+                    <Icon className="h-5 w-5 text-[#C9A84C]" aria-hidden />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-white">{card.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-white/70">{card.description}</p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 md:py-20">
+        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+          <h2 className="text-center text-3xl font-bold text-white md:text-4xl">How It Works</h2>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {HOW_IT_WORKS.map((step, index) => (
+              <article key={step.title} className="rounded-2xl border border-[#C9A84C]/20 bg-white/[0.03] p-6">
+                <div className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 text-sm font-bold text-[#C9A84C]">
+                  {index + 1}
+                </div>
+                <h3 className="mt-4 text-lg font-semibold text-white">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/70">{step.description}</p>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-[#0D1B2A] py-16 md:py-20">
+      <section className="border-y border-white/10 bg-[#0a1624] py-16 md:py-20">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
-            <ScrollReveal variant="fadeUp">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.08)]">
-                <Building2 className="h-6 w-6 text-[#C9A84C]" aria-hidden />
-              </div>
-              <h2 className="heading-premium-xl mt-5 font-display text-3xl text-white md:text-4xl">Accommodation support</h2>
-              <p className="mt-4 text-base leading-relaxed text-white/70">
-                Where roles require relocation, many employers help newcomers settle. Arrangements depend on the contract
-                and site. You&apos;ll see what&apos;s realistic in each role so you can decide before you commit.
-              </p>
-              <ul className="mt-8 space-y-4">
-                <li className="flex gap-4 rounded-xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-5">
-                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#C9A84C]" aria-hidden />
-                  <div>
-                    <p className="font-semibold text-white">Single room where possible</p>
-                    <p className="mt-1 text-sm leading-relaxed text-white/65">
-                      Many placements prioritise a private room or clearly defined single occupancy, especially on
-                      longer rotations or remote sites.
-                    </p>
+          <h2 className="text-center text-3xl font-bold text-white md:text-4xl">Available Categories</h2>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {CATEGORIES.map((category) => {
+              const Icon = category.icon;
+              return (
+                <article key={category.title} className="rounded-2xl border border-[#C9A84C]/20 bg-white/[0.03] p-6">
+                  <div className="inline-flex rounded-xl border border-[#C9A84C]/35 bg-[#C9A84C]/10 p-2.5">
+                    <Icon className="h-5 w-5 text-[#C9A84C]" aria-hidden />
                   </div>
-                </li>
-                <li className="flex gap-4 rounded-xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] p-5">
-                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#C9A84C]" aria-hidden />
-                  <div>
-                    <p className="font-semibold text-white">Company housing options</p>
-                    <p className="mt-1 text-sm leading-relaxed text-white/65">
-                      Some employers offer staff housing, camps, or coordinated rentals near the workplace. Terms
-                      (cost, deductions, notice) should always be confirmed in writing before you travel.
-                    </p>
-                  </div>
-                </li>
-              </ul>
-            </ScrollReveal>
-            <ScrollReveal variant="fadeUp" className="hidden lg:block">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-[rgba(201,168,76,0.2)] bg-gradient-to-br from-[#0f1f32] via-[#0D1B2A] to-[#0a1624] p-8 shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
-                <div className="absolute left-6 top-6 h-1 w-12 rounded-full bg-[#C9A84C]" />
-                <p className="mt-10 text-sm font-medium uppercase tracking-[0.14em] text-[#C9A84C]/80">Peace of mind</p>
-                <p className="mt-4 text-2xl font-semibold leading-snug text-white">
-                  Clear housing expectations, documented terms, and plain language so you always know what you&apos;re
-                  signing up for.
-                </p>
-                <p className="mt-4 text-sm leading-relaxed text-white/50">
-                  When you spell out what you need in your profile, employers see what housing setup actually fits you, so
-                  you stay in control of what you&apos;re willing to accept.
-                </p>
-              </div>
-            </ScrollReveal>
+                  <h3 className="mt-4 text-lg font-semibold text-white">{category.title}</h3>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      <section className="border-t border-[rgba(201,168,76,0.1)] bg-[#0a1624] py-16 md:py-20">
+      <section className="py-16 md:py-20">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-          <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="heading-premium-xl font-display text-3xl text-white md:text-4xl">How it works</h2>
-            <p className="mx-auto mt-4 max-w-xl text-base text-white/60">
-              Three steps: you choose the pace, the detail, and what happens next.
-            </p>
-          </ScrollReveal>
-          <ol className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-3">
-            {HOW_STEPS.map((item, index) => (
-              <ScrollReveal key={item.title} variant="fadeUp">
-                <li className="relative flex h-full flex-col rounded-2xl border border-[rgba(201,168,76,0.18)] bg-[rgba(255,255,255,0.03)] p-6 pt-10 text-left">
-                  <span className="absolute left-6 top-6 flex h-9 w-9 items-center justify-center rounded-full border border-[#C9A84C]/40 bg-[rgba(201,168,76,0.12)] text-sm font-bold text-[#C9A84C]">
-                    {index + 1}
-                  </span>
-                  <h3 className="mt-6 text-lg font-semibold text-white">{item.title}</h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-white/65">{item.body}</p>
-                </li>
-              </ScrollReveal>
+          <h2 className="text-center text-3xl font-bold text-white md:text-4xl">Legal &amp; Your Rights</h2>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+            {LEGAL_RIGHTS_LINKS.map((resource) => (
+              <a
+                key={resource.title}
+                href={resource.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group rounded-2xl border border-[#C9A84C]/20 bg-white/[0.03] p-6 transition hover:border-[#C9A84C]/45 hover:bg-[#C9A84C]/5"
+              >
+                <div className="inline-flex rounded-xl border border-[#C9A84C]/35 bg-[#C9A84C]/10 p-2.5">
+                  <Landmark className="h-5 w-5 text-[#C9A84C]" aria-hidden />
+                </div>
+                <h3 className="mt-4 text-lg font-semibold text-white group-hover:text-[#C9A84C]">{resource.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/70">{resource.description}</p>
+                <span className="mt-4 inline-block text-sm font-semibold text-[#C9A84C]">Visit official site →</span>
+              </a>
             ))}
-          </ol>
+          </div>
         </div>
       </section>
 
-      <section className="mesh-cta-wrap relative bg-[#0D1B2A] py-16 text-center md:py-24">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(201,168,76,0.12),transparent_55%)]" aria-hidden />
+      <section className="relative overflow-hidden border-t border-[#C9A84C]/15 py-16 text-center md:py-20">
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden
+          style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.14), transparent 58%)" }}
+        />
         <div className="relative mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-          <ScrollReveal variant="fadeUp">
-            <h2 className="heading-premium-xl font-display text-3xl text-white md:text-4xl">Your terms, your timeline</h2>
-          </ScrollReveal>
-          <ScrollReveal variant="fadeUp">
-            <p className="mx-auto mt-4 max-w-lg text-base text-white/65">
-              Complete your profile when you&apos;re ready. We&apos;ll have relevant roles waiting for you.
-            </p>
-          </ScrollReveal>
-          <ScrollReveal variant="fadeUp">
+          <h2 className="text-3xl font-bold text-white md:text-4xl">Ready to Start?</h2>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/70">
+            Build your profile in minutes and explore open jobs for legal, structured work in Norway.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/candidates"
-              className="btn-gold-premium mt-8 inline-flex min-h-[52px] items-center justify-center rounded-md bg-[#C9A84C] px-12 py-3.5 text-base font-bold text-[#0D1B2A] transition-transform hover:bg-[#b8953f]"
+              className="inline-flex min-w-[210px] items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-4 text-base font-semibold text-[#0D1B2A] transition hover:bg-[#b8953f]"
             >
-              Start on your own terms
+              Create Your Profile
             </Link>
-          </ScrollReveal>
+            <a
+              href="https://jobs.arbeidmatch.no"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-w-[210px] items-center justify-center rounded-xl border border-[#C9A84C]/45 bg-transparent px-8 py-4 text-base font-semibold text-[#C9A84C] transition hover:bg-[#C9A84C]/10"
+            >
+              Browse Jobs
+            </a>
+          </div>
         </div>
       </section>
 
