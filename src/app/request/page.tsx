@@ -91,6 +91,7 @@ export default function RequestPage() {
   const [notifyStatus, setNotifyStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [resultAction, setResultAction] = useState<"none" | "partner" | "non_partner">("none");
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [pendingLeaveAction, setPendingLeaveAction] = useState<null | { type: "link"; href: string } | { type: "history" }>(null);
   const [partnerIssueStatus, setPartnerIssueStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [isLoadingExit, setIsLoadingExit] = useState(false);
   const [partnerModalView, setPartnerModalView] = useState<"not_found" | "feedback_form" | "feedback_success">("not_found");
@@ -103,6 +104,7 @@ export default function RequestPage() {
   const [partnerApplicationError, setPartnerApplicationError] = useState("");
   const reduceMotion = useReducedMotion();
   const hasMountedHistoryGuard = useRef(false);
+  const allowNextNavigationRef = useRef(false);
   const hasAutoStartedRoleCheck = useRef(false);
   /** Bumped on reset / back so in-flight `runCandidateSearch` cannot apply after leaving the flow. */
   const candidateSearchGenerationRef = useRef(0);
@@ -364,6 +366,7 @@ export default function RequestPage() {
 
   useEffect(() => {
     const onDocumentClick = (event: MouseEvent) => {
+      if (allowNextNavigationRef.current) return;
       if (!isPastFirstStep) return;
       const raw = event.target;
       if (!(raw instanceof Element)) return;
@@ -380,11 +383,17 @@ export default function RequestPage() {
       const href = anchor.getAttribute("href") || "";
       if (!href.startsWith("/")) return;
       event.preventDefault();
+      setPendingLeaveAction({ type: "link", href });
       setShowLeaveDialog(true);
     };
 
     const onPopState = () => {
+      if (allowNextNavigationRef.current) {
+        allowNextNavigationRef.current = false;
+        return;
+      }
       if (!isPastFirstStep) return;
+      setPendingLeaveAction({ type: "history" });
       setShowLeaveDialog(true);
       window.history.pushState({ requestFlowGuard: true }, "", window.location.href);
     };
@@ -848,22 +857,30 @@ export default function RequestPage() {
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowLeaveDialog(false);
-                  resetToFirstStep();
-                  void router.replace("/request");
                 }}
                 className="result-cta-primary w-full rounded-[12px] px-4 py-[14px] text-[15px] font-bold text-[#0D1B2A]"
               >
-                Leave my current search
+                Continue searching
               </button>
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowLeaveDialog(false);
+                  const action = pendingLeaveAction;
+                  setPendingLeaveAction(null);
+                  resetToFirstStep();
+                  if (!action) return;
+                  if (action.type === "link") {
+                    void router.push(action.href);
+                    return;
+                  }
+                  allowNextNavigationRef.current = true;
+                  router.back();
                 }}
                 className="w-full rounded-[12px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[14px] text-[15px] text-[rgba(255,255,255,0.7)]"
               >
-                Continue my search
+                End search
               </button>
             </div>
           </div>
