@@ -4,6 +4,7 @@ import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { safeSendEmail } from "@/lib/email/safeSend";
 import { notifyError } from "@/lib/errorNotifier";
+import { campaignUpsellMessage } from "@/lib/partnerMonetization";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 
 export const dynamic = "force-dynamic";
@@ -38,15 +39,21 @@ export async function POST(request: NextRequest) {
 
     let sent = 0;
     for (const email of emails) {
+      const campaignMessage = campaignUpsellMessage();
+      const isLimitedOffer = campaignMessage.toLowerCase().includes("limited time");
       const html = buildEmail({
         title: "Your free alerts expire in 5 days",
         preheader: "Upgrade now for unlimited instant alerts.",
         body: `
           <p style="margin:0 0 12px 0;color:rgba(255,255,255,0.85);font-size:14px;line-height:1.7;">
-            Limited time: 3 alerts free for March.
+            ${campaignMessage}
           </p>
           <p style="margin:0;color:rgba(255,255,255,0.75);font-size:14px;line-height:1.7;">
-            Your free alerts expire in 5 days. Upgrade to Growth for unlimited instant alerts and priority access.
+            ${
+              isLimitedOffer
+                ? "Your free alerts expire in 5 days. Upgrade to Growth for unlimited instant alerts and priority access."
+                : "Your current free alert limit is ending soon. Upgrade to Growth for unlimited instant alerts and priority access."
+            }
           </p>
         `,
         ctaText: "Upgrade to Growth",
