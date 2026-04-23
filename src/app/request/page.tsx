@@ -134,6 +134,9 @@ export default function RequestPage() {
   const [partnerApplicationEmail, setPartnerApplicationEmail] = useState("");
   const [partnerApplicationStatus, setPartnerApplicationStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [partnerApplicationError, setPartnerApplicationError] = useState("");
+  const [showWorkTogetherInlineModal, setShowWorkTogetherInlineModal] = useState(false);
+  const [workTogetherEmail, setWorkTogetherEmail] = useState("");
+  const [workTogetherStatus, setWorkTogetherStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [flowDirection, setFlowDirection] = useState(1);
   const [optionsDirection, setOptionsDirection] = useState(1);
   const reduceMotion = useReducedMotion();
@@ -308,6 +311,31 @@ export default function RequestPage() {
     }
   };
 
+  const submitWorkTogetherEmail = async () => {
+    if (!workTogetherEmail.includes("@")) {
+      setWorkTogetherStatus("error");
+      return;
+    }
+    setWorkTogetherStatus("submitting");
+    try {
+      const response = await fetch("/api/employer/trial/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: workTogetherEmail.trim().toLowerCase(),
+          category: selectedIndustry || searchTerm || "unknown",
+        }),
+      });
+      if (!response.ok) {
+        setWorkTogetherStatus("error");
+        return;
+      }
+      setWorkTogetherStatus("success");
+    } catch {
+      setWorkTogetherStatus("error");
+    }
+  };
+
   const handleAvailabilityBack = () => {
     if (selectedIndustry) {
       setFlowDirection(-1);
@@ -329,6 +357,9 @@ export default function RequestPage() {
     setSelectedOption(null);
     setNotifyEmail("");
     setNotifyStatus("idle");
+    setShowWorkTogetherInlineModal(false);
+    setWorkTogetherEmail("");
+    setWorkTogetherStatus("idle");
     setResultAction("none");
   };
 
@@ -350,6 +381,9 @@ export default function RequestPage() {
     setSelectedOption(null);
     setNotifyEmail("");
     setNotifyStatus("idle");
+    setShowWorkTogetherInlineModal(false);
+    setWorkTogetherEmail("");
+    setWorkTogetherStatus("idle");
     setResultAction("none");
     setPartnerModalView("not_found");
     setPartnerIssueStatus("idle");
@@ -751,11 +785,52 @@ export default function RequestPage() {
                 <button
                   type="button"
                   disabled
-                  className="h-14 w-full cursor-not-allowed rounded-xl border border-white/10 py-3 text-white opacity-50"
+                  onClick={() => {
+                    setShowWorkTogetherInlineModal(true);
+                    setWorkTogetherStatus("idle");
+                  }}
+                  className="h-14 w-full rounded-xl border border-white/10 py-3 text-white hover:bg-white/5"
                 >
                   Let's work together
                 </button>
               </div>
+
+              <AnimatePresence>
+                {showWorkTogetherInlineModal ? (
+                  <motion.div
+                    initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                    transition={{ duration: reduceMotion ? 0 : 0.22 }}
+                    className="mt-4 rounded-2xl border border-[rgba(201,168,76,0.28)] bg-[rgba(255,255,255,0.04)] p-4 text-left"
+                  >
+                    <p className="text-sm font-medium text-white/80">Enter your work email</p>
+                    <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                      <input
+                        type="email"
+                        value={workTogetherEmail}
+                        onChange={(event) => setWorkTogetherEmail(event.target.value)}
+                        placeholder="you@company.com"
+                        className="h-12 w-full rounded-xl border border-white/15 bg-[#0D1B2A] px-4 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#C9A84C]/60"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void submitWorkTogetherEmail()}
+                        disabled={workTogetherStatus === "submitting" || !workTogetherEmail.includes("@")}
+                        className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-[#C9A84C] px-5 text-sm font-bold text-[#0D1B2A] disabled:opacity-60 sm:w-auto"
+                      >
+                        {workTogetherStatus === "submitting" ? "Sending..." : "Send me the link"}
+                      </button>
+                    </div>
+                    {workTogetherStatus === "success" ? (
+                      <p className="mt-3 text-sm text-[#C9A84C]">Check your inbox - we&apos;ve sent you a secure link to get started.</p>
+                    ) : null}
+                    {workTogetherStatus === "error" ? (
+                      <p className="mt-3 text-sm text-red-300">Could not send the link right now. Please try again.</p>
+                    ) : null}
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
 
               <button
                 type="button"
