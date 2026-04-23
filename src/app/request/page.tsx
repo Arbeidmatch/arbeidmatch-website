@@ -913,7 +913,6 @@ export default function RequestPage() {
                 </button>
                 <button
                   type="button"
-                  disabled
                   onClick={() => {
                     setShowWorkTogetherInlineModal(true);
                     setWorkTogetherStatus("idle");
