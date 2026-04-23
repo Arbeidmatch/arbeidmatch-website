@@ -947,15 +947,13 @@ export default function RequestPage() {
               </svg>
             </button>
 
-            <svg className="mx-auto h-7 w-7 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M12 3 5 6v5c0 4.6 3.1 8.9 7 10 3.9-1.1 7-5.4 7-10V6l-7-3Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M9.5 12.2 11.2 14l3.3-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <p id="partner-verify-title" className="mt-[14px] text-center text-[20px] font-bold text-white">
-              Partner Verification
+            <Handshake className="mx-auto h-10 w-10 text-[#C9A84C]" aria-hidden />
+            <p id="partner-verify-title" className="mt-[14px] text-center text-2xl font-bold text-white">
+              Welcome, Partner!
             </p>
-            <p className="mt-2 text-center text-sm leading-[1.6] text-[rgba(255,255,255,0.55)]">
-              Enter your company email to verify your partner status. We will send you a secure access link valid for 14 days.
+            <p className="mt-2 text-center text-sm leading-relaxed text-white/60">
+              Let&apos;s find great candidates together. Enter your email and we&apos;ll send you a secure link to start your
+              search.
             </p>
 
             {accessStatus === "submitting" ? (
@@ -1089,29 +1087,21 @@ export default function RequestPage() {
               </div>
             ) : accessStatus !== "partner" ? (
               <>
-                <div className="mt-4 rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(201,168,76,0.06)] px-4 py-3">
-                  <p className="flex items-start gap-2 text-[12px] leading-[1.5] text-[rgba(255,255,255,0.5)]">
-                    <svg viewBox="0 0 24 24" className="mt-[2px] h-[14px] w-[14px] shrink-0 text-[#C9A84C]" fill="none" aria-hidden>
-                      <path d="M12 16v-4m0-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                    </svg>
-                    Use your official company email (e.g. yourname@company.no). Personal email addresses will not be recognized.
-                  </p>
-                </div>
-
                 <form onSubmit={verifyAccess} className="mt-5">
                   <input
                     type="email"
                     value={accessEmail}
                     onChange={(event) => setAccessEmail(event.target.value)}
-                    placeholder="yourname@company.no"
+                    placeholder="your@company.no"
                     className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
                   />
+                  <p className="mt-2 text-center text-xs text-white/30">Use your company email address for verification.</p>
                   <button
                     type="submit"
                     disabled={!accessEmail.includes("@")}
-                    className="result-cta-primary mt-3 w-full rounded-[12px] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:opacity-60"
+                    className="result-cta-primary mt-3 w-full rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-semibold text-[#0D1B2A] disabled:opacity-60"
                   >
-                    Send access link
+                    Let&apos;s get started →
                   </button>
                 </form>
               </>
