@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { SlidersHorizontal, Zap } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type Mode = "quick_match" | "custom_search";
@@ -18,6 +17,9 @@ type CandidateResult = {
 };
 
 type SessionCheck = { valid: boolean; reason?: "expired" | "invalid" };
+interface PartnerSearchClientProps {
+  session_token: string;
+}
 
 const CATEGORY_OPTIONS = [
   "Construction & Civil",
@@ -87,9 +89,8 @@ function ResultCard({
   );
 }
 
-export default function PartnerSearchClient() {
-  const params = useParams<{ session_token: string }>();
-  const sessionToken = params?.session_token ?? "";
+export default function PartnerSearchClient({ session_token }: PartnerSearchClientProps) {
+  const sessionToken = session_token;
 
   const [sessionState, setSessionState] = useState<"loading" | "ready" | "expired" | "invalid">("loading");
   const [mode, setMode] = useState<Mode>("quick_match");
