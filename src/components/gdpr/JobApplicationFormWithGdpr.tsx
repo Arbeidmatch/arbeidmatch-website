@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useGdprConsent } from "@/components/gdpr/GdprConsentProvider";
 import GdprDeclinedGate from "@/components/gdpr/GdprDeclinedGate";
@@ -115,12 +114,14 @@ export default function JobApplicationFormWithGdpr({ job }: { job: JobRecord }) 
             </div>
 
             <div className="mt-8 flex flex-col gap-3">
-              <Link
-                href="/candidates"
+              <a
+                href="https://jobs.arbeidmatch.no"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex h-14 w-full items-center justify-center rounded-xl bg-[#C9A84C] text-base font-medium text-[#0D1B2A]"
               >
                 Complete Profile
-              </Link>
+              </a>
               <button
                 type="button"
                 onClick={() => setShowGateModal(false)}

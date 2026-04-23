@@ -83,12 +83,14 @@ export default function ElectriciansNorwayPage() {
 
       <section className="border-t border-[rgba(201,168,76,0.15)] py-14 md:py-16">
         <div className="mx-auto flex w-full max-w-content flex-col items-center gap-4 px-6 md:flex-row md:justify-center md:px-12 lg:px-20">
-          <Link
-            href="/candidates"
+          <a
+            href="https://jobs.arbeidmatch.no"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[10px] bg-[#C9A84C] px-8 py-3 text-sm font-bold text-[#0D1B2A] transition-colors duration-200 hover:bg-[#b8953f] md:w-auto"
           >
             Find Me a Job
-          </Link>
+          </a>
           <Link
             href="/contact"
             className="inline-flex min-h-[48px] w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] px-8 py-3 text-sm font-semibold text-[#C9A84C] transition-colors duration-200 hover:border-[rgba(201,168,76,0.6)] hover:bg-[rgba(201,168,76,0.08)] md:w-auto"

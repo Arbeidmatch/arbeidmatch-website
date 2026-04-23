@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import CandidateProfileWizard from "@/components/candidates/CandidateProfileWizard";
 import GdprProfileWizardGate from "@/components/gdpr/GdprProfileWizardGate";
+import { requireFeatureFlag } from "@/lib/featureFlag";
 
 export const metadata: Metadata = {
   title: "Candidate Profile | ArbeidMatch",
@@ -19,6 +20,7 @@ function firstString(value: string | string[] | undefined): string | undefined {
 }
 
 export default async function CandidatesPage({ searchParams }: Props) {
+  requireFeatureFlag();
   const sp = await searchParams;
   const email = firstString(sp.email);
   const token = firstString(sp.token);

@@ -114,12 +114,14 @@ export default function ForCandidatesPage() {
             EU/EEA workers. English-speaking roles. Legal employment through an Arbeidstilsynet-authorized company.
           </p>
           <div className="mt-10">
-            <Link
-              href="/candidates"
+            <a
+              href="https://jobs.arbeidmatch.no"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-4 text-base font-semibold text-[#0D1B2A] transition hover:bg-[#b8953f]"
             >
               Create Your Profile
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -244,12 +246,14 @@ export default function ForCandidatesPage() {
             Build your profile in minutes and explore open jobs for legal, structured work in Norway.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/candidates"
+            <a
+              href="https://jobs.arbeidmatch.no"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex min-w-[210px] items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-4 text-base font-semibold text-[#0D1B2A] transition hover:bg-[#b8953f]"
             >
               Create Your Profile
-            </Link>
+            </a>
             <a
               href="https://jobs.arbeidmatch.no"
               target="_blank"

@@ -32,7 +32,6 @@ const locationLinks: [string, string][] = [
 ];
 
 const resourcesLinks: [string, string][] = [
-  ["Premium Guides", "/premium"],
   ["Electricians in Norway", "/electricians-norway"],
   ["Welding Specialists", "/welding-specialists"],
   ["Blog", "/blog"],
