@@ -49,7 +49,7 @@ async function sendPartnerSignedEmail(to: string, companyName: string): Promise<
     to,
     subject: "Partnership agreement signed, ArbeidMatch",
     text: `Thank you. Your partnership agreement with ArbeidMatch for ${companyName} is fully signed. Your organisation is now verified as a partner.`,
-    html: wrapPremiumEmail(body),
+    html: wrapPremiumEmail(body, { audience: "b2b", unsubscribeEmail: to }),
   });
 }
 

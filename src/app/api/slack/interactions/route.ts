@@ -93,6 +93,7 @@ function premiumEmailLayout(title: string, message: string, ctaLabel?: string, c
     body: `<p style="margin:0;font-size:15px;line-height:1.7;color:rgba(255,255,255,0.82);">${message}</p>${noteBlock}`,
     ctaText: ctaLabel,
     ctaUrl: ctaHref,
+    audience: "b2b",
   });
 }
 
@@ -320,6 +321,8 @@ export async function POST(request: NextRequest) {
         title: "Service Offer",
         preheader: "Review and respond to your offer from ArbeidMatch.",
         body: offerDraft.html,
+        audience: "b2b",
+        unsubscribeEmail: email,
       });
       await transporter.sendMail({
         ...mailHeaders(),
@@ -379,6 +382,8 @@ export async function POST(request: NextRequest) {
           title: "Contract sent for signature",
           preheader: "Please check your DocuSign inbox.",
           body: contractDraft.html,
+          audience: "b2b",
+          unsubscribeEmail: email,
         });
         await transporter.sendMail({
           ...mailHeaders(),

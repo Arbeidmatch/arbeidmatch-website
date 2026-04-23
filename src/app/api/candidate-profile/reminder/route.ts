@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
       from: PROFILE_TRANSACTIONAL_FROM,
       to: emailKey,
       subject: "Complete your ArbeidMatch profile to apply",
-      html: wrapPremiumEmail(inner),
+      html: wrapPremiumEmail(inner, { audience: "b2c", unsubscribeEmail: emailKey }),
     });
 
     const { data: candRow } = await supabase.from("candidates").select("id").eq("email", emailKey).maybeSingle();

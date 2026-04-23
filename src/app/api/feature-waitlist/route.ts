@@ -113,6 +113,8 @@ ArbeidMatch Team`,
                 No action is needed right now. We will contact you at this email when access becomes available.
               </p>
             `,
+            audience: "b2c",
+            unsubscribeEmail: email,
           }),
         });
       } catch {

@@ -169,6 +169,8 @@ export async function POST(request: NextRequest) {
           `,
           ctaText: "View Candidates",
           ctaUrl,
+          audience: "b2b",
+          unsubscribeEmail: employerEmail,
         });
 
         await safeSendEmail(employerEmail, "New candidates available for your request", html, {

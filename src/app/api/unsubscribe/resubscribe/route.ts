@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
           [emailParagraph("You're back! Welcome to ArbeidMatch again."), emailParagraph("We will continue sending relevant updates.")].join(
             "",
           ),
+          { audience: "b2c", unsubscribeEmail: email },
         ),
         email,
       );

@@ -85,6 +85,8 @@ export async function POST(request: NextRequest) {
               preheader: "Your DSB checklist is ready",
               body: buildDsbChecklistEmailBodyHtml(firstName),
               unsubscribeToken: unsubToken,
+              audience: "b2c",
+              unsubscribeEmail: email,
             }),
           });
           logEmailSent("dsb_checklist_lead_user", { toDomain: email.split("@")[1] ?? "" });
@@ -107,6 +109,8 @@ export async function POST(request: NextRequest) {
             title: `New DSB checklist lead: ${firstName}`,
             preheader: "Internal lead notification",
             body: internalBody,
+            audience: "b2b",
+            unsubscribeEmail: "post@arbeidmatch.no",
           }),
         });
         logEmailSent("dsb_checklist_lead_internal", { source });

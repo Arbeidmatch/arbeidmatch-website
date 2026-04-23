@@ -51,6 +51,8 @@ export async function POST(request: NextRequest) {
         title: `New DSB assistance interest: ${data.email}`,
         preheader: "Internal DSB assistance lead",
         body: internalBody,
+        audience: "b2b",
+        unsubscribeEmail: "post@arbeidmatch.no",
       }),
     });
 
@@ -73,6 +75,8 @@ export async function POST(request: NextRequest) {
           preheader: "We registered your DSB assistance interest",
           body: userInner,
           unsubscribeToken: unsubToken,
+          audience: "b2c",
+          unsubscribeEmail: data.email,
         }),
       });
     }

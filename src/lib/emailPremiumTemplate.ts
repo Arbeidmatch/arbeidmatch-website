@@ -1,4 +1,5 @@
 import { escapeHtml } from "@/lib/htmlSanitizer";
+import { buildB2BFooter, buildB2CFooter, type EmailAudience } from "@/lib/emailTemplate";
 
 /** From header (must match SMTP auth mailbox for one.com / similar providers). */
 export const EMAIL_FROM = '"ArbeidMatch Norge AS" <no-replay@arbeidmatch.no>';
@@ -23,7 +24,15 @@ export function formatEmailTimestampCet(date = new Date()): string {
   );
 }
 
-export function wrapPremiumEmail(bodyHtml: string): string {
+export function wrapPremiumEmail(
+  bodyHtml: string,
+  options?: { audience?: EmailAudience; unsubscribeEmail?: string; footerNoteHtml?: string },
+): string {
+  const audience = options?.audience || "b2b";
+  const footerHtml =
+    audience === "b2c"
+      ? buildB2CFooter({ unsubscribeEmail: options?.unsubscribeEmail, footerNoteBlock: options?.footerNoteHtml })
+      : buildB2BFooter({ unsubscribeEmail: options?.unsubscribeEmail, footerNoteBlock: options?.footerNoteHtml });
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,23 +51,7 @@ export function wrapPremiumEmail(bodyHtml: string): string {
       </div>
     </div>
     <!--AM_FOOTER_START-->
-    <div style="background:#0D1B2A;padding:24px;text-align:center;border-top:1px solid rgba(255,255,255,0.1);">
-      <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);text-align:center;">
-        ArbeidMatch Norge AS<br>
-        Org.nr: 935 667 089 MVA<br>
-        Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway<br>
-        post@arbeidmatch.no · arbeidmatch.no
-      </p>
-      <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;">
-        <a href="https://arbeidmatch.no/unsubscribed?email=%5Bemail_destinatar%5D" style="font-size:11px;color:rgba(255,255,255,0.4);text-decoration:underline;">
-          Unsubscribe from these emails
-        </a>
-      </div>
-      <p style="margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;">
-        This email was sent by ArbeidMatch Norge AS. We process your data in accordance with GDPR. You have the right to access,
-        correct, or delete your personal data at any time. Contact us at post@arbeidmatch.no for data requests.
-      </p>
-    </div>
+    ${footerHtml}
   </div>
 </body>
 </html>`;
@@ -66,10 +59,7 @@ export function wrapPremiumEmail(bodyHtml: string): string {
 
 export function withRecipientUnsubscribeLink(emailHtml: string, recipientEmail?: string | null): string {
   const safeEmail = encodeURIComponent((recipientEmail || "[email_destinatar]").trim() || "[email_destinatar]");
-  return emailHtml.replace(
-    "https://arbeidmatch.no/unsubscribed?email=%5Bemail_destinatar%5D",
-    `https://arbeidmatch.no/unsubscribed?email=${safeEmail}`,
-  );
+  return emailHtml.replaceAll("https://arbeidmatch.no/unsubscribed?email=%5Bemail_destinatar%5D", `https://arbeidmatch.no/unsubscribed?email=${safeEmail}`);
 }
 
 export function addFollowUpFooter(emailHtml: string, followUpText: string): string {

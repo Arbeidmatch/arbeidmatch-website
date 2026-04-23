@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
                 ctaText: "Review & Accept",
                 ctaUrl: reviewAcceptUrl,
                 footerNoteHtml: `<a href="${reviewChangesUrl}" style="color:rgba(255,255,255,0.55);text-decoration:underline;">Review Changes</a>`,
+                audience: "b2c",
                 unsubscribeEmail: email,
               }),
             });

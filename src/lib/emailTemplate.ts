@@ -1,5 +1,7 @@
 import { escapeHtml } from "@/lib/htmlSanitizer";
 
+export type EmailAudience = "b2b" | "b2c";
+
 /** Label + value as two stacked <p> tags only (no wrapper). */
 export function buildEmailFieldRow(label: string, valueHtml: string): string {
   return `<div style="margin:16px 0 0;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);">
@@ -24,6 +26,48 @@ export function emailBodySupportHint(): string {
   )}</p>`;
 }
 
+function unsubscribeLink(unsubscribeEmail?: string): string {
+  const safeEmail = encodeURIComponent((unsubscribeEmail || "[email_destinatar]").trim() || "[email_destinatar]");
+  return `<a href="https://arbeidmatch.no/unsubscribed?email=${safeEmail}" style="font-size:11px;color:rgba(255,255,255,0.4);text-decoration:underline;">
+          Unsubscribe from these emails
+        </a>`;
+}
+
+export function buildB2BFooter(options?: { unsubscribeEmail?: string; footerNoteBlock?: string }): string {
+  const footerNoteBlock = options?.footerNoteBlock || "";
+  return `<div style="background:#0D1B2A;padding:24px;text-align:center;border-top:1px solid rgba(255,255,255,0.1);">
+      <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);text-align:center;">
+        ArbeidMatch Norge AS · Org.nr: 935 667 089 MVA<br>
+        Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway<br>
+        post@arbeidmatch.no · arbeidmatch.no
+      </p>
+      <p style="margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;">
+        This is a business communication from ArbeidMatch Norge AS.
+      </p>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;">
+        ${unsubscribeLink(options?.unsubscribeEmail)}
+      </div>
+      ${footerNoteBlock}
+    </div>`;
+}
+
+export function buildB2CFooter(options?: { unsubscribeEmail?: string; footerNoteBlock?: string }): string {
+  const footerNoteBlock = options?.footerNoteBlock || "";
+  return `<div style="background:#0D1B2A;padding:24px;text-align:center;border-top:1px solid rgba(255,255,255,0.1);">
+      <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);text-align:center;">
+        ArbeidMatch Norge AS<br>
+        post@arbeidmatch.no · arbeidmatch.no
+      </p>
+      <p style="margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;">
+        We process your data in accordance with GDPR. You can request access, correction, or deletion at any time via post@arbeidmatch.no.
+      </p>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;">
+        ${unsubscribeLink(options?.unsubscribeEmail)}
+      </div>
+      ${footerNoteBlock}
+    </div>`;
+}
+
 export function buildEmail(options: {
   title: string;
   preheader?: string;
@@ -34,8 +78,10 @@ export function buildEmail(options: {
   footerNoteHtml?: string;
   unsubscribeToken?: string;
   unsubscribeEmail?: string;
+  audience?: EmailAudience;
 }): string {
-  const { title, preheader, body, ctaText, ctaUrl, footerNote, footerNoteHtml, unsubscribeToken, unsubscribeEmail } = options;
+  const { title, preheader, body, ctaText, ctaUrl, footerNote, footerNoteHtml, unsubscribeToken, unsubscribeEmail, audience } =
+    options;
   const safeTitle = escapeHtml(title);
   const preheaderBlock = preheader
     ? `<p style="margin:0 0 24px 0;font-size:13px;color:#C9A84C;">${escapeHtml(preheader)}</p>`
@@ -54,6 +100,14 @@ export function buildEmail(options: {
     : footerNote
       ? `<p style="margin:8px 0 0 0;font-size:11px;color:rgba(255,255,255,0.2);">${escapeHtml(footerNote)}</p>`
       : "";
+  const legacyTokenBlock = unsubscribeToken
+    ? `<p style="margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.35);">Legacy unsubscribe token: ${escapeHtml(unsubscribeToken)}</p>`
+    : "";
+  const finalFooterNote = `${legacyTokenBlock}${footerNoteBlock}`;
+  const footerHtml =
+    (audience || "b2b") === "b2c"
+      ? buildB2CFooter({ unsubscribeEmail, footerNoteBlock: finalFooterNote })
+      : buildB2BFooter({ unsubscribeEmail, footerNoteBlock: finalFooterNote });
 
   return `<!DOCTYPE html>
 <html>
@@ -74,27 +128,7 @@ export function buildEmail(options: {
     </div>
 
     <!--AM_FOOTER_START-->
-    <div style="background:#0D1B2A;padding:24px;text-align:center;border-top:1px solid rgba(255,255,255,0.1);">
-      <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);text-align:center;">
-        ArbeidMatch Norge AS<br>
-        Org.nr: 935 667 089 MVA<br>
-        Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway<br>
-        post@arbeidmatch.no · arbeidmatch.no
-      </p>
-      <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);text-align:center;">
-        <a href="https://arbeidmatch.no/unsubscribed?email=${encodeURIComponent(
-          (unsubscribeEmail || "[email_destinatar]").trim() || "[email_destinatar]",
-        )}" style="font-size:11px;color:rgba(255,255,255,0.4);text-decoration:underline;">
-          Unsubscribe from these emails
-        </a>
-      </div>
-      <p style="margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;">
-        This email was sent by ArbeidMatch Norge AS. We process your data in accordance with GDPR. You have the right to access,
-        correct, or delete your personal data at any time. Contact us at post@arbeidmatch.no for data requests.
-      </p>
-      ${unsubscribeToken ? `<p style="margin:8px 0 0;font-size:11px;color:rgba(255,255,255,0.35);">Legacy unsubscribe token: ${escapeHtml(unsubscribeToken)}</p>` : ""}
-      ${footerNoteBlock}
-    </div>
+    ${footerHtml}
   </div>
 </body>
 </html>`;

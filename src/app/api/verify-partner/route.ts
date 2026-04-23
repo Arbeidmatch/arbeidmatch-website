@@ -252,6 +252,8 @@ export async function POST(request: NextRequest) {
       `,
       ctaText: "Access Candidate Profiles",
       ctaUrl: secureUrl,
+      audience: "b2b",
+      unsubscribeEmail: email,
     });
 
     await transporter.sendMail({

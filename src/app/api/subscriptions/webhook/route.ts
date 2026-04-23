@@ -59,6 +59,8 @@ async function sendEmail(to: string, subject: string, title: string, body: strin
       body,
       ctaText: "Open dashboard",
       ctaUrl: "https://arbeidmatch.no/dashboard/subscription",
+      audience: "b2b",
+      unsubscribeEmail: to,
     }),
   });
 }

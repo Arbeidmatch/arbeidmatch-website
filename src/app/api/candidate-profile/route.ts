@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
           `<div style="margin:20px 0;text-align:left;">${premiumCtaButton("https://jobs.arbeidmatch.no", "Browse jobs")}</div>`,
           emailParagraph("If you want your data deleted, contact us at support@arbeidmatch.no."),
         ].join(""),
+        { audience: "b2c", unsubscribeEmail: data.email },
       );
       try {
         await safeSendEmail(data.email, subject, html, {

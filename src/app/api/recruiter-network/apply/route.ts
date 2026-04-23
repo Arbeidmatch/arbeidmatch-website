@@ -223,6 +223,8 @@ export async function POST(request: NextRequest) {
           ctaText: "Visit ArbeidMatch",
           ctaUrl: "https://arbeidmatch.no",
           unsubscribeToken: unsubToken,
+          audience: "b2b",
+          unsubscribeEmail: email,
         }),
       });
     }
@@ -235,6 +237,8 @@ export async function POST(request: NextRequest) {
         title: `New Recruiter Network application: ${full_name} from ${country}`,
         preheader: "Internal recruiter network lead",
         body: adminBody,
+        audience: "b2b",
+        unsubscribeEmail: "post@arbeidmatch.no",
       }),
     });
 

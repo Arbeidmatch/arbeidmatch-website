@@ -71,6 +71,8 @@ export async function POST(request: NextRequest) {
         title: `New site feedback: ${rating}/10 from ${emailRaw}`,
         preheader: "Internal site feedback notification",
         body: internalBody,
+        audience: "b2b",
+        unsubscribeEmail: "post@arbeidmatch.no",
       }),
     });
 
@@ -88,6 +90,8 @@ export async function POST(request: NextRequest) {
         title: "Thank you for your feedback",
         preheader: "Your feedback helps us improve",
         body: userInner,
+        audience: "b2c",
+        unsubscribeEmail: emailRaw,
       }),
     });
 

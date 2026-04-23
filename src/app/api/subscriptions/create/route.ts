@@ -148,6 +148,8 @@ export async function POST(request: NextRequest) {
           `,
           ctaText: "Open dashboard",
           ctaUrl: "https://arbeidmatch.no/dashboard/subscription",
+          audience: "b2b",
+          unsubscribeEmail: email,
         }),
       });
     }

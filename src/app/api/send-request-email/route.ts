@@ -217,6 +217,8 @@ export async function POST(request: NextRequest) {
         body: adminBody,
         ctaText: "View Full Request in Admin",
         ctaUrl: adminUrl,
+        audience: "b2b",
+        unsubscribeEmail: "post@arbeidmatch.no",
       }), {
       ...mailHeaders(),
       ipAddress: request.headers.get("x-forwarded-for") || undefined,
@@ -233,6 +235,8 @@ export async function POST(request: NextRequest) {
           ctaText: "Share feedback",
           ctaUrl: "https://arbeidmatch.no/feedback",
           unsubscribeToken: unsubToken,
+          audience: "b2b",
+          unsubscribeEmail: data.email,
         }), {
         ...mailHeaders(),
         ipAddress: request.headers.get("x-forwarded-for") || undefined,
@@ -261,6 +265,8 @@ export async function POST(request: NextRequest) {
           ctaText: "Contact us",
           ctaUrl: "https://arbeidmatch.no/contact",
           unsubscribeToken: referralUnsubToken,
+          audience: "b2b",
+          unsubscribeEmail: data.referralEmail,
         }), {
         ...mailHeaders(),
         ipAddress: request.headers.get("x-forwarded-for") || undefined,

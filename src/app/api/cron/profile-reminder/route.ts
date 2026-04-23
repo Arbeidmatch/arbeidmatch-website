@@ -104,6 +104,8 @@ function buildReminderEmail(candidate: CandidateReminderRow, subject: string, se
     `,
     ctaText: "Complete Profile",
     ctaUrl: completeProfileUrl,
+    audience: "b2c",
+    unsubscribeEmail: candidate.email || undefined,
   });
 }
 

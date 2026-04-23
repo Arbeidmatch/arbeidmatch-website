@@ -207,6 +207,8 @@ If the button does not work, reply to this email for help.`,
           preheader: "Confirm consent and activate your subscription",
           body: candidateInner,
           unsubscribeToken: unsubToken,
+          audience: "b2c",
+          unsubscribeEmail: data.email,
         }),
       });
     }

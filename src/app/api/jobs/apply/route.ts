@@ -332,6 +332,8 @@ export async function POST(request: NextRequest) {
           `,
           ctaText: "Open candidate profile in ATS",
           ctaUrl: internalAtsUrl,
+          audience: "b2b",
+          unsubscribeEmail: "post@arbeidmatch.no",
         });
         await safeSendEmail("post@arbeidmatch.no", `New candidate application – ${job.title}`, internalHtml, {
           from: PROFILE_TRANSACTIONAL_FROM,

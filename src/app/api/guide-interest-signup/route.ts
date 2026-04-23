@@ -137,6 +137,8 @@ export async function POST(request: NextRequest) {
             preheader: "We will notify you when opportunities match your profile",
             body: htmlBody,
             unsubscribeToken: unsubToken,
+            audience: "b2c",
+            unsubscribeEmail: email,
           }),
         });
         logEmailSent("guide_interest_confirmation", { toDomain: email.split("@")[1] ?? "", specialty });

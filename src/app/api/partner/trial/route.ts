@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
           </p>`,
           ctaText: "Open platform",
           ctaUrl: "https://arbeidmatch.no/request",
+          audience: "b2b",
+          unsubscribeEmail: email,
         }),
       });
     }

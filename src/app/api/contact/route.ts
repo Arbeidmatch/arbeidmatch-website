@@ -83,6 +83,8 @@ export async function POST(request: NextRequest) {
         title: `${isSupportRequest ? "Support request" : "Contact message"}: ${name} from ${company}`,
         preheader: "New inbound contact form submission",
         body: internalBody,
+        audience: "b2b",
+        unsubscribeEmail: recipient,
       }),
     });
     logEmailSent("contact_form_internal", { recipient, isSupportRequest });
@@ -107,6 +109,8 @@ export async function POST(request: NextRequest) {
           preheader: "Our team will respond shortly",
           body: userInner,
           unsubscribeToken: unsubToken,
+          audience: "b2c",
+          unsubscribeEmail: email,
         }),
       });
       logEmailSent("contact_form_ack", { toDomain: email.includes("@") ? email.split("@")[1] ?? "" : "" });

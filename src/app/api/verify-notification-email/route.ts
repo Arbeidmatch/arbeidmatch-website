@@ -186,7 +186,7 @@ export async function GET(request: NextRequest) {
         ...mailHeaders(),
         to: payload.notifyEmail,
         subject: "Email verified for notifications | ArbeidMatch",
-        html: wrapPremiumEmail(userInner),
+        html: wrapPremiumEmail(userInner, { audience: "b2c", unsubscribeEmail: payload.notifyEmail }),
       });
     } catch (mailError) {
       const message = mailError instanceof Error ? mailError.message : "unknown mail error";

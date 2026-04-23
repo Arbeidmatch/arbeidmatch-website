@@ -94,6 +94,8 @@ export async function POST(request: NextRequest) {
           { label: "Name", value: firstName },
           { label: "Email", value: emailLower },
         ]),
+        audience: "b2b",
+        unsubscribeEmail: "post@arbeidmatch.no",
       }),
     });
     logEmailSent("non_eu_lead_internal_notify", {});

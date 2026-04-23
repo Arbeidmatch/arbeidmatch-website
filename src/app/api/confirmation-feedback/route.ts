@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
         ...mailHeaders(),
         to: emailRaw,
         subject: "Thank you for your feedback - ArbeidMatch",
-        html: wrapPremiumEmail(userInner),
+        html: wrapPremiumEmail(userInner, { audience: "b2c", unsubscribeEmail: emailRaw }),
       });
     }
 

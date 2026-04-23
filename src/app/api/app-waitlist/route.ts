@@ -78,6 +78,8 @@ Visit https://arbeidmatch.no`,
             ctaText: "Visit ArbeidMatch",
             ctaUrl: "https://arbeidmatch.no",
             unsubscribeToken: unsubToken,
+            audience: "b2c",
+            unsubscribeEmail: email,
           }),
         });
         logEmailSent("app_waitlist_confirmation", { toDomain: email.split("@")[1] ?? "" });

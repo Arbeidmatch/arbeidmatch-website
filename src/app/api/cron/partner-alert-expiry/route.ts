@@ -58,6 +58,8 @@ export async function POST(request: NextRequest) {
         `,
         ctaText: "Upgrade to Growth",
         ctaUrl: "https://arbeidmatch.no/pricing",
+        audience: "b2b",
+        unsubscribeEmail: email,
       });
       await safeSendEmail(email, "Your free alerts expire in 5 days", html, {
         ...mailHeaders(),
