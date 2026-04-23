@@ -26,8 +26,8 @@ export default function ForEmployersPage() {
               Qualified EU/EEA workforce for Norwegian businesses
             </h1>
             <p className="subtitle-premium mx-auto mt-5 max-w-2xl text-lg text-white/70">
-              We help employers in construction, logistics and industry secure reliable workers quickly, legally and with
-              full support.
+              We help employers in construction, logistics and industry secure reliable workers quickly, with full process
+              support.
             </p>
             <Link
               href="/request"
@@ -66,7 +66,7 @@ export default function ForEmployersPage() {
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
             <p className="mx-auto mt-4 max-w-2xl text-white/70">
-              Send your staffing request and our team will start sourcing immediately.
+              Send your staffing request and our team will start sourcing as soon as possible.
             </p>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">

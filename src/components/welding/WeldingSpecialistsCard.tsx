@@ -78,7 +78,7 @@ export default function WeldingSpecialistsCard() {
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-8">
             {[
               "Basic certificate validity check included in our screening",
-              "EU/EEA legal compliance",
+              "EU/EEA documentation support",
               "Our goal is to connect you with candidates within about two weeks",
             ].map((t) => (
               <div key={t} className="flex items-center gap-2.5">

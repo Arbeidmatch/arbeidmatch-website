@@ -26,8 +26,8 @@ const SERVICES: ServiceItem[] = [
   },
   {
     Icon: FileText,
-    title: "Staffing and Compliance",
-    body: "We act as the employer of record. We handle employment contracts, payroll, and compliance with Norwegian labor law and collective agreements on your behalf.",
+    title: "Staffing Administration",
+    body: "We act as the employer of record. We handle employment contracts, payroll, and daily staffing administration on your behalf.",
   },
   {
     Icon: Users,

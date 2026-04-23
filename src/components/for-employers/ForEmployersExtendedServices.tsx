@@ -89,8 +89,8 @@ export default function ForEmployersExtendedServices() {
           })}
         </div>
         <p className="mx-auto mt-10 max-w-3xl text-center text-[13px] italic leading-relaxed text-white/70">
-          All services are delivered within Norwegian labor law. ArbeidMatch takes responsibility for what is within our
-          control. We are transparent about process, expectations and limitations, and we continuously improve.
+          ArbeidMatch takes responsibility for what is within our control. We are transparent about process, expectations
+          and limitations, and we continuously improve.
         </p>
       </div>
     </section>
