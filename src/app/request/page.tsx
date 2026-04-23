@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, Bolt, Check, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
+import { ArrowLeft, Bolt, Check, Clock, Factory, Handshake, HardHat, HeartPulse, Sparkles, Star, TrendingUp, Truck } from "lucide-react";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
 import MobileCardPager from "@/components/ui/MobileCardPager";
@@ -57,43 +57,6 @@ const SEARCH_MESSAGES = [
 ];
 
 const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "live.com", "msn.com"]);
-
-const ACCESS_OPTION_BENEFITS = {
-  partner: [
-    "Priority access to pre-screened candidates",
-    "Dedicated account manager",
-    "Reduced per-hire fees",
-    "Early access to new candidate profiles",
-    "Direct communication with ArbeidMatch team",
-  ],
-  premium: [
-    "Unlimited candidate requests per month",
-    "Priority matching and faster turnaround",
-    "Advanced filters and search tools",
-    "Monthly reporting and analytics",
-    "Premium support response within 1 to 2 business days",
-  ],
-  payPerUse: [
-    "No monthly commitment",
-    "Pay only when you hire",
-    "Access to full candidate database",
-    "Standard support included",
-    "Flexible for seasonal hiring needs",
-  ],
-} as const;
-
-function RequestAccessBenefits({ items }: { items: readonly string[] }) {
-  return (
-    <ul className="request-option-benefits mt-3 flex flex-1 flex-col gap-1.5 border-t border-[rgba(255,255,255,0.08)] pt-3">
-      {items.map((line) => (
-        <li key={line} className="flex gap-2.5 text-left text-[11.5px] leading-[1.45] text-[rgba(255,255,255,0.52)]">
-          <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#C9A84C]" strokeWidth={2.5} aria-hidden />
-          <span>{line}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 export default function RequestPage() {
   const router = useRouter();
@@ -676,57 +639,77 @@ export default function RequestPage() {
                   </p>
                   <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
 
-                  <div className="request-options-container">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedOption(null);
-                        setPartnerApplicationEmail(accessEmail.trim().toLowerCase());
-                        setPartnerApplicationStatus("idle");
-                        setPartnerApplicationError("");
-                        setShowPartnerApplicationModal(true);
-                      }}
-                      className="request-option-card text-left"
-                    >
-                      <Users className="h-5 w-5 shrink-0 text-[#C9A84C]" />
-                      <p className="mt-4 text-[18px] font-bold text-white">Become a Partner</p>
-                      <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
-                        Get access to partner-only candidate tools and direct hiring support.
-                      </p>
-                      <RequestAccessBenefits items={ACCESS_OPTION_BENEFITS.partner} />
-                    </button>
+                  <div className="request-options-container grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <article className="request-option-card h-full text-left">
+                      <div className="flex items-center justify-between">
+                        <Clock className="h-5 w-5 shrink-0 text-[#C9A84C]" />
+                        <span className="rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">7 days free</span>
+                      </div>
+                      <p className="mt-4 text-[18px] font-bold text-white">Free Trial</p>
+                      <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />1 candidate request</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Anonymous candidate preview</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />No contact details</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />No commitment</li>
+                      </ul>
+                      <Link href="/become-a-partner#trial" className="mt-6 inline-flex w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
+                        Start Free Trial
+                      </Link>
+                    </article>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedOption("premium");
-                        setNotifyStatus("idle");
-                      }}
-                      className="request-option-card text-left"
-                    >
-                      <Star className="h-5 w-5 shrink-0 text-[#C9A84C]" />
-                      <p className="mt-4 text-[18px] font-bold text-white">Premium Subscription</p>
-                      <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
-                        Best for ongoing hiring with priority support and expanded matching.
-                      </p>
-                      <RequestAccessBenefits items={ACCESS_OPTION_BENEFITS.premium} />
-                    </button>
+                    <article className="request-option-card h-full text-left">
+                      <div className="flex items-center justify-between">
+                        <TrendingUp className="h-5 w-5 shrink-0 text-[#C9A84C]" />
+                        <span className="rounded-full bg-[#C9A84C] px-2.5 py-1 text-[11px] font-semibold text-[#0D1B2A]">Most Popular</span>
+                      </div>
+                      <p className="mt-4 text-[18px] font-bold text-white">Growth</p>
+                      <p className="mt-1 text-sm font-semibold text-[#C9A84C]">1,499 NOK/month</p>
+                      <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />5 requests/month</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Full candidate contact details</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />2 active job posts</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Quick Match 3x/month</li>
+                      </ul>
+                      <Link href="/pricing" className="mt-6 inline-flex w-full items-center justify-center rounded-[10px] bg-[linear-gradient(135deg,#C9A84C,#b8953f)] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] transition-[filter,transform] duration-200 hover:scale-[1.02] hover:brightness-105">
+                        Get Started
+                      </Link>
+                    </article>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedOption("pay-per-use");
-                        setNotifyStatus("idle");
-                      }}
-                      className="request-option-card text-left"
-                    >
-                      <Clock3 className="h-5 w-5 shrink-0 text-[#C9A84C]" />
-                      <p className="mt-4 text-[18px] font-bold text-white">Pay per use</p>
-                      <p className="mt-2 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.6)]">
-                        Flexible access when you need candidates without a long-term commitment.
-                      </p>
-                      <RequestAccessBenefits items={ACCESS_OPTION_BENEFITS.payPerUse} />
-                    </button>
+                    <article className="request-option-card h-full text-left">
+                      <div className="flex items-center justify-between">
+                        <Bolt className="h-5 w-5 shrink-0 text-[#C9A84C]" />
+                      </div>
+                      <p className="mt-4 text-[18px] font-bold text-white">Scale</p>
+                      <p className="mt-1 text-sm font-semibold text-[#C9A84C]">3,999 NOK/month</p>
+                      <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Unlimited requests</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Unlimited contact details</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Unlimited job posts</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority processing</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Quick Match unlimited</li>
+                      </ul>
+                      <Link href="/pricing" className="mt-6 inline-flex w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
+                        Get Started
+                      </Link>
+                    </article>
+
+                    <article className="request-option-card h-full text-left">
+                      <div className="flex items-center justify-between">
+                        <Handshake className="h-5 w-5 shrink-0 text-[#C9A84C]" />
+                        <span className="rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">For Recruitment Firms</span>
+                      </div>
+                      <p className="mt-4 text-[18px] font-bold text-white">Partner</p>
+                      <p className="mt-1 text-sm font-semibold text-[#C9A84C]">Custom pricing</p>
+                      <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Access to candidate database</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Automated sourcing workflow</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Branded presentations</li>
+                        <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Dedicated ATS dashboard</li>
+                      </ul>
+                      <Link href="/become-a-partner" className="mt-6 inline-flex w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
+                        Apply for Partnership
+                      </Link>
+                    </article>
                   </div>
 
                   <div className="mx-auto mt-10 w-full max-w-[320px]">
@@ -1244,8 +1227,7 @@ export default function RequestPage() {
           border-radius: 16px;
           padding: 32px;
           text-align: left;
-          transition: border-color 220ms ease, background 220ms ease, transform 220ms ease;
-          cursor: pointer;
+          transition: border-color 200ms ease, background 200ms ease, transform 200ms ease;
         }
         .request-option-benefits {
           list-style: none;
@@ -1411,7 +1393,7 @@ export default function RequestPage() {
           .request-option-card:hover {
             border-color: rgba(201, 168, 76, 0.6);
             background: rgba(255, 255, 255, 0.08);
-            transform: translateY(-4px);
+            transform: scale(1.02);
           }
           .leave-dialog {
             animation: leaveDialogIn 250ms ease both;
