@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Bell, Mail, Pause, Play, Trash2 } from "lucide-react";
 
+import { trackAlertLinkClicked, trackAlertSubscribed } from "@/lib/analytics/roleAlertEvents";
 import { useToast } from "@/lib/toast-context";
 
 type Frequency = "instant" | "daily" | "weekly";
@@ -83,7 +84,12 @@ export default function PartnerAlertsPage() {
       const res = await fetch("/api/partner/alerts/subscribe", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ role: newRole, frequency: newFrequency }),
+        body: JSON.stringify({
+          partner_email: "post@arbeidmatch.no",
+          job_category: newRole,
+          frequency: newFrequency,
+          min_candidates: 1,
+        }),
       });
       if (!res.ok) {
         toast.error("Could not create alert right now.");
@@ -100,6 +106,7 @@ export default function PartnerAlertsPage() {
       ]);
       setNewRole("");
       setNewFrequency("instant");
+      trackAlertSubscribed(newRole, newFrequency);
       toast.success("You'll be notified when candidates arrive");
     } catch {
       toast.error("Could not create alert right now.");
@@ -246,6 +253,7 @@ export default function PartnerAlertsPage() {
             <p className="mt-1 text-sm text-white/70">Candidate count: 6</p>
             <Link
               href="/partner/search?role=Electrician"
+              onClick={() => trackAlertLinkClicked("Electrician", "preview")}
               className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-lg bg-[#C9A84C] px-4 py-2 text-sm font-bold text-[#0D1B2A]"
             >
               View candidates
