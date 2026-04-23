@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
+import { Bolt, Clock, Handshake, TrendingUp } from "lucide-react";
 
 type Plan = "growth" | "scale";
 
@@ -64,26 +66,32 @@ export default function PricingClient() {
       </section>
 
       <section className="container-site pb-12">
-        <div className="grid gap-4 md:grid-cols-3">
-          <article className="rounded-2xl border border-white/15 bg-white/[0.03] p-6">
-            <span className="rounded-full border border-[#C9A84C]/40 px-3 py-1 text-xs text-[#C9A84C]">Start Free</span>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <article className="flex min-h-96 flex-col rounded-2xl border border-white/15 bg-white/[0.03] p-6">
+            <span className="inline-flex w-fit rounded-full border border-[#C9A84C]/40 px-3 py-1 text-xs text-[#C9A84C]">Start Free</span>
+            <div className="mt-4 flex h-12 w-12 self-center items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10">
+              <Clock className="h-5 w-5 text-[#C9A84C]" />
+            </div>
             <h2 className="mt-4 text-2xl font-semibold">Trial</h2>
             <p className="mt-1 text-white/70">7 zile gratuit</p>
-            <ul className="mt-4 space-y-2 text-sm text-white/80">
+            <ul className="mt-4 flex flex-1 flex-col gap-2 text-sm text-white/80">
               <li>1 cerere candidați</li>
               <li>Preview candidați anonimi</li>
               <li>Fără date contact</li>
             </ul>
-            <a href="/become-a-partner#trial" className="mt-6 inline-flex rounded-xl border border-white/25 px-4 py-2 text-sm font-semibold">
+            <Link href="/become-a-partner#trial" className="mt-auto inline-flex h-12 w-full items-center justify-center rounded-xl border border-white/25 px-4 py-2 text-sm font-semibold">
               Start Free Trial
-            </a>
+            </Link>
           </article>
 
-          <article className="rounded-2xl border border-[#C9A84C]/40 bg-white/[0.04] p-6">
-            <span className="rounded-full bg-[#C9A84C] px-3 py-1 text-xs font-semibold text-[#0D1B2A]">Most Popular</span>
+          <article className="flex min-h-96 flex-col rounded-2xl border border-[#C9A84C]/40 bg-white/[0.04] p-6">
+            <span className="inline-flex w-fit rounded-full bg-[#C9A84C] px-3 py-1 text-xs font-semibold text-[#0D1B2A]">Most Popular</span>
+            <div className="mt-4 flex h-12 w-12 self-center items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10">
+              <TrendingUp className="h-5 w-5 text-[#C9A84C]" />
+            </div>
             <h2 className="mt-4 text-2xl font-semibold">Growth</h2>
             <p className="mt-1 text-white/70">{growthPrice.toLocaleString("nb-NO")} NOK / month</p>
-            <ul className="mt-4 space-y-2 text-sm text-white/80">
+            <ul className="mt-4 flex flex-1 flex-col gap-2 text-sm text-white/80">
               <li>5 cereri/lună</li>
               <li>Date contact incluse</li>
               <li>2 job posts active</li>
@@ -92,16 +100,20 @@ export default function PricingClient() {
             <button
               type="button"
               onClick={() => void startCheckout("growth")}
-              className="mt-6 rounded-xl bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A]"
+              className="mt-auto h-12 w-full rounded-xl bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A]"
             >
               {loadingPlan === "growth" ? "Processing..." : "Get Started"}
             </button>
           </article>
 
-          <article className="rounded-2xl border border-white/15 bg-white/[0.03] p-6">
+          <article className="flex min-h-96 flex-col rounded-2xl border border-white/15 bg-white/[0.03] p-6">
+            <span className="inline-flex w-fit rounded-full border border-[#C9A84C]/40 px-3 py-1 text-xs text-[#C9A84C]">Scale</span>
+            <div className="mt-4 flex h-12 w-12 self-center items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10">
+              <Bolt className="h-5 w-5 text-[#C9A84C]" />
+            </div>
             <h2 className="mt-4 text-2xl font-semibold">Scale</h2>
             <p className="mt-1 text-white/70">{scalePrice.toLocaleString("nb-NO")} NOK / month</p>
-            <ul className="mt-4 space-y-2 text-sm text-white/80">
+            <ul className="mt-4 flex flex-1 flex-col gap-2 text-sm text-white/80">
               <li>Cereri nelimitate</li>
               <li>Date contact nelimitate</li>
               <li>Job posts nelimitate</li>
@@ -111,19 +123,22 @@ export default function PricingClient() {
             <button
               type="button"
               onClick={() => void startCheckout("scale")}
-              className="mt-6 rounded-xl bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A]"
+              className="mt-auto h-12 w-full rounded-xl bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A]"
             >
               {loadingPlan === "scale" ? "Processing..." : "Get Started"}
             </button>
           </article>
-        </div>
-
-        <div className="mt-5 rounded-2xl border border-[#C9A84C]/35 bg-gradient-to-r from-[#C9A84C]/20 to-[#C9A84C]/5 p-6">
-          <h3 className="text-2xl font-semibold">Enterprise</h3>
-          <p className="mt-2 text-white/80">Custom pricing. Dedicated ATS. Contract-based.</p>
-          <a href="/contact" className="mt-4 inline-flex rounded-xl bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A]">
-            Contact Us
-          </a>
+          <article className="flex min-h-96 flex-col rounded-2xl border border-[#C9A84C]/35 bg-gradient-to-r from-[#C9A84C]/20 to-[#C9A84C]/5 p-6">
+            <span className="inline-flex w-fit rounded-full border border-[#C9A84C]/40 px-3 py-1 text-xs text-[#C9A84C]">Enterprise</span>
+            <div className="mt-4 flex h-12 w-12 self-center items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10">
+              <Handshake className="h-5 w-5 text-[#C9A84C]" />
+            </div>
+            <h3 className="mt-4 text-2xl font-semibold">Enterprise</h3>
+            <p className="mt-2 text-white/80">Custom pricing. Dedicated ATS. Contract-based.</p>
+            <Link href="/contact" className="mt-auto inline-flex h-12 w-full items-center justify-center rounded-xl bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0D1B2A]">
+              Contact Us
+            </Link>
+          </article>
         </div>
 
         <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-5">

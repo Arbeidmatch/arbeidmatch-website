@@ -754,11 +754,13 @@ export default function RequestPage() {
                   </p>
                   <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
 
-                  <div className="request-options-container grid grid-cols-1 gap-5 md:grid-cols-2">
-                    <article className="request-option-card h-full text-left">
-                      <div className="flex items-center justify-between">
+                  <div className="request-options-container">
+                    <article className="request-option-card min-h-96 text-left">
+                      <div className="w-full">
+                        <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">7 days free</span>
+                      </div>
+                      <div className="mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 self-center">
                         <Clock className="h-5 w-5 shrink-0 text-[#C9A84C]" />
-                        <span className="rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">7 days free</span>
                       </div>
                       <p className="mt-4 text-[18px] font-bold text-white">Coming Soon</p>
                       <p className="mt-1 text-sm font-semibold text-[#C9A84C]">We&apos;re building this feature. Join the waitlist.</p>
@@ -771,17 +773,19 @@ export default function RequestPage() {
                       <button
                         type="button"
                         disabled
-                        className="mt-6 inline-flex h-14 w-full cursor-not-allowed items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/30"
+                        className="mt-auto inline-flex h-12 w-full cursor-not-allowed items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/30"
                       >
                         Coming Soon
                       </button>
                       <p className="mt-2 text-center text-xs text-white/40">We&apos;re working on it.</p>
                     </article>
 
-                    <article className="request-option-card h-full text-left">
-                      <div className="flex items-center justify-between">
+                    <article className="request-option-card min-h-96 text-left">
+                      <div className="w-full">
+                        <span className="inline-flex rounded-full bg-[#C9A84C] px-2.5 py-1 text-[11px] font-semibold text-[#0D1B2A]">Most Popular</span>
+                      </div>
+                      <div className="mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 self-center">
                         <TrendingUp className="h-5 w-5 shrink-0 text-[#C9A84C]" />
-                        <span className="rounded-full bg-[#C9A84C] px-2.5 py-1 text-[11px] font-semibold text-[#0D1B2A]">Most Popular</span>
                       </div>
                       <p className="mt-4 text-[18px] font-bold text-white">Professional Presentations</p>
                       <p className="mt-1 text-sm text-white/70">Matched candidate presentations tailored to your role</p>
@@ -792,13 +796,16 @@ export default function RequestPage() {
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />2 active job posts</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority-ready delivery format</li>
                       </ul>
-                      <Link href="/pricing" className="mt-6 inline-flex w-full items-center justify-center rounded-[10px] bg-[linear-gradient(135deg,#C9A84C,#b8953f)] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] transition-[filter,transform] duration-200 hover:scale-[1.02] hover:brightness-105">
+                      <Link href="/pricing" className="mt-auto inline-flex h-12 w-full items-center justify-center rounded-[10px] bg-[linear-gradient(135deg,#C9A84C,#b8953f)] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] transition-[filter,transform] duration-200 hover:scale-[1.02] hover:brightness-105">
                         Get Started
                       </Link>
                     </article>
 
-                    <article className="request-option-card h-full text-left">
-                      <div className="flex items-center justify-between">
+                    <article className="request-option-card min-h-96 text-left">
+                      <div className="w-full">
+                        <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">Scale</span>
+                      </div>
+                      <div className="mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 self-center">
                         <Bolt className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                       </div>
                       <p className="mt-4 text-[18px] font-bold text-white">Professional Presentations Unlimited</p>
@@ -811,15 +818,17 @@ export default function RequestPage() {
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority processing</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Quick Match unlimited</li>
                       </ul>
-                      <Link href="/pricing" className="mt-6 inline-flex w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
+                      <Link href="/pricing" className="mt-auto inline-flex h-12 w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
                         Get Started
                       </Link>
                     </article>
 
-                    <article className="request-option-card h-full text-left">
-                      <div className="flex items-center justify-between">
+                    <article className="request-option-card min-h-96 text-left">
+                      <div className="w-full">
+                        <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">For Recruitment Firms</span>
+                      </div>
+                      <div className="mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 self-center">
                         <Handshake className="h-5 w-5 shrink-0 text-[#C9A84C]" />
-                        <span className="rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">For Recruitment Firms</span>
                       </div>
                       <p className="mt-4 text-[18px] font-bold text-white">Candidate Presentation Service</p>
                       <p className="mt-1 text-sm text-white/70">Professional presentations with white-label sourcing</p>
@@ -830,7 +839,7 @@ export default function RequestPage() {
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Branded presentations</li>
                         <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Dedicated ATS dashboard</li>
                       </ul>
-                      <Link href="/become-a-partner" className="mt-6 inline-flex w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
+                      <Link href="/become-a-partner" className="mt-auto inline-flex h-12 w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
                         Apply for Partnership
                       </Link>
                     </article>
@@ -1330,7 +1339,7 @@ export default function RequestPage() {
         }
         .request-options-container {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          grid-template-columns: 1fr;
           align-items: stretch;
           gap: 24px;
           padding: 40px 20px;
@@ -1349,7 +1358,18 @@ export default function RequestPage() {
           border-radius: 16px;
           padding: 32px;
           text-align: left;
+          min-height: 24rem;
           transition: border-color 200ms ease, background 200ms ease, transform 200ms ease;
+        }
+        @media (min-width: 768px) {
+          .request-options-container {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+        @media (min-width: 1024px) {
+          .request-options-container {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+          }
         }
         .request-option-benefits {
           list-style: none;
