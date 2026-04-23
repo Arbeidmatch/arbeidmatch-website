@@ -7,6 +7,13 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Bolt, Check, Clock, Factory, Handshake, HardHat, HeartPulse, Search, Sparkles, TrendingUp, Truck } from "lucide-react";
 
 import { EASE_PREMIUM } from "@/lib/animationConstants";
+import {
+  trackPartnerAccessRequest,
+  trackRareProfileView,
+  trackRequestStart,
+  trackRequestStepComplete,
+  trackRequestSubmit,
+} from "@/lib/analytics/requestEvents";
 import { useToast } from "@/lib/toast-context";
 
 type VerifyPartnerResponse = {
@@ -109,6 +116,7 @@ export default function RequestPage() {
   const hasAutoStartedRoleCheck = useRef(false);
   /** Bumped on reset / back so in-flight `runCandidateSearch` cannot apply after leaving the flow. */
   const candidateSearchGenerationRef = useRef(0);
+  const rareProfileTrackedRef = useRef(false);
 
   const filteredRoles = useMemo(() => {
     if (!selectedIndustry) return [];
@@ -145,6 +153,7 @@ export default function RequestPage() {
     const role = roleInput.trim();
     if (role.length < 2) return;
     const generation = ++candidateSearchGenerationRef.current;
+    const analyticsCategory = selectedIndustry || role;
     setSearchTerm(role);
     setAccessStatus("idle");
     setSelectedOption(null);
@@ -153,6 +162,8 @@ export default function RequestPage() {
     setResultAction("none");
     setCheckState("searching");
     setSearchMessageIndex(0);
+    rareProfileTrackedRef.current = false;
+    trackRequestStart(analyticsCategory);
     await new Promise((resolve) => setTimeout(resolve, 10000));
     if (generation !== candidateSearchGenerationRef.current) return;
     let hash = 0;
@@ -160,6 +171,7 @@ export default function RequestPage() {
     setCheckCount((hash % 36) + 12);
     setShowAccessCheck(true);
     setCheckState("result");
+    trackRequestStepComplete(1, analyticsCategory);
   };
 
   useEffect(() => {
@@ -201,6 +213,7 @@ export default function RequestPage() {
       if (response.ok && data.verified) {
         setCompanyName(data.company_name || "your company");
         nextStatus = "partner";
+        trackRequestSubmit(selectedIndustry || searchTerm || "unknown", checkCount);
         toast.success("Partner verified. Check your inbox for secure access.");
       } else if (data.reason === "personal_email") {
         setAccessErrorMessage("Please use your company email address.");
@@ -442,6 +455,12 @@ export default function RequestPage() {
     };
   }, [showNonPartnerOptions]);
 
+  useEffect(() => {
+    if (checkState !== "result" || checkCount >= 5 || rareProfileTrackedRef.current) return;
+    trackRareProfileView(selectedIndustry || searchTerm || "unknown", checkCount);
+    rareProfileTrackedRef.current = true;
+  }, [checkCount, checkState, searchTerm, selectedIndustry]);
+
   return (
     <section className="min-h-dvh bg-[#0a0f18] px-4 py-10 text-white md:px-6">
       <div
@@ -674,6 +693,7 @@ export default function RequestPage() {
                   onClick={() => {
                     setResultAction("partner");
                     setAccessStatus("idle");
+                    trackPartnerAccessRequest();
                   }}
                   className="h-14 w-full rounded-xl bg-[#C9A84C] font-semibold text-[#0D1B2A]"
                 >
