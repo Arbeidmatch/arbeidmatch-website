@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import BecomePartnerClient from "./BecomePartnerClient";
+import BecomePartnerWaitlistClient from "./BecomePartnerWaitlistClient";
 
 export const metadata: Metadata = {
   title: "Become a Recruitment Partner | ArbeidMatch",
@@ -9,9 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function BecomePartnerPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0D1B2A]" />}>
-      <BecomePartnerClient />
-    </Suspense>
-  );
+  return <BecomePartnerWaitlistClient />;
 }
