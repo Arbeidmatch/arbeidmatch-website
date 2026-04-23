@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
 import { buildInternalEmailHtml, mailHeaders } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { validatePartnerSessionOrToken } from "@/lib/partnerSearch";
+import { alertIdFromCategory, getAlertSlotState, resolvePartnerTier } from "@/lib/partnerMonetization";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 const bodySchema = z.object({
@@ -44,6 +46,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Service unavailable." }, { status: 503 });
     }
 
+    const tier = await resolvePartnerTier(supabase, auth.email ?? "");
+    const alertId = alertIdFromCategory(parsed.data.job_category || "general");
+    const slotState = await getAlertSlotState(supabase, alertId, auth.email ?? "");
+    const priorityBypass = tier === "growth_scale";
+    if (slotState.isFull && !priorityBypass) {
+      return NextResponse.json(
+        { error: "This alert is full. Upgrade to Growth for priority access." },
+        { status: 409 },
+      );
+    }
+
     const { data: presentation, error: presentationError } = await supabase
       .from("candidate_presentations")
       .select("id,compatibility_score,requested_full_profile")
@@ -71,6 +84,13 @@ export async function POST(request: NextRequest) {
       `session=${auth.sessionToken}, company=${auth.company ?? "Unknown"}, email=${auth.email ?? "Unknown"}`;
 
     await sendSlackNotification(msg);
+    await logAuditEvent("partner_alert_slot_claimed", "partner_alert", alertId, "system", {
+      alert_id: alertId,
+      partner_email: auth.email ?? "unknown",
+      tier,
+      claimed_at: nowIso,
+      job_category: parsed.data.job_category || "Unknown",
+    });
 
     const transporter = createSmtpTransporter();
     if (transporter) {

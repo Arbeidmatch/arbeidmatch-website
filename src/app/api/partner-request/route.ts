@@ -4,6 +4,8 @@ import { z } from "zod";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { buildInternalEmailHtml, mailHeaders } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
+import { parseReferralCode } from "@/lib/partnerMonetization";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 const freeEmailDomains = new Set([
@@ -27,6 +29,7 @@ const partnerRequestSchema = z.object({
   role: z.string().trim().max(120).optional(),
   gdprConsent: z.literal(true),
   token: z.string().uuid().optional(),
+  referral_code: z.string().trim().max(256).optional(),
 });
 
 type SlackBlocksPayload = {
@@ -96,6 +99,7 @@ export async function POST(request: NextRequest) {
     }
 
     const email = parsed.data.email.trim().toLowerCase();
+    const inviterEmail = parsed.data.referral_code ? parseReferralCode(parsed.data.referral_code) : null;
     const domain = getDomain(email);
     if (!domain || freeEmailDomains.has(domain)) {
       return NextResponse.json({ success: false, reason: "personal_email" }, { status: 200 });
@@ -221,6 +225,16 @@ export async function POST(request: NextRequest) {
       contact: contactLabel,
       requestId,
     });
+
+    if (inviterEmail && inviterEmail !== email) {
+      const bonusExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      await logAuditEvent("partner_referral_bonus_granted", "partner_referral", requestId, "system", {
+        inviter_email: inviterEmail,
+        referred_email: email,
+        bonus_alerts: 1,
+        bonus_expires_at: bonusExpiresAt,
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

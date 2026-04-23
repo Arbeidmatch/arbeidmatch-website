@@ -18,6 +18,16 @@ type CandidateCard = {
   compatibilityScore: number;
 };
 
+type MonetizationPayload = {
+  tier?: "growth_scale" | "alert_subscriber" | "free";
+  delay_hours?: number;
+  slots_used?: number;
+  slots_max?: number;
+  alert_full?: boolean;
+  full_message?: string | null;
+  campaign_message?: string | null;
+};
+
 type FilterState = {
   jobCategory: string;
   experienceMin: string;
@@ -50,6 +60,8 @@ export default function PartnerSessionPage() {
   const [requestingIds, setRequestingIds] = useState<Record<string, boolean>>({});
   const [requestedIds, setRequestedIds] = useState<Record<string, boolean>>({});
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [monetization, setMonetization] = useState<MonetizationPayload | null>(null);
+  const [referralUrl, setReferralUrl] = useState("");
 
   useEffect(() => {
     const run = async () => {
@@ -84,14 +96,34 @@ export default function PartnerSessionPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_token }),
       });
-      const payload = (await response.json().catch(() => null)) as { candidates?: CandidateCard[]; error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as
+        | { candidates?: CandidateCard[]; error?: string; monetization?: MonetizationPayload }
+        | null;
       if (!response.ok) {
         setFeedback(payload?.error || "Quick Match failed.");
+        if (payload?.monetization) setMonetization(payload.monetization);
         return;
       }
       setQuickResults(payload?.candidates || []);
+      if (payload?.monetization) setMonetization(payload.monetization);
     } finally {
       setQuickLoading(false);
+    }
+  }
+
+  async function loadReferralLink() {
+    try {
+      const res = await fetch("/api/partner/referral-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_token }),
+      });
+      const payload = (await res.json().catch(() => null)) as { invite_url?: string } | null;
+      if (res.ok && payload?.invite_url) {
+        setReferralUrl(payload.invite_url);
+      }
+    } catch {
+      // ignore non-blocking referral link errors
     }
   }
 
@@ -113,9 +145,12 @@ export default function PartnerSessionPage() {
             availability: customFilters.availability || undefined,
           }),
         });
-        const payload = (await response.json().catch(() => null)) as { candidates?: CandidateCard[] } | null;
+        const payload = (await response.json().catch(() => null)) as
+          | { candidates?: CandidateCard[]; monetization?: MonetizationPayload }
+          | null;
         if (response.ok) {
           setCustomResults(payload?.candidates || []);
+          if (payload?.monetization) setMonetization(payload.monetization);
         }
       } finally {
         setCustomLoading(false);
@@ -124,6 +159,11 @@ export default function PartnerSessionPage() {
 
     return () => window.clearTimeout(t);
   }, [customFilters, mode, session_token, state]);
+
+  useEffect(() => {
+    if (state !== "ready") return;
+    void loadReferralLink();
+  }, [state, session_token]);
 
   async function requestFullProfile(candidateId: string) {
     if (requestingIds[candidateId] || requestedIds[candidateId]) return;
@@ -205,6 +245,16 @@ export default function PartnerSessionPage() {
       <div className="mx-auto max-w-[1200px]">
         <h1 className="text-3xl font-bold text-white">Find Candidates</h1>
         <p className="mt-3 text-white/75">Choose how you want to discover anonymized candidate profiles.</p>
+        <div className="mt-4 rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 py-3 text-sm text-[#f3dba0]">
+          Limited time: 3 alerts free for March.
+          <span className="ml-2 text-white/80">Upgrade to Growth/Scale for instant alert access and priority slots.</span>
+        </div>
+        {referralUrl ? (
+          <div className="mt-3 rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm text-white/80">
+            <p className="font-semibold text-white">Referral bonus: Get 1 free alert for 1 month.</p>
+            <p className="mt-1 break-all text-white/70">{referralUrl}</p>
+          </div>
+        ) : null}
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <button
@@ -292,6 +342,14 @@ export default function PartnerSessionPage() {
         )}
 
         {feedback ? <p className="mt-4 text-sm text-[#C9A84C]">{feedback}</p> : null}
+        {monetization?.campaign_message ? <p className="mt-2 text-sm text-white/70">{monetization.campaign_message}</p> : null}
+        {monetization?.tier ? (
+          <p className="mt-1 text-xs text-white/50">
+            Tier: {monetization.tier} · Delay: {monetization.delay_hours ?? 0}h · Slots: {monetization.slots_used ?? 0}/
+            {monetization.slots_max ?? 5}
+          </p>
+        ) : null}
+        {monetization?.alert_full ? <p className="mt-2 text-sm text-[#C9A84C]">{monetization.full_message}</p> : null}
 
         <div className="mt-8">
           {isActiveLoading ? <p className="text-white/70">Loading candidates...</p> : null}

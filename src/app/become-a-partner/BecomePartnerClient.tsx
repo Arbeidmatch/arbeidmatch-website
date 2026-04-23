@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -46,6 +47,8 @@ const PREFIX_OPTIONS = ["+47", "+46", "+45"] as const;
 type Suggestion = { name: string; orgNumber: string };
 
 export default function BecomePartnerClient() {
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get("ref")?.trim() || "";
   const [companyName, setCompanyName] = useState("");
   const [orgNumber, setOrgNumber] = useState("");
   const [contactName, setContactName] = useState("");
@@ -158,6 +161,7 @@ export default function BecomePartnerClient() {
           sectors,
           message: message.trim(),
           gdprConsent: true,
+          referral_code: referralCode || undefined,
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { success?: boolean; error?: string };

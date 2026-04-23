@@ -27,6 +27,14 @@
     {
       "path": "/api/cron/cleanup-inactive",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/alert-check",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/partner-alert-expiry",
+      "schedule": "0 11 * * *"
     }
   ]
 }

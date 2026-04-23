@@ -4,6 +4,14 @@ import { z } from "zod";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { notifyError } from "@/lib/errorNotifier";
 import { computeCompatibilityScore, initials, makeCandidateHash, skillsPreview, validatePartnerSessionOrToken } from "@/lib/partnerSearch";
+import {
+  alertIdFromCategory,
+  campaignUpsellMessage,
+  delayMsForTier,
+  getAlertSlotState,
+  MAX_ALERT_SLOTS,
+  resolvePartnerTier,
+} from "@/lib/partnerMonetization";
 
 export const dynamic = "force-dynamic";
 
@@ -53,9 +61,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Service unavailable." }, { status: 503 });
     }
 
+    const tier = await resolvePartnerTier(supabase, auth.email ?? "");
+    const delayMs = delayMsForTier(tier);
+    const unlockCutoff = new Date(Date.now() - delayMs);
+    const alertId = alertIdFromCategory(filters.category ?? "general");
+    const slotState = await getAlertSlotState(supabase, alertId, auth.email ?? "");
+    const priorityBypass = tier === "growth_scale";
+
     let query = supabase
       .from("candidates")
-      .select("id,first_name,last_name,job_type_pref,experience_years,english_level,has_permit,profile_score,certifications,experiences,available,deleted_at,gdpr_consent")
+      .select("id,first_name,last_name,job_type_pref,experience_years,english_level,has_permit,profile_score,certifications,experiences,available,deleted_at,gdpr_consent,created_at")
       .gte("profile_score", 60)
       .is("deleted_at", null)
       .eq("gdpr_consent", true)
@@ -87,6 +102,11 @@ export async function POST(request: NextRequest) {
     }
 
     const allResults = (candidateRes.data ?? [])
+      .filter((candidate) => {
+        if (!candidate.created_at) return false;
+        const createdAt = new Date(candidate.created_at);
+        return createdAt.getTime() <= unlockCutoff.getTime();
+      })
       .map((candidate) => {
         const candidate_hash = makeCandidateHash(auth.sessionToken, candidate.id);
         const compatibility_score = computeCompatibilityScore({
@@ -137,6 +157,17 @@ export async function POST(request: NextRequest) {
       limit,
       total: allResults.length,
       has_more: start + limit < allResults.length,
+      monetization: {
+        tier,
+        delay_hours: Math.round(delayMs / (60 * 60 * 1000)),
+        unlocks_after: unlockCutoff.toISOString(),
+        alert_id: alertId,
+        slots_used: slotState.slotsUsed,
+        slots_max: MAX_ALERT_SLOTS,
+        alert_full: slotState.isFull && !priorityBypass,
+        full_message: slotState.isFull && !priorityBypass ? "This alert is full. Upgrade to Growth for priority access." : null,
+        campaign_message: campaignUpsellMessage(),
+      },
     });
   } catch (error) {
     await notifyError({ route: "/api/partner/custom-search", error });

@@ -1,31 +1,185 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { trackGa4ServerEvent } from "@/lib/analytics/ga4Server";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
+import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { buildRoleAlertNotificationEmail, mailHeaders } from "@/lib/emailPremiumTemplate";
 import { safeSendEmail } from "@/lib/email/safeSend";
-import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifyCronFailed } from "@/lib/slack/notify";
+import { notifySlack } from "@/lib/slackNotifier";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+
+export const dynamic = "force-dynamic";
 
 type RoleAlertRow = {
   id: string;
-  partner_email: string;
-  job_category: string;
+  partner_email: string | null;
+  job_category: string | null;
   notification_frequency: "instant" | "daily" | "weekly";
   min_candidates: number | null;
+  last_notification: string | null;
   created_at: string | null;
 };
 
-type CandidateRow = {
+function normalizeEmail(value: string | null): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function normalizeNumber(value: number | null | undefined, fallback: number): number {
+  return Number.isFinite(value) ? Number(value) : fallback;
+}
+
+function isOsloMonday(date = new Date()): boolean {
+  const weekday = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", weekday: "long" }).format(date).toLowerCase();
+  return weekday.includes("monday");
+}
+
+export async function POST(request: NextRequest) {
+  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = request.headers.get("authorization");
+  if (!cronSecret) return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+  if (authHeader !== `Bearer ${cronSecret}`) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const supabase = getSupabaseAdminClient();
+    if (!supabase) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+
+    const alertsRes = await supabase
+      .from("role_alerts")
+      .select("id,partner_email,job_category,notification_frequency,min_candidates,last_notification,created_at")
+      .eq("alert_status", "active");
+    if (alertsRes.error) throw alertsRes.error;
+
+    const weeklyAllowed = isOsloMonday();
+    const alerts = ((alertsRes.data ?? []) as RoleAlertRow[]).filter((alert) => {
+      if (alert.notification_frequency === "weekly" && !weeklyAllowed) return false;
+      const role = (alert.job_category || "").trim();
+      return normalizeEmail(alert.partner_email).length > 0 && role.length > 0;
+    });
+
+    const transporter = createSmtpTransporter();
+    const origin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://arbeidmatch.no";
+    let sent = 0;
+
+    for (const alert of alerts) {
+      const partnerEmail = normalizeEmail(alert.partner_email);
+      const role = (alert.job_category || "").trim();
+      const minCandidates = Math.max(1, normalizeNumber(alert.min_candidates, 1));
+      const baselineIso = alert.last_notification || alert.created_at || new Date(0).toISOString();
+
+      const countRes = await supabase
+        .from("candidates")
+        .select("id", { count: "exact", head: true })
+        .eq("job_type_pref", role)
+        .gt("created_at", baselineIso);
+      if (countRes.error) throw countRes.error;
+
+      const newCandidates = countRes.count ?? 0;
+      if (newCandidates < minCandidates) continue;
+
+      const ctaUrl = `${origin}/partner/search?role=${encodeURIComponent(role)}&alert_id=${encodeURIComponent(alert.id)}`;
+      const manageUrl = `${origin}/partner/alerts`;
+      const subject = `${role} candidates available - ${newCandidates} new matches`;
+
+      if (transporter) {
+        const html = buildRoleAlertNotificationEmail({
+          role,
+          count: newCandidates,
+          alertId: alert.id,
+          ctaUrl,
+          manageUrl,
+        });
+        await safeSendEmail(partnerEmail, subject, html, {
+          ...mailHeaders(),
+          text: `Role Alert Notification\n\nWe found ${newCandidates} qualified candidates for ${role}.\nView candidates: ${ctaUrl}\nManage preferences: ${manageUrl}`,
+          transporter,
+          ipAddress: request.headers.get("x-forwarded-for") || undefined,
+        });
+      }
+
+      await supabase.from("role_alert_notifications").insert({
+        alert_id: alert.id,
+        candidates_count: newCandidates,
+      });
+
+      await supabase.from("role_alerts").update({ last_notification: new Date().toISOString() }).eq("id", alert.id);
+
+      await notifySlack("employers", {
+        title: "Alert triggered",
+        fields: {
+          Role: role,
+          "Partner email": partnerEmail,
+          Count: String(newCandidates),
+        },
+      });
+
+      await logAuditEvent("role_alert_notification_sent", "partner", alert.id, "system", {
+        role,
+        partner_email: partnerEmail,
+        count: newCandidates,
+      });
+
+      await trackGa4ServerEvent("alert_notification_sent", {
+        role,
+        count: newCandidates,
+        alert_id: alert.id,
+      });
+
+      sent += 1;
+    }
+
+    return NextResponse.json({ success: true, processed: alerts.length, sent });
+  } catch (error) {
+    await notifyError({ route: "/api/cron/alert-check", error });
+    await notifyCronFailed("alert-check", error instanceof Error ? `${error.message}\n${error.stack || ""}` : String(error));
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
+  }
+}
+
+export async function GET(request: NextRequest) {
+  return POST(request);
+}
+
+import { NextRequest, NextResponse } from "next/server";
+import { trackGa4ServerEvent } from "@/lib/analytics/ga4Server";
+import { logAuditEvent } from "@/lib/audit/masterAuditLog";
+import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { buildRoleAlertNotificationEmail, mailHeaders } from "@/lib/emailPremiumTemplate";
+import { safeSendEmail } from "@/lib/email/safeSend";
+import { notifyError } from "@/lib/errorNotifier";
+import { notifyCronFailed } from "@/lib/slack/notify";
+import {
+  alertIdFromCategory,
+  campaignUpsellMessage,
+  delayMsForTier,
+  getAlertSlotState,
+  MAX_ALERT_SLOTS,
+  resolvePartnerTier,
+} from "@/lib/partnerMonetization";
+import { getSupabaseServiceClient } from "@/lib/supabaseService";
+
+export const dynamic = "force-dynamic";
+
+type RoleAlertRow = {
   id: string;
-  first_name: string | null;
-  job_type_pref: string | null;
-  available: boolean | null;
-  profile_score: number | null;
-  gdpr_consent: boolean | null;
-  can_apply: boolean | null;
-  share_with_employers: boolean | null;
+  partner_email: string | null;
+  job_category: string | null;
+  min_candidates: number | null;
+  last_notification: string | null;
   created_at: string | null;
+  active?: boolean | null;
+  status?: string | null;
+  alert_status?: string | null;
 };
+
+function normalizeEmail(value: string | null): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function normalizeNumber(value: number | null | undefined, fallback: number): number {
+  return Number.isFinite(value) ? Number(value) : fallback;
+}
 
 function isOsloNineAm(date = new Date()): boolean {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -38,21 +192,6 @@ function isOsloNineAm(date = new Date()): boolean {
   return hour === 9;
 }
 
-function isOsloMonday(date = new Date()): boolean {
-  const weekday = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Oslo", weekday: "long" }).format(date).toLowerCase();
-  return weekday.includes("monday");
-}
-
-function normalizeCategory(value: string): string {
-  return value.trim().toLowerCase();
-}
-
-function candidateMatchesCategory(candidate: CandidateRow, category: string): boolean {
-  const pref = normalizeCategory(candidate.job_type_pref || "");
-  const target = normalizeCategory(category);
-  return pref.includes(target) || target.includes(pref);
-}
-
 export async function POST(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
   const authHeader = request.headers.get("authorization");
@@ -60,212 +199,54 @@ export async function POST(request: NextRequest) {
 
   if (!cronSecret) return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
   if (authHeader !== `Bearer ${cronSecret}`) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   if (!force && !isOsloNineAm()) {
     return NextResponse.json({ success: true, skipped: true, reason: "outside_09_00_oslo_window" });
   }
 
   try {
-    const supabase = getSupabaseAdminClient();
-    if (!supabase) return NextResponse.json({ error: "Supabase not configured." }, { status: 500 });
+    const supabase = getSupabaseServiceClient();
+    if (!supabase) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
+    const transporter = createSmtpTransporter();
+    const origin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://arbeidmatch.no";
 
     const alertsRes = await supabase
       .from("role_alerts")
-      .select("id,partner_email,job_category,notification_frequency,min_candidates,created_at")
-      .eq("alert_status", "active");
+      .select("id,partner_email,job_category,min_candidates,last_notification,created_at,active,status,alert_status")
+      .or("active.eq.true,status.eq.active,alert_status.eq.active");
     if (alertsRes.error) throw alertsRes.error;
 
-    const alerts = (alertsRes.data ?? []) as RoleAlertRow[];
-    const weeklyAllowed = isOsloMonday();
-    const activeAlerts = alerts.filter((alert) => {
-      if (alert.notification_frequency === "weekly") return weeklyAllowed;
-      return true;
+    const alerts = ((alertsRes.data ?? []) as RoleAlertRow[]).filter((alert) => {
+      return normalizeEmail(alert.partner_email).includes("@") && (alert.job_category || "").trim().length > 0;
     });
 
-    if (activeAlerts.length === 0) {
-      return NextResponse.json({ success: true, processed: 0, sent: 0, skipped: 0 });
-    }
-
-    const candidatesRes = await supabase
-      .from("candidates")
-      .select("id,first_name,job_type_pref,available,profile_score,gdpr_consent,can_apply,share_with_employers,created_at")
-      .eq("available", true)
-      .gte("profile_score", 60)
-      .eq("gdpr_consent", true)
-      .is("deleted_at", null);
-    if (candidatesRes.error) throw candidatesRes.error;
-    const candidates = (candidatesRes.data ?? []) as CandidateRow[];
-
-    let sent = 0;
-    let skipped = 0;
-
-    for (const alert of activeAlerts) {
-      const minCandidates = Math.max(1, Number(alert.min_candidates ?? 3));
-      const latestNotificationRes = await supabase
-        .from("role_alert_notifications")
-        .select("sent_at")
-        .eq("alert_id", alert.id)
-        .order("sent_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (latestNotificationRes.error) throw latestNotificationRes.error;
-
-      const baselineIso = latestNotificationRes.data?.sent_at || alert.created_at || new Date(0).toISOString();
-      const baselineTime = new Date(baselineIso).getTime();
-
-      const matchedNewCandidates = candidates.filter((candidate) => {
-        if (!candidate.created_at) return false;
-        if (!candidateMatchesCategory(candidate, alert.job_category)) return false;
-        if (candidate.can_apply === false) return false;
-        if (candidate.share_with_employers === false) return false;
-        return new Date(candidate.created_at).getTime() > baselineTime;
-      });
-
-      if (matchedNewCandidates.length < minCandidates) {
-        skipped += 1;
-        continue;
-      }
-
-      const sampleNames = matchedNewCandidates
-        .slice(0, 3)
-        .map((candidate) => candidate.first_name?.trim() || "Candidate")
-        .join(", ");
-
-      const subject = `Role Alert: ${matchedNewCandidates.length} new ${alert.job_category} profiles`;
-      const html = `
-        <p>Hello,</p>
-        <p>We found <strong>${matchedNewCandidates.length}</strong> new profiles for <strong>${alert.job_category}</strong>.</p>
-        <p>Sample candidates: ${sampleNames || "New profiles available"}.</p>
-        <p>Open your partner dashboard to review the latest presentations.</p>
-      `;
-      const text = `Role alert: ${matchedNewCandidates.length} new profiles for ${alert.job_category}.`;
-
-      await safeSendEmail(alert.partner_email, subject, html, {
-        ...mailHeaders(),
-        text,
-        ipAddress: request.headers.get("x-forwarded-for") || undefined,
-      });
-
-      await supabase.from("role_alert_notifications").insert({
-        alert_id: alert.id,
-        candidates_count: matchedNewCandidates.length,
-      });
-
-      sent += 1;
-    }
-
-    return NextResponse.json({
-      success: true,
-      processed: activeAlerts.length,
-      sent,
-      skipped,
-      pricing: {
-        free_active_alerts: 2,
-        premium_alerts: "included_in_growth_scale",
-        pay_per_alert_monthly_nok: 50,
-      },
-    });
-  } catch (error) {
-    await notifyError({ route: "/api/cron/alert-check", error });
-    await notifyCronFailed("alert-check", error instanceof Error ? `${error.message}\n${error.stack || ""}` : String(error));
-    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
-  }
-}
-
-export async function GET(request: NextRequest) {
-  return POST(request);
-}
-import { NextRequest, NextResponse } from "next/server";
-
-import { trackGa4ServerEvent } from "@/lib/analytics/ga4Server";
-import { logAuditEvent } from "@/lib/audit/masterAuditLog";
-import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
-import { buildRoleAlertNotificationEmail, mailHeaders } from "@/lib/emailPremiumTemplate";
-import { safeSendEmail } from "@/lib/email/safeSend";
-import { notifyError } from "@/lib/errorNotifier";
-import { notifySlack } from "@/lib/slackNotifier";
-import { getSupabaseServiceClient } from "@/lib/supabaseService";
-
-export const dynamic = "force-dynamic";
-
-type RoleAlertRow = {
-  id: string;
-  partner_email: string | null;
-  job_category: string | null;
-  min_candidates: number | null;
-  last_notification: string | null;
-  active?: boolean | null;
-  status?: string | null;
-  alert_status?: string | null;
-  notification_frequency?: string | null;
-};
-
-function normalizeEmail(value: string | null): string {
-  return typeof value === "string" ? value.trim().toLowerCase() : "";
-}
-
-function normalizeNumber(value: number | null | undefined, fallback: number): number {
-  return Number.isFinite(value) ? Number(value) : fallback;
-}
-
-export async function POST(request: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get("authorization");
-
-  if (!cronSecret) {
-    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
-  }
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  try {
-    const supabase = getSupabaseServiceClient();
-    if (!supabase) {
-      return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
-    }
-
-    const { data: alertsData, error: alertsError } = await supabase
-      .from("role_alerts")
-      .select("id,partner_email,job_category,min_candidates,last_notification,active,status,alert_status,notification_frequency")
-      .or("active.eq.true,status.eq.active,alert_status.eq.active");
-    if (alertsError) throw alertsError;
-
-    const alerts = ((alertsData ?? []) as RoleAlertRow[]).filter((alert) => {
-      const partnerEmail = normalizeEmail(alert.partner_email);
-      const role = (alert.job_category || "").trim();
-      return partnerEmail.length > 0 && role.length > 0;
-    });
-
-    const transporter = createSmtpTransporter();
-    const origin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://arbeidmatch.no";
     let notificationsSent = 0;
+    let fullBlocked = 0;
 
     for (const alert of alerts) {
       const partnerEmail = normalizeEmail(alert.partner_email);
       const role = (alert.job_category || "").trim();
       const minCandidates = Math.max(1, normalizeNumber(alert.min_candidates, 1));
-      const lastNotification = alert.last_notification || new Date(0).toISOString();
+      const tier = await resolvePartnerTier(supabase, partnerEmail);
+      const delayMs = delayMsForTier(tier);
+      const visibilityCutoff = new Date(Date.now() - delayMs).toISOString();
+      const alertId = alertIdFromCategory(role);
+      const slotState = await getAlertSlotState(supabase, alertId, partnerEmail);
+      const priorityBypass = tier === "growth_scale";
 
-      let newCandidates = 0;
-      const countByCategory = await supabase
+      if (slotState.isFull && !priorityBypass) {
+        fullBlocked += 1;
+        continue;
+      }
+
+      const baseline = alert.last_notification || alert.created_at || new Date(0).toISOString();
+      const candidateCountRes = await supabase
         .from("candidates")
         .select("id", { count: "exact", head: true })
-        .eq("category", role)
-        .gt("created_at", lastNotification);
-      if (countByCategory.error) {
-        const countByJobType = await supabase
-          .from("candidates")
-          .select("id", { count: "exact", head: true })
-          .eq("job_type_pref", role)
-          .gt("created_at", lastNotification);
-        if (countByJobType.error) {
-          throw countByJobType.error;
-        }
-        newCandidates = countByJobType.count ?? 0;
-      } else {
-        newCandidates = countByCategory.count ?? 0;
-      }
+        .eq("job_type_pref", role)
+        .gt("created_at", baseline)
+        .lte("created_at", visibilityCutoff);
+      if (candidateCountRes.error) throw candidateCountRes.error;
+      const newCandidates = candidateCountRes.count ?? 0;
       if (newCandidates < minCandidates) continue;
 
       const ctaUrl = `${origin}/partner/search?role=${encodeURIComponent(role)}&alert_id=${encodeURIComponent(alert.id)}`;
@@ -282,7 +263,12 @@ export async function POST(request: NextRequest) {
       if (transporter) {
         await safeSendEmail(partnerEmail, subject, html, {
           ...mailHeaders(),
-          text: `Role Alert Notification\n\nWe found ${newCandidates} qualified candidates for ${role}.\nView candidates: ${ctaUrl}\nManage preferences: ${manageUrl}`,
+          text:
+            `Role Alert Notification\n\n` +
+            `Tier: ${tier} (${Math.round(delayMs / (60 * 60 * 1000))}h delay)\n` +
+            `Slots: ${slotState.slotsUsed}/${MAX_ALERT_SLOTS}\n` +
+            `${campaignUpsellMessage()}\n\n` +
+            `We found ${newCandidates} qualified candidates for ${role}.\nView candidates: ${ctaUrl}`,
           transporter,
         });
       }
@@ -294,33 +280,17 @@ export async function POST(request: NextRequest) {
         candidate_count: newCandidates,
         sent_at: new Date().toISOString(),
       });
-
-      await supabase
-        .from("role_alerts")
-        .update({ last_notification: new Date().toISOString() })
-        .eq("id", alert.id);
-
-      await notifySlack("employers", {
-        title: "Role alert triggered",
-        fields: {
-          Role: role,
-          "Partner email": partnerEmail,
-          "Candidates count": String(newCandidates),
-        },
-      });
+      await supabase.from("role_alerts").update({ last_notification: new Date().toISOString() }).eq("id", alert.id);
 
       await logAuditEvent("role_alert_notification_sent", "partner", alert.id, "system", {
         role,
         partner_email: partnerEmail,
         count: newCandidates,
+        tier,
+        delay_hours: Math.round(delayMs / (60 * 60 * 1000)),
       });
 
-      await trackGa4ServerEvent("alert_notification_sent", {
-        role,
-        count: newCandidates,
-        alert_id: alert.id,
-      });
-
+      await trackGa4ServerEvent("alert_notification_sent", { role, count: newCandidates, alert_id: alert.id, tier });
       notificationsSent += 1;
     }
 
@@ -328,9 +298,12 @@ export async function POST(request: NextRequest) {
       success: true,
       activeAlerts: alerts.length,
       notificationsSent,
+      fullBlocked,
+      campaign: campaignUpsellMessage(),
     });
   } catch (error) {
     await notifyError({ route: "/api/cron/alert-check", error });
+    await notifyCronFailed("alert-check", error instanceof Error ? `${error.message}\n${error.stack || ""}` : String(error));
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
@@ -339,4 +312,3 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   return POST(request);
 }
-
