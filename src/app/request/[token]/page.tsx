@@ -100,6 +100,10 @@ const CITY_OPTIONS = [
 ];
 
 const INDUSTRY_OPTIONS = [
+  "Offshore",
+  "Onshore",
+  "Transport",
+  "Automotive",
   "Electrical",
   "Plumbing and HVAC (VVS)",
   "Construction",
@@ -112,6 +116,45 @@ const INDUSTRY_OPTIONS = [
 ];
 
 const WORKER_TYPES_BY_INDUSTRY: Record<string, string[]> = {
+  Offshore: [
+    "Offshore worker",
+    "Welder",
+    "Industrial mechanic",
+    "Pipe fitter",
+    "Electrician",
+    "Automation technician",
+    "Crane operator",
+    "Other",
+  ],
+  Onshore: [
+    "Construction worker",
+    "Carpenter",
+    "Concrete worker",
+    "Scaffolder",
+    "Roofer",
+    "Road worker",
+    "Asphalt worker",
+    "Other",
+  ],
+  Transport: [
+    "Truck driver",
+    "Driver",
+    "Bus driver",
+    "Van driver",
+    "Forklift operator",
+    "Warehouse worker",
+    "Crane operator",
+    "Other",
+  ],
+  Automotive: [
+    "Mechanic",
+    "Heavy vehicle mechanic",
+    "Auto electrician",
+    "Body repair technician",
+    "Tire fitter",
+    "Workshop assistant",
+    "Other",
+  ],
   Electrical: [
     "Electrician",
     "Industrial electrician",
@@ -639,6 +682,8 @@ export default function RequestTokenPage() {
   };
 
   const inputErrorClass = (field: string) => (fieldErrors[field] ? "border-red-500" : "");
+  const groupErrorClass = (field: string) =>
+    fieldErrors[field] ? "rounded-xl border border-red-500 p-2" : "";
 
   const clearFieldError = (field: string) => {
     setFieldErrors((prev) => {
@@ -1775,26 +1820,23 @@ export default function RequestTokenPage() {
                 <p className="text-sm text-white/50">Tell us where your company is registered so we can verify it correctly.</p>
 
                 <div>
-                  <label htmlFor="company-country" className={labelClass}>
-                    Company country
-                  </label>
-                  <select
-                    id="company-country"
-                    value={companyCountry}
-                    onChange={(e) => {
-                      const v = e.target.value as CompanyCountry;
-                      setCompanyCountry(v);
-                      setCompanySuggestions([]);
-                      if (v === "Sweden") {
-                        setRegistryQuery("");
-                      }
-                    }}
-                    className={`${inputClass} cursor-pointer`}
-                  >
-                    <option value="Norway">Norway</option>
-                    <option value="Denmark">Denmark</option>
-                    <option value="Sweden">Sweden</option>
-                  </select>
+                  <p className={labelClass}>Company country</p>
+                  <div className="flex flex-col gap-3">
+                    {(["Norway", "Denmark", "Sweden"] as CompanyCountry[]).map((country) => (
+                      <OptionCard
+                        key={country}
+                        label={country}
+                        selected={companyCountry === country}
+                        onClick={() => {
+                          setCompanyCountry(country);
+                          setCompanySuggestions([]);
+                          if (country === "Sweden") {
+                            setRegistryQuery("");
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 {companyCountry === "Sweden" ? (
@@ -1951,7 +1993,7 @@ export default function RequestTokenPage() {
                 <h2 className="text-2xl font-extrabold">Which industry is this request for?</h2>
                 <p className="text-sm text-white/50">Select the primary industry first.</p>
                 <div className="flex w-full flex-col gap-3">
-                  <div ref={setFieldRef("industry")} className="contents">
+                  <div ref={setFieldRef("industry")} className={groupErrorClass("industry")}>
                     <MobileCardPager
                       items={INDUSTRY_OPTIONS}
                       pageSize={4}
@@ -1989,7 +2031,7 @@ export default function RequestTokenPage() {
                 <h2 className="text-2xl font-extrabold">Worker type and requirements</h2>
                 <p className="text-sm text-white/50">Worker roles and certifications depend on selected industry.</p>
 
-                <div ref={setFieldRef("workerType")}>
+                <div ref={setFieldRef("workerType")} className={groupErrorClass("workerType")}>
                   <p className={labelClass}>Worker type</p>
                   <MobileCardPager
                     items={workerTypeOptions}
@@ -2024,7 +2066,7 @@ export default function RequestTokenPage() {
                 )}
                 {fieldErrors.tradeOther ? <p className="text-xs text-red-500">This field is required</p> : null}
 
-                <div ref={setFieldRef("experience")}>
+                <div ref={setFieldRef("experience")} className={groupErrorClass("experience")}>
                   <p className={labelClass}>Minimum experience</p>
                   <div className="flex w-full flex-col gap-3">
                     {["No minimum", "1 to 2 years", "3 to 5 years", "5+ years"].map((option) => (
@@ -2101,7 +2143,7 @@ export default function RequestTokenPage() {
                   </div>
                 </div>
 
-                <div ref={setFieldRef("dNumber")}>
+                <div ref={setFieldRef("dNumber")} className={groupErrorClass("dNumber")}>
                   <p className={labelClass}>D-number status</p>
                   <div className="flex w-full flex-col gap-3">
                     {["Already has a D-number", "We can handle the procedure"].map((option) => (
@@ -2176,7 +2218,7 @@ export default function RequestTokenPage() {
                 <h2 className="text-2xl font-extrabold">What are you offering?</h2>
                 <p className="text-sm text-white/50">Help candidates understand the conditions.</p>
 
-                <div ref={setFieldRef("contractType")}>
+                <div ref={setFieldRef("contractType")} className={groupErrorClass("contractType")}>
                   <p className={labelClass}>Contract type</p>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                     {["Permanent employment", "Temporary hire", "Staffing (innleie)", "Project-based"].map(
@@ -2211,12 +2253,12 @@ export default function RequestTokenPage() {
                     ))}
                   </select>
                   <a
-                    href="https://www.arbeidstilsynet.no/arbeidsforhold/lonn/minstelonn/"
+                    href="https://www.minstelonn.no/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-2 inline-block text-xs text-white/65 underline underline-offset-2 transition hover:text-white"
                   >
-                    See minimum wages → arbeidstilsynet.no/minstelonn
+                    Salary guidance, based on Arbeidstilsynet rules, see minstelonn.no
                   </a>
                   {fieldErrors.salary ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                 </div>
@@ -2253,7 +2295,7 @@ export default function RequestTokenPage() {
                   />
                 </div>
 
-                <div ref={setFieldRef("locations")}>
+                <div ref={setFieldRef("locations")} className={groupErrorClass("locations")}>
                   <MobileCardPager
                     items={filteredCities}
                     pageSize={4}
@@ -2290,7 +2332,7 @@ export default function RequestTokenPage() {
                 <h2 className="text-2xl font-extrabold">Final details</h2>
                 <p className="text-sm text-white/50">Almost done. A few last questions.</p>
 
-                <div ref={setFieldRef("accommodation")}>
+                <div ref={setFieldRef("accommodation")} className={groupErrorClass("accommodation")}>
                   <p className={labelClass}>Accommodation</p>
                   <div className="flex flex-wrap gap-2">
                     {["Provided", "Not provided"].map((option) => (
@@ -2312,7 +2354,7 @@ export default function RequestTokenPage() {
                 </div>
 
                 {form.accommodation === "Not provided" && (
-                  <div ref={setFieldRef("accommodationSupport")}>
+                  <div ref={setFieldRef("accommodationSupport")} className={groupErrorClass("accommodationSupport")}>
                     <p className={labelClass}>If not provided, can you help candidate find accommodation?</p>
                     <div className="flex flex-wrap gap-2">
                       {["We help find it", "Candidate handles it"].map(
@@ -2355,7 +2397,7 @@ export default function RequestTokenPage() {
                   </div>
                 )}
 
-                <div ref={setFieldRef("internationalTransport")}>
+                <div ref={setFieldRef("internationalTransport")} className={groupErrorClass("internationalTransport")}>
                   <p className={labelClass}>International transport</p>
                   <div className="flex flex-wrap gap-2">
                     {["Covered by company", "Candidate's own responsibility"].map((option) => (
@@ -2370,7 +2412,7 @@ export default function RequestTokenPage() {
                   {fieldErrors.internationalTransport ? <p className="mt-1 text-xs text-red-500">This field is required</p> : null}
                 </div>
 
-                <div ref={setFieldRef("localTransport")}>
+                <div ref={setFieldRef("localTransport")} className={groupErrorClass("localTransport")}>
                   <p className={labelClass}>Local transport</p>
                   <div className="flex flex-wrap gap-2">
                     {["Covered", "Not covered", "Negotiable"].map((option) => (
