@@ -26,6 +26,7 @@ import BemanningCard from "@/components/home/BemanningCard";
 import HomeWelcomeUserTypeSlideup from "@/components/home/HomeWelcomeUserTypeSlideup";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 import ScrollReveal, { ScrollRevealGrid } from "@/components/ScrollReveal";
+import CandidateActivityMetrics from "@/components/CandidateActivityMetrics";
 
 const HERO_DURATION = 0.72;
 const HERO_TITLE_LINES = [
@@ -181,6 +182,11 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           <div className="absolute inset-0 opacity-[0.035] [background-image:repeating-linear-gradient(-12deg,transparent,transparent_2px,rgba(255,255,255,0.05)_2px,rgba(255,255,255,0.05)_3px)]" />
         </div>
         <div className="relative z-10 mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">{hero}</div>
+      </section>
+      <section className="border-b border-white/[0.06] bg-[#0D1B2A] px-4 py-10 md:px-12 md:py-12 lg:px-20">
+        <div className="mx-auto w-full max-w-content">
+          <CandidateActivityMetrics />
+        </div>
       </section>
 
       <section className="border-b border-white/[0.06] bg-[#0D1B2A] px-4 py-16 md:px-12 md:py-24 lg:px-20 lg:py-28">
