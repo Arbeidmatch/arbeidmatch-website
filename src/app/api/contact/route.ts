@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { notifyError } from "@/lib/errorNotifier";
@@ -8,6 +7,7 @@ import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTempl
 import { mailHeaders, premiumCtaButton } from "@/lib/emailPremiumTemplate";
 import { logEmailSent } from "@/lib/audit/masterAuditLog";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
+import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 
 type ContactPayload = {
   name?: string;
@@ -16,16 +16,6 @@ type ContactPayload = {
   need?: string;
   message?: string;
 };
-
-function getSmtpConfig(): { host: string; port: number; user: string; pass: string } | null {
-  const host = process.env.SMTP_HOST?.trim();
-  const user = process.env.SMTP_USER?.trim();
-  const pass = process.env.SMTP_PASS;
-  const port = Number(process.env.SMTP_PORT) || 465;
-  if (!host || !user || !pass) return null;
-  if (!Number.isFinite(port)) return null;
-  return { host, port, user, pass };
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,24 +38,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Please fill in all required fields." }, { status: 400 });
     }
 
-    const smtp = getSmtpConfig();
-    if (!smtp) {
+    const transporter = createSmtpTransporter();
+    if (!transporter) {
       return NextResponse.json({ success: false, error: "SMTP not configured" }, { status: 500 });
     }
 
     const isSupportRequest = need === "Support";
     const supportRecipient = process.env.SUPPORT_EMAIL || "support@arbeidmatch.no";
     const recipient = isSupportRequest ? supportRecipient : "post@arbeidmatch.no";
-
-    const transporter = nodemailer.createTransport({
-      host: smtp.host,
-      port: smtp.port,
-      secure: smtp.port === 465,
-      auth: {
-        user: smtp.user,
-        pass: smtp.pass,
-      },
-    });
 
     const internalBody = emailFieldRows([
       { label: "Name", value: name },
