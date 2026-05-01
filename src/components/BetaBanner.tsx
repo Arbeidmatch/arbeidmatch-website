@@ -1,6 +1,21 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
+const LEGAL_POLICY_PATHS = new Set(["/privacy", "/terms", "/unsubscribed"]);
+
+function normalizePathname(pathname: string | null): string {
+  if (!pathname) return "/";
+  const trimmed = pathname.replace(/\/$/, "");
+  return trimmed === "" ? "/" : trimmed;
+}
+
 export default function BetaBanner() {
+  const pathname = usePathname();
+  if (LEGAL_POLICY_PATHS.has(normalizePathname(pathname))) {
+    return null;
+  }
+
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-4 py-2"
