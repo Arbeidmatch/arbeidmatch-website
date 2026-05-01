@@ -114,20 +114,12 @@ export default function Footer() {
           <div>
             <p className="text-base font-bold text-[#C9A84C]">ArbeidMatch App</p>
             <p className="mt-1 text-sm text-white/70">Find work. Track applications. Stay connected.</p>
-            <p className="mt-1 text-xs text-white/40">Available on iOS and Android</p>
-          </div>
-          <div className="flex flex-wrap gap-3">
+            <p className="mt-1 text-xs text-white/55">Mobile app coming soon</p>
             <Link
               href="/download"
-              className="rounded-lg border border-[rgba(201,168,76,0.3)] px-5 py-2.5 text-sm text-white transition-colors hover:border-[#C9A84C]"
+              className="mt-3 inline-block text-sm font-semibold text-[#C9A84C] transition-colors hover:text-[#d8bc6a]"
             >
-              App Store
-            </Link>
-            <Link
-              href="/download"
-              className="rounded-lg border border-[rgba(201,168,76,0.3)] px-5 py-2.5 text-sm text-white transition-colors hover:border-[#C9A84C]"
-            >
-              Google Play
+              Join the waitlist →
             </Link>
           </div>
         </div>

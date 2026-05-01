@@ -144,8 +144,6 @@ export default function TermsPage() {
               <br />
               post@arbeidmatch.no
               <br />
-              +47 96 73 47 30
-              <br />
               arbeidmatch.no
             </p>
           </section>
