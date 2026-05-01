@@ -1,31 +1,44 @@
 import ScrollReveal from "@/components/ScrollReveal";
 
-const testimonials = [
+type Testimonial = {
+  quote: string;
+  name: string;
+  company: string;
+  verified: true;
+};
+
+const testimonials: Testimonial[] = [
   {
     quote:
       "The tile workers we got through ArbeidMatch were exactly what we needed. Professional, reliable, always showed up. Great craftsmanship.",
     name: "Nikolas",
     company: "Fin Flislegger AS",
+    verified: true,
   },
   {
     quote:
       "We look forward to working with ArbeidMatch on future projects. The workers delivered showed professionalism, reliability and great craftsmanship.",
     name: "Lars Berge",
     company: "Berge Bemanning AS",
+    verified: true,
   },
   {
     quote:
       "ArbeidMatch delivered pre-screened candidates for our projects. Structured process, fast delivery, excellent results.",
     name: "Øystein",
     company: "People AS",
+    verified: true,
   },
   {
     quote:
       "We needed a reliable mechanic quickly. ArbeidMatch delivered a highly skilled professional who fit perfectly from day one.",
     name: "Terje",
     company: "Winther Auto Service AS",
+    verified: true,
   },
 ];
+
+const disclaimerStyle = { fontSize: "11px", color: "rgba(255,255,255,0.4)" } as const;
 
 export default function Testimonials() {
   return (
@@ -43,6 +56,11 @@ export default function Testimonials() {
                 <p className="mt-4 font-semibold text-white">
                   {item.name} <span className="font-normal text-white/70">| {item.company}</span>
                 </p>
+                {item.verified ? (
+                  <p className="mt-3 italic" style={disclaimerStyle}>
+                    Verified client testimonial
+                  </p>
+                ) : null}
               </article>
             </ScrollReveal>
           ))}
