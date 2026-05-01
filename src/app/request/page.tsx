@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import RequestPageClient from "./RequestPageClient";
 
@@ -34,5 +35,9 @@ export const metadata: Metadata = {
 };
 
 export default function RequestPage() {
-  return <RequestPageClient />;
+  return (
+    <Suspense fallback={null}>
+      <RequestPageClient />
+    </Suspense>
+  );
 }

@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Bolt, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, startTransition, useEffect, useMemo, useRef, useState } from "react";
+import { Anchor, ArrowLeft, Bolt, Car, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
 
 type VerifyPartnerResponse = {
   verified?: boolean;
@@ -32,6 +32,16 @@ const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: typeof HardHat; roles: 
     roles: ["Machine Operator", "CNC Operator", "Steel Worker", "Insulation Worker", "Quality Inspector", "Production Worker"],
   },
   {
+    industry: "Offshore & Onshore",
+    icon: Anchor,
+    roles: ["Deck Foreman", "Offshore Electrician", "Marine Engineer", "Crane Operator", "Rig Mechanic"],
+  },
+  {
+    industry: "Automotive & Mechanics",
+    icon: Car,
+    roles: ["Vehicle Mechanic", "Auto Technician", "Panel Beater", "Tire Technician", "Service Advisor"],
+  },
+  {
     industry: "Cleaning & Facility",
     icon: Sparkles,
     roles: ["Cleaner", "Facility Manager", "Window Cleaner", "Industrial Cleaner", "Waste Handler"],
@@ -55,6 +65,7 @@ const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "yahoo.com", "hotmail.com", "ou
 
 export default function RequestPageClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [checkState, setCheckState] = useState<"idle" | "searching" | "result">("idle");
   const [selectedIndustry, setSelectedIndustry] = useState("");
   const [roleQuery, setRoleQuery] = useState("");
@@ -114,6 +125,20 @@ export default function RequestPageClient() {
     }, 1000);
     return () => clearInterval(interval);
   }, [checkState]);
+
+  useEffect(() => {
+    const raw = searchParams.get("industry");
+    if (!raw) return;
+    let decoded = raw;
+    try {
+      decoded = decodeURIComponent(raw);
+    } catch {
+      decoded = raw;
+    }
+    if (CHECK_ROLE_GROUPS.some((g) => g.industry === decoded)) {
+      startTransition(() => setSelectedIndustry(decoded));
+    }
+  }, [searchParams]);
 
   const runCandidateSearch = async (roleInput: string) => {
     const role = roleInput.trim();

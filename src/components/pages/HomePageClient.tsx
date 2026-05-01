@@ -13,24 +13,18 @@ import { writeHomeUserType } from "@/lib/homeUserType";
 import {
   BadgeCheck,
   Building2,
-  Factory,
-  Forklift,
-  HardHat,
-  HeartPulse,
-  Hotel,
   MessageSquare,
   Search,
-  Sparkles,
   Users,
   Zap,
   User,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 import BemanningCard from "@/components/home/BemanningCard";
+import HomeIndustriesSection from "@/components/home/HomeIndustriesSection";
 import HomeWelcomeUserTypeSlideup from "@/components/home/HomeWelcomeUserTypeSlideup";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
-import ScrollReveal, { ScrollRevealGrid } from "@/components/ScrollReveal";
+import ScrollReveal from "@/components/ScrollReveal";
 const HERO_DURATION = 0.72;
 
 const HERO_H1_TEXT = `Qualified workers,
@@ -167,15 +161,6 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
     </div>
   );
 
-  const industries: [LucideIcon, string, string][] = [
-    [HardHat, "Construction & Renovation", "Skilled trades and building teams."],
-    [Forklift, "Logistics & Warehouse", "Warehouse, forklift and terminal roles."],
-    [Factory, "Industry & Production", "Production lines and factory operations."],
-    [Sparkles, "Cleaning & Facility", "Professional cleaning and facility support."],
-    [Hotel, "Hotel, Restaurant & Café", "Kitchen, service and housekeeping staff."],
-    [HeartPulse, "Care & Health", "Support workers for care-driven services."],
-  ];
-
   const hireWorkCardClass =
     "group flex min-h-[220px] flex-col rounded-2xl border border-white/[0.08] bg-white/[0.04] p-8 text-left shadow-none backdrop-blur-md transition duration-300 hover:border-[#C9A84C]/25 hover:bg-white/[0.06] md:min-h-[260px] md:p-10 md:hover:-translate-y-0.5";
 
@@ -268,6 +253,8 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
           </ScrollReveal>
         </div>
       </section>
+
+      <HomeIndustriesSection />
 
       <section className="border-b border-white/[0.06] bg-[#0D1B2A] px-4 py-16 md:px-12 md:py-24 lg:px-20 lg:py-28">
         {!reduce ? (
@@ -391,39 +378,6 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
               </Link>
             </div>
           </ScrollReveal>
-        </div>
-      </section>
-
-      <section className="bg-[#0D1B2A] py-20 md:py-28 lg:py-36">
-        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
-          <ScrollReveal variant="fadeUp" className="text-center">
-            <h2 className="am-h2 heading-premium-xl text-balance break-words font-sans font-extrabold tracking-[-0.03em] text-white">
-              Industries we serve
-            </h2>
-          </ScrollReveal>
-          <ScrollRevealGrid
-            className="mt-20 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-14 lg:grid-cols-3 lg:gap-16"
-            items={industries}
-            itemKey={([, title]) => title}
-            renderItem={([Icon, title, text]) => (
-              <article className="industry-card card-premium group rounded-2xl border border-white/[0.08] bg-white/[0.04] p-9 shadow-none backdrop-blur-md transition-[transform,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-[#C9A84C]/22 md:hover:-translate-y-0.5">
-                <Icon className="shrink-0 text-[#C9A84C]" size={22} strokeWidth={1.5} />
-                <h3 className="mt-6 text-lg font-semibold tracking-tight text-white">{title}</h3>
-                <p className="text-home-subtle mt-3 text-[14px] md:text-[15px]">{text}</p>
-                <a
-                  href="https://jobs.arbeidmatch.no"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-6 inline-flex items-center gap-1 text-[13px] font-medium text-[#C9A84C]/85 underline-offset-4 transition-colors hover:text-[#C9A84C]"
-                >
-                  View roles
-                  <span className="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden>
-                    →
-                  </span>
-                </a>
-              </article>
-            )}
-          />
         </div>
       </section>
 
