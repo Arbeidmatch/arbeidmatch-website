@@ -1,82 +1,121 @@
 "use client";
 
-import Link from "next/link";
-import { startTransition, useEffect, useState } from "react";
+import Script from "next/script";
+import { useCallback, useEffect, useState } from "react";
 
-const CONSENT_KEY = "am_cookie_consent_v1";
-const SESSION_DISMISS_KEY = "am_cookie_banner_dismissed";
+const STORAGE_KEY = "cookie_consent";
+const COOKIE_CONSENT_SHOWN_KEY = "cookie_consent_shown";
+const GA_MEASUREMENT_ID = "G-WWXXVW7Q98";
+
+type ConsentValue = "accepted" | "rejected";
+
+function readConsent(): ConsentValue | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw === "accepted" || raw === "rejected") return raw;
+    if (raw?.startsWith("{")) {
+      const o = JSON.parse(raw) as { statistics?: boolean };
+      if (typeof o?.statistics === "boolean") {
+        const v: ConsentValue = o.statistics ? "accepted" : "rejected";
+        localStorage.setItem(STORAGE_KEY, v);
+        return v;
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function persistChoice(value: ConsentValue) {
+  try {
+    localStorage.setItem(STORAGE_KEY, value);
+    localStorage.setItem(COOKIE_CONSENT_SHOWN_KEY, "true");
+  } catch {
+    /* ignore */
+  }
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("cookie-consent-updated"));
+  }
+}
+
+function Ga4Scripts({ measurementId }: { measurementId: string }) {
+  return (
+    <>
+      <Script src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`} strategy="afterInteractive" />
+      <Script id="ga4-init-arbeidmatch" strategy="afterInteractive">
+        {`
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${measurementId}', { anonymize_ip: true });
+        `}
+      </Script>
+    </>
+  );
+}
 
 export default function CookieConsent() {
+  const [hydrated, setHydrated] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [gaEnabled, setGaEnabled] = useState(false);
 
   useEffect(() => {
-    try {
-      if (localStorage.getItem(CONSENT_KEY) === "accepted") return;
-      if (sessionStorage.getItem(SESSION_DISMISS_KEY) === "1") return;
-      startTransition(() => setVisible(true));
-    } catch {
-      startTransition(() => setVisible(true));
+    const stored = readConsent();
+    if (stored) {
+      setVisible(false);
+      setGaEnabled(stored === "accepted");
+    } else {
+      setVisible(true);
+      setGaEnabled(false);
     }
+    setHydrated(true);
   }, []);
 
-  const accept = () => {
-    try {
-      localStorage.setItem(CONSENT_KEY, "accepted");
-    } catch {
-      /* ignore */
-    }
+  const choose = useCallback((value: ConsentValue) => {
+    persistChoice(value);
+    setGaEnabled(value === "accepted");
     setVisible(false);
-  };
+  }, []);
 
-  const dismiss = () => {
-    try {
-      sessionStorage.setItem(SESSION_DISMISS_KEY, "1");
-    } catch {
-      /* ignore */
-    }
-    setVisible(false);
-  };
-
-  if (!visible) return null;
+  if (!hydrated) return null;
 
   return (
-    <div
-      className="fixed bottom-0 left-0 right-0 z-[320] border-t border-[rgba(255,255,255,0.35)] bg-[#0D1B2A] px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-6 sm:left-6 sm:right-6 sm:rounded-2xl sm:border sm:px-6 sm:py-5"
-      role="dialog"
-      aria-label="Cookie notice"
-    >
-      <div className="mx-auto flex max-w-content flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-left text-[14px] leading-relaxed text-[#0f1923] sm:text-[15px]">
-          <span className="text-[#0f1923]">
-            We use essential cookies to operate this site. No tracking or advertising cookies are used.
-          </span>{" "}
-          <Link
-            href="/privacy"
-            className="font-semibold text-[#C9A84C] underline-offset-2 hover:text-[#b8953f] hover:underline"
-            style={{ color: "#C9A84C" }}
-          >
-            Privacy Policy
-          </Link>
-        </p>
-        <div className="flex flex-shrink-0 flex-wrap gap-2 sm:justify-end">
-          <button
-            type="button"
-            onClick={dismiss}
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md border border-[rgba(255,255,255,0.35)] bg-transparent px-4 py-2.5 text-[14px] font-semibold text-[rgba(255,255,255,0.7)] transition-colors hover:bg-[rgba(255,255,255,0.03)]"
-            style={{ color: "rgba(255,255,255,0.7)" }}
-          >
-            Close
-          </button>
-          <button
-            type="button"
-            onClick={accept}
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md bg-[#C9A84C] px-5 py-2.5 text-[14px] font-semibold text-[#0f1923] transition-colors hover:bg-[#b8953f]"
-            style={{ backgroundColor: "#C9A84C", color: "#0f1923" }}
-          >
-            Accept
-          </button>
+    <>
+      {gaEnabled ? <Ga4Scripts measurementId={GA_MEASUREMENT_ID} /> : null}
+
+      {visible ? (
+        <div
+          role="dialog"
+          aria-modal="false"
+          aria-label="Cookie consent"
+          className="fixed inset-x-0 bottom-0 z-[100] w-full border-t border-[rgba(201,168,76,0.2)] bg-[#0D1B2A] pb-[max(1rem,env(safe-area-inset-bottom))] pt-4"
+        >
+          <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-6">
+            <p className="min-w-0 flex-1 text-sm leading-relaxed text-white/90 sm:text-[15px]">
+              We use cookies to analyze traffic and improve your experience. GA4 analytics only activates with your
+              consent.
+            </p>
+            <div className="flex w-full shrink-0 flex-col gap-2 min-[420px]:w-auto min-[420px]:flex-row min-[420px]:justify-end min-[420px]:gap-3">
+              <button
+                type="button"
+                onClick={() => choose("accepted")}
+                className="min-h-11 w-full rounded-[10px] bg-gradient-to-br from-[#C9A84C] to-[#b8953f] px-4 py-2.5 text-sm font-bold text-[#0D1B2A] transition-opacity hover:opacity-95 min-[420px]:w-auto min-[420px]:min-w-[10rem]"
+              >
+                Accept all
+              </button>
+              <button
+                type="button"
+                onClick={() => choose("rejected")}
+                className="min-h-11 w-full rounded-[10px] border border-white bg-transparent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10 min-[420px]:w-auto min-[420px]:min-w-[10rem]"
+              >
+                Reject non-essential
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      ) : null}
+    </>
   );
 }
