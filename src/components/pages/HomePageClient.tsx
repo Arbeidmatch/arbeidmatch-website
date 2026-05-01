@@ -11,13 +11,17 @@ import { EASE_PREMIUM } from "@/lib/animationConstants";
 import { trackEvent } from "@/lib/analytics";
 import { writeHomeUserType } from "@/lib/homeUserType";
 import {
+  BadgeCheck,
   Building2,
   Factory,
   Forklift,
   HardHat,
   HeartPulse,
   Hotel,
+  MessageSquare,
+  Search,
   Sparkles,
+  Users,
   Zap,
   User,
 } from "lucide-react";
@@ -37,11 +41,33 @@ const homeCtaPrimaryLg =
   "btn-gold-premium relative mx-auto inline-flex min-h-[54px] w-full max-w-md items-center justify-center rounded-xl bg-gold px-10 py-4 text-[16px] font-semibold tracking-tight text-[#0D1B2A] transition-colors hover:bg-gold-hover sm:inline-block sm:w-auto sm:max-w-none";
 
 type Props = {
-  howItWorksSlot: ReactNode;
   testimonialsSlot: ReactNode;
 };
 
-export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Props) {
+const HOW_IT_WORKS_STEPS: { title: string; text: string; Icon: typeof MessageSquare }[] = [
+  {
+    title: "Tell us what you need",
+    text: "Share your role, headcount and timeline so we can align on expectations.",
+    Icon: MessageSquare,
+  },
+  {
+    title: "We source and screen",
+    text: "We search our network and verify skills, experience and availability.",
+    Icon: Search,
+  },
+  {
+    title: "Review candidates",
+    text: "You receive short profiles that match your requirements before interviews.",
+    Icon: Users,
+  },
+  {
+    title: "Make the hire",
+    text: "Move forward with contracts and onboarding with our support where needed.",
+    Icon: BadgeCheck,
+  },
+];
+
+export default function HomePageClient({ testimonialsSlot }: Props) {
   const reduce = useReducedMotion();
   const router = useRouter();
   const [sessionRoleBanner, setSessionRoleBanner] = useState<null | "employer" | "candidate">(null);
@@ -199,6 +225,50 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           </div>
         </div>
       </section>
+
+      <section
+        id="how-it-works"
+        className="scroll-mt-[100px] border-b border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.03)_0%,rgba(13,27,42,0.96)_45%,#0D1B2A_100%)] py-16 md:py-20 lg:py-24"
+      >
+        <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
+          <ScrollReveal variant="fadeUp" className="text-center">
+            <h2 className="am-h2 font-display font-extrabold tracking-[-0.03em] text-white">How it works</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-base text-white/60 md:text-lg">
+              From request to placement in days, not months.
+            </p>
+          </ScrollReveal>
+
+          <div className="mt-12 lg:mt-16">
+            <div className="flex flex-col gap-10 lg:grid lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-[rgba(201,168,76,0.22)]">
+              {HOW_IT_WORKS_STEPS.map(({ title, text, Icon }, index) => (
+                <ScrollReveal key={title} variant="fadeUp">
+                  <div
+                    className={`relative flex flex-col items-center px-0 text-center lg:px-6 ${
+                      index > 0 ? "border-t border-[rgba(201,168,76,0.15)] pt-10 lg:border-t-0 lg:pt-0" : ""
+                    }`}
+                  >
+                    <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]">
+                      <Icon size={24} strokeWidth={1.65} aria-hidden />
+                    </span>
+                    <h3 className="mt-4 text-lg font-semibold text-white">{title}</h3>
+                    <p className="mt-2 max-w-[280px] text-sm leading-relaxed text-white/55 lg:max-w-none">{text}</p>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+
+          <ScrollReveal variant="fadeUp" className="mt-12 flex justify-center lg:mt-14">
+            <Link
+              href="/request"
+              className="inline-flex min-h-[48px] items-center justify-center rounded-lg bg-[#C9A84C] px-8 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
+            >
+              Start your request →
+            </Link>
+          </ScrollReveal>
+        </div>
+      </section>
+
       <section className="border-b border-white/[0.06] bg-[#0D1B2A] px-4 py-16 md:px-12 md:py-24 lg:px-20 lg:py-28">
         {!reduce ? (
           <motion.div
@@ -323,8 +393,6 @@ export default function HomePageClient({ howItWorksSlot, testimonialsSlot }: Pro
           </ScrollReveal>
         </div>
       </section>
-
-      <ScrollReveal variant="fadeIn">{howItWorksSlot}</ScrollReveal>
 
       <section className="bg-[#0D1B2A] py-20 md:py-28 lg:py-36">
         <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">

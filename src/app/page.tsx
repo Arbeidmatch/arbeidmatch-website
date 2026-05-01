@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import HowItWorksInteractive from "@/components/home/HowItWorksInteractive";
 import Testimonials from "@/components/Testimonials";
 import TikTokLiveBanner from "@/components/TikTokLiveBanner";
 import HomePageClient from "@/components/pages/HomePageClient";
@@ -40,10 +39,7 @@ export default async function Home() {
     <div className="bg-[#0D1B2A] text-white" style={{ background: "#0D1B2A", minHeight: "100vh" }}>
       <HomeFaqJsonLd />
       <TikTokLiveBanner />
-      <HomePageClient
-        howItWorksSlot={<HowItWorksInteractive />}
-        testimonialsSlot={<Testimonials />}
-      />
+      <HomePageClient testimonialsSlot={<Testimonials />} />
     </div>
   );
 }
