@@ -443,7 +443,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
               <span className="flex flex-col items-start gap-[2px]">
                 <span style={{ color: GOLD, fontSize: 14, fontWeight: 600 }}>I am from EU / EEA</span>
                 <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>
-                  Austria, Romania, Poland, Germany and more
+                  Many EU and EEA countries — check the official list if you are unsure
                 </span>
               </span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -459,7 +459,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
               <span className="flex flex-col items-start gap-[2px]">
                 <span style={{ color: GOLD, fontSize: 14, fontWeight: 600 }}>I am from outside EU / EEA</span>
                 <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>
-                  Philippines, India, Ukraine, Brazil and more
+                  Many countries outside the EU/EEA — rules depend on nationality and role
                 </span>
               </span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>

@@ -36,7 +36,7 @@ export const WELDING_CERT_ITEMS: WeldingCertItem[] = [
   {
     Icon: Globe,
     title: "EU/EEA Sourcing Network",
-    body: "We recruit from EU and EEA countries with established networks in Poland, Romania, Czech Republic, Slovakia, and the Baltic states where ISO-certified welding talent is concentrated.",
+    body: "We recruit from EU and EEA countries with established regional networks where ISO-certified welding talent is concentrated, then screen candidates to Norwegian employer standards.",
   },
   {
     Icon: Clock,

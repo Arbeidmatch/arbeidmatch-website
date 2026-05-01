@@ -123,7 +123,7 @@ export default function DsbTypeSelector({
                   🇪🇺
                 </p>
                 <h3 className="mt-3 text-2xl font-semibold text-white">EU/EEA Citizen</h3>
-                <p className="mt-2 text-xs text-white/75">Romania, Poland, Bulgaria, Hungary + 24 more</p>
+                <p className="mt-2 text-xs text-white/75">Covers all EU and EEA member states. See the official list if you are unsure.</p>
                 <ul className="mt-4 space-y-2 text-sm text-[#1D9E75]">
                   <li>- Faster process (2-4 months)</li>
                   <li>- No visa required</li>
@@ -144,7 +144,7 @@ export default function DsbTypeSelector({
                   🌍
                 </p>
                 <h3 className="mt-3 text-2xl font-semibold text-white">Non-EU Citizen</h3>
-                <p className="mt-2 text-xs text-white/75">Ukraine, India, Philippines, Serbia + others</p>
+                <p className="mt-2 text-xs text-white/75">For nationals outside the EU/EEA. Requirements depend on your situation.</p>
                 <ul className="mt-4 space-y-2 text-sm text-white/90">
                   <li>- Longer process (6-12 months)</li>
                   <li>- Work visa required</li>

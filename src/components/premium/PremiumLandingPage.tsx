@@ -446,7 +446,7 @@ export default function PremiumLandingPage() {
             {
               quote:
                 "The DSB approval guide alone saved me weeks of confusion. Everything is explained clearly and sourced from official pages. Worth the investment.",
-              who: "Electrician, Poland. Working in Bergen since 2024.",
+              who: "Electrician, EU/EEA. Working in Bergen since 2024.",
             },
             {
               quote:
@@ -456,7 +456,7 @@ export default function PremiumLandingPage() {
             {
               quote:
                 "I found the tax registration guide before my first week of work. Avoided mistakes that could have cost me money. Highly recommend.",
-              who: "Logistics worker, Romania. Based in Stavanger.",
+              who: "Logistics worker, EU/EEA. Based in Stavanger.",
             },
           ].map((t) => (
             <div key={t.who} className="rounded-[14px] bg-white/[0.04] p-7">
