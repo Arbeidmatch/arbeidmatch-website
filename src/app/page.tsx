@@ -7,20 +7,31 @@ import HomeFaqJsonLd from "@/components/seo/HomeFaqJsonLd";
 
 export const revalidate = 60;
 
+const TITLE = "Qualified EU/EEA Workers for Norway | ArbeidMatch";
+const DESCRIPTION =
+  "Connect your Norwegian business with pre-screened EU/EEA workers in construction, logistics, and industry. Compliant recruitment with clear expectations.";
+
+const OG_IMAGE = {
+  url: "/og-image.png",
+  width: 1200,
+  height: 630,
+  alt: "ArbeidMatch | EU/EEA Recruitment Norway",
+} as const;
+
 export const metadata: Metadata = {
-  title: "EU/EEA Staffing for Norway | ArbeidMatch",
-  description:
-    "Staffing agency in Trondheim connecting qualified EU/EEA workers with Norwegian employers in construction, logistics, and industry.",
+  title: TITLE,
+  description: DESCRIPTION,
   openGraph: {
-    title: "EU/EEA Staffing for Norway | ArbeidMatch",
-    description:
-      "Staffing agency in Trondheim connecting qualified EU/EEA workers with Norwegian employers in construction, logistics, and industry.",
+    title: TITLE,
+    description: DESCRIPTION,
     locale: "en_US",
+    images: [OG_IMAGE],
   },
   twitter: {
-    title: "EU/EEA Staffing for Norway | ArbeidMatch",
-    description:
-      "Staffing agency in Trondheim connecting qualified EU/EEA workers with Norwegian employers in construction, logistics, and industry.",
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["/og-image.png"],
   },
 };
 

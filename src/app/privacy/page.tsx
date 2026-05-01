@@ -2,11 +2,29 @@ import type { Metadata } from "next";
 
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
-export const metadata: Metadata = nbPageMetadata(
-  "/privacy",
-  "Privacy Policy | ArbeidMatch",
-  "How ArbeidMatch collects, uses and protects your personal data. GDPR compliant.",
-);
+const PRIVACY_TITLE = "Privacy Policy | ArbeidMatch";
+const PRIVACY_DESCRIPTION = "How ArbeidMatch collects, uses and protects your personal data. GDPR compliant.";
+
+const OG_IMAGE = {
+  url: "/og-image.png",
+  width: 1200,
+  height: 630,
+  alt: "ArbeidMatch | EU/EEA Recruitment Norway",
+} as const;
+
+const privacyBase = nbPageMetadata("/privacy", PRIVACY_TITLE, PRIVACY_DESCRIPTION);
+
+export const metadata: Metadata = {
+  ...privacyBase,
+  openGraph: {
+    ...privacyBase.openGraph,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    ...privacyBase.twitter,
+    images: ["/og-image.png"],
+  },
+};
 
 export default function PrivacyPage() {
   return (

@@ -2,11 +2,29 @@ import type { Metadata } from "next";
 
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
-export const metadata: Metadata = nbPageMetadata(
-  "/terms",
-  "Terms of Service | ArbeidMatch",
-  "Terms and conditions for using ArbeidMatch services for employers and candidates.",
-);
+const TERMS_TITLE = "Terms of Service | ArbeidMatch";
+const TERMS_DESCRIPTION = "Terms and conditions for using ArbeidMatch services for employers and candidates.";
+
+const OG_IMAGE = {
+  url: "/og-image.png",
+  width: 1200,
+  height: 630,
+  alt: "ArbeidMatch | EU/EEA Recruitment Norway",
+} as const;
+
+const termsBase = nbPageMetadata("/terms", TERMS_TITLE, TERMS_DESCRIPTION);
+
+export const metadata: Metadata = {
+  ...termsBase,
+  openGraph: {
+    ...termsBase.openGraph,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    ...termsBase.twitter,
+    images: ["/og-image.png"],
+  },
+};
 
 export default function TermsPage() {
   return (
