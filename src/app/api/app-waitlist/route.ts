@@ -76,6 +76,7 @@ Visit https://arbeidmatch.no`,
             body: inner,
             ctaText: "Visit ArbeidMatch",
             ctaUrl: "https://arbeidmatch.no",
+            recipientEmail: email,
             unsubscribeToken: unsubToken,
           }),
         });

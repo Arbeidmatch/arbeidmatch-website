@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
     const html = buildEmail({
       title: "Your secure access link is ready.",
       preheader: "Partner verification completed. Secure access link inside.",
+      recipientEmail: email,
       body: `
         <div style="background:#0D1B2A;max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;">
           <div style="background:#0a0f18;padding:32px 36px;text-align:center;">

@@ -232,6 +232,7 @@ export async function POST(request: NextRequest) {
           body: employerInner,
           ctaText: "Share feedback",
           ctaUrl: "https://arbeidmatch.no/feedback",
+          recipientEmail: data.email,
           unsubscribeToken: unsubToken,
         }),
       });
@@ -257,6 +258,7 @@ export async function POST(request: NextRequest) {
           body: referralInner,
           ctaText: "Contact us",
           ctaUrl: "https://arbeidmatch.no/contact",
+          recipientEmail: data.referralEmail,
           unsubscribeToken: referralUnsubToken,
         }),
       });

@@ -5,6 +5,7 @@ import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { applyRecipientEmailPlaceholders, UNSUBSCRIBED_PAGE_EMAIL_HREF } from "@/lib/websiteEmailTemplates";
 
 const freeEmailDomains = new Set([
   "gmail.com",
@@ -111,7 +112,8 @@ export async function POST(request: NextRequest) {
     }
 
     const applicationUrl = `https://arbeidmatch.no/become-a-partner?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
-    const unsubscribeUrl = "mailto:post@arbeidmatch.no?subject=Unsubscribe%20from%20ArbeidMatch%20emails";
+    const unsubscribeUrl = UNSUBSCRIBED_PAGE_EMAIL_HREF;
+    const unsubscribeResolved = `https://arbeidmatch.no/unsubscribed?email=${encodeURIComponent(email)}`;
 
     const transporter = createSmtpTransporter();
     if (transporter) {
@@ -124,8 +126,8 @@ export async function POST(request: NextRequest) {
           `This link is confidential and valid for 30 minutes.\n` +
           `Source website: https://arbeidmatch.no\n\n` +
           `If you did not request this email, ignore it.\n` +
-          `To stop receiving emails, unsubscribe here: ${unsubscribeUrl}`,
-        html: buildStartEmailHtml(applicationUrl, unsubscribeUrl),
+          `To stop receiving emails, open: ${unsubscribeResolved}`,
+        html: applyRecipientEmailPlaceholders(buildStartEmailHtml(applicationUrl, unsubscribeUrl), email),
       });
     }
 

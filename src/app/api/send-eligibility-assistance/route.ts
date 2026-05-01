@@ -206,6 +206,7 @@ If the button does not work, reply to this email for help.`,
           title: "Verify your email for notifications",
           preheader: "Confirm consent and activate your subscription",
           body: candidateInner,
+          recipientEmail: emailTrimmed,
           unsubscribeToken: unsubToken,
         }),
       });

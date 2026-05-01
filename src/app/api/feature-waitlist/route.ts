@@ -6,6 +6,7 @@ import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { notifyError } from "@/lib/errorNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { isUnsubscribed } from "@/lib/emailSubscription";
+import { applyRecipientEmailPlaceholders, UNSUBSCRIBED_PAGE_EMAIL_HREF } from "@/lib/websiteEmailTemplates";
 
 export const dynamic = "force-dynamic";
 
@@ -91,15 +92,7 @@ export async function POST(request: NextRequest) {
         if (await isUnsubscribed(email)) {
           return NextResponse.json({ success: true });
         }
-        await transporter.sendMail({
-          ...mailHeaders(),
-          to: email,
-          subject: "You are on the waitlist",
-          text: `Hi, you have been added to the waitlist for ${feature} on ArbeidMatch. We will notify you at this email when it becomes available. Unsubscribe anytime by replying to this email.
-
-Best regards,
-ArbeidMatch Team`,
-          html: `
+        const featureWaitlistHtml = `
             <div style="background:#0D1B2A;max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,system-ui,sans-serif;">
               <div style="background:#0a0f18;padding:32px 36px;text-align:center;">
                 <span style="color:#ffffff;font-weight:700;font-size:24px;">Arbeid</span><span style="color:#C9A84C;font-weight:700;font-size:24px;">Match</span>
@@ -123,10 +116,21 @@ ArbeidMatch Team`,
                   <a href="mailto:post@arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">post@arbeidmatch.no</a>
                   <span> | </span>
                   <a href="https://arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">arbeidmatch.no</a>
+                  <span> | </span>
+                  <a href="${UNSUBSCRIBED_PAGE_EMAIL_HREF}" style="color:rgba(201,168,76,0.5);text-decoration:none;">Unsubscribe</a>
                 </p>
               </div>
             </div>
-          `,
+          `;
+        await transporter.sendMail({
+          ...mailHeaders(),
+          to: email,
+          subject: "You are on the waitlist",
+          text: `Hi, you have been added to the waitlist for ${feature} on ArbeidMatch. We will notify you at this email when it becomes available. Unsubscribe anytime by replying to this email.
+
+Best regards,
+ArbeidMatch Team`,
+          html: applyRecipientEmailPlaceholders(featureWaitlistHtml, email),
         });
       } catch {
         /* ignore */

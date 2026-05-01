@@ -104,6 +104,7 @@ export async function POST(request: NextRequest) {
           title: "We received your message",
           preheader: "Our team will respond shortly",
           body: userInner,
+          recipientEmail: email,
           unsubscribeToken: unsubToken,
         }),
       });

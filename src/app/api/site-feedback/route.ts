@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
         title: "Thank you for your feedback",
         preheader: "Your feedback helps us improve",
         body: userInner,
+        recipientEmail: emailRaw,
       }),
     });
 

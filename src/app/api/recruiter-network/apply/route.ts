@@ -153,6 +153,7 @@ export async function POST(request: NextRequest) {
           body: applicantHtml,
           ctaText: "Visit ArbeidMatch",
           ctaUrl: "https://arbeidmatch.no",
+          recipientEmail: email,
           unsubscribeToken: unsubToken,
         }),
       });

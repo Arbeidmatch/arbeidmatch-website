@@ -129,6 +129,7 @@ export async function POST(request: NextRequest) {
             title: "You are registered with ArbeidMatch",
             preheader: "We will notify you when opportunities match your profile",
             body: htmlBody,
+            recipientEmail: email,
             unsubscribeToken: unsubToken,
           }),
         });

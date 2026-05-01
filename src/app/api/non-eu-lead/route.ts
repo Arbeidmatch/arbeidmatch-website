@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         ...mailHeaders(),
         to: emailLower,
         subject: "Your free Norway work guide — ArbeidMatch",
-        html: buildNonEuLeadEmail(firstName, unsubToken),
+        html: buildNonEuLeadEmail(firstName, emailLower, unsubToken),
       });
     }
 

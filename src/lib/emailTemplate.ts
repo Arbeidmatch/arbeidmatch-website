@@ -1,4 +1,5 @@
 import { escapeHtml } from "@/lib/htmlSanitizer";
+import { applyRecipientEmailPlaceholders, UNSUBSCRIBED_PAGE_EMAIL_HREF } from "@/lib/websiteEmailTemplates";
 
 /** Label + value as two stacked <p> tags only (no wrapper). */
 export function buildEmailFieldRow(label: string, valueHtml: string): string {
@@ -30,8 +31,10 @@ export function buildEmail(options: {
   ctaUrl?: string;
   footerNote?: string;
   unsubscribeToken?: string;
+  /** When set, footer includes notification settings link and placeholders are replaced. */
+  recipientEmail?: string;
 }): string {
-  const { title, preheader, body, ctaText, ctaUrl, footerNote, unsubscribeToken } = options;
+  const { title, preheader, body, ctaText, ctaUrl, footerNote, unsubscribeToken, recipientEmail } = options;
   const safeTitle = escapeHtml(title);
   const preheaderBlock = preheader
     ? `<p style="margin:0 0 24px 0;font-size:13px;color:#C9A84C;">${escapeHtml(preheader)}</p>`
@@ -49,7 +52,21 @@ export function buildEmail(options: {
     ? `<p style="margin:8px 0 0 0;font-size:11px;color:rgba(255,255,255,0.2);">${escapeHtml(footerNote)}</p>`
     : "";
 
-  return `<!DOCTYPE html>
+  const recipientTrimmed = recipientEmail?.trim() ?? "";
+  const footerLinks: string[] = [];
+  if (unsubscribeToken) {
+    footerLinks.push(
+      `<a href="https://arbeidmatch.no/api/unsubscribe?token=${escapeHtml(unsubscribeToken)}" style="color:rgba(255,255,255,0.2);text-decoration:none;">unsubscribe</a>`,
+    );
+  }
+  if (recipientTrimmed) {
+    footerLinks.push(
+      `<a href="${UNSUBSCRIBED_PAGE_EMAIL_HREF}" style="color:rgba(255,255,255,0.2);text-decoration:none;">notification settings</a>`,
+    );
+  }
+  const footerLinkBlock = footerLinks.length ? ` | ${footerLinks.join(" | ")}` : "";
+
+  let html = `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body style="margin:0;padding:0;background:#0D1B2A;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
@@ -84,10 +101,15 @@ export function buildEmail(options: {
     <!-- Footer -->
     <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">ArbeidMatch Norge AS | Org.nr 935 667 089 MVA</p>
     <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway</p>
-    <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">post@arbeidmatch.no | arbeidmatch.no${unsubscribeToken ? ` | <a href="https://arbeidmatch.no/api/unsubscribe?token=${escapeHtml(unsubscribeToken)}" style="color:rgba(255,255,255,0.2);text-decoration:none;">unsubscribe</a>` : ""}</p>
+    <p style="margin:0 0 4px 0;font-size:11px;color:rgba(255,255,255,0.35);">post@arbeidmatch.no | arbeidmatch.no${footerLinkBlock}</p>
     ${footerNoteBlock}
 
   </div>
 </body>
 </html>`;
+
+  if (recipientTrimmed) {
+    html = applyRecipientEmailPlaceholders(html, recipientTrimmed);
+  }
+  return html;
 }

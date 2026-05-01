@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
           title: "DSB support notification registered",
           preheader: "We registered your DSB assistance interest",
           body: userInner,
+          recipientEmail: data.email,
           unsubscribeToken: unsubToken,
         }),
       });

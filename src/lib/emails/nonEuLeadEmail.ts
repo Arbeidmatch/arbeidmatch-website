@@ -2,7 +2,7 @@ import { buildEmail, emailBodyParagraph } from "@/lib/emailTemplate";
 import { escapeHtml } from "@/lib/htmlSanitizer";
 
 /** Lead magnet HTML for non-EU candidates who request the free overview. */
-export function buildNonEuLeadEmail(firstName: string, unsubscribeToken?: string): string {
+export function buildNonEuLeadEmail(firstName: string, recipientEmail: string, unsubscribeToken?: string): string {
   const name = escapeHtml(firstName);
   const heading = "margin:0 0 10px;font-size:15px;font-weight:600;color:#C9A84C;";
   const body = [
@@ -37,6 +37,7 @@ export function buildNonEuLeadEmail(firstName: string, unsubscribeToken?: string
     title: "You asked about working in Norway",
     preheader: "Here is what most people get wrong before they start",
     body,
+    recipientEmail,
     unsubscribeToken,
     footerNote:
       "ArbeidMatch Norge AS is a private recruitment agency, not an official Norwegian authority. Information shared is general guidance only.",

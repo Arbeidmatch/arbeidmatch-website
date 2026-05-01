@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
               title: DSB_CHECKLIST_EMAIL_SUBJECT,
               preheader: "Your DSB checklist is ready",
               body: buildDsbChecklistEmailBodyHtml(firstName),
+              recipientEmail: email,
               unsubscribeToken: unsubToken,
             }),
           });
