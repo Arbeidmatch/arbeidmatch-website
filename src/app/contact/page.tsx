@@ -3,7 +3,7 @@ import ContactPageClient from "@/components/ContactPageClient";
 
 const TITLE = "Contact Us | ArbeidMatch";
 const DESCRIPTION =
-  "Reach ArbeidMatch for EU/EEA staffing and recruitment questions in Norway. We respond promptly and help you plan compliant hiring.";
+  "Have a question or ready to find workers for your business? Contact ArbeidMatch. We respond within 1 business day.";
 
 const OG_IMAGE = {
   url: "/og-image.png",

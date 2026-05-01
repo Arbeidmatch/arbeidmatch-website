@@ -38,12 +38,13 @@ export async function POST(request: NextRequest) {
     const body = sanitizeStringRecord(rawBody) as ContactPayload;
 
     const name = (body.name || "").trim();
-    const company = (body.company || "").trim();
+    const companyRaw = (body.company || "").trim();
+    const company = companyRaw || "Not provided";
     const email = (body.email || "").trim();
-    const need = (body.need || "").trim();
+    const need = (body.need || "").trim() || "Website contact";
     const message = (body.message || "").trim();
 
-    if (!name || !company || !email || !email.includes("@") || !need || !message) {
+    if (!name || !email || !email.includes("@") || !message) {
       return NextResponse.json({ success: false, error: "Please fill in all required fields." }, { status: 400 });
     }
 
@@ -122,7 +123,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     await notifyError({ route: "/api/contact", error });
-    console.error("contact route error", error);
     return NextResponse.json({ success: false, error: "Could not send message." }, { status: 500 });
   }
 }
