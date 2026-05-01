@@ -42,8 +42,9 @@ const ressurserLinks: { href: string; label: string; premium?: boolean }[] = [
 ];
 
 const primaryDesktopLinks = [
-  { href: "/for-employers", label: "For Employers" },
+  { href: "/request", label: "For Employers" },
   { href: "/for-candidates", label: "For Candidates" },
+  { href: "/contact", label: "Contact" },
 ] as const;
 
 const megaAllHrefs = [tjenesterStaffingLink, ...tjenesterIndustryLinks, ...stederLinks, ...ressurserLinks];
@@ -62,8 +63,7 @@ const megaColLabelClass =
 const megaLinkClass =
   "flex min-h-[44px] min-w-[44px] items-center rounded-md px-6 py-3 text-[14px] text-[rgba(255,255,255,0.7)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.03)] hover:text-white lg:min-h-0 lg:min-w-0 lg:px-3 lg:py-2";
 
-const megaPanelInnerClass =
-  "rounded-2xl border border-black/[0.06] bg-[#0D1B2A] p-8 shadow-[0_8px_32px_rgba(255,255,255,0.03)]";
+const megaPanelInnerClass = "rounded-2xl border border-[rgba(201,168,76,0.12)] bg-[#0D1B2A] p-8";
 
 const DRAWER_EASE = [0.32, 0.72, 0, 1] as const;
 
@@ -124,11 +124,11 @@ export default function Navbar() {
   }, [isOpen]);
 
   const navItemClass =
-    "shrink-0 text-[15px] font-normal text-[rgba(255,255,255,0.7)] transition-[color,font-weight] duration-150 hover:font-medium hover:text-white";
+    "shrink-0 text-[15px] font-normal text-white/70 transition-[color,font-weight,text-decoration-color] duration-150 hover:font-medium hover:text-white";
 
   const headerSurface = scrolled
-    ? "border-b border-black/[0.06] bg-[#0D1B2A]/95 shadow-[0_1px_0_rgba(255,255,255,0.03)] backdrop-blur-md"
-    : "border-b border-black/[0.06] bg-[#0D1B2A]/90 backdrop-blur-sm";
+    ? "border-b border-[rgba(255,255,255,0.06)] bg-[#0D1B2A] backdrop-blur-md"
+    : "border-b border-[rgba(255,255,255,0.06)] bg-[#0D1B2A] backdrop-blur-sm";
 
   const closeMenu = () => setIsOpen(false);
   const closeMegaMenu = () => setIsMegaOpen(false);
@@ -179,19 +179,17 @@ export default function Navbar() {
         <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-4 px-6 md:h-16 md:min-h-[64px] md:px-12 lg:h-[72px] lg:min-h-[72px] lg:gap-10 lg:px-20">
           <Link
             href="/"
-            className="block min-h-[44px] min-w-fit shrink-0 leading-[44px]"
-            style={{ whiteSpace: "nowrap", display: "flex", alignItems: "center" }}
+            className="flex min-h-[44px] min-w-fit shrink-0 items-center whitespace-nowrap text-[1.25rem] font-bold leading-[44px] text-[#C9A84C]"
           >
-            <span style={{ color: "#ffffff", fontWeight: 700, fontSize: "1.25rem" }}>Arbeid</span>
-            <span style={{ color: "#C9A84C", fontWeight: 700, fontSize: "1.25rem" }}>Match</span>
+            ArbeidMatch
           </Link>
 
-          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-10 lg:flex">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-8 lg:flex lg:gap-10">
             {primaryDesktopLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`${navItemClass} ${linkActive(pathname, link.href) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""}`}
+                className={`${navItemClass} ${linkActive(pathname, link.href) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""}`}
               >
                 {link.label}
               </Link>
@@ -204,7 +202,7 @@ export default function Navbar() {
             >
               <span
                 className={`inline-flex min-h-[44px] cursor-default items-center gap-1 ${navItemClass} ${
-                  megaHasActive(pathname) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-8" : ""
+                  megaHasActive(pathname) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""
                 }`}
               >
                 Mer
@@ -309,9 +307,9 @@ export default function Navbar() {
           <div className="hidden shrink-0 md:block">
             <Link
               href="/request"
-              className="btn-gold-premium inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-[15px] font-medium text-white hover:bg-gold-hover"
+              className="inline-flex min-h-[40px] min-w-[44px] items-center justify-center rounded-[6px] bg-[#C9A84C] px-4 py-2 text-[14px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
             >
-              Request Candidates
+              Request candidates
             </Link>
           </div>
 

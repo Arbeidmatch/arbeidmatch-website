@@ -12,7 +12,7 @@ const GOLD = "#C9A84C";
 const employerTjenesterStaffing = { href: "/for-staffing-agencies", label: "For bemanningsbyråer" } as const;
 
 const employerTjenester: { href: string; label: string }[] = [
-  { href: "/for-employers", label: "For arbeidsgivere" },
+  { href: "/request", label: "For arbeidsgivere" },
   { href: "/welding-specialists", label: "Sveisespesialister" },
   { href: "/bemanning-bygg-anlegg", label: "Bygg og Anlegg" },
   { href: "/bemanning-logistikk", label: "Logistikk" },
@@ -194,9 +194,8 @@ export default function MobileDrawerContent({
   return (
     <>
       <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-6 py-5">
-        <Link href="/" className="text-xl font-bold" onClick={onClose}>
-          <span className="text-white">Arbeid</span>
-          <span className="text-[#C9A84C]">Match</span>
+        <Link href="/" className="text-xl font-bold text-[#C9A84C]" onClick={onClose}>
+          ArbeidMatch
         </Link>
         <button
           type="button"
@@ -229,9 +228,28 @@ export default function MobileDrawerContent({
       ) : null}
 
       <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <SectionLabel>Menu</SectionLabel>
+        <DrawerRowLink href="/request" pathname={pathname} onClose={onClose}>
+          For Employers
+        </DrawerRowLink>
+        <DrawerRowLink href="/for-candidates" pathname={pathname} onClose={onClose}>
+          For Candidates
+        </DrawerRowLink>
+        <DrawerRowLink href="/contact" pathname={pathname} onClose={onClose}>
+          Contact
+        </DrawerRowLink>
+        <div className="border-b border-white/[0.06] px-6 py-4">
+          <Link
+            href="/request"
+            onClick={onClose}
+            className="flex min-h-[44px] w-full items-center justify-center rounded-[6px] bg-[#C9A84C] text-[14px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
+          >
+            Request candidates
+          </Link>
+        </div>
         {stateA ? (
           <>
-            <p className="px-6 py-4 text-[13px] text-white/50">Choose your profile to see relevant options</p>
+            <p className="border-t border-white/[0.08] px-6 py-4 text-[13px] text-white/50">Choose your profile to see relevant options</p>
             <div className="flex gap-2 px-6 pb-4">
               <button
                 type="button"
@@ -316,7 +334,7 @@ export default function MobileDrawerContent({
         {role === "employer" ? (
           <>
             <div
-              className="flex items-center justify-between border-b border-white/[0.06] px-6 py-3"
+              className="flex items-center justify-between border-t border-b border-white/[0.06] px-6 py-3"
               style={{ background: "rgba(201,168,76,0.08)" }}
             >
               <span className="inline-flex items-center gap-2 text-[12px] font-medium" style={{ color: GOLD }}>
@@ -374,7 +392,7 @@ export default function MobileDrawerContent({
         {role === "candidate" ? (
           <>
             <div
-              className="flex items-center justify-between border-b border-white/[0.06] px-6 py-3"
+              className="flex items-center justify-between border-t border-b border-white/[0.06] px-6 py-3"
               style={{ background: "rgba(201,168,76,0.08)" }}
             >
               <span className="inline-flex items-center gap-2 text-[12px] font-medium" style={{ color: GOLD }}>
