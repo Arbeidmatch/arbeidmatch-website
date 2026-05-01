@@ -22,6 +22,7 @@ import {
 
 import BemanningCard from "@/components/home/BemanningCard";
 import HomeIndustriesSection from "@/components/home/HomeIndustriesSection";
+import HomeWhyArbeidMatchSection from "@/components/home/HomeWhyArbeidMatchSection";
 import HomeWelcomeUserTypeSlideup from "@/components/home/HomeWelcomeUserTypeSlideup";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -255,6 +256,8 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
       </section>
 
       <HomeIndustriesSection />
+
+      <HomeWhyArbeidMatchSection />
 
       <section className="border-b border-white/[0.06] bg-[#0D1B2A] px-4 py-16 md:px-12 md:py-24 lg:px-20 lg:py-28">
         {!reduce ? (
