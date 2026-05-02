@@ -53,7 +53,8 @@ type RequestForm = {
   salaryMode: "Range" | "Fixed";
   overtime: string;
   accommodation: string;
-  accommodationSupport: string;
+  /** NOK or free text; only used when accommodation is we-help option */
+  accommodationCost: string;
   /** Stored as employer_requests.international_travel text: company_covered | own_responsibility */
   internationalTransport: string;
   localTransport: string;
@@ -80,6 +81,9 @@ type RequestForm = {
   /** Exact label from rotation dropdown; also appended to requirements on submit */
   rotationSchedule: string;
 };
+
+const ACCOMMODATION_WE_HELP = "We help find accommodation";
+const ACCOMMODATION_CANDIDATE_OWN = "Candidate finds own";
 
 const ROTATION_SCHEDULE_OPTIONS = [
   "No rotation / Standard schedule",
@@ -170,7 +174,9 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
   } else if (s === 2) {
     if (!f.salaryMin.trim()) invalid.add("salaryMin");
     if (!f.salaryMax.trim()) invalid.add("salaryMax");
-    if (!f.accommodation) invalid.add("accommodation");
+    if (f.accommodation !== ACCOMMODATION_WE_HELP && f.accommodation !== ACCOMMODATION_CANDIDATE_OWN) {
+      invalid.add("accommodation");
+    }
     if (!f.localTransport) invalid.add("localTransport");
     if (f.internationalTransport !== "company_covered" && f.internationalTransport !== "own_responsibility") {
       invalid.add("internationalTransport");
@@ -483,8 +489,8 @@ const initialForm: RequestForm = {
   salaryPeriod: "per hour",
   salaryMode: "Range",
   overtime: "",
-  accommodation: "Not provided",
-  accommodationSupport: "Can help candidate find accommodation",
+  accommodation: ACCOMMODATION_CANDIDATE_OWN,
+  accommodationCost: "",
   internationalTransport: "own_responsibility",
   localTransport: "Not covered",
   urgency: "Specific start date",
@@ -1044,8 +1050,8 @@ export default function RequestTokenPage() {
       localTravel: form.localTransport ?? "",
       localTravelOther: "",
       accommodation: form.accommodation ?? "",
-      accommodationCost: "",
-      accommodationOther: form.accommodationSupport,
+      accommodationCost: form.accommodation === ACCOMMODATION_WE_HELP ? form.accommodationCost.trim() : "",
+      accommodationOther: "",
       equipment: "",
       equipmentOther: "",
       tools: "",
@@ -2097,13 +2103,17 @@ export default function RequestTokenPage() {
                 <div data-wizard-field="accommodation">
                   <p className={labelClass}>Accommodation</p>
                   <div className={wizardGroupShell(!!fieldErrors.accommodation, "grid grid-cols-1 gap-2 md:grid-cols-2")}>
-                    {["Provided", "Not provided"].map((option) => (
+                    {[ACCOMMODATION_WE_HELP, ACCOMMODATION_CANDIDATE_OWN].map((option) => (
                       <OptionCard
                         key={option}
                         label={option}
                         selected={form.accommodation === option}
                         onClick={() => {
-                          setForm((p) => ({ ...p, accommodation: option }));
+                          setForm((p) => ({
+                            ...p,
+                            accommodation: option,
+                            accommodationCost: option === ACCOMMODATION_WE_HELP ? p.accommodationCost : "",
+                          }));
                           clearFieldError("accommodation");
                         }}
                       />
@@ -2111,14 +2121,28 @@ export default function RequestTokenPage() {
                   </div>
                   {fieldErrors.accommodation ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
-                {form.accommodation === "Not provided" ? (
-                  <input
-                    className={wizardInputClass(false)}
-                    value={form.accommodationSupport}
-                    onChange={(e) => setForm((p) => ({ ...p, accommodationSupport: e.target.value }))}
-                    placeholder="(optional)"
-                  />
-                ) : null}
+                <div
+                  aria-hidden={form.accommodation !== ACCOMMODATION_WE_HELP}
+                  className={`overflow-hidden transition-all duration-200 ease-out ${
+                    form.accommodation === ACCOMMODATION_WE_HELP
+                      ? "max-h-[160px] opacity-100"
+                      : "pointer-events-none max-h-0 opacity-0"
+                  }`}
+                >
+                  <div className="pb-1 pt-2">
+                    <p className={labelClass}>Accommodation cost</p>
+                    <input
+                      className={wizardInputClass(false)}
+                      value={form.accommodation === ACCOMMODATION_WE_HELP ? form.accommodationCost : ""}
+                      onChange={(e) => {
+                        if (form.accommodation !== ACCOMMODATION_WE_HELP) return;
+                        setForm((p) => ({ ...p, accommodationCost: e.target.value }));
+                      }}
+                      placeholder="e.g. 5000 NOK or describe"
+                      tabIndex={form.accommodation === ACCOMMODATION_WE_HELP ? 0 : -1}
+                    />
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div data-wizard-field="localTransport">
                     <p className={labelClass}>Local travel</p>
