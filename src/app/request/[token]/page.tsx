@@ -2198,31 +2198,57 @@ export default function RequestTokenPage() {
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div data-wizard-field="salaryMin">
-                    <input
-                      className={wizardInputClass(!!fieldErrors.salaryMin)}
-                      value={form.salaryMin}
-                      onChange={(e) => {
-                        setForm((p) => ({ ...p, salaryMin: e.target.value }));
-                        clearFieldError("salaryMin");
-                      }}
-                      placeholder="Salary min"
-                    />
-                    {fieldErrors.salaryMin ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                <div className="space-y-2">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+                    <p className="block text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
+                      Salary (per hour, NOK)
+                    </p>
+                    <a
+                      href="https://www.arbeidstilsynet.no/arbeidsforhold/lonn/minstelonn/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 text-[11px] font-medium text-[#C9A84C] underline decoration-[#C9A84C]/40 underline-offset-2 hover:text-[#b8953f]"
+                    >
+                      View minimum wages →
+                    </a>
                   </div>
-                  <div data-wizard-field="salaryMax">
-                    <input
-                      className={wizardInputClass(!!fieldErrors.salaryMax)}
-                      value={form.salaryMax}
-                      onChange={(e) => {
-                        setForm((p) => ({ ...p, salaryMax: e.target.value }));
-                        clearFieldError("salaryMax");
-                      }}
-                      placeholder="Salary max"
-                    />
-                    {fieldErrors.salaryMax ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div data-wizard-field="salaryMin">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        step={1}
+                        className={wizardInputClass(!!fieldErrors.salaryMin)}
+                        value={form.salaryMin}
+                        onChange={(e) => {
+                          setForm((p) => ({ ...p, salaryMin: e.target.value }));
+                          clearFieldError("salaryMin");
+                        }}
+                        placeholder="e.g. 220 NOK/hour"
+                      />
+                      {fieldErrors.salaryMin ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                    </div>
+                    <div data-wizard-field="salaryMax">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        step={1}
+                        className={wizardInputClass(!!fieldErrors.salaryMax)}
+                        value={form.salaryMax}
+                        onChange={(e) => {
+                          setForm((p) => ({ ...p, salaryMax: e.target.value }));
+                          clearFieldError("salaryMax");
+                        }}
+                        placeholder="To (NOK/hour)"
+                      />
+                      {fieldErrors.salaryMax ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                    </div>
                   </div>
+                  <p className="text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    Must meet Arbeidstilsynet minimum wage requirements
+                  </p>
                 </div>
                 <div data-wizard-field="accommodation">
                   <p className={labelClass}>Accommodation</p>
