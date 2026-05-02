@@ -9,8 +9,8 @@ const contentSecurityPolicy = [
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   "frame-src https://challenges.cloudflare.com",
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://challenges.cloudflare.com",
-  "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://data.brreg.no https://challenges.cloudflare.com",
+  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+  "connect-src 'self' https://data.brreg.no https://challenges.cloudflare.com",
   "form-action 'self'",
 ].join("; ");
 

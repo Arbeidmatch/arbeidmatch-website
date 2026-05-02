@@ -1,35 +1,11 @@
-declare global {
-  interface Window {
-    gtag?: (command: "event", eventName: string, params?: Record<string, string | number>) => void;
-  }
-}
+/** No-op stubs: GA4 removed (AM-WEB-080). */
 
-export function trackRequestStart(category: string) {
-  if (typeof window !== "undefined" && window.gtag) {
-    window.gtag("event", "request_start", { category });
-  }
-}
+export function trackRequestStart(_category: string) {}
 
-export function trackRequestStepComplete(step: number, category: string) {
-  if (typeof window !== "undefined" && window.gtag) {
-    window.gtag("event", "request_step_complete", { step, category });
-  }
-}
+export function trackRequestStepComplete(_step: number, _category: string) {}
 
-export function trackRequestSubmit(category: string, candidates_count: number) {
-  if (typeof window !== "undefined" && window.gtag) {
-    window.gtag("event", "request_submit", { category, candidates_count });
-  }
-}
+export function trackRequestSubmit(_category: string, _candidates_count: number) {}
 
-export function trackRareProfileView(category: string, count: number) {
-  if (typeof window !== "undefined" && window.gtag) {
-    window.gtag("event", "rare_profile_view", { category, count });
-  }
-}
+export function trackRareProfileView(_category: string, _count: number) {}
 
-export function trackPartnerAccessRequest() {
-  if (typeof window !== "undefined" && window.gtag) {
-    window.gtag("event", "partner_access_request");
-  }
-}
+export function trackPartnerAccessRequest() {}

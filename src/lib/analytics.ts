@@ -1,5 +1,2 @@
-export function trackEvent(eventName: string, params?: Record<string, string | number | boolean>) {
-  if (typeof window === "undefined") return;
-  if (!(window as any).gtag) return;
-  (window as any).gtag("event", eventName, params);
-}
+/** No-op: GA4 removed (AM-WEB-080). Call sites unchanged; no third-party analytics. */
+export function trackEvent(_eventName: string, _params?: Record<string, string | number | boolean>) {}
