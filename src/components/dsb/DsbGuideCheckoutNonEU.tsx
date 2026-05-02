@@ -1,11 +1,11 @@
 "use client";
 
-import DsbGuideCheckoutMobilePremium from "@/components/dsb/DsbGuideCheckoutMobilePremium";
+import DsbGuideCheckoutMobileLayout from "@/components/dsb/DsbGuideCheckoutMobileLayout";
 
 /**
- * Non-EU DSB checkout page: no email field on this site. Primary CTA calls `/api/dsb-guide/checkout`
- * with `guideType: "non-eu"`, then redirects to Stripe Checkout (email and card collected there).
+ * Non-EU DSB sales shell (optional): when `DSB_PAYMENT_ENABLED` is true, CTA calls the dsb-guide session API.
+ * Default BETA: guides are served free from `/dsb-support/non-eu`.
  */
 export default function DsbGuideCheckoutNonEU() {
-  return <DsbGuideCheckoutMobilePremium variant="non-eu" />;
+  return <DsbGuideCheckoutMobileLayout variant="non-eu" />;
 }

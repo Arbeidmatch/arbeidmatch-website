@@ -1,4 +1,5 @@
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
+import { isDsbPaymentEnabled } from "@/lib/dsbPaymentEnv";
 
 export type DsbGuideSlug = "eu" | "non-eu";
 
@@ -16,6 +17,7 @@ export function resolveStripePriceId(slug: DsbGuideSlug, dbPriceId: string): str
 }
 
 export type GuidePageState =
+  | { kind: "free_public" }
   | { kind: "missing" }
   | { kind: "invalid" }
   | { kind: "wrong_guide" }
@@ -27,6 +29,10 @@ export async function resolveGuidePageState(
   token: string | undefined,
   expectedSlug: DsbGuideSlug,
 ): Promise<GuidePageState> {
+  if (!isDsbPaymentEnabled()) {
+    return { kind: "free_public" };
+  }
+
   if (!token?.trim()) return { kind: "missing" };
 
   const supabase = getSupabaseServiceClient();

@@ -129,7 +129,7 @@ export default function DsbTypeSelector({
                   <li>- No visa required</li>
                   <li>- Job placement available</li>
                 </ul>
-                <p className="mt-4 text-2xl font-bold text-gold">15 EUR</p>
+                <p className="mt-4 text-sm font-semibold text-gold">Free guide for candidates</p>
                 <button
                   type="button"
                   onClick={() => selectType("eu")}
@@ -150,7 +150,7 @@ export default function DsbTypeSelector({
                   <li>- Work visa required</li>
                   <li>- Individual DSB assessment</li>
                 </ul>
-                <p className="mt-4 text-2xl font-bold text-gold">39 EUR</p>
+                <p className="mt-4 text-sm font-semibold text-gold">Free guide for candidates</p>
                 <button
                   type="button"
                   onClick={() => selectType("non-eu")}

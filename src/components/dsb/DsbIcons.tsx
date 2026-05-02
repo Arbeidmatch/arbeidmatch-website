@@ -2,7 +2,7 @@
 
 import { forwardRef, type SVGProps } from "react";
 
-const base = "dsb-premium-icon shrink-0";
+const base = "dsb-decor-shelf-icon shrink-0";
 
 type IconProps = SVGProps<SVGSVGElement> & { "aria-hidden"?: boolean };
 
@@ -132,7 +132,7 @@ export const IconMail = wrap(
   </>,
 );
 
-export type DsbPremiumIconName =
+export type DsbGuideDecorIconName =
   | "lightning"
   | "document"
   | "link"
@@ -145,7 +145,7 @@ export type DsbPremiumIconName =
   | "graph"
   | "scale";
 
-const MAP: Record<DsbPremiumIconName, React.ComponentType<IconProps>> = {
+const MAP: Record<DsbGuideDecorIconName, React.ComponentType<IconProps>> = {
   lightning: IconLightning,
   document: IconDocument,
   link: IconLink,
@@ -159,7 +159,7 @@ const MAP: Record<DsbPremiumIconName, React.ComponentType<IconProps>> = {
   scale: IconScale,
 };
 
-export function DsbPremiumIcon({ name, className }: { name: DsbPremiumIconName; className?: string }) {
+export function DsbGuideDecorIcon({ name, className }: { name: DsbGuideDecorIconName; className?: string }) {
   const Cmp = MAP[name];
   return <Cmp className={className} />;
 }

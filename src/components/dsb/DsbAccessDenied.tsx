@@ -16,8 +16,8 @@ export default function DsbAccessDenied({ kind, guideSlug }: Props) {
 
   const detail =
     kind === "expired"
-      ? "Your 30-day access period has ended. Purchase again to continue."
-      : "Purchase required to access this guide, or your link may be invalid.";
+      ? "Your 30-day access period has ended. Open a new guide session from the overview to continue."
+      : "We could not match this link to an active guide session. Try opening the guide again from the overview.";
 
   return (
     <section className="min-h-[60vh] bg-surface py-16">
@@ -30,13 +30,13 @@ export default function DsbAccessDenied({ kind, guideSlug }: Props) {
               href="/dsb-support"
               className="inline-flex justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
             >
-              Get access
+              Back to overview
             </Link>
             <Link
-              href={`/dsb-support#guide-${guideSlug}`}
+              href={`/dsb-support/${guideSlug === "non-eu" ? "non-eu" : "eu"}`}
               className="inline-flex justify-center rounded-md border border-navy px-5 py-2.5 text-sm font-medium text-navy hover:bg-surface"
             >
-              View pricing
+              Open the guide again
             </Link>
           </div>
         </div>

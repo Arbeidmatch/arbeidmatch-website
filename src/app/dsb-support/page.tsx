@@ -13,9 +13,9 @@ const SITE = "https://www.arbeidmatch.no";
 const canonical = `${SITE}/dsb-support`;
 
 export const metadata: Metadata = {
-  title: { absolute: "DSB Authorization for Electricians in Norway | ArbeidMatch" },
+  title: { absolute: "DSB Authorization Guide | ArbeidMatch" },
   description:
-    "Complete guide and checklist for EU/EEA electricians applying for DSB authorization in Norway. Documents required, processing times, and step-by-step guidance.",
+    "Free guide for EU/EEA and non-EU electricians on DSB authorization in Norway. ArbeidMatch helps with the process.",
   alternates: {
     canonical,
     languages: {
@@ -26,9 +26,9 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "DSB Authorization for Electricians in Norway | ArbeidMatch",
+    title: "DSB Authorization Guide | ArbeidMatch",
     description:
-      "Complete guide and checklist for EU/EEA electricians applying for DSB authorization in Norway. Documents required, processing times, and step-by-step guidance.",
+      "Free guide for EU/EEA and non-EU electricians on DSB authorization in Norway. ArbeidMatch helps with the process.",
     locale: "en_US",
     siteName: "ArbeidMatch",
     type: "website",
@@ -36,9 +36,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "DSB Authorization for Electricians in Norway | ArbeidMatch",
+    title: "DSB Authorization Guide | ArbeidMatch",
     description:
-      "Complete guide and checklist for EU/EEA electricians applying for DSB authorization in Norway. Documents required, processing times, and step-by-step guidance.",
+      "Free guide for EU/EEA and non-EU electricians on DSB authorization in Norway. ArbeidMatch helps with the process.",
   },
 };
 
@@ -50,11 +50,14 @@ export default function DsbSupportPage() {
         <div className="mx-auto w-full max-w-content px-4 py-10 md:px-6 md:py-14">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Guide</p>
           <h1 className="mt-3 max-w-4xl text-3xl font-extrabold leading-tight tracking-tight text-navy md:text-4xl">
-            DSB authorisation for foreign electricians in Norway: complete overview 2025
+            DSB Authorization Guide
           </h1>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-text-secondary">
-            Employers need reliable documentation before electrical work starts. This guide explains DSB authorisation for
-            foreign electricians in practical terms, with emphasis on process, documentation, and realistic timelines.
+            Free guidance for EU/EEA and non-EU electricians working in Norway.
+          </p>
+          <p className="mt-3 max-w-3xl text-base leading-relaxed text-text-secondary">
+            Employers need reliable documentation before electrical work starts. This overview explains DSB authorisation
+            for foreign electricians in practical terms, with emphasis on process, documentation, and realistic timelines.
           </p>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-text-secondary">
             ArbeidMatch is a private recruitment and guidance company. We do not process DSB applications and we are not an
@@ -65,16 +68,16 @@ export default function DsbSupportPage() {
               href="/dsb-support/eu"
               className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-semibold text-white hover:bg-gold-hover"
             >
-              EU/EEA guide
+              Read the EU/EEA guide
             </Link>
             <Link
               href="/dsb-support/non-eu"
               className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-navy px-5 py-2.5 text-sm font-semibold text-navy hover:bg-surface"
             >
-              Outside EU/EEA guide
+              Read the non-EU guide
             </Link>
             <Link href="/contact" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-gold underline">
-              Contact us
+              Need help? Contact us
             </Link>
           </div>
         </div>

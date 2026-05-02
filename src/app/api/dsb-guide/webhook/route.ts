@@ -29,6 +29,10 @@ function guideProductRow(slug: string | undefined): string {
 }
 
 export async function POST(request: NextRequest) {
+  if (process.env.DSB_PAYMENT_ENABLED !== "true") {
+    return NextResponse.json({ received: true });
+  }
+
   const secret = process.env.STRIPE_SECRET_KEY;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret || !webhookSecret) {

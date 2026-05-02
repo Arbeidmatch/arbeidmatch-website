@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { createDsbGuideStripeCheckout } from "@/lib/dsbGuideCheckout";
 import { notifyError } from "@/lib/errorNotifier";
+import { isDsbPaymentEnabled } from "@/lib/dsbPaymentEnv";
 import { isRateLimited } from "@/lib/requestProtection";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,10 @@ type Body = {
 export async function POST(req: NextRequest) {
   let guideTypeForNotify: string | undefined;
   try {
+    if (!isDsbPaymentEnabled()) {
+      return NextResponse.json({ error: "DSB guide paid access is not available." }, { status: 410 });
+    }
+
     if (isRateLimited(req, "dsb-guide-checkout", 15, 10 * 60 * 1000)) {
       return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
     }

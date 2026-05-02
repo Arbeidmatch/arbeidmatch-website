@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { dsbExitDiscountOfferCopy } from "@/lib/dsbExitDiscountCopy";
+import { DSB_PAYMENT_ENABLED } from "@/lib/dsbPaymentClient";
 
 /**
  * EXIT INTENT DISCOUNT POPUP
@@ -105,9 +107,9 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
         window.location.href = data.url;
         return;
       }
-      setError(data.error || "Could not start checkout. Please try again.");
+      setError(data.error || "Could not start the session. Please try again.");
     } catch {
-      setError("Could not start checkout. Please try again.");
+      setError("Could not start the session. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -115,22 +117,7 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
 
   const close = () => setVisible(false);
 
-  const copy =
-    guideType === "non-eu"
-      ? {
-          title: "Get the Non-EU Guide for €29 instead of €39",
-          body: "Save €10 on your DSB authorization guide. This offer is only available right now.",
-          strike: "€39",
-          price: "€29",
-          badge: "€10 off",
-        }
-      : {
-          title: "Get the EU Guide for €12 instead of €15",
-          body: "Save €3 on your EU guide. This offer is only available right now.",
-          strike: "€15",
-          price: "€12",
-          badge: "€3 off",
-        };
+  const copy = dsbExitDiscountOfferCopy(guideType);
 
   function renderContent(layout: "desktop" | "mobile") {
     const titleSize = layout === "mobile" ? 20 : 24;
@@ -274,13 +261,13 @@ export default function DsbExitDiscountPopup({ guideType }: DsbExitDiscountPopup
             cursor: "pointer",
           }}
         >
-          No thanks, I&apos;ll pay full price
+          No thanks, continue without the offer
         </button>
       </>
     );
   }
 
-  if (!EXIT_DISCOUNT_ENABLED || !mounted) return null;
+  if (!EXIT_DISCOUNT_ENABLED || !mounted || !DSB_PAYMENT_ENABLED) return null;
 
   const backdropTransition = instant ? { duration: 0 } : { duration: 0.3, ease: "easeOut" as const };
   const modalTransition = instant ? { duration: 0 } : { duration: 0.3, ease: "easeOut" as const };

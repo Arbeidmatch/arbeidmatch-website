@@ -8,6 +8,7 @@ import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { createDiscountCoupon } from "@/lib/stripeCoupons";
 import type { DsbDiscountGuideType } from "@/lib/stripeCoupons";
 import { notifyError } from "@/lib/errorNotifier";
+import { isDsbPaymentEnabled } from "@/lib/dsbPaymentEnv";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,10 @@ type Body = {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!isDsbPaymentEnabled()) {
+      return NextResponse.json({ success: false, error: "Not available." }, { status: 410 });
+    }
+
     const raw = (await request.json()) as Record<string, unknown>;
     if (hasHoneypotValue(raw)) {
       return NextResponse.json({ success: true });

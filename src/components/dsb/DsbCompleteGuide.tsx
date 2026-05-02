@@ -509,24 +509,24 @@ function TabApproval({ tabActive }: { tabActive: boolean }) {
         </div>
         <div>
           <p className="text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">
-            Application Fees from January 2025
+            Official DSB application costs (check DSB.no)
           </p>
           <ul className="mt-3 space-y-2 text-[14px] text-white">
             <li className="flex gap-2">
               <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
-              <span>First profession: NOK 3,200</span>
+              <span>First profession: amount published on DSB.no for your application type</span>
             </li>
             <li className="flex gap-2">
               <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
-              <span>Each additional profession in same application: NOK 2,400</span>
+              <span>Each additional profession in the same filing: reduced tier on DSB.no</span>
             </li>
             <li className="flex gap-2">
               <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
-              <span>Renewal of temporary notification: no new fee required</span>
+              <span>Renewal of temporary notification: no new government fee required</span>
             </li>
             <li className="flex gap-2">
               <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
-              <span>Payment must be completed before DSB starts processing</span>
+              <span>DSB starts processing only after their required processing step is complete</span>
             </li>
           </ul>
           <p className="mt-3 text-[11px] italic text-white/40">Source: DSB.no fee announcement, January 2025</p>
@@ -719,7 +719,7 @@ function TabTimeline({ tabActive }: { tabActive: boolean }) {
       badge: "Day 1",
       title: "Submit Complete Application via DSB Portal",
       body:
-        "Submit all required documents in PDF format via profapp.dsb.no. Pay the processing fee (NOK 3,200 for first profession) before submission. DSB will not begin processing until payment is confirmed and the application is complete.",
+        "Submit all required documents in PDF format via profapp.dsb.no. Complete the official DSB processing step for your profession type (see the current schedule on DSB.no) before submission. DSB will not begin processing until that step is complete and the application file is complete.",
       link: { href: "https://profapp.dsb.no/profapp/", label: "Go to DSB Application Portal" },
     },
     {

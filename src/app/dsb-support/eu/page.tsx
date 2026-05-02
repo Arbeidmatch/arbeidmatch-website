@@ -1,17 +1,27 @@
 import type { Metadata } from "next";
-import DsbExitDiscountPopup from "@/components/dsb/DsbExitDiscountPopup";
-import DsbGuideCheckoutEU from "@/components/dsb/DsbGuideCheckoutEU";
+import { DsbGuidePage } from "@/components/dsb/DsbGuidePage";
+
+const canonical = "https://www.arbeidmatch.no/dsb-support/eu";
 
 export const metadata: Metadata = {
-  title: "DSB Guide for EU/EEA Electricians in Norway · 15 EUR",
-  description: "EU/EEA DSB authorization guide for Norway with faster process and secure one-time access.",
+  title: { absolute: "DSB Authorization Guide | ArbeidMatch" },
+  description:
+    "Free guide for EU/EEA and non-EU electricians on DSB authorization in Norway. ArbeidMatch helps with the process.",
+  alternates: { canonical },
+  openGraph: {
+    title: "DSB Authorization Guide | ArbeidMatch",
+    description:
+      "Free guide for EU/EEA and non-EU electricians on DSB authorization in Norway. ArbeidMatch helps with the process.",
+    url: canonical,
+    type: "website",
+  },
 };
 
-export default function DsbSupportEuPage() {
-  return (
-    <>
-      <DsbGuideCheckoutEU />
-      <DsbExitDiscountPopup guideType="eu" />
-    </>
-  );
+export default async function DsbSupportEuPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ token?: string }>;
+}) {
+  const params = await searchParams;
+  return <DsbGuidePage guideSlug="eu" token={params.token} />;
 }

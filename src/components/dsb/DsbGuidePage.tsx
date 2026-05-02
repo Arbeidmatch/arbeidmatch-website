@@ -17,8 +17,21 @@ type Props = {
 export async function DsbGuidePage({ guideSlug, token }: Props) {
   const state = await resolveGuidePageState(token, guideSlug);
 
+  if (state.kind === "free_public") {
+    const markdown = await readDsbGuideMarkdown(guideSlug);
+    const toc = extractToc(markdown);
+    return (
+      <DsbGuideViewer
+        markdown={markdown}
+        toc={toc}
+        guideSlug={guideSlug}
+        accessMode="public"
+      />
+    );
+  }
+
   if (state.kind === "missing") {
-    redirect("/dsb-support?purchase=required");
+    redirect("/dsb-support?access=required");
   }
 
   if (state.kind === "invalid" || state.kind === "wrong_guide" || state.kind === "expired") {
@@ -41,6 +54,7 @@ export async function DsbGuidePage({ guideSlug, token }: Props) {
       email={state.email}
       expiresAtIso={state.tokenExpiresAt}
       guideSlug={guideSlug}
+      accessMode="licensed"
     />
   );
 }

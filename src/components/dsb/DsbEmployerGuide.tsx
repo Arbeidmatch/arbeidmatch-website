@@ -191,7 +191,7 @@ const TIMELINE: TimelineStep[] = [
     icon: <IconFileSend />,
     label: "Day 1",
     text: "Submit a complete application through DSB application portal",
-    fee: "Fee: 3,200 NOK",
+    fee: "Official DSB processing fee (see DSB.no for the current schedule)",
   },
   {
     icon: <IconCheckCircle />,

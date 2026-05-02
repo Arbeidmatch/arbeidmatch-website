@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { verifyDsbEmailVerifyToken } from "@/lib/dsbEmailVerifyToken";
-import { createDsbGuideStripeCheckout } from "@/lib/dsbGuideCheckout";
+import { redirectAfterDsbEmailVerifyToken } from "@/lib/dsbVerifyPaidRedirect";
+import { isDsbPaymentEnabled } from "@/lib/dsbPaymentEnv";
 
 export const dynamic = "force-dynamic";
 
@@ -19,32 +20,16 @@ export default async function DsbSupportVerifyPage({
       redirect("/dsb-support/eu?error=link_expired");
     }
 
-    const payload = verifyDsbEmailVerifyToken(normalizedToken);
-
-    if (!payload) {
-      redirect("/dsb-support/eu?error=link_expired");
-    }
-
-    let result: Awaited<ReturnType<typeof createDsbGuideStripeCheckout>>;
-    try {
-      result = await createDsbGuideStripeCheckout({
-        guideSlug: payload.guide_slug,
-        email: payload.email,
-      });
-    } catch (stripeErr) {
-      if (isRedirectError(stripeErr)) {
-        throw stripeErr;
+    if (!isDsbPaymentEnabled()) {
+      const payload = verifyDsbEmailVerifyToken(normalizedToken);
+      if (!payload) {
+        redirect("/dsb-support/eu?error=link_expired");
       }
-      console.error("[Verify Page] Stripe session threw:", stripeErr);
-      redirect("/dsb-support/eu?error=checkout_failed");
+      const dest = payload.guide_slug === "non-eu" ? "/dsb-support/non-eu" : "/dsb-support/eu";
+      redirect(dest);
     }
 
-    if (!result.ok) {
-      console.error("[Verify Page] Checkout failed:", result.error);
-      redirect("/dsb-support/eu?error=checkout_failed");
-    }
-
-    redirect(result.checkoutUrl);
+    await redirectAfterDsbEmailVerifyToken(normalizedToken);
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;

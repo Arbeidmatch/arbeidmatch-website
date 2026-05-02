@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { AlertTriangle, ExternalLink } from "lucide-react";
@@ -11,9 +12,10 @@ import type { DsbGuideSlug } from "@/lib/dsbGuideAccess";
 type Props = {
   markdown: string;
   toc: TocItem[];
-  email: string;
-  expiresAtIso: string;
   guideSlug: DsbGuideSlug;
+  accessMode: "public" | "licensed";
+  email?: string;
+  expiresAtIso?: string;
 };
 
 type SectionMode = "default" | "step" | "disclaimer" | "links";
@@ -49,7 +51,14 @@ function reducedMotionEnabled(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, guideSlug }: Props) {
+export default function DsbGuideViewer({
+  markdown,
+  toc,
+  guideSlug,
+  accessMode,
+  email = "",
+  expiresAtIso = "",
+}: Props) {
   const headingCursorRef = useRef(0);
   const sectionModeRef = useRef<SectionMode>("default");
   const stepCountRef = useRef(0);
@@ -168,7 +177,10 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
   };
 
   const title = guideSlug === "eu" ? "DSB Guide: EU/EEA Electricians" : "DSB Guide: Non-EU Electricians";
-  const watermarkText = `Licensed to: ${email} - arbeidmatch.no`;
+  const watermarkText =
+    accessMode === "public"
+      ? "ArbeidMatch DSB informational guide"
+      : `Licensed to: ${email} - arbeidmatch.no`;
   const watermarkItems = Array.from({ length: 36 }, (_, index) => `${watermarkText} · ${index + 1}`);
 
   return (
@@ -186,20 +198,37 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
       <div className="mx-auto w-full max-w-content px-4 md:px-6">
         <header className="relative z-10 mb-8 rounded-xl border border-border bg-navy px-6 py-5 text-white">
           <p className="text-xs font-semibold uppercase tracking-widest text-gold">{title}</p>
-          <div className="mt-3 flex flex-col gap-2 text-sm text-white/90 md:flex-row md:items-center md:justify-between">
-            <p>
-              <span className="text-white/60">Logged in as </span>
-              <span className="font-medium text-white">{email}</span>
+          {accessMode === "public" ? (
+            <p className="mt-3 text-sm leading-relaxed text-white/90">
+              Free informational guide for candidates. Always confirm current rules on{" "}
+              <a
+                href="https://www.dsb.no/en/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-gold underline"
+              >
+                DSB.no
+              </a>
+              .
             </p>
-            <p>
-              <span className="text-white/60">Access expires on </span>
-              <span className="font-medium text-gold">{formatExpiry(expiresAtIso)}</span>
-            </p>
-          </div>
-          <div className="mt-4 rounded-lg border border-gold/35 bg-black/20 px-4 py-3 text-sm leading-relaxed text-white/85">
-            This content is licensed for personal use only. Copying, sharing or reproducing this guide is
-            prohibited and may result in legal action.
-          </div>
+          ) : (
+            <div className="mt-3 flex flex-col gap-2 text-sm text-white/90 md:flex-row md:items-center md:justify-between">
+              <p>
+                <span className="text-white/60">Logged in as </span>
+                <span className="font-medium text-white">{email}</span>
+              </p>
+              <p>
+                <span className="text-white/60">Access expires on </span>
+                <span className="font-medium text-gold">{formatExpiry(expiresAtIso)}</span>
+              </p>
+            </div>
+          )}
+          {accessMode === "licensed" ? (
+            <div className="mt-4 rounded-lg border border-gold/35 bg-black/20 px-4 py-3 text-sm leading-relaxed text-white/85">
+              This content is licensed for personal use only. Copying, sharing or reproducing this guide is
+              prohibited and may result in legal action.
+            </div>
+          ) : null}
         </header>
 
         <div className="sticky top-[60px] z-40 mb-4 h-11 overflow-hidden border-b border-black/10 bg-white/95 px-4 backdrop-blur lg:hidden">
@@ -456,6 +485,20 @@ export default function DsbGuideViewer({ markdown, toc, email, expiresAtIso, gui
                 may change; always verify requirements on official Norwegian government and DSB websites. ArbeidMatch
                 Norge AS is not liable for decisions made based on this content.
               </p>
+              {accessMode === "public" ? (
+                <div className="mt-6 rounded-lg border border-gold/30 bg-surface px-4 py-4 text-sm text-navy">
+                  <p className="font-semibold">Need personalized help?</p>
+                  <p className="mt-2 leading-relaxed text-text-secondary">
+                    Our team can point you to official sources and answer general questions about the process.
+                  </p>
+                  <Link
+                    href="/contact"
+                    className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-md bg-gold px-4 py-2 text-sm font-semibold text-white hover:bg-gold-hover"
+                  >
+                    Contact us
+                  </Link>
+                </div>
+              ) : null}
             </footer>
           </div>
         </div>

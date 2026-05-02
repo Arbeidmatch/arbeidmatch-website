@@ -3,6 +3,7 @@ import Stripe from "stripe";
 
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { getPublicBaseUrl, resolveStripePriceId, type DsbGuideSlug } from "@/lib/dsbGuideAccess";
+import { isDsbPaymentEnabled } from "@/lib/dsbPaymentEnv";
 
 export type DsbGuideCheckoutResult =
   | { ok: true; checkoutUrl: string }
@@ -77,6 +78,14 @@ export async function createDsbGuideStripeCheckout(params: {
 }): Promise<DsbGuideCheckoutResult> {
   const { guideSlug, email, withDiscount } = params;
   const normalizedEmail = email?.trim().toLowerCase() ?? "";
+
+  if (!isDsbPaymentEnabled()) {
+    return {
+      ok: false,
+      error: "DSB guide checkout is not available.",
+      details: "Set DSB_PAYMENT_ENABLED=true to enable paid checkout.",
+    };
+  }
 
   console.log("DSB Checkout attempt:", {
     guideType: guideSlug,
