@@ -70,6 +70,78 @@ const HOW_STEPS: { title: string; text: string; Icon: typeof FileText }[] = [
   },
 ];
 
+const DIRECT_COVERAGE: { title: string; description: string }[] = [
+  {
+    title: "Construction & Civil",
+    description: "Building sites, civil works, concrete, formwork, and related trades with direct employment or hire out.",
+  },
+  {
+    title: "Industry & Production",
+    description: "Manufacturing, assembly lines, metal processing, and production roles on our own contracts.",
+  },
+];
+
+const PARTNER_COVERAGE: { title: string; description: string }[] = [
+  {
+    title: "Electrical & Technical",
+    description: "Installers, technicians, and control roles matched through vetted staffing partners in Norway.",
+  },
+  {
+    title: "Logistics & Transport",
+    description: "Drivers, warehouse, and supply chain positions via partners who know local rules and routes.",
+  },
+  {
+    title: "Cleaning & Facility",
+    description: "Commercial cleaning, property services, and facility teams through specialist agencies.",
+  },
+  {
+    title: "Hospitality & Healthcare",
+    description: "Hotels, food service, care support, and adjacent roles with partners focused on compliance.",
+  },
+  {
+    title: "Automotive & Mechanics",
+    description: "Workshops, vehicle maintenance, and technical service introductions from trusted partners.",
+  },
+  {
+    title: "Offshore & Onshore",
+    description: "Energy, marine, and industrial site roles coordinated with partners who hold sector experience.",
+  },
+  {
+    title: "Other / General Labour",
+    description: "Flexible or mixed skill roles where we route you to the right partner for screening and placement.",
+  },
+];
+
+function IndustryCoverageCard({
+  title,
+  description,
+  badge,
+  badgeClassName,
+}: {
+  title: string;
+  description: string;
+  badge: string;
+  badgeClassName: string;
+}) {
+  return (
+    <article
+      className="relative rounded-[12px] border border-[rgba(13,27,42,0.1)] bg-white p-6 transition-transform duration-200 hover:-translate-y-[2px]"
+      style={{ padding: "24px", borderRadius: "12px" }}
+    >
+      <span
+        className={`absolute right-6 top-6 whitespace-nowrap text-[10px] font-semibold sm:text-[11px] ${badgeClassName}`}
+        style={{ borderRadius: "4px", padding: "4px 8px" }}
+      >
+        {badge}
+      </span>
+      <h3 className="pr-24 text-base font-semibold leading-snug text-[#0D1B2A] sm:pr-32" style={{ fontWeight: 600 }}>
+        {title}
+      </h3>
+      <p className="mt-2 text-sm leading-relaxed text-[#0D1B2A]/75">{description}</p>
+    </article>
+  );
+}
+
 export default function ForCandidatesPage() {
   return (
     <div className="bg-[#0D1B2A] text-white">
@@ -118,6 +190,62 @@ export default function ForCandidatesPage() {
                 </article>
               </ScrollReveal>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-[rgba(13,27,42,0.08)] bg-[#eef1f5] py-14 md:py-20 lg:py-24">
+        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+          <ScrollReveal variant="fadeUp" className="text-center">
+            <h2 className="am-h2 font-display font-extrabold tracking-[-0.02em] text-[#0D1B2A]">Industries we cover</h2>
+          </ScrollReveal>
+
+          <div className="mt-14 space-y-14 md:mt-16 md:space-y-16">
+            <div>
+              <ScrollReveal variant="fadeUp">
+                <h3 className="text-center font-display text-lg font-bold text-[#0D1B2A] md:text-xl">
+                  Direct employment & hire out
+                </h3>
+                <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-[#0D1B2A]/75 md:text-[15px]">
+                  We hire you directly and place you with our network of Norwegian clients.
+                </p>
+              </ScrollReveal>
+              <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+                {DIRECT_COVERAGE.map((item) => (
+                  <ScrollReveal key={item.title} variant="fadeUp">
+                    <IndustryCoverageCard
+                      title={item.title}
+                      description={item.description}
+                      badge="Direct"
+                      badgeClassName="bg-[#C9A84C] text-[#0D1B2A]"
+                    />
+                  </ScrollReveal>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <ScrollReveal variant="fadeUp">
+                <h3 className="text-center font-display text-lg font-bold text-[#0D1B2A] md:text-xl">
+                  Through our partner network
+                </h3>
+                <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-[#0D1B2A]/75 md:text-[15px]">
+                  We connect you with verified Norwegian recruitment partners specializing in your field.
+                </p>
+              </ScrollReveal>
+              <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {PARTNER_COVERAGE.map((item) => (
+                  <ScrollReveal key={item.title} variant="fadeUp">
+                    <IndustryCoverageCard
+                      title={item.title}
+                      description={item.description}
+                      badge="Partner network"
+                      badgeClassName="bg-[#0D1B2A] text-[#C9A84C]"
+                    />
+                  </ScrollReveal>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
