@@ -58,8 +58,7 @@ export default function AboutPage() {
               </p>
               <h2 className="pt-4 text-2xl font-bold text-white md:text-3xl">Who we are</h2>
               <p>
-                ArbeidMatch Norge AS was founded by Mirel Manoliu. We are based in Trondheim and work with businesses
-                across Norway.
+                ArbeidMatch Norge AS was founded in Trondheim, Norway. We work with businesses across Norway.
               </p>
               <h2 className="pt-4 text-2xl font-bold text-white md:text-3xl">What we do</h2>
               <p>

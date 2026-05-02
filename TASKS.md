@@ -23,4 +23,4 @@
 
 ---
 *Updated: 15 Apr 2026 | Repo: arbeidmatch-website | Branch activ: dev*
-*Nu push pe main fără aprobare explicită Mirel*
+*Nu push pe main fără aprobare explicită ArbeidMatch Norge AS*
