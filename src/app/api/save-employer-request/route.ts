@@ -189,7 +189,9 @@ export async function POST(request: NextRequest) {
       normalizedBooleanFields.push("accommodation");
     }
 
-    const { error } = await supabase.from("employer_requests").insert({
+    const { data: insertedRow, error } = await supabase
+      .from("employer_requests")
+      .insert({
       token_id:                      payload.token,
       company:                       payload.company,
       org_number:                    payload.orgNumber,
@@ -247,13 +249,26 @@ export async function POST(request: NextRequest) {
       referral_email:                payload.referralEmail || null,
       subscribe:                     parsedSubscribe,
       notes:                         payload.notes || null,
-    });
+    })
+      .select("id")
+      .maybeSingle();
 
     if (error) {
       throw error;
     }
 
-    return noStoreJson({ success: true });
+    const rawId = insertedRow?.id;
+    let referenceId: string | undefined;
+    if (rawId !== undefined && rawId !== null) {
+      if (typeof rawId === "number" && Number.isFinite(rawId)) {
+        referenceId = `AM-ER-2026-${String(Math.floor(rawId)).padStart(5, "0")}`;
+      } else if (typeof rawId === "string" && rawId.length > 0) {
+        const compact = rawId.replace(/-/g, "").slice(0, 8).toUpperCase();
+        referenceId = compact ? `AM-ER-2026-${compact}` : undefined;
+      }
+    }
+
+    return noStoreJson({ success: true, ...(referenceId ? { referenceId } : {}) });
   } catch (error) {
     logApiError("save-employer-request", error, {
       normalized_boolean_fields_count: normalizedBooleanFields.length,

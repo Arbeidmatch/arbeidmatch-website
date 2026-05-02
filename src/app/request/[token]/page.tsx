@@ -585,6 +585,8 @@ export default function RequestTokenPage() {
   const [submitError, setSubmitError] = useState("");
   const [submitNotice, setSubmitNotice] = useState("");
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [submitSuccessFullName, setSubmitSuccessFullName] = useState("");
+  const [submitSuccessReference, setSubmitSuccessReference] = useState("");
   const [form, setForm] = useState<RequestForm>(initialForm);
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [tokenGate, setTokenGate] = useState<"loading" | "ready" | "blocked" | "error">("loading");
@@ -903,6 +905,14 @@ export default function RequestTokenPage() {
         body: JSON.stringify(payload),
       });
       if (!saveRes.ok) throw new Error("save-employer-request");
+      const saveData = (await saveRes.json()) as { success?: boolean; referenceId?: string };
+      if (saveData.success !== true) throw new Error("save-employer-request");
+      setSubmitSuccessFullName(payload.full_name.trim());
+      setSubmitSuccessReference(
+        typeof saveData.referenceId === "string" && saveData.referenceId.trim().length > 0
+          ? saveData.referenceId.trim()
+          : "",
+      );
 
       try {
         const emailRes = await fetch("/api/send-request-email", {
@@ -1051,60 +1061,37 @@ export default function RequestTokenPage() {
   }, [roleQuery, selectedIndustry]);
 
   if (submitStatus === "success") {
-    const successCompanyName = tokenData?.company?.trim() || "your company";
+    const displayName = submitSuccessFullName.trim();
     const successAnimationStyle = reducedMotion
       ? undefined
       : ({ animation: "successFadeIn 0.4s ease forwards", opacity: 0 } as const);
 
     return (
       <section className="min-h-screen bg-[#0D1B2A] px-4 py-10">
-        <div className="mx-auto flex min-h-[80vh] w-full max-w-2xl items-center justify-center text-center">
-          <div style={successAnimationStyle}>
-            <div className="mx-auto h-[2px] w-[60px] bg-[#C9A84C]" />
-            <svg
-              className="mx-auto mt-6 h-12 w-12"
-              viewBox="0 0 48 48"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden
-            >
-              <path
-                d="M10 25L20 35L38 14"
-                stroke="#C9A84C"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <h1 className="mt-6 text-[2rem] font-bold tracking-[-0.02em] text-white">Request Received</h1>
-            <p className="mt-3 text-base font-normal text-[#C9A84C]">
-              Thank you, {successCompanyName}. We will be in touch within 1 business day.
+        <div className="mx-auto flex min-h-[80vh] w-full max-w-lg flex-col items-center justify-center text-center">
+          <div className="w-full space-y-4" style={successAnimationStyle}>
+            <div className="mx-auto h-[2px] w-[48px] bg-[#C9A84C]" />
+            <h1 className="text-[1.75rem] font-bold tracking-[-0.02em] text-white sm:text-[2rem]">
+              {displayName ? `Thank you, ${displayName}!` : "Thank you!"}
+            </h1>
+            <p className="text-base text-[rgba(255,255,255,0.82)]">
+              We will review your request and be in touch soon.
             </p>
-            {submitNotice ? <p className="mt-3 text-xs text-amber-300">{submitNotice}</p> : null}
-
-            <div className="mx-auto mt-8 w-[320px] border-t border-[rgba(201,168,76,0.15)]" />
-
-            <div className="mt-8 space-y-3 text-sm text-white">
-              <p>Your request has been reviewed by our team</p>
-              <p>We will match your requirements with available candidates</p>
-              <p>You will receive a shortlist within 3-5 business days</p>
+            {submitSuccessReference ? (
+              <p className="text-sm font-medium text-[#C9A84C]">Your reference: {submitSuccessReference}</p>
+            ) : null}
+            <p className="text-sm text-[rgba(255,255,255,0.7)]">
+              We typically respond within 1-2 business days.
+            </p>
+            {submitNotice ? <p className="text-xs text-amber-300">{submitNotice}</p> : null}
+            <div className="pt-2">
+              <Link
+                href="/"
+                className="inline-flex min-h-[40px] items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] px-5 py-2 text-sm font-semibold text-[#C9A84C] transition-colors hover:border-[#C9A84C] hover:bg-[rgba(201,168,76,0.08)]"
+              >
+                Back to homepage
+              </Link>
             </div>
-
-            <div className="mx-auto mt-8 w-[320px] border-t border-[rgba(201,168,76,0.15)]" />
-
-            <p className="mt-8 text-sm text-white">
-              Questions? Contact us at{" "}
-              <a href="mailto:post@arbeidmatch.no" className="text-[#C9A84C] hover:underline">
-                post@arbeidmatch.no
-              </a>
-            </p>
-
-            <Link
-              href="/"
-              className="mt-7 inline-flex rounded-[8px] border border-[rgba(201,168,76,0.3)] px-7 py-2.5 text-sm font-medium text-white transition-colors hover:border-[#C9A84C]"
-            >
-              Back to home
-            </Link>
           </div>
         </div>
         <style jsx>{`
