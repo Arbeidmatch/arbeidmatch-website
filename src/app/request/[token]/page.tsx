@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Bolt,
   Factory,
@@ -204,6 +204,7 @@ const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
   5: ["personalQualities"],
   6: ["offerItems"],
   7: [],
+  8: [],
 };
 
 function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
@@ -251,7 +252,7 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
   return invalid;
 }
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 
 const CITY_OPTIONS = [
   "Oslo", "Bergen", "Trondheim", "Stavanger", "Kristiansand", "Drammen", "Tromso", "Fredrikstad",
@@ -753,23 +754,9 @@ function OptionCard({
   );
 }
 
-function ProgressDot({ index, step }: { index: number; step: number }) {
-  const state = index === step ? "active" : index < step ? "completed" : "inactive";
-  return (
-    <span
-      className={`inline-block h-2 w-2 rounded-full transition-all duration-300 ${
-        state === "active"
-          ? "scale-125 bg-[#C9A84C]"
-          : state === "completed"
-            ? "bg-[rgba(201,168,76,0.4)]"
-            : "bg-white/20"
-      }`}
-    />
-  );
-}
-
 export default function RequestTokenPage() {
   const { token } = useParams<{ token: string }>();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const startWizard = searchParams.get("start") === "wizard";
   const SEARCH_MESSAGES = [
@@ -897,7 +884,7 @@ export default function RequestTokenPage() {
       setStep(next);
       setAnimating(false);
       scrollToTop();
-    }, 180);
+    }, 250);
   };
 
   useEffect(() => {
@@ -1830,19 +1817,24 @@ export default function RequestTokenPage() {
 
   return (
     <div className="min-h-dvh bg-[#0a0f18] text-white">
-      <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-white/10 bg-[rgba(10,15,24,0.95)] px-4 backdrop-blur-[12px] md:h-16 md:px-6">
-        <p className="text-base font-bold">
-          <span className="text-[#C9A84C]">Arbeid</span>Match
-        </p>
-        <div className="flex items-center gap-2">
-          {Array.from({ length: TOTAL_STEPS }, (_, index) => (
-            <ProgressDot key={index} index={index} step={step} />
-          ))}
+      <header className="fixed inset-x-0 top-0 z-30 flex flex-col bg-[rgba(10,15,24,0.95)] backdrop-blur-[12px]">
+        <div className="flex h-14 items-center justify-between border-b border-white/10 px-4 md:h-16 md:px-6">
+          <p className="text-base font-bold">
+            <span className="text-[#C9A84C]">Arbeid</span>Match
+          </p>
+          <p className="text-right text-[11px] font-semibold tabular-nums text-white/80">
+            Step {step + 1} of {TOTAL_STEPS}
+          </p>
         </div>
-        <p className="text-xs text-white/40">{`${step + 1} / ${TOTAL_STEPS}`}</p>
+        <div className="relative h-[3px] w-full shrink-0 bg-[rgba(255,255,255,0.12)]" aria-hidden>
+          <div
+            className={`absolute left-0 top-0 h-full bg-[#C9A84C] ease-out ${reducedMotion ? "transition-none" : "transition-[width] duration-300"}`}
+            style={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
+          />
+        </div>
       </header>
 
-      <main className="flex min-h-dvh items-center justify-center px-4 pt-[72px] md:px-6 md:pt-[80px]">
+      <main className="flex min-h-dvh items-center justify-center px-4 pt-[84px] md:px-6 md:pt-[92px]">
         <form onSubmit={handleFormContinue} className="w-full max-w-[560px]">
           <input type="hidden" value={token} name="token" />
           <div
@@ -1850,13 +1842,13 @@ export default function RequestTokenPage() {
             className={`relative overflow-hidden rounded-[24px] border border-[rgba(201,168,76,0.15)] bg-white/[0.03] px-5 py-6 md:px-9 md:py-10 ${
               animating ? "card-exit" : "card-enter"
             }`}
-            style={reducedMotion ? { opacity: 1, transform: "translateX(0)" } : undefined}
+            style={reducedMotion ? { opacity: 1, transform: "translateY(0)" } : undefined}
           >
             <div className="absolute left-[10%] right-[10%] top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(201,168,76,0.5),transparent)]" />
 
             {step === 0 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 1 of 8</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Company and contact</h2>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div data-wizard-field="companyName">
@@ -2055,7 +2047,7 @@ export default function RequestTokenPage() {
 
             {step === 1 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 2 of 8</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Job basics</h2>
                 <div>
                   <p className={labelClass}>Job category</p>
@@ -2222,7 +2214,7 @@ export default function RequestTokenPage() {
 
             {step === 2 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 3 of 8</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Salary and conditions</h2>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div>
@@ -2432,7 +2424,7 @@ export default function RequestTokenPage() {
 
             {step === 3 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 4 of 8</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Requirements</h2>
                 <div data-wizard-field="qualification">
                   <p className={labelClass}>Qualification</p>
@@ -2556,7 +2548,7 @@ export default function RequestTokenPage() {
 
             {step === 4 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 5 of 8</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Work tasks</h2>
                 <div data-wizard-field="workTasks">
                   <div className={wizardGroupShell(!!fieldErrors.workTasks, "flex flex-wrap gap-2")}>
@@ -2578,7 +2570,7 @@ export default function RequestTokenPage() {
 
             {step === 5 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 6 of 8</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Personal qualities</h2>
                 <div data-wizard-field="personalQualities">
                   <div className={wizardGroupShell(!!fieldErrors.personalQualities, "flex flex-wrap gap-2")}>
@@ -2600,7 +2592,7 @@ export default function RequestTokenPage() {
 
             {step === 6 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 7 of 8</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">We offer</h2>
                 <div data-wizard-field="offerItems">
                   <div className={wizardGroupShell(!!fieldErrors.offerItems, "flex flex-wrap gap-2")}>
@@ -2622,11 +2614,19 @@ export default function RequestTokenPage() {
 
             {step === 7 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 8 of 8</p>
-                <h2 className="text-2xl font-extrabold">Final notes preview</h2>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <h2 className="text-2xl font-extrabold">Review your request</h2>
+                <p className="text-sm text-white/55">Check the summary below. You can add optional notes on the next step.</p>
                 <div className="rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-4">
                   <pre className="whitespace-pre-wrap text-sm text-white/75">{generatedNotes}</pre>
                 </div>
+              </div>
+            )}
+
+            {step === 8 && (
+              <div className="space-y-4">
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <h2 className="text-2xl font-extrabold">Additional notes</h2>
                 <div>
                   <p className={labelClass}>Additional notes (optional)</p>
                   <textarea
@@ -2640,28 +2640,20 @@ export default function RequestTokenPage() {
               </div>
             )}
 
-            <div
-              className={`mt-6 flex w-full items-center gap-3 border-t border-white/10 pt-5 ${
-                step > 0 ? "justify-between" : "justify-end"
-              }`}
-            >
-              <div>
-                {step > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => goTo(step - 1)}
-                    disabled={animating || isSubmitting}
-                    className="rounded-[10px] border border-white/20 px-6 py-3 text-sm text-white/60 disabled:opacity-40"
-                  >
-                    Back
-                  </button>
-                ) : null}
-              </div>
+            <div className="mt-6 flex w-full flex-col-reverse gap-2 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+              <button
+                type="button"
+                onClick={() => (step > 0 ? goTo(step - 1) : router.push("/request"))}
+                disabled={animating || isSubmitting}
+                className="inline-flex w-full shrink-0 items-center justify-center rounded-[10px] border border-solid border-[rgba(255,255,255,0.2)] bg-transparent px-4 py-2 text-sm font-semibold text-white/90 transition-colors duration-200 hover:border-[rgba(201,168,76,0.45)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+              >
+                Back
+              </button>
 
               <button
                 type="submit"
                 disabled={animating || isSubmitting}
-                className="inline-flex min-h-[48px] min-w-[150px] items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-7 py-3 text-sm font-bold text-[#0f1923] transition-all duration-200 hover:scale-[1.02] hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-5 py-2 text-sm font-bold text-[#0D1B2A] transition-[filter,background-color] duration-200 hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40 sm:ml-auto sm:w-auto"
               >
                 {isSubmitting ? (
                   <>
@@ -2687,24 +2679,26 @@ export default function RequestTokenPage() {
 
       <style jsx>{`
         .card-enter {
-          animation: cardIn ${reducedMotion ? "0ms" : "250ms"} ease-out forwards;
-          animation-delay: ${reducedMotion ? "0ms" : "180ms"};
+          animation: cardIn ${reducedMotion ? "0ms" : "250ms"} ease forwards;
+          animation-delay: 0ms;
           opacity: ${reducedMotion ? "1" : "0"};
-          transform: ${reducedMotion ? "translateX(0)" : "translateX(20px)"};
+          transform: ${reducedMotion ? "translateY(0)" : "translateY(8px)"};
         }
         .card-exit {
           opacity: ${reducedMotion ? "1" : "0"};
-          transform: ${reducedMotion ? "translateX(0)" : "translateX(-20px)"};
-          transition: all ${reducedMotion ? "0ms" : "180ms"} ease;
+          transform: ${reducedMotion ? "translateY(0)" : "translateY(8px)"};
+          transition:
+            opacity ${reducedMotion ? "0ms" : "250ms"} ease,
+            transform ${reducedMotion ? "0ms" : "250ms"} ease;
         }
         @keyframes cardIn {
           from {
             opacity: 0;
-            transform: translateX(20px);
+            transform: translateY(8px);
           }
           to {
             opacity: 1;
-            transform: translateX(0);
+            transform: translateY(0);
           }
         }
         @keyframes spin {
