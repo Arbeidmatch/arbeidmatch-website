@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-import { REQUEST_INDUSTRY_ROLE_GROUPS, roleSearchKeywords } from "@/lib/industry-roles";
+import { REQUEST_INDUSTRY_ROLE_GROUPS, ROLE_SYNONYMS, roleSearchKeywords } from "@/lib/industry-roles";
 
 export const dynamic = "force-dynamic";
+
+const QUERY_LIMIT = 2000;
 
 let cachedAtsClient: SupabaseClient | null = null;
 
@@ -24,21 +26,37 @@ const ROLE_GROUPS: Record<string, string[]> = Object.fromEntries(
   REQUEST_INDUSTRY_ROLE_GROUPS.map(({ industry, roles }) => [industry, [...roles]]),
 );
 
-function buildOrFilter(keywords: string[]): string {
+/** All search tokens for an industry: each canonical role + ROLE_SYNONYMS[role] (same tokens as roleSearchKeywords). */
+function allKeywordsForIndustry(industry: string): string[] {
+  const roles = ROLE_GROUPS[industry];
+  if (!roles?.length) return [];
+  const terms = new Set<string>();
+  for (const role of roles) {
+    const r = role.trim();
+    if (r.length >= 2) terms.add(r);
+    for (const s of ROLE_SYNONYMS[role] ?? []) {
+      const t = s.trim();
+      if (t.length >= 2) terms.add(t);
+    }
+  }
+  return [...terms];
+}
+
+/** OR filter: current_job_title ilike only (single source with per-role counts). */
+function buildCurrentTitleOrFilter(keywords: string[]): string {
   const parts: string[] = [];
   for (const kw of keywords) {
-    const safe = kw.replace(/%/g, "").replace(/,/g, "");
+    const safe = kw.replace(/%/g, "").replace(/,/g, "").trim();
     if (safe.length < 2) continue;
     const pattern = `%${safe}%`;
-    parts.push(`normalized_job_title.ilike.${pattern}`);
     parts.push(`current_job_title.ilike.${pattern}`);
   }
   return parts.join(",");
 }
 
-async function countWithOrFilter(supabase: SupabaseClient, orFilter: string): Promise<number> {
+async function countWithCurrentTitleOr(supabase: SupabaseClient, orFilter: string): Promise<number> {
   if (!orFilter) return 0;
-  const { data, error } = await supabase.from("ats_candidates").select("id").or(orFilter).limit(500);
+  const { data, error } = await supabase.from("ats_candidates").select("id").or(orFilter).limit(QUERY_LIMIT);
   return error ? 0 : (data?.length ?? 0);
 }
 
@@ -53,11 +71,11 @@ export async function GET(request: NextRequest) {
 
   try {
     if (roleParam.length >= 2) {
-      const orFilter = buildOrFilter(roleSearchKeywords(roleParam));
+      const orFilter = buildCurrentTitleOrFilter(roleSearchKeywords(roleParam));
       if (!orFilter) {
         return NextResponse.json({ count: 0, industry: industry || null });
       }
-      const count = await countWithOrFilter(supabase, orFilter);
+      const count = await countWithCurrentTitleOr(supabase, orFilter);
       return NextResponse.json({ count, industry });
     }
 
@@ -66,13 +84,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ count: 0, industry: industry || null });
     }
 
-    const counts = await Promise.all(
-      roles.map(async (role) => {
-        const orFilter = buildOrFilter(roleSearchKeywords(role));
-        return countWithOrFilter(supabase, orFilter);
-      }),
-    );
-    const count = counts.reduce((sum, n) => sum + n, 0);
+    const keywords = allKeywordsForIndustry(industry);
+    const orFilter = buildCurrentTitleOrFilter(keywords);
+    if (!orFilter) {
+      return NextResponse.json({ count: 0, industry: industry || null });
+    }
+    const count = await countWithCurrentTitleOr(supabase, orFilter);
     return NextResponse.json({ count, industry });
   } catch {
     return NextResponse.json({ count: 0, industry: industry || null });
