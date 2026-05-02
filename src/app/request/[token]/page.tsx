@@ -76,7 +76,38 @@ type RequestForm = {
   offerItems: string[];
   additionalNotes: string;
   subscribeUpdates: boolean;
+  /** Exact label from rotation dropdown; also appended to requirements on submit */
+  rotationSchedule: string;
 };
+
+const ROTATION_SCHEDULE_OPTIONS = [
+  "No rotation / Standard schedule",
+  "1 week on / 1 week off",
+  "2 weeks on / 2 weeks off",
+  "3 weeks on / 3 weeks off",
+  "4 weeks on / 4 weeks off",
+  "5 weeks on / 5 weeks off",
+  "6 weeks on / 6 weeks off",
+  "7 weeks on / 7 weeks off",
+  "8 weeks on / 8 weeks off",
+] as const;
+
+function rotationScheduleToPayloadFields(schedule: string): {
+  hasRotation: string;
+  rotationWeeksOn: string;
+  rotationWeeksOff: string;
+} {
+  if (schedule === "No rotation / Standard schedule") {
+    return { hasRotation: "No", rotationWeeksOn: "", rotationWeeksOff: "" };
+  }
+  for (let n = 1; n <= 8; n += 1) {
+    const label = n === 1 ? "1 week on / 1 week off" : `${n} weeks on / ${n} weeks off`;
+    if (schedule === label) {
+      return { hasRotation: "Yes", rotationWeeksOn: String(n), rotationWeeksOff: String(n) };
+    }
+  }
+  return { hasRotation: "No", rotationWeeksOn: "", rotationWeeksOff: "" };
+}
 
 const PHONE_PREFIX_OPTIONS = [
   { value: "+47", label: "+47 (NO)" },
@@ -478,6 +509,7 @@ const initialForm: RequestForm = {
   offerItems: ["Brand-new workshop", "New equipment", "Competitive terms", "Professional development", "Training opportunities", "Small highly skilled team"],
   additionalNotes: "",
   subscribeUpdates: true,
+  rotationSchedule: ROTATION_SCHEDULE_OPTIONS[0],
 };
 
 const WORK_TASK_OPTIONS = [
@@ -951,6 +983,8 @@ export default function RequestTokenPage() {
     setSubmitStatus("idle");
     setIsSubmitting(true);
 
+    const rotationPayload = rotationScheduleToPayloadFields(form.rotationSchedule);
+
     const payload = {
       token,
       company: form.companyName.trim(),
@@ -983,7 +1017,7 @@ export default function RequestTokenPage() {
       driverLicenseOther: "",
       dNumber: form.dNumberChoice,
       dNumberOther: "",
-      requirements: generatedNotes,
+      requirements: `${generatedNotes}\n\nRotation schedule: ${form.rotationSchedule}`.trim(),
       contractType: form.contractType,
       salaryPeriod: form.salaryPeriod === "per hour" ? "Per hour" : "Per month",
       salaryMode: form.salaryMode,
@@ -1000,9 +1034,9 @@ export default function RequestTokenPage() {
             ? false
             : null,
       maxOvertimeHours: "",
-      hasRotation: "",
-      rotationWeeksOn: "",
-      rotationWeeksOff: "",
+      hasRotation: rotationPayload.hasRotation,
+      rotationWeeksOn: rotationPayload.rotationWeeksOn,
+      rotationWeeksOff: rotationPayload.rotationWeeksOff,
       internationalTravel: form.internationalTransport ?? "",
       localTravel: form.localTransport ?? "",
       localTravelOther: "",
@@ -2121,6 +2155,21 @@ export default function RequestTokenPage() {
                     </div>
                     {fieldErrors.internationalTransport ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
+                </div>
+                <div className="self-start">
+                  <p className={labelClass}>Rotation</p>
+                  <select
+                    aria-label="Rotation or work schedule"
+                    value={form.rotationSchedule}
+                    onChange={(e) => setForm((p) => ({ ...p, rotationSchedule: e.target.value }))}
+                    className="block w-[min(288px,92vw)] max-w-[288px] min-h-[44px] rounded-[12px] border border-white/10 bg-white/[0.05] px-3 py-3 text-sm text-white focus:outline-none focus:border-2 focus:border-[#C9A84C]"
+                  >
+                    {ROTATION_SCHEDULE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt} className="bg-[#0D1B2A] text-white">
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="flex items-center justify-between rounded-[10px] border border-[rgba(201,168,76,0.2)] px-4 py-3">
                   <p className="text-sm text-white/80">Subscribe to candidate updates</p>
