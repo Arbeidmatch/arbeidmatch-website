@@ -80,6 +80,12 @@ type RequestForm = {
   subscribeUpdates: boolean;
   /** Exact label from rotation dropdown; also appended to requirements on submit */
   rotationSchedule: string;
+  howDidYouHear: string;
+  socialMediaPlatform: string;
+  socialMediaOther: string;
+  howDidYouHearOther: string;
+  referralCompanyName: string;
+  referralEmail: string;
 };
 
 const ACCOMMODATION_WE_HELP = "We help find accommodation";
@@ -144,8 +150,27 @@ function splitInternationalPhone(raw: string): { prefix: string; digits: string 
   return { prefix: "+47", digits: digits.slice(0, 15) };
 }
 
+const HOW_DID_YOU_HEAR_OPTIONS = [
+  "Referral from another company",
+  "Google search",
+  "LinkedIn",
+  "Social media",
+  "Industry event or conference",
+  "Other",
+] as const;
+
 const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
-  0: ["companyName", "orgNumber", "contactFirstName", "contactLastName", "contactEmail", "contactPhone"],
+  0: [
+    "companyName",
+    "orgNumber",
+    "contactFirstName",
+    "contactLastName",
+    "contactEmail",
+    "contactPhone",
+    "howDidYouHear",
+    "referralCompanyName",
+    "referralEmail",
+  ],
   1: ["industry", "workerType", "contractType", "locations", "startDate", "candidates"],
   2: ["salaryMin", "salaryMax", "accommodation", "localTransport", "internationalTransport"],
   3: ["qualification", "dNumberChoice"],
@@ -164,6 +189,12 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     if (f.contactLastName.trim().length < 1) invalid.add("contactLastName");
     if (!f.contactEmail.includes("@")) invalid.add("contactEmail");
     if (f.contactPhone.replace(/\D/g, "").length < 6) invalid.add("contactPhone");
+    if (!f.howDidYouHear.trim()) invalid.add("howDidYouHear");
+    if (f.howDidYouHear === "Referral from another company") {
+      if (f.referralCompanyName.trim().length < 2) invalid.add("referralCompanyName");
+      const refEmail = f.referralEmail.trim();
+      if (refEmail.length > 0 && !refEmail.includes("@")) invalid.add("referralEmail");
+    }
   } else if (s === 1) {
     if (!f.industry) invalid.add("industry");
     if (!f.workerType.trim()) invalid.add("workerType");
@@ -519,6 +550,12 @@ const initialForm: RequestForm = {
   additionalNotes: "",
   subscribeUpdates: true,
   rotationSchedule: ROTATION_SCHEDULE_OPTIONS[0],
+  howDidYouHear: "",
+  socialMediaPlatform: "",
+  socialMediaOther: "",
+  howDidYouHearOther: "",
+  referralCompanyName: "",
+  referralEmail: "",
 };
 
 const WORK_TASK_OPTIONS = [
@@ -1059,13 +1096,17 @@ export default function RequestTokenPage() {
       city: form.locations.join(", "),
       startDate: form.startDateMode === "Immediate" ? "Immediate" : form.startDate,
       startDateOther: "",
-      howDidYouHear: "",
-      socialMediaPlatform: "",
+      howDidYouHear: form.howDidYouHear.trim(),
+      socialMediaPlatform: form.howDidYouHear === "Social media" ? form.socialMediaPlatform : "",
       socialMediaOther: "",
-      howDidYouHearOther: "",
-      referralCompanyName: "",
+      howDidYouHearOther: form.howDidYouHear === "Other" ? form.howDidYouHearOther : "",
+      referralCompanyName:
+        form.howDidYouHear === "Referral from another company" ? form.referralCompanyName.trim() : "",
       referralOrgNumber: "",
-      referralEmail: "",
+      referralEmail:
+        form.howDidYouHear === "Referral from another company"
+          ? form.referralEmail.trim().toLowerCase()
+          : "",
       subscribe: form.subscribeUpdates ? "Yes - send me candidate updates" : "",
       notes: generatedNotes,
     };
@@ -1866,6 +1907,89 @@ export default function RequestTokenPage() {
                       placeholder="Email"
                     />
                     {fieldErrors.contactEmail ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
+                </div>
+                <div className="space-y-3 border-t border-white/10 pt-5">
+                  <div>
+                    <p className={labelClass}>How did you hear about us</p>
+                    <div
+                      data-wizard-field="howDidYouHear"
+                      className={wizardGroupShell(!!fieldErrors.howDidYouHear, "mt-2 grid grid-cols-1 gap-2")}
+                    >
+                      {HOW_DID_YOU_HEAR_OPTIONS.map((option) => (
+                        <OptionCard
+                          key={option}
+                          label={option}
+                          selected={form.howDidYouHear === option}
+                          onClick={() => {
+                            setForm((p) => ({
+                              ...p,
+                              howDidYouHear: option,
+                              ...(option === "Referral from another company"
+                                ? {}
+                                : {
+                                    referralCompanyName: "",
+                                    referralEmail: "",
+                                  }),
+                            }));
+                            clearFieldError("howDidYouHear");
+                            clearFieldError("referralCompanyName");
+                            clearFieldError("referralEmail");
+                          }}
+                        />
+                      ))}
+                    </div>
+                    {fieldErrors.howDidYouHear ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
+                  <div
+                    className={`grid overflow-hidden ${
+                      reducedMotion ? "" : "transition-[grid-template-rows] duration-200 ease-out"
+                    } ${form.howDidYouHear === "Referral from another company" ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+                    aria-hidden={form.howDidYouHear !== "Referral from another company"}
+                  >
+                    <div className="min-h-0">
+                      <div
+                        className={`space-y-3 ${
+                          reducedMotion ? "" : "transition-opacity duration-200 ease-out"
+                        } ${
+                          form.howDidYouHear === "Referral from another company"
+                            ? "opacity-100"
+                            : "pointer-events-none opacity-0"
+                        }`}
+                      >
+                        <div data-wizard-field="referralCompanyName">
+                          <input
+                            className={wizardInputClass(!!fieldErrors.referralCompanyName)}
+                            value={form.referralCompanyName}
+                            onChange={(e) => {
+                              setForm((p) => ({ ...p, referralCompanyName: e.target.value }));
+                              clearFieldError("referralCompanyName");
+                            }}
+                            placeholder="Company name"
+                            autoComplete="organization"
+                          />
+                          {fieldErrors.referralCompanyName ? (
+                            <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p>
+                          ) : null}
+                        </div>
+                        <div data-wizard-field="referralEmail">
+                          <input
+                            className={wizardInputClass(!!fieldErrors.referralEmail)}
+                            type="email"
+                            value={form.referralEmail}
+                            onChange={(e) => {
+                              setForm((p) => ({ ...p, referralEmail: e.target.value }));
+                              clearFieldError("referralEmail");
+                            }}
+                            placeholder="Company email (optional)"
+                            autoComplete="email"
+                          />
+                          {fieldErrors.referralEmail ? (
+                            <p className={fieldErrorTextClass}>Enter a valid email or leave blank</p>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
