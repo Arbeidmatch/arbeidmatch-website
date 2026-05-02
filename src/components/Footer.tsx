@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
+
 function FooterColumnTitle({ children }: { children: string }) {
   return (
     <p className="mb-3 text-[14px] font-semibold uppercase tracking-[0.12em] text-[rgba(255,255,255,0.55)] md:mb-4">{children}</p>
@@ -67,13 +69,18 @@ export default function Footer() {
           <p className="mt-3 max-w-md text-sm leading-relaxed text-[rgba(255,255,255,0.5)]">Influence. Source. Earn.</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-x-8 md:gap-y-10 lg:grid-cols-5 lg:gap-x-12">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-x-8 md:gap-y-10 lg:grid-cols-6 lg:gap-x-12">
           <div>
             <FooterColumnTitle>For Employers</FooterColumnTitle>
             <FooterNavLink href="/request" label="Request Candidates" />
             <FooterNavLink href="/#how-it-works" label="How it works" />
-            <FooterNavLink href="/for-candidates" label="For Candidates" />
-            <FooterExternalLink href="https://jobs.arbeidmatch.no" label="Apply" />
+          </div>
+
+          <div>
+            <FooterColumnTitle>For Candidates</FooterColumnTitle>
+            <FooterNavLink href="/for-candidates" label="For candidates" />
+            <FooterExternalLink href={JOBS_PORTAL_URL} label="Join talent network" />
+            <FooterExternalLink href={JOBS_PORTAL_URL} label="Apply" />
           </div>
 
           <div>

@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 
 import type { AmAudience } from "@/lib/navMoreMenu";
 import { moreMenuLinksForAudience } from "@/lib/navMoreMenu";
+import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 
 const GOLD = "#C9A84C";
 
@@ -14,8 +15,7 @@ const employerLinks: { href: string; label: string }[] = [
   { href: "/for-staffing-agencies", label: "Become a partner agency" },
 ];
 
-const mainLinks: { href: string; label: string }[] = [
-  { href: "/for-candidates", label: "For Candidates" },
+const browseLinks: { href: string; label: string }[] = [
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -49,6 +49,20 @@ function DrawerRowLink({
     >
       {children}
     </Link>
+  );
+}
+
+function DrawerRowExternal({ href, children, onClose }: { href: string; children: ReactNode; onClose: () => void }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block border-b border-white/[0.04] border-l-2 border-l-transparent px-6 py-3.5 text-[15px] font-normal text-white transition-colors hover:text-white/90"
+      onClick={onClose}
+    >
+      {children}
+    </a>
   );
 }
 
@@ -95,8 +109,19 @@ export default function MobileDrawerContent({
           </DrawerRowLink>
         ))}
 
+        <SectionLabel>For Candidates</SectionLabel>
+        <DrawerRowLink href="/for-candidates" pathname={pathname} onClose={onClose}>
+          For Candidates
+        </DrawerRowLink>
+        <DrawerRowExternal href={JOBS_PORTAL_URL} onClose={onClose}>
+          Join talent network
+        </DrawerRowExternal>
+        <DrawerRowExternal href={JOBS_PORTAL_URL} onClose={onClose}>
+          Apply
+        </DrawerRowExternal>
+
         <SectionLabel>Menu</SectionLabel>
-        {mainLinks.map((item) => (
+        {browseLinks.map((item) => (
           <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
             {item.label}
           </DrawerRowLink>

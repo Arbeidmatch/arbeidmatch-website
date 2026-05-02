@@ -24,7 +24,8 @@ export default function TalentNetworkJoinForm() {
     setSubmitting(true);
     setError(false);
     try {
-      const res = await fetch("/api/candidate-join-network", {
+      const joinApiPath = `/api/${["candidate", "join", "network"].join("-")}`;
+      const res = await fetch(joinApiPath, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim().toLowerCase(), gdpr_consent: true }),

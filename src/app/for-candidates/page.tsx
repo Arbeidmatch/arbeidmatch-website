@@ -2,15 +2,17 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ClipboardList, FileText, ShieldCheck, UserCheck } from "lucide-react";
 
+import JobsPortalCTA from "@/components/candidates/JobsPortalCTA";
 import CandidateAuthorityDisclaimerBar from "@/components/for-candidates/CandidateAuthorityDisclaimerBar";
 import ScrollReveal from "@/components/ScrollReveal";
+import { JOBS_PORTAL_URL, TALENT_NETWORK_FORM_ENABLED } from "@/lib/featureFlags";
 
 import TalentNetworkJoinForm from "./TalentNetworkJoinForm";
 
 export const metadata: Metadata = {
   title: "Find work in Norway | ArbeidMatch",
   description:
-    "We connect qualified EU/EEA workers with Norwegian employers in construction, logistics, and industry. Join our talent network.",
+    "We connect qualified EU/EEA workers with Norwegian employers in construction, logistics, and industry. Browse open positions in Norway through our jobs portal.",
 };
 
 const OFFER_CARDS: { title: string; text: string }[] = [
@@ -156,12 +158,14 @@ export default function ForCandidatesPage() {
             </p>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
-            <Link
-              href="#join-talent"
+            <a
+              href={TALENT_NETWORK_FORM_ENABLED ? "#join-talent" : JOBS_PORTAL_URL}
+              target={TALENT_NETWORK_FORM_ENABLED ? undefined : "_blank"}
+              rel={TALENT_NETWORK_FORM_ENABLED ? undefined : "noopener noreferrer"}
               className="btn-gold-premium mt-10 inline-flex min-h-[52px] w-full max-w-md items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-3.5 text-[16px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f] sm:mx-auto sm:w-auto"
             >
-              Join our talent network →
-            </Link>
+              {TALENT_NETWORK_FORM_ENABLED ? "Join our talent network →" : "Browse jobs and apply →"}
+            </a>
           </ScrollReveal>
         </div>
       </section>
@@ -307,23 +311,27 @@ export default function ForCandidatesPage() {
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
             <p className="mx-auto mt-3 max-w-lg text-sm text-white/65 md:text-base">
-              Leave your email and we will open a conversation about roles that fit your profile.
+              {TALENT_NETWORK_FORM_ENABLED
+                ? "Leave your email and we will open a conversation about roles that fit your profile."
+                : "Use the jobs portal to see current openings and send your application in one place."}
             </p>
           </ScrollReveal>
-          <TalentNetworkJoinForm />
-          <ScrollReveal variant="fadeUp">
-            <p className="mt-8 text-xs text-white/45">
-              Prefer browsing first?{" "}
-              <a
-                href="https://jobs.arbeidmatch.no"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-[#C9A84C] underline-offset-2 hover:underline"
-              >
-                View open positions
-              </a>
-            </p>
-          </ScrollReveal>
+          {TALENT_NETWORK_FORM_ENABLED ? <TalentNetworkJoinForm /> : <JobsPortalCTA />}
+          {TALENT_NETWORK_FORM_ENABLED ? (
+            <ScrollReveal variant="fadeUp">
+              <p className="mt-8 text-xs text-white/45">
+                Prefer browsing first?{" "}
+                <a
+                  href={JOBS_PORTAL_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-[#C9A84C] underline-offset-2 hover:underline"
+                >
+                  View open positions
+                </a>
+              </p>
+            </ScrollReveal>
+          ) : null}
         </div>
       </section>
 

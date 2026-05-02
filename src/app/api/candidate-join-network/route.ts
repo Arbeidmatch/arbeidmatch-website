@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
+import { TALENT_NETWORK_FORM_ENABLED } from "@/lib/featureFlags";
 import { isRateLimited } from "@/lib/requestProtection";
 import { formatEmailTimestampCet, mailHeaders, wrapPremiumEmail, emailParagraph } from "@/lib/emailPremiumTemplate";
 
@@ -14,6 +15,16 @@ const bodySchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    if (!TALENT_NETWORK_FORM_ENABLED) {
+      return NextResponse.json(
+        {
+          error: "endpoint_disabled",
+          message: "Talent network registration is currently routed through https://jobs.arbeidmatch.no",
+        },
+        { status: 410 },
+      );
+    }
+
     if (isRateLimited(request, "candidate-join-network", 8, 15 * 60 * 1000)) {
       return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
     }

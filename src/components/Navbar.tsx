@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { startTransition, useEffect, useState } from "react";
@@ -8,6 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
+import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 import { MORE_ALL_HREFS, moreMenuLinksForAudience } from "@/lib/navMoreMenu";
 import { useAudience } from "@/lib/useAudience";
 
@@ -230,13 +232,34 @@ export default function Navbar() {
             </div>
 
             {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`${navItemClass} ${linkActive(pathname, link.href) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""}`}
-              >
-                {link.label}
-              </Link>
+              <Fragment key={link.href}>
+                <Link
+                  href={link.href}
+                  className={`${navItemClass} ${linkActive(pathname, link.href) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""}`}
+                >
+                  {link.label}
+                </Link>
+                {link.href === "/for-candidates" ? (
+                  <>
+                    <a
+                      href={JOBS_PORTAL_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${navItemClass} shrink-0 text-[15px] font-normal text-white/70 transition-[color,font-weight,text-decoration-color] duration-150 hover:font-medium hover:text-white`}
+                    >
+                      Join talent network
+                    </a>
+                    <a
+                      href={JOBS_PORTAL_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${navItemClass} shrink-0 text-[15px] font-normal text-white/70 transition-[color,font-weight,text-decoration-color] duration-150 hover:font-medium hover:text-white`}
+                    >
+                      Apply
+                    </a>
+                  </>
+                ) : null}
+              </Fragment>
             ))}
           </nav>
 

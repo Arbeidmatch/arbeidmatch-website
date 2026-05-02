@@ -81,7 +81,7 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
   const goWork = useCallback(() => {
     trackEvent("home_user_type", { userType: "candidate", source: "hero_cards" });
     writeHomeUserType("candidate");
-    router.push("/for-candidates");
+    router.push("/for-candidates#join-talent");
   }, [router]);
 
   const fade = (delaySec: number) =>

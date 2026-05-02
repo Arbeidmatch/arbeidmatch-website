@@ -61,7 +61,7 @@ export default function HomeWelcomeUserTypeSlideup() {
       writeHomeUserType(role);
       setNavigationUserType(role);
       setOpen(false);
-      router.push(role === "employer" ? "/for-employers" : "/for-candidates");
+      router.push(role === "employer" ? "/for-employers" : "/for-candidates#join-talent");
     },
     [markWelcomeShown, router],
   );
