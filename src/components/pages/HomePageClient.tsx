@@ -28,6 +28,9 @@ import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard"
 import ScrollReveal from "@/components/ScrollReveal";
 const HERO_DURATION = 0.72;
 
+const HERO_IMAGE_BLUR_DATA_URL =
+  "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwABmQAAAAAAAAAAAAAAAP/Z";
+
 const HERO_H1_TEXT = `Qualified workers,
 delivered to your
 Norwegian business.`;
@@ -197,7 +200,9 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
                 src="/images/ai/am-ai-hero-home.webp"
                 alt="Diverse blue-collar workers in high-visibility vests and hard hats during a safety briefing at a Norwegian industrial workplace."
                 fill
-                priority
+                loading="lazy"
+                placeholder="blur"
+                blurDataURL={HERO_IMAGE_BLUR_DATA_URL}
                 sizes="(max-width: 1024px) 100vw, 40vw"
                 className="object-cover"
                 quality={85}

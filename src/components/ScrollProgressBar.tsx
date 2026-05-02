@@ -24,7 +24,7 @@ export default function ScrollProgressBar() {
 
   return (
     <div
-      className="pointer-events-none fixed left-0 top-0 z-[9999] h-[2px] w-full"
+      className="pointer-events-none fixed left-0 top-[2px] z-[9999] h-[2px] w-full"
       role="progressbar"
       aria-valuenow={Math.round(p)}
       aria-valuemin={0}
