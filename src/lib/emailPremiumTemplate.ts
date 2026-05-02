@@ -1,7 +1,7 @@
 import { escapeHtml } from "@/lib/htmlSanitizer";
 
 /** From header (must match SMTP auth mailbox for one.com / similar providers). */
-export const EMAIL_FROM = '"ArbeidMatch Norge AS" <no-replay@arbeidmatch.no>';
+export const EMAIL_FROM = '"ArbeidMatch Norge AS" <no-reply@arbeidmatch.no>';
 export const EMAIL_REPLY_TO = "support@arbeidmatch.no";
 
 /** Standard nodemailer fields for outbound mail. */

@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
       port: 465,
       secure: true,
       auth: {
-        user: "no-replay@arbeidmatch.no",
+        user: "no-reply@arbeidmatch.no",
         pass: process.env.SMTP_PASS,
       },
     });

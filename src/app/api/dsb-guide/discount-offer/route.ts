@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       host: "send.one.com",
       port: 465,
       secure: true,
-      auth: { user: "no-replay@arbeidmatch.no", pass: smtpPass },
+      auth: { user: "no-reply@arbeidmatch.no", pass: smtpPass },
     });
 
     const html = buildDiscountOfferEmailHtml({

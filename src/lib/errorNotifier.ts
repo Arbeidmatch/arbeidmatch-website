@@ -10,7 +10,7 @@ function createTransporter() {
     port: Number(process.env.SMTP_PORT) || 465,
     secure: true,
     auth: {
-      user: process.env.SMTP_USER || "no-replay@arbeidmatch.no",
+      user: process.env.SMTP_USER || "no-reply@arbeidmatch.no",
       pass,
     },
   });
@@ -117,7 +117,7 @@ ${contextLines || "No additional context"}
 This is an automated error notification from arbeidmatch.no
   `.trim();
 
-  const fromAddr = process.env.SMTP_USER || "no-replay@arbeidmatch.no";
+  const fromAddr = process.env.SMTP_USER || "no-reply@arbeidmatch.no";
   const subjectSnippet = errorMessage.slice(0, 60).replace(/\s+/g, " ").trim() || "Error";
 
   try {

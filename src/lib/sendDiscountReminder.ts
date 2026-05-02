@@ -13,7 +13,7 @@ function createTransporter() {
     host: "send.one.com",
     port: 465,
     secure: true,
-    auth: { user: "no-replay@arbeidmatch.no", pass },
+    auth: { user: "no-reply@arbeidmatch.no", pass },
   });
 }
 

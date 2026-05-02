@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
           .filter(Boolean)
           .join("");
         await transporter.sendMail({
-          from: `"ArbeidMatch" <no-replay@arbeidmatch.no>`,
+          from: `"ArbeidMatch" <no-reply@arbeidmatch.no>`,
           to: email,
           subject: "You are registered with ArbeidMatch",
           text: bodyText,
