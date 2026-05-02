@@ -73,6 +73,51 @@ type RequestForm = {
   subscribeUpdates: boolean;
 };
 
+const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
+  0: ["companyName", "orgNumber", "contactFirstName", "contactLastName", "contactEmail", "contactPhone"],
+  1: ["industry", "workerType", "contractType", "locations", "startDate", "candidates"],
+  2: ["salaryMin", "salaryMax", "accommodation", "localTransport", "internationalTransport"],
+  3: ["qualification"],
+  4: ["workTasks"],
+  5: ["personalQualities"],
+  6: ["offerItems"],
+  7: [],
+};
+
+function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
+  const invalid = new Set<string>();
+  if (s === 0) {
+    if (f.companyName.trim().length < 2) invalid.add("companyName");
+    if (f.orgNumber.trim().length < 9) invalid.add("orgNumber");
+    if (f.contactFirstName.trim().length < 1) invalid.add("contactFirstName");
+    if (f.contactLastName.trim().length < 1) invalid.add("contactLastName");
+    if (!f.contactEmail.includes("@")) invalid.add("contactEmail");
+    if (f.contactPhone.trim().length < 6) invalid.add("contactPhone");
+  } else if (s === 1) {
+    if (!f.industry) invalid.add("industry");
+    if (!f.workerType.trim()) invalid.add("workerType");
+    if (f.candidates < 1) invalid.add("candidates");
+    if (!f.contractType) invalid.add("contractType");
+    if (f.locations.length === 0) invalid.add("locations");
+    if (f.startDateMode === "Specific start date" && !f.startDate.trim()) invalid.add("startDate");
+  } else if (s === 2) {
+    if (!f.salaryMin.trim()) invalid.add("salaryMin");
+    if (!f.salaryMax.trim()) invalid.add("salaryMax");
+    if (!f.accommodation) invalid.add("accommodation");
+    if (!f.localTransport) invalid.add("localTransport");
+    if (!f.internationalTransport) invalid.add("internationalTransport");
+  } else if (s === 3) {
+    if (!f.qualification) invalid.add("qualification");
+  } else if (s === 4) {
+    if (f.workTasks.length === 0) invalid.add("workTasks");
+  } else if (s === 5) {
+    if (f.personalQualities.length === 0) invalid.add("personalQualities");
+  } else if (s === 6) {
+    if (f.offerItems.length === 0) invalid.add("offerItems");
+  }
+  return invalid;
+}
+
 const TOTAL_STEPS = 8;
 
 const CITY_OPTIONS = [
@@ -425,8 +470,24 @@ const OFFER_OPTIONS = [
 ] as const;
 
 const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]";
-const inputClass =
-  "w-full rounded-[12px] border border-white/10 bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[rgba(201,168,76,0.5)]";
+const FIELD_ERROR_MSG = "This field is required";
+const fieldErrorTextClass = "mt-1 text-[12px] text-[#ef4444]";
+
+function wizardInputClass(invalid: boolean, extraClass = "") {
+  return [
+    "w-full min-h-[44px] rounded-[12px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30",
+    "focus:outline-none focus:border-2 focus:border-[#C9A84C]",
+    invalid ? "border-2 border-[#ef4444]" : "border border-white/10",
+    extraClass,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function wizardGroupShell(invalid: boolean, extraClass = "") {
+  if (!invalid) return extraClass || "";
+  return ["rounded-[12px] border-2 border-[#ef4444] p-2", extraClass].filter(Boolean).join(" ");
+}
 
 const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: LucideIcon; roles: string[] }> = [
   {
@@ -522,7 +583,7 @@ function OptionCard({
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full items-center justify-between gap-3 rounded-[12px] border px-4 py-3 text-left transition-all duration-180 ${
+      className={`flex min-h-[44px] w-full items-center justify-between gap-3 rounded-[12px] border px-4 py-3 text-left transition-all duration-180 focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${
         selected
           ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
           : "border-white/10 bg-white/[0.03] text-white hover:border-white/20 hover:bg-white/[0.05]"
@@ -587,6 +648,7 @@ export default function RequestTokenPage() {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [submitSuccessFullName, setSubmitSuccessFullName] = useState("");
   const [submitSuccessReference, setSubmitSuccessReference] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState<RequestForm>(initialForm);
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [tokenGate, setTokenGate] = useState<"loading" | "ready" | "blocked" | "error">("loading");
@@ -741,6 +803,12 @@ export default function RequestTokenPage() {
         city: nextLocations.join(", "),
       };
     });
+    setFieldErrors((prev) => {
+      if (!prev.locations) return prev;
+      const next = { ...prev };
+      delete next.locations;
+      return next;
+    });
   };
 
   const toggleItem = (field: "workTasks" | "personalQualities" | "offerItems", value: string) => {
@@ -750,6 +818,12 @@ export default function RequestTokenPage() {
         ...prev,
         [field]: exists ? prev[field].filter((item) => item !== value) : [...prev[field], value],
       };
+    });
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
     });
   };
 
@@ -781,44 +855,51 @@ export default function RequestTokenPage() {
     return sections.join("\n");
   }, [form.additionalNotes, form.diagnosticsExperienceRequired, form.driverLicenseRequired, form.jaguarLandRoverPreferred, form.offerItems, form.personalQualities, form.qualification, form.tradeCertificatePreferred, form.workTasks, form.customerCommunicationRequired]);
 
-  const isStepValid = (value: number) => {
-    if (value === 0) {
-      return (
-        form.companyName.trim().length >= 2 &&
-        form.orgNumber.trim().length >= 9 &&
-        form.contactFirstName.trim().length >= 1 &&
-        form.contactLastName.trim().length >= 1 &&
-        form.contactEmail.includes("@") &&
-        form.contactPhone.trim().length >= 6
-      );
+  const clearFieldError = (key: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  const runStepValidation = (s: number) => {
+    const invalid = collectWizardStepInvalid(s, form);
+    const keys = WIZARD_STEP_FIELD_KEYS[s] ?? [];
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      for (const k of keys) delete next[k];
+      for (const k of invalid) next[k] = true;
+      return next;
+    });
+    if (invalid.size > 0 && typeof document !== "undefined") {
+      requestAnimationFrame(() => {
+        const first = invalid.values().next().value as string | undefined;
+        if (first) {
+          document.querySelector(`[data-wizard-field="${first}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      });
     }
-    if (value === 1) {
-      return (
-        !!form.industry &&
-        !!form.workerType.trim() &&
-        form.candidates >= 1 &&
-        !!form.contractType &&
-        form.locations.length > 0 &&
-        (form.startDateMode === "Immediate" || form.startDate.trim().length > 0)
-      );
+    return invalid.size === 0;
+  };
+
+  const handleFormContinue = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (animating || isSubmitting) return;
+    if (!runStepValidation(step)) return;
+    if (step < TOTAL_STEPS - 1) {
+      handleNext();
+      return;
     }
-    if (value === 2) {
-      return !!form.salaryMin.trim() && !!form.salaryMax.trim() && !!form.accommodation && !!form.localTransport && !!form.internationalTransport;
-    }
-    if (value === 3) return !!form.qualification;
-    if (value === 4) return form.workTasks.length > 0;
-    if (value === 5) return form.personalQualities.length > 0;
-    if (value === 6) return form.offerItems.length > 0;
-    if (value === 7) return true;
-    return false;
+    await performEmployerSubmit();
   };
 
   const handleNext = () => {
     if (step < TOTAL_STEPS - 1) goTo(step + 1);
   };
 
-  const handleSubmit = async (event?: FormEvent) => {
-    event?.preventDefault();
+  const performEmployerSubmit = async () => {
     trackEvent("wizard_submitted");
     setSubmitError("");
     setSubmitNotice("");
@@ -1572,7 +1653,7 @@ export default function RequestTokenPage() {
       </header>
 
       <main className="flex min-h-dvh items-center justify-center px-4 pt-[72px] md:px-6 md:pt-[80px]">
-        <form onSubmit={handleSubmit} className="w-full max-w-[560px]">
+        <form onSubmit={handleFormContinue} className="w-full max-w-[560px]">
           <input type="hidden" value={token} name="token" />
           <div
             key={step}
@@ -1588,13 +1669,87 @@ export default function RequestTokenPage() {
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 1 of 8</p>
                 <h2 className="text-2xl font-extrabold">Company and contact</h2>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <input className={inputClass} value={form.companyName} onChange={(e) => setForm((p) => ({ ...p, companyName: e.target.value }))} placeholder="Company name" />
-                  <input className={inputClass} value={form.orgNumber} onChange={(e) => setForm((p) => ({ ...p, orgNumber: e.target.value }))} placeholder="Org number" />
-                  <input className={inputClass} value={form.contactFirstName} onChange={(e) => setForm((p) => ({ ...p, contactFirstName: e.target.value }))} placeholder="First name" />
-                  <input className={inputClass} value={form.contactLastName} onChange={(e) => setForm((p) => ({ ...p, contactLastName: e.target.value }))} placeholder="Last name" />
-                  <input className={inputClass} value={form.roleInCompany} onChange={(e) => setForm((p) => ({ ...p, roleInCompany: e.target.value }))} placeholder="Role in company" />
-                  <input className={inputClass} value={form.contactPhone} onChange={(e) => setForm((p) => ({ ...p, contactPhone: e.target.value }))} placeholder="Phone" />
-                  <input className={`${inputClass} md:col-span-2`} type="email" value={form.contactEmail} onChange={(e) => setForm((p) => ({ ...p, contactEmail: e.target.value }))} placeholder="Email" />
+                  <div data-wizard-field="companyName">
+                    <input
+                      className={wizardInputClass(!!fieldErrors.companyName)}
+                      value={form.companyName}
+                      onChange={(e) => {
+                        setForm((p) => ({ ...p, companyName: e.target.value }));
+                        clearFieldError("companyName");
+                      }}
+                      placeholder="Company name"
+                    />
+                    {fieldErrors.companyName ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
+                  <div data-wizard-field="orgNumber">
+                    <input
+                      className={wizardInputClass(!!fieldErrors.orgNumber)}
+                      value={form.orgNumber}
+                      onChange={(e) => {
+                        setForm((p) => ({ ...p, orgNumber: e.target.value }));
+                        clearFieldError("orgNumber");
+                      }}
+                      placeholder="Org number"
+                    />
+                    {fieldErrors.orgNumber ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
+                  <div data-wizard-field="contactFirstName">
+                    <input
+                      className={wizardInputClass(!!fieldErrors.contactFirstName)}
+                      value={form.contactFirstName}
+                      onChange={(e) => {
+                        setForm((p) => ({ ...p, contactFirstName: e.target.value }));
+                        clearFieldError("contactFirstName");
+                      }}
+                      placeholder="First name"
+                    />
+                    {fieldErrors.contactFirstName ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
+                  <div data-wizard-field="contactLastName">
+                    <input
+                      className={wizardInputClass(!!fieldErrors.contactLastName)}
+                      value={form.contactLastName}
+                      onChange={(e) => {
+                        setForm((p) => ({ ...p, contactLastName: e.target.value }));
+                        clearFieldError("contactLastName");
+                      }}
+                      placeholder="Last name"
+                    />
+                    {fieldErrors.contactLastName ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
+                  <div>
+                    <input
+                      className={wizardInputClass(false)}
+                      value={form.roleInCompany}
+                      onChange={(e) => setForm((p) => ({ ...p, roleInCompany: e.target.value }))}
+                      placeholder="Role in company (optional)"
+                    />
+                  </div>
+                  <div data-wizard-field="contactPhone">
+                    <input
+                      className={wizardInputClass(!!fieldErrors.contactPhone)}
+                      value={form.contactPhone}
+                      onChange={(e) => {
+                        setForm((p) => ({ ...p, contactPhone: e.target.value }));
+                        clearFieldError("contactPhone");
+                      }}
+                      placeholder="Phone"
+                    />
+                    {fieldErrors.contactPhone ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
+                  <div className="md:col-span-2" data-wizard-field="contactEmail">
+                    <input
+                      className={wizardInputClass(!!fieldErrors.contactEmail, "md:col-span-2")}
+                      type="email"
+                      value={form.contactEmail}
+                      onChange={(e) => {
+                        setForm((p) => ({ ...p, contactEmail: e.target.value }));
+                        clearFieldError("contactEmail");
+                      }}
+                      placeholder="Email"
+                    />
+                    {fieldErrors.contactEmail ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
                 </div>
               </div>
             )}
@@ -1605,14 +1760,29 @@ export default function RequestTokenPage() {
                 <h2 className="text-2xl font-extrabold">Job basics</h2>
                 <div>
                   <p className={labelClass}>Job category</p>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div
+                    data-wizard-field="industry"
+                    className={wizardGroupShell(!!fieldErrors.industry, "grid grid-cols-1 gap-3 md:grid-cols-2")}
+                  >
                     {INDUSTRY_OPTIONS.map((option) => (
-                      <OptionCard key={option} label={option} selected={form.industry === option} onClick={() => setForm((p) => ({ ...p, industry: option }))} />
+                      <OptionCard
+                        key={option}
+                        label={option}
+                        selected={form.industry === option}
+                        onClick={() => {
+                          setForm((p) => ({ ...p, industry: option }));
+                          clearFieldError("industry");
+                        }}
+                      />
                     ))}
                   </div>
+                  {fieldErrors.industry ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
                 <div>
-                  <p className={labelClass}>Hiring type</p>
+                  <p className={labelClass}>
+                    Hiring type{" "}
+                    <span className="font-normal normal-case tracking-normal text-white/40">(optional)</span>
+                  </p>
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                     {["Recruitment of personnel for companies", "Temporary staffing request"].map((option) => (
                       <OptionCard key={option} label={option} selected={form.hiringType === option} onClick={() => setForm((p) => ({ ...p, hiringType: option }))} />
@@ -1620,57 +1790,132 @@ export default function RequestTokenPage() {
                   </div>
                 </div>
                 <div>
-                  <p className={labelClass}>Job summary</p>
+                  <p className={labelClass}>
+                    Job summary{" "}
+                    <span className="font-normal normal-case tracking-normal text-white/40">(optional)</span>
+                  </p>
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                     {["General hiring inquiry", "Urgent replacement need", "Planned team expansion", "Project-specific hiring"].map((option) => (
                       <OptionCard key={option} label={option} selected={form.jobSummary === option} onClick={() => setForm((p) => ({ ...p, jobSummary: option }))} />
                     ))}
                   </div>
                 </div>
-                <div>
+                <div data-wizard-field="workerType">
                   <p className={labelClass}>Trade or position</p>
-                  <input className={inputClass} value={form.workerType} onChange={(e) => setForm((p) => ({ ...p, workerType: e.target.value }))} placeholder="mechanics for auto industry" />
+                  <input
+                    className={wizardInputClass(!!fieldErrors.workerType)}
+                    value={form.workerType}
+                    onChange={(e) => {
+                      setForm((p) => ({ ...p, workerType: e.target.value }));
+                      clearFieldError("workerType");
+                    }}
+                    placeholder="mechanics for auto industry"
+                  />
+                  {fieldErrors.workerType ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
-                <div>
+                <div data-wizard-field="locations">
                   <p className={labelClass}>Location</p>
-                  <input className={inputClass} value={citySearch} onChange={(e) => setCitySearch(e.target.value)} placeholder="Search city" />
-                  <div className="mt-2 flex max-h-[150px] flex-wrap gap-2 overflow-auto">
-                    {filteredCities.slice(0, 10).map((city) => (
-                      <button key={city} type="button" onClick={() => toggleLocation(city)} className={`rounded-full border px-3 py-1 text-xs ${form.locations.includes(city) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}>
-                        {city}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <div>
-                    <p className={labelClass}>Number of workers</p>
-                    <div className="flex items-center gap-3">
-                      <button type="button" className="h-9 w-9 rounded-lg border border-[#C9A84C] text-[#C9A84C]" onClick={() => setForm((p) => ({ ...p, candidates: Math.max(1, p.candidates - 1) }))}>-</button>
-                      <span className="min-w-12 text-center text-2xl font-bold">{form.candidates}</span>
-                      <button type="button" className="h-9 w-9 rounded-lg border border-[#C9A84C] text-[#C9A84C]" onClick={() => setForm((p) => ({ ...p, candidates: p.candidates + 1 }))}>+</button>
-                    </div>
-                  </div>
-                  <div>
-                    <p className={labelClass}>Contract type</p>
-                    <div className="space-y-2">
-                      {["Permanent employment", "Temporary hire", "Project-based"].map((option) => (
-                        <OptionCard key={option} label={option} selected={form.contractType === option} onClick={() => setForm((p) => ({ ...p, contractType: option }))} />
+                  <div className={wizardGroupShell(!!fieldErrors.locations)}>
+                    <input
+                      className={wizardInputClass(false)}
+                      value={citySearch}
+                      onChange={(e) => {
+                        setCitySearch(e.target.value);
+                        clearFieldError("locations");
+                      }}
+                      placeholder="Search city"
+                    />
+                    <div className="mt-2 flex max-h-[150px] flex-wrap gap-2 overflow-auto">
+                      {filteredCities.slice(0, 10).map((city) => (
+                        <button
+                          key={city}
+                          type="button"
+                          onClick={() => toggleLocation(city)}
+                          className={`min-h-[40px] rounded-full border px-3 py-1.5 text-xs ${form.locations.includes(city) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}
+                        >
+                          {city}
+                        </button>
                       ))}
                     </div>
+                  </div>
+                  {fieldErrors.locations ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                </div>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div data-wizard-field="candidates">
+                    <p className={labelClass}>Number of workers</p>
+                    <div className={wizardGroupShell(!!fieldErrors.candidates, "flex items-center gap-3")}>
+                      <button
+                        type="button"
+                        className="flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-lg border border-[#C9A84C] text-[#C9A84C]"
+                        onClick={() => {
+                          setForm((p) => ({ ...p, candidates: Math.max(1, p.candidates - 1) }));
+                          clearFieldError("candidates");
+                        }}
+                      >
+                        -
+                      </button>
+                      <span className="min-w-12 text-center text-2xl font-bold">{form.candidates}</span>
+                      <button
+                        type="button"
+                        className="flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-lg border border-[#C9A84C] text-[#C9A84C]"
+                        onClick={() => {
+                          setForm((p) => ({ ...p, candidates: p.candidates + 1 }));
+                          clearFieldError("candidates");
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                    {fieldErrors.candidates ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
+                  <div data-wizard-field="contractType">
+                    <p className={labelClass}>Contract type</p>
+                    <div className={wizardGroupShell(!!fieldErrors.contractType, "space-y-2")}>
+                      {["Permanent employment", "Temporary hire", "Project-based"].map((option) => (
+                        <OptionCard
+                          key={option}
+                          label={option}
+                          selected={form.contractType === option}
+                          onClick={() => {
+                            setForm((p) => ({ ...p, contractType: option }));
+                            clearFieldError("contractType");
+                          }}
+                        />
+                      ))}
+                    </div>
+                    {fieldErrors.contractType ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
                 </div>
                 <div>
                   <p className={labelClass}>Start date</p>
                   <div className="mb-3 flex flex-wrap gap-2">
                     {(["Immediate", "Specific start date"] as const).map((mode) => (
-                      <button key={mode} type="button" className={`rounded-lg border px-4 py-2 text-sm ${form.startDateMode === mode ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`} onClick={() => setForm((p) => ({ ...p, startDateMode: mode }))}>
+                      <button
+                        key={mode}
+                        type="button"
+                        className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm ${form.startDateMode === mode ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`}
+                        onClick={() => {
+                          setForm((p) => ({ ...p, startDateMode: mode }));
+                          clearFieldError("startDate");
+                        }}
+                      >
                         {mode}
                       </button>
                     ))}
                   </div>
                   {form.startDateMode === "Specific start date" ? (
-                    <input type="date" className={inputClass} value={form.startDate} onChange={(e) => setForm((p) => ({ ...p, startDate: e.target.value }))} />
+                    <div data-wizard-field="startDate">
+                      <input
+                        type="date"
+                        className={wizardInputClass(!!fieldErrors.startDate)}
+                        value={form.startDate}
+                        onChange={(e) => {
+                          setForm((p) => ({ ...p, startDate: e.target.value }));
+                          clearFieldError("startDate");
+                        }}
+                      />
+                      {fieldErrors.startDate ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                    </div>
                   ) : null}
                 </div>
               </div>
@@ -1685,7 +1930,12 @@ export default function RequestTokenPage() {
                     <p className={labelClass}>Salary mode</p>
                     <div className="flex gap-2">
                       {(["Range", "Fixed"] as const).map((mode) => (
-                        <button key={mode} type="button" className={`rounded-lg border px-4 py-2 text-sm ${form.salaryMode === mode ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`} onClick={() => setForm((p) => ({ ...p, salaryMode: mode }))}>
+                        <button
+                          key={mode}
+                          type="button"
+                          className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${form.salaryMode === mode ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`}
+                          onClick={() => setForm((p) => ({ ...p, salaryMode: mode }))}
+                        >
                           {mode}
                         </button>
                       ))}
@@ -1695,7 +1945,12 @@ export default function RequestTokenPage() {
                     <p className={labelClass}>Salary period</p>
                     <div className="flex gap-2">
                       {(["per hour", "per month"] as const).map((period) => (
-                        <button key={period} type="button" className={`rounded-lg border px-4 py-2 text-sm ${form.salaryPeriod === period ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`} onClick={() => setForm((p) => ({ ...p, salaryPeriod: period }))}>
+                        <button
+                          key={period}
+                          type="button"
+                          className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${form.salaryPeriod === period ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`}
+                          onClick={() => setForm((p) => ({ ...p, salaryPeriod: period }))}
+                        >
                           {period === "per hour" ? "Per hour" : "Per month"}
                         </button>
                       ))}
@@ -1703,40 +1958,94 @@ export default function RequestTokenPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <input className={inputClass} value={form.salaryMin} onChange={(e) => setForm((p) => ({ ...p, salaryMin: e.target.value }))} placeholder="Salary min" />
-                  <input className={inputClass} value={form.salaryMax} onChange={(e) => setForm((p) => ({ ...p, salaryMax: e.target.value }))} placeholder="Salary max" />
+                  <div data-wizard-field="salaryMin">
+                    <input
+                      className={wizardInputClass(!!fieldErrors.salaryMin)}
+                      value={form.salaryMin}
+                      onChange={(e) => {
+                        setForm((p) => ({ ...p, salaryMin: e.target.value }));
+                        clearFieldError("salaryMin");
+                      }}
+                      placeholder="Salary min"
+                    />
+                    {fieldErrors.salaryMin ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
+                  <div data-wizard-field="salaryMax">
+                    <input
+                      className={wizardInputClass(!!fieldErrors.salaryMax)}
+                      value={form.salaryMax}
+                      onChange={(e) => {
+                        setForm((p) => ({ ...p, salaryMax: e.target.value }));
+                        clearFieldError("salaryMax");
+                      }}
+                      placeholder="Salary max"
+                    />
+                    {fieldErrors.salaryMax ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
                 </div>
-                <div>
+                <div data-wizard-field="accommodation">
                   <p className={labelClass}>Accommodation</p>
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  <div className={wizardGroupShell(!!fieldErrors.accommodation, "grid grid-cols-1 gap-2 md:grid-cols-2")}>
                     {["Provided", "Not provided"].map((option) => (
-                      <OptionCard key={option} label={option} selected={form.accommodation === option} onClick={() => setForm((p) => ({ ...p, accommodation: option }))} />
+                      <OptionCard
+                        key={option}
+                        label={option}
+                        selected={form.accommodation === option}
+                        onClick={() => {
+                          setForm((p) => ({ ...p, accommodation: option }));
+                          clearFieldError("accommodation");
+                        }}
+                      />
                     ))}
                   </div>
+                  {fieldErrors.accommodation ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
                 {form.accommodation === "Not provided" ? (
-                  <input className={inputClass} value={form.accommodationSupport} onChange={(e) => setForm((p) => ({ ...p, accommodationSupport: e.target.value }))} placeholder="Accommodation helper note" />
+                  <input
+                    className={wizardInputClass(false)}
+                    value={form.accommodationSupport}
+                    onChange={(e) => setForm((p) => ({ ...p, accommodationSupport: e.target.value }))}
+                    placeholder="(optional)"
+                  />
                 ) : null}
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <div>
+                  <div data-wizard-field="localTransport">
                     <p className={labelClass}>Local travel</p>
-                    <div className="flex gap-2">
+                    <div className={wizardGroupShell(!!fieldErrors.localTransport, "flex flex-wrap gap-2")}>
                       {["Covered", "Not covered"].map((opt) => (
-                        <button key={opt} type="button" className={`rounded-lg border px-4 py-2 text-sm ${form.localTransport === opt ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`} onClick={() => setForm((p) => ({ ...p, localTransport: opt }))}>
+                        <button
+                          key={opt}
+                          type="button"
+                          className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm ${form.localTransport === opt ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`}
+                          onClick={() => {
+                            setForm((p) => ({ ...p, localTransport: opt }));
+                            clearFieldError("localTransport");
+                          }}
+                        >
                           {opt}
                         </button>
                       ))}
                     </div>
+                    {fieldErrors.localTransport ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
-                  <div>
+                  <div data-wizard-field="internationalTransport">
                     <p className={labelClass}>International travel</p>
-                    <div className="flex gap-2">
+                    <div className={wizardGroupShell(!!fieldErrors.internationalTransport, "flex flex-wrap gap-2")}>
                       {["Covered", "Not covered"].map((opt) => (
-                        <button key={opt} type="button" className={`rounded-lg border px-4 py-2 text-sm ${form.internationalTransport === opt ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`} onClick={() => setForm((p) => ({ ...p, internationalTransport: opt }))}>
+                        <button
+                          key={opt}
+                          type="button"
+                          className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm ${form.internationalTransport === opt ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`}
+                          onClick={() => {
+                            setForm((p) => ({ ...p, internationalTransport: opt }));
+                            clearFieldError("internationalTransport");
+                          }}
+                        >
                           {opt}
                         </button>
                       ))}
                     </div>
+                    {fieldErrors.internationalTransport ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
                 </div>
                 <div className="flex items-center justify-between rounded-[10px] border border-[rgba(201,168,76,0.2)] px-4 py-3">
@@ -1752,13 +2061,22 @@ export default function RequestTokenPage() {
               <div className="space-y-4">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 4 of 8</p>
                 <h2 className="text-2xl font-extrabold">Requirements</h2>
-                <div>
+                <div data-wizard-field="qualification">
                   <p className={labelClass}>Qualification</p>
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  <div className={wizardGroupShell(!!fieldErrors.qualification, "grid grid-cols-1 gap-2 md:grid-cols-2")}>
                     {["No minimum", "1 to 2 years", "3 to 5 years", "5+ years"].map((opt) => (
-                      <OptionCard key={opt} label={opt} selected={form.qualification === opt} onClick={() => setForm((p) => ({ ...p, qualification: opt }))} />
+                      <OptionCard
+                        key={opt}
+                        label={opt}
+                        selected={form.qualification === opt}
+                        onClick={() => {
+                          setForm((p) => ({ ...p, qualification: opt }));
+                          clearFieldError("qualification");
+                        }}
+                      />
                     ))}
                   </div>
+                  {fieldErrors.qualification ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {[
@@ -1769,13 +2087,16 @@ export default function RequestTokenPage() {
                     { label: "Diagnostics and electronics required", key: "diagnosticsExperienceRequired" as const },
                   ].map(({ label, key }) => (
                     <div key={key}>
-                      <p className={labelClass}>{label}</p>
+                      <p className={labelClass}>
+                        {label}{" "}
+                        <span className="font-normal normal-case tracking-normal text-white/40">(optional)</span>
+                      </p>
                       <div className="flex gap-2">
                         {(["Yes", "No"] as const).map((value) => (
                           <button
                             key={value}
                             type="button"
-                            className={`rounded-lg border px-4 py-2 text-sm ${
+                            className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${
                               form[key] === value
                                 ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]"
                                 : "border-white/20 text-white/60"
@@ -1796,12 +2117,20 @@ export default function RequestTokenPage() {
               <div className="space-y-4">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 5 of 8</p>
                 <h2 className="text-2xl font-extrabold">Work tasks</h2>
-                <div className="flex flex-wrap gap-2">
-                  {WORK_TASK_OPTIONS.map((task) => (
-                    <button key={task} type="button" onClick={() => toggleItem("workTasks", task)} className={`rounded-full border px-4 py-2 text-sm ${form.workTasks.includes(task) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}>
-                      {task}
-                    </button>
-                  ))}
+                <div data-wizard-field="workTasks">
+                  <div className={wizardGroupShell(!!fieldErrors.workTasks, "flex flex-wrap gap-2")}>
+                    {WORK_TASK_OPTIONS.map((task) => (
+                      <button
+                        key={task}
+                        type="button"
+                        onClick={() => toggleItem("workTasks", task)}
+                        className={`min-h-[40px] rounded-full border px-4 py-2 text-sm ${form.workTasks.includes(task) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}
+                      >
+                        {task}
+                      </button>
+                    ))}
+                  </div>
+                  {fieldErrors.workTasks ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
               </div>
             )}
@@ -1810,12 +2139,20 @@ export default function RequestTokenPage() {
               <div className="space-y-4">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 6 of 8</p>
                 <h2 className="text-2xl font-extrabold">Personal qualities</h2>
-                <div className="flex flex-wrap gap-2">
-                  {PERSONAL_QUALITY_OPTIONS.map((item) => (
-                    <button key={item} type="button" onClick={() => toggleItem("personalQualities", item)} className={`rounded-full border px-4 py-2 text-sm ${form.personalQualities.includes(item) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}>
-                      {item}
-                    </button>
-                  ))}
+                <div data-wizard-field="personalQualities">
+                  <div className={wizardGroupShell(!!fieldErrors.personalQualities, "flex flex-wrap gap-2")}>
+                    {PERSONAL_QUALITY_OPTIONS.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => toggleItem("personalQualities", item)}
+                        className={`min-h-[40px] rounded-full border px-4 py-2 text-sm ${form.personalQualities.includes(item) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                  {fieldErrors.personalQualities ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
               </div>
             )}
@@ -1824,12 +2161,20 @@ export default function RequestTokenPage() {
               <div className="space-y-4">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">Step 7 of 8</p>
                 <h2 className="text-2xl font-extrabold">We offer</h2>
-                <div className="flex flex-wrap gap-2">
-                  {OFFER_OPTIONS.map((item) => (
-                    <button key={item} type="button" onClick={() => toggleItem("offerItems", item)} className={`rounded-full border px-4 py-2 text-sm ${form.offerItems.includes(item) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}>
-                      {item}
-                    </button>
-                  ))}
+                <div data-wizard-field="offerItems">
+                  <div className={wizardGroupShell(!!fieldErrors.offerItems, "flex flex-wrap gap-2")}>
+                    {OFFER_OPTIONS.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => toggleItem("offerItems", item)}
+                        className={`min-h-[40px] rounded-full border px-4 py-2 text-sm ${form.offerItems.includes(item) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                  {fieldErrors.offerItems ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
               </div>
             )}
@@ -1843,7 +2188,13 @@ export default function RequestTokenPage() {
                 </div>
                 <div>
                   <p className={labelClass}>Additional notes (optional)</p>
-                  <textarea rows={4} className={`${inputClass} resize-none`} value={form.additionalNotes} onChange={(e) => setForm((p) => ({ ...p, additionalNotes: e.target.value }))} />
+                  <textarea
+                    rows={4}
+                    className={`${wizardInputClass(false)} resize-none`}
+                    value={form.additionalNotes}
+                    onChange={(e) => setForm((p) => ({ ...p, additionalNotes: e.target.value }))}
+                    placeholder="(optional)"
+                  />
                 </div>
               </div>
             )}
@@ -1867,16 +2218,9 @@ export default function RequestTokenPage() {
               </div>
 
               <button
-                type="button"
-                onClick={() => {
-                  if (step < TOTAL_STEPS - 1) {
-                    handleNext();
-                  } else {
-                    void handleSubmit();
-                  }
-                }}
-                disabled={animating || isSubmitting || !isStepValid(step)}
-                className="inline-flex min-w-[150px] items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-7 py-3 text-sm font-bold text-[#0f1923] transition-all duration-200 hover:scale-[1.02] hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40"
+                type="submit"
+                disabled={animating || isSubmitting}
+                className="inline-flex min-h-[48px] min-w-[150px] items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-7 py-3 text-sm font-bold text-[#0f1923] transition-all duration-200 hover:scale-[1.02] hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isSubmitting ? (
                   <>
