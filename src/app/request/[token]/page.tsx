@@ -68,7 +68,8 @@ type RequestForm = {
   qualification: string;
   /** Stored as employer_requests.d_number: has_d_number | we_handle */
   dNumberChoice: "has_d_number" | "we_handle" | "";
-  driverLicenseRequired: "Yes" | "No";
+  /** Norwegian licence classes (multi) or "No driving license required" (exclusive) */
+  driverLicenseSelections: string[];
   tradeCertificatePreferred: "Yes" | "No";
   jaguarLandRoverPreferred: "Yes" | "No";
   customerCommunicationRequired: "Yes" | "No";
@@ -158,6 +159,31 @@ const HOW_DID_YOU_HEAR_OPTIONS = [
   "Industry event or conference",
   "Other",
 ] as const;
+
+const NO_DRIVING_LICENSE_REQUIRED = "No driving license required";
+
+const NORWEGIAN_DRIVING_LICENSE_CLASSES = [
+  "AM",
+  "A1",
+  "A2",
+  "A",
+  "B",
+  "B+E",
+  "C1",
+  "C1+E",
+  "C",
+  "C+E",
+  "D1",
+  "D1+E",
+  "D",
+  "D+E",
+  "T",
+] as const;
+
+function formatDriverLicenseForPayload(selections: string[]): string {
+  if (selections.includes(NO_DRIVING_LICENSE_REQUIRED)) return NO_DRIVING_LICENSE_REQUIRED;
+  return selections.join(", ");
+}
 
 const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
   0: [
@@ -533,7 +559,7 @@ const initialForm: RequestForm = {
   salaryMax: "300",
   qualification: "3 to 5 years",
   dNumberChoice: "has_d_number",
-  driverLicenseRequired: "Yes",
+  driverLicenseSelections: [],
   tradeCertificatePreferred: "Yes",
   jaguarLandRoverPreferred: "Yes",
   customerCommunicationRequired: "Yes",
@@ -950,6 +976,23 @@ export default function RequestTokenPage() {
     });
   };
 
+  const toggleDriverLicenseChip = (value: string) => {
+    setForm((prev) => {
+      if (value === NO_DRIVING_LICENSE_REQUIRED) {
+        if (prev.driverLicenseSelections.includes(NO_DRIVING_LICENSE_REQUIRED)) {
+          return { ...prev, driverLicenseSelections: [] };
+        }
+        return { ...prev, driverLicenseSelections: [NO_DRIVING_LICENSE_REQUIRED] };
+      }
+      const withoutNo = prev.driverLicenseSelections.filter((item) => item !== NO_DRIVING_LICENSE_REQUIRED);
+      const exists = withoutNo.includes(value);
+      return {
+        ...prev,
+        driverLicenseSelections: exists ? withoutNo.filter((item) => item !== value) : [...withoutNo, value],
+      };
+    });
+  };
+
   const generatedNotes = useMemo(() => {
     const sections = [
       "About the Position",
@@ -960,7 +1003,11 @@ export default function RequestTokenPage() {
       "",
       "Requirements",
       `- Qualification: ${form.qualification}`,
-      `- Driver license required: ${form.driverLicenseRequired}`,
+      `- Driver license: ${
+        form.driverLicenseSelections.length === 0
+          ? "Not specified"
+          : formatDriverLicenseForPayload(form.driverLicenseSelections)
+      }`,
       `- Trade certificate preferred: ${form.tradeCertificatePreferred}`,
       `- Jaguar or Land Rover experience preferred: ${form.jaguarLandRoverPreferred}`,
       `- Customer communication required: ${form.customerCommunicationRequired}`,
@@ -976,7 +1023,18 @@ export default function RequestTokenPage() {
       sections.push("", "Additional Notes", form.additionalNotes.trim());
     }
     return sections.join("\n");
-  }, [form.additionalNotes, form.diagnosticsExperienceRequired, form.driverLicenseRequired, form.jaguarLandRoverPreferred, form.offerItems, form.personalQualities, form.qualification, form.tradeCertificatePreferred, form.workTasks, form.customerCommunicationRequired]);
+  }, [
+    form.additionalNotes,
+    form.diagnosticsExperienceRequired,
+    form.driverLicenseSelections,
+    form.jaguarLandRoverPreferred,
+    form.offerItems,
+    form.personalQualities,
+    form.qualification,
+    form.tradeCertificatePreferred,
+    form.workTasks,
+    form.customerCommunicationRequired,
+  ]);
 
   const clearFieldError = (key: string) => {
     setFieldErrors((prev) => {
@@ -1059,7 +1117,7 @@ export default function RequestTokenPage() {
       experience: "",
       norwegianLevel: "",
       englishLevel: "",
-      driverLicense: form.driverLicenseRequired,
+      driverLicense: formatDriverLicenseForPayload(form.driverLicenseSelections),
       driverLicenseOther: "",
       dNumber: form.dNumberChoice,
       dNumberOther: "",
@@ -2426,9 +2484,44 @@ export default function RequestTokenPage() {
                   </div>
                   {fieldErrors.dNumberChoice ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
+                <div>
+                  <p className={labelClass}>
+                    Driving license{" "}
+                    <span className="font-normal normal-case tracking-normal text-white/40">(optional)</span>
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {NORWEGIAN_DRIVING_LICENSE_CLASSES.map((cls) => {
+                      const selected = form.driverLicenseSelections.includes(cls);
+                      return (
+                        <button
+                          key={cls}
+                          type="button"
+                          onClick={() => toggleDriverLicenseChip(cls)}
+                          className={`min-h-[40px] rounded-lg border border-solid px-3 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${
+                            selected
+                              ? "border-[rgba(255,255,255,0.2)] bg-[#C9A84C] text-[#0D1B2A]"
+                              : "border-[rgba(255,255,255,0.2)] bg-transparent text-white/90"
+                          }`}
+                        >
+                          {cls}
+                        </button>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => toggleDriverLicenseChip(NO_DRIVING_LICENSE_REQUIRED)}
+                      className={`min-h-[40px] rounded-lg border border-solid px-3 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${
+                        form.driverLicenseSelections.includes(NO_DRIVING_LICENSE_REQUIRED)
+                          ? "border-[rgba(255,255,255,0.2)] bg-[#C9A84C] text-[#0D1B2A]"
+                          : "border-[rgba(255,255,255,0.2)] bg-transparent text-white/90"
+                      }`}
+                    >
+                      {NO_DRIVING_LICENSE_REQUIRED}
+                    </button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {[
-                    { label: "Driver license required", key: "driverLicenseRequired" as const },
                     { label: "Trade certificate preferred", key: "tradeCertificatePreferred" as const },
                     { label: "Jaguar or Land Rover preferred", key: "jaguarLandRoverPreferred" as const },
                     { label: "Customer communication required", key: "customerCommunicationRequired" as const },
