@@ -4,8 +4,8 @@ import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
 export const metadata: Metadata = nbPageMetadata(
   "/recruiter-network",
-  "Rekrutteringsnettverk | ArbeidMatch Partner Program",
-  "Bli partner med ArbeidMatch og tjen provisjon på vellykkede plasseringer i Norge. Åpent for rekrutterere og agenter i hele EU/EEA.",
+  "Recruiter Network | ArbeidMatch",
+  "Invite-only network of independent recruiters sourcing EU and EEA candidates for Norway. Request an invitation.",
 );
 
 export default function RecruiterNetworkPage() {

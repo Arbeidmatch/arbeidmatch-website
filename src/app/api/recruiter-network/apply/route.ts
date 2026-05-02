@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { RECRUITER_PUBLIC_SIGNUP_ENABLED } from "@/lib/featureFlags";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
@@ -20,6 +21,18 @@ function parseReach(raw: string): number | null {
 }
 
 export async function POST(request: NextRequest) {
+  if (!RECRUITER_PUBLIC_SIGNUP_ENABLED) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "endpoint_disabled",
+        message:
+          "Recruiter signup is currently invite-only. Please request an invitation at /recruiter-network.",
+      },
+      { status: 410 },
+    );
+  }
+
   try {
     const rawBody = (await request.json()) as Record<string, unknown>;
     if (hasHoneypotValue(rawBody)) {

@@ -3,11 +3,12 @@
 import type { FormEvent, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
+import { RECRUITER_PUBLIC_SIGNUP_ENABLED } from "@/lib/featureFlags";
+import RequestInvitationForm from "./RequestInvitationForm";
 import {
   IconBookUp,
   IconCheckCircle,
   IconDocCheck,
-  IconHandshake,
   IconLayers,
   IconMapCoverage,
   IconMegaphone,
@@ -117,8 +118,6 @@ export default function RecruiterNetworkClient() {
   const formRef = useRef<HTMLElement | null>(null);
   const stepsRef = useRef<HTMLDivElement>(null);
   const stepsInView = useInView(stepsRef, { once: true, margin: "0px 0px -10% 0px", amount: 0.2 });
-  const reqRef = useRef<HTMLUListElement>(null);
-  const reqInView = useInView(reqRef, { once: true, amount: 0.15 });
 
   const [submitting, setSubmitting] = useState(false);
   const [successEmail, setSuccessEmail] = useState<string | null>(null);
@@ -149,28 +148,21 @@ export default function RecruiterNetworkClient() {
       badge: "100K+ monthly reach",
       title: "The Influencer",
       headline: "You have the audience.",
-      body: "If you run an active social media channel focused on jobs, migration, work abroad or careers, your audience is already looking for what we offer. Monetize your reach with real placements.",
-      bullets: [
-        "Social media channel with 100K+ monthly visitors",
-        "Content focused on work, jobs or migration",
-        "Professional English communication",
-      ],
+      body: "If you run an active social media channel focused on jobs, migration, work abroad or careers, your audience is already looking for what we offer. You might run a social channel with strong monthly visitors, publish content about work, jobs or migration, and communicate professionally in English. Invitations are selective and based on fit.",
     },
     {
       icon: <IconNetworkPeople size={48} />,
       badge: "Experienced professional",
       title: "The Recruiter",
       headline: "You know the game.",
-      body: "You have experience in recruitment, HR or staffing. You understand the process. Now build your own regional business under a strong brand with full infrastructure.",
-      bullets: ["Background in recruitment or HR", "Network in your region", "ENK or AS (we help you set it up)"],
+      body: "You have experience in recruitment, HR or staffing and understand the process. You may already have a network in your region and either run ENK or AS today or plan to with guidance. We review each profile before extending an invitation.",
     },
     {
       icon: <IconBookUp size={48} />,
       badge: "Starting from zero",
       title: "The Learner",
       headline: "You want to learn.",
-      body: "No experience? No problem. We train you from scratch. If you are motivated, speak English and want to build something real, we will teach you everything about recruitment, compliance and the Norwegian market.",
-      bullets: ["Strong motivation and work ethic", "Professional English", "Willingness to learn and commit"],
+      body: "If you are early in your journey but bring strong motivation, professional English and a willingness to learn and commit, we can discuss training paths after an invitation. We still review background carefully before onboarding anyone new.",
     },
   ] as const;
 
@@ -192,41 +184,33 @@ export default function RecruiterNetworkClient() {
     },
     {
       icon: <IconTrend size={48} />,
-      title: "Commission Model",
-      text: "Zero upfront investment. You earn on every placement. We help you set up your ENK or AS to invoice legally.",
+      title: "Partnership model",
+      text: "Performance-based partnership. Specific terms discussed upon invitation. We help serious partners set up ENK or AS to invoice legally when the time is right.",
     },
   ] as const;
 
   const steps = [
     {
       icon: <IconDocCheck size={36} />,
-      title: "Apply",
-      text: "Fill out the form. We review your profile, reach and motivation.",
+      title: "Request an invitation",
+      text: "Share your name, email and a short motivation so we understand your recruitment background and goals.",
     },
     {
       icon: <IconMonitor size={36} />,
-      title: "Get onboarded",
-      text: "We set up your account, train you on the platform and introduce you to our processes.",
+      title: "We review your background",
+      text: "Our team reads every request, checks fit with regional needs and follows up only when there is a clear match.",
     },
     {
       icon: <IconPeopleArrow size={36} />,
-      title: "Start recruiting",
-      text: "Use our full infrastructure to serve clients and source candidates in your region.",
-    },
-    {
-      icon: <IconHandshake size={36} />,
-      title: "Earn together",
-      text: "Commission on every placement. Scale at your own pace. Grow with the network.",
+      title: "Approved recruiters get access",
+      text: "If we extend an invitation, we onboard you to our tools, processes and brand guardrails so you can work with Norwegian clients in a structured way.",
     },
   ] as const;
 
-  const requirements = [
-    "Active presence: social media, community or professional network",
-    "100K+ monthly reach (for influencer track) or relevant experience",
-    "Professional English communication",
-    "ENK or AS in your country: we help you set this up",
-    "Exclusive focus on your designated region",
-    "Genuine interest in building something long-term",
+  const requirementParagraphs = [
+    "We look for an active presence through social media, a community or a professional network, plus either strong reach on the influencer track or solid experience on the recruiter track.",
+    "Professional English is required. You should expect to work with ENK or AS in your country for invoicing, and we can help you understand the steps once you are invited.",
+    "Regional focus matters: we grant exclusivity by area rather than by country alone. We also look for a genuine interest in building something long-term with us.",
   ] as const;
 
   const norwegianCities = [
@@ -318,13 +302,81 @@ export default function RecruiterNetworkClient() {
 
   const stagger = isMobile ? 0.04 : 0.08;
   const stepStagger = isMobile ? 0.05 : 0.1;
-  const reqStagger = isMobile ? 0.03 : 0.06;
 
   return (
     <div className="bg-[#06090e] text-white">
       <section className="recruiter-network-hero flex min-h-[88vh] flex-col justify-center py-12 md:py-20">
         <div className="rn-hero-inner mx-auto w-full max-w-content px-4 md:px-6">
-          {!reduce ? (
+          {!RECRUITER_PUBLIC_SIGNUP_ENABLED ? (
+            !reduce ? (
+              <>
+                <motion.p
+                  className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B8860B]"
+                  {...heroFade(0)}
+                >
+                  Invite-only program
+                </motion.p>
+                <motion.h1
+                  className="mt-6 min-w-0 break-words font-sans text-4xl font-extrabold tracking-[-0.04em] text-white md:text-6xl lg:text-7xl"
+                  style={{ lineHeight: 1.05 }}
+                  {...heroFade(0.12)}
+                >
+                  Recruiter Network
+                </motion.h1>
+                <motion.p
+                  className="mt-8 max-w-2xl text-lg leading-relaxed text-white/70 md:text-xl"
+                  {...heroFade(0.35)}
+                >
+                  We work with a curated network of independent recruiters who source EU and EEA candidates for Norwegian
+                  projects. Currently invite-only.
+                </motion.p>
+                <motion.div className="mt-10 flex flex-wrap items-center gap-4" {...heroFade(0.55)}>
+                  <button
+                    type="button"
+                    onClick={scrollToForm}
+                    className="btn-gold-premium inline-block min-h-[48px] rounded-md bg-gold px-8 py-3.5 text-base font-semibold text-white hover:bg-gold-hover"
+                  >
+                    Request invitation
+                  </button>
+                  <a
+                    href="#three-paths"
+                    className="inline-flex min-h-[44px] min-w-[44px] items-center text-sm font-semibold text-[#B8860B] underline-offset-4 hover:text-gold-hover hover:underline"
+                  >
+                    Learn more
+                  </a>
+                </motion.div>
+              </>
+            ) : (
+              <>
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B8860B]">Invite-only program</p>
+                <h1
+                  className="mt-6 min-w-0 break-words font-sans text-4xl font-extrabold tracking-[-0.04em] text-white md:text-6xl lg:text-7xl"
+                  style={{ lineHeight: 1.05 }}
+                >
+                  Recruiter Network
+                </h1>
+                <p className="mt-8 max-w-2xl text-lg leading-relaxed text-white/70 md:text-xl">
+                  We work with a curated network of independent recruiters who source EU and EEA candidates for Norwegian
+                  projects. Currently invite-only.
+                </p>
+                <div className="mt-10 flex flex-wrap items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={scrollToForm}
+                    className="btn-gold-premium inline-block min-h-[48px] rounded-md bg-gold px-8 py-3.5 text-base font-semibold text-white hover:bg-gold-hover"
+                  >
+                    Request invitation
+                  </button>
+                  <a
+                    href="#three-paths"
+                    className="inline-flex min-h-[44px] min-w-[44px] items-center text-sm font-semibold text-[#B8860B] underline-offset-4 hover:underline"
+                  >
+                    Learn more
+                  </a>
+                </div>
+              </>
+            )
+          ) : !reduce ? (
             <>
               <motion.p
                 className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B8860B]"
@@ -410,7 +462,10 @@ export default function RecruiterNetworkClient() {
             <h2 className="text-center font-sans text-3xl font-extrabold tracking-[-0.03em] text-white md:text-4xl">
               There is a place for you.
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-center text-base text-white/60">We work with three types of partners.</p>
+            <p className="mx-auto mt-4 max-w-2xl text-center text-base text-white/60">
+              We work with three types of partners. Access to the network is by invitation after we review your
+              background.
+            </p>
           </Reveal>
           <div className="mt-14 grid gap-8 lg:grid-cols-3">
             {pathCards.map((card, i) => (
@@ -425,14 +480,6 @@ export default function RecruiterNetworkClient() {
                   <h3 className="text-xl font-bold text-white">{card.title}</h3>
                   <p className="mt-2 text-sm font-semibold text-[#B8860B]">{card.headline}</p>
                   <p className="mt-3 text-sm leading-relaxed text-white/65">{card.body}</p>
-                  <ul className="mt-5 space-y-2 text-sm text-white/80">
-                    {card.bullets.map((b) => (
-                      <li key={b} className="flex gap-2">
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#B8860B]" />
-                        {b}
-                      </li>
-                    ))}
-                  </ul>
                 </article>
               </Reveal>
             ))}
@@ -515,38 +562,16 @@ export default function RecruiterNetworkClient() {
               Who we are looking for.
             </h2>
           </Reveal>
-          <ul ref={reqRef} className="mx-auto mt-12 max-w-2xl space-y-4">
-            {requirements.map((line, i) => (
-              <motion.li
-                key={line}
-                className="flex gap-3 text-sm leading-relaxed text-white/80 md:text-base"
-                initial={reduce ? false : { opacity: 0, y: 12 }}
-                animate={reqInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: i * reqStagger, duration: isMobile ? 0.35 : 0.5, ease: HERO_EASE }}
-              >
-                <span
-                  className={`rn-check-draw mt-0.5 shrink-0 ${reqInView ? "is-done" : ""}`}
-                  style={{ transitionDelay: `${i * (isMobile ? 40 : 60)}ms` }}
-                  aria-hidden
-                >
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="overflow-visible">
-                    <path
-                      d="M5 12l5 5L20 7"
-                      stroke="#B8860B"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-                {line}
-              </motion.li>
+          <div className="mx-auto mt-12 max-w-2xl space-y-5 text-sm leading-relaxed text-white/80 md:text-base">
+            {requirementParagraphs.map((para) => (
+              <p key={para}>{para}</p>
             ))}
-          </ul>
+          </div>
           <Reveal isMobile={isMobile} delay={0.25} className="mx-auto mt-10 max-w-2xl">
             <p className="text-center text-sm leading-relaxed text-white/50">
-              We accept partners from all EU/EEA countries. Regional exclusivity is granted per area, not per country. No
-              experience? Apply anyway: we evaluate motivation.
+              We accept interest from all EU/EEA countries. Regional exclusivity is granted per area, not per country
+              alone. If you are early in your journey, you can still request an invitation: we evaluate motivation and fit
+              for every message we receive.
             </p>
           </Reveal>
         </div>
@@ -556,15 +581,19 @@ export default function RecruiterNetworkClient() {
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <Reveal isMobile={isMobile}>
             <h2 className="text-center font-sans text-3xl font-extrabold tracking-[-0.03em] text-white md:text-4xl">
-              Ready to build with us?
+              {RECRUITER_PUBLIC_SIGNUP_ENABLED ? "Ready to build with us?" : "Request an invitation"}
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-center text-white/60">
-              Tell us about yourself. We typically respond within 1 to 2 business days.
+              {RECRUITER_PUBLIC_SIGNUP_ENABLED
+                ? "Tell us about yourself. We typically respond within 1 to 2 business days."
+                : "Share a short motivation and your contact details. We read every request and reply when there is a fit."}
             </p>
           </Reveal>
 
-          <Reveal isMobile={isMobile} delay={0.08} className="mx-auto mt-12 max-w-xl">
-            {successEmail ? (
+          <Reveal isMobile={isMobile} delay={0.08} className="mx-auto mt-12 max-w-[640px]">
+            {!RECRUITER_PUBLIC_SIGNUP_ENABLED ? (
+              <RequestInvitationForm />
+            ) : successEmail ? (
               <motion.div
                 initial={reduce ? false : { opacity: 0, scale: 0.94 }}
                 animate={{ opacity: 1, scale: 1 }}
