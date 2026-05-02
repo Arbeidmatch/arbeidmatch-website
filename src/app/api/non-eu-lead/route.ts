@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       await transporter.sendMail({
         ...mailHeaders(),
         to: emailLower,
-        subject: "Your free Norway work guide — ArbeidMatch",
+        subject: "Your free Norway work guide: ArbeidMatch",
         html: buildNonEuLeadEmail(firstName, emailLower, unsubToken),
       });
     }

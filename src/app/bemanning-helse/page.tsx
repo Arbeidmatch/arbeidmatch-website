@@ -5,7 +5,7 @@ import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 export const metadata: Metadata = {
   title: "Bemanning helse og omsorg",
   description:
-    "Hjelpepleiere og helsefaglig støtte der godkjenning kreves. EU/EEA-rekruttering med dokumentasjon – ta kontakt.",
+    "Hjelpepleiere og helsefaglig støtte der godkjenning kreves. EU/EEA-rekruttering med dokumentasjon. Ta kontakt.",
   alternates: { canonical: "https://www.arbeidmatch.no/bemanning-helse" },
 };
 

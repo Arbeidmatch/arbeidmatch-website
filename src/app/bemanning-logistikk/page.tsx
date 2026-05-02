@@ -5,7 +5,7 @@ import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 export const metadata: Metadata = {
   title: "Bemanning logistikk og lager",
   description:
-    "Vikarbyrå logistikk: truckførere, lagerarbeidere og terminalpersonell fra EU/EØS. Rask bemanning med dokumentasjon – ta kontakt.",
+    "Vikarbyrå logistikk: truckførere, lagerarbeidere og terminalpersonell fra EU/EØS. Rask bemanning med dokumentasjon. Ta kontakt.",
   alternates: { canonical: "https://www.arbeidmatch.no/bemanning-logistikk" },
 };
 

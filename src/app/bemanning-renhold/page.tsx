@@ -5,7 +5,7 @@ import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 export const metadata: Metadata = {
   title: "Bemanning renhold og service",
   description:
-    "Renholdsoperatører til kontor, handel og borettslag. EU/EEA-bemanning med fokus på kvalitet og rutiner – ta kontakt.",
+    "Renholdsoperatører til kontor, handel og borettslag. EU/EEA-bemanning med fokus på kvalitet og rutiner. Ta kontakt.",
   alternates: { canonical: "https://www.arbeidmatch.no/bemanning-renhold" },
 };
 
@@ -20,7 +20,7 @@ export default function BemanningRenholdPage() {
         <div className="mt-8 max-w-3xl space-y-4 leading-relaxed text-text-secondary">
           <p>
             Renhold påvirker merkevare, arbeidsmiljø og kundetrafikk. ArbeidMatch leverer EU/EEA-profiler som forstår
-            rutiner for desinfeksjon, soner og materialbruk – enten det gjelder handel, kontor eller borettslag med
+            rutiner for desinfeksjon, soner og materialbruk, enten det gjelder handel, kontor eller borettslag med
             hyppige vaktbytter.
           </p>
           <p>

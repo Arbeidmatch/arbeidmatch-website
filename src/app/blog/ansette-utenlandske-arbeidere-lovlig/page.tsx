@@ -6,7 +6,7 @@ import { nbPageMetadata } from "@/lib/nbPageMetadata";
 export const metadata: Metadata = nbPageMetadata(
   "/blog/ansette-utenlandske-arbeidere-lovlig",
   "Ansatte utenlandske arbeidere lovlig Norge 2025 | ArbeidMatch",
-  "Sjekkliste for arbeidsgivere: EØS vs. utenfor EØS, kontrakt, allmenngjøring og HMS. Unngå vanlige feil – les guiden og ta kontakt.",
+  "Sjekkliste for arbeidsgivere: EØS vs. utenfor EØS, kontrakt, allmenngjøring og HMS. Unngå vanlige feil, les guiden og ta kontakt.",
 );
 
 export default function BlogPostAnsatteLovligPage() {

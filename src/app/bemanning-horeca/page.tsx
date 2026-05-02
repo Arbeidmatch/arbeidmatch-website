@@ -5,7 +5,7 @@ import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 export const metadata: Metadata = {
   title: "Bemanning HoReCa og servering",
   description:
-    "Kjøkken, servering og drift til hotell og restaurant. EU/EEA-bemanning med hygienefokus – ta kontakt.",
+    "Kjøkken, servering og drift til hotell og restaurant. EU/EEA-bemanning med hygienefokus. Ta kontakt.",
   alternates: { canonical: "https://www.arbeidmatch.no/bemanning-horeca" },
 };
 

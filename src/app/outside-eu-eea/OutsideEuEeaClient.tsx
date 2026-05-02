@@ -118,13 +118,13 @@ export default function OutsideEuEeaClient() {
             <span className="text-[#C9A84C]">as a Non-EU Citizen</span>
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-relaxed text-[rgba(255,255,255,0.7)]">
-            Norway is open to skilled workers from outside the EU/EEA — but the process requires preparation.
+            Norway is open to skilled workers from outside the EU/EEA, but the process requires preparation.
             We&apos;ll help you understand every step.
           </p>
         </div>
       </section>
 
-      {/* SECTION A — What it's really like */}
+      {/* SECTION A: What it's really like */}
       <section className="border-b border-[rgba(201,168,76,0.08)] bg-[#0D1B2A] px-4 py-14 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6 lg:px-12">
           <p className={sectionGold}>LIFE & WORK</p>
@@ -156,7 +156,7 @@ export default function OutsideEuEeaClient() {
         </div>
       </section>
 
-      {/* SECTION B — The permit landscape */}
+      {/* SECTION B: The permit landscape */}
       <section className="border-b border-[rgba(201,168,76,0.08)] bg-[#0a0f18] px-4 py-14 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6 lg:px-12">
           <p className={sectionGold}>ROUTES</p>
@@ -197,7 +197,7 @@ export default function OutsideEuEeaClient() {
         </div>
       </section>
 
-      {/* SECTION C — Why Norway over other options? */}
+      {/* SECTION C: Why Norway over other options? */}
       <section className="border-b border-[rgba(201,168,76,0.08)] bg-[#0D1B2A] px-4 py-14 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6 lg:px-12">
           <p className={sectionGold}>COMPARE</p>
@@ -233,7 +233,7 @@ export default function OutsideEuEeaClient() {
         </div>
       </section>
 
-      {/* SECTION D — Things people don't expect */}
+      {/* SECTION D: Things people don't expect */}
       <section className="border-b border-[rgba(201,168,76,0.08)] bg-[#0a0f18] px-4 py-14 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6 lg:px-12">
           <p className={sectionGold}>REAL TALK</p>
@@ -269,7 +269,7 @@ export default function OutsideEuEeaClient() {
         </div>
       </section>
 
-      {/* SECTION E — Practical realities */}
+      {/* SECTION E: Practical realities */}
       <section className="border-b border-[rgba(201,168,76,0.08)] bg-[#0D1B2A] px-4 py-14 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6 lg:px-12">
           <p className={sectionGold}>DAY-TO-DAY</p>
@@ -358,7 +358,7 @@ export default function OutsideEuEeaClient() {
           <div className="rounded-2xl border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.05)] p-6 md:p-10">
             <h2 className="text-center text-2xl font-extrabold text-white md:text-3xl">Get your free Norway Work Guide</h2>
             <p className="mx-auto mt-4 max-w-xl text-center text-[rgba(255,255,255,0.7)]">
-              We&apos;ll send you a practical overview of work permits, required documents, and first steps — straight to
+              We&apos;ll send you a practical overview of work permits, required documents, and first steps, straight to
               your inbox.
             </p>
 
@@ -542,7 +542,7 @@ export default function OutsideEuEeaClient() {
         </div>
       </section>
 
-      {/* Disclaimer — unchanged copy, at bottom */}
+      {/* Disclaimer: unchanged copy, at bottom */}
       <section className="border-t border-[rgba(201,168,76,0.1)] bg-[#0a0f18] px-4 py-10">
         <div className="mx-auto max-w-3xl text-center text-[13px] leading-relaxed text-[rgba(255,255,255,0.4)]">
           <p>

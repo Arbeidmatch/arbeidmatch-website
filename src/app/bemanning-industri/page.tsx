@@ -5,7 +5,7 @@ import SeeAlsoSection from "@/components/seo/SeeAlsoSection";
 export const metadata: Metadata = {
   title: "Bemanning industri og produksjon",
   description:
-    "Operatører, montører og tekniske hjelpearbeidere til industri i Norge. EU/EEA-bemanning med kvalitetssikring – ta kontakt.",
+    "Operatører, montører og tekniske hjelpearbeidere til industri i Norge. EU/EEA-bemanning med kvalitetssikring. Ta kontakt.",
   alternates: { canonical: "https://www.arbeidmatch.no/bemanning-industri" },
 };
 
