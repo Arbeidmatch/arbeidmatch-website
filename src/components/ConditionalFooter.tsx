@@ -18,7 +18,6 @@ function pathnameShowsFooter(pathname: string): boolean {
   const p = pathname.split("?")[0] || "";
 
   if (p.startsWith("/request")) return false;
-  if (p.startsWith("/score")) return false;
   if (p.startsWith("/verified")) return false;
   if (p.startsWith("/admin")) return false;
   if (p === "/download" || p.startsWith("/download/")) return false;

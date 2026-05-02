@@ -707,8 +707,8 @@ export function EligibilityAssistanceClient() {
 
         <p className="mt-4 text-sm text-text-secondary">
           Already eligible to work? Return to{" "}
-          <Link href="/score" className="font-medium text-gold">
-            Work Readiness Check
+          <Link href="/for-candidates" className="font-medium text-gold">
+            For candidates
           </Link>
           .
         </p>
