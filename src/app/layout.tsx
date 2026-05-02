@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import ConditionalFooter from "@/components/ConditionalFooter";
 import ScrollProgressBar from "@/components/ScrollProgressBar";
 import NavigationProgressBar from "@/components/NavigationProgressBar";
 import CookieConsent from "@/components/CookieConsent";
@@ -95,7 +95,7 @@ export default function RootLayout({
         <ScrollProgressBar />
         <Navbar />
         <main className="flex min-w-0 flex-1 flex-col overflow-x-clip pb-[40px]">{children}</main>
-        <Footer />
+        <ConditionalFooter />
         <DeferredAppOverlays />
         <CookieConsent />
         <HomeJsonLd />
