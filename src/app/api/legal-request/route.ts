@@ -116,6 +116,7 @@ export async function POST(request: Request) {
       <p>Timestamp: ${escapeHtml(ts)}</p>
       <p>Reference: ${escapeHtml(reference)}</p>
       <p>Row id: ${escapeHtml(id)}</p>
+      <p style="margin-top:16px;font-size:12px;color:#666;">ArbeidMatch Legal</p>
     `;
 
     const ackHtml = `
@@ -127,7 +128,7 @@ export async function POST(request: Request) {
         <p style="margin:12px 0;"><strong>Reference number:</strong> ${escapeHtml(reference)}</p>
         <p style="margin:12px 0;">We will respond within 30 days as required by GDPR Article 12(3). If we need additional information to verify your identity, we will contact you at this email address.</p>
         <p style="margin:12px 0;">If you did not submit this request, please reply to this email immediately.</p>
-        <p style="margin:24px 0 8px;">Best regards,<br/>ArbeidMatch Norge AS</p>
+        <p style="margin:24px 0 8px;">Best regards,<br/>ArbeidMatch Legal</p>
         <p style="margin:0;font-size:13px;color:#0D1B2A;">ArbeidMatch Norge AS, Org.nr 935 667 089 MVA<br/>
         Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway</p>
         <p style="margin-top:24px;font-size:12px;">
