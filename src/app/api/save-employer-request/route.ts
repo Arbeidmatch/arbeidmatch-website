@@ -179,10 +179,8 @@ export async function POST(request: NextRequest) {
       normalizedBooleanFields.push("overtime");
     }
 
-    const parsedInternationalTravel = toBool(payload.internationalTravel);
-    if (hasNonEmptyString(payload.internationalTravel) && parsedInternationalTravel === null) {
-      normalizedBooleanFields.push("internationalTravel");
-    }
+    const internationalTravelText =
+      typeof payload.internationalTravel === "string" ? payload.internationalTravel.trim() : "";
 
     const parsedAccommodation = toBool(payload.accommodation);
     if (hasNonEmptyString(payload.accommodation) && parsedAccommodation === null) {
@@ -228,7 +226,7 @@ export async function POST(request: NextRequest) {
       rotation_weeks_on:             parseNumeric(payload.rotationWeeksOn),
       rotation_weeks_off:            parseNumeric(payload.rotationWeeksOff),
       accommodation_cost:            payload.accommodationCost,
-      international_travel:          parsedInternationalTravel,
+      international_travel:          internationalTravelText || null,
       international_travel_coverage: toBool(null),
       local_travel:                  payload.localTravel,
       local_travel_other:            payload.localTravelOther || null,

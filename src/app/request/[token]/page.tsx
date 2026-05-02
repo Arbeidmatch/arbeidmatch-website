@@ -54,6 +54,7 @@ type RequestForm = {
   overtime: string;
   accommodation: string;
   accommodationSupport: string;
+  /** Stored as employer_requests.international_travel text: company_covered | own_responsibility */
   internationalTransport: string;
   localTransport: string;
   urgency: string;
@@ -171,7 +172,9 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     if (!f.salaryMax.trim()) invalid.add("salaryMax");
     if (!f.accommodation) invalid.add("accommodation");
     if (!f.localTransport) invalid.add("localTransport");
-    if (!f.internationalTransport) invalid.add("internationalTransport");
+    if (f.internationalTransport !== "company_covered" && f.internationalTransport !== "own_responsibility") {
+      invalid.add("internationalTransport");
+    }
   } else if (s === 3) {
     if (!f.qualification) invalid.add("qualification");
     if (f.dNumberChoice !== "has_d_number" && f.dNumberChoice !== "we_handle") invalid.add("dNumberChoice");
@@ -482,7 +485,7 @@ const initialForm: RequestForm = {
   overtime: "",
   accommodation: "Not provided",
   accommodationSupport: "Can help candidate find accommodation",
-  internationalTransport: "Not covered",
+  internationalTransport: "own_responsibility",
   localTransport: "Not covered",
   urgency: "Specific start date",
   city: "Oslo",
@@ -2137,20 +2140,35 @@ export default function RequestTokenPage() {
                     {fieldErrors.localTransport ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
                   <div data-wizard-field="internationalTransport">
-                    <p className={labelClass}>International travel</p>
-                    <div className={wizardGroupShell(!!fieldErrors.internationalTransport, "flex flex-wrap gap-2")}>
-                      {["Covered", "Not covered"].map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm ${form.internationalTransport === opt ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`}
-                          onClick={() => {
-                            setForm((p) => ({ ...p, internationalTransport: opt }));
-                            clearFieldError("internationalTransport");
-                          }}
+                    <p className={`${labelClass} normal-case`}>International travel costs</p>
+                    <div className={wizardGroupShell(!!fieldErrors.internationalTransport, "flex flex-col gap-3")}>
+                      {(
+                        [
+                          { value: "company_covered" as const, label: "Covered by company" },
+                          { value: "own_responsibility" as const, label: "Candidate's own responsibility" },
+                        ] as const
+                      ).map((opt) => (
+                        <label
+                          key={opt.value}
+                          className={`flex min-h-[44px] cursor-pointer items-center gap-3 rounded-[12px] border px-4 py-3 ${
+                            form.internationalTransport === opt.value
+                              ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
+                              : "border-white/10 bg-white/[0.03] text-white"
+                          }`}
                         >
-                          {opt}
-                        </button>
+                          <input
+                            type="radio"
+                            name="internationalTravelCosts"
+                            value={opt.value}
+                            checked={form.internationalTransport === opt.value}
+                            onChange={() => {
+                              setForm((p) => ({ ...p, internationalTransport: opt.value }));
+                              clearFieldError("internationalTransport");
+                            }}
+                            className="h-4 w-4 shrink-0 accent-[#C9A84C] focus:outline-none"
+                          />
+                          <span className="text-sm font-semibold">{opt.label}</span>
+                        </label>
                       ))}
                     </div>
                     {fieldErrors.internationalTransport ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
