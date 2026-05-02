@@ -40,6 +40,7 @@ const homeCtaPrimaryLg =
 
 type Props = {
   testimonialsSlot: ReactNode;
+  liveStatsSlot?: ReactNode;
 };
 
 const HOW_IT_WORKS_STEPS: { title: string; text: string; Icon: typeof MessageSquare }[] = [
@@ -65,7 +66,7 @@ const HOW_IT_WORKS_STEPS: { title: string; text: string; Icon: typeof MessageSqu
   },
 ];
 
-export default function HomePageClient({ testimonialsSlot }: Props) {
+export default function HomePageClient({ testimonialsSlot, liveStatsSlot }: Props) {
   const reduce = useReducedMotion();
   const router = useRouter();
   const [sessionRoleBanner, setSessionRoleBanner] = useState<null | "employer" | "candidate">(null);
@@ -216,6 +217,8 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
           </div>
         </div>
       </section>
+
+      {liveStatsSlot}
 
       <section
         id="how-it-works"
