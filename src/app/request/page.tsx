@@ -24,14 +24,7 @@ import {
   Zap,
 } from "lucide-react";
 
-import { EASE_PREMIUM } from "@/lib/animationConstants";
-import {
-  trackPartnerAccessRequest,
-  trackRareProfileView,
-  trackRequestStart,
-  trackRequestStepComplete,
-  trackRequestSubmit,
-} from "@/lib/analytics/requestEvents";
+import { trackPartnerAccessRequest, trackRequestSubmit } from "@/lib/analytics/requestEvents";
 import { REQUEST_INDUSTRY_ROLE_GROUPS } from "@/lib/industry-roles";
 import { clearPartnerRequestContext, writePartnerRequestContext } from "@/lib/partnerRequestContext";
 import { useToast } from "@/lib/toast-context";
@@ -64,14 +57,6 @@ const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: LucideIcon; roles: stri
 
 const REQUEST_PARTNER_VERIFIED_KEY = "am_request_partner_verified";
 const REQUEST_PARTNER_COMPANY_KEY = "am_request_partner_company";
-
-const SEARCH_MESSAGES = [
-  "Connecting to candidate database...",
-  "Searching registered profiles...",
-  "Analyzing role relevance...",
-  "Reviewing availability...",
-  "Finalizing profile count...",
-];
 
 const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "live.com", "msn.com"]);
 const slideVariants = {
@@ -256,18 +241,17 @@ export default function RequestPage() {
     router.back();
   }, [router]);
 
-  const [checkState, setCheckState] = useState<"partner_check" | "idle" | "searching" | "result">("partner_check");
+  const [checkState, setCheckState] = useState<"partner_check" | "idle">("partner_check");
+  const [pickerStep, setPickerStep] = useState<"industries" | "roles" | "modal">("industries");
   const [verifiedPartnerCompany, setVerifiedPartnerCompany] = useState<string | null>(null);
   const [industryCounts, setIndustryCounts] = useState<Record<string, number | null>>({});
+  const [roleCounts, setRoleCounts] = useState<Record<string, number | null>>({});
   const [partnerSessionHydrated, setPartnerSessionHydrated] = useState(false);
-  const partnerVerifyFromRef = useRef<"partner_check" | "result">("result");
+  const partnerVerifyFromRef = useRef<"partner_check" | "modal">("modal");
   const [selectedIndustry, setSelectedIndustry] = useState("");
   const [pendingIndustry, setPendingIndustry] = useState("");
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [roleQuery, setRoleQuery] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchMessageIndex, setSearchMessageIndex] = useState(0);
-  const [checkCount, setCheckCount] = useState(0);
-  const [showAccessCheck, setShowAccessCheck] = useState(false);
 
   const [accessEmail, setAccessEmail] = useState("");
   const [accessStatus, setAccessStatus] = useState<"idle" | "submitting" | "partner" | "non_partner" | "error">("idle");
@@ -290,12 +274,10 @@ export default function RequestPage() {
   const [partnerApplicationEmail, setPartnerApplicationEmail] = useState("");
   const [partnerApplicationStatus, setPartnerApplicationStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [partnerApplicationError, setPartnerApplicationError] = useState("");
-  const [showWorkTogetherInlineModal, setShowWorkTogetherInlineModal] = useState(false);
-  const [workTogetherEmail, setWorkTogetherEmail] = useState("");
-  const [workTogetherError, setWorkTogetherError] = useState("");
-  const [workTogetherStatus, setWorkTogetherStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [workTogetherCountdown, setWorkTogetherCountdown] = useState(0);
-  const [workTogetherCanResend, setWorkTogetherCanResend] = useState(true);
+  const [getStartedEmail, setGetStartedEmail] = useState("");
+  const [getStartedGdpr, setGetStartedGdpr] = useState(false);
+  const [getStartedError, setGetStartedError] = useState("");
+  const [getStartedSubmitting, setGetStartedSubmitting] = useState(false);
   const [waitlistCountdown, setWaitlistCountdown] = useState(0);
   const [waitlistCanResend, setWaitlistCanResend] = useState(true);
   const [verifyCountdown, setVerifyCountdown] = useState(0);
@@ -303,16 +285,11 @@ export default function RequestPage() {
   const [partnerApplicationCountdown, setPartnerApplicationCountdown] = useState(0);
   const [partnerApplicationCanResend, setPartnerApplicationCanResend] = useState(true);
   const [flowDirection, setFlowDirection] = useState(1);
-  const [industryPreview, setIndustryPreview] = useState("");
   const [optionsDirection, setOptionsDirection] = useState(1);
   const reduceMotion = useReducedMotion();
   const hasMountedHistoryGuard = useRef(false);
   const allowNextNavigationRef = useRef(false);
   const hasAutoStartedRoleCheck = useRef(false);
-  /** Bumped on reset / back so in-flight `runCandidateSearch` cannot apply after leaving the flow. */
-  const candidateSearchGenerationRef = useRef(0);
-  const rareProfileTrackedRef = useRef(false);
-  const industryAdvanceTimerRef = useRef<number | null>(null);
 
   const startCountdown = (setCountdown: (value: number | ((prev: number) => number)) => void, setCanResend: (value: boolean) => void) => {
     setCanResend(false);
@@ -351,19 +328,15 @@ export default function RequestPage() {
   }, [selectedIndustry]);
 
   useEffect(() => {
-    return () => {
-      if (industryAdvanceTimerRef.current) {
-        window.clearTimeout(industryAdvanceTimerRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
     if (typeof window === "undefined") return;
     try {
       if (window.localStorage.getItem(REQUEST_PARTNER_VERIFIED_KEY) === "1") {
         const name = (window.localStorage.getItem(REQUEST_PARTNER_COMPANY_KEY) || "").trim();
         setVerifiedPartnerCompany(name || "Partner");
+        setPickerStep("industries");
+        setSelectedIndustry("");
+        setSelectedRole(null);
+        setRoleQuery("");
         setCheckState("idle");
       }
     } catch {
@@ -412,82 +385,92 @@ export default function RequestPage() {
 
   const isPastFirstStep = useMemo(() => {
     if (checkState === "partner_check") return false;
-    if (checkState !== "idle") return true;
+    if (pickerStep !== "industries") return true;
     if (selectedIndustry.trim()) return true;
     if (roleQuery.trim()) return true;
-    if (searchTerm.trim()) return true;
+    if (selectedRole) return true;
     if (resultAction !== "none") return true;
     if (accessStatus === "non_partner") return true;
     return false;
-  }, [accessStatus, checkState, resultAction, roleQuery, searchTerm, selectedIndustry]);
-
-  useEffect(() => {
-    if (checkState !== "searching") return;
-    const interval = setInterval(() => {
-      setSearchMessageIndex((prev) => (prev + 1) % SEARCH_MESSAGES.length);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [checkState]);
+  }, [accessStatus, checkState, pickerStep, resultAction, roleQuery, selectedIndustry, selectedRole]);
 
   useEffect(() => {
     const industry = selectedIndustry.trim();
-    const role = (searchTerm.trim() || roleQuery.trim()).trim();
+    const role = (selectedRole || roleQuery).trim();
     if (!industry && !role) return;
     writePartnerRequestContext(industry, role);
-  }, [selectedIndustry, searchTerm, roleQuery]);
-
-  const runCandidateSearch = async (roleInput: string, industryOverride?: string) => {
-    const role = roleInput.trim();
-    if (role.length < 2) return;
-    const generation = ++candidateSearchGenerationRef.current;
-    const industryForCount = (industryOverride ?? selectedIndustry).trim();
-    const analyticsCategory = industryForCount || role;
-    setSearchTerm(role);
-    setAccessStatus("idle");
-    setSelectedOption(null);
-    setNotifyEmail("");
-    setNotifyStatus("idle");
-    setWaitlistCountdown(0);
-    setWaitlistCanResend(true);
-    setResultAction("none");
-    setFlowDirection(1);
-    setCheckState("searching");
-    setSearchMessageIndex(0);
-    rareProfileTrackedRef.current = false;
-    trackRequestStart(analyticsCategory);
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-    if (generation !== candidateSearchGenerationRef.current) return;
-    let nextCount = 0;
-    try {
-      const params = new URLSearchParams();
-      params.set("role", role);
-      const response = await fetch(`/api/candidate-count?${params.toString()}`);
-      const data = (await response.json()) as { count?: number };
-      nextCount =
-        typeof data.count === "number" && Number.isFinite(data.count) && data.count >= 0 ? data.count : 0;
-    } catch {
-      nextCount = 0;
-    }
-    setCheckCount(nextCount);
-    setShowAccessCheck(true);
-    setFlowDirection(1);
-    setCheckState("result");
-    trackRequestStepComplete(1, analyticsCategory);
-  };
+  }, [selectedIndustry, selectedRole, roleQuery]);
 
   const handlePremiumIndustrySelect = useCallback((industry: string) => {
-    if (industryAdvanceTimerRef.current) {
-      window.clearTimeout(industryAdvanceTimerRef.current);
-    }
     setFlowDirection(1);
-    setIndustryPreview(industry);
     setRoleQuery("");
-    industryAdvanceTimerRef.current = window.setTimeout(() => {
-      setSelectedIndustry(industry);
-      setIndustryPreview("");
-      industryAdvanceTimerRef.current = null;
-    }, 350);
+    setSelectedIndustry(industry);
+    setPickerStep("roles");
+    setSelectedRole(null);
   }, []);
+
+  useEffect(() => {
+    if (checkState !== "idle" || pickerStep !== "roles" || !selectedIndustry) return;
+    const group = CHECK_ROLE_GROUPS.find((item) => item.industry === selectedIndustry);
+    if (!group) return;
+    const query = roleQuery.trim().toLowerCase();
+    let roles: string[];
+    if (!query) roles = group.roles.slice(0, 8);
+    else {
+      const startsWith = group.roles.filter((role) => role.toLowerCase().startsWith(query));
+      const contains = group.roles.filter(
+        (role) => role.toLowerCase().includes(query) && !role.toLowerCase().startsWith(query),
+      );
+      roles = [...startsWith, ...contains].slice(0, 8);
+    }
+    if (!roles.length) {
+      setRoleCounts({});
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const results = await Promise.all(
+        roles.map(async (role) => {
+          try {
+            const response = await fetch(`/api/candidate-count?role=${encodeURIComponent(role)}`);
+            const data = (await response.json()) as { count?: number };
+            const n =
+              typeof data.count === "number" && Number.isFinite(data.count) && data.count >= 0 ? data.count : 0;
+            return [role, n] as const;
+          } catch {
+            return [role, 0] as const;
+          }
+        }),
+      );
+      if (cancelled) return;
+      const next: Record<string, number | null> = {};
+      for (const [role, n] of results) {
+        next[role] = n;
+      }
+      setRoleCounts(next);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [checkState, pickerStep, selectedIndustry, roleQuery]);
+
+  useEffect(() => {
+    if (!partnerSessionHydrated || checkState !== "idle") return;
+    try {
+      const raw = sessionStorage.getItem("request-picker-restore");
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { industry?: string };
+      if (parsed.industry) {
+        setSelectedIndustry(parsed.industry);
+        setPickerStep("roles");
+        setSelectedRole(null);
+        setRoleQuery("");
+      }
+      sessionStorage.removeItem("request-picker-restore");
+    } catch {
+      /* ignore */
+    }
+  }, [partnerSessionHydrated, checkState]);
 
   useEffect(() => {
     if (!partnerSessionHydrated) return;
@@ -504,9 +487,14 @@ export default function RequestPage() {
 
     if (matchingIndustry) {
       setSelectedIndustry(matchingIndustry);
+      setSelectedRole(roleFromQuery);
+      setPickerStep("modal");
+      setRoleQuery("");
+      setFlowDirection(1);
+    } else {
+      setRoleQuery(roleFromQuery);
+      setPickerStep("roles");
     }
-    setRoleQuery(roleFromQuery);
-    void runCandidateSearch(roleFromQuery, matchingIndustry);
   }, [partnerSessionHydrated]);
 
   const verifyAccess = async (event: FormEvent<HTMLFormElement>) => {
@@ -531,7 +519,7 @@ export default function RequestPage() {
         setCompanyName(data.company_name || "your company");
         nextStatus = "partner";
         startCountdown(setVerifyCountdown, setVerifyCanResend);
-        trackRequestSubmit(selectedIndustry || searchTerm || "unknown", checkCount);
+        trackRequestSubmit(selectedIndustry || selectedRole || "unknown", 0);
         toast.success("Partner verified. Check your inbox for secure access.");
         if (partnerVerifyFromRef.current === "partner_check") {
           try {
@@ -549,8 +537,12 @@ export default function RequestPage() {
           setPartnerModalView("not_found");
           setAccessErrorMessage("");
           setIsLoadingExit(false);
+          setPickerStep("industries");
+          setSelectedIndustry("");
+          setSelectedRole(null);
+          setRoleQuery("");
           setCheckState("idle");
-          partnerVerifyFromRef.current = "result";
+          partnerVerifyFromRef.current = "modal";
           return;
         }
       } else if (data.reason === "personal_email") {
@@ -619,41 +611,16 @@ export default function RequestPage() {
     }
   };
 
-  const submitWorkTogetherEmail = async () => {
-    if (!workTogetherCanResend) return;
-    const email = workTogetherEmail.trim().toLowerCase();
+  const submitGetStartedLink = async () => {
+    if (!getStartedGdpr || !selectedRole || !selectedIndustry) return;
+    const email = getStartedEmail.trim().toLowerCase();
     if (!email.includes("@")) {
-      setWorkTogetherError("Please use your company email address.");
-      setWorkTogetherStatus("error");
+      setGetStartedError("Please enter a valid email.");
       return;
     }
-
-    const personalDomains = [
-      "gmail.com",
-      "yahoo.com",
-      "hotmail.com",
-      "outlook.com",
-      "icloud.com",
-      "live.com",
-      "msn.com",
-      "aol.com",
-      "mail.com",
-      "protonmail.com",
-      "ymail.com",
-      "googlemail.com",
-    ];
-    const domain = email.split("@")[1]?.toLowerCase();
-
-    if (!domain || personalDomains.includes(domain)) {
-      setWorkTogetherError("Please use your company email address.");
-      return;
-    }
-
-    setWorkTogetherError("");
-    setWorkTogetherStatus("submitting");
+    setGetStartedSubmitting(true);
+    setGetStartedError("");
     try {
-      const jobSummary =
-        searchTerm.trim() || selectedIndustry.trim() || "General hiring inquiry";
       const response = await fetch("/api/simple-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -663,22 +630,29 @@ export default function RequestPage() {
           last_name: "Request",
           company: "To be completed",
           phone: "000000",
-          job_summary: jobSummary,
+          job_summary: selectedRole,
           howDidYouHear: "website-request",
           gdprConsent: true,
+          role: selectedRole,
+          industry: selectedIndustry,
         }),
       });
-      const data = (await response.json().catch(() => null)) as { success?: boolean } | null;
-      if (!response.ok || !data?.success) {
-        setWorkTogetherError("Could not send the link. Please try again.");
-        setWorkTogetherStatus("error");
+      const data = (await response.json().catch(() => null)) as { success?: boolean; token?: string } | null;
+      if (!response.ok || !data?.success || !data.token) {
+        setGetStartedError("Something went wrong. Please try again or contact support@arbeidmatch.no.");
+        setGetStartedSubmitting(false);
         return;
       }
-      setWorkTogetherStatus("success");
-      startCountdown(setWorkTogetherCountdown, setWorkTogetherCanResend);
+      try {
+        sessionStorage.setItem("request-picker-restore", JSON.stringify({ industry: selectedIndustry }));
+      } catch {
+        /* ignore */
+      }
+      router.push(`/request/${data.token}`);
     } catch {
-      setWorkTogetherError("Could not send the link. Please try again.");
-      setWorkTogetherStatus("error");
+      setGetStartedError("Something went wrong. Please try again or contact support@arbeidmatch.no.");
+    } finally {
+      setGetStartedSubmitting(false);
     }
   };
 
@@ -687,55 +661,38 @@ export default function RequestPage() {
       navigateBackOrHome();
       return;
     }
-    if (selectedIndustry) {
+    if (pickerStep === "modal") {
+      setPickerStep("roles");
+      setSelectedRole(null);
+      setGetStartedEmail("");
+      setGetStartedGdpr(false);
+      setGetStartedError("");
+      return;
+    }
+    if (pickerStep === "roles" && selectedIndustry) {
       setFlowDirection(-1);
-      setIndustryPreview("");
       setSelectedIndustry("");
+      setSelectedRole(null);
+      setPickerStep("industries");
       setRoleQuery("");
       return;
     }
     navigateBackOrHome();
   };
 
-  const backToRoleSearch = () => {
-    candidateSearchGenerationRef.current += 1;
-    setFlowDirection(-1);
-    setCheckState("idle");
-    setSearchTerm("");
-    setCheckCount(0);
-    setShowAccessCheck(false);
-    setAccessStatus("idle");
-    setSelectedOption(null);
-    setNotifyEmail("");
-    setNotifyStatus("idle");
-    setShowWorkTogetherInlineModal(false);
-    setWorkTogetherEmail("");
-    setWorkTogetherStatus("idle");
-    setWorkTogetherCountdown(0);
-    setWorkTogetherCanResend(true);
-    setResultAction("none");
-    setVerifyCountdown(0);
-    setVerifyCanResend(true);
-    setPartnerApplicationCountdown(0);
-    setPartnerApplicationCanResend(true);
-  };
-
   const resetToFirstStep = () => {
-    candidateSearchGenerationRef.current += 1;
-    if (industryAdvanceTimerRef.current) {
-      window.clearTimeout(industryAdvanceTimerRef.current);
-      industryAdvanceTimerRef.current = null;
-    }
     setShowLeaveDialog(false);
     setFlowDirection(-1);
     setCheckState(verifiedPartnerCompany ? "idle" : "partner_check");
-    setIndustryPreview("");
+    setPickerStep("industries");
     setSelectedIndustry("");
+    setSelectedRole(null);
     setRoleQuery("");
-    setSearchTerm("");
-    setSearchMessageIndex(0);
-    setCheckCount(0);
-    setShowAccessCheck(false);
+    setRoleCounts({});
+    setGetStartedEmail("");
+    setGetStartedGdpr(false);
+    setGetStartedError("");
+    setGetStartedSubmitting(false);
     setAccessEmail("");
     setAccessStatus("idle");
     setAccessErrorMessage("");
@@ -745,11 +702,6 @@ export default function RequestPage() {
     setNotifyStatus("idle");
     setWaitlistCountdown(0);
     setWaitlistCanResend(true);
-    setShowWorkTogetherInlineModal(false);
-    setWorkTogetherEmail("");
-    setWorkTogetherStatus("idle");
-    setWorkTogetherCountdown(0);
-    setWorkTogetherCanResend(true);
     setResultAction("none");
     setPartnerModalView("not_found");
     setPartnerIssueStatus("idle");
@@ -902,17 +854,28 @@ export default function RequestPage() {
   }, [showNonPartnerOptions]);
 
   useEffect(() => {
-    if (checkState !== "result" || rareProfileTrackedRef.current) return;
-    if (checkCount <= 0 || checkCount >= 5) return;
-    trackRareProfileView(selectedIndustry || searchTerm || "unknown", checkCount);
-    rareProfileTrackedRef.current = true;
-  }, [checkCount, checkState, searchTerm, selectedIndustry]);
-
-  const currentMessage = SEARCH_MESSAGES[searchMessageIndex];
-  const selectedRole = searchTerm;
+    if (typeof document === "undefined") return;
+    if (checkState !== "idle" || pickerStep !== "modal") return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setPickerStep("roles");
+        setSelectedRole(null);
+        setGetStartedEmail("");
+        setGetStartedGdpr(false);
+        setGetStartedError("");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev || "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [checkState, pickerStep]);
 
   return (
-    <section className="flex min-h-screen flex-col items-center bg-[#0D1B2A] px-4 py-6 text-white md:min-h-dvh md:px-6 md:py-10">
+    <section className="flex min-h-screen flex-col items-center overflow-x-hidden bg-[#0D1B2A] px-4 py-6 text-white md:min-h-dvh md:px-6 md:py-10">
       {verifiedPartnerCompany ? (
         <div className="mx-auto mb-3 flex w-full max-w-sm justify-center md:max-w-[980px] md:justify-start">
           <span className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 px-3 py-1.5 text-xs font-medium text-[#C9A84C]">
@@ -922,13 +885,9 @@ export default function RequestPage() {
         </div>
       ) : null}
       <div
-        className={`mx-auto w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-6 transition-all duration-300 md:max-w-[980px] md:rounded-[16px] md:p-9 ${
-          checkState === "result"
-            ? "md:max-w-[680px] md:border md:border-transparent md:bg-transparent"
-            : "md:border-[rgba(201,168,76,0.15)] md:border-t-2 md:border-t-[rgba(201,168,76,0.4)] md:bg-[rgba(255,255,255,0.03)]"
-        } ${
+        className={`mx-auto w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-6 transition-all duration-300 md:max-w-[980px] md:rounded-[16px] md:p-9 md:border-[rgba(201,168,76,0.15)] md:border-t-2 md:border-t-[rgba(201,168,76,0.4)] md:bg-[rgba(255,255,255,0.03)] ${
           showNonPartnerOptions ? "pointer-events-none translate-y-2 opacity-0" : "translate-y-0 opacity-100"
-        } ${checkState === "searching" ? "max-md:border-0 max-md:bg-transparent max-md:p-0 max-md:shadow-none" : ""}`}
+        }`}
       >
         {checkState === "partner_check" && (
           <>
@@ -973,6 +932,10 @@ export default function RequestPage() {
                     type="button"
                     onClick={() => {
                       setFlowDirection(1);
+                      setPickerStep("industries");
+                      setSelectedIndustry("");
+                      setSelectedRole(null);
+                      setRoleQuery("");
                       setCheckState("idle");
                     }}
                     className="h-14 w-full rounded-xl border border-[#C9A84C]/50 py-3 text-base font-semibold text-[#C9A84C] transition-colors hover:bg-[#C9A84C]/10 md:flex-1"
@@ -996,7 +959,7 @@ export default function RequestPage() {
             </button>
             <h1 className="text-2xl font-bold">Check candidate availability</h1>
             <AnimatePresence mode="wait" custom={flowDirection}>
-              {!selectedIndustry ? (
+              {pickerStep === "industries" ? (
                 <motion.div
                   key="industry-grid"
                   className="mt-5"
@@ -1032,10 +995,10 @@ export default function RequestPage() {
                     <button
                       type="button"
                       onClick={() => {
-                          if (!pendingIndustry) return;
-                          setFlowDirection(1);
-                          setIndustryPreview("");
-                          setSelectedIndustry(pendingIndustry);
+                        if (!pendingIndustry) return;
+                        setFlowDirection(1);
+                        setSelectedIndustry(pendingIndustry);
+                        setPickerStep("roles");
                         setRoleQuery("");
                       }}
                       disabled={!pendingIndustry}
@@ -1047,7 +1010,7 @@ export default function RequestPage() {
 
                   <div className="hidden grid-cols-3 gap-4 lg:grid">
                     {CHECK_ROLE_GROUPS.map(({ industry, icon: Icon }, index) => {
-                      const isSelected = (industryPreview || selectedIndustry) === industry;
+                      const isSelected = selectedIndustry === industry;
                       return (
                         <PremiumIndustryCard
                           key={industry}
@@ -1073,6 +1036,20 @@ export default function RequestPage() {
                   animate="center"
                   exit={reduceMotion ? undefined : "exit"}
                 >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFlowDirection(-1);
+                      setSelectedIndustry("");
+                      setSelectedRole(null);
+                      setPickerStep("industries");
+                      setRoleQuery("");
+                    }}
+                    className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-[#C9A84C] transition-colors hover:text-[#dfc06a]"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to industries
+                  </button>
                   <h2 className="text-xl font-semibold text-white">Select a Role</h2>
                   <p className="mt-1 text-sm text-white/50">Type to search or choose from the list below</p>
                   <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
@@ -1082,8 +1059,9 @@ export default function RequestPage() {
                         type="button"
                         onClick={() => {
                           setFlowDirection(-1);
-                          setIndustryPreview("");
                           setSelectedIndustry("");
+                          setSelectedRole(null);
+                          setPickerStep("industries");
                           setRoleQuery("");
                         }}
                         className="inline-flex items-center justify-center text-[#C9A84C]"
@@ -1104,23 +1082,39 @@ export default function RequestPage() {
                   </div>
                   {filteredRoles.length > 0 ? (
                     <motion.div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                      {filteredRoles.map((role, index) => (
-                        <motion.button
-                          key={role}
-                          type="button"
-                          onClick={() => void runCandidateSearch(role)}
-                          initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: reduceMotion ? 0 : 0.2, delay: reduceMotion ? 0 : index * 0.03 }}
-                          className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition-all duration-200 ${
-                            roleQuery.trim().toLowerCase() === role.toLowerCase()
-                              ? "border-[#C9A84C] bg-[#C9A84C]/10 font-medium text-[#C9A84C]"
-                              : "border-white/10 bg-white/5 text-white/80 hover:border-[#C9A84C]/60 hover:bg-white/10 hover:text-white"
-                          }`}
-                        >
-                          {role}
-                        </motion.button>
-                      ))}
+                      {filteredRoles.map((role, index) => {
+                        const rc = roleCounts[role];
+                        return (
+                          <motion.button
+                            key={role}
+                            type="button"
+                            onClick={() => {
+                              setSelectedRole(role);
+                              setPickerStep("modal");
+                              setGetStartedEmail("");
+                              setGetStartedGdpr(false);
+                              setGetStartedError("");
+                            }}
+                            initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: reduceMotion ? 0 : 0.2, delay: reduceMotion ? 0 : index * 0.03 }}
+                            className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition-all duration-200 ${
+                              roleQuery.trim().toLowerCase() === role.toLowerCase()
+                                ? "border-[#C9A84C] bg-[#C9A84C]/10 font-medium text-[#C9A84C]"
+                                : "border-white/10 bg-white/5 text-white/80 hover:border-[#C9A84C]/60 hover:bg-white/10 hover:text-white"
+                            }`}
+                          >
+                            <span className="block font-medium">{role}</span>
+                            {rc === null || rc === undefined ? (
+                              <span className="mt-1 block text-xs text-white/40">...</span>
+                            ) : rc === 0 ? (
+                              <span className="mt-1 block text-xs text-white/55">We source on request</span>
+                            ) : (
+                              <span className="mt-1 block text-xs font-medium text-[#C9A84C]/90">{rc} candidates available</span>
+                            )}
+                          </motion.button>
+                        );
+                      })}
                     </motion.div>
                   ) : (
                     <p className="mt-4 text-sm text-[rgba(255,255,255,0.4)]">No roles found. Try a different search.</p>
@@ -1131,170 +1125,105 @@ export default function RequestPage() {
           </>
         )}
 
-        {checkState === "searching" && (
-          <>
-            <div className="fixed inset-0 z-50 bg-[#0D1B2A] flex flex-col items-center justify-center gap-6 md:hidden">
-              <p className="text-[#C9A84C] text-xs font-semibold tracking-widest uppercase">SEARCHING FOR</p>
-              <p className="text-white text-2xl font-bold">{selectedRole}</p>
-              <div className="w-12 h-12 rounded-full border-2 border-white/10 border-t-[#C9A84C] animate-spin" />
-              <p className="text-white/40 text-sm">{currentMessage}</p>
-            </div>
-            <div className="hidden flex-col items-center py-10 text-center md:flex">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Searching for</p>
-              <p className="mb-6 mt-1 text-[1.1rem] font-bold text-white">{searchTerm}</p>
-              <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-[#C9A84C]" />
-              <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
-            </div>
-          </>
-        )}
-
-        {checkState === "result" && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D1B2A] p-4 md:static md:min-h-[60vh] md:bg-transparent">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="mx-auto w-full max-w-lg rounded-2xl border border-white/10 bg-white/5 md:w-[90%]"
-            >
-              <div className="flex flex-col items-center gap-6 px-6 py-10 text-center">
-                {checkCount > 0 ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <motion.span
-                      className="text-7xl font-black leading-none text-[#C9A84C] md:text-8xl"
-                      initial={reduceMotion ? false : { opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: reduceMotion ? 0 : 0.5, ease: "easeOut" }}
-                    >
-                      {checkCount}
-                    </motion.span>
-                    <p className="text-base text-white/70">
-                      <span className="font-semibold text-white">{searchTerm.trim() || "This role"}</span> profiles in
-                      our database
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#C9A84C]/10">
-                      <Search className="h-8 w-8 text-[#C9A84C]" aria-hidden />
-                    </div>
-                    <p className="text-lg font-semibold text-white">We can source this role for you</p>
-                    <p className="text-sm text-white/50">
-                      We&apos;ll find the right {searchTerm.trim() || "candidate"} for your team
-                    </p>
-                  </div>
-                )}
-
-                <div className="h-px w-full bg-white/10" />
-
-                <div className="flex w-full max-w-sm flex-col gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setWorkTogetherEmail("");
-                      setWorkTogetherError("");
-                      setWorkTogetherStatus("idle");
-                      setWorkTogetherCanResend(true);
-                      setWorkTogetherCountdown(0);
-                      setShowWorkTogetherInlineModal(true);
-                    }}
-                    className="w-full rounded-xl bg-[#C9A84C] py-4 text-base font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
-                  >
-                    Get started →
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    candidateSearchGenerationRef.current += 1;
-                    if (industryAdvanceTimerRef.current) {
-                      window.clearTimeout(industryAdvanceTimerRef.current);
-                      industryAdvanceTimerRef.current = null;
-                    }
-                    setIndustryPreview("");
-                    setPendingIndustry("");
-                    setSelectedIndustry("");
-                    setRoleQuery("");
-                    setSearchTerm("");
-                    setCheckState("idle");
-                    setCheckCount(0);
-                    setShowAccessCheck(false);
-                    setShowWorkTogetherInlineModal(false);
-                    setResultAction("none");
-                    setFlowDirection(-1);
-                  }}
-                  className="text-xs text-white/30 transition-colors hover:text-white/60"
-                >
-                  ← Search another role
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
       </div>
 
       <AnimatePresence>
-        {showWorkTogetherInlineModal ? (
+        {checkState === "idle" && pickerStep === "modal" && selectedRole ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#0D1B2A]/95 px-4 backdrop-blur-md"
+            className="fixed inset-0 z-[10050] flex items-center justify-center overflow-x-hidden bg-[#0D1B2A]/90 px-4 backdrop-blur-md"
             onClick={(event) => {
               if (event.target !== event.currentTarget) return;
-              setShowWorkTogetherInlineModal(false);
+              setPickerStep("roles");
+              setSelectedRole(null);
+              setGetStartedEmail("");
+              setGetStartedGdpr(false);
+              setGetStartedError("");
             }}
           >
             <motion.div
-              initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={reduceMotion ? undefined : { opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-8 text-center"
+              exit={reduceMotion ? undefined : { opacity: 0, scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 32 }}
+              className="relative w-full max-w-md rounded-[4px] border border-white/10 bg-[#0f1923] p-8 shadow-xl"
               onClick={(event) => event.stopPropagation()}
             >
-              {workTogetherStatus === "success" ? (
-                <p className="text-sm leading-relaxed text-white/80">
-                  Check your inbox - we&apos;ve sent you a link to continue your request.
-                </p>
-              ) : (
-                <>
-                  <h3 className="text-2xl font-bold text-white">Get started</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-white/65">
-                    Enter your work email and we&apos;ll send you a secure link to continue.
-                  </p>
-                  <div className="mt-5 space-y-3 text-left">
-                    <input
-                      type="email"
-                      value={workTogetherEmail}
-                      onChange={(event) => {
-                        setWorkTogetherEmail(event.target.value);
-                        if (workTogetherError) setWorkTogetherError("");
-                        if (workTogetherStatus === "error") setWorkTogetherStatus("idle");
-                      }}
-                      placeholder="your@company.com"
-                      className="h-12 w-full rounded-xl border border-white/15 bg-[#0D1B2A] px-4 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#C9A84C]/60"
-                    />
-                    {workTogetherError || workTogetherStatus === "error" ? (
-                      <p className="text-sm text-red-400">
-                        {workTogetherError || "Could not send the link. Please try again."}
-                      </p>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={() => void submitWorkTogetherEmail()}
-                      disabled={
-                        workTogetherStatus === "submitting" ||
-                        !workTogetherEmail.includes("@") ||
-                        !workTogetherCanResend
-                      }
-                      className="w-full rounded-xl bg-[#C9A84C] py-4 text-base font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      Send link →
-                    </button>
-                  </div>
-                </>
-              )}
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={() => {
+                  setPickerStep("roles");
+                  setSelectedRole(null);
+                  setGetStartedEmail("");
+                  setGetStartedGdpr(false);
+                  setGetStartedError("");
+                }}
+                className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-md text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <span className="text-xl leading-none">×</span>
+              </button>
+              <h3 className="pr-10 text-left text-2xl font-bold text-white">Get started</h3>
+              <p className="mt-2 text-left text-sm leading-relaxed text-white/70">
+                We will send a secure link to complete your request.
+              </p>
+              <p className="mt-2 text-left text-[12px] text-white/60">Selected role: {selectedRole}</p>
+              <div className="mt-6 space-y-4 text-left">
+                <label className="block text-sm font-medium text-white/90" htmlFor="get-started-email">
+                  Work email
+                </label>
+                <input
+                  id="get-started-email"
+                  type="email"
+                  required
+                  value={getStartedEmail}
+                  onChange={(event) => {
+                    setGetStartedEmail(event.target.value);
+                    if (getStartedError) setGetStartedError("");
+                  }}
+                  placeholder="your@company.com"
+                  className="h-11 w-full rounded-[4px] border border-[#0D1B2A]/30 bg-[#0D1B2A] px-3 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]"
+                />
+                <label className="flex cursor-pointer items-start gap-3 text-sm text-white/85">
+                  <input
+                    type="checkbox"
+                    checked={getStartedGdpr}
+                    onChange={(e) => setGetStartedGdpr(e.target.checked)}
+                    className="mt-1 h-4 w-4 shrink-0 rounded border-white/30 text-[#C9A84C] focus:ring-[#C9A84C]"
+                  />
+                  <span>
+                    I agree to the processing of my data according to the{" "}
+                    <Link href="/privacy" className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </span>
+                </label>
+                {getStartedError ? <p className="text-sm text-red-400">{getStartedError}</p> : null}
+                <button
+                  type="button"
+                  onClick={() => void submitGetStartedLink()}
+                  disabled={getStartedSubmitting || !getStartedGdpr || !getStartedEmail.includes("@")}
+                  className="inline-flex rounded-[4px] bg-[#C9A84C] px-6 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {getStartedSubmitting ? "Sending" : "Send link"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPickerStep("roles");
+                    setSelectedRole(null);
+                    setGetStartedEmail("");
+                    setGetStartedGdpr(false);
+                    setGetStartedError("");
+                  }}
+                  className="block w-full pt-1 text-left text-[13px] text-white/60 transition-colors hover:text-white/80"
+                >
+                  ← Choose different role
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         ) : null}
@@ -1702,6 +1631,10 @@ export default function RequestPage() {
                       setAccessStatus("idle");
                       setAccessErrorMessage("");
                       setPartnerModalView("not_found");
+                      setPickerStep("industries");
+                      setSelectedIndustry("");
+                      setSelectedRole(null);
+                      setRoleQuery("");
                       setCheckState("idle");
                     }}
                     className="w-full rounded-xl border border-[#C9A84C]/45 py-2 text-sm font-semibold text-[#C9A84C] hover:bg-[#C9A84C]/10"

@@ -19,7 +19,9 @@ const requestSchema = z
     company: z.string().trim().min(2).max(160),
     email: z.string().trim().email().max(200),
     phone: z.string().trim().min(6).max(40),
+    /** Job role from /request picker (not persisted on request_tokens unless column exists). */
     role: z.string().trim().max(160).optional(),
+    industry: z.string().trim().max(120).optional(),
     job_summary: z.string().trim().max(1000).optional().default("General hiring inquiry"),
     org_number: z.string().trim().max(40).optional(),
     gdprConsent: z
