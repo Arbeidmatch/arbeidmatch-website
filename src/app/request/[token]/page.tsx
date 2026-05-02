@@ -64,6 +64,8 @@ type RequestForm = {
   salaryMin: string;
   salaryMax: string;
   qualification: string;
+  /** Stored as employer_requests.d_number: has_d_number | we_handle */
+  dNumberChoice: "has_d_number" | "we_handle" | "";
   driverLicenseRequired: "Yes" | "No";
   tradeCertificatePreferred: "Yes" | "No";
   jaguarLandRoverPreferred: "Yes" | "No";
@@ -110,7 +112,7 @@ const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
   0: ["companyName", "orgNumber", "contactFirstName", "contactLastName", "contactEmail", "contactPhone"],
   1: ["industry", "workerType", "contractType", "locations", "startDate", "candidates"],
   2: ["salaryMin", "salaryMax", "accommodation", "localTransport", "internationalTransport"],
-  3: ["qualification"],
+  3: ["qualification", "dNumberChoice"],
   4: ["workTasks"],
   5: ["personalQualities"],
   6: ["offerItems"],
@@ -141,6 +143,7 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     if (!f.internationalTransport) invalid.add("internationalTransport");
   } else if (s === 3) {
     if (!f.qualification) invalid.add("qualification");
+    if (f.dNumberChoice !== "has_d_number" && f.dNumberChoice !== "we_handle") invalid.add("dNumberChoice");
   } else if (s === 4) {
     if (f.workTasks.length === 0) invalid.add("workTasks");
   } else if (s === 5) {
@@ -458,6 +461,7 @@ const initialForm: RequestForm = {
   salaryMin: "250",
   salaryMax: "300",
   qualification: "3 to 5 years",
+  dNumberChoice: "has_d_number",
   driverLicenseRequired: "Yes",
   tradeCertificatePreferred: "Yes",
   jaguarLandRoverPreferred: "Yes",
@@ -977,7 +981,7 @@ export default function RequestTokenPage() {
       englishLevel: "",
       driverLicense: form.driverLicenseRequired,
       driverLicenseOther: "",
-      dNumber: "",
+      dNumber: form.dNumberChoice,
       dNumberOther: "",
       requirements: generatedNotes,
       contractType: form.contractType,
@@ -2147,6 +2151,39 @@ export default function RequestTokenPage() {
                     ))}
                   </div>
                   {fieldErrors.qualification ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                </div>
+                <div data-wizard-field="dNumberChoice">
+                  <div className={wizardGroupShell(!!fieldErrors.dNumberChoice, "flex flex-col gap-3")}>
+                    {(
+                      [
+                        { value: "has_d_number" as const, label: "Already has a D-number" },
+                        { value: "we_handle" as const, label: "We can handle the procedure" },
+                      ] as const
+                    ).map((opt) => (
+                      <label
+                        key={opt.value}
+                        className={`flex min-h-[44px] cursor-pointer items-center gap-3 rounded-[12px] border px-4 py-3 ${
+                          form.dNumberChoice === opt.value
+                            ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
+                            : "border-white/10 bg-white/[0.03] text-white"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="dNumberChoice"
+                          value={opt.value}
+                          checked={form.dNumberChoice === opt.value}
+                          onChange={() => {
+                            setForm((p) => ({ ...p, dNumberChoice: opt.value }));
+                            clearFieldError("dNumberChoice");
+                          }}
+                          className="h-4 w-4 shrink-0 accent-[#C9A84C] focus:outline-none"
+                        />
+                        <span className="text-sm font-semibold">{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {fieldErrors.dNumberChoice ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {[
