@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import ScrollProgressCTA from "./ScrollProgressCTA";
 
 const ExitIntentPopup = dynamic(() => import("./ExitIntentPopup"), { ssr: false });
-const StickyBottomBanner = dynamic(() => import("./StickyBottomBanner"), { ssr: false });
 
 /**
  * Monetization / passive conversion layer (Nordic Precision UI).
@@ -24,14 +23,11 @@ export default function MonetizationOverlays() {
 
   const exitIntentEnabled = pathname === "/for-candidates" || pathname === "/dsb-support";
 
-  const stickyBannerEnabled = pathname !== "/dsb-support" && !pathname.startsWith("/dsb-guide");
-
   const scrollCtaEnabled = pathname === "/for-candidates" || pathname === "/for-employers";
 
   return (
     <>
       {exitIntentEnabled && <ExitIntentPopup enabled />}
-      {stickyBannerEnabled && <StickyBottomBanner enabled />}
       {scrollCtaEnabled && <ScrollProgressCTA pathname={pathname} />}
     </>
   );

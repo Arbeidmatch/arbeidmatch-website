@@ -9,16 +9,16 @@ import { ChevronDown, Crown } from "lucide-react";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
 
-const tjenesterStaffingLink = { href: "/for-staffing-agencies", label: "For bemanningsbyråer" } as const;
+const tjenesterStaffingLink = { href: "/for-staffing-agencies", label: "For staffing agencies" } as const;
 
 const tjenesterIndustryLinks = [
-  { href: "/bemanning-bygg-anlegg", label: "Bygg & Anlegg" },
-  { href: "/bemanning-logistikk", label: "Logistikk" },
-  { href: "/bemanning-industri", label: "Industri" },
-  { href: "/bemanning-renhold", label: "Renhold" },
-  { href: "/bemanning-horeca", label: "HoReCa" },
-  { href: "/bemanning-helse", label: "Helse" },
-  { href: "/welding-specialists", label: "Sveisespesialister" },
+  { href: "/bemanning-bygg-anlegg", label: "Construction" },
+  { href: "/bemanning-logistikk", label: "Logistics" },
+  { href: "/bemanning-industri", label: "Industry" },
+  { href: "/bemanning-renhold", label: "Cleaning" },
+  { href: "/bemanning-horeca", label: "Hospitality" },
+  { href: "/bemanning-helse", label: "Healthcare" },
+  { href: "/welding-specialists", label: "Welding Specialists" },
 ];
 
 const stederLinks = [
@@ -33,12 +33,12 @@ const ressurserLinks: { href: string; label: string; premium?: boolean }[] = [
   { href: "/outside-eu-eea", label: "Non-EU Workers" },
   { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/premium", label: "Premium Guides", premium: true },
-  { href: "/about", label: "Om oss" },
+  { href: "/about", label: "About us" },
   { href: "/partners", label: "Partners" },
   { href: "/dsb-support", label: "DSB Authorization Guide" },
   { href: "/blog", label: "Blog" },
   { href: "/recruiter-network", label: "Partner Program" },
-  { href: "/contact", label: "Kontakt" },
+  { href: "/contact", label: "Contact" },
 ];
 
 const primaryDesktopLinks = [
@@ -179,9 +179,21 @@ export default function Navbar() {
         <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-4 px-6 md:h-16 md:min-h-[64px] md:px-12 lg:h-[72px] lg:min-h-[72px] lg:gap-10 lg:px-20">
           <Link
             href="/"
-            className="flex min-h-[44px] min-w-fit shrink-0 items-center whitespace-nowrap text-[1.25rem] font-bold leading-[44px] text-[#C9A84C]"
+            className="flex min-h-[44px] min-w-fit shrink-0 items-center gap-2 whitespace-nowrap text-[1.25rem] font-bold leading-[44px] text-[#C9A84C]"
           >
-            ArbeidMatch
+            <span>ArbeidMatch</span>
+            <span
+              className="inline-block align-middle text-[10px] font-semibold leading-none text-[#C9A84C]"
+              style={{
+                background: "rgba(201,168,76,0.15)",
+                border: "1px solid rgba(201,168,76,0.4)",
+                borderRadius: 4,
+                padding: "2px 6px",
+                verticalAlign: "middle",
+              }}
+            >
+              BETA
+            </span>
           </Link>
 
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-8 lg:flex lg:gap-10">
@@ -205,7 +217,7 @@ export default function Navbar() {
                   megaHasActive(pathname) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""
                 }`}
               >
-                Mer
+                More
                 <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
               </span>
               <div
@@ -216,7 +228,7 @@ export default function Navbar() {
                 <div className={megaPanelInnerClass}>
                   <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-10">
                     <div>
-                      <p className={megaColLabelClass}>Tjenester</p>
+                      <p className={megaColLabelClass}>Services</p>
                       <ul className="space-y-0.5">
                         <li>
                           <Link
@@ -242,7 +254,7 @@ export default function Navbar() {
                       </ul>
                     </div>
                     <div>
-                      <p className={megaColLabelClass}>Steder</p>
+                      <p className={megaColLabelClass}>Locations</p>
                       <ul className="space-y-0.5">
                         {stederLinks.map((item) => (
                           <li key={item.href}>
@@ -258,7 +270,7 @@ export default function Navbar() {
                       </ul>
                     </div>
                     <div>
-                      <p className={megaColLabelClass}>Ressurser</p>
+                      <p className={megaColLabelClass}>Resources</p>
                       <ul className="space-y-0.5">
                         {ressurserLinks.map((item) => (
                           <li key={item.href}>

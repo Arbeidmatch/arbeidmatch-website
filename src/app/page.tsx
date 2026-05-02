@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Testimonials from "@/components/Testimonials";
-import TikTokLiveBanner from "@/components/TikTokLiveBanner";
 import HomePageClient from "@/components/pages/HomePageClient";
 import HomeFaqJsonLd from "@/components/seo/HomeFaqJsonLd";
 
@@ -38,7 +37,6 @@ export default async function Home() {
   return (
     <div className="bg-[#0D1B2A] text-white" style={{ background: "#0D1B2A", minHeight: "100vh" }}>
       <HomeFaqJsonLd />
-      <TikTokLiveBanner />
       <HomePageClient testimonialsSlot={<Testimonials />} />
     </div>
   );
