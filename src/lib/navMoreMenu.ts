@@ -16,16 +16,30 @@ export const MORE_LOCATIONS = [
   { href: "/bemanningsbyrå-kristiansand", label: "Kristiansand" },
 ] as const;
 
-export const MORE_RESOURCES = [
-  { href: "/for-staffing-agencies", label: "For staffing agencies" },
-  { href: "/dsb-support", label: "DSB Authorization Guide" },
-  { href: "/premium", label: "Premium Guides" },
-  { href: "/about", label: "About us" },
-  { href: "/partners", label: "Partners" },
-  { href: "/blog", label: "Blog" },
-  { href: "/recruiter-network", label: "Partner Program (Recruiter Network)" },
-  { href: "/contact", label: "Contact" },
-] as const;
+/** Order and labels for the More menu Resources column; visibility per audience in `resourcesForAudience`. */
+const RESOURCE_LINK_DEFS: readonly {
+  href: string;
+  label: string;
+  show: (audience: AmAudience | null) => boolean;
+}[] = [
+  { href: "/for-staffing-agencies", label: "Become a partner agency", show: (a) => a !== "candidate" },
+  { href: "/dsb-support", label: "DSB Authorization Guide", show: (a) => a !== "employer" },
+  { href: "/outside-eu-eea", label: "Non-EU Workers", show: (a) => a !== "employer" },
+  { href: "/premium", label: "Premium Guides", show: (a) => a !== "employer" },
+  { href: "/about", label: "About us", show: () => true },
+  { href: "/partners", label: "Our partner agencies", show: (a) => a !== "candidate" },
+  { href: "/blog", label: "Blog", show: () => true },
+  { href: "/recruiter-network", label: "Recruiter network", show: (a) => a === null || a === "browsing" },
+  { href: "/contact", label: "Contact", show: () => true },
+];
+
+/**
+ * Resource links visible for the given audience. `null` matches browsing for CLS (full set except
+ * employer-only / candidate-only rules: recruiter stays visible for null and browsing only).
+ */
+export function resourcesForAudience(audience: AmAudience | null): { href: string; label: string }[] {
+  return RESOURCE_LINK_DEFS.filter((d) => d.show(audience)).map(({ href, label }) => ({ href, label }));
+}
 
 const ELECTRICIANS = { href: "/electricians-norway", label: "Electricians in Norway" } as const;
 const WELDING = { href: "/welding-specialists", label: "Welding Specialists" } as const;
@@ -39,7 +53,7 @@ export function tradesForAudience(audience: AmAudience | null): { href: string; 
 export const MORE_ALL_HREFS: string[] = [
   ...MORE_SERVICES.map((i) => i.href),
   ...MORE_LOCATIONS.map((i) => i.href),
-  ...MORE_RESOURCES.map((i) => i.href),
+  ...RESOURCE_LINK_DEFS.map((d) => d.href),
   ELECTRICIANS.href,
   WELDING.href,
 ];

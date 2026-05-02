@@ -5,13 +5,13 @@ import Link from "next/link";
 import { X } from "lucide-react";
 
 import type { AmAudience } from "@/lib/navMoreMenu";
-import { MORE_LOCATIONS, MORE_RESOURCES, MORE_SERVICES, tradesForAudience } from "@/lib/navMoreMenu";
+import { MORE_LOCATIONS, MORE_SERVICES, resourcesForAudience, tradesForAudience } from "@/lib/navMoreMenu";
 
 const GOLD = "#C9A84C";
 
 const employerLinks: { href: string; label: string }[] = [
   { href: "/request", label: "Request candidates" },
-  { href: "/for-staffing-agencies", label: "For staffing agencies" },
+  { href: "/for-staffing-agencies", label: "Become a partner agency" },
 ];
 
 const mainLinks: { href: string; label: string }[] = [
@@ -70,6 +70,7 @@ export default function MobileDrawerContent({
   audience: AmAudience | null;
 }) {
   const tradeLinks = tradesForAudience(audience);
+  const resourceLinks = resourcesForAudience(audience);
 
   return (
     <>
@@ -117,7 +118,7 @@ export default function MobileDrawerContent({
         ))}
 
         <SectionLabel>Resources</SectionLabel>
-        {MORE_RESOURCES.map((item) => (
+        {resourceLinks.map((item) => (
           <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
             {item.label}
           </DrawerRowLink>

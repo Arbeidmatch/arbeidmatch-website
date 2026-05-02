@@ -8,12 +8,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
-import { MORE_LOCATIONS, MORE_RESOURCES, MORE_SERVICES, MORE_ALL_HREFS, tradesForAudience } from "@/lib/navMoreMenu";
+import { MORE_LOCATIONS, MORE_SERVICES, MORE_ALL_HREFS, resourcesForAudience, tradesForAudience } from "@/lib/navMoreMenu";
 import { useAudience } from "@/lib/useAudience";
 
 const employersSubLinks = [
   { href: "/request", label: "Request candidates" },
-  { href: "/for-staffing-agencies", label: "For staffing agencies" },
+  { href: "/for-staffing-agencies", label: "Become a partner agency" },
 ] as const;
 
 const navLinks = [
@@ -101,6 +101,7 @@ export default function Navbar() {
   const closeMoreMenu = () => setIsMoreOpen(false);
 
   const tradeLinks = tradesForAudience(audience);
+  const resourceLinks = resourcesForAudience(audience);
 
   const dropdownLinkClass =
     "flex min-h-[44px] min-w-[44px] items-center rounded-md px-4 py-3 text-[14px] text-[rgba(255,255,255,0.85)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.06)] hover:text-white lg:min-h-0 lg:min-w-0 lg:px-3 lg:py-2";
@@ -251,7 +252,7 @@ export default function Navbar() {
                         Resources
                       </p>
                       <div className="grid gap-0 sm:grid-cols-2">
-                        {MORE_RESOURCES.map((item) => (
+                        {resourceLinks.map((item) => (
                           <Link
                             key={item.href}
                             href={item.href}
