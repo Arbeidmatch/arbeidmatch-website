@@ -1,3 +1,6 @@
+/** BETA: homepage audience welcome slide-up is off. */
+export const WELCOME_MODAL_ENABLED = false;
+
 /** BETA: internal talent network email form is off; candidates use the external jobs portal. */
 export const TALENT_NETWORK_FORM_ENABLED = false;
 

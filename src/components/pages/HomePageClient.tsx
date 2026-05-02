@@ -16,6 +16,7 @@ import BemanningCard from "@/components/home/BemanningCard";
 import HomeIndustriesSection from "@/components/home/HomeIndustriesSection";
 import HomeWhyArbeidMatchSection from "@/components/home/HomeWhyArbeidMatchSection";
 import HomeWelcomeUserTypeSlideup from "@/components/home/HomeWelcomeUserTypeSlideup";
+import { WELCOME_MODAL_ENABLED } from "@/lib/featureFlags";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const HERO_DURATION = 0.72;
@@ -172,7 +173,7 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
 
   return (
     <div className="min-h-screen overflow-x-clip bg-[#0D1B2A]">
-      <HomeWelcomeUserTypeSlideup />
+      {WELCOME_MODAL_ENABLED && <HomeWelcomeUserTypeSlideup />}
       <section className="relative flex min-h-[100dvh] flex-col justify-center overflow-x-clip bg-[#0D1B2A] py-12 md:min-h-0 md:py-16 lg:py-24">
         <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
           <div className="absolute inset-0 bg-[#0D1B2A]" />

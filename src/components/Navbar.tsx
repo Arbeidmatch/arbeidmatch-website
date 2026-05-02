@@ -1,26 +1,17 @@
 "use client";
 
-import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { startTransition, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
-import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
-import { MORE_ALL_HREFS, moreMenuLinksForAudience } from "@/lib/navMoreMenu";
-import { useAudience } from "@/lib/useAudience";
 
-const employersSubLinks = [
-  { href: "/request", label: "Request candidates" },
-  { href: "/for-staffing-agencies", label: "Become a partner agency" },
-] as const;
-
-const navLinks = [
+const desktopNavLinks = [
+  { href: "/request", label: "For Employers" },
   { href: "/for-candidates", label: "For Candidates" },
-  { href: "/about", label: "About" },
+  { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/contact", label: "Contact" },
 ] as const;
 
@@ -29,22 +20,11 @@ function linkActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function employersNavActive(pathname: string): boolean {
-  return employersSubLinks.some((i) => linkActive(pathname, i.href));
-}
-
-function moreNavActive(pathname: string): boolean {
-  return MORE_ALL_HREFS.some((href) => linkActive(pathname, href));
-}
-
 const DRAWER_EASE = [0.32, 0.72, 0, 1] as const;
 
 export default function Navbar() {
   const pathname = usePathname();
-  const audience = useAudience();
   const [isOpen, setIsOpen] = useState(false);
-  const [isEmployersOpen, setIsEmployersOpen] = useState(false);
-  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -61,12 +41,10 @@ export default function Navbar() {
 
   useEffect(() => {
     startTransition(() => setIsOpen(false));
-    startTransition(() => setIsEmployersOpen(false));
-    startTransition(() => setIsMoreOpen(false));
   }, [pathname]);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1023px)");
+    const mq = window.matchMedia("(max-width: 1279px)");
     const onMq = () => {
       if (!mq.matches) setIsOpen(false);
     };
@@ -79,7 +57,7 @@ export default function Navbar() {
       document.body.style.overflow = "";
       return;
     }
-    const mq = window.matchMedia("(max-width: 1023px)");
+    const mq = window.matchMedia("(max-width: 1279px)");
     if (!mq.matches) {
       document.body.style.overflow = "";
       return;
@@ -99,13 +77,6 @@ export default function Navbar() {
     : "border-b border-[rgba(255,255,255,0.06)] bg-[#0D1B2A] backdrop-blur-sm";
 
   const closeMenu = () => setIsOpen(false);
-  const closeEmployersMenu = () => setIsEmployersOpen(false);
-  const closeMoreMenu = () => setIsMoreOpen(false);
-
-  const moreLinks = moreMenuLinksForAudience(audience);
-
-  const dropdownLinkClass =
-    "flex min-h-[44px] min-w-[44px] items-center rounded-md px-4 py-3 text-[14px] text-[rgba(255,255,255,0.85)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.06)] hover:text-white lg:min-h-0 lg:min-w-0 lg:px-3 lg:py-2";
 
   const mobilePortal =
     mounted &&
@@ -121,7 +92,7 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-[#0a0f18]/85 lg:hidden"
+              className="fixed inset-0 bg-[#0a0f18]/85 xl:hidden"
               style={{ zIndex: 40 }}
               onClick={closeMenu}
             />
@@ -134,10 +105,10 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.35, ease: DRAWER_EASE }}
-              className="fixed bottom-0 right-0 top-0 flex w-[min(100vw,320px)] flex-col overflow-y-auto bg-[#0a0f19] lg:hidden"
+              className="fixed bottom-0 right-0 top-0 flex w-[min(100vw,320px)] flex-col overflow-y-auto bg-[#0a0f19] xl:hidden"
               style={{ zIndex: 50 }}
             >
-              <MobileDrawerContent pathname={pathname} onClose={closeMenu} audience={audience} />
+              <MobileDrawerContent pathname={pathname} onClose={closeMenu} />
             </motion.aside>
           </>
         ) : null}
@@ -150,123 +121,38 @@ export default function Navbar() {
       <header
         className={`sticky top-0 transition-colors duration-200 ${headerSurface} ${isOpen ? "z-30" : "z-[210]"}`}
       >
-        <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-4 px-6 md:h-16 md:min-h-[64px] md:px-12 lg:h-[72px] lg:min-h-[72px] lg:gap-10 lg:px-20">
+        <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 md:h-16 md:min-h-[64px] md:px-10 xl:h-[72px] xl:min-h-[72px] xl:gap-10 xl:px-20">
           <Link
             href="/"
-            className="flex min-h-[44px] min-w-fit shrink-0 items-center whitespace-nowrap text-[1.25rem] font-bold text-[#C9A84C]"
+            className="flex min-h-[44px] min-w-0 shrink-0 items-center gap-2 whitespace-nowrap text-inherit no-underline"
           >
-            <span className="shrink-0 leading-none">ArbeidMatch</span>
+            <span className="shrink-0 text-[1.25rem] font-bold leading-none text-[#C9A84C]" style={{ fontWeight: 700 }}>
+              ArbeidMatch
+            </span>
             <span
-              className="ml-2 inline-flex shrink-0 items-center justify-center rounded-[4px] bg-[#C9A84C] px-[6px] py-[2px] text-[10px] font-semibold uppercase leading-none tracking-[0.05em] text-[#0D1B2A]"
+              className="inline-flex shrink-0 items-center justify-center rounded-[4px] bg-[#C9A84C] px-[6px] py-[2px] text-[10px] font-semibold uppercase leading-none tracking-[0.05em] text-[#0D1B2A]"
               aria-hidden
             >
               BETA
             </span>
           </Link>
 
-          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-8 lg:flex lg:gap-10">
-            <div className="relative" onMouseEnter={() => setIsEmployersOpen(true)} onMouseLeave={closeEmployersMenu}>
-              <span
-                className={`inline-flex min-h-[44px] cursor-default items-center gap-1 ${navItemClass} ${
-                  employersNavActive(pathname) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""
-                }`}
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-6 xl:flex xl:gap-8 2xl:gap-10">
+            {desktopNavLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`${navItemClass} ${linkActive(pathname, link.href) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""}`}
               >
-                For Employers
-                <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-              </span>
-              <div
-                className={`absolute left-1/2 top-full z-[130] min-w-[220px] -translate-x-1/2 pt-3 transition-[opacity,transform,visibility] duration-[180ms] ease-out ${
-                  isEmployersOpen
-                    ? "pointer-events-auto visible translate-y-0 opacity-100"
-                    : "pointer-events-none invisible -translate-y-[6px] opacity-0"
-                }`}
-              >
-                <div className="rounded-xl border border-[rgba(201,168,76,0.12)] bg-[#0D1B2A] py-2 shadow-lg">
-                  {employersSubLinks.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={closeEmployersMenu}
-                      className={`${dropdownLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-[#C9A84C]" : ""}`}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="relative" onMouseEnter={() => setIsMoreOpen(true)} onMouseLeave={closeMoreMenu}>
-              <span
-                className={`inline-flex min-h-[44px] cursor-default items-center gap-1 ${navItemClass} ${
-                  moreNavActive(pathname) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""
-                }`}
-              >
-                More
-                <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
-              </span>
-              <div
-                className={`absolute left-1/2 top-full z-[130] w-[min(92vw,480px)] max-h-[70vh] -translate-x-1/2 overflow-y-auto overscroll-contain pt-3 transition-[opacity,transform,visibility] duration-[180ms] ease-out ${
-                  isMoreOpen
-                    ? "pointer-events-auto visible translate-y-0 opacity-100"
-                    : "pointer-events-none invisible -translate-y-[6px] opacity-0"
-                }`}
-              >
-                <div className="rounded-xl border border-[rgba(201,168,76,0.12)] bg-[#0D1B2A] py-1 shadow-lg">
-                  <div className="flex flex-col">
-                    {moreLinks.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={closeMoreMenu}
-                        className={`flex min-h-[44px] items-center px-3 py-2 text-[14px] text-[rgba(255,255,255,0.85)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.06)] hover:text-white ${
-                          linkActive(pathname, item.href) ? "font-medium text-[#C9A84C]" : ""
-                        }`}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {navLinks.map((link) => (
-              <Fragment key={link.href}>
-                <Link
-                  href={link.href}
-                  className={`${navItemClass} ${linkActive(pathname, link.href) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""}`}
-                >
-                  {link.label}
-                </Link>
-                {link.href === "/for-candidates" ? (
-                  <>
-                    <a
-                      href={JOBS_PORTAL_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`${navItemClass} shrink-0 text-[15px] font-normal text-white/70 transition-[color,font-weight,text-decoration-color] duration-150 hover:font-medium hover:text-white`}
-                    >
-                      Join talent network
-                    </a>
-                    <a
-                      href={JOBS_PORTAL_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`${navItemClass} shrink-0 text-[15px] font-normal text-white/70 transition-[color,font-weight,text-decoration-color] duration-150 hover:font-medium hover:text-white`}
-                    >
-                      Apply
-                    </a>
-                  </>
-                ) : null}
-              </Fragment>
+                {link.label}
+              </Link>
             ))}
           </nav>
 
-          <div className="hidden shrink-0 md:block">
+          <div className="hidden shrink-0 xl:block">
             <Link
               href="/request"
-              className="inline-flex min-h-[40px] min-w-[44px] items-center justify-center rounded-[6px] bg-[#C9A84C] px-4 py-2 text-[14px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[6px] bg-[#C9A84C] px-4 py-2 text-[14px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
             >
               Request candidates
             </Link>
@@ -277,7 +163,7 @@ export default function Navbar() {
             aria-label={isOpen ? "Lukk meny" : "Åpne meny"}
             aria-expanded={isOpen}
             onClick={() => setIsOpen((v) => !v)}
-            className="relative flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border-0 bg-transparent lg:hidden"
+            className="relative flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md border-0 bg-transparent xl:hidden"
           >
             <span className="sr-only">Menu</span>
             <span className="flex h-[14px] w-[22px] flex-col justify-center gap-[5px]">

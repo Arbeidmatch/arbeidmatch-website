@@ -4,7 +4,9 @@ import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 
 function FooterColumnTitle({ children }: { children: string }) {
   return (
-    <p className="mb-3 text-[14px] font-semibold uppercase tracking-[0.12em] text-[rgba(255,255,255,0.55)] md:mb-4">{children}</p>
+    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-[rgba(255,255,255,0.55)] md:mb-4">
+      {children}
+    </p>
   );
 }
 
@@ -12,7 +14,7 @@ function FooterNavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="mb-3 block min-h-[44px] py-2 text-[14px] leading-snug text-[rgba(255,255,255,0.5)] transition-colors hover:text-[rgba(255,255,255,0.85)] lg:min-h-0 lg:py-0"
+      className="mb-3 block min-h-[44px] py-2 text-sm leading-snug text-[rgba(255,255,255,0.5)] transition-colors hover:text-[rgba(255,255,255,0.85)] lg:min-h-0 lg:py-0"
     >
       {label}
     </Link>
@@ -25,38 +27,12 @@ function FooterExternalLink({ href, label }: { href: string; label: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="mb-3 block min-h-[44px] py-2 text-[14px] leading-snug text-[rgba(255,255,255,0.5)] transition-colors hover:text-[rgba(255,255,255,0.85)] lg:min-h-0 lg:py-0"
+      className="mb-3 block min-h-[44px] py-2 text-sm leading-snug text-[rgba(255,255,255,0.5)] transition-colors hover:text-[rgba(255,255,255,0.85)] lg:min-h-0 lg:py-0"
     >
       {label}
     </a>
   );
 }
-
-const INDUSTRIES = [
-  { href: "/bemanning-bygg-anlegg", label: "Construction" },
-  { href: "/bemanning-logistikk", label: "Logistics" },
-  { href: "/bemanning-industri", label: "Industry" },
-  { href: "/bemanning-renhold", label: "Cleaning" },
-  { href: "/bemanning-horeca", label: "Hospitality" },
-  { href: "/bemanning-helse", label: "Healthcare" },
-  { href: "/welding-specialists", label: "Welding Specialists" },
-  { href: "/electricians-norway", label: "Electricians" },
-] as const;
-
-const LOCATIONS = [
-  { href: "/bemanningsbyrå-trondheim", label: "Trondheim" },
-  { href: "/bemanningsbyrå-bergen", label: "Bergen" },
-  { href: "/bemanningsbyrå-stavanger", label: "Stavanger" },
-  { href: "/bemanningsbyrå-kristiansand", label: "Kristiansand" },
-] as const;
-
-const RESOURCES_PARTNERS = [
-  { href: "/for-staffing-agencies", label: "Become a partner agency" },
-  { href: "/partners", label: "Our partner agencies" },
-  { href: "/recruiter-network", label: "Recruiter network" },
-  { href: "/outside-eu-eea", label: "Non-EU Workers" },
-  { href: "/contact", label: "Contact" },
-] as const;
 
 export default function Footer() {
   return (
@@ -69,42 +45,49 @@ export default function Footer() {
           <p className="mt-3 max-w-md text-sm leading-relaxed text-[rgba(255,255,255,0.5)]">Influence. Source. Earn.</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-x-8 md:gap-y-10 lg:grid-cols-6 lg:gap-x-12">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-x-8 md:gap-y-10 lg:grid-cols-5 lg:gap-x-8 lg:gap-y-12">
           <div>
             <FooterColumnTitle>For Employers</FooterColumnTitle>
             <FooterNavLink href="/request" label="Request Candidates" />
             <FooterNavLink href="/#how-it-works" label="How it works" />
+            <FooterNavLink href="/for-staffing-agencies" label="Become a partner agency" />
+            <FooterNavLink href="/contact" label="Contact" />
           </div>
 
           <div>
             <FooterColumnTitle>For Candidates</FooterColumnTitle>
             <FooterNavLink href="/for-candidates" label="For candidates" />
-            <FooterExternalLink href={JOBS_PORTAL_URL} label="Join talent network" />
-            <FooterExternalLink href={JOBS_PORTAL_URL} label="Apply" />
+            <FooterExternalLink href={JOBS_PORTAL_URL} label="Browse jobs and apply" />
+            <FooterNavLink href="/dsb-support" label="DSB Authorization Guide" />
+            <FooterNavLink href="/premium" label="Premium Guides" />
+            <FooterNavLink href="/outside-eu-eea" label="Non-EU Workers" />
+            <FooterNavLink href="/electricians-norway" label="Electricians in Norway" />
           </div>
 
           <div>
-            <FooterColumnTitle>Industries</FooterColumnTitle>
-            {INDUSTRIES.map((item) => (
-              <FooterNavLink key={item.href} href={item.href} label={item.label} />
-            ))}
-          </div>
-
-          <div>
-            <FooterColumnTitle>Locations</FooterColumnTitle>
-            {LOCATIONS.map((item) => (
-              <FooterNavLink key={item.href} href={item.href} label={item.label} />
-            ))}
+            <FooterColumnTitle>Industries & Locations</FooterColumnTitle>
+            <FooterNavLink href="/bemanning-bygg-anlegg" label="Construction" />
+            <FooterNavLink href="/bemanning-industri" label="Industry" />
+            <FooterNavLink href="/bemanning-logistikk" label="Logistics" />
+            <FooterNavLink href="/bemanning-renhold" label="Cleaning" />
+            <FooterNavLink href="/bemanning-horeca" label="Hospitality" />
+            <FooterNavLink href="/bemanning-helse" label="Healthcare" />
+            <FooterNavLink href="/welding-specialists" label="Welding Specialists" />
+            <FooterNavLink href="/bemanningsbyrå-trondheim" label="Trondheim" />
+            <FooterNavLink href="/bemanningsbyrå-bergen" label="Bergen" />
+            <FooterNavLink href="/bemanningsbyrå-stavanger" label="Stavanger" />
+            <FooterNavLink href="/bemanningsbyrå-kristiansand" label="Kristiansand" />
           </div>
 
           <div>
             <FooterColumnTitle>Resources & Partners</FooterColumnTitle>
-            {RESOURCES_PARTNERS.map((item) => (
-              <FooterNavLink key={item.href} href={item.href} label={item.label} />
-            ))}
+            <FooterNavLink href="/about" label="About" />
+            <FooterNavLink href="/blog" label="Blog" />
+            <FooterNavLink href="/recruiter-network" label="Recruiter Network" />
+            <FooterNavLink href="/partners" label="Our partner agencies" />
           </div>
 
-          <div className="md:col-span-2 lg:col-span-1">
+          <div>
             <FooterColumnTitle>Legal</FooterColumnTitle>
             <FooterNavLink href="/privacy" label="Privacy Policy" />
             <FooterNavLink href="/terms" label="Terms of Service" />
