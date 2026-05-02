@@ -179,18 +179,12 @@ export default function Navbar() {
         <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-4 px-6 md:h-16 md:min-h-[64px] md:px-12 lg:h-[72px] lg:min-h-[72px] lg:gap-10 lg:px-20">
           <Link
             href="/"
-            className="flex min-h-[44px] min-w-fit shrink-0 items-center gap-2 whitespace-nowrap text-[1.25rem] font-bold leading-[44px] text-[#C9A84C]"
+            className="flex min-h-[44px] min-w-fit shrink-0 items-center whitespace-nowrap text-[1.25rem] font-bold text-[#C9A84C]"
           >
-            <span>ArbeidMatch</span>
+            <span className="shrink-0 leading-none">ArbeidMatch</span>
             <span
-              className="inline-block align-middle text-[10px] font-semibold leading-none text-[#C9A84C]"
-              style={{
-                background: "rgba(201,168,76,0.15)",
-                border: "1px solid rgba(201,168,76,0.4)",
-                borderRadius: 4,
-                padding: "2px 6px",
-                verticalAlign: "middle",
-              }}
+              className="ml-2 inline-flex shrink-0 items-center justify-center rounded-[4px] bg-[#C9A84C] px-[6px] py-[2px] text-[10px] font-semibold uppercase leading-none tracking-[0.05em] text-[#0D1B2A]"
+              aria-hidden
             >
               BETA
             </span>
