@@ -5,16 +5,20 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Bolt,
+  Briefcase,
   Factory,
   HardHat,
   HeartPulse,
   LucideIcon,
+  Ship,
   Sparkles,
   Star,
   Truck,
+  Wrench,
   X,
 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+import { REQUEST_INDUSTRY_ROLE_GROUPS } from "@/lib/industry-roles";
 
 type TokenData = {
   company: string;
@@ -632,78 +636,25 @@ function wizardGroupShell(invalid: boolean, extraClass = "") {
   return ["rounded-[12px] border-2 border-[#ef4444] p-2", extraClass].filter(Boolean).join(" ");
 }
 
-const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: LucideIcon; roles: string[] }> = [
-  {
-    industry: "Construction & Civil",
-    icon: HardHat,
-    roles: [
-      "Site Manager",
-      "Carpenter",
-      "Bricklayer",
-      "Concrete Worker",
-      "Scaffolder",
-      "Painter",
-      "Roofer",
-      "Demolition Worker",
-      "Civil Engineer",
-      "Surveyor",
-    ],
-  },
-  {
-    industry: "Electrical & Technical",
-    icon: Bolt,
-    roles: [
-      "Electrician",
-      "DSB Authorized Electrician",
-      "Plumber",
-      "HVAC Technician",
-      "Automation Engineer",
-      "Instrumentation Tech",
-      "Cable Layer",
-      "Welder",
-      "Pipefitter",
-    ],
-  },
-  {
-    industry: "Logistics & Transport",
-    icon: Truck,
-    roles: [
-      "Truck Driver",
-      "Forklift Operator",
-      "Warehouse Worker",
-      "Logistics Coordinator",
-      "Bus Driver",
-      "Heavy Vehicle Driver",
-      "Crane Operator",
-      "Port Worker",
-    ],
-  },
-  {
-    industry: "Industry & Production",
-    icon: Factory,
-    roles: [
-      "Machine Operator",
-      "CNC Operator",
-      "Steel Worker",
-      "Insulation Worker",
-      "Quality Inspector",
-      "Maintenance Technician",
-      "Production Worker",
-      "Offshore Worker",
-      "Mechanic",
-    ],
-  },
-  {
-    industry: "Cleaning & Facility",
-    icon: Sparkles,
-    roles: ["Cleaner", "Facility Manager", "Window Cleaner", "Industrial Cleaner", "Waste Handler"],
-  },
-  {
-    industry: "Hospitality & Healthcare",
-    icon: HeartPulse,
-    roles: ["Kitchen Staff", "Chef", "Hotel Staff", "Healthcare Assistant", "Care Worker", "Cook"],
-  },
-];
+const INDUSTRY_ICONS: Record<string, LucideIcon> = {
+  "Construction & Civil": HardHat,
+  "Electrical & Technical": Bolt,
+  "Logistics & Transport": Truck,
+  "Industry & Production": Factory,
+  "Cleaning & Facility": Sparkles,
+  "Hospitality & Healthcare": HeartPulse,
+  "Automotive & Mechanics": Wrench,
+  "Offshore & Onshore": Ship,
+  "Other / General Labour": Briefcase,
+};
+
+const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: LucideIcon; roles: string[] }> = REQUEST_INDUSTRY_ROLE_GROUPS.map(
+  ({ industry, roles }) => ({
+    industry,
+    icon: INDUSTRY_ICONS[industry]!,
+    roles: [...roles],
+  }),
+);
 
 function OptionCard({
   label,

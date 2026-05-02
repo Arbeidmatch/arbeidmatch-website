@@ -3,55 +3,34 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, startTransition, useEffect, useMemo, useRef, useState } from "react";
-import { Anchor, ArrowLeft, Bolt, Car, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
+import { Anchor, ArrowLeft, Bolt, Briefcase, Car, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
+
+import { REQUEST_INDUSTRY_ROLE_GROUPS } from "@/lib/industry-roles";
 
 type VerifyPartnerResponse = {
   verified?: boolean;
   company_name?: string;
 };
 
-const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: typeof HardHat; roles: string[] }> = [
-  {
-    industry: "Construction & Civil",
-    icon: HardHat,
-    roles: ["Site Manager", "Carpenter", "Bricklayer", "Concrete Worker", "Scaffolder", "Painter", "Roofer", "Civil Engineer"],
-  },
-  {
-    industry: "Electrical & Technical",
-    icon: Bolt,
-    roles: ["Electrician", "DSB Authorized Electrician", "Plumber", "HVAC Technician", "Automation Engineer", "Welder", "Pipefitter"],
-  },
-  {
-    industry: "Logistics & Transport",
-    icon: Truck,
-    roles: ["Truck Driver", "Forklift Operator", "Warehouse Worker", "Logistics Coordinator", "Bus Driver", "Crane Operator"],
-  },
-  {
-    industry: "Industry & Production",
-    icon: Factory,
-    roles: ["Machine Operator", "CNC Operator", "Steel Worker", "Insulation Worker", "Quality Inspector", "Production Worker"],
-  },
-  {
-    industry: "Offshore & Onshore",
-    icon: Anchor,
-    roles: ["Deck Foreman", "Offshore Electrician", "Marine Engineer", "Crane Operator", "Rig Mechanic"],
-  },
-  {
-    industry: "Automotive & Mechanics",
-    icon: Car,
-    roles: ["Vehicle Mechanic", "Auto Technician", "Panel Beater", "Tire Technician", "Service Advisor"],
-  },
-  {
-    industry: "Cleaning & Facility",
-    icon: Sparkles,
-    roles: ["Cleaner", "Facility Manager", "Window Cleaner", "Industrial Cleaner", "Waste Handler"],
-  },
-  {
-    industry: "Hospitality & Healthcare",
-    icon: HeartPulse,
-    roles: ["Kitchen Staff", "Chef", "Hotel Staff", "Healthcare Assistant", "Care Worker", "Cook"],
-  },
-];
+const INDUSTRY_ICONS: Record<string, typeof HardHat> = {
+  "Construction & Civil": HardHat,
+  "Electrical & Technical": Bolt,
+  "Logistics & Transport": Truck,
+  "Industry & Production": Factory,
+  "Cleaning & Facility": Sparkles,
+  "Hospitality & Healthcare": HeartPulse,
+  "Automotive & Mechanics": Car,
+  "Offshore & Onshore": Anchor,
+  "Other / General Labour": Briefcase,
+};
+
+const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: typeof HardHat; roles: string[] }> = REQUEST_INDUSTRY_ROLE_GROUPS.map(
+  ({ industry, roles }) => ({
+    industry,
+    icon: INDUSTRY_ICONS[industry]!,
+    roles: [...roles],
+  }),
+);
 
 const SEARCH_MESSAGES = [
   "Connecting to candidate database...",

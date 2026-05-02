@@ -32,6 +32,7 @@ import {
   trackRequestStepComplete,
   trackRequestSubmit,
 } from "@/lib/analytics/requestEvents";
+import { REQUEST_INDUSTRY_ROLE_GROUPS } from "@/lib/industry-roles";
 import { clearPartnerRequestContext, writePartnerRequestContext } from "@/lib/partnerRequestContext";
 import { useToast } from "@/lib/toast-context";
 
@@ -41,68 +42,25 @@ type VerifyPartnerResponse = {
   reason?: string;
 };
 
-const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: LucideIcon; roles: string[] }> = [
-  {
-    industry: "Construction & Civil",
-    icon: HardHat,
-    roles: ["Site Manager", "Carpenter", "Bricklayer", "Concrete Worker", "Scaffolder", "Painter", "Roofer", "Civil Engineer"],
-  },
-  {
-    industry: "Electrical & Technical",
-    icon: Zap,
-    roles: ["Electrician", "DSB Authorized Electrician", "Plumber", "HVAC Technician", "Automation Engineer", "Welder", "Pipefitter"],
-  },
-  {
-    industry: "Logistics & Transport",
-    icon: Truck,
-    roles: ["Truck Driver", "Forklift Operator", "Warehouse Worker", "Logistics Coordinator", "Bus Driver", "Crane Operator"],
-  },
-  {
-    industry: "Industry & Production",
-    icon: Factory,
-    roles: ["Machine Operator", "CNC Operator", "Steel Worker", "Insulation Worker", "Quality Inspector", "Production Worker"],
-  },
-  {
-    industry: "Cleaning & Facility",
-    icon: Sparkles,
-    roles: ["Cleaner", "Facility Manager", "Window Cleaner", "Industrial Cleaner", "Waste Handler"],
-  },
-  {
-    industry: "Hospitality & Healthcare",
-    icon: HeartPulse,
-    roles: ["Kitchen Staff", "Chef", "Hotel Staff", "Healthcare Assistant", "Care Worker", "Cook"],
-  },
-  {
-    industry: "Automotive & Mechanics",
-    icon: Wrench,
-    roles: [
-      "Auto Mechanic",
-      "Body Repair Technician",
-      "Auto Electrician",
-      "Diagnostic Technician",
-      "Tire Specialist",
-      "Heavy Equipment Mechanic",
-    ],
-  },
-  {
-    industry: "Offshore & Onshore",
-    icon: Ship,
-    roles: [
-      "Offshore Worker",
-      "Rigger",
-      "Driller",
-      "Roustabout",
-      "Onshore Operator",
-      "Pipeline Technician",
-      "BOSIET Certified Worker",
-    ],
-  },
-  {
-    industry: "Other / General Labour",
-    icon: Briefcase,
-    roles: ["General Labourer", "Construction Helper", "Warehouse Helper", "Production Assistant", "Other (specify)"],
-  },
-];
+const INDUSTRY_ICONS: Record<string, LucideIcon> = {
+  "Construction & Civil": HardHat,
+  "Electrical & Technical": Zap,
+  "Logistics & Transport": Truck,
+  "Industry & Production": Factory,
+  "Cleaning & Facility": Sparkles,
+  "Hospitality & Healthcare": HeartPulse,
+  "Automotive & Mechanics": Wrench,
+  "Offshore & Onshore": Ship,
+  "Other / General Labour": Briefcase,
+};
+
+const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: LucideIcon; roles: string[] }> = REQUEST_INDUSTRY_ROLE_GROUPS.map(
+  ({ industry, roles }) => ({
+    industry,
+    icon: INDUSTRY_ICONS[industry]!,
+    roles: [...roles],
+  }),
+);
 
 const REQUEST_PARTNER_VERIFIED_KEY = "am_request_partner_verified";
 const REQUEST_PARTNER_COMPANY_KEY = "am_request_partner_company";

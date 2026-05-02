@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { REQUEST_INDUSTRY_ROLE_GROUPS, roleSearchKeywords } from "@/lib/industry-roles";
+
 export const dynamic = "force-dynamic";
 
 let cachedAtsClient: SupabaseClient | null = null;
@@ -17,67 +19,10 @@ function getAtsSupabaseClient(): SupabaseClient | null {
   return cachedAtsClient;
 }
 
-/**
- * Industry → role labels (aligned with CHECK_ROLE_GROUPS on /request).
- * "Other / General Labour" uses the four roles below only (no "Other (specify)" for counting).
- */
-const ROLE_GROUPS: Record<string, string[]> = {
-  "Construction & Civil": [
-    "Site Manager",
-    "Carpenter",
-    "Bricklayer",
-    "Concrete Worker",
-    "Scaffolder",
-    "Painter",
-    "Roofer",
-    "Civil Engineer",
-  ],
-  "Electrical & Technical": [
-    "Electrician",
-    "DSB Authorized Electrician",
-    "Plumber",
-    "HVAC Technician",
-    "Automation Engineer",
-    "Welder",
-    "Pipefitter",
-  ],
-  "Logistics & Transport": [
-    "Truck Driver",
-    "Forklift Operator",
-    "Warehouse Worker",
-    "Logistics Coordinator",
-    "Bus Driver",
-    "Crane Operator",
-  ],
-  "Industry & Production": [
-    "Machine Operator",
-    "CNC Operator",
-    "Steel Worker",
-    "Insulation Worker",
-    "Quality Inspector",
-    "Production Worker",
-  ],
-  "Cleaning & Facility": ["Cleaner", "Facility Manager", "Window Cleaner", "Industrial Cleaner", "Waste Handler"],
-  "Hospitality & Healthcare": ["Kitchen Staff", "Chef", "Hotel Staff", "Healthcare Assistant", "Care Worker", "Cook"],
-  "Automotive & Mechanics": [
-    "Auto Mechanic",
-    "Body Repair Technician",
-    "Auto Electrician",
-    "Diagnostic Technician",
-    "Tire Specialist",
-    "Heavy Equipment Mechanic",
-  ],
-  "Offshore & Onshore": [
-    "Offshore Worker",
-    "Rigger",
-    "Driller",
-    "Roustabout",
-    "Onshore Operator",
-    "Pipeline Technician",
-    "BOSIET Certified Worker",
-  ],
-  "Other / General Labour": ["General Labourer", "Construction Helper", "Warehouse Helper", "Production Assistant"],
-};
+/** Industry → role labels (aligned with REQUEST_INDUSTRY_ROLE_GROUPS on /request). */
+const ROLE_GROUPS: Record<string, string[]> = Object.fromEntries(
+  REQUEST_INDUSTRY_ROLE_GROUPS.map(({ industry, roles }) => [industry, [...roles]]),
+);
 
 function buildOrFilter(keywords: string[]): string {
   const parts: string[] = [];
@@ -108,7 +53,7 @@ export async function GET(request: NextRequest) {
 
   try {
     if (roleParam.length >= 2) {
-      const orFilter = buildOrFilter([roleParam]);
+      const orFilter = buildOrFilter(roleSearchKeywords(roleParam));
       if (!orFilter) {
         return NextResponse.json({ count: 0, industry: industry || null });
       }
@@ -123,7 +68,7 @@ export async function GET(request: NextRequest) {
 
     const counts = await Promise.all(
       roles.map(async (role) => {
-        const orFilter = buildOrFilter([role]);
+        const orFilter = buildOrFilter(roleSearchKeywords(role));
         return countWithOrFilter(supabase, orFilter);
       }),
     );
