@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * Live homepage stats (Network growing, etc.). Not mounted on `/` as of AM-WEB-083; kept in repo
+ * for easy reactivation when validated candidate counts support the UI again.
+ */
+
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 

@@ -10,37 +10,28 @@ import { motion, useReducedMotion } from "framer-motion";
 import { EASE_PREMIUM } from "@/lib/animationConstants";
 import { trackEvent } from "@/lib/analytics";
 import { writeHomeUserType } from "@/lib/homeUserType";
-import {
-  BadgeCheck,
-  Building2,
-  MessageSquare,
-  Search,
-  Users,
-  Zap,
-  User,
-} from "lucide-react";
+import { BadgeCheck, Building2, MessageSquare, Search, Users, Zap, User } from "lucide-react";
 
 import BemanningCard from "@/components/home/BemanningCard";
 import HomeIndustriesSection from "@/components/home/HomeIndustriesSection";
 import HomeWhyArbeidMatchSection from "@/components/home/HomeWhyArbeidMatchSection";
 import HomeWelcomeUserTypeSlideup from "@/components/home/HomeWelcomeUserTypeSlideup";
-import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 import ScrollReveal from "@/components/ScrollReveal";
+
 const HERO_DURATION = 0.72;
 
 const HERO_IMAGE_BLUR_DATA_URL =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwABmQAAAAAAAAAAAAAAAP/Z";
 
-const HERO_H1_TEXT = `Qualified workers,
-delivered to your
-Norwegian business.`;
+const HERO_H1 = "EU/EEA workers, screened in Europe, ready for Norway.";
+const HERO_SUB =
+  "Verified skills, valid documentation, dignified process. We source pre-qualified candidates from across the EU and EEA for Norwegian businesses in construction, industry, and skilled trades.";
 
 const homeCtaPrimaryLg =
   "btn-gold-premium relative mx-auto inline-flex min-h-[54px] w-full max-w-md items-center justify-center rounded-xl bg-gold px-10 py-4 text-[16px] font-semibold tracking-tight text-[#0D1B2A] transition-colors hover:bg-gold-hover sm:inline-block sm:w-auto sm:max-w-none";
 
 type Props = {
   testimonialsSlot: ReactNode;
-  liveStatsSlot?: ReactNode;
 };
 
 const HOW_IT_WORKS_STEPS: { title: string; text: string; Icon: typeof MessageSquare }[] = [
@@ -66,7 +57,7 @@ const HOW_IT_WORKS_STEPS: { title: string; text: string; Icon: typeof MessageSqu
   },
 ];
 
-export default function HomePageClient({ testimonialsSlot, liveStatsSlot }: Props) {
+export default function HomePageClient({ testimonialsSlot }: Props) {
   const reduce = useReducedMotion();
   const router = useRouter();
   const [sessionRoleBanner, setSessionRoleBanner] = useState<null | "employer" | "candidate">(null);
@@ -103,63 +94,57 @@ export default function HomePageClient({ testimonialsSlot, liveStatsSlot }: Prop
         };
 
   const heroPrimaryCtaClass =
-    "inline-flex min-h-[48px] min-w-[44px] flex-1 items-center justify-center rounded-md bg-[#C9A84C] px-[28px] py-[14px] text-center text-[15px] font-bold tracking-tight text-[#0D1B2A] transition-colors duration-300 hover:bg-[#b8953f] sm:flex-none";
+    "inline-flex min-h-[48px] min-w-[44px] w-full items-center justify-center rounded-md bg-[#C9A84C] px-6 py-[14px] text-center text-[15px] font-bold tracking-tight text-[#0D1B2A] transition-colors duration-300 hover:bg-[#b8953f] md:w-auto md:min-w-[200px]";
 
-  const heroSecondaryCtaClass =
-    "inline-flex min-h-[48px] min-w-[44px] flex-1 items-center justify-center rounded-md border border-solid border-[rgba(255,255,255,0.2)] px-[28px] py-[14px] text-center text-[15px] font-medium tracking-tight text-white transition-colors duration-300 hover:border-[#C9A84C] sm:flex-none";
+  const heroSecondaryLinkClass =
+    "inline-flex min-h-[44px] w-full items-center justify-center text-center text-[15px] font-medium text-[#C9A84C] underline decoration-[#C9A84C]/50 decoration-2 underline-offset-[6px] transition-colors hover:decoration-[#C9A84C] md:inline-flex md:w-auto md:justify-start";
 
   const hero = !reduce ? (
     <div className="min-w-0 max-w-full lg:max-w-none">
       <motion.span
-        className="inline-block rounded-[20px] border border-solid border-[rgba(201,168,76,0.4)] bg-[rgba(201,168,76,0.08)] px-3 py-1 text-[12px] font-medium leading-tight text-[#C9A84C]"
+        className="inline-block text-[12px] font-semibold uppercase leading-tight tracking-[0.14em] text-[#C9A84C]"
         {...fade(0)}
       >
         EU/EEA Recruitment for Norway
       </motion.span>
       <motion.h1
-        className="mt-5 min-w-0 max-w-full whitespace-pre-line break-words font-sans font-extrabold tracking-[-0.03em] text-white"
-        style={{ fontSize: "clamp(40px,5vw,72px)", fontWeight: 800, lineHeight: 1.1 }}
+        className="mt-4 min-w-0 max-w-full break-words font-sans text-[32px] font-bold leading-[1.15] tracking-[-0.03em] text-white sm:mt-5 md:text-[44px] lg:mt-6 lg:text-[56px] xl:text-[64px]"
         {...fade(0.08)}
       >
-        {HERO_H1_TEXT}
+        {HERO_H1}
       </motion.h1>
       <motion.p
-        className="mt-5 max-w-[480px] text-[18px] leading-snug text-[rgba(255,255,255,0.65)]"
+        className="mt-4 max-w-[600px] text-base leading-normal text-white/80 sm:mt-5 md:text-lg lg:text-xl"
         {...fade(0.22)}
       >
-        We source and screen pre-qualified EU/EEA workers for Norwegian businesses in construction, logistics, and industry.
+        {HERO_SUB}
       </motion.p>
       <motion.div
-        className="mt-8 flex min-w-0 flex-col flex-wrap gap-3 sm:mt-8 sm:flex-row sm:items-stretch sm:gap-4"
+        className="mt-8 flex min-w-0 flex-col items-stretch gap-4 md:mt-10 md:flex-row md:flex-wrap md:items-center md:gap-6"
         {...fade(0.36)}
       >
         <Link href="/request" className={heroPrimaryCtaClass}>
           Request candidates →
         </Link>
-        <Link href="/#how-it-works" className={heroSecondaryCtaClass}>
+        <Link href="/#how-it-works" className={heroSecondaryLinkClass}>
           Learn how it works
         </Link>
       </motion.div>
     </div>
   ) : (
     <div className="min-w-0 max-w-full lg:max-w-none">
-      <span className="inline-block rounded-[20px] border border-solid border-[rgba(201,168,76,0.4)] bg-[rgba(201,168,76,0.08)] px-3 py-1 text-[12px] font-medium leading-tight text-[#C9A84C]">
+      <span className="inline-block text-[12px] font-semibold uppercase leading-tight tracking-[0.14em] text-[#C9A84C]">
         EU/EEA Recruitment for Norway
       </span>
-      <h1
-        className="mt-5 min-w-0 max-w-full whitespace-pre-line break-words font-sans font-extrabold tracking-[-0.03em] text-white"
-        style={{ fontSize: "clamp(40px,5vw,72px)", fontWeight: 800, lineHeight: 1.1 }}
-      >
-        {HERO_H1_TEXT}
+      <h1 className="mt-4 min-w-0 max-w-full break-words font-sans text-[32px] font-bold leading-[1.15] tracking-[-0.03em] text-white sm:mt-5 md:text-[44px] lg:mt-6 lg:text-[56px] xl:text-[64px]">
+        {HERO_H1}
       </h1>
-      <p className="mt-5 max-w-[480px] text-[18px] leading-snug text-[rgba(255,255,255,0.65)]">
-        We source and screen pre-qualified EU/EEA workers for Norwegian businesses in construction, logistics, and industry.
-      </p>
-      <div className="mt-8 flex min-w-0 flex-col flex-wrap gap-3 sm:flex-row sm:items-stretch sm:gap-4">
+      <p className="mt-4 max-w-[600px] text-base leading-normal text-white/80 sm:mt-5 md:text-lg lg:text-xl">{HERO_SUB}</p>
+      <div className="mt-8 flex min-w-0 flex-col items-stretch gap-4 md:mt-10 md:flex-row md:flex-wrap md:items-center md:gap-6">
         <Link href="/request" className={heroPrimaryCtaClass}>
           Request candidates →
         </Link>
-        <Link href="/#how-it-works" className={heroSecondaryCtaClass}>
+        <Link href="/#how-it-works" className={heroSecondaryLinkClass}>
           Learn how it works
         </Link>
       </div>
@@ -186,14 +171,14 @@ export default function HomePageClient({ testimonialsSlot, liveStatsSlot }: Prop
   } as const;
 
   return (
-    <div className="min-h-screen bg-[#0D1B2A]">
+    <div className="min-h-screen overflow-x-clip bg-[#0D1B2A]">
       <HomeWelcomeUserTypeSlideup />
-      <section className="relative flex min-h-[100dvh] flex-col justify-center overflow-hidden bg-[#0D1B2A] py-16 md:py-20 lg:py-24">
+      <section className="relative flex min-h-[100dvh] flex-col justify-center overflow-x-clip bg-[#0D1B2A] py-12 md:min-h-0 md:py-16 lg:py-24">
         <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
           <div className="absolute inset-0 bg-[#0D1B2A]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_42%,rgba(201,168,76,0.06),transparent_55%)]" />
         </div>
-        <div className="relative z-10 mx-auto grid w-full max-w-content grid-cols-1 items-center gap-10 px-4 md:px-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-12 lg:px-20">
+        <div className="relative z-10 mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-10 px-6 md:px-12 lg:grid-cols-2 lg:gap-16 lg:px-20">
           <div className="min-w-0">{hero}</div>
           <div className="relative w-full max-lg:mx-auto max-lg:max-w-xl lg:max-w-none lg:justify-self-end">
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border border-solid border-[rgba(201,168,76,0.15)] lg:rounded-xl">
@@ -204,7 +189,7 @@ export default function HomePageClient({ testimonialsSlot, liveStatsSlot }: Prop
                 loading="lazy"
                 placeholder="blur"
                 blurDataURL={HERO_IMAGE_BLUR_DATA_URL}
-                sizes="(max-width: 1024px) 100vw, 40vw"
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
                 quality={85}
                 decoding="async"
@@ -218,11 +203,9 @@ export default function HomePageClient({ testimonialsSlot, liveStatsSlot }: Prop
         </div>
       </section>
 
-      {liveStatsSlot}
-
       <section
         id="how-it-works"
-        className="scroll-mt-[100px] border-b border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.03)_0%,rgba(13,27,42,0.96)_45%,#0D1B2A_100%)] py-16 md:py-20 lg:py-24"
+        className="scroll-mt-[100px] overflow-x-clip border-b border-[rgba(255,255,255,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.03)_0%,rgba(13,27,42,0.96)_45%,#0D1B2A_100%)] py-16 md:py-20 lg:py-24"
       >
         <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
@@ -267,7 +250,7 @@ export default function HomePageClient({ testimonialsSlot, liveStatsSlot }: Prop
 
       <HomeWhyArbeidMatchSection />
 
-      <section className="border-b border-white/[0.06] bg-[#0D1B2A] px-4 py-16 md:px-12 md:py-24 lg:px-20 lg:py-28">
+      <section className="overflow-x-clip border-b border-white/[0.06] bg-[#0D1B2A] px-4 py-16 md:px-12 md:py-24 lg:px-20 lg:py-28">
         {!reduce ? (
           <motion.div
             className="mx-auto grid max-w-content grid-cols-1 gap-8 md:grid-cols-2 md:gap-10"
@@ -366,7 +349,7 @@ export default function HomePageClient({ testimonialsSlot, liveStatsSlot }: Prop
         </motion.div>
       ) : null}
 
-      <section className="bg-[#0D1B2A] py-10 md:py-12">
+      <section className="overflow-x-clip bg-[#0D1B2A] py-10 md:py-12">
         <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
             <div className="mx-auto flex w-[90%] max-w-2xl items-center justify-between gap-6 rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 shadow-none backdrop-blur-md md:gap-8 md:p-8">
@@ -376,9 +359,7 @@ export default function HomePageClient({ testimonialsSlot, liveStatsSlot }: Prop
                 </span>
                 <div className="min-w-0">
                   <p className="text-lg font-semibold tracking-tight text-white">Electricians in Norway</p>
-                  <p className="mt-1 text-sm text-white/60">
-                    Authorization guide, DSB requirements and official resources.
-                  </p>
+                  <p className="mt-1 text-sm text-white/60">Authorization guide, DSB requirements and official resources.</p>
                 </div>
               </div>
               <Link
@@ -392,12 +373,12 @@ export default function HomePageClient({ testimonialsSlot, liveStatsSlot }: Prop
         </div>
       </section>
 
-      <section className="bg-[#0D1B2A] py-20 md:py-28 lg:py-36">
+      <section className="overflow-x-clip bg-[#0D1B2A] py-20 md:py-28 lg:py-36">
         <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
             <div className="mx-auto max-w-4xl rounded-2xl border border-white/[0.08] bg-white/[0.04] p-10 shadow-none backdrop-blur-md md:p-14 lg:p-[4.5rem]">
               <h2 className="am-h2 heading-premium-xl mb-10 text-balance break-words font-extrabold tracking-[-0.03em] text-white">
-                Recruitment that works. For everyone.
+                Recruitment that works for everyone.
               </h2>
               <p className="text-home-lead max-w-none">
                 We have not invented anything new. But we organize the process as well as we can, so that candidates from
@@ -435,11 +416,7 @@ export default function HomePageClient({ testimonialsSlot, liveStatsSlot }: Prop
 
       {testimonialsSlot}
 
-      <section className="bg-[#0D1B2A] py-20 md:py-28 lg:py-36">
-        <WeldingSpecialistsCard />
-      </section>
-
-      <section className="mesh-cta-wrap bg-[#0D1B2A] py-20 text-center md:py-28 lg:py-36">
+      <section className="mesh-cta-wrap overflow-x-clip bg-[#0D1B2A] py-20 text-center md:py-28 lg:py-36">
         <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
             <h2 className="am-h2 heading-premium-xl mb-8 text-balance break-words font-extrabold tracking-[-0.03em] text-white">

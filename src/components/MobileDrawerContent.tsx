@@ -5,7 +5,7 @@ import Link from "next/link";
 import { X } from "lucide-react";
 
 import type { AmAudience } from "@/lib/navMoreMenu";
-import { MORE_LOCATIONS, MORE_SERVICES, resourcesForAudience, tradesForAudience } from "@/lib/navMoreMenu";
+import { moreMenuLinksForAudience } from "@/lib/navMoreMenu";
 
 const GOLD = "#C9A84C";
 
@@ -69,8 +69,7 @@ export default function MobileDrawerContent({
   onClose: () => void;
   audience: AmAudience | null;
 }) {
-  const tradeLinks = tradesForAudience(audience);
-  const resourceLinks = resourcesForAudience(audience);
+  const moreLinks = moreMenuLinksForAudience(audience);
 
   return (
     <>
@@ -103,29 +102,8 @@ export default function MobileDrawerContent({
           </DrawerRowLink>
         ))}
 
-        <SectionLabel>Services</SectionLabel>
-        {MORE_SERVICES.map((item) => (
-          <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
-            {item.label}
-          </DrawerRowLink>
-        ))}
-
-        <SectionLabel>Locations</SectionLabel>
-        {MORE_LOCATIONS.map((item) => (
-          <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
-            {item.label}
-          </DrawerRowLink>
-        ))}
-
-        <SectionLabel>Resources</SectionLabel>
-        {resourceLinks.map((item) => (
-          <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
-            {item.label}
-          </DrawerRowLink>
-        ))}
-
-        <SectionLabel>Industry pages</SectionLabel>
-        {tradeLinks.map((item) => (
+        <SectionLabel>More</SectionLabel>
+        {moreLinks.map((item) => (
           <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
             {item.label}
           </DrawerRowLink>
