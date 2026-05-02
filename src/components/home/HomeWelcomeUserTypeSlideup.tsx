@@ -13,6 +13,7 @@ const TRANSITION = { duration: 0.3, ease: "easeOut" as const };
 
 const WELCOME_DELAY_MS = 600;
 const WELCOME_SHOWN_KEY = "welcome_shown";
+const AUDIENCE_KEY = "am_audience";
 
 export default function HomeWelcomeUserTypeSlideup() {
   const router = useRouter();
@@ -50,6 +51,11 @@ export default function HomeWelcomeUserTypeSlideup() {
 
   const pick = useCallback(
     (role: "employer" | "candidate") => {
+      try {
+        window.localStorage.setItem(AUDIENCE_KEY, role);
+      } catch {
+        /* ignore */
+      }
       markWelcomeShown();
       trackEvent("home_user_type", { userType: role, source: "welcome_slideup" });
       writeHomeUserType(role);
@@ -61,6 +67,11 @@ export default function HomeWelcomeUserTypeSlideup() {
   );
 
   const dismissBrowse = useCallback(() => {
+    try {
+      window.localStorage.setItem(AUDIENCE_KEY, "browsing");
+    } catch {
+      /* ignore */
+    }
     markWelcomeShown();
     trackEvent("home_user_type", { source: "welcome_slideup_browse", choice: "none" });
     try {

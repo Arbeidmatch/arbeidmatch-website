@@ -1,32 +1,30 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import BlogComingSoonCapture from "@/components/blog/BlogComingSoonCapture";
 
 export const metadata: Metadata = {
-  title: "Blog - Employer and Worker Guides | ArbeidMatch",
+  title: "Blog | ArbeidMatch",
   description:
-    "Practical articles for Norwegian employers and EU/EEA workers on recruitment, compliance, and labor law in Norway.",
+    "ArbeidMatch blog: articles about EU/EEA recruitment, Norwegian workforce, and industry insights. Coming soon.",
+  robots: { index: true, follow: true },
 };
 
-export default function BlogIndexPage() {
+export default function BlogPage() {
   return (
-    <div className="bg-white">
-      <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
-        <h1 className="text-3xl font-extrabold text-navy md:text-4xl">Blog</h1>
-        <p className="mt-4 max-w-2xl text-text-secondary">
-          Practical articles for Norwegian employers and EU/EEA workers on recruitment, compliance, and Norwegian labor law.
+    <div className="min-h-[60vh] bg-white text-navy">
+      <div className="mx-auto max-w-[720px] px-6 py-12 md:px-8 md:py-[48px]">
+        <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Blog</h1>
+        <p className="mt-2 text-xl font-semibold text-[#C9A84C]">Coming soon</p>
+        <p className="mt-6 text-base leading-relaxed text-text-secondary">
+          We are preparing in-depth articles about EU/EEA recruitment to Norway, blue-collar workforce trends, and
+          practical guides for employers and candidates. Check back soon.
         </p>
-        <BlogComingSoonCapture />
-        <ul className="mt-10 space-y-4">
-          <li className="rounded-xl border border-border bg-surface p-5">
-            <Link href="/blog/ansette-utenlandske-arbeidere-lovlig" className="text-lg font-semibold text-navy hover:text-gold">
-              How to legally hire foreign workers in Norway in 2025
-            </Link>
-            <p className="mt-2 text-sm text-text-secondary">
-              Employer checklist: EU/EEA vs non-EU, contract basics, wage regulations, and HSE essentials.
-            </p>
-          </li>
-        </ul>
+        <p className="mt-8 text-base leading-relaxed text-text-secondary">
+          In the meantime,{" "}
+          <Link href="/contact" className="font-medium text-[#C9A84C] underline underline-offset-2 hover:opacity-90">
+            contact us if you have questions
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );

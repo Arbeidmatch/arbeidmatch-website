@@ -8,6 +8,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
+import { MORE_LOCATIONS, MORE_RESOURCES, MORE_SERVICES, MORE_ALL_HREFS, tradesForAudience } from "@/lib/navMoreMenu";
+import { useAudience } from "@/lib/useAudience";
 
 const employersSubLinks = [
   { href: "/request", label: "Request candidates" },
@@ -29,12 +31,18 @@ function employersNavActive(pathname: string): boolean {
   return employersSubLinks.some((i) => linkActive(pathname, i.href));
 }
 
+function moreNavActive(pathname: string): boolean {
+  return MORE_ALL_HREFS.some((href) => linkActive(pathname, href));
+}
+
 const DRAWER_EASE = [0.32, 0.72, 0, 1] as const;
 
 export default function Navbar() {
   const pathname = usePathname();
+  const audience = useAudience();
   const [isOpen, setIsOpen] = useState(false);
   const [isEmployersOpen, setIsEmployersOpen] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -52,6 +60,7 @@ export default function Navbar() {
   useEffect(() => {
     startTransition(() => setIsOpen(false));
     startTransition(() => setIsEmployersOpen(false));
+    startTransition(() => setIsMoreOpen(false));
   }, [pathname]);
 
   useEffect(() => {
@@ -89,6 +98,9 @@ export default function Navbar() {
 
   const closeMenu = () => setIsOpen(false);
   const closeEmployersMenu = () => setIsEmployersOpen(false);
+  const closeMoreMenu = () => setIsMoreOpen(false);
+
+  const tradeLinks = tradesForAudience(audience);
 
   const dropdownLinkClass =
     "flex min-h-[44px] min-w-[44px] items-center rounded-md px-4 py-3 text-[14px] text-[rgba(255,255,255,0.85)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.06)] hover:text-white lg:min-h-0 lg:min-w-0 lg:px-3 lg:py-2";
@@ -123,7 +135,7 @@ export default function Navbar() {
               className="fixed bottom-0 right-0 top-0 flex w-[min(100vw,320px)] flex-col overflow-y-auto bg-[#0a0f19] lg:hidden"
               style={{ zIndex: 50 }}
             >
-              <MobileDrawerContent pathname={pathname} onClose={closeMenu} />
+              <MobileDrawerContent pathname={pathname} onClose={closeMenu} audience={audience} />
             </motion.aside>
           </>
         ) : null}
@@ -178,6 +190,95 @@ export default function Navbar() {
                       {item.label}
                     </Link>
                   ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="relative" onMouseEnter={() => setIsMoreOpen(true)} onMouseLeave={closeMoreMenu}>
+              <span
+                className={`inline-flex min-h-[44px] cursor-default items-center gap-1 ${navItemClass} ${
+                  moreNavActive(pathname) ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""
+                }`}
+              >
+                More
+                <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-50" aria-hidden />
+              </span>
+              <div
+                className={`absolute left-1/2 top-full z-[130] min-w-[min(92vw,720px)] -translate-x-1/2 pt-3 transition-[opacity,transform,visibility] duration-[180ms] ease-out ${
+                  isMoreOpen
+                    ? "pointer-events-auto visible translate-y-0 opacity-100"
+                    : "pointer-events-none invisible -translate-y-[6px] opacity-0"
+                }`}
+              >
+                <div className="rounded-xl border border-[rgba(201,168,76,0.12)] bg-[#0D1B2A] p-4 shadow-lg lg:p-5">
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div>
+                      <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#C9A84C]">
+                        Services
+                      </p>
+                      <div className="flex flex-col">
+                        {MORE_SERVICES.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={closeMoreMenu}
+                            className={`${dropdownLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-[#C9A84C]" : ""}`}
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#C9A84C]">
+                        Locations
+                      </p>
+                      <div className="flex flex-col">
+                        {MORE_LOCATIONS.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={closeMoreMenu}
+                            className={`${dropdownLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-[#C9A84C]" : ""}`}
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="sm:col-span-2 lg:col-span-2">
+                      <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#C9A84C]">
+                        Resources
+                      </p>
+                      <div className="grid gap-0 sm:grid-cols-2">
+                        {MORE_RESOURCES.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={closeMoreMenu}
+                            className={`${dropdownLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-[#C9A84C]" : ""}`}
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                      <p className="mb-2 mt-4 px-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#C9A84C]">
+                        Industry pages
+                      </p>
+                      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:gap-x-2">
+                        {tradeLinks.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={closeMoreMenu}
+                            className={`${dropdownLinkClass} ${linkActive(pathname, item.href) ? "font-medium text-[#C9A84C]" : ""}`}
+                          >
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

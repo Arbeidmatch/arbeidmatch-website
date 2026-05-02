@@ -4,6 +4,9 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
 
+import type { AmAudience } from "@/lib/navMoreMenu";
+import { MORE_LOCATIONS, MORE_RESOURCES, MORE_SERVICES, tradesForAudience } from "@/lib/navMoreMenu";
+
 const GOLD = "#C9A84C";
 
 const employerLinks: { href: string; label: string }[] = [
@@ -57,7 +60,17 @@ function SectionLabel({ children }: { children: ReactNode }) {
   );
 }
 
-export default function MobileDrawerContent({ pathname, onClose }: { pathname: string; onClose: () => void }) {
+export default function MobileDrawerContent({
+  pathname,
+  onClose,
+  audience,
+}: {
+  pathname: string;
+  onClose: () => void;
+  audience: AmAudience | null;
+}) {
+  const tradeLinks = tradesForAudience(audience);
+
   return (
     <>
       <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-6 py-5">
@@ -84,6 +97,34 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
 
         <SectionLabel>Menu</SectionLabel>
         {mainLinks.map((item) => (
+          <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
+            {item.label}
+          </DrawerRowLink>
+        ))}
+
+        <SectionLabel>Services</SectionLabel>
+        {MORE_SERVICES.map((item) => (
+          <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
+            {item.label}
+          </DrawerRowLink>
+        ))}
+
+        <SectionLabel>Locations</SectionLabel>
+        {MORE_LOCATIONS.map((item) => (
+          <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
+            {item.label}
+          </DrawerRowLink>
+        ))}
+
+        <SectionLabel>Resources</SectionLabel>
+        {MORE_RESOURCES.map((item) => (
+          <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
+            {item.label}
+          </DrawerRowLink>
+        ))}
+
+        <SectionLabel>Industry pages</SectionLabel>
+        {tradeLinks.map((item) => (
           <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
             {item.label}
           </DrawerRowLink>
