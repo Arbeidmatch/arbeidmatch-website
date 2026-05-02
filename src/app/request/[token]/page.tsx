@@ -33,6 +33,9 @@ type RequestForm = {
   contactLastName: string;
   roleInCompany: string;
   contactEmail: string;
+  /** E.164 country prefix, without local digits */
+  contactPhonePrefix: string;
+  /** Local number, digits only, max 15 */
   contactPhone: string;
   industry: string;
   workerType: string;
@@ -73,6 +76,36 @@ type RequestForm = {
   subscribeUpdates: boolean;
 };
 
+const PHONE_PREFIX_OPTIONS = [
+  { value: "+47", label: "+47 (NO)" },
+  { value: "+46", label: "+46 (SE)" },
+  { value: "+45", label: "+45 (DK)" },
+] as const;
+
+function splitInternationalPhone(raw: string): { prefix: string; digits: string } {
+  const noSpace = raw.trim().replace(/\s/g, "");
+  if (noSpace.startsWith("+47")) {
+    return { prefix: "+47", digits: noSpace.slice(3).replace(/\D/g, "").slice(0, 15) };
+  }
+  if (noSpace.startsWith("+46")) {
+    return { prefix: "+46", digits: noSpace.slice(3).replace(/\D/g, "").slice(0, 15) };
+  }
+  if (noSpace.startsWith("+45")) {
+    return { prefix: "+45", digits: noSpace.slice(3).replace(/\D/g, "").slice(0, 15) };
+  }
+  const digits = noSpace.replace(/\D/g, "");
+  if (digits.startsWith("47") && digits.length >= 8) {
+    return { prefix: "+47", digits: digits.slice(2).slice(0, 15) };
+  }
+  if (digits.startsWith("46") && digits.length >= 8) {
+    return { prefix: "+46", digits: digits.slice(2).slice(0, 15) };
+  }
+  if (digits.startsWith("45") && digits.length >= 8) {
+    return { prefix: "+45", digits: digits.slice(2).slice(0, 15) };
+  }
+  return { prefix: "+47", digits: digits.slice(0, 15) };
+}
+
 const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
   0: ["companyName", "orgNumber", "contactFirstName", "contactLastName", "contactEmail", "contactPhone"],
   1: ["industry", "workerType", "contractType", "locations", "startDate", "candidates"],
@@ -92,7 +125,7 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     if (f.contactFirstName.trim().length < 1) invalid.add("contactFirstName");
     if (f.contactLastName.trim().length < 1) invalid.add("contactLastName");
     if (!f.contactEmail.includes("@")) invalid.add("contactEmail");
-    if (f.contactPhone.trim().length < 6) invalid.add("contactPhone");
+    if (f.contactPhone.replace(/\D/g, "").length < 6) invalid.add("contactPhone");
   } else if (s === 1) {
     if (!f.industry) invalid.add("industry");
     if (!f.workerType.trim()) invalid.add("workerType");
@@ -396,7 +429,8 @@ const initialForm: RequestForm = {
   contactLastName: "Salomon",
   roleInCompany: "Contact person",
   contactEmail: "as@people.no",
-  contactPhone: "+4793007732",
+  contactPhonePrefix: "+47",
+  contactPhone: "93007732",
   industry: "Industry and Production",
   workerType: "mechanics for auto industry",
   trade: "",
@@ -717,13 +751,20 @@ export default function RequestTokenPage() {
 
   useEffect(() => {
     if (!tokenData) return;
-    setForm((prev) => ({
-      ...prev,
-      companyName: tokenData.company?.trim() || prev.companyName,
-      orgNumber: tokenData.org_number?.trim() || prev.orgNumber,
-      contactEmail: tokenData.email?.trim().toLowerCase() || prev.contactEmail,
-      contactPhone: tokenData.phone?.trim() || prev.contactPhone,
-    }));
+    setForm((prev) => {
+      const phoneRaw = tokenData.phone?.trim();
+      const { prefix, digits } = phoneRaw
+        ? splitInternationalPhone(phoneRaw)
+        : { prefix: prev.contactPhonePrefix, digits: prev.contactPhone };
+      return {
+        ...prev,
+        companyName: tokenData.company?.trim() || prev.companyName,
+        orgNumber: tokenData.org_number?.trim() || prev.orgNumber,
+        contactEmail: tokenData.email?.trim().toLowerCase() || prev.contactEmail,
+        contactPhonePrefix: prefix,
+        contactPhone: digits,
+      };
+    });
   }, [tokenData]);
 
   useEffect(() => {
@@ -912,9 +953,12 @@ export default function RequestTokenPage() {
       orgNumber: form.orgNumber.trim(),
       email: form.contactEmail.trim().toLowerCase(),
       full_name: `${form.contactFirstName.trim()} ${form.contactLastName.trim()}`.trim(),
-      phonePrefix: "",
-      phoneNumber: "",
-      phone: form.contactPhone.trim(),
+      phonePrefix: form.contactPhonePrefix,
+      phoneNumber: form.contactPhone.replace(/\D/g, "").slice(0, 15),
+      phone: (() => {
+        const digits = form.contactPhone.replace(/\D/g, "").slice(0, 15);
+        return digits.length >= 6 ? `${form.contactPhonePrefix} ${digits}` : "";
+      })(),
       job_summary: form.jobSummary,
       hiringType: form.hiringType,
       category: form.industry,
@@ -1726,15 +1770,41 @@ export default function RequestTokenPage() {
                     />
                   </div>
                   <div data-wizard-field="contactPhone">
-                    <input
-                      className={wizardInputClass(!!fieldErrors.contactPhone)}
-                      value={form.contactPhone}
-                      onChange={(e) => {
-                        setForm((p) => ({ ...p, contactPhone: e.target.value }));
-                        clearFieldError("contactPhone");
-                      }}
-                      placeholder="Phone"
-                    />
+                    <div
+                      className={wizardGroupShell(
+                        !!fieldErrors.contactPhone,
+                        "flex flex-row flex-nowrap items-stretch gap-2",
+                      )}
+                    >
+                      <select
+                        aria-label="Phone country code"
+                        value={form.contactPhonePrefix}
+                        onChange={(e) => {
+                          setForm((p) => ({ ...p, contactPhonePrefix: e.target.value }));
+                          clearFieldError("contactPhone");
+                        }}
+                        className="shrink-0 rounded-[12px] border border-white/10 bg-white/[0.05] px-2 py-3 text-sm text-white focus:outline-none focus:border-2 focus:border-[#C9A84C] w-[min(118px,32vw)] min-h-[44px] max-w-[120px]"
+                      >
+                        {PHONE_PREFIX_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value} className="bg-[#0D1B2A] text-white">
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        className={`min-w-0 flex-1 ${wizardInputClass(false)}`}
+                        inputMode="numeric"
+                        autoComplete="tel-national"
+                        maxLength={15}
+                        value={form.contactPhone}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, "").slice(0, 15);
+                          setForm((p) => ({ ...p, contactPhone: digits }));
+                          clearFieldError("contactPhone");
+                        }}
+                        placeholder="Phone"
+                      />
+                    </div>
                     {fieldErrors.contactPhone ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
                   <div className="md:col-span-2" data-wizard-field="contactEmail">
