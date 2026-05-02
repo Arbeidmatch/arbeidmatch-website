@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
@@ -163,6 +164,19 @@ export default function TermsPage() {
               post@arbeidmatch.no
               <br />
               arbeidmatch.no
+            </p>
+          </section>
+
+          <section className="border-t border-[rgba(255,255,255,0.1)] pt-8">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#9ca3af]">Related legal documents</p>
+            <p className="mt-3 text-[12px] leading-relaxed text-[rgba(255,255,255,0.7)]">
+              <Link href="/privacy" className="font-medium text-[#C9A84C] underline decoration-[#C9A84C]/40 underline-offset-2 hover:decoration-[#C9A84C]">
+                Privacy Policy
+              </Link>
+              <span className="mx-2 text-[#6b7280]">·</span>
+              <Link href="/dpa" className="font-medium text-[#C9A84C] underline decoration-[#C9A84C]/40 underline-offset-2 hover:decoration-[#C9A84C]">
+                Data Processing Agreement
+              </Link>
             </p>
           </section>
         </article>
