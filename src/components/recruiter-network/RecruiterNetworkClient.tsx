@@ -304,7 +304,7 @@ export default function RecruiterNetworkClient() {
   const stepStagger = isMobile ? 0.05 : 0.1;
 
   return (
-    <div className="bg-[#06090e] text-white">
+    <div className="bg-[#0D1B2A] text-white">
       <section className="recruiter-network-hero flex min-h-[88vh] flex-col justify-center py-12 md:py-20">
         <div className="rn-hero-inner mx-auto w-full max-w-content px-4 md:px-6">
           {!RECRUITER_PUBLIC_SIGNUP_ENABLED ? (
@@ -580,10 +580,22 @@ export default function RecruiterNetworkClient() {
       <section ref={formRef} id="apply" className="border-t border-white/5 py-12 md:py-20">
         <div className="mx-auto w-full max-w-content px-4 md:px-6">
           <Reveal isMobile={isMobile}>
-            <h2 className="text-center font-sans text-3xl font-extrabold tracking-[-0.03em] text-white md:text-4xl">
+            <h2
+              className={
+                RECRUITER_PUBLIC_SIGNUP_ENABLED
+                  ? "text-center font-sans text-3xl font-extrabold tracking-[-0.03em] text-white md:text-4xl"
+                  : "mx-auto max-w-[520px] text-center text-[22px] font-bold leading-tight text-[rgba(255,255,255,0.98)] md:text-[28px]"
+              }
+            >
               {RECRUITER_PUBLIC_SIGNUP_ENABLED ? "Ready to build with us?" : "Request an invitation"}
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-center text-white/60">
+            <p
+              className={
+                RECRUITER_PUBLIC_SIGNUP_ENABLED
+                  ? "mx-auto mt-4 max-w-xl text-center text-white/60"
+                  : "mx-auto mt-4 max-w-[520px] text-center text-base leading-normal text-[rgba(255,255,255,0.60)]"
+              }
+            >
               {RECRUITER_PUBLIC_SIGNUP_ENABLED
                 ? "Tell us about yourself. We typically respond within 1 to 2 business days."
                 : "Share a short motivation and your contact details. We read every request and reply when there is a fit."}
