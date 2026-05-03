@@ -54,6 +54,20 @@ function clearPartnerWizardSession() {
   }
 }
 
+function readPartnerWizardTokenFromSession(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const t = window.sessionStorage.getItem(AM_PARTNER_TOKEN_KEY);
+    return t && /^[0-9a-f-]{36}$/i.test(t) ? t : null;
+  } catch {
+    return null;
+  }
+}
+
+function candidateAvailabilityLabel(count: number): string {
+  return count === 1 ? "1 candidate available" : `${count} candidates available`;
+}
+
 const INDUSTRY_ICONS: Record<string, LucideIcon> = {
   Building: HardHat,
   Infrastructure: Building2,
@@ -237,9 +251,9 @@ function PremiumIndustryCard({
           {candidateCount === null ? (
             <p className="mt-1 text-sm text-white/40">...</p>
           ) : candidateCount === 0 ? (
-            <p className="mt-1 text-sm text-white/60">We source on request</p>
+            <p className="mt-1 text-sm text-white/60">Sourced on request</p>
           ) : (
-            <p className="mt-1 text-sm font-medium text-[#C9A84C]">{candidateCount} candidates available</p>
+            <p className="mt-1 text-sm font-medium text-[#C9A84C]">{candidateAvailabilityLabel(candidateCount)}</p>
           )}
         </div>
       </div>
@@ -356,10 +370,8 @@ export default function RequestPage() {
         setRoleQuery("");
         setCheckState("idle");
       }
-      const storedToken = window.sessionStorage.getItem(AM_PARTNER_TOKEN_KEY);
-      if (storedToken && /^[0-9a-f-]{36}$/i.test(storedToken)) {
-        setPartnerWizardToken(storedToken);
-      }
+      const storedToken = readPartnerWizardTokenFromSession();
+      if (storedToken) setPartnerWizardToken(storedToken);
     } catch {
       /* ignore */
     }
@@ -507,6 +519,7 @@ export default function RequestPage() {
     )?.industry;
 
     if (matchingIndustry) {
+      setPartnerWizardToken(readPartnerWizardTokenFromSession());
       setSelectedIndustry(matchingIndustry);
       setSelectedRole(roleFromQuery);
       setPickerStep("modal");
@@ -954,9 +967,11 @@ export default function RequestPage() {
         </div>
       ) : null}
       <div
-        className={`mx-auto w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-6 transition-all duration-300 md:max-w-[980px] md:rounded-[16px] md:p-9 md:border-[rgba(201,168,76,0.15)] md:border-t-2 md:border-t-[rgba(201,168,76,0.4)] md:bg-[rgba(255,255,255,0.03)] ${
-          showNonPartnerOptions ? "pointer-events-none translate-y-2 opacity-0" : "translate-y-0 opacity-100"
-        }`}
+        className={`mx-auto w-full max-w-sm bg-white/5 p-6 transition-all duration-300 md:max-w-[980px] md:p-9 md:bg-[rgba(255,255,255,0.03)] ${
+          checkState === "idle" && pickerStep === "industries"
+            ? "rounded-2xl border-0 outline-none ring-0 md:rounded-[16px]"
+            : "rounded-2xl border border-white/10 md:rounded-[16px] md:border-[rgba(201,168,76,0.15)] md:border-t-2 md:border-t-[rgba(201,168,76,0.4)]"
+        } ${showNonPartnerOptions ? "pointer-events-none translate-y-2 opacity-0" : "translate-y-0 opacity-100"}`}
       >
         {checkState === "partner_check" && (
           <>
@@ -1121,6 +1136,7 @@ export default function RequestPage() {
                             key={role}
                             type="button"
                             onClick={() => {
+                              setPartnerWizardToken(readPartnerWizardTokenFromSession());
                               setSelectedRole(role);
                               setPickerStep("modal");
                               setGetStartedEmail("");
@@ -1141,9 +1157,11 @@ export default function RequestPage() {
                             {rc === null || rc === undefined ? (
                               <span className="mt-1 block text-xs text-white/40">...</span>
                             ) : rc === 0 ? (
-                              <span className="mt-1 block text-xs text-white/55">We source on request</span>
+                              <span className="mt-1 block text-xs text-white/55">Sourced on request</span>
                             ) : (
-                              <span className="mt-1 block text-xs font-medium text-[#C9A84C]/90">{rc} candidates available</span>
+                              <span className="mt-1 block text-xs font-medium text-[#C9A84C]/90">
+                                {candidateAvailabilityLabel(rc)}
+                              </span>
                             )}
                           </motion.button>
                         );
