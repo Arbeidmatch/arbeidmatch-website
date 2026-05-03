@@ -131,30 +131,6 @@ const PHONE_PREFIX_OPTIONS = [
   { value: "+45", label: "+45 (DK)" },
 ] as const;
 
-function splitInternationalPhone(raw: string): { prefix: string; digits: string } {
-  const noSpace = raw.trim().replace(/\s/g, "");
-  if (noSpace.startsWith("+47")) {
-    return { prefix: "+47", digits: noSpace.slice(3).replace(/\D/g, "").slice(0, 15) };
-  }
-  if (noSpace.startsWith("+46")) {
-    return { prefix: "+46", digits: noSpace.slice(3).replace(/\D/g, "").slice(0, 15) };
-  }
-  if (noSpace.startsWith("+45")) {
-    return { prefix: "+45", digits: noSpace.slice(3).replace(/\D/g, "").slice(0, 15) };
-  }
-  const digits = noSpace.replace(/\D/g, "");
-  if (digits.startsWith("47") && digits.length >= 8) {
-    return { prefix: "+47", digits: digits.slice(2).slice(0, 15) };
-  }
-  if (digits.startsWith("46") && digits.length >= 8) {
-    return { prefix: "+46", digits: digits.slice(2).slice(0, 15) };
-  }
-  if (digits.startsWith("45") && digits.length >= 8) {
-    return { prefix: "+45", digits: digits.slice(2).slice(0, 15) };
-  }
-  return { prefix: "+47", digits: digits.slice(0, 15) };
-}
-
 const HOW_DID_YOU_HEAR_OPTIONS = [
   "Referral from another company",
   "Google search",
@@ -731,7 +707,6 @@ export default function RequestTokenPage() {
   const [submitSuccessReference, setSubmitSuccessReference] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState<RequestForm>(initialForm);
-  const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [tokenGate, setTokenGate] = useState<"loading" | "ready" | "blocked" | "error">("loading");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [citySearch, setCitySearch] = useState("");
@@ -788,31 +763,14 @@ export default function RequestTokenPage() {
           setTokenGate("blocked");
           return;
         }
-        setTokenData(row);
+        // IMPORTANT: Do not pre-fill form fields with data from tokenData or any DB source.
+        // Forms must always start empty. Users must enter their own data.
         setTokenGate("ready");
       })
       .catch(() => {
         setTokenGate("error");
       });
   }, [token]);
-
-  useEffect(() => {
-    if (!tokenData) return;
-    setForm((prev) => {
-      const phoneRaw = tokenData.phone?.trim();
-      const { prefix, digits } = phoneRaw
-        ? splitInternationalPhone(phoneRaw)
-        : { prefix: prev.contactPhonePrefix, digits: prev.contactPhone };
-      return {
-        ...prev,
-        companyName: tokenData.company?.trim() || prev.companyName,
-        orgNumber: tokenData.org_number?.trim() || prev.orgNumber,
-        contactEmail: tokenData.email?.trim().toLowerCase() || prev.contactEmail,
-        contactPhonePrefix: prefix,
-        contactPhone: digits,
-      };
-    });
-  }, [tokenData]);
 
   useEffect(() => {
     if (startWizard) {
