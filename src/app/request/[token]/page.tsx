@@ -508,59 +508,56 @@ const CERTIFICATIONS_BY_WORKER_TYPE: Record<string, string[]> = {
   Other: ["None required", "Other"],
 };
 
+// IMPORTANT: Never pre-fill form fields from tokenData, DB, or external APIs.
+// Forms must always start empty. Users enter their own data.
+// Brønnøysund autocomplete is allowed but must not auto-populate from token.
 const initialForm: RequestForm = {
-  companyName: "PEOPLE AS",
-  orgNumber: "918882324",
-  contactFirstName: "Arild",
-  contactLastName: "Salomon",
-  roleInCompany: "Contact person",
-  contactEmail: "as@people.no",
+  companyName: "",
+  orgNumber: "",
+  contactFirstName: "",
+  contactLastName: "",
+  roleInCompany: "",
+  contactEmail: "",
   contactPhonePrefix: "+47",
-  contactPhone: "93007732",
-  industry: "Industry and Production",
-  workerType: "mechanics for auto industry",
+  contactPhone: "",
+  industry: "",
+  workerType: "",
   trade: "",
   tradeOther: "",
-  experience: "3 to 5 years",
+  experience: "",
   certification: [],
   certificationsOther: "",
-  candidates: 2,
-  contractType: "Permanent employment",
-  hiringType: "Recruitment of personnel for companies",
-  jobSummary: "General hiring inquiry",
-  salary: "250-300",
+  candidates: 1,
+  contractType: "",
+  hiringType: "",
+  jobSummary: "",
+  salary: "",
   salaryPeriod: "per hour",
   salaryMode: "Range",
   overtime: "",
   accommodation: ACCOMMODATION_CANDIDATE_OWN,
   accommodationCost: "",
-  internationalTransport: "own_responsibility",
-  localTransport: "Not covered",
-  urgency: "Specific start date",
-  city: "Oslo",
-  locations: ["Oslo"],
-  startDateMode: "Specific start date",
+  internationalTransport: "",
+  localTransport: "",
+  urgency: "",
+  city: "",
+  locations: [],
+  startDateMode: "Immediate",
   startDate: "",
-  salaryMin: "250",
-  salaryMax: "300",
-  qualification: "3 to 5 years",
-  dNumberChoice: "has_d_number",
+  salaryMin: "",
+  salaryMax: "",
+  qualification: "",
+  dNumberChoice: "",
   driverLicenseSelections: [],
-  tradeCertificatePreferred: "Yes",
-  jaguarLandRoverPreferred: "Yes",
-  customerCommunicationRequired: "Yes",
-  diagnosticsExperienceRequired: "Yes",
-  workTasks: [
-    "Service and repair",
-    "Advanced diagnostics and electronics",
-    "Documentation according to manufacturer requirements",
-    "Customer handover and dialogue",
-    "Maintain tidy and safe workshop",
-  ],
-  personalQualities: ["Accurate", "Quality-conscious", "Solution-oriented", "Independent", "Team player", "Service-minded", "Clear communicator"],
-  offerItems: ["Brand-new workshop", "New equipment", "Competitive terms", "Professional development", "Training opportunities", "Small highly skilled team"],
+  tradeCertificatePreferred: "No",
+  jaguarLandRoverPreferred: "No",
+  customerCommunicationRequired: "No",
+  diagnosticsExperienceRequired: "No",
+  workTasks: [],
+  personalQualities: [],
+  offerItems: [],
   additionalNotes: "",
-  subscribeUpdates: true,
+  subscribeUpdates: false,
   rotationSchedule: ROTATION_SCHEDULE_OPTIONS[0],
   howDidYouHear: "",
   socialMediaPlatform: "",
@@ -771,8 +768,10 @@ export default function RequestTokenPage() {
           setTokenGate("blocked");
           return;
         }
-        // IMPORTANT: Do not pre-fill form fields with data from tokenData or any DB source.
-        // Forms must always start empty. Users must enter their own data.
+        // IMPORTANT: Never pre-fill form fields from tokenData, DB, or external APIs.
+        // Forms must always start empty. Users enter their own data.
+        // Brønnøysund autocomplete is allowed but must not auto-populate from token.
+        void row;
         setTokenGate("ready");
       })
       .catch(() => {
@@ -901,7 +900,7 @@ export default function RequestTokenPage() {
   const generatedNotes = useMemo(() => {
     const sections = [
       "About the Position",
-      "The garage is relocating to Kaldbakken in August and establishing a brand-new, modern workshop.",
+      form.jobSummary.trim() || "",
       "",
       "Work Tasks",
       ...form.workTasks.map((item) => `- ${item}`),
@@ -939,6 +938,7 @@ export default function RequestTokenPage() {
     form.tradeCertificatePreferred,
     form.workTasks,
     form.customerCommunicationRequired,
+    form.jobSummary,
   ]);
 
   const clearFieldError = (key: string) => {
@@ -1777,7 +1777,7 @@ export default function RequestTokenPage() {
                         setForm((p) => ({ ...p, companyName: e.target.value }));
                         clearFieldError("companyName");
                       }}
-                      placeholder="Company name"
+                      placeholder="Your company name"
                     />
                     {fieldErrors.companyName ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
@@ -1789,7 +1789,7 @@ export default function RequestTokenPage() {
                         setForm((p) => ({ ...p, orgNumber: e.target.value }));
                         clearFieldError("orgNumber");
                       }}
-                      placeholder="Org number"
+                      placeholder="Norwegian org. number"
                     />
                     {fieldErrors.orgNumber ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
@@ -1822,7 +1822,7 @@ export default function RequestTokenPage() {
                       className={wizardInputClass(false)}
                       value={form.roleInCompany}
                       onChange={(e) => setForm((p) => ({ ...p, roleInCompany: e.target.value }))}
-                      placeholder="Role in company (optional)"
+                      placeholder="Contact person name"
                     />
                   </div>
                   <div data-wizard-field="contactPhone">
@@ -1858,7 +1858,7 @@ export default function RequestTokenPage() {
                           setForm((p) => ({ ...p, contactPhone: digits }));
                           clearFieldError("contactPhone");
                         }}
-                        placeholder="Phone"
+                        placeholder="+47 000 00 000"
                       />
                     </div>
                     {fieldErrors.contactPhone ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
@@ -1872,7 +1872,7 @@ export default function RequestTokenPage() {
                         setForm((p) => ({ ...p, contactEmail: e.target.value }));
                         clearFieldError("contactEmail");
                       }}
-                      placeholder="Email"
+                      placeholder="work@yourcompany.no"
                     />
                     {fieldErrors.contactEmail ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
@@ -2020,7 +2020,7 @@ export default function RequestTokenPage() {
                       setForm((p) => ({ ...p, workerType: e.target.value }));
                       clearFieldError("workerType");
                     }}
-                    placeholder="mechanics for auto industry"
+                    placeholder="Position or role title"
                   />
                   {fieldErrors.workerType ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
