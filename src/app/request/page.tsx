@@ -278,6 +278,8 @@ export default function RequestPage() {
   const [getStartedGdpr, setGetStartedGdpr] = useState(false);
   const [getStartedError, setGetStartedError] = useState("");
   const [getStartedSubmitting, setGetStartedSubmitting] = useState(false);
+  /** After successful Send link: show in-modal confirmation instead of redirecting to wizard. */
+  const [getStartedSuccessEmail, setGetStartedSuccessEmail] = useState<string | null>(null);
   const [waitlistCountdown, setWaitlistCountdown] = useState(0);
   const [waitlistCanResend, setWaitlistCanResend] = useState(true);
   const [verifyCountdown, setVerifyCountdown] = useState(0);
@@ -680,7 +682,7 @@ export default function RequestPage() {
       } catch {
         /* ignore */
       }
-      router.push(`/request/${data.token}`);
+      setGetStartedSuccessEmail(email);
     } catch (err) {
       console.error("[simple-request] Submit failed:", err);
       setGetStartedError("Could not send link. Please try again or contact support@arbeidmatch.no.");
@@ -700,6 +702,7 @@ export default function RequestPage() {
       setGetStartedEmail("");
       setGetStartedGdpr(false);
       setGetStartedError("");
+      setGetStartedSuccessEmail(null);
       return;
     }
     if (pickerStep === "roles" && selectedIndustry) {
@@ -725,6 +728,7 @@ export default function RequestPage() {
     setGetStartedEmail("");
     setGetStartedGdpr(false);
     setGetStartedError("");
+    setGetStartedSuccessEmail(null);
     setGetStartedSubmitting(false);
     setAccessEmail("");
     setAccessStatus("idle");
@@ -898,6 +902,7 @@ export default function RequestPage() {
         setGetStartedEmail("");
         setGetStartedGdpr(false);
         setGetStartedError("");
+        setGetStartedSuccessEmail(null);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -1127,6 +1132,7 @@ export default function RequestPage() {
                               setGetStartedEmail("");
                               setGetStartedGdpr(false);
                               setGetStartedError("");
+                              setGetStartedSuccessEmail(null);
                             }}
                             initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -1174,6 +1180,7 @@ export default function RequestPage() {
               setGetStartedEmail("");
               setGetStartedGdpr(false);
               setGetStartedError("");
+              setGetStartedSuccessEmail(null);
             }}
           >
             <motion.div
@@ -1193,70 +1200,95 @@ export default function RequestPage() {
                   setGetStartedEmail("");
                   setGetStartedGdpr(false);
                   setGetStartedError("");
+                  setGetStartedSuccessEmail(null);
                 }}
                 className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-md text-white/50 transition-colors hover:bg-white/10 hover:text-white"
               >
                 <span className="text-xl leading-none">×</span>
               </button>
-              <h3 className="pr-10 text-left text-2xl font-bold text-white">Get started</h3>
-              <p className="mt-2 text-left text-sm leading-relaxed text-white/70">
-                We will send a secure link to complete your request.
-              </p>
-              <p className="mt-2 text-left text-[12px] text-white/60">Selected role: {selectedRole}</p>
-              <div className="mt-6 space-y-4 text-left">
-                <label className="block text-sm font-medium text-white/90" htmlFor="get-started-email">
-                  Work email
-                </label>
-                <input
-                  id="get-started-email"
-                  type="email"
-                  required
-                  value={getStartedEmail}
-                  onChange={(event) => {
-                    setGetStartedEmail(event.target.value);
-                    if (getStartedError) setGetStartedError("");
-                  }}
-                  placeholder="your@company.com"
-                  className="h-11 w-full rounded-[4px] border border-[#0D1B2A]/30 bg-[#0D1B2A] px-3 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]"
-                />
-                <label className="flex cursor-pointer items-start gap-3 text-sm text-white/85">
-                  <input
-                    type="checkbox"
-                    checked={getStartedGdpr}
-                    onChange={(e) => setGetStartedGdpr(e.target.checked)}
-                    className="mt-1 h-4 w-4 shrink-0 rounded border-white/30 text-[#C9A84C] focus:ring-[#C9A84C]"
-                  />
-                  <span>
-                    I agree to the processing of my data according to the{" "}
-                    <Link href="/privacy" className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]">
-                      Privacy Policy
-                    </Link>
-                    .
-                  </span>
-                </label>
-                {getStartedError ? <p className="text-sm text-red-400">{getStartedError}</p> : null}
-                <button
-                  type="button"
-                  onClick={() => void submitGetStartedLink()}
-                  disabled={getStartedSubmitting || !getStartedGdpr || !getStartedEmail.includes("@")}
-                  className="inline-flex rounded-[4px] bg-[#C9A84C] px-6 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {getStartedSubmitting ? "Sending" : "Send link"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPickerStep("roles");
-                    setSelectedRole(null);
-                    setGetStartedEmail("");
-                    setGetStartedGdpr(false);
-                    setGetStartedError("");
-                  }}
-                  className="block w-full pt-1 text-left text-[13px] text-white/60 transition-colors hover:text-white/80"
-                >
-                  ← Choose different role
-                </button>
-              </div>
+              {getStartedSuccessEmail ? (
+                <div className="mt-2 space-y-5 text-left">
+                  <h3 className="pr-10 text-2xl font-bold text-white">Check your email</h3>
+                  <p className="text-sm leading-relaxed text-white/75">
+                    We sent a secure link to{" "}
+                    <span className="break-all font-medium text-[#C9A84C]">{getStartedSuccessEmail}</span>. Click it to
+                    complete your request.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/")}
+                    className="inline-flex min-h-[44px] w-full items-center justify-center rounded-[4px] bg-[#C9A84C] px-6 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95"
+                  >
+                    Back to homepage
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <h3 className="pr-10 text-left text-2xl font-bold text-white">Get started</h3>
+                  <p className="mt-2 text-left text-sm leading-relaxed text-white/70">
+                    We will send a secure link to complete your request.
+                  </p>
+                  <p className="mt-2 text-left text-[12px] text-white/60">Selected role: {selectedRole}</p>
+                  <div className="mt-6 space-y-4 text-left">
+                    <label className="block text-sm font-medium text-white/90" htmlFor="get-started-email">
+                      Work email
+                    </label>
+                    <input
+                      id="get-started-email"
+                      type="email"
+                      required
+                      value={getStartedEmail}
+                      onChange={(event) => {
+                        setGetStartedEmail(event.target.value);
+                        if (getStartedError) setGetStartedError("");
+                      }}
+                      placeholder="your@company.com"
+                      className="h-11 w-full rounded-[4px] border border-[#0D1B2A]/30 bg-[#0D1B2A] px-3 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]"
+                    />
+                    <label className="flex cursor-pointer items-start gap-3 text-sm text-white/85">
+                      <input
+                        type="checkbox"
+                        checked={getStartedGdpr}
+                        onChange={(e) => setGetStartedGdpr(e.target.checked)}
+                        className="mt-1 h-4 w-4 shrink-0 rounded border-white/30 text-[#C9A84C] focus:ring-[#C9A84C]"
+                      />
+                      <span>
+                        I agree to the processing of my data according to the{" "}
+                        <Link
+                          href="/privacy"
+                          className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]"
+                        >
+                          Privacy Policy
+                        </Link>
+                        .
+                      </span>
+                    </label>
+                    {getStartedError ? <p className="text-sm text-red-400">{getStartedError}</p> : null}
+                    <button
+                      type="button"
+                      onClick={() => void submitGetStartedLink()}
+                      disabled={getStartedSubmitting || !getStartedGdpr || !getStartedEmail.includes("@")}
+                      className="inline-flex rounded-[4px] bg-[#C9A84C] px-6 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {getStartedSubmitting ? "Sending" : "Send link"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPickerStep("roles");
+                        setSelectedRole(null);
+                        setGetStartedEmail("");
+                        setGetStartedGdpr(false);
+                        setGetStartedError("");
+                        setGetStartedSuccessEmail(null);
+                      }}
+                      className="block w-full pt-1 text-left text-[13px] text-white/60 transition-colors hover:text-white/80"
+                    >
+                      ← Choose different role
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         ) : null}
