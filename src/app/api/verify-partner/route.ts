@@ -37,6 +37,8 @@ export async function POST(request: NextRequest) {
       .eq("active", true)
       .maybeSingle();
 
+    console.log("[verify-partner] domain:", domain, "partner:", partner, "error:", partnerError);
+
     if (partnerError) {
       if (partnerError.code === "PGRST116") {
         return NextResponse.json({ verified: false, reason: "not_found" }, { status: 200 });
