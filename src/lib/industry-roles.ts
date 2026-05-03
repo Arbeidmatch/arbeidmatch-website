@@ -9,12 +9,13 @@ export type IndustryGroup = {
   roles: readonly string[];
 };
 
-/** Eleven single-domain industries (English labels). */
+/** Twelve single-domain industries (English labels). */
 export const INDUSTRY_GROUPS: IndustryGroup[] = [
   {
     id: "building",
     label: "Building",
     roles: [
+      "Construction worker",
       "Carpenter",
       "Mason",
       "Plasterer",
@@ -122,6 +123,18 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
     label: "General Labour",
     roles: ["General labourer", "Helper"],
   },
+  {
+    id: "fish-industry",
+    label: "Fish Industry",
+    roles: [
+      "Fish processing worker",
+      "Fish farm worker",
+      "Aquaculture technician",
+      "Fish packer",
+      "Slaughterhouse worker",
+      "Salmon farmer",
+    ],
+  },
 ];
 
 /** Legacy shape for /request and APIs: `industry` is the display label. */
@@ -143,6 +156,7 @@ export const INDUSTRY_MAP: Record<string, string[]> = {
   automotive: ["Automotive", "Bilbransje"],
   offshore: ["Offshore"],
   general: ["General Labour", "Generelt"],
+  "fish-industry": ["Fish Industry", "Fish processing", "Aquaculture", "Fisk"],
 };
 
 export function industrySlugForLabel(label: string): string | undefined {
@@ -162,6 +176,12 @@ export const ROLE_SYNONYMS: Record<string, string[]> = {
   Roofer: ["roofer", "taktekker"],
   Plumber: ["plumber", "rørlegger"],
   Pipefitter: ["pipefitter", "rørmontør", "rørmontor"],
+  "Construction worker": [
+    "construction worker",
+    "byggarbeider",
+    "anleggsarbeider",
+    "other construction",
+  ],
 
   "Excavator operator": ["excavator operator", "digger operator", "gravemaskinfører", "gravemaskinforer"],
   "Concrete pump operator": ["concrete pump operator", "betongpumpe operatør", "betongpumpe operator"],
@@ -225,6 +245,13 @@ export const ROLE_SYNONYMS: Record<string, string[]> = {
 
   "General labourer": ["general labourer", "generell arbeider", "arbeider"],
   Helper: ["helper", "hjelpearbeider"],
+
+  "Fish processing worker": ["fish processing", "fiskeproduksjon", "fish factory", "fiskeindustri"],
+  "Fish farm worker": ["fish farm", "fiskeoppdrett", "oppdrettsarbeider"],
+  "Aquaculture technician": ["aquaculture", "akvakultur"],
+  "Fish packer": ["fish packer", "fiskepakker"],
+  "Slaughterhouse worker": ["slaughterhouse", "slakteri"],
+  "Salmon farmer": ["salmon", "laks", "lakseoppdretter"],
 };
 
 export function roleSearchKeywords(role: string): string[] {

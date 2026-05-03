@@ -18,6 +18,7 @@ import {
   Truck,
   Users,
   Utensils,
+  Waves,
 } from "lucide-react";
 
 import { REQUEST_INDUSTRY_ROLE_GROUPS } from "@/lib/industry-roles";
@@ -39,6 +40,7 @@ const INDUSTRY_ICONS: Record<string, typeof HardHat> = {
   Automotive: Car,
   Offshore: Anchor,
   "General Labour": Users,
+  "Fish Industry": Waves,
 };
 
 const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: typeof HardHat; roles: string[] }> = REQUEST_INDUSTRY_ROLE_GROUPS.map(

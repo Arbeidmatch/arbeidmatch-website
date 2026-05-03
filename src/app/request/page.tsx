@@ -23,6 +23,7 @@ import {
   Truck,
   Users,
   Utensils,
+  Waves,
   Zap,
 } from "lucide-react";
 
@@ -49,6 +50,7 @@ const INDUSTRY_ICONS: Record<string, LucideIcon> = {
   Automotive: Car,
   Offshore: Anchor,
   "General Labour": Users,
+  "Fish Industry": Waves,
 };
 
 const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: LucideIcon; roles: string[] }> = REQUEST_INDUSTRY_ROLE_GROUPS.map(
