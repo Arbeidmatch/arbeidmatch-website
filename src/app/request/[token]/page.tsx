@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Anchor,
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 import { REQUEST_INDUSTRY_ROLE_GROUPS } from "@/lib/industry-roles";
+import { ROLE_SKILLS } from "@/lib/role-skills";
 
 type TokenData = {
   company: string;
@@ -33,6 +34,7 @@ type TokenData = {
   full_name?: string;
   phone?: string;
   gdpr_consent?: boolean;
+  how_did_you_hear?: string | null;
 };
 
 type RequestForm = {
@@ -715,6 +717,7 @@ export default function RequestTokenPage() {
   const [tokenGate, setTokenGate] = useState<"loading" | "ready" | "blocked" | "error">("loading");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [citySearch, setCitySearch] = useState("");
+  const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
   const [showChoice, setShowChoice] = useState(!startWizard);
   const [showCheckFlow, setShowCheckFlow] = useState(false);
   const [choiceMode, setChoiceMode] = useState<"cards" | "check">("cards");
@@ -746,6 +749,18 @@ export default function RequestTokenPage() {
   }, []);
 
   useEffect(() => {
+    const list = ROLE_SKILLS[form.workerType.trim()] ?? [];
+    setRequiredSkills((prev) => {
+      if (list.length === 0) return [];
+      return prev.filter((s) => list.includes(s));
+    });
+  }, [form.workerType]);
+
+  const toggleSkill = useCallback((skill: string) => {
+    setRequiredSkills((prev) => (prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]));
+  }, []);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const media = window.matchMedia("(min-width: 768px)");
     const apply = () => setIsDesktopCheckFlow(media.matches);
@@ -768,10 +783,13 @@ export default function RequestTokenPage() {
           setTokenGate("blocked");
           return;
         }
-        // IMPORTANT: Never pre-fill form fields from tokenData, DB, or external APIs.
-        // Forms must always start empty. Users enter their own data.
-        // Brønnøysund autocomplete is allowed but must not auto-populate from token.
-        void row;
+        if (row.how_did_you_hear === "partner") {
+          setForm((p) => ({
+            ...p,
+            companyName: (row.company || "").trim(),
+            contactEmail: (row.email || "").trim().toLowerCase(),
+          }));
+        }
         setTokenGate("ready");
       })
       .catch(() => {
@@ -1072,6 +1090,7 @@ export default function RequestTokenPage() {
           : "",
       subscribe: form.subscribeUpdates ? "Yes - send me candidate updates" : "",
       notes: generatedNotes,
+      required_skills: requiredSkills,
     };
 
     try {
@@ -1427,7 +1446,7 @@ export default function RequestTokenPage() {
                   </div>
                   {partnerStatus === "verified" && (
                     <p className="mt-4 text-sm text-[#C9A84C]">
-                      Welcome back! A secure link has been sent to {partnerEmail}. Check your inbox to continue your request.
+                      Partner verified. You can continue filling in your request below.
                     </p>
                   )}
                   {partnerStatus === "not_found" && (
@@ -2024,6 +2043,34 @@ export default function RequestTokenPage() {
                   />
                   {fieldErrors.workerType ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
+                {(() => {
+                  const roleSkills = ROLE_SKILLS[form.workerType.trim()] ?? [];
+                  if (roleSkills.length === 0) return null;
+                  return (
+                    <div className="mt-6">
+                      <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.12em] text-white/55">
+                        Required skills (optional)
+                      </label>
+                      <p className="mb-4 text-sm text-white/50">Select the skills most important for this position.</p>
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {roleSkills.map((skill) => (
+                          <label
+                            key={skill}
+                            className="flex cursor-pointer items-center gap-3 rounded-[4px] border border-white/10 p-3 transition-colors hover:border-white/20"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={requiredSkills.includes(skill)}
+                              onChange={() => toggleSkill(skill)}
+                              className="h-4 w-4 accent-[#C9A84C]"
+                            />
+                            <span className="text-sm text-white/80">{skill}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
                 <div data-wizard-field="locations">
                   <p className={labelClass}>Location</p>
                   <div className={wizardGroupShell(!!fieldErrors.locations)}>

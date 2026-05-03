@@ -35,8 +35,24 @@ import { useToast } from "@/lib/toast-context";
 type VerifyPartnerResponse = {
   verified?: boolean;
   company_name?: string;
+  token?: string;
   reason?: string;
 };
+
+const AM_PARTNER_TOKEN_KEY = "am_partner_token";
+const AM_PARTNER_COMPANY_KEY = "am_partner_company";
+const AM_PARTNER_EMAIL_KEY = "am_partner_email";
+
+function clearPartnerWizardSession() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(AM_PARTNER_TOKEN_KEY);
+    window.sessionStorage.removeItem(AM_PARTNER_COMPANY_KEY);
+    window.sessionStorage.removeItem(AM_PARTNER_EMAIL_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 const INDUSTRY_ICONS: Record<string, LucideIcon> = {
   Building: HardHat,
@@ -285,6 +301,8 @@ export default function RequestPage() {
   const [getStartedSubmitting, setGetStartedSubmitting] = useState(false);
   /** After successful Send link: show in-modal confirmation instead of redirecting to wizard. */
   const [getStartedSuccessEmail, setGetStartedSuccessEmail] = useState<string | null>(null);
+  /** Set after partner email verify; used for direct /request/[token] without simple-request email. */
+  const [partnerWizardToken, setPartnerWizardToken] = useState<string | null>(null);
   const [waitlistCountdown, setWaitlistCountdown] = useState(0);
   const [waitlistCanResend, setWaitlistCanResend] = useState(true);
   const [verifyCountdown, setVerifyCountdown] = useState(0);
@@ -337,6 +355,10 @@ export default function RequestPage() {
         setSelectedRole(null);
         setRoleQuery("");
         setCheckState("idle");
+      }
+      const storedToken = window.sessionStorage.getItem(AM_PARTNER_TOKEN_KEY);
+      if (storedToken && /^[0-9a-f-]{36}$/i.test(storedToken)) {
+        setPartnerWizardToken(storedToken);
       }
     } catch {
       /* ignore */
@@ -519,7 +541,17 @@ export default function RequestPage() {
         nextStatus = "partner";
         startCountdown(setVerifyCountdown, setVerifyCanResend);
         trackRequestSubmit(selectedIndustry || selectedRole || "unknown", 0);
-        toast.success("Partner verified. Check your inbox for secure access.");
+        try {
+          if (data.token && typeof window !== "undefined") {
+            window.sessionStorage.setItem(AM_PARTNER_TOKEN_KEY, data.token);
+            window.sessionStorage.setItem(AM_PARTNER_COMPANY_KEY, (data.company_name || "").trim());
+            window.sessionStorage.setItem(AM_PARTNER_EMAIL_KEY, accessEmail.trim().toLowerCase());
+            setPartnerWizardToken(data.token);
+          }
+        } catch {
+          /* ignore */
+        }
+        toast.success("Partner verified. Choose an industry and role to start your request.");
         if (partnerVerifyFromRef.current === "partner_check") {
           try {
             window.localStorage.setItem(REQUEST_PARTNER_VERIFIED_KEY, "1");
@@ -752,6 +784,8 @@ export default function RequestPage() {
     setPartnerApplicationCanResend(true);
     hasAutoStartedRoleCheck.current = false;
     clearPartnerRequestContext();
+    clearPartnerWizardSession();
+    setPartnerWizardToken(null);
   };
 
   const showNonPartnerOptions = resultAction === "non_partner";
@@ -966,6 +1000,8 @@ export default function RequestPage() {
                   <button
                     type="button"
                     onClick={() => {
+                      clearPartnerWizardSession();
+                      setPartnerWizardToken(null);
                       setFlowDirection(1);
                       setPickerStep("industries");
                       setSelectedIndustry("");
@@ -1180,6 +1216,50 @@ export default function RequestPage() {
                     Back to homepage
                   </button>
                 </div>
+              ) : partnerWizardToken ? (
+                <>
+                  <h3 className="pr-10 text-left text-2xl font-bold text-white">Start your request</h3>
+                  <p className="mt-2 text-left text-sm leading-relaxed text-white/70">
+                    Continuing as{" "}
+                    <span className="font-medium text-[#C9A84C]">
+                      {(verifiedPartnerCompany || companyName || "your company").trim()}
+                    </span>
+                  </p>
+                  <p className="mt-2 text-left text-[12px] text-white/60">Selected role: {selectedRole}</p>
+                  <div className="mt-6 space-y-4 text-left">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!partnerWizardToken) return;
+                        try {
+                          window.sessionStorage.setItem(AM_PARTNER_TOKEN_KEY, partnerWizardToken);
+                          const c = (verifiedPartnerCompany || companyName || "").trim();
+                          if (c) window.sessionStorage.setItem(AM_PARTNER_COMPANY_KEY, c);
+                        } catch {
+                          /* ignore */
+                        }
+                        router.push(`/request/${partnerWizardToken}`);
+                      }}
+                      className="inline-flex min-h-[44px] w-full items-center justify-center rounded-[4px] bg-[#C9A84C] px-6 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95"
+                    >
+                      Start request →
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPickerStep("roles");
+                        setSelectedRole(null);
+                        setGetStartedEmail("");
+                        setGetStartedGdpr(false);
+                        setGetStartedError("");
+                        setGetStartedSuccessEmail(null);
+                      }}
+                      className="block w-full pt-1 text-left text-[13px] text-white/60 transition-colors hover:text-white/80"
+                    >
+                      ← Choose different role
+                    </button>
+                  </div>
+                </>
               ) : (
                 <>
                   <h3 className="pr-10 text-left text-2xl font-bold text-white">Get started</h3>
@@ -1621,12 +1701,9 @@ export default function RequestPage() {
                 <svg className="mx-auto h-6 w-6 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <p className="mt-3 text-[18px] font-bold text-white">Check your inbox</p>
+                <p className="mt-3 text-[18px] font-bold text-white">Partner verified</p>
                 <p className="mt-2 text-sm text-[rgba(255,255,255,0.6)]">
-                  A secure access link has been sent to {accessEmail}. The link is valid for 30 minutes.
-                </p>
-                <p className="mt-3 text-xs text-[rgba(255,255,255,0.35)]">
-                  Emails are usually delivered within a few seconds, but may occasionally take up to 5 minutes. In the meantime, you can close this window and continue browsing. Check your spam folder if nothing arrives.
+                  Close this window to pick an industry and role, then start your request in the wizard.
                 </p>
               </div>
             ) : accessStatus === "error" || accessStatus === "non_partner" ? (

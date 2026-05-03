@@ -72,6 +72,7 @@ const requestSchema = z
     website: z.string().max(256).optional(),
     company_website: z.string().max(256).optional(),
     honeypot: z.string().max(256).optional(),
+    required_skills: z.array(z.string().trim().max(200)).max(80).optional(),
   })
   .strict();
 
@@ -247,6 +248,7 @@ export async function POST(request: NextRequest) {
       referral_email:                payload.referralEmail || null,
       subscribe:                     parsedSubscribe,
       notes:                         payload.notes || null,
+      required_skills:               payload.required_skills?.length ? payload.required_skills : [],
     })
       .select("id")
       .maybeSingle();
