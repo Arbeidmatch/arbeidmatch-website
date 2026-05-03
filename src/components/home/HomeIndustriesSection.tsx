@@ -84,7 +84,7 @@ export default function HomeIndustriesSection() {
   }, []);
 
   return (
-    <section className="border-b border-[rgba(255,255,255,0.08)] bg-[#0D1B2A] py-16 md:py-20 lg:py-24">
+    <section className="border-b border-[rgba(255,255,255,0.08)] bg-[#0D1B2A] pb-6 pt-16 md:pb-8 md:pt-20 lg:pb-8 lg:pt-24">
       <div className="mx-auto w-full max-w-content px-4 md:px-12 lg:px-20">
         <ScrollReveal variant="fadeUp" className="text-center">
           <h2 className="am-h2 font-display font-extrabold tracking-[-0.03em] text-white">Industries we serve</h2>
