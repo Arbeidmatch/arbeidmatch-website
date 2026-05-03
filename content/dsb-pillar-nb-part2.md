@@ -90,4 +90,4 @@ Abonner på oppdateringer fra DSB og relevante bransjeorganisasjoner; reviser in
 
 ---
 
-**Avsluttende CTA:** Trenger dere hjelp til å koble DSB-prosessen med bemanning og rekruttering? [Kontakt ArbeidMatch](mailto:post@arbeidmatch.no) eller gå til [for arbeidsgivere](/for-employers) for å avtale gjennomgang av deres prosjektbehov.
+**Avsluttende CTA:** Trenger dere hjelp til å koble DSB-prosessen med bemanning og rekruttering? [Kontakt ArbeidMatch](mailto:support@arbeidmatch.no) eller gå til [for arbeidsgivere](/for-employers) for å avtale gjennomgang av deres prosjektbehov.

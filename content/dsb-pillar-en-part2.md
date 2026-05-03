@@ -90,4 +90,4 @@ Subscribe to updates from DSB and relevant industry organisations; revise intern
 
 ---
 
-**Closing CTA:** Do you need help connecting the DSB process with staffing and recruitment? [Contact ArbeidMatch](mailto:post@arbeidmatch.no) or go to [for employers](/for-employers) to arrange a review of your project needs.
+**Closing CTA:** Do you need help connecting the DSB process with staffing and recruitment? [Contact ArbeidMatch](mailto:support@arbeidmatch.no) or go to [for employers](/for-employers) to arrange a review of your project needs.

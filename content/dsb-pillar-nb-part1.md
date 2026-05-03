@@ -95,4 +95,4 @@ Se alltid DSBs offisielle nettsider for gjeldende krav; ikke stol på utdaterte 
 
 **Nyttige interne lenker:** [For arbeidsgivere](/for-employers) · [For kandidater](/for-candidates)
 
-**Kontakt ArbeidMatch for oppfølging:** post@arbeidmatch.no
+**Kontakt ArbeidMatch for oppfølging:** support@arbeidmatch.no

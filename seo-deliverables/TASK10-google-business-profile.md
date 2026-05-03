@@ -55,7 +55,7 @@ Tusen takk for varme ord og for at du tok deg tid til å dele opplevelsen din! D
 
 ## 5) Svar på anmeldelse - 3 stjerner (norsk)
 
-Takk for ærlig tilbakemelding - det er viktig for oss. Vi beklager at opplevelsen ikke ble som forventet, og vi tar dette på alvor. Send oss gjerne en kort e-post på post@arbeidmatch.no med saksreferanse, så følger vi opp internt og finner en løsning sammen med deg. Målet vårt er at du skal føle deg trygg på prosessen.
+Takk for ærlig tilbakemelding - det er viktig for oss. Vi beklager at opplevelsen ikke ble som forventet, og vi tar dette på alvor. Send oss gjerne en kort e-post på support@arbeidmatch.no med saksreferanse, så følger vi opp internt og finner en løsning sammen med deg. Målet vårt er at du skal føle deg trygg på prosessen.
 
 ---
 
@@ -71,4 +71,4 @@ Takk for ærlig tilbakemelding - det er viktig for oss. Vi beklager at opplevels
 **Svar:** Det avhenger av rolle og dokumentasjon. Med tydelig kravprofil kan vi ofte presentere kandidater på kort tid; vi gir alltid realistisk estimat før oppstart.
 
 **Spørsmål:** Hvordan kontakter jeg dere?  
-**Svar:** E-post post@arbeidmatch.no eller nettskjema på https://www.arbeidmatch.no/contact
+**Svar:** E-post support@arbeidmatch.no eller nettskjema på https://www.arbeidmatch.no/contact

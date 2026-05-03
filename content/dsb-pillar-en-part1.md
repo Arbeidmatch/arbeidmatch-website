@@ -95,4 +95,4 @@ Always use DSB’s official websites for current requirements; do not rely on ou
 
 **Useful internal links:** [For employers](/for-employers) · [For candidates](/for-candidates)
 
-**Contact ArbeidMatch for follow-up:** post@arbeidmatch.no
+**Contact ArbeidMatch for follow-up:** support@arbeidmatch.no
