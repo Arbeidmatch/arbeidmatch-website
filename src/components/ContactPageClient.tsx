@@ -143,11 +143,11 @@ export default function ContactPageClient() {
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[rgba(255,255,255,0.45)]">Email</p>
                 <a
-                  href="mailto:post@arbeidmatch.no"
+                  href="mailto:support@arbeidmatch.no"
                   className="mt-2 inline-flex items-center gap-2 text-lg font-medium text-[#C9A84C] transition-colors hover:text-[#d8bc6a]"
                 >
                   <Mail className="h-5 w-5 shrink-0" strokeWidth={1.75} aria-hidden />
-                  post@arbeidmatch.no
+                  support@arbeidmatch.no
                 </a>
               </div>
               <div className="border-t border-[rgba(255,255,255,0.08)] pt-8">

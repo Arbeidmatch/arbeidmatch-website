@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
       emailBodyParagraph("1. We review your request."),
       emailBodyParagraph("2. We match suitable candidates."),
       emailBodyParagraph("3. We contact you within 1 to 2 business days."),
-      emailBodyParagraph("<strong>Contact:</strong> post@arbeidmatch.no | +47 967 34 730"),
+      emailBodyParagraph("<strong>Contact:</strong> support@arbeidmatch.no | +47 967 34 730"),
     ]
       .filter(Boolean)
       .join("");

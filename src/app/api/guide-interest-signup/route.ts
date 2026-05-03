@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       if (guideWanted) {
         lines.push("", "We will also notify you when the guide for your profession becomes available.");
       }
-      lines.push("", "Best regards,", "ArbeidMatch Team", "post@arbeidmatch.no");
+      lines.push("", "Best regards,", "ArbeidMatch Team", "support@arbeidmatch.no");
       const bodyText = lines.join("\n");
 
       try {
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
           guideWanted
             ? `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">We will also notify you when the guide for your profession becomes available.</p>`
             : "",
-          `<p style="margin:0;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">Best regards,<br/>ArbeidMatch Team<br/>post@arbeidmatch.no</p>`,
+          `<p style="margin:0;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">Best regards,<br/>ArbeidMatch Team<br/>support@arbeidmatch.no</p>`,
         ]
           .filter(Boolean)
           .join("");

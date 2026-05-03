@@ -107,7 +107,7 @@ export default function DsbAssistancePage() {
 
             {status === "error" && (
               <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                Something went wrong. Please try again or email post@arbeidmatch.no.
+                Something went wrong. Please try again or email support@arbeidmatch.no.
               </p>
             )}
           </form>

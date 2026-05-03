@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
                 <p style="font-size:11px;color:rgba(255,255,255,0.25);line-height:1.8;margin:0;">
                   ArbeidMatch Norge AS | Org.nr 935 667 089 MVA<br />
                   Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway<br />
-                  <a href="mailto:post@arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">post@arbeidmatch.no</a>
+                  <a href="mailto:support@arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">support@arbeidmatch.no</a>
                   <span> | </span>
                   <a href="https://arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">arbeidmatch.no</a>
                   <span> | </span>

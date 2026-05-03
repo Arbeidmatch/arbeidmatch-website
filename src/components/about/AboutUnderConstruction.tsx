@@ -4,7 +4,7 @@ const FACTS = [
   { label: "Org.nr", value: "935 667 089 (MVA-registrert)" },
   { label: "Stiftet", value: "08. mai 2025" },
   { label: "Adresse", value: "Sverre Svendsens veg 38, 7056 Ranheim" },
-  { label: "E-post", value: "post@arbeidmatch.no" },
+  { label: "E-post", value: "support@arbeidmatch.no" },
   { label: "Telefon", value: "967 34 730" },
   { label: "Bransje", value: "78.200 - Midlertidig ansettelse" },
 ] as const;

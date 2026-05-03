@@ -195,10 +195,10 @@ export async function POST(request: NextRequest) {
           ...mailHeaders(),
           to: email,
           subject: "Your ArbeidMatch partner request",
-          text: "After reviewing your request, we are unable to offer partner access at this time. You are welcome to reapply in the future or contact us at post@arbeidmatch.no for more information.",
+          text: "After reviewing your request, we are unable to offer partner access at this time. You are welcome to reapply in the future or contact us at support@arbeidmatch.no for more information.",
           html: premiumEmailLayout(
             "Thank you for your interest.",
-            "After reviewing your request, we are unable to offer partner access at this time. You are welcome to reapply in the future or contact us at post@arbeidmatch.no for more information.",
+            "After reviewing your request, we are unable to offer partner access at this time. You are welcome to reapply in the future or contact us at support@arbeidmatch.no for more information.",
           ),
         });
       }

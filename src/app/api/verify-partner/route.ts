@@ -112,14 +112,14 @@ export async function POST(request: NextRequest) {
                 <a href="${secureUrl}" style="display:inline-block;background:#C9A84C;color:#0D1B2A;font-weight:700;font-size:15px;padding:16px 40px;border-radius:10px;text-decoration:none;">Access Candidate Profiles</a>
               </div>
               <p style="font-size:12px;color:rgba(255,255,255,0.3);line-height:1.6;margin:32px 0 0 0;">
-                This link is linked to your partner account. Do not share it with others. If you did not request this, contact post@arbeidmatch.no immediately.
+                This link is linked to your partner account. Do not share it with others. If you did not request this, contact support@arbeidmatch.no immediately.
               </p>
           </div>
           <div style="background:#0a0f18;padding:24px 36px;text-align:center;">
             <p style="font-size:11px;color:rgba(255,255,255,0.25);line-height:1.8;margin:0;">
               ArbeidMatch Norge AS | Org.nr 935 667 089 MVA<br />
               Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway<br />
-              <a href="mailto:post@arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">post@arbeidmatch.no</a>
+              <a href="mailto:support@arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">support@arbeidmatch.no</a>
               <span> | </span>
               <a href="https://arbeidmatch.no" style="color:rgba(201,168,76,0.5);text-decoration:none;">arbeidmatch.no</a>
             </p>

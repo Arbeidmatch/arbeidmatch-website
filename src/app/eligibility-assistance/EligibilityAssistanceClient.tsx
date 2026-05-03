@@ -432,7 +432,7 @@ export function EligibilityAssistanceClient() {
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <a
-                href="mailto:post@arbeidmatch.no"
+                href="mailto:support@arbeidmatch.no"
                 className="inline-flex rounded-md border border-[#E24B4A] bg-white px-4 py-2 text-sm font-medium text-[#E24B4A] hover:bg-[rgba(226,75,74,0.1)]"
               >
                 Contact Support
@@ -454,7 +454,7 @@ export function EligibilityAssistanceClient() {
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <a
-                href="mailto:post@arbeidmatch.no"
+                href="mailto:support@arbeidmatch.no"
                 className="inline-flex rounded-md border border-[#E24B4A] bg-white px-4 py-2 text-sm font-medium text-[#E24B4A] hover:bg-[rgba(226,75,74,0.1)]"
               >
                 Contact Support

@@ -102,7 +102,7 @@ export default function Footer() {
 
       <div className="border-t border-[rgba(255,255,255,0.08)]">
         <div className="mx-auto max-w-[1280px] px-6 py-4 text-center text-xs leading-relaxed text-[rgba(255,255,255,0.5)] md:px-10 lg:px-12">
-          Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway · post@arbeidmatch.no · arbeidmatch.no
+          Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway · support@arbeidmatch.no · arbeidmatch.no
         </div>
       </div>
     </footer>

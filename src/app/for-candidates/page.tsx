@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { ClipboardList, FileText, ShieldCheck, UserCheck } from "lucide-react";
 
@@ -43,15 +42,18 @@ const OFFER_CARDS: { title: string; text: string }[] = [
 ];
 
 const INDUSTRY_CHIPS = [
-  "Construction",
+  "Building",
+  "Infrastructure",
+  "Welding",
+  "Electrical",
+  "Production",
   "Logistics",
-  "Offshore",
-  "Automotive",
-  "Warehouse",
-  "Industry",
-  "Facility services",
+  "Cleaning",
   "Hospitality",
-  "Healthcare support",
+  "Automotive",
+  "Offshore",
+  "Fish Industry",
+  "General Labour",
 ] as const;
 
 const HOW_STEPS: { title: string; text: string; Icon: typeof FileText }[] = [
@@ -74,42 +76,46 @@ const HOW_STEPS: { title: string; text: string; Icon: typeof FileText }[] = [
 
 const DIRECT_COVERAGE: { title: string; description: string }[] = [
   {
-    title: "Construction & Civil",
-    description: "Building sites, civil works, concrete, formwork, and related trades with direct employment or hire out.",
+    title: "Building",
+    description: "Building sites, structures, concrete, formwork, and related trades with direct employment or hire out.",
   },
   {
-    title: "Industry & Production",
+    title: "Infrastructure",
+    description: "Civil works, roads, utilities, and infrastructure trades with direct employment or hire out.",
+  },
+  {
+    title: "Production",
     description: "Manufacturing, assembly lines, metal processing, and production roles on our own contracts.",
   },
 ];
 
 const PARTNER_COVERAGE: { title: string; description: string }[] = [
   {
-    title: "Electrical & Technical",
+    title: "Electrical",
     description: "Installers, technicians, and control roles matched through vetted staffing partners in Norway.",
   },
   {
-    title: "Logistics & Transport",
+    title: "Logistics",
     description: "Drivers, warehouse, and supply chain positions via partners who know local rules and routes.",
   },
   {
-    title: "Cleaning & Facility",
+    title: "Cleaning",
     description: "Commercial cleaning, property services, and facility teams through specialist agencies.",
   },
   {
-    title: "Hospitality & Healthcare",
-    description: "Hotels, food service, care support, and adjacent roles with partners focused on compliance.",
+    title: "Hospitality",
+    description: "Hotels, food service, and front-of-house roles with partners focused on compliance.",
   },
   {
-    title: "Automotive & Mechanics",
+    title: "Automotive",
     description: "Workshops, vehicle maintenance, and technical service introductions from trusted partners.",
   },
   {
-    title: "Offshore & Onshore",
+    title: "Offshore",
     description: "Energy, marine, and industrial site roles coordinated with partners who hold sector experience.",
   },
   {
-    title: "Other / General Labour",
+    title: "General Labour",
     description: "Flexible or mixed skill roles where we route you to the right partner for screening and placement.",
   },
 ];
@@ -164,7 +170,7 @@ export default function ForCandidatesPage() {
               rel={TALENT_NETWORK_FORM_ENABLED ? undefined : "noopener noreferrer"}
               className="btn-gold-premium mt-10 inline-flex min-h-[52px] w-full max-w-md items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-3.5 text-[16px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f] sm:mx-auto sm:w-auto"
             >
-              {TALENT_NETWORK_FORM_ENABLED ? "Join our talent network →" : "Browse jobs and apply →"}
+              {TALENT_NETWORK_FORM_ENABLED ? "Join our talent network →" : "See open positions →"}
             </a>
           </ScrollReveal>
         </div>
@@ -214,7 +220,7 @@ export default function ForCandidatesPage() {
                   We hire you directly and place you with our network of Norwegian clients.
                 </p>
               </ScrollReveal>
-              <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {DIRECT_COVERAGE.map((item) => (
                   <ScrollReveal key={item.title} variant="fadeUp">
                     <IndustryCoverageCard
@@ -307,13 +313,13 @@ export default function ForCandidatesPage() {
       >
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <h2 className="am-h2 font-display font-extrabold text-white">Ready to start?</h2>
+            <h2 className="am-h2 font-display font-extrabold text-white">Ready to find your next role?</h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
             <p className="mx-auto mt-3 max-w-lg text-sm text-white/65 md:text-base">
               {TALENT_NETWORK_FORM_ENABLED
                 ? "Leave your email and we will open a conversation about roles that fit your profile."
-                : "Use the jobs portal to see current openings and send your application in one place."}
+                : "Browse current openings across Norway and apply directly through our jobs portal."}
             </p>
           </ScrollReveal>
           {TALENT_NETWORK_FORM_ENABLED ? <TalentNetworkJoinForm /> : <JobsPortalCTA />}
