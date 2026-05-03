@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Română",
   description: "ArbeidMatch - recrutare EU/EEA pentru angajatori norvegieni.",
   alternates: { canonical: "https://www.arbeidmatch.no/ro" },
+  robots: { index: false, follow: false },
 };
 
 export default function RomanianLandingPage() {

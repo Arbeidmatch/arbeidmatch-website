@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Polski",
   description: "ArbeidMatch - rekrutacja z UE/EOG dla norweskich pracodawców.",
   alternates: { canonical: "https://www.arbeidmatch.no/pl" },
+  robots: { index: false, follow: false },
 };
 
 export default function PolishLandingPage() {

@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "English",
   description: "ArbeidMatch - EU/EEA recruitment for Norwegian employers.",
   alternates: { canonical: "https://www.arbeidmatch.no/en" },
+  robots: { index: false, follow: false },
 };
 
 export default function EnglishLandingPage() {

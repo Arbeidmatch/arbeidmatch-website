@@ -30,7 +30,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       "/bemanning-industri",
       "/bemanning-renhold",
       "/bemanning-horeca",
-      "/bemanning-helse",
     ].map((path) => ({
       url: `${SITE}${path}`,
       lastModified: primaryLastMod,
@@ -79,12 +78,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.68,
     },
-    ...["/en", "/ro", "/pl"].map((path) => ({
-      url: `${SITE}${path}`,
-      lastModified: stableLastMod,
-      changeFrequency: "monthly" as const,
-      priority: 0.55,
-    })),
     {
       url: `${SITE}/premium`,
       lastModified: primaryLastMod,
