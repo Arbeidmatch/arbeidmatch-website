@@ -709,7 +709,8 @@ export default function RequestTokenPage() {
   const { token } = useParams<{ token: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const startWizard = searchParams.get("start") === "wizard";
+  /** Default wizard for /request/[token] links (e.g. from simple-request). Only ?start=choice opens the entry cards first. */
+  const startWizard = searchParams.get("start") !== "choice";
   const SEARCH_MESSAGES = [
     "Connecting to candidate database...",
     "Searching registered profiles...",
