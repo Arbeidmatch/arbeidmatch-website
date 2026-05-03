@@ -1874,82 +1874,84 @@ export default function RequestTokenPage() {
                     <p className={labelClass}>How did you hear about us</p>
                     <div
                       data-wizard-field="howDidYouHear"
-                      className={wizardGroupShell(!!fieldErrors.howDidYouHear, "mt-2 grid grid-cols-1 gap-2")}
+                      className={wizardGroupShell(!!fieldErrors.howDidYouHear, "mt-2 flex flex-col gap-2")}
                     >
                       {HOW_DID_YOU_HEAR_OPTIONS.map((option) => (
-                        <OptionCard
-                          key={option}
-                          label={option}
-                          selected={form.howDidYouHear === option}
-                          onClick={() => {
-                            setForm((p) => ({
-                              ...p,
-                              howDidYouHear: option,
-                              ...(option === "Referral from another company"
-                                ? {}
-                                : {
-                                    referralCompanyName: "",
-                                    referralEmail: "",
-                                  }),
-                            }));
-                            clearFieldError("howDidYouHear");
-                            clearFieldError("referralCompanyName");
-                            clearFieldError("referralEmail");
-                          }}
-                        />
+                        <div key={option} className="flex flex-col gap-2">
+                          <OptionCard
+                            label={option}
+                            selected={form.howDidYouHear === option}
+                            onClick={() => {
+                              setForm((p) => ({
+                                ...p,
+                                howDidYouHear: option,
+                                ...(option === "Referral from another company"
+                                  ? {}
+                                  : {
+                                      referralCompanyName: "",
+                                      referralEmail: "",
+                                    }),
+                              }));
+                              clearFieldError("howDidYouHear");
+                              clearFieldError("referralCompanyName");
+                              clearFieldError("referralEmail");
+                            }}
+                          />
+                          {option === "Referral from another company" ? (
+                            <div
+                              className="overflow-hidden"
+                              style={{
+                                maxHeight:
+                                  form.howDidYouHear === "Referral from another company" ? "18rem" : "0px",
+                                transition: reducedMotion ? "none" : "max-height 300ms ease",
+                              }}
+                              aria-hidden={form.howDidYouHear !== "Referral from another company"}
+                            >
+                              <div
+                                className={`space-y-3 pl-1 ${
+                                  form.howDidYouHear === "Referral from another company"
+                                    ? ""
+                                    : "pointer-events-none"
+                                }`}
+                              >
+                                <div data-wizard-field="referralCompanyName">
+                                  <input
+                                    className={wizardInputClass(!!fieldErrors.referralCompanyName)}
+                                    value={form.referralCompanyName}
+                                    onChange={(e) => {
+                                      setForm((p) => ({ ...p, referralCompanyName: e.target.value }));
+                                      clearFieldError("referralCompanyName");
+                                    }}
+                                    placeholder="Company name"
+                                    autoComplete="organization"
+                                  />
+                                  {fieldErrors.referralCompanyName ? (
+                                    <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p>
+                                  ) : null}
+                                </div>
+                                <div data-wizard-field="referralEmail">
+                                  <input
+                                    className={wizardInputClass(!!fieldErrors.referralEmail)}
+                                    type="email"
+                                    value={form.referralEmail}
+                                    onChange={(e) => {
+                                      setForm((p) => ({ ...p, referralEmail: e.target.value }));
+                                      clearFieldError("referralEmail");
+                                    }}
+                                    placeholder="Company email (optional)"
+                                    autoComplete="email"
+                                  />
+                                  {fieldErrors.referralEmail ? (
+                                    <p className={fieldErrorTextClass}>Enter a valid email or leave blank</p>
+                                  ) : null}
+                                </div>
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
                       ))}
                     </div>
                     {fieldErrors.howDidYouHear ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
-                  </div>
-                  <div
-                    className={`grid overflow-hidden ${
-                      reducedMotion ? "" : "transition-[grid-template-rows] duration-200 ease-out"
-                    } ${form.howDidYouHear === "Referral from another company" ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
-                    aria-hidden={form.howDidYouHear !== "Referral from another company"}
-                  >
-                    <div className="min-h-0">
-                      <div
-                        className={`space-y-3 ${
-                          reducedMotion ? "" : "transition-opacity duration-200 ease-out"
-                        } ${
-                          form.howDidYouHear === "Referral from another company"
-                            ? "opacity-100"
-                            : "pointer-events-none opacity-0"
-                        }`}
-                      >
-                        <div data-wizard-field="referralCompanyName">
-                          <input
-                            className={wizardInputClass(!!fieldErrors.referralCompanyName)}
-                            value={form.referralCompanyName}
-                            onChange={(e) => {
-                              setForm((p) => ({ ...p, referralCompanyName: e.target.value }));
-                              clearFieldError("referralCompanyName");
-                            }}
-                            placeholder="Company name"
-                            autoComplete="organization"
-                          />
-                          {fieldErrors.referralCompanyName ? (
-                            <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p>
-                          ) : null}
-                        </div>
-                        <div data-wizard-field="referralEmail">
-                          <input
-                            className={wizardInputClass(!!fieldErrors.referralEmail)}
-                            type="email"
-                            value={form.referralEmail}
-                            onChange={(e) => {
-                              setForm((p) => ({ ...p, referralEmail: e.target.value }));
-                              clearFieldError("referralEmail");
-                            }}
-                            placeholder="Company email (optional)"
-                            autoComplete="email"
-                          />
-                          {fieldErrors.referralEmail ? (
-                            <p className={fieldErrorTextClass}>Enter a valid email or leave blank</p>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
