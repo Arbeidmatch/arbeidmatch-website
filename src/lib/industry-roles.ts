@@ -1,31 +1,61 @@
 /**
- * Canonical industry → role labels for /request and candidate-count.
+ * Canonical industry → role labels for /request, token availability check, and candidate-count.
  * Keep in sync across UI and API.
  */
 
-export const REQUEST_INDUSTRY_ROLE_GROUPS: { industry: string; roles: string[] }[] = [
+export type IndustryGroup = {
+  id: string;
+  label: string;
+  roles: readonly string[];
+};
+
+/** Eleven single-domain industries (English labels). */
+export const INDUSTRY_GROUPS: IndustryGroup[] = [
   {
-    industry: "Construction & Civil",
+    id: "building",
+    label: "Building",
     roles: [
       "Carpenter",
-      "Concrete worker",
-      "Steel fixer/rebar",
-      "Mason/Bricklayer",
-      "Welder MIG/MAG",
-      "Welder TIG",
-      "Pipe welder",
-      "Steel erector",
-      "Scaffolder",
-      "Roofer",
+      "Mason",
       "Plasterer",
       "Painter",
       "Tiler",
       "Insulator",
-      "Civil labourer",
+      "Drywaller",
+      "Glazier",
+      "Roofer",
+      "Plumber",
+      "Pipefitter",
     ],
   },
   {
-    industry: "Electrical & Technical",
+    id: "infrastructure",
+    label: "Infrastructure",
+    roles: [
+      "Excavator operator",
+      "Concrete pump operator",
+      "Civil labourer",
+      "Steel fixer",
+      "Concrete worker",
+      "Steel erector",
+      "Scaffolder",
+    ],
+  },
+  {
+    id: "welding",
+    label: "Welding",
+    roles: [
+      "Welder MIG/MAG",
+      "Welder TIG",
+      "Pipe welder",
+      "Boilermaker",
+      "Sheet metal worker",
+      "Offshore welder",
+    ],
+  },
+  {
+    id: "electrical",
+    label: "Electrical",
     roles: [
       "Industrial electrician",
       "Building electrician",
@@ -33,10 +63,25 @@ export const REQUEST_INDUSTRY_ROLE_GROUPS: { industry: string; roles: string[] }
       "Instrumentation technician",
       "HVAC technician",
       "Refrigeration technician",
+      "Marine electrician",
+      "Solar installer",
     ],
   },
   {
-    industry: "Logistics & Transport",
+    id: "production",
+    label: "Production",
+    roles: [
+      "CNC operator",
+      "Machine operator",
+      "Production worker",
+      "Quality control",
+      "Maintenance technician",
+      "Plant operator",
+    ],
+  },
+  {
+    id: "logistics",
+    label: "Logistics",
     roles: [
       "Truck driver C/CE",
       "Bus driver D",
@@ -47,110 +92,139 @@ export const REQUEST_INDUSTRY_ROLE_GROUPS: { industry: string; roles: string[] }
     ],
   },
   {
-    industry: "Industry & Production",
+    id: "cleaning",
+    label: "Cleaning",
+    roles: ["Cleaner", "Janitor", "Window cleaner", "Facility manager"],
+  },
+  {
+    id: "hospitality",
+    label: "Hospitality",
+    roles: ["Cook", "Kitchen assistant", "Waiter", "Hotel staff", "Receptionist"],
+  },
+  {
+    id: "automotive",
+    label: "Automotive",
     roles: [
-      "CNC operator",
-      "Machine operator",
-      "Production worker",
-      "Quality control",
-      "Mechanic industrial",
-      "Maintenance technician",
-      "Pipefitter",
+      "Car mechanic",
+      "Heavy equipment mechanic",
+      "HGV mechanic",
+      "Auto body technician",
+      "Tire technician",
     ],
   },
   {
-    industry: "Cleaning & Facility",
-    roles: ["Cleaner", "Facility manager", "Janitor", "Window cleaner"],
+    id: "offshore",
+    label: "Offshore",
+    roles: ["Offshore scaffolder", "Offshore rigger", "Onshore process operator", "ROV technician"],
   },
   {
-    industry: "Hospitality & Healthcare",
-    roles: ["Helsefagarbeider", "Pleiemedhjelper", "Cook", "Kitchen assistant", "Waiter", "Hotel staff"],
-  },
-  {
-    industry: "Automotive & Mechanics",
-    roles: ["Car mechanic", "Heavy equipment mechanic", "Auto body", "Tire technician"],
-  },
-  {
-    industry: "Offshore & Onshore",
-    roles: [
-      "Offshore welder",
-      "Offshore scaffolder",
-      "Offshore rigger",
-      "Onshore process operator",
-      "ROV technician",
-    ],
-  },
-  {
-    industry: "Other / General Labour",
+    id: "general",
+    label: "General Labour",
     roles: ["General labourer", "Helper"],
   },
 ];
 
-/** Extra search tokens per canonical role (Norwegian + common variants). */
+/** Legacy shape for /request and APIs: `industry` is the display label. */
+export const REQUEST_INDUSTRY_ROLE_GROUPS: { industry: string; roles: string[] }[] = INDUSTRY_GROUPS.map(({ label, roles }) => ({
+  industry: label,
+  roles: [...roles],
+}));
+
+/** Extra ATS title tokens per industry slug (merged into candidate-count industry queries). */
+export const INDUSTRY_MAP: Record<string, string[]> = {
+  building: ["Building", "Construction", "Bygg"],
+  infrastructure: ["Infrastructure", "Civil", "Anlegg"],
+  welding: ["Welding", "Sveising"],
+  electrical: ["Electrical", "Elektro"],
+  production: ["Production", "Industry", "Industri"],
+  logistics: ["Logistics", "Transport", "Logistikk"],
+  cleaning: ["Cleaning", "Renhold"],
+  hospitality: ["Hospitality", "HoReCa"],
+  automotive: ["Automotive", "Bilbransje"],
+  offshore: ["Offshore"],
+  general: ["General Labour", "Generelt"],
+};
+
+export function industrySlugForLabel(label: string): string | undefined {
+  return INDUSTRY_GROUPS.find((g) => g.label === label)?.id;
+}
+
+/** Extra search tokens per canonical role (Norwegian + common variants). Keys match role labels exactly. */
 export const ROLE_SYNONYMS: Record<string, string[]> = {
-  Carpenter: ["tømrer", "snekker", "carpentry"],
-  "Concrete worker": ["betongarbeider", "betong", "concrete"],
-  "Steel fixer/rebar": ["armerer", "jernbinder", "rebar", "betongarmering"],
-  "Mason/Bricklayer": ["murer", "murere", "bricklayer", "masonry"],
-  "Welder MIG/MAG": ["sveiser", "mig", "mag", "co2", "welder"],
-  "Welder TIG": ["sveiser", "tig", "welder"],
-  "Pipe welder": ["rørsveiser", "pipesveiser", "rør sveiser", "pipe weld"],
-  "Steel erector": ["stålmontør", "steel assembly", "montør"],
-  Scaffolder: ["stillasbygger", "stillas", "scaffolding"],
-  Roofer: ["taktekker", "tak", "roofing"],
-  Plasterer: ["pussarbeider", "gips", "stukkatur"],
-  Painter: ["maler", "maling"],
-  Tiler: ["flislegger", "flis"],
-  Insulator: ["isolatør", "isolering"],
-  "Civil labourer": ["anleggsarbeider", "anlegg", "gravearbeider", "labourer"],
+  Carpenter: ["carpenter", "tømrer", "snekker"],
+  Mason: ["mason", "bricklayer", "murer"],
+  Plasterer: ["plasterer", "pusser", "murpusser"],
+  Painter: ["painter", "maler"],
+  Tiler: ["tiler", "flislegger"],
+  Insulator: ["insulator", "isolasjonsarbeider"],
+  Drywaller: ["drywaller", "drywall fitter", "plasterboard", "gipsmonter"],
+  Glazier: ["glazier", "glassmester"],
+  Roofer: ["roofer", "taktekker"],
+  Plumber: ["plumber", "rørlegger"],
+  Pipefitter: ["pipefitter", "rørmontør", "rørmontor"],
 
-  "Industrial electrician": ["industrielektriker", "industri elkraft"],
-  "Building electrician": ["bygningselektriker", "elektriker", "installatør"],
-  "Automation technician": ["automatikker", "automasjon", "plc"],
-  "Instrumentation technician": ["instrumentering", "feltinstrumentering"],
-  "HVAC technician": ["ventilasjon", "klima", "varme og ventilasjon", "vvs tekniker"],
-  "Refrigeration technician": ["kjøletekniker", "kulde", "klimaanlegg"],
+  "Excavator operator": ["excavator operator", "digger operator", "gravemaskinfører", "gravemaskinforer"],
+  "Concrete pump operator": ["concrete pump operator", "betongpumpe operatør", "betongpumpe operator"],
+  "Civil labourer": ["civil labourer", "anleggsarbeider"],
+  "Steel fixer": ["steel fixer", "rebar", "jernbinder", "armerer"],
+  "Concrete worker": ["concrete worker", "betongarbeider"],
+  "Steel erector": ["steel erector", "stålmontør", "stålmontor"],
+  Scaffolder: ["scaffolder", "stillasbygger"],
 
-  "Truck driver C/CE": ["lastebil", "vogntog", "sjåfør", "c/ce", "yrkessjåfør"],
-  "Bus driver D": ["bussjåfør", "buss", "d-kort"],
-  "Delivery driver B": ["budbil", "varebil", "bud"],
-  "Forklift operator": ["truckfører", "truck", "gaffeltruck", "fltruck"],
-  "Warehouse worker": ["lagerarbeider", "lager", "logistikk arbeider"],
-  "Crane operator": ["kranfører", "kran"],
+  "Welder MIG/MAG": ["welder", "mig", "mag", "sveiser"],
+  "Welder TIG": ["tig welder", "tig sveiser"],
+  "Pipe welder": ["pipe welder", "rørsveiser"],
+  Boilermaker: ["boilermaker", "kjelemaker"],
+  "Sheet metal worker": ["sheet metal", "tinsmith", "blikkenslager"],
+  "Offshore welder": ["offshore welder", "offshore sveiser"],
 
-  "CNC operator": ["cnc", "maskinkjører"],
-  "Machine operator": ["maskinoperatør", "maskin"],
-  "Production worker": ["produksjonsarbeider", "produksjon"],
-  "Quality control": ["kvalitet", "kvalitetskontroll", "qc"],
-  "Mechanic industrial": ["industrimekaniker", "mekaniker"],
-  "Maintenance technician": ["vedlikehold", "vedlikeholdstekniker", "driftstekniker"],
-  Pipefitter: ["rørlegger industri", "rørmontør", "pipe fitter"],
+  "Industrial electrician": ["industrial electrician", "industrielektriker"],
+  "Building electrician": ["building electrician", "byggelektriker", "elektriker"],
+  "Automation technician": ["automation", "automatiker"],
+  "Instrumentation technician": ["instrumentation", "instrumenttekniker"],
+  "HVAC technician": ["hvac", "ventilasjon", "ventilasjonsarbeider"],
+  "Refrigeration technician": ["refrigeration", "kulde", "kuldemontør"],
+  "Marine electrician": ["marine electrician", "skipselektriker"],
+  "Solar installer": ["solar installer", "solcelleinstallatør", "solcelleinstallator"],
 
-  Cleaner: ["renholder", "renhold"],
-  "Facility manager": ["drift ansvarlig", "facility"],
-  Janitor: ["vaktmester", "servicearbeider"],
-  "Window cleaner": ["fasadeworker", "vinduspuss"],
+  "CNC operator": ["cnc", "cnc operator"],
+  "Machine operator": ["machine operator", "maskinoperatør"],
+  "Production worker": ["production worker", "produksjonsarbeider"],
+  "Quality control": ["quality control", "kvalitetskontroll", "qa"],
+  "Maintenance technician": ["maintenance", "vedlikehold", "vedlikeholdstekniker"],
+  "Plant operator": ["plant operator", "anleggsoperatør", "anleggsoperator"],
 
-  Helsefagarbeider: ["health care worker", "helsefag", "sykepleierassistent"],
-  Pleiemedhjelper: ["pleier", "omsorg", "hjelpepleier"],
-  Cook: ["kokk", "chef"],
-  "Kitchen assistant": ["kjøkkenhjelp", "kjøkken assistent"],
-  Waiter: ["servitør", "servise"],
-  "Hotel staff": ["hotell", "resepsjon", "housekeeping"],
+  "Truck driver C/CE": ["truck driver", "lastebilsjåfør", "sjåfør c", "sjåfør ce"],
+  "Bus driver D": ["bus driver", "bussjåfør", "sjåfør d"],
+  "Delivery driver B": ["delivery driver", "budbilsjåfør"],
+  "Forklift operator": ["forklift", "truck", "truckfører", "gaffeltruck"],
+  "Warehouse worker": ["warehouse", "lagerarbeider"],
+  "Crane operator": ["crane operator", "kranfører"],
 
-  "Car mechanic": ["personbil mekaniker", "verksted mekaniker"],
-  "Heavy equipment mechanic": ["anleggsmaskin mekaniker", "tung mekaniker"],
-  "Auto body": ["karosseri", "lakkerer", "platesmed"],
-  "Tire technician": ["dekk", "dekktekniker"],
+  Cleaner: ["cleaner", "renholder"],
+  Janitor: ["janitor", "vaktmester"],
+  "Window cleaner": ["window cleaner", "vinduspusser"],
+  "Facility manager": ["facility manager", "driftsoperatør"],
 
-  "Offshore welder": ["offshore sveiser", "offshore welding"],
-  "Offshore scaffolder": ["offshore stillas"],
-  "Offshore rigger": ["offshore rigging", "rigger"],
-  "Onshore process operator": ["prosesstekniker", "anleggsoperatør"],
-  "ROV technician": ["rov", "undervanns teknologi"],
+  Cook: ["cook", "kokk"],
+  "Kitchen assistant": ["kitchen assistant", "kjøkkenassistent"],
+  Waiter: ["waiter", "servitør"],
+  "Hotel staff": ["hotel staff", "hotellansatt"],
+  Receptionist: ["receptionist", "resepsjonist"],
 
-  "General labourer": ["arbeider", "hjelp arbeider", "allround"],
-  Helper: ["hjelpearbeider", "medhjelper"],
+  "Car mechanic": ["car mechanic", "bilmekaniker"],
+  "Heavy equipment mechanic": ["heavy equipment mechanic", "anleggsmaskinmekaniker"],
+  "HGV mechanic": ["hgv mechanic", "truck mechanic", "lastebilmekaniker"],
+  "Auto body technician": ["auto body", "karosseri", "billakkerer"],
+  "Tire technician": ["tire technician", "dekktekniker"],
+
+  "Offshore scaffolder": ["offshore scaffolder", "offshore stillasbygger"],
+  "Offshore rigger": ["offshore rigger", "rigger"],
+  "Onshore process operator": ["process operator", "prosessoperatør"],
+  "ROV technician": ["rov", "rov technician", "rov operatør"],
+
+  "General labourer": ["general labourer", "generell arbeider", "arbeider"],
+  Helper: ["helper", "hjelpearbeider"],
 };
 
 export function roleSearchKeywords(role: string): string[] {

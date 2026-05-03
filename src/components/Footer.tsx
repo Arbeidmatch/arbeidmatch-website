@@ -71,7 +71,6 @@ export default function Footer() {
             <FooterNavLink href="/bemanning-logistikk" label="Logistics" />
             <FooterNavLink href="/bemanning-renhold" label="Cleaning" />
             <FooterNavLink href="/bemanning-horeca" label="Hospitality" />
-            <FooterNavLink href="/bemanning-helse" label="Healthcare" />
             <FooterNavLink href="/welding-specialists" label="Welding Specialists" />
             <FooterNavLink href="/bemanningsbyrå-trondheim" label="Trondheim" />
             <FooterNavLink href="/bemanningsbyrå-bergen" label="Bergen" />

@@ -6,21 +6,23 @@ import { FormEvent, MouseEvent as ReactMouseEvent, useCallback, useEffect, useMe
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
+  Anchor,
   ArrowLeft,
   Bolt,
-  Briefcase,
+  Building2,
+  Car,
   Check,
   Clock,
   Factory,
+  Flame,
   Handshake,
   HardHat,
-  HeartPulse,
   Search,
-  Ship,
   Sparkles,
   TrendingUp,
   Truck,
-  Wrench,
+  Users,
+  Utensils,
   Zap,
 } from "lucide-react";
 
@@ -36,15 +38,17 @@ type VerifyPartnerResponse = {
 };
 
 const INDUSTRY_ICONS: Record<string, LucideIcon> = {
-  "Construction & Civil": HardHat,
-  "Electrical & Technical": Zap,
-  "Logistics & Transport": Truck,
-  "Industry & Production": Factory,
-  "Cleaning & Facility": Sparkles,
-  "Hospitality & Healthcare": HeartPulse,
-  "Automotive & Mechanics": Wrench,
-  "Offshore & Onshore": Ship,
-  "Other / General Labour": Briefcase,
+  Building: HardHat,
+  Infrastructure: Building2,
+  Welding: Flame,
+  Electrical: Zap,
+  Production: Factory,
+  Logistics: Truck,
+  Cleaning: Sparkles,
+  Hospitality: Utensils,
+  Automotive: Car,
+  Offshore: Anchor,
+  "General Labour": Users,
 };
 
 const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: LucideIcon; roles: string[] }> = REQUEST_INDUSTRY_ROLE_GROUPS.map(
@@ -249,7 +253,6 @@ export default function RequestPage() {
   const [partnerSessionHydrated, setPartnerSessionHydrated] = useState(false);
   const partnerVerifyFromRef = useRef<"partner_check" | "modal">("modal");
   const [selectedIndustry, setSelectedIndustry] = useState("");
-  const [pendingIndustry, setPendingIndustry] = useState("");
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [roleQuery, setRoleQuery] = useState("");
 
@@ -313,21 +316,13 @@ export default function RequestPage() {
     const group = CHECK_ROLE_GROUPS.find((item) => item.industry === selectedIndustry);
     if (!group) return [];
     const query = roleQuery.trim().toLowerCase();
-    if (!query) return group.roles.slice(0, 8);
+    if (!query) return group.roles;
     const startsWith = group.roles.filter((role) => role.toLowerCase().startsWith(query));
     const contains = group.roles.filter(
       (role) => role.toLowerCase().includes(query) && !role.toLowerCase().startsWith(query),
     );
-    return [...startsWith, ...contains].slice(0, 8);
+    return [...startsWith, ...contains];
   }, [roleQuery, selectedIndustry]);
-
-  useEffect(() => {
-    if (selectedIndustry) {
-      setPendingIndustry(selectedIndustry);
-      return;
-    }
-    setPendingIndustry("");
-  }, [selectedIndustry]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -417,13 +412,13 @@ export default function RequestPage() {
     if (!group) return;
     const query = roleQuery.trim().toLowerCase();
     let roles: string[];
-    if (!query) roles = group.roles.slice(0, 8);
+    if (!query) roles = group.roles;
     else {
       const startsWith = group.roles.filter((role) => role.toLowerCase().startsWith(query));
       const contains = group.roles.filter(
         (role) => role.toLowerCase().includes(query) && !role.toLowerCase().startsWith(query),
       );
-      roles = [...startsWith, ...contains].slice(0, 8);
+      roles = [...startsWith, ...contains];
     }
     if (!roles.length) {
       setRoleCounts({});
@@ -1007,46 +1002,7 @@ export default function RequestPage() {
                   animate="center"
                   exit={reduceMotion ? undefined : "exit"}
                 >
-                  <div className="lg:hidden">
-                    <div className="relative">
-                      <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                      <select
-                        className="w-full rounded-xl border border-white/10 bg-[#0D1B2A] py-3 pl-11 pr-4 text-white placeholder:text-white/30 outline-none ring-0 transition-[border,box-shadow] duration-200 focus:border-[#C9A84C]/60 focus:shadow-[0_0_0_3px_rgba(201,168,76,0.14)]"
-                        value={pendingIndustry}
-                        onChange={(event) => {
-                          setPendingIndustry(event.target.value);
-                        }}
-                      >
-                        <option value="">Select a role...</option>
-                        {CHECK_ROLE_GROUPS.map(({ industry }) => {
-                          const c = industryCounts[industry];
-                          const suffix = c === null || c === undefined ? " …" : ` (${c})`;
-                          return (
-                            <option key={industry} value={industry}>
-                              {industry}
-                              {suffix}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!pendingIndustry) return;
-                        setFlowDirection(1);
-                        setSelectedIndustry(pendingIndustry);
-                        setPickerStep("roles");
-                        setRoleQuery("");
-                      }}
-                      disabled={!pendingIndustry}
-                      className="mt-3 w-full rounded-xl bg-[#C9A84C] py-3 font-semibold text-[#0D1B2A] disabled:opacity-50"
-                    >
-                      Continue
-                    </button>
-                  </div>
-
-                  <div className="hidden grid-cols-3 gap-4 lg:grid">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {CHECK_ROLE_GROUPS.map(({ industry, icon: Icon }, index) => {
                       const isSelected = selectedIndustry === industry;
                       return (
@@ -1119,7 +1075,7 @@ export default function RequestPage() {
                     </div>
                   </div>
                   {filteredRoles.length > 0 ? (
-                    <motion.div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <motion.div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       {filteredRoles.map((role, index) => {
                         const rc = roleCounts[role];
                         return (

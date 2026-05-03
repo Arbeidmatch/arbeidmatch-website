@@ -25,7 +25,6 @@ const moreMenuLinks = [
   { href: "/bemanning-logistikk", label: "Logistics" },
   { href: "/bemanning-renhold", label: "Cleaning" },
   { href: "/bemanning-horeca", label: "Hospitality" },
-  { href: "/bemanning-helse", label: "Healthcare" },
   { href: "/welding-specialists", label: "Welding Specialists" },
   { href: "/electricians-norway", label: "Electricians in Norway" },
   { href: "/for-staffing-agencies", label: "Become a partner agency" },

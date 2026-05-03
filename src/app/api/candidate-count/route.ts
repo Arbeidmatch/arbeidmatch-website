@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-import { REQUEST_INDUSTRY_ROLE_GROUPS, ROLE_SYNONYMS, roleSearchKeywords } from "@/lib/industry-roles";
+import {
+  INDUSTRY_MAP,
+  REQUEST_INDUSTRY_ROLE_GROUPS,
+  ROLE_SYNONYMS,
+  industrySlugForLabel,
+  roleSearchKeywords,
+} from "@/lib/industry-roles";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +42,13 @@ function allKeywordsForIndustry(industry: string): string[] {
     if (r.length >= 2) terms.add(r);
     for (const s of ROLE_SYNONYMS[role] ?? []) {
       const t = s.trim();
+      if (t.length >= 2) terms.add(t);
+    }
+  }
+  const slug = industrySlugForLabel(industry);
+  if (slug) {
+    for (const extra of INDUSTRY_MAP[slug] ?? []) {
+      const t = extra.trim();
       if (t.length >= 2) terms.add(t);
     }
   }

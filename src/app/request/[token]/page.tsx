@@ -4,16 +4,20 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
+  Anchor,
   Bolt,
   Briefcase,
+  Building2,
+  Car,
   Factory,
+  Flame,
   HardHat,
-  HeartPulse,
   LucideIcon,
-  Ship,
   Sparkles,
   Star,
   Truck,
+  Users,
+  Utensils,
   Wrench,
   X,
 } from "lucide-react";
@@ -613,15 +617,17 @@ function wizardGroupShell(invalid: boolean, extraClass = "") {
 }
 
 const INDUSTRY_ICONS: Record<string, LucideIcon> = {
-  "Construction & Civil": HardHat,
-  "Electrical & Technical": Bolt,
-  "Logistics & Transport": Truck,
-  "Industry & Production": Factory,
-  "Cleaning & Facility": Sparkles,
-  "Hospitality & Healthcare": HeartPulse,
-  "Automotive & Mechanics": Wrench,
-  "Offshore & Onshore": Ship,
-  "Other / General Labour": Briefcase,
+  Building: HardHat,
+  Infrastructure: Building2,
+  Welding: Flame,
+  Electrical: Bolt,
+  Production: Factory,
+  Logistics: Truck,
+  Cleaning: Sparkles,
+  Hospitality: Utensils,
+  Automotive: Car,
+  Offshore: Anchor,
+  "General Labour": Users,
 };
 
 const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: LucideIcon; roles: string[] }> = REQUEST_INDUSTRY_ROLE_GROUPS.map(

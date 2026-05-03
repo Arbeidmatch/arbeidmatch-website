@@ -3,7 +3,22 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, startTransition, useEffect, useMemo, useRef, useState } from "react";
-import { Anchor, ArrowLeft, Bolt, Briefcase, Car, Clock3, Factory, HardHat, HeartPulse, Sparkles, Star, Truck, Users } from "lucide-react";
+import {
+  Anchor,
+  ArrowLeft,
+  Bolt,
+  Building2,
+  Car,
+  Clock3,
+  Factory,
+  Flame,
+  HardHat,
+  Sparkles,
+  Star,
+  Truck,
+  Users,
+  Utensils,
+} from "lucide-react";
 
 import { REQUEST_INDUSTRY_ROLE_GROUPS } from "@/lib/industry-roles";
 
@@ -13,15 +28,17 @@ type VerifyPartnerResponse = {
 };
 
 const INDUSTRY_ICONS: Record<string, typeof HardHat> = {
-  "Construction & Civil": HardHat,
-  "Electrical & Technical": Bolt,
-  "Logistics & Transport": Truck,
-  "Industry & Production": Factory,
-  "Cleaning & Facility": Sparkles,
-  "Hospitality & Healthcare": HeartPulse,
-  "Automotive & Mechanics": Car,
-  "Offshore & Onshore": Anchor,
-  "Other / General Labour": Briefcase,
+  Building: HardHat,
+  Infrastructure: Building2,
+  Welding: Flame,
+  Electrical: Bolt,
+  Production: Factory,
+  Logistics: Truck,
+  Cleaning: Sparkles,
+  Hospitality: Utensils,
+  Automotive: Car,
+  Offshore: Anchor,
+  "General Labour": Users,
 };
 
 const CHECK_ROLE_GROUPS: Array<{ industry: string; icon: typeof HardHat; roles: string[] }> = REQUEST_INDUSTRY_ROLE_GROUPS.map(
