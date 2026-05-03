@@ -123,6 +123,7 @@ export async function POST(request: NextRequest) {
 
     return noStoreJson({ success: true, token });
   } catch (error) {
+    console.error("[simple-request] POST handler error:", error);
     logApiError("simple-request", error);
     await notifyError({
       route: "/api/simple-request",

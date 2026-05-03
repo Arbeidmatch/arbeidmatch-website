@@ -612,12 +612,36 @@ export default function RequestPage() {
   };
 
   const submitGetStartedLink = async () => {
-    if (!getStartedGdpr || !selectedRole || !selectedIndustry) return;
+    const industryResolved =
+      selectedIndustry.trim() ||
+      (selectedRole
+        ? (CHECK_ROLE_GROUPS.find((item) => item.roles.includes(selectedRole))?.industry ?? "").trim()
+        : "");
+
+    if (!getStartedGdpr) {
+      setGetStartedError("Please accept the privacy policy to continue.");
+      return;
+    }
+    if (!selectedRole) {
+      setGetStartedError("Please choose a role first.");
+      console.error("[simple-request] Submit blocked: missing selectedRole");
+      return;
+    }
+    if (!industryResolved) {
+      setGetStartedError("Please select an industry so we can route your request.");
+      console.error("[simple-request] Submit blocked: missing industry", {
+        selectedRole,
+        selectedIndustry,
+      });
+      return;
+    }
+
     const email = getStartedEmail.trim().toLowerCase();
     if (!email.includes("@")) {
       setGetStartedError("Please enter a valid email.");
       return;
     }
+
     setGetStartedSubmitting(true);
     setGetStartedError("");
     try {
@@ -634,23 +658,32 @@ export default function RequestPage() {
           howDidYouHear: "website-request",
           gdprConsent: true,
           role: selectedRole,
-          industry: selectedIndustry,
+          industry: industryResolved,
         }),
       });
-      const data = (await response.json().catch(() => null)) as { success?: boolean; token?: string } | null;
-      if (!response.ok || !data?.success || !data.token) {
+      const data = (await response.json().catch(() => null)) as
+        | { success?: boolean; token?: string; error?: string }
+        | null;
+
+      if (!response.ok) {
+        console.error("[simple-request] Server error:", response.status, data ?? "(empty body)");
+        setGetStartedError("Server error. Please try again or contact support@arbeidmatch.no.");
+        return;
+      }
+      if (!data?.success || !data.token) {
+        console.error("[simple-request] Unexpected response:", data);
         setGetStartedError("Something went wrong. Please try again or contact support@arbeidmatch.no.");
-        setGetStartedSubmitting(false);
         return;
       }
       try {
-        sessionStorage.setItem("request-picker-restore", JSON.stringify({ industry: selectedIndustry }));
+        sessionStorage.setItem("request-picker-restore", JSON.stringify({ industry: industryResolved }));
       } catch {
         /* ignore */
       }
       router.push(`/request/${data.token}`);
-    } catch {
-      setGetStartedError("Something went wrong. Please try again or contact support@arbeidmatch.no.");
+    } catch (err) {
+      console.error("[simple-request] Submit failed:", err);
+      setGetStartedError("Could not send link. Please try again or contact support@arbeidmatch.no.");
     } finally {
       setGetStartedSubmitting(false);
     }
