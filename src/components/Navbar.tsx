@@ -152,7 +152,7 @@ export default function Navbar() {
             <div className="group relative">
               <button
                 type="button"
-                className={`${navItemClass} inline-flex items-center gap-1`}
+                className={`${navItemClass} inline-flex items-center gap-1 whitespace-nowrap`}
                 aria-expanded="false"
                 aria-haspopup="true"
                 aria-label="Industries and locations menu"
