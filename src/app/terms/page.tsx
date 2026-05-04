@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { LegalDocumentPage, LegalDocumentUnavailable } from "@/components/legal/LegalDocumentPage";
-import { getLegalDocument } from "@/lib/legal-documents";
+import { AtsLegalDocumentFallback, AtsLegalDocumentPage } from "@/components/legal/AtsLegalDocumentPage";
+import { fetchAtsLegalDocument } from "@/lib/atsLegalDocument";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
 export const revalidate = 300;
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 };
 
 export default async function TermsPage() {
-  const doc = await getLegalDocument("terms");
-  if (!doc) return <LegalDocumentUnavailable />;
-  return <LegalDocumentPage doc={doc} />;
+  const doc = await fetchAtsLegalDocument("tos-platform");
+  if (!doc) return <AtsLegalDocumentFallback />;
+  return <AtsLegalDocumentPage doc={doc} />;
 }

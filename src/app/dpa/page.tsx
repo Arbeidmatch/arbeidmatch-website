@@ -6,9 +6,8 @@ import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
 export const revalidate = 300;
 
-const TITLE = "Privacy Policy | ArbeidMatch";
-const DESCRIPTION =
-  "How ArbeidMatch Norge AS collects, processes, and protects personal data under GDPR and Norwegian law.";
+const TITLE = "Data Processing Agreement | ArbeidMatch";
+const DESCRIPTION = "Data processing terms for ArbeidMatch Norge AS and recruitment partners.";
 
 const OG_IMAGE = {
   url: "/og-image.png",
@@ -17,7 +16,7 @@ const OG_IMAGE = {
   alt: "ArbeidMatch | EU/EEA Recruitment Norway",
 } as const;
 
-const base = nbPageMetadata("/privacy", TITLE, DESCRIPTION);
+const base = nbPageMetadata("/dpa", TITLE, DESCRIPTION);
 
 export const metadata: Metadata = {
   ...base,
@@ -36,8 +35,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function PrivacyPage() {
-  const doc = await fetchAtsLegalDocument("privacy-notice");
+export default async function DpaPage() {
+  const doc = await fetchAtsLegalDocument("dpa-recruiter");
   if (!doc) return <AtsLegalDocumentFallback />;
   return <AtsLegalDocumentPage doc={doc} />;
 }

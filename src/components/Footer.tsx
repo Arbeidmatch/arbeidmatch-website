@@ -64,6 +64,7 @@ export default function Footer() {
             <FooterColumnTitle>Legal</FooterColumnTitle>
             <FooterNavLink href="/privacy" label="Privacy Policy" />
             <FooterNavLink href="/terms" label="Terms of Service" />
+            <FooterNavLink href="/dpa" label="Data Processing Agreement" />
           </div>
         </div>
 
