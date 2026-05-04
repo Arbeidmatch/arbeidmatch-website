@@ -1,13 +1,16 @@
 /** Default markdown bodies for POST /api/seed-legal-documents (AM-WEB-076). */
 
 export const SEED_PRIVACY_MD = `# Privacy Policy
-Last updated: 2 May 2026
+
+Last updated: 4 May 2026
 
 ## 1. Data Controller
+
 ArbeidMatch Norge AS, organization number 935 667 089 MVA, registered at Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway.
 Contact for privacy and data protection: legal@arbeidmatch.no
 
 ## 2. What Data We Collect
+
 We collect personal data through the following flows on this website:
 
 (a) Employer request form: name, email, phone, company name, organization number, country, job description, salary expectations, location, accommodation needs, transport details, driving license requirements, D-number status.
@@ -23,13 +26,16 @@ We collect personal data through the following flows on this website:
 (f) Technical data: IP address, browser type, language, timestamps. Used only for security and basic site functionality. No analytics tracking.
 
 ## 3. Legal Basis
+
 We process personal data based on:
+
 (a) Performance of a contract (employer requests, recruitment services)
 (b) Legitimate interest (contact form, sourcing operations, security)
 (c) Explicit consent (talent network registration, non-EU signups)
 (d) Legal obligation (record-keeping under Norwegian law, response to GDPR rights requests)
 
 ## 4. How We Use Your Data
+
 (a) To provide recruitment services between candidates and Norwegian employers
 (b) To respond to inquiries
 (c) To match candidates with relevant roles
@@ -37,16 +43,21 @@ We process personal data based on:
 (e) To comply with Norwegian law and respond to data subject rights
 
 ## 5. Who We Share It With
+
 We share your personal data only with the following processors, all located within the EU:
+
 (a) Supabase (database hosting), EU region
 (b) Vercel (web hosting), EU region (Frankfurt)
 (c) one.com (email services), EU
+
 We share candidate data with verified Norwegian employers and partner staffing agencies only after explicit consent or contract performance.
 
 ## 6. International Transfers
+
 All personal data is stored and processed within the EU/EEA. We do not transfer personal data outside the EU/EEA.
 
 ## 7. How Long We Keep It
+
 (a) Employer leads: 24 months from last interaction
 (b) Active candidates: duration of profile plus 12 months
 (c) Consent records: kept permanently for audit purposes
@@ -54,7 +65,9 @@ All personal data is stored and processed within the EU/EEA. We do not transfer 
 (e) Pseudonymized data: kept indefinitely for legitimate business and statistical purposes
 
 ## 8. Your Rights
+
 Under GDPR Articles 15 to 22, you have the right to:
+
 (a) Access your personal data
 (b) Request rectification
 (c) Request erasure or pseudonymization
@@ -64,25 +77,27 @@ Under GDPR Articles 15 to 22, you have the right to:
 (g) Withdraw consent at any time
 (h) Lodge a complaint with Datatilsynet (datatilsynet.no)
 
-To exercise any of these rights, submit our [legal request form](/legal-request) or email legal@arbeidmatch.no. We will respond within 30 days as required by GDPR Article 12.
+To exercise any of these rights, submit our legal request form at arbeidmatch.no/legal-request or email legal@arbeidmatch.no. We will respond within 30 days as required by GDPR Article 12.
 
 ## 9. Cookies
+
 We use only essential cookies required for the site to function. We do not use third-party analytics or advertising cookies.
 
 ## 10. Security
+
 We apply technical and organizational measures appropriate to the risk, including encryption in transit, access controls, and regular review of processing activities.
 
 ## 11. Changes to This Policy
+
 We may update this Privacy Policy. The date at the top reflects the latest revision. Previous versions are archived and available on request.
 
 ## 12. Contact and Complaints
+
 Privacy and data protection inquiries: legal@arbeidmatch.no
 General support: support@arbeidmatch.no
 Supervisory authority: Datatilsynet, Postboks 458 Sentrum, 0105 Oslo, datatilsynet.no
 
 This Privacy Policy is governed by Norwegian law.
-
-[Read our Terms of Service](/terms)
 `;
 
 export const SEED_TERMS_MD = `# Terms of Service
