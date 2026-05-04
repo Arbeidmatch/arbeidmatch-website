@@ -7,6 +7,8 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
+import { NAV_CITY_LINKS, NAV_INDUSTRY_LINKS } from "@/lib/navIndustriesLocations";
+import { ChevronDown } from "lucide-react";
 
 const desktopNavLinks = [
   { href: "/request", label: "For Employers" },
@@ -147,6 +149,58 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <div className="group relative">
+              <button
+                type="button"
+                className={`${navItemClass} inline-flex items-center gap-1`}
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="Industries and locations menu"
+              >
+                Industries & Locations
+                <ChevronDown className="h-4 w-4 shrink-0 opacity-70 transition-transform duration-200 group-hover:rotate-180" aria-hidden />
+              </button>
+              <div
+                className="pointer-events-none invisible absolute left-1/2 top-full z-[300] w-[min(92vw,440px)] -translate-x-1/2 pt-2 opacity-0 transition-[opacity,visibility] duration-150 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100"
+                role="region"
+                aria-label="Industries and locations"
+              >
+                <div className="rounded-lg border border-white/10 bg-[#0D1B2A] p-4 shadow-[0_16px_48px_rgba(0,0,0,0.45)]">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#C9A84C]/90">Industries</p>
+                      <ul className="space-y-1">
+                        {NAV_INDUSTRY_LINKS.map((item) => (
+                          <li key={item.href}>
+                            <Link
+                              href={item.href}
+                              className="block rounded-md px-2 py-1.5 text-[13px] text-white/75 transition-colors hover:bg-white/5 hover:text-white"
+                            >
+                              {item.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#C9A84C]/90">Locations</p>
+                      <ul className="space-y-1">
+                        {NAV_CITY_LINKS.map((item) => (
+                          <li key={item.href}>
+                            <Link
+                              href={item.href}
+                              className="block rounded-md px-2 py-1.5 text-[13px] text-white/75 transition-colors hover:bg-white/5 hover:text-white"
+                            >
+                              {item.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </nav>
 
           <div className="hidden shrink-0 xl:block">

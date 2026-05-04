@@ -39,7 +39,6 @@ const INDUSTRY_ICONS: Record<string, typeof HardHat> = {
   Hospitality: Utensils,
   Automotive: Car,
   Offshore: Anchor,
-  "General Labour": Users,
   "Fish Industry": Waves,
 };
 

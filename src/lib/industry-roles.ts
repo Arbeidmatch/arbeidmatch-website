@@ -9,7 +9,7 @@ export type IndustryGroup = {
   roles: readonly string[];
 };
 
-/** Twelve single-domain industries (English labels). */
+/** Eleven single-domain industries (English labels). */
 export const INDUSTRY_GROUPS: IndustryGroup[] = [
   {
     id: "building",
@@ -119,11 +119,6 @@ export const INDUSTRY_GROUPS: IndustryGroup[] = [
     roles: ["Offshore scaffolder", "Offshore rigger", "Onshore process operator", "ROV technician"],
   },
   {
-    id: "general",
-    label: "General Labour",
-    roles: ["General labourer", "Helper"],
-  },
-  {
     id: "fish-industry",
     label: "Fish Industry",
     roles: [
@@ -155,7 +150,6 @@ export const INDUSTRY_MAP: Record<string, string[]> = {
   hospitality: ["Hospitality", "HoReCa"],
   automotive: ["Automotive", "Bilbransje"],
   offshore: ["Offshore"],
-  general: ["General Labour", "Generelt"],
   "fish-industry": ["Fish Industry", "Fish processing", "Aquaculture", "Fisk"],
 };
 
@@ -242,9 +236,6 @@ export const ROLE_SYNONYMS: Record<string, string[]> = {
   "Offshore rigger": ["offshore rigger", "rigger"],
   "Onshore process operator": ["process operator", "prosessoperatør"],
   "ROV technician": ["rov", "rov technician", "rov operatør"],
-
-  "General labourer": ["general labourer", "generell arbeider", "arbeider"],
-  Helper: ["helper", "hjelpearbeider"],
 
   "Fish processing worker": ["fish processing", "fiskeproduksjon", "fish factory", "fiskeindustri"],
   "Fish farm worker": ["fish farm", "fiskeoppdrett", "oppdrettsarbeider"],

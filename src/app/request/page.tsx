@@ -21,7 +21,6 @@ import {
   Sparkles,
   TrendingUp,
   Truck,
-  Users,
   Utensils,
   Waves,
   Zap,
@@ -79,7 +78,6 @@ const INDUSTRY_ICONS: Record<string, LucideIcon> = {
   Hospitality: Utensils,
   Automotive: Car,
   Offshore: Anchor,
-  "General Labour": Users,
   "Fish Industry": Waves,
 };
 

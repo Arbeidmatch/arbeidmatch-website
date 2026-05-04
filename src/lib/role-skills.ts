@@ -573,22 +573,4 @@ export const ROLE_SKILLS: Record<string, string[]> = {
     "Boat and equipment operation",
     "Record keeping",
   ],
-
-  // General Labour
-  "General labourer": [
-    "Site cleanup and tidying",
-    "Material loading and unloading",
-    "Concrete mixing (small scale)",
-    "Trenching assistance",
-    "Traffic management",
-    "Tool and equipment handling",
-  ],
-  Helper: [
-    "Assisting skilled tradespeople",
-    "Carrying and fetching materials",
-    "Basic tool use",
-    "Following instructions precisely",
-    "Safety compliance",
-    "Willing to learn on site",
-  ],
 };

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { ClipboardList, FileText, ShieldCheck, UserCheck } from "lucide-react";
 
 import JobsPortalCTA from "@/components/candidates/JobsPortalCTA";
-import CandidateAuthorityDisclaimerBar from "@/components/for-candidates/CandidateAuthorityDisclaimerBar";
 import ScrollReveal from "@/components/ScrollReveal";
 import { JOBS_PORTAL_URL, TALENT_NETWORK_FORM_ENABLED } from "@/lib/featureFlags";
 
@@ -42,8 +41,7 @@ const OFFER_CARDS: { title: string; text: string }[] = [
 ];
 
 const INDUSTRY_CHIPS = [
-  "Building",
-  "Infrastructure",
+  "Construction & Civil Engineering",
   "Welding",
   "Electrical",
   "Production",
@@ -53,7 +51,6 @@ const INDUSTRY_CHIPS = [
   "Automotive",
   "Offshore",
   "Fish Industry",
-  "General Labour",
 ] as const;
 
 const HOW_STEPS: { title: string; text: string; Icon: typeof FileText }[] = [
@@ -76,20 +73,17 @@ const HOW_STEPS: { title: string; text: string; Icon: typeof FileText }[] = [
 
 const DIRECT_COVERAGE: { title: string; description: string }[] = [
   {
-    title: "Building",
-    description: "Building sites, structures, concrete, formwork, and related trades with direct employment or hire out.",
-  },
-  {
-    title: "Infrastructure",
-    description: "Civil works, roads, utilities, and infrastructure trades with direct employment or hire out.",
-  },
-  {
-    title: "Production",
-    description: "Manufacturing, assembly lines, metal processing, and production roles on our own contracts.",
+    title: "Construction & Civil Engineering",
+    description:
+      "Building sites, infrastructure works, concrete, formwork, scaffolding, carpentry, and related construction trades — directly employed by ArbeidMatch under Norwegian contracts.",
   },
 ];
 
 const PARTNER_COVERAGE: { title: string; description: string }[] = [
+  {
+    title: "Production",
+    description: "Manufacturing, assembly lines, metal processing, and production roles on our own contracts.",
+  },
   {
     title: "Electrical",
     description: "Installers, technicians, and control roles matched through vetted staffing partners in Norway.",
@@ -113,10 +107,6 @@ const PARTNER_COVERAGE: { title: string; description: string }[] = [
   {
     title: "Offshore",
     description: "Energy, marine, and industrial site roles coordinated with partners who hold sector experience.",
-  },
-  {
-    title: "General Labour",
-    description: "Flexible or mixed skill roles where we route you to the right partner for screening and placement.",
   },
 ];
 
@@ -341,9 +331,6 @@ export default function ForCandidatesPage() {
         </div>
       </section>
 
-      <section className="bg-[#0a121c]">
-        <CandidateAuthorityDisclaimerBar />
-      </section>
     </div>
   );
 }

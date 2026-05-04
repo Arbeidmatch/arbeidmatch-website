@@ -42,10 +42,9 @@ export default function Footer() {
           <Link href="/" className="inline-block text-[1.3rem] font-bold leading-none text-[#C9A84C]">
             ArbeidMatch
           </Link>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-[rgba(255,255,255,0.5)]">Influence. Source. Earn.</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-x-8 md:gap-y-10 lg:grid-cols-5 lg:gap-x-8 lg:gap-y-12">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-x-8 md:gap-y-10 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-12">
           <div>
             <FooterColumnTitle>For Employers</FooterColumnTitle>
             <FooterNavLink href="/request" label="Request Candidates" />
@@ -56,34 +55,9 @@ export default function Footer() {
 
           <div>
             <FooterColumnTitle>For Candidates</FooterColumnTitle>
-            <FooterNavLink href="/for-candidates" label="For candidates" />
             <FooterExternalLink href={JOBS_PORTAL_URL} label="Browse jobs and apply" />
-            <FooterNavLink href="/dsb-support" label="DSB Authorization Guide" />
-            <FooterNavLink href="/premium" label="Premium Guides" />
-            <FooterNavLink href="/outside-eu-eea" label="Non-EU Workers" />
-            <FooterNavLink href="/electricians-norway" label="Electricians in Norway" />
-          </div>
-
-          <div>
-            <FooterColumnTitle>Industries & Locations</FooterColumnTitle>
-            <FooterNavLink href="/bemanning-bygg-anlegg" label="Construction" />
-            <FooterNavLink href="/bemanning-industri" label="Industry" />
-            <FooterNavLink href="/bemanning-logistikk" label="Logistics" />
-            <FooterNavLink href="/bemanning-renhold" label="Cleaning" />
-            <FooterNavLink href="/bemanning-horeca" label="Hospitality" />
-            <FooterNavLink href="/welding-specialists" label="Welding Specialists" />
-            <FooterNavLink href="/bemanningsbyrå-trondheim" label="Trondheim" />
-            <FooterNavLink href="/bemanningsbyrå-bergen" label="Bergen" />
-            <FooterNavLink href="/bemanningsbyrå-stavanger" label="Stavanger" />
-            <FooterNavLink href="/bemanningsbyrå-kristiansand" label="Kristiansand" />
-          </div>
-
-          <div>
-            <FooterColumnTitle>Resources & Partners</FooterColumnTitle>
-            <FooterNavLink href="/about" label="About" />
-            <FooterNavLink href="/blog" label="Blog" />
-            <FooterNavLink href="/recruiter-network" label="Recruiter Network" />
-            <FooterNavLink href="/partners" label="Our partner agencies" />
+            <FooterNavLink href="/for-candidates" label="For candidates" />
+            <FooterNavLink href="/contact" label="Contact" />
           </div>
 
           <div>
@@ -91,18 +65,49 @@ export default function Footer() {
             <FooterNavLink href="/privacy" label="Privacy Policy" />
             <FooterNavLink href="/terms" label="Terms of Service" />
             <FooterNavLink href="/dpa" label="Data Processing Agreement" />
-            <FooterNavLink href="/legal-request" label="Legal Request" />
           </div>
         </div>
 
-        <p className="mt-10 text-xs leading-relaxed text-[rgba(255,255,255,0.45)] md:mt-12">
-          © 2026 ArbeidMatch Norge AS. Org.nr: 935 667 089 MVA
-        </p>
+        <div className="mt-10 border-t border-[rgba(255,255,255,0.08)] pt-8 md:mt-12 md:pt-10">
+          <p className="mx-auto max-w-[900px] text-center text-[11px] italic leading-relaxed text-white/45">
+            ArbeidMatch is a private recruitment agency, not an official Norwegian authority. We share practical guidance to
+            help foreign workers navigate the process. Always verify legal requirements with official sources.
+          </p>
+          <p className="mx-auto mt-2 max-w-[900px] text-center text-[11px] leading-relaxed">
+            <a
+              href="https://www.dsb.no/en/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-white/50 no-underline transition-colors hover:text-white/70 hover:underline"
+            >
+              DSB.no
+            </a>
+            <span className="text-white/35"> · </span>
+            <a
+              href="https://www.arbeidstilsynet.no/en/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-white/50 no-underline transition-colors hover:text-white/70 hover:underline"
+            >
+              Arbeidstilsynet.no
+            </a>
+            <span className="text-white/35"> · </span>
+            <a
+              href="https://www.nav.no/en/home"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-white/50 no-underline transition-colors hover:text-white/70 hover:underline"
+            >
+              NAV.no
+            </a>
+          </p>
+        </div>
       </div>
 
       <div className="border-t border-[rgba(255,255,255,0.08)]">
         <div className="mx-auto max-w-[1280px] px-6 py-4 text-center text-xs leading-relaxed text-[rgba(255,255,255,0.5)] md:px-10 lg:px-12">
-          Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway · support@arbeidmatch.no · arbeidmatch.no
+          © 2026 ArbeidMatch Norge AS · Org.nr 935 667 089 MVA · Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway ·
+          support@arbeidmatch.no · arbeidmatch.no
         </div>
       </div>
     </footer>

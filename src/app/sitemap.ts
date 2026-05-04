@@ -36,7 +36,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: path === "/dsb-assistance" ? 0.5 : 0.9,
     })),
-    ...["/about", "/contact"].map((path) => ({
+    ...["/about", "/contact", "/outside-eu-eea"].map((path) => ({
       url: `${SITE}${path}`,
       lastModified: primaryLastMod,
       changeFrequency: "monthly" as const,

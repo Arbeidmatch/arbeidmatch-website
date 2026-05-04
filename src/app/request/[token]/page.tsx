@@ -16,7 +16,6 @@ import {
   Sparkles,
   Star,
   Truck,
-  Users,
   Utensils,
   Waves,
   Wrench,
@@ -627,7 +626,6 @@ const INDUSTRY_ICONS: Record<string, LucideIcon> = {
   Hospitality: Utensils,
   Automotive: Car,
   Offshore: Anchor,
-  "General Labour": Users,
   "Fish Industry": Waves,
 };
 
