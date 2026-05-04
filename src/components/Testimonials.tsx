@@ -3,7 +3,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 type Testimonial = {
   id: string;
   quote: string;
-  /** Lars Berge is the only full-name reference; others use initials only. */
+  /** First name only (no surname). Lars card uses featured styling. */
   displayName: string;
   featured?: boolean;
 };
@@ -15,26 +15,26 @@ const testimonials: Testimonial[] = [
     id: "tile-workers",
     quote:
       "The tile workers we got through ArbeidMatch were exactly what we needed. Professional, reliable, always showed up. Great craftsmanship.",
-    displayName: "N.",
+    displayName: "Nikolas",
   },
   {
     id: "lars-berge",
     quote:
       "We look forward to working with ArbeidMatch on future projects. The workers delivered showed professionalism, reliability and great craftsmanship.",
-    displayName: "Lars Berge",
+    displayName: "Lars",
     featured: true,
   },
   {
     id: "pre-screened",
     quote:
       "ArbeidMatch delivered pre-screened candidates for our projects. Structured process, fast delivery, excellent results.",
-    displayName: "Ø.",
+    displayName: "Øystein",
   },
   {
     id: "mechanic",
     quote:
       "We needed a reliable mechanic quickly. ArbeidMatch delivered a highly skilled professional who fit perfectly from day one.",
-    displayName: "T.",
+    displayName: "Terje",
   },
 ];
 
@@ -95,8 +95,7 @@ export default function Testimonials() {
         </div>
 
         <p className="mx-auto mt-8 max-w-2xl text-center text-xs italic leading-relaxed text-white/50 md:mt-10 md:text-sm lg:mt-12">
-          All testimonials are from verified clients. Lars Berge is quoted with permission; other names are shown as initials
-          for privacy.
+          All testimonials are from verified clients. Names are shown as first names only.
         </p>
       </div>
     </section>
