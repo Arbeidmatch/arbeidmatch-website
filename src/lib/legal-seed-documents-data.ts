@@ -82,7 +82,7 @@ Supervisory authority: Datatilsynet, Postboks 458 Sentrum, 0105 Oslo, datatilsyn
 
 This Privacy Policy is governed by Norwegian law.
 
-[Read our Terms of Service](/terms) | [Read our Data Processing Agreement](/dpa)
+[Read our Terms of Service](/terms)
 `;
 
 export const SEED_TERMS_MD = `# Terms of Service
@@ -143,91 +143,10 @@ General inquiries: support@arbeidmatch.no
 Legal matters: legal@arbeidmatch.no
 Address: Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway
 
-[Read our Privacy Policy](/privacy) | [Read our Data Processing Agreement](/dpa)
-`;
-
-export const SEED_DPA_MD = `# Data Processing Agreement
-Last updated: 2 May 2026
-
-Standard terms for partners and clients of ArbeidMatch Norge AS.
-
-## 1. Parties
-Data Controller: Client or Partner (to be confirmed upon signature)
-Data Processor: ArbeidMatch Norge AS, Org.nr 935 667 089 MVA, Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway
-
-## 2. Subject Matter and Duration
-Recruitment services for EU/EEA candidates to Norwegian employers. Duration: term of the underlying service agreement.
-
-## 3. Nature and Purpose of Processing
-(a) Sourcing, screening, presenting candidate profiles
-(b) Communication coordination
-(c) Contract administration
-
-## 4. Categories of Data Subjects
-(a) Job candidates (EU/EEA citizens)
-(b) Client representatives
-
-## 5. Categories of Personal Data
-(a) Identification: name, email, phone, nationality, date of birth
-(b) Professional: CV, work history, skills, certifications, driving license
-(c) Status: D-number, work permit status
-(d) Special categories: NOT processed
-
-## 6. Obligations of the Processor
-(a) Process only on documented instructions from the Controller
-(b) Ensure confidentiality of staff with access to data
-(c) Implement security measures (Art. 32 GDPR)
-(d) Sub-processor authorization (general written authorization, list maintained)
-(e) Assist with data subject rights requests
-(f) Assist with breach notification
-(g) Delete or return data at end of services
-(h) Allow audits with reasonable notice
-
-## 7. Sub-Processors
-Current list, all located in EU:
-(a) Supabase (database hosting), EU region
-(b) Vercel (web hosting), EU region (Frankfurt)
-(c) one.com (email services), EU
-The Processor will inform the Controller of any intended changes to this list.
-
-## 8. International Transfers
-All personal data is processed within the EU/EEA. The Processor does not transfer personal data outside the EU/EEA.
-
-## 9. Data Subject Rights
-The Processor assists the Controller in responding to data subject requests under GDPR Articles 15 to 22 with reasonable measures.
-
-## 10. Personal Data Breach
-The Processor will notify the Controller without undue delay and within 48 hours of becoming aware of any personal data breach.
-
-## 11. Data Protection Impact Assessment
-The Processor provides reasonable assistance with DPIAs upon request.
-
-## 12. Audits and Inspections
-The Controller has the right to audit the Processor annually with reasonable advance notice.
-
-## 13. Liability
-Liability is governed by the underlying service agreement.
-
-## 14. Termination
-Upon termination, the Processor will return or delete all personal data within 30 days, unless retention is required by law.
-
-## 15. Governing Law
-This Agreement is governed by Norwegian law.
-
-## 16. Jurisdiction
-Any dispute shall be resolved by Troendelag tingrett.
-
-## 17. Contact
-Legal matters: legal@arbeidmatch.no
-General inquiries: support@arbeidmatch.no
-
-This is a template DPA. The final binding version will be signed electronically through our partner portal.
-
-[Read our Privacy Policy](/privacy) | [Read our Terms of Service](/terms)
+[Read our Privacy Policy](/privacy)
 `;
 
 export const LEGAL_SEED_ROWS = [
   { id: "privacy" as const, title: "Privacy Policy", content_md: SEED_PRIVACY_MD },
   { id: "terms" as const, title: "Terms of Service", content_md: SEED_TERMS_MD },
-  { id: "dpa" as const, title: "Data Processing Agreement", content_md: SEED_DPA_MD },
 ];

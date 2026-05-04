@@ -134,7 +134,7 @@ export async function POST(request: Request) {
         <p style="margin-top:24px;font-size:12px;">
           <a href="https://www.arbeidmatch.no/privacy" style="color:#C9A84C;">Privacy Policy</a>
           &nbsp;|&nbsp;
-          <a href="https://www.arbeidmatch.no/dpa" style="color:#C9A84C;">Data Processing Agreement</a>
+          <a href="https://www.arbeidmatch.no/terms" style="color:#C9A84C;">Terms of Service</a>
         </p>
       </div>
     `;

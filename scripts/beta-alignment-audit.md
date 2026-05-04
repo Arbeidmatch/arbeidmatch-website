@@ -168,7 +168,7 @@ Same employer links + main links + **More** list as above; bottom CTA **`/reques
 | Industries | 8 internal industry/trade URLs |
 | Locations | 4 `bemanningsbyrå-*` URLs |
 | Resources & Partners | `/for-staffing-agencies`, `/partners`, `/recruiter-network`, `/outside-eu-eea`, `/contact` |
-| Legal | `/privacy`, `/terms`, `/dpa`, `/legal-request` |
+| Legal | `/privacy`, `/terms`, `/legal-request` |
 
 ### Welcome modal (`src/components/home/HomeWelcomeUserTypeSlideup.tsx`)
 

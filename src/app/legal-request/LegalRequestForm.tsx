@@ -11,7 +11,6 @@ const REQUEST_TYPES = [
   "GDPR Objection (Art. 21)",
   "Withdraw consent",
   "Privacy Policy question",
-  "DPA inquiry",
   "Other legal matter",
 ] as const;
 

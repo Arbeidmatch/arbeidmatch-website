@@ -2,7 +2,7 @@ import "server-only";
 
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
-export type LegalDocId = "privacy" | "terms" | "dpa";
+export type LegalDocId = "privacy" | "terms";
 
 export type LegalDoc = {
   id: string;

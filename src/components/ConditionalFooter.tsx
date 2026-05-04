@@ -9,7 +9,6 @@ const EXACT_ALLOW = new Set([
   "/about",
   "/privacy",
   "/terms",
-  "/dpa",
   "/legal-request",
   "/for-staffing-agencies",
   "/outside-eu-eea",
