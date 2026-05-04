@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ClipboardList, FileText, ShieldCheck, UserCheck } from "lucide-react";
 
+import CandidateAccountSection from "@/components/candidates/CandidateAccountSection";
 import JobsPortalCTA from "@/components/candidates/JobsPortalCTA";
 import ScrollReveal from "@/components/ScrollReveal";
 import { JOBS_PORTAL_URL, TALENT_NETWORK_FORM_ENABLED } from "@/lib/featureFlags";
@@ -165,6 +166,8 @@ export default function ForCandidatesPage() {
           </ScrollReveal>
         </div>
       </section>
+
+      <CandidateAccountSection />
 
       <section className="bg-[#0D1B2A] py-14 md:py-20 lg:py-24">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">

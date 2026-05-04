@@ -7,15 +7,18 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
+import { CANDIDATE_PORTAL_LOGIN_URL } from "@/lib/candidatePortal";
 import { NAV_CITY_LINKS, NAV_INDUSTRY_LINKS } from "@/lib/navIndustriesLocations";
-import { ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 
-const desktopNavLinks = [
-  { href: "/request", label: "For Employers" },
-  { href: "/for-candidates", label: "For Candidates" },
+const desktopNavTail = [
   { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/contact", label: "Contact" },
 ] as const;
+
+function goToCandidateLogin() {
+  window.location.assign(CANDIDATE_PORTAL_LOGIN_URL);
+}
 
 function linkActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
@@ -140,7 +143,48 @@ export default function Navbar() {
           </Link>
 
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-6 xl:flex xl:gap-8 2xl:gap-10">
-            {desktopNavLinks.map((link) => (
+            <Link
+              href="/request"
+              className={`${navItemClass} ${linkActive(pathname, "/request") ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""}`}
+            >
+              For Employers
+            </Link>
+            <div className="group relative">
+              <button
+                type="button"
+                className={`${navItemClass} inline-flex items-center gap-1 whitespace-nowrap ${linkActive(pathname, "/for-candidates") ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""}`}
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="For candidates menu"
+              >
+                For Candidates
+                <ChevronDown className="h-4 w-4 shrink-0 opacity-70 transition-transform duration-200 group-hover:rotate-180" aria-hidden />
+              </button>
+              <div
+                className="pointer-events-none invisible absolute left-1/2 top-full z-[300] w-[min(92vw,280px)] -translate-x-1/2 pt-2 opacity-0 transition-[opacity,visibility] duration-150 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100"
+                role="region"
+                aria-label="For candidates"
+              >
+                <div className="rounded-lg border border-white/10 bg-[#0D1B2A] p-2 shadow-[0_16px_48px_rgba(0,0,0,0.45)]">
+                  <Link
+                    href="/for-candidates"
+                    className="block rounded-md px-3 py-2 text-[13px] text-white/80 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    Information for candidates
+                  </Link>
+                  <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
+                  <button
+                    type="button"
+                    onClick={goToCandidateLogin}
+                    className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
+                  >
+                    <span>Sign in to your profile</span>
+                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+                  </button>
+                </div>
+              </div>
+            </div>
+            {desktopNavTail.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}

@@ -3,13 +3,14 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, X } from "lucide-react";
+import { ArrowRight, ChevronDown, X } from "lucide-react";
+
+import { CANDIDATE_PORTAL_LOGIN_URL } from "@/lib/candidatePortal";
 
 const GOLD = "#C9A84C";
 
 const primaryMenuLinks = [
   { href: "/request", label: "For Employers" },
-  { href: "/for-candidates", label: "For Candidates" },
   { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/contact", label: "Contact" },
 ] as const;
@@ -119,11 +120,32 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
             Menu
           </p>
         </div>
-        {primaryMenuLinks.map((item) => (
-          <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
-            {item.label}
-          </DrawerRowLink>
-        ))}
+        <DrawerRowLink href="/request" pathname={pathname} onClose={onClose}>
+          For Employers
+        </DrawerRowLink>
+        <DrawerRowLink href="/for-candidates" pathname={pathname} onClose={onClose}>
+          For Candidates
+        </DrawerRowLink>
+        <div className="border-b border-white/[0.04] border-t border-white/[0.08] px-6 py-3">
+          <button
+            type="button"
+            className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-md py-2.5 text-left text-[15px] font-semibold text-[#C9A84C] transition-colors hover:text-[#d4b55d]"
+            onClick={() => {
+              onClose();
+              window.location.assign(CANDIDATE_PORTAL_LOGIN_URL);
+            }}
+          >
+            <span>Sign in to your profile</span>
+            <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+          </button>
+        </div>
+        {primaryMenuLinks
+          .filter((item) => item.href !== "/request")
+          .map((item) => (
+            <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
+              {item.label}
+            </DrawerRowLink>
+          ))}
 
         <div className="border-b border-white/[0.06] px-6 py-4">
           <Link
