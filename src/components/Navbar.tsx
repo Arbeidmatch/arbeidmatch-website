@@ -157,7 +157,7 @@ export default function Navbar() {
                 aria-haspopup="true"
                 aria-label="Industries and locations menu"
               >
-                Industries & Locations
+                More
                 <ChevronDown className="h-4 w-4 shrink-0 opacity-70 transition-transform duration-200 group-hover:rotate-180" aria-hidden />
               </button>
               <div
