@@ -12,7 +12,6 @@ import {
 import styles from "./DsbCompleteGuide.module.css";
 
 const GOLD = "#C9A84C";
-const NAVY = "#0f1923";
 
 interface ProfessionRow {
   profession: string;
@@ -115,10 +114,10 @@ function ExternalAnchor({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-1.5 font-medium text-[#C9A84C] underline underline-offset-2 ${textSize} ${className}`}
+      className={`inline-flex items-center gap-1.5 font-medium text-gold underline underline-offset-2 ${textSize} ${className}`}
     >
       <span>{children}</span>
-      <IconExternalLink className="shrink-0 text-[#C9A84C]" />
+      <IconExternalLink className="shrink-0 text-gold" />
     </a>
   );
 }
@@ -210,20 +209,14 @@ function cardBaseClass(hover: boolean) {
   const base =
     "rounded-[14px] border-[0.5px] border-white/[0.08] bg-white/[0.04] transition-[border-color,transform] duration-200";
   const pad = "p-5 md:p-7 md:px-6";
-  const hov = hover
-    ? "md:hover:-translate-y-0.5 md:hover:border-[rgba(201,168,76,0.15)]"
-    : "";
+  const hov = hover ? "md:hover:-translate-y-0.5 md:hover:border-gold/15" : "";
   return `${base} ${pad} ${hov}`;
 }
 
 function LegalDisclaimer() {
   return (
     <div
-      className="mb-10 md:mb-12 rounded-[10px] border-l-[3px] border-solid pl-5 pr-5 py-5 md:pl-6 md:pr-6 md:py-5"
-      style={{
-        borderLeftColor: GOLD,
-        backgroundColor: "rgba(201,168,76,0.08)",
-      }}
+      className="mb-10 md:mb-12 rounded-[10px] border-l-[3px] border-solid border-l-gold bg-gold/10 pl-5 pr-5 py-5 md:pl-6 md:pr-6 md:py-5"
       role="region"
       aria-label="Important legal notice"
     >
@@ -232,23 +225,15 @@ function LegalDisclaimer() {
           <IconWarningTriangle />
         </div>
         <div className="min-w-0 flex-1">
-          <p
-            className="text-[13px] font-semibold leading-none"
-            style={{ color: GOLD }}
-          >
-            Important Legal Notice
-          </p>
-          <p
-            className="mt-3 text-[13px] leading-[1.7]"
-            style={{ color: "rgba(255,255,255,0.7)" }}
-          >
+          <p className="text-[13px] font-semibold leading-none text-gold">Important Legal Notice</p>
+          <p className="mt-3 text-[13px] leading-[1.7] text-white/70">
             The information in this guide is based on publicly available regulations from the Norwegian Directorate for
             Civil Protection (DSB), the Norwegian Maritime Authority (NMA), and official Norwegian law as of April 2026.
             This content is provided for informational purposes only and does not constitute legal advice. Regulations may
             change. Always verify current requirements directly with DSB before making employment or compliance decisions.
             ArbeidMatch accepts no legal liability for decisions made based on this guide.
           </p>
-          <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px]" style={{ color: GOLD }}>
+          <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-gold">
             <span>Sources:</span>
             <ExternalAnchor href="https://www.dsb.no" textSize="text-[12px]">
               DSB.no
@@ -423,7 +408,7 @@ function TabApproval({ tabActive }: { tabActive: boolean }) {
       <h2 className="text-[28px] font-extrabold leading-[1.2] text-white">
         DSB Approval for EU/EEA Electricians
       </h2>
-      <p className="mt-2 text-[13px] font-medium uppercase tracking-wide text-[#C9A84C]">
+      <p className="mt-2 text-[13px] font-medium uppercase tracking-wide text-gold">
         Verified information from DSB.no, updated April 2026
       </p>
 
@@ -432,10 +417,7 @@ function TabApproval({ tabActive }: { tabActive: boolean }) {
           <div className={tabActive ? styles.fadeUpStagger : "opacity-100"} style={{ animationDelay: "0ms" }}>
             <IconXCircle animate={tabActive} />
             <p className="mt-4 text-[15px] font-semibold text-white">No Application Submitted</p>
-            <span
-              className="mt-2 inline-block rounded-[20px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em]"
-              style={{ background: "rgba(226,75,74,0.1)", color: "#E24B4A" }}
-            >
+            <span className="mt-2 inline-block rounded-[20px] bg-red-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-red-600">
               Not Legal
             </span>
             <p className="mt-3 text-[13px] leading-[1.7] text-white/65">
@@ -447,15 +429,12 @@ function TabApproval({ tabActive }: { tabActive: boolean }) {
         </div>
 
         <div
-          className={`${cardBaseClass(true)} border-t-[3px] border-t-[#C9A84C]`}
+          className={`${cardBaseClass(true)} border-t-[3px] border-t-gold`}
         >
           <div className={tabActive ? styles.fadeUpStagger : "opacity-100"} style={{ animationDelay: "120ms" }}>
             <IconClockHands color={GOLD} />
             <p className="mt-4 text-[15px] font-semibold text-white">Application Submitted, Awaiting Decision</p>
-            <span
-              className="mt-2 inline-block rounded-[20px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em]"
-              style={{ background: "rgba(201,168,76,0.1)", color: GOLD }}
-            >
+            <span className="mt-2 inline-block rounded-[20px] bg-gold/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-gold">
               Pending, DSB responds within 1 month
             </span>
             <p className="mt-3 text-[13px] leading-[1.7] text-white/65">
@@ -463,20 +442,17 @@ function TabApproval({ tabActive }: { tabActive: boolean }) {
               of receiving a complete application. Only after a positive decision may the candidate start work legally.
               This applies to temporary approval only (maximum 12 months).
             </p>
-            <p className="mt-2 text-[11px] italic text-[#C9A84C]">Source: Altinn.no and DSB FEK regulation</p>
+            <p className="mt-2 text-[11px] italic text-gold">Source: Altinn.no and DSB FEK regulation</p>
           </div>
         </div>
 
         <div
-          className={`${cardBaseClass(true)} border-t-[3px] border-t-[#1D9E75]`}
+          className={`${cardBaseClass(true)} border-t-[3px] border-t-emerald-600`}
         >
           <div className={tabActive ? styles.fadeUpStagger : "opacity-100"} style={{ animationDelay: "240ms" }}>
             <IconCheckDraw animate={tabActive} />
             <p className="mt-4 text-[15px] font-semibold text-white">Temporary Approval Active</p>
-            <span
-              className="mt-2 inline-block rounded-[20px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em]"
-              style={{ background: "rgba(29,158,117,0.1)", color: "#1D9E75" }}
-            >
+            <span className="mt-2 inline-block rounded-[20px] bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-emerald-600">
               Legal, max 12 months
             </span>
             <p className="mt-3 text-[13px] leading-[1.7] text-white/65">
@@ -490,16 +466,16 @@ function TabApproval({ tabActive }: { tabActive: boolean }) {
 
       <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
         <div>
-          <p className="text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">Approval Types</p>
+          <p className="text-[12px] font-semibold uppercase tracking-wide text-gold">Approval Types</p>
           <ul className="mt-3 space-y-2 text-[14px] text-white">
             <li className="flex gap-2">
-              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden />
               <span>
                 Permanent establishment approval: valid indefinitely, processing up to 4 months
               </span>
             </li>
             <li className="flex gap-2">
-              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden />
               <span>
                 Temporary cross-border service approval: valid max 12 months, processing up to 2 months, DSB initial
                 response within 1 month
@@ -508,24 +484,24 @@ function TabApproval({ tabActive }: { tabActive: boolean }) {
           </ul>
         </div>
         <div>
-          <p className="text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">
+          <p className="text-[12px] font-semibold uppercase tracking-wide text-gold">
             Official DSB application costs (check DSB.no)
           </p>
           <ul className="mt-3 space-y-2 text-[14px] text-white">
             <li className="flex gap-2">
-              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden />
               <span>First profession: amount published on DSB.no for your application type</span>
             </li>
             <li className="flex gap-2">
-              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden />
               <span>Each additional profession in the same filing: reduced tier on DSB.no</span>
             </li>
             <li className="flex gap-2">
-              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden />
               <span>Renewal of temporary notification: no new government fee required</span>
             </li>
             <li className="flex gap-2">
-              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C9A84C]" aria-hidden />
+              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden />
               <span>DSB starts processing only after their required processing step is complete</span>
             </li>
           </ul>
@@ -540,8 +516,8 @@ function TabApproval({ tabActive }: { tabActive: boolean }) {
         <table className="w-full min-w-[520px] border-collapse text-left text-[13px]">
           <thead>
             <tr className="bg-white/[0.03]">
-              <th className="border-[0.5px] border-white/[0.08] px-4 py-3 font-semibold text-[#C9A84C]">Profession</th>
-              <th className="border-[0.5px] border-white/[0.08] px-4 py-3 font-semibold text-[#C9A84C]">
+              <th className="border-[0.5px] border-white/[0.08] px-4 py-3 font-semibold text-gold">Profession</th>
+              <th className="border-[0.5px] border-white/[0.08] px-4 py-3 font-semibold text-gold">
                 Scope of Work
               </th>
             </tr>
@@ -562,7 +538,7 @@ function TabApproval({ tabActive }: { tabActive: boolean }) {
 
 function IconUserGold() {
   return (
-    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="text-[#C9A84C]" aria-hidden>
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="text-gold" aria-hidden>
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth={1.5} />
       <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth={1.5} />
     </svg>
@@ -571,7 +547,7 @@ function IconUserGold() {
 
 function IconGradCap() {
   return (
-    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="text-[#C9A84C]" aria-hidden>
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="text-gold" aria-hidden>
       <path d="M22 10L12 5 2 10l10 5 10-5z" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" />
       <path d="M6 12v5c0 2 3 4 6 4s6-2 6-4v-5" stroke="currentColor" strokeWidth={1.5} />
     </svg>
@@ -580,7 +556,7 @@ function IconGradCap() {
 
 function IconAward() {
   return (
-    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="text-[#C9A84C]" aria-hidden>
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="text-gold" aria-hidden>
       <circle cx="12" cy="8" r="6" stroke="currentColor" strokeWidth={1.5} />
       <path d="M8.5 13.5L6 20l3-1 3 2 3-2 3 1-2.5-6.5" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" />
     </svg>
@@ -589,7 +565,7 @@ function IconAward() {
 
 function IconBriefcase() {
   return (
-    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="text-[#C9A84C]" aria-hidden>
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="text-gold" aria-hidden>
       <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth={1.5} />
       <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth={1.5} />
     </svg>
@@ -598,7 +574,7 @@ function IconBriefcase() {
 
 function IconPassport() {
   return (
-    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="text-[#C9A84C]" aria-hidden>
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="text-gold" aria-hidden>
       <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" strokeWidth={1.5} />
       <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth={1.5} />
       <path d="M8 16h8" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" />
@@ -655,14 +631,11 @@ function TabDocuments() {
   return (
     <div>
       <h2 className="text-[28px] font-extrabold leading-[1.2] text-white">Required Documents Checklist</h2>
-      <p className="mt-2 text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">
+      <p className="mt-2 text-[12px] font-semibold uppercase tracking-wide text-gold">
         For EU/EEA Applicants, sourced from DSB.no
       </p>
 
-      <div
-        className="mt-8 rounded-[10px] border-l-[3px] border-solid pl-5 pr-5 py-5 md:pl-6 md:pr-6"
-        style={{ borderLeftColor: GOLD, backgroundColor: "rgba(201,168,76,0.08)" }}
-      >
+      <div className="mt-8 rounded-[10px] border-l-[3px] border-solid border-l-gold bg-gold/10 pl-5 pr-5 py-5 md:pl-6 md:pr-6">
         <p className="text-[13px] leading-[1.7] text-white/65">
           All documents must be submitted in PDF format. Documents in languages other than English, Swedish or Danish must
           be translated by a certified translator. DSB will not process incomplete applications.
@@ -695,10 +668,10 @@ function TabDocuments() {
           href="https://elvirksomhetsregisteret.dsb.no"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-5 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-[#C9A84C] px-6 py-3 text-[13px] font-semibold text-[#0f1923] transition-opacity hover:opacity-95"
+          className="mt-5 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-gold px-6 py-3 text-[13px] font-semibold text-navy transition-opacity hover:opacity-95"
         >
           Open DSB enterprise register
-          <IconExternalLink className="text-[#0f1923]" />
+          <IconExternalLink className="text-navy" />
         </a>
       </div>
     </div>
@@ -775,22 +748,22 @@ function TabTimeline({ tabActive }: { tabActive: boolean }) {
   ];
 
   const dotClass = (d: "gold" | "green" | "white") => {
-    if (d === "gold") return "border-2 border-[#C9A84C] bg-[#0f1923]";
-    if (d === "green") return "border-2 border-[#1D9E75] bg-[#0f1923]";
+    if (d === "gold") return "border-2 border-gold bg-navy";
+    if (d === "green") return "border-2 border-emerald-600 bg-navy";
     return "border-2 border-white/40 bg-white/10";
   };
 
   return (
     <div>
       <h2 className="text-[28px] font-extrabold leading-[1.2] text-white">Processing Timeline</h2>
-      <p className="mt-2 text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">
+      <p className="mt-2 text-[12px] font-semibold uppercase tracking-wide text-gold">
         From application submission to legal work start
       </p>
 
       <div className="relative mt-10 pl-2">
         <div className="absolute bottom-4 left-[15px] top-4 w-px overflow-hidden bg-white/10" aria-hidden>
           <div
-            className={`h-full w-full origin-top bg-[#C9A84C] ${tabActive ? styles.timelineLine : ""}`}
+            className={`h-full w-full origin-top bg-gold ${tabActive ? styles.timelineLine : ""}`}
             style={{ transform: tabActive ? undefined : "scaleY(1)" }}
           />
         </div>
@@ -808,7 +781,7 @@ function TabTimeline({ tabActive }: { tabActive: boolean }) {
               />
               <div className="min-w-0 flex-1">
                 <span
-                  className="inline-block rounded-[20px] border border-[#C9A84C] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#C9A84C]"
+                  className="inline-block rounded-[20px] border border-gold px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-gold"
                 >
                   {st.badge}
                 </span>
@@ -904,31 +877,31 @@ function IconZapOff({ className }: { className?: string }) {
 function TabFse({ tabActive }: { tabActive: boolean }) {
   const items = [
     {
-      icon: <IconBookOpen className="text-[#C9A84C]" />,
+      icon: <IconBookOpen className="text-gold" />,
       title: "Annual FSE Safety Training (FSE Section 7)",
       body:
         "All persons working on or near live electrical installations must complete annual FSE safety training. This is mandatory and must include first aid for electric shock. The training interval must not exceed 12 months. The employer is responsible for ensuring training takes place and is properly documented.",
     },
     {
-      icon: <IconUsers className="text-[#C9A84C]" />,
+      icon: <IconUsers className="text-gold" />,
       title: "Roles Under FSE",
       body:
         "FSE defines mandatory operational roles. LFS is the safety leader for high-voltage installations. AFA is the responsible person for work on low-voltage installations. LFK is the switching leader required when switching operations are performed in high-voltage installations. Only the LFS may authorize the start of work in high-voltage installations. These roles must be formally assigned by the installation owner or employer.",
     },
     {
-      icon: <IconAlertTri className="text-[#C9A84C]" />,
+      icon: <IconAlertTri className="text-gold" />,
       title: "Risk Assessment and Work Planning (FSE Sections 10 and 12)",
       body:
         "Every electrical work task must be sufficiently planned before starting. A risk assessment must be conducted to determine the appropriate working method: dead working (voltage-free), live working, or work in proximity to live parts. The employer must implement all necessary safety measures.",
     },
     {
-      icon: <IconShield className="text-[#C9A84C]" />,
+      icon: <IconShield className="text-gold" />,
       title: "Compliance Standard: NEK EN 50110-1",
       body:
         "DSB recognizes the current version of NEK EN 50110-1 as the preferred method for meeting FSE safety requirements. This standard is aligned with the EU/EEA harmonized standard EN 50110-1 and is mandatory reading for all electrical safety managers and workers in Norway.",
     },
     {
-      icon: <IconZapOff className="text-[#C9A84C]" />,
+      icon: <IconZapOff className="text-gold" />,
       title: "Five-Point Safety Procedure for Dead Working",
       body:
         "When working on de-energized installations, the following five steps must be completed in order: 1. Disconnect the installation from all sources of energy. 2. Prevent re-energization (lock-out/tag-out). 3. Verify that the installation is de-energized using approved test equipment. 4. Apply full earthing and short-circuiting at all points from which voltage could be applied. 5. Provide protection against adjacent live parts.",
@@ -940,14 +913,11 @@ function TabFse({ tabActive }: { tabActive: boolean }) {
       <h2 className="text-[28px] font-extrabold leading-[1.2] text-white">
         FSE Regulation: Safety at Work on Electrical Installations
       </h2>
-      <p className="mt-2 text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">
+      <p className="mt-2 text-[12px] font-semibold uppercase tracking-wide text-gold">
         Regulation on safety for work on and operation of electrical installations, last amended January 2024
       </p>
 
-      <div
-        className="mt-8 rounded-[14px] border-[0.5px] border-white/[0.08] bg-[#0a1219] p-5 md:p-6"
-        style={{ borderLeft: `3px solid ${GOLD}` }}
-      >
+      <div className="mt-8 rounded-[14px] border-[0.5px] border-white/[0.08] border-l-[3px] border-l-gold bg-obsidian p-5 md:p-6">
         <p className="text-[13px] leading-[1.7] text-white/65">
           FSE (Safety Regulations for Work on and Operation of Electrical Installations) is the mandatory safety framework
           that applies to all persons working on or near electrical installations in Norway. It applies regardless of
@@ -956,7 +926,7 @@ function TabFse({ tabActive }: { tabActive: boolean }) {
         </p>
       </div>
 
-      <p className="mt-10 text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">What FSE requires</p>
+      <p className="mt-10 text-[12px] font-semibold uppercase tracking-wide text-gold">What FSE requires</p>
       <ul className="mt-4 space-y-4">
         {items.map((it, i) => (
           <li
@@ -1058,7 +1028,7 @@ function TabDatacenter() {
   const cards: Omit<DcCardProps, "visible">[] = [
     {
       title: "DSB Approval: High-Voltage Specification Required",
-      icon: <IconZap className="text-[#C9A84C]" />,
+      icon: <IconZap className="text-gold" />,
       body:
         "When applying for DSB approval for datacenter work, the application must explicitly state that the work involves high-voltage installations. DSB processes high-voltage and low-voltage approvals separately. The professional responsibility application must specify whether the candidate will hold responsibility for high-voltage or low-voltage installations, or both. Source: DSB EU/EEA application guidance.",
       link: { href: "https://profapp.dsb.no/profapp/", label: "DSB Application Portal" },
@@ -1067,7 +1037,7 @@ function TabDatacenter() {
     },
     {
       title: "Notification Obligation Under FEF Section 3-3",
-      icon: <IconBell className="text-[#C9A84C]" />,
+      icon: <IconBell className="text-gold" />,
       body:
         "New datacenter electrical installations with high-voltage connections must be notified to the local network operator (DLE) under FEF section 3-3. DSB has specifically listed data storage facilities among the facility types requiring this notification when connecting to high-voltage supply. This is in addition to, not a replacement for, DSB approval of personnel qualifications.",
       link: { href: "https://lovdata.no/dokument/SF/forskrift/1998-12-11-1099", label: "FEF regulation (Lovdata)" },
@@ -1075,14 +1045,14 @@ function TabDatacenter() {
     },
     {
       title: "FSE Compliance in Datacenter Environments",
-      icon: <IconServer className="text-[#C9A84C]" />,
+      icon: <IconServer className="text-gold" />,
       body:
         "All electrical work in datacenters is subject to full FSE compliance. This includes mandatory annual safety training, formal assignment of LFS (Safety Leader for high-voltage) and AFA roles, documented risk assessments before each work task, and five-step dead-working procedure for any de-energized work. The installation owner (the datacenter operator) bears primary responsibility for ensuring FSE compliance by all contractors.",
       delayMs: 240,
     },
     {
       title: "NEK 400:2022 Standard Compliance",
-      icon: <IconCheckSquare className="text-[#C9A84C]" />,
+      icon: <IconCheckSquare className="text-gold" />,
       body:
         "All low-voltage electrical installations in datacenters must comply with NEK 400:2022, the current Norwegian standard for low-voltage electrical installations. NEK 400:2022 replaced NEK 400:2018 as the mandatory standard from 1 July 2022. Installations completed under the 2018 version had to be finalized by end of 2023. For large or special projects, a dispensation could be requested from DSB.",
       link: {
@@ -1093,7 +1063,7 @@ function TabDatacenter() {
     },
     {
       title: "FEK registration: DSB enterprise register",
-      icon: <IconDatabase className="text-[#C9A84C]" />,
+      icon: <IconDatabase className="text-gold" />,
       body:
         "Any enterprise performing electrical installation, maintenance, or related services at a datacenter must be registered in the DSB enterprise register. This applies to all contractors, including foreign subcontractors. Failure to register is illegal under Norwegian law and may result in suspension of registration and financial penalties.",
       link: { href: "https://elvirksomhetsregisteret.dsb.no", label: "DSB enterprise register" },
@@ -1101,7 +1071,7 @@ function TabDatacenter() {
     },
     {
       title: "Qualified responsible person under FEK",
-      icon: <IconUserCheck className="text-[#C9A84C]" />,
+      icon: <IconUserCheck className="text-gold" />,
       body:
         "Every registered enterprise must appoint a qualified responsible person who holds the relevant DSB approval for the type of work being performed. This person is responsible for ensuring all electrical work complies with Norwegian regulations. If the responsible person is absent for more than 30 days, the enterprise must notify DSB.",
       link: { href: "https://www.dsb.no/elsikkerhet/", label: "DSB guidance on the qualified responsible person" },
@@ -1114,7 +1084,7 @@ function TabDatacenter() {
       <h2 className="text-[28px] font-extrabold leading-[1.2] text-white">
         Electrical Requirements for Datacenter Projects in Norway
       </h2>
-      <p className="mt-2 text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">
+      <p className="mt-2 text-[12px] font-semibold uppercase tracking-wide text-gold">
         High-voltage installations, DSB oversight, and additional authorizations
       </p>
 
@@ -1135,7 +1105,7 @@ function TabDatacenter() {
 
       <Link
         href="/request"
-        className="mt-10 flex min-h-[44px] w-full items-center justify-center rounded-lg bg-[#C9A84C] px-6 py-3 text-center text-[13px] font-semibold text-[#0f1923] transition-opacity hover:opacity-95"
+        className="mt-10 flex min-h-[44px] w-full items-center justify-center rounded-lg bg-gold px-6 py-3 text-center text-[13px] font-semibold text-navy transition-opacity hover:opacity-95"
       >
         Request a DSB-Approved Electrician for Your Datacenter Project
       </Link>
@@ -1203,14 +1173,14 @@ function TabNaval({ tabActive }: { tabActive: boolean }) {
   const navalSteps = [
     {
       title: "DSB Approval: Maritime Electrical Work",
-      icon: <IconAnchor className="text-[#C9A84C]" />,
+      icon: <IconAnchor className="text-gold" />,
       body:
         "Electricians working on the electrical installations of Norwegian-registered vessels must hold DSB approval in the relevant electrical profession. The application process is identical to land-based approval. However, the application must specify that the work involves maritime electrical installations. DSB oversees compliance with maritime electrical installation regulations for certain vessel categories.",
       source: "Source: DSB electrical safety overview (DSB.no)",
     },
     {
       title: "FSE Compliance on Board: IEC 60092-509",
-      icon: <IconWaves className="text-[#C9A84C]" />,
+      icon: <IconWaves className="text-gold" />,
       body:
         "The FSE regulation applies to electrical work on Norwegian ships. However, for maritime installations, DSB recognizes IEC 60092-509 (International Standard for Shipboard Electrical Installations) as the compliance reference, equivalent to how NEK EN 50110-1 is used for land-based installations. Compliance with IEC 60092-509 is considered evidence that FSE requirements are met.",
       source: "Source: NMA Circular on FSE and HSE Regulations, Sdir.no",
@@ -1221,14 +1191,14 @@ function TabNaval({ tabActive }: { tabActive: boolean }) {
     },
     {
       title: "Annual FSE Training Required on Board",
-      icon: <IconRepeat className="text-[#C9A84C]" />,
+      icon: <IconRepeat className="text-gold" />,
       body:
         "Persons working on board Norwegian ships who carry out duties related to the operation or maintenance of the ship electrical installations must receive FSE training, practice, and instruction annually. The training interval must not exceed 12 months and must include first aid for electric shock. The company (shipowner or operator) is responsible for ensuring all relevant crew members complete this training before accessing high-risk electrical areas.",
       source: "Source: HSE Regulations section 2-6, FSE Regulation section 7, NMA Circular",
     },
     {
       title: "Maritime Electrical Documentation Requirements",
-      icon: <IconFileText className="text-[#C9A84C]" />,
+      icon: <IconFileText className="text-gold" />,
       body:
         "The Norwegian Regulations Relating to Maritime Electrical Installations require the shipowner, owner, or contractor to document the execution, operation, and maintenance of the ship electrical installation. DSB provides specific forms for this purpose. Documentation must be available for inspection by DSB.",
       link: {
@@ -1238,7 +1208,7 @@ function TabNaval({ tabActive }: { tabActive: boolean }) {
     },
     {
       title: "DSB Inspection: Norwegian-Registered Vessels",
-      icon: <IconSearch className="text-[#C9A84C]" />,
+      icon: <IconSearch className="text-gold" />,
       body:
         "DSB conducts inspections on board Norwegian-registered unclassified cargo ships, lighters, fishing and catching vessels, and unclassified and classified passenger ships registered in the Norwegian ordinary ship register. DSB verifies compliance with FEK and FSE during these inspections, with a specific focus on FSE section 7 annual training documentation and LFS qualification control for high-voltage installations.",
       source: "Source: DSB electrical safety inspection overview 2025 (DSB.no)",
@@ -1250,7 +1220,7 @@ function TabNaval({ tabActive }: { tabActive: boolean }) {
       <h2 className="text-[28px] font-extrabold leading-[1.2] text-white">
         Electrical Requirements for Maritime and Naval Projects in Norway
       </h2>
-      <p className="mt-2 text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">
+      <p className="mt-2 text-[12px] font-semibold uppercase tracking-wide text-gold">
         Norwegian Maritime Authority (NMA) and DSB regulations for ship electrical installations
       </p>
 
@@ -1271,7 +1241,7 @@ function TabNaval({ tabActive }: { tabActive: boolean }) {
             style={tabActive ? { animationDelay: `${idx * 150}ms` } : undefined}
           >
             <span
-              className="absolute -left-[29px] top-1 flex h-3 w-3 items-center justify-center rounded-full bg-[#C9A84C]"
+              className="absolute -left-[29px] top-1 flex h-3 w-3 items-center justify-center rounded-full bg-gold"
               aria-hidden
             />
             <div className="flex gap-3">
@@ -1294,17 +1264,17 @@ function TabNaval({ tabActive }: { tabActive: boolean }) {
       </ul>
 
       <div
-        className="mt-12 rounded-[14px] border border-[#C9A84C]/50 bg-white/[0.04] p-5 md:p-8"
+        className="mt-12 rounded-[14px] border border-gold/50 bg-white/[0.04] p-5 md:p-8"
       >
         <h3 className="text-lg font-bold text-white">Additional Authorizations for Naval and Offshore Work</h3>
-        <p className="mt-2 text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">
+        <p className="mt-2 text-[12px] font-semibold uppercase tracking-wide text-gold">
           Required in addition to DSB approval
         </p>
 
         <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-3">
           <div>
             <div className={styles.floatSlow}>
-              <IconShip className="text-[#C9A84C]" />
+              <IconShip className="text-gold" />
             </div>
             <p className="mt-4 text-sm font-semibold text-white">STCW Certification</p>
             <p className="mt-2 text-[13px] leading-[1.7] text-white/65">
@@ -1318,7 +1288,7 @@ function TabNaval({ tabActive }: { tabActive: boolean }) {
           </div>
           <div>
             <div className={styles.floatSlowDelay1}>
-              <IconLifeBuoy className="text-[#C9A84C]" />
+              <IconLifeBuoy className="text-gold" />
             </div>
             <p className="mt-4 text-sm font-semibold text-white">Offshore Safety Courses</p>
             <p className="mt-2 text-[13px] leading-[1.7] text-white/65">
@@ -1333,7 +1303,7 @@ function TabNaval({ tabActive }: { tabActive: boolean }) {
           </div>
           <div>
             <div className={styles.floatSlowDelay2}>
-              <IconRadio className="text-[#C9A84C]" />
+              <IconRadio className="text-gold" />
             </div>
             <p className="mt-4 text-sm font-semibold text-white">Class Society Requirements</p>
             <p className="mt-2 text-[13px] leading-[1.7] text-white/65">
@@ -1350,7 +1320,7 @@ function TabNaval({ tabActive }: { tabActive: boolean }) {
 
       <Link
         href="/request"
-        className="mt-10 flex min-h-[44px] w-full items-center justify-center rounded-lg bg-[#C9A84C] px-6 py-3 text-center text-[13px] font-semibold text-[#0f1923] transition-opacity hover:opacity-95"
+        className="mt-10 flex min-h-[44px] w-full items-center justify-center rounded-lg bg-gold px-6 py-3 text-center text-[13px] font-semibold text-navy transition-opacity hover:opacity-95"
       >
         Find DSB-Approved Electricians for Maritime Projects
       </Link>
@@ -1373,8 +1343,7 @@ export default function DsbCompleteGuide() {
 
   return (
     <section
-      className={`${styles.respectMotion} border-t border-white/[0.06] py-10 md:py-14`}
-      style={{ backgroundColor: NAVY }}
+      className={`${styles.respectMotion} border-t border-white/10 bg-navy py-10 md:py-14`}
       aria-label="DSB complete guide in English"
     >
       <div className="mx-auto w-full max-w-[900px] px-6 md:px-0">
@@ -1399,7 +1368,7 @@ export default function DsbCompleteGuide() {
                   onClick={() => setActiveTab(i)}
                   className={`inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-full px-5 py-2 text-[13px] font-medium transition-colors duration-200 ${
                     selected
-                      ? "bg-[#C9A84C] font-semibold text-[#0f1923]"
+                      ? "bg-gold font-semibold text-navy"
                       : "bg-white/[0.06] text-white/60"
                   }`}
                 >

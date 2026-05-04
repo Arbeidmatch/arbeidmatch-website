@@ -66,7 +66,7 @@ export default function DsbSupportPage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/dsb-support/eu"
-              className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-semibold text-white hover:bg-gold-hover"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-semibold text-navy hover:bg-gold-hover"
             >
               Read the EU/EEA guide
             </Link>

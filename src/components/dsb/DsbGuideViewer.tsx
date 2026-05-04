@@ -231,23 +231,23 @@ export default function DsbGuideViewer({
           ) : null}
         </header>
 
-        <div className="sticky top-[60px] z-40 mb-4 h-11 overflow-hidden border-b border-black/10 bg-white/95 px-4 backdrop-blur lg:hidden">
+        <div className="sticky top-[60px] z-40 mb-4 h-11 overflow-hidden border-b border-border bg-white/95 px-4 backdrop-blur lg:hidden">
           <button
             type="button"
             onClick={() => setMobileTocOpen((o) => !o)}
             className="flex h-full w-full items-center justify-between gap-3"
           >
             <span className="flex min-w-0 flex-1 items-center gap-2 truncate text-left">
-              <span className="shrink-0 text-[10px] uppercase tracking-[0.08em] text-[#C9A84C]">Section</span>
-              <span className="truncate text-[13px] font-semibold text-[#0f1923]">{currentSection}</span>
+              <span className="shrink-0 text-[10px] uppercase tracking-[0.08em] text-gold">Section</span>
+              <span className="truncate text-[13px] font-semibold text-navy">{currentSection}</span>
             </span>
-            <span className="rounded-md border border-black/10 px-2 py-1 text-[12px] text-black/50">All sections</span>
+            <span className="rounded-md border border-border px-2 py-1 text-[12px] text-text-secondary">All sections</span>
           </button>
         </div>
 
         <div className="relative z-10 lg:mx-auto lg:grid lg:max-w-[1100px] lg:grid-cols-[220px_1fr] lg:items-start lg:gap-12">
           <aside className="hidden lg:sticky lg:top-20 lg:block lg:max-h-[calc(100vh-100px)] lg:w-[220px] lg:shrink-0 lg:overflow-visible">
-            <p className="mb-3 border-b border-black/10 pb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#C9A84C]">
+            <p className="mb-3 border-b border-border pb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-gold">
               Contents
             </p>
             <nav aria-label="Table of contents">
@@ -263,11 +263,11 @@ export default function DsbGuideViewer({
                         setActiveId(item.id);
                       }}
                       className={`block max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap rounded-md border-l-2 border-l-transparent px-2 py-1 text-left no-underline transition-all duration-150 ease-out ${
-                        item.level === 3 ? "pl-5 text-[11px] font-normal text-black/40" : "text-[12px] font-medium text-black/50"
+                        item.level === 3 ? "pl-5 text-[11px] font-normal text-text-secondary/80" : "text-[12px] font-medium text-text-secondary"
                       } ${
                         activeId === item.id
-                          ? "border-l-[#C9A84C] bg-[rgba(201,168,76,0.08)] font-semibold text-[#C9A84C]"
-                          : "hover:border-l-[rgba(201,168,76,0.15)] hover:bg-[rgba(201,168,76,0.08)] hover:text-[#0f1923]"
+                          ? "border-l-gold bg-gold/10 font-semibold text-gold"
+                          : "hover:border-l-gold/30 hover:bg-gold/10 hover:text-navy"
                       }`}
                     >
                       {item.text}
@@ -290,7 +290,7 @@ export default function DsbGuideViewer({
                 components={{
                   h1: ({ children, ...props }) => (
                     <h1
-                      className="mt-0 mb-2 border-b-2 border-[#C9A84C] pb-3 text-[clamp(22px,3vw,32px)] font-extrabold leading-[1.2] text-[#0f1923]"
+                      className="mt-0 mb-2 border-b-2 border-gold pb-3 text-[clamp(22px,3vw,32px)] font-extrabold leading-[1.2] text-navy"
                       {...props}
                     >
                       {children}
@@ -315,10 +315,10 @@ export default function DsbGuideViewer({
                       return (
                         <h2
                           id={id}
-                          className="scroll-mt-24 mb-3 mt-8 flex items-center gap-4 rounded-[12px] border border-black/10 border-l-[3px] border-l-[#C9A84C] bg-[rgba(255,255,255,0.03)] px-6 py-5 text-[17px] font-bold leading-[1.3] text-[#0f1923]"
+                          className="scroll-mt-24 mb-3 mt-8 flex items-center gap-4 rounded-[12px] border border-border border-l-[3px] border-l-gold bg-surface px-6 py-5 text-[17px] font-bold leading-[1.3] text-navy"
                           {...props}
                         >
-                          <span className="flex h-8 min-h-[32px] w-8 min-w-[32px] items-center justify-center rounded-full bg-[rgba(201,168,76,0.12)] text-sm font-bold text-[#C9A84C]">
+                          <span className="flex h-8 min-h-[32px] w-8 min-w-[32px] items-center justify-center rounded-full bg-gold/15 text-sm font-bold text-gold">
                             {stepCountRef.current}
                           </span>
                           <span>{children}</span>
@@ -329,12 +329,12 @@ export default function DsbGuideViewer({
                     return (
                       <h2
                         id={id}
-                        className={`scroll-mt-24 mb-3 mt-10 flex items-center gap-2.5 text-[clamp(18px,2.5vw,24px)] font-bold text-[#0f1923] ${
-                          isDisclaimer ? "mb-3 text-[13px] font-bold uppercase tracking-[0.08em] text-[#E24B4A]" : ""
+                        className={`scroll-mt-24 mb-3 mt-10 flex items-center gap-2.5 text-[clamp(18px,2.5vw,24px)] font-bold text-navy ${
+                          isDisclaimer ? "mb-3 text-[13px] font-bold uppercase tracking-[0.08em] text-red-600" : ""
                         }`}
                         {...props}
                       >
-                        {isDisclaimer ? <AlertTriangle size={18} className="text-[#E24B4A]" aria-hidden /> : <span className="inline-block h-6 w-1 rounded-sm bg-[#C9A84C]" aria-hidden />}
+                        {isDisclaimer ? <AlertTriangle size={18} className="text-red-600" aria-hidden /> : <span className="inline-block h-6 w-1 rounded-sm bg-gold" aria-hidden />}
                         <span>{children}</span>
                       </h2>
                     );
@@ -354,10 +354,10 @@ export default function DsbGuideViewer({
                       return (
                         <h3
                           id={id}
-                          className="scroll-mt-24 mb-3 mt-6 flex items-center gap-4 rounded-[12px] border border-black/10 border-l-[3px] border-l-[#C9A84C] bg-[rgba(255,255,255,0.03)] px-6 py-5 text-[17px] font-bold leading-[1.3] text-[#0f1923]"
+                          className="scroll-mt-24 mb-3 mt-6 flex items-center gap-4 rounded-[12px] border border-border border-l-[3px] border-l-gold bg-surface px-6 py-5 text-[17px] font-bold leading-[1.3] text-navy"
                           {...props}
                         >
-                          <span className="flex h-8 min-h-[32px] w-8 min-w-[32px] items-center justify-center rounded-full bg-[rgba(201,168,76,0.12)] text-sm font-bold text-[#C9A84C]">
+                          <span className="flex h-8 min-h-[32px] w-8 min-w-[32px] items-center justify-center rounded-full bg-gold/15 text-sm font-bold text-gold">
                             {stepCountRef.current}
                           </span>
                           <span>{children}</span>
@@ -366,16 +366,16 @@ export default function DsbGuideViewer({
                     }
 
                     return (
-                      <h3 id={id} className="scroll-mt-24 mb-2 mt-6 text-[17px] font-semibold text-[rgba(255,255,255,0.7)]" {...props}>
+                      <h3 id={id} className="scroll-mt-24 mb-2 mt-6 text-[17px] font-semibold text-navy" {...props}>
                         {children}
                       </h3>
                     );
                   },
                   p: ({ children, ...props }) => (
                     <p
-                      className={`mb-4 max-w-[680px] text-[15px] leading-[1.8] text-[rgba(255,255,255,0.7)] ${
+                      className={`mb-4 max-w-[680px] text-[15px] leading-[1.8] text-text-secondary ${
                         sectionModeRef.current === "disclaimer"
-                          ? "my-5 rounded-xl border border-[rgba(226,75,74,0.1)] border-l-4 border-l-[#E24B4A] bg-[rgba(226,75,74,0.1)] px-6 py-5 text-[13px] leading-[1.7] text-[rgba(255,255,255,0.7)]"
+                          ? "my-5 rounded-xl border border-red-200 border-l-4 border-l-red-500 bg-red-50 px-6 py-5 text-[13px] leading-[1.7] text-text-secondary"
                           : ""
                       }`}
                       {...props}
@@ -395,27 +395,27 @@ export default function DsbGuideViewer({
                   ),
                   li: ({ children, ...props }) => (
                     <li
-                      className={`mb-1 mt-1 text-[15px] leading-[1.7] text-[rgba(255,255,255,0.7)] ${
+                      className={`mb-1 mt-1 text-[15px] leading-[1.7] text-text-secondary ${
                         sectionModeRef.current === "links" ? "p-0" : "relative pl-4"
                       }`}
                       {...props}
                     >
                       {sectionModeRef.current === "links" ? null : (
-                        <span className="absolute left-0 top-[10px] h-1.5 w-1.5 rounded-full bg-[#C9A84C]" aria-hidden />
+                        <span className="absolute left-0 top-[10px] h-1.5 w-1.5 rounded-full bg-gold" aria-hidden />
                       )}
                       {children}
                     </li>
                   ),
                   blockquote: ({ children, ...props }) => (
                     <blockquote
-                      className="my-5 rounded-r-lg border-l-[3px] border-l-[#C9A84C] bg-[rgba(201,168,76,0.08)] px-5 py-4 text-[14px] leading-[1.65] text-[rgba(255,255,255,0.7)]"
+                      className="my-5 rounded-r-lg border-l-[3px] border-l-gold bg-gold/10 px-5 py-4 text-[14px] leading-[1.65] text-text-secondary"
                       {...props}
                     >
                       {children}
                     </blockquote>
                   ),
                   strong: ({ children, ...props }) => (
-                    <strong className="font-bold text-[#0f1923]" {...props}>
+                    <strong className="font-bold text-navy" {...props}>
                       {children}
                     </strong>
                   ),
@@ -424,46 +424,34 @@ export default function DsbGuideViewer({
                       href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{
-                        color: "#C9A84C",
-                        textDecoration: "underline",
-                        textDecorationColor: "rgba(201,168,76,0.15)",
-                        fontWeight: 500,
-                        transition: "color 150ms",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = "#b8953f";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = "#C9A84C";
-                      }}
+                      className="font-medium text-gold underline decoration-gold/25 underline-offset-2 transition-colors hover:text-gold-hover"
                       {...props}
                     >
                       <span className="inline-flex items-center gap-1.5">
                         {children}
-                        <ExternalLink size={14} className="text-[#C9A84C]" aria-hidden />
+                        <ExternalLink size={14} className="shrink-0 text-gold" aria-hidden />
                       </span>
                     </a>
                   ),
                   table: ({ children }) => (
-                    <div className="my-6 overflow-x-auto rounded-xl border border-black/10">
+                    <div className="my-6 overflow-x-auto rounded-xl border border-border">
                       <table className="w-full border-collapse text-[14px]">{children}</table>
                     </div>
                   ),
-                  thead: ({ children }) => <thead className="bg-[#0f1923]">{children}</thead>,
+                  thead: ({ children }) => <thead className="bg-navy">{children}</thead>,
                   th: ({ children }) => (
-                    <th className="whitespace-nowrap px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
+                    <th className="whitespace-nowrap px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-gold">
                       {children}
                     </th>
                   ),
                   tbody: ({ children }) => <tbody>{children}</tbody>,
                   tr: ({ children }) => (
-                    <tr className="border-b border-black/10 transition-colors duration-150 hover:bg-[rgba(201,168,76,0.08)]">
+                    <tr className="border-b border-border transition-colors duration-150 hover:bg-gold/10">
                       {children}
                     </tr>
                   ),
                   td: ({ children }) => (
-                    <td className="px-4 py-3 align-top text-[14px] leading-[1.6] text-[rgba(255,255,255,0.7)] [&:first-child]:whitespace-nowrap [&:first-child]:font-bold [&:first-child]:text-[#C9A84C]">
+                    <td className="px-4 py-3 align-top text-[14px] leading-[1.6] text-text-secondary [&:first-child]:whitespace-nowrap [&:first-child]:font-bold [&:first-child]:text-gold">
                       {children}
                     </td>
                   ),
@@ -493,7 +481,7 @@ export default function DsbGuideViewer({
                   </p>
                   <Link
                     href="/contact"
-                    className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-md bg-gold px-4 py-2 text-sm font-semibold text-white hover:bg-gold-hover"
+                    className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-md bg-gold px-4 py-2 text-sm font-semibold text-navy hover:bg-gold-hover"
                   >
                     Contact us
                   </Link>
@@ -519,7 +507,7 @@ export default function DsbGuideViewer({
             style={{ transitionDuration: reducedMotionEnabled() ? "0ms" : undefined }}
           >
             <div className="mx-auto mb-4 h-1 w-10 rounded bg-black/20" />
-            <p className="mb-3 px-5 text-[13px] font-bold text-[#0f1923]">Contents</p>
+            <p className="mb-3 px-5 text-[13px] font-bold text-navy">Contents</p>
             {resolvedToc.map((item) => (
               <a
                 key={item.id}
@@ -530,9 +518,9 @@ export default function DsbGuideViewer({
                   setActiveId(item.id);
                   setMobileTocOpen(false);
                 }}
-                className={`block border-b border-black/10 py-3 text-left leading-[1.4] ${
-                  item.level === 3 ? "pl-9 pr-5 text-[14px] text-black/60" : "px-5 text-[15px] text-[#0f1923]"
-                } ${activeId === item.id ? "bg-[rgba(201,168,76,0.08)] font-semibold text-[#C9A84C]" : ""}`}
+                className={`block border-b border-border py-3 text-left leading-[1.4] ${
+                  item.level === 3 ? "pl-9 pr-5 text-[14px] text-text-secondary" : "px-5 text-[15px] text-navy"
+                } ${activeId === item.id ? "bg-gold/10 font-semibold text-gold" : ""}`}
               >
                 {item.text}
               </a>
@@ -547,7 +535,7 @@ export default function DsbGuideViewer({
           </div>
         </div>
       ) : null}
-      <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-3 bg-[rgba(15,25,35,0.95)] px-6 py-2 backdrop-blur">
+      <div className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-center gap-3 bg-navy/95 px-6 py-2 backdrop-blur">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path d="M12 2l8 3v6c0 5-3.4 9.7-8 11-4.6-1.3-8-6-8-11V5l8-3Z" stroke="rgba(255,255,255,0.5)" strokeWidth="1.6" />
         </svg>
@@ -559,7 +547,7 @@ export default function DsbGuideViewer({
             href="https://www.dsb.no/en/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[11px] text-[#C9A84C] underline"
+            className="text-[11px] text-gold underline decoration-gold/30 hover:text-gold-hover"
           >
             DSB.no
           </a>

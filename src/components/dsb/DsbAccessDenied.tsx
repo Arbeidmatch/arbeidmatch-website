@@ -28,7 +28,7 @@ export default function DsbAccessDenied({ kind, guideSlug }: Props) {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/dsb-support"
-              className="inline-flex justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
+              className="inline-flex justify-center rounded-md bg-gold px-5 py-2.5 text-sm font-medium text-navy hover:bg-gold-hover"
             >
               Back to overview
             </Link>

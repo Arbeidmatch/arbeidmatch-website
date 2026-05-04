@@ -64,7 +64,7 @@ export default function DsbRequestPopup() {
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             onClick={() => setOpen(true)}
-            className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-[50px] border border-[rgba(201,168,76,0.45)] bg-[#C9A84C] px-5 py-3.5 text-sm font-semibold text-[#0f1923] transition-transform duration-200 hover:scale-[1.04] md:bottom-8 md:right-8"
+            className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-[50px] border border-gold/45 bg-gold px-5 py-3.5 text-sm font-semibold text-navy transition-transform duration-200 hover:scale-[1.04] hover:bg-gold-hover md:bottom-8 md:right-8"
           >
             <IconUsersPlus className="shrink-0" />
             <span className="hidden md:inline">Request an electrician candidate</span>
@@ -92,7 +92,7 @@ export default function DsbRequestPopup() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-[95vw] max-w-[520px] rounded-[20px] border border-[rgba(201,168,76,0.25)] bg-[#0f1923] px-6 py-8 text-white md:px-12 md:py-12"
+              className="relative w-[95vw] max-w-[520px] rounded-[20px] border border-gold/25 bg-navy px-6 py-8 text-white md:px-12 md:py-12"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -103,7 +103,7 @@ export default function DsbRequestPopup() {
               >
                 <IconClose />
               </button>
-              <p className="text-[12px] font-semibold uppercase tracking-wide text-[#C9A84C]">
+              <p className="text-[12px] font-semibold uppercase tracking-wide text-gold">
                 Need a DSB-approved electrician?
               </p>
               <h3 id="dsb-popup-title" className="mt-3 text-2xl font-bold text-white">
@@ -117,7 +117,7 @@ export default function DsbRequestPopup() {
               <ul className="mt-8 space-y-3">
                 {CHECKS.map((line) => (
                   <li key={line} className="flex items-start gap-2 text-sm text-white/85">
-                    <IconCheck className="mt-0.5 shrink-0 text-[#C9A84C]" />
+                    <IconCheck className="mt-0.5 shrink-0 text-gold" />
                     <span>{line}</span>
                   </li>
                 ))}
@@ -126,7 +126,7 @@ export default function DsbRequestPopup() {
                 <Link
                   href="/request"
                   onClick={() => setOpen(false)}
-                  className="group inline-flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-8 py-4 text-[15px] font-semibold text-[#0f1923] transition-transform hover:scale-[1.02]"
+                  className="group inline-flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-[10px] bg-gold px-8 py-4 text-[15px] font-semibold text-navy transition-transform hover:scale-[1.02] hover:bg-gold-hover"
                 >
                   Send a request now
                   <IconArrow className="transition-transform duration-200 group-hover:translate-x-1" />

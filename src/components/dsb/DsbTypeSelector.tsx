@@ -90,7 +90,7 @@ export default function DsbTypeSelector({
           transition={{ duration: 0.35 }}
         >
           <motion.div
-            className="relative max-h-[min(92dvh,920px)] w-full max-w-5xl overflow-y-auto overscroll-contain rounded-2xl border border-gold/25 bg-[#0a1018]/90 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.6)] sm:p-8"
+            className="relative max-h-[min(92dvh,920px)] w-full max-w-5xl overflow-y-auto overscroll-contain rounded-2xl border border-gold/25 bg-navy/95 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-sm sm:p-8"
             initial={{ opacity: 0, scale: 0.88 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.94 }}
@@ -124,7 +124,7 @@ export default function DsbTypeSelector({
                 </p>
                 <h3 className="mt-3 text-2xl font-semibold text-white">EU/EEA Citizen</h3>
                 <p className="mt-2 text-xs text-white/75">Covers all EU and EEA member states. See the official list if you are unsure.</p>
-                <ul className="mt-4 space-y-2 text-sm text-[#1D9E75]">
+                <ul className="mt-4 space-y-2 text-sm text-emerald-500">
                   <li>- Faster process (2-4 months)</li>
                   <li>- No visa required</li>
                   <li>- Job placement available</li>
@@ -139,7 +139,7 @@ export default function DsbTypeSelector({
                 </button>
               </article>
 
-              <article className="rounded-xl border border-[#C9A84C] bg-white/[0.03] p-5">
+              <article className="rounded-xl border border-gold/45 bg-white/[0.03] p-5 shadow-[0_0_20px_rgba(201,168,76,0.12)]">
                 <p className="text-4xl" aria-hidden>
                   🌍
                 </p>
@@ -154,7 +154,7 @@ export default function DsbTypeSelector({
                 <button
                   type="button"
                   onClick={() => selectType("non-eu")}
-                  className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-md border border-[#C9A84C] py-3 text-sm font-bold text-white transition hover:bg-[rgba(201,168,76,0.15)]"
+                  className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-md border border-gold py-3 text-sm font-bold text-white transition hover:bg-gold/15"
                 >
                   I am Non-EU →
                 </button>

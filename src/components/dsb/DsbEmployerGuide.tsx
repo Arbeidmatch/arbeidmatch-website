@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 function IconDoc() {
   return (
-    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#C9A84C]" aria-hidden>
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="shrink-0 text-gold" aria-hidden>
       <path
         d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
         stroke="currentColor"
@@ -18,7 +18,7 @@ function IconDoc() {
 
 function IconDiploma() {
   return (
-    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#C9A84C]" aria-hidden>
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="shrink-0 text-gold" aria-hidden>
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" />
       <path
         d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
@@ -33,7 +33,7 @@ function IconDiploma() {
 
 function IconCert() {
   return (
-    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#C9A84C]" aria-hidden>
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="shrink-0 text-gold" aria-hidden>
       <rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" strokeWidth={1.5} />
       <path d="M8 8h8M8 12h6" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" />
       <path d="M9 18l2 2 4-4" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
@@ -43,7 +43,7 @@ function IconCert() {
 
 function IconBrief() {
   return (
-    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#C9A84C]" aria-hidden>
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="shrink-0 text-gold" aria-hidden>
       <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth={1.5} />
       <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth={1.5} />
       <path d="M3 12h18" stroke="currentColor" strokeWidth={1.5} />
@@ -53,7 +53,7 @@ function IconBrief() {
 
 function IconPass() {
   return (
-    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#C9A84C]" aria-hidden>
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" className="shrink-0 text-gold" aria-hidden>
       <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" strokeWidth={1.5} />
       <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth={1.5} />
       <path d="M8 16h8" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" />
@@ -63,7 +63,7 @@ function IconPass() {
 
 function IconExternal() {
   return (
-    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#C9A84C]" aria-hidden>
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" className="shrink-0 text-gold" aria-hidden>
       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" />
       <path d="M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -81,7 +81,7 @@ function IconStatusX() {
 
 function IconStatusClock() {
   return (
-    <svg width={48} height={48} viewBox="0 0 48 48" fill="none" className="shrink-0 text-[#C9A84C]" aria-hidden>
+    <svg width={48} height={48} viewBox="0 0 48 48" fill="none" className="shrink-0 text-gold" aria-hidden>
       <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth={1.75} />
       <g
         className="transition-transform duration-500 ease-out group-hover:rotate-[360deg]"
@@ -113,7 +113,7 @@ function IconStatusCheck() {
 
 function IconFileSend() {
   return (
-    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" className="text-[#C9A84C]" aria-hidden>
+    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" className="text-gold" aria-hidden>
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" />
       <path d="M14 2v6h6M12 18v-6M9 15l3 3 3-3" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -122,7 +122,7 @@ function IconFileSend() {
 
 function IconCheckCircle() {
   return (
-    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" className="text-[#C9A84C]" aria-hidden>
+    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" className="text-gold" aria-hidden>
       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.5} />
       <path d="M8 12l2.5 2.5L16 9" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -131,7 +131,7 @@ function IconCheckCircle() {
 
 function IconClockSm() {
   return (
-    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" className="text-[#C9A84C]" aria-hidden>
+    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" className="text-gold" aria-hidden>
       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.5} />
       <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -140,7 +140,7 @@ function IconClockSm() {
 
 function IconStarSm() {
   return (
-    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" className="text-[#C9A84C]" aria-hidden>
+    <svg width={22} height={22} viewBox="0 0 24 24" fill="none" className="text-gold" aria-hidden>
       <path
         d="M12 2l2.2 6.8H21l-5.5 4 2.1 6.7L12 16.9 6.4 19.5l2.1-6.7L3 8.8h6.8L12 2z"
         stroke="currentColor"
@@ -276,9 +276,9 @@ export default function DsbEmployerGuide() {
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         {/* Hero */}
         <div
-          className={`rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-gradient-to-br from-[#0f1923] to-[#1a2a3a] px-8 py-10 md:px-[60px] md:py-[60px] ${heroIn ? "dsb-employer-hero-enter" : "opacity-0"}`}
+          className={`rounded-[20px] border border-gold/20 bg-gradient-to-br from-navy to-obsidian px-8 py-10 md:px-[60px] md:py-[60px] ${heroIn ? "dsb-employer-hero-enter" : "opacity-0"}`}
         >
-          <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#C9A84C]">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-gold">
             Strategic guide for Norwegian employers
           </p>
           <h2
@@ -316,15 +316,15 @@ export default function DsbEmployerGuide() {
             <article
               className={`group rounded-2xl border border-white/10 bg-white/[0.04] p-6 transition-all duration-500 ease-out ${
                 cardStep >= 2 ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-              } border-t-[3px] border-t-[#C9A84C]`}
+              } border-t-[3px] border-t-gold`}
             >
               <IconStatusClock />
-              <h4 className="mt-4 text-base font-bold text-[#C9A84C]">Application sent, awaiting reply</h4>
+              <h4 className="mt-4 text-base font-bold text-gold">Application sent, awaiting reply</h4>
               <p className="mt-3 text-sm leading-relaxed text-white/70">
                 The candidate has applied for temporary approval. DSB replies within one month. After a positive reply the
                 candidate may start lawfully. Validity: up to 12 months.
               </p>
-              <span className="mt-4 inline-block rounded-full bg-[rgba(201,168,76,0.1)] px-3 py-1 text-xs font-semibold text-[#C9A84C]">
+              <span className="mt-4 inline-block rounded-full bg-[rgba(201,168,76,0.1)] px-3 py-1 text-xs font-semibold text-gold">
                 DSB replies within one month
               </span>
             </article>
@@ -350,7 +350,7 @@ export default function DsbEmployerGuide() {
         {/* Accordion */}
         <div className="mt-16 border-t border-white/10 pt-14">
           <h3 className="text-[22px] font-bold text-white">Documents required by DSB</h3>
-          <p className="mt-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">For EU/EEA applicants</p>
+          <p className="mt-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-gold">For EU/EEA applicants</p>
           <ul className="mt-8 space-y-2">
             {ACCORDION.map((item, i) => {
               const open = openAcc === i;
@@ -400,7 +400,7 @@ export default function DsbEmployerGuide() {
             <div className="relative hidden lg:block">
               <div className="absolute left-0 right-0 top-[18px] h-0.5 bg-white/10" />
               <div
-                className="absolute left-0 top-[18px] h-0.5 origin-left bg-[#C9A84C] transition-transform duration-[800ms] ease-out"
+                className="absolute left-0 top-[18px] h-0.5 origin-left bg-gold transition-transform duration-[800ms] ease-out"
                 style={{
                   width: "100%",
                   transform: timelineActive ? "scaleX(1)" : "scaleX(0)",
@@ -411,10 +411,10 @@ export default function DsbEmployerGuide() {
                 {TIMELINE.map((step) => (
                   <div key={step.label} className="text-center">
                     <div className="mx-auto flex h-5 w-5 items-center justify-center rounded-full border-2 border-[rgba(201,168,76,0.45)] bg-[#0b141c] p-0.5">
-                      <span className="block h-2.5 w-2.5 rounded-full bg-[#C9A84C]" aria-hidden />
+                      <span className="block h-2.5 w-2.5 rounded-full bg-gold" aria-hidden />
                     </div>
                     <div className="mt-4 flex justify-center">{step.icon}</div>
-                    <p className="mt-3 text-sm font-bold text-[#C9A84C]">{step.label}</p>
+                    <p className="mt-3 text-sm font-bold text-gold">{step.label}</p>
                     <p className="mt-2 text-sm leading-relaxed text-white/70">{step.text}</p>
                     {step.fee ? (
                       <p className="mt-2 text-xs font-semibold text-white/50">{step.fee}</p>
@@ -428,7 +428,7 @@ export default function DsbEmployerGuide() {
             <div className="relative pl-6 lg:hidden">
               <div className="absolute bottom-2 left-[7px] top-2 w-0.5 bg-white/10" />
               <div
-                className="absolute left-[7px] top-2 w-0.5 origin-top bg-[#C9A84C] transition-transform duration-[800ms] ease-out"
+                className="absolute left-[7px] top-2 w-0.5 origin-top bg-gold transition-transform duration-[800ms] ease-out"
                 style={{
                   height: "calc(100% - 16px)",
                   transform: timelineActive ? "scaleY(1)" : "scaleY(0)",
@@ -438,9 +438,9 @@ export default function DsbEmployerGuide() {
               <ul className="space-y-10">
                 {TIMELINE.map((step) => (
                   <li key={step.label} className="relative">
-                    <span className="absolute -left-[1.35rem] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#C9A84C]" />
+                    <span className="absolute -left-[1.35rem] top-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold" />
                     <div className="flex items-center gap-2">{step.icon}</div>
-                    <p className="mt-2 text-sm font-bold text-[#C9A84C]">{step.label}</p>
+                    <p className="mt-2 text-sm font-bold text-gold">{step.label}</p>
                     <p className="mt-1 text-sm leading-relaxed text-white/70">{step.text}</p>
                     {step.fee ? <p className="mt-2 text-xs font-semibold text-white/50">{step.fee}</p> : null}
                   </li>
@@ -452,7 +452,7 @@ export default function DsbEmployerGuide() {
 
         {/* Legal */}
         <div className="mt-14 rounded-xl border border-white/[0.08] bg-white/[0.03] px-6 py-6 md:px-7 md:py-7">
-          <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
+          <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-gold">
             Official sources and regulations
           </h3>
           <ul className="mt-5 space-y-3">
@@ -462,7 +462,7 @@ export default function DsbEmployerGuide() {
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-white/90 underline-offset-4 hover:text-[#C9A84C] hover:underline"
+                  className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-white/90 underline-offset-4 hover:text-gold hover:underline"
                 >
                   <IconExternal />
                   {link.label}

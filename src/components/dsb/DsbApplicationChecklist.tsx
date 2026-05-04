@@ -2,9 +2,6 @@
 
 import { useMemo, useState } from "react";
 
-const GOLD = "#C9A84C";
-const NAVY = "#0f1923";
-
 type Item = { id: string; label: string; note?: string; required: boolean };
 
 const REQUIRED_ITEMS: Item[] = [
@@ -89,7 +86,7 @@ export default function DsbApplicationChecklist() {
   };
 
   return (
-    <section className="border-t border-white/10 py-12 text-white md:py-16" style={{ backgroundColor: NAVY }}>
+    <section className="border-t border-white/10 bg-navy py-12 text-white md:py-16">
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <h2 className="text-2xl font-bold text-white">DSB Application Checklist</h2>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/60">
@@ -105,8 +102,7 @@ export default function DsbApplicationChecklist() {
                   type="checkbox"
                   checked={!!checked[item.id]}
                   onChange={() => toggle(item.id)}
-                  className="mt-0.5 h-[18px] w-[18px] shrink-0 rounded border-white/20 bg-transparent"
-                  style={{ accentColor: GOLD }}
+                  className="mt-0.5 h-[18px] w-[18px] shrink-0 rounded border-white/20 bg-transparent accent-gold"
                 />
                 <span className="min-w-0 flex-1">
                   <span className="block text-[15px] font-medium leading-snug text-white">{item.label}</span>
@@ -123,8 +119,7 @@ export default function DsbApplicationChecklist() {
           <button
             type="button"
             onClick={() => setTempOpen((v) => !v)}
-            className="text-left text-sm font-semibold"
-            style={{ color: GOLD }}
+            className="text-left text-sm font-semibold text-gold hover:text-gold-hover"
             aria-expanded={tempOpen}
           >
             Additional documents for temporary approval only
@@ -139,8 +134,7 @@ export default function DsbApplicationChecklist() {
                       type="checkbox"
                       checked={!!checked[item.id]}
                       onChange={() => toggle(item.id)}
-                      className="mt-0.5 h-[18px] w-[18px] shrink-0 rounded border-white/20 bg-transparent"
-                      style={{ accentColor: GOLD }}
+                      className="mt-0.5 h-[18px] w-[18px] shrink-0 rounded border-white/20 bg-transparent accent-gold"
                     />
                     <span className="text-[15px] leading-snug text-white/90">{item.label}</span>
                   </label>
@@ -155,14 +149,11 @@ export default function DsbApplicationChecklist() {
             {done} of {requiredCount} required documents checked
           </p>
           <div className="mt-2 w-full overflow-hidden rounded-[2px] bg-white/10" style={{ height: 4 }}>
-            <div className="h-full rounded-[2px] bg-[#C9A84C] transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${pct}%` }} />
+            <div className="h-full rounded-[2px] bg-gold transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${pct}%` }} />
           </div>
         </div>
 
-        <div
-          className="mt-5 rounded-lg border px-4 py-4 md:px-5"
-          style={{ borderColor: "rgba(201,168,76,0.35)", background: "rgba(201,168,76,0.08)" }}
-        >
+        <div className="mt-5 rounded-lg border border-gold/35 bg-gold/10 px-4 py-4 md:px-5">
           <p className="text-[13px] leading-relaxed text-white/85">
             Save or print this checklist before starting your application. You can also download the checklist as PDF
             from DSB.no.{" "}
@@ -170,7 +161,7 @@ export default function DsbApplicationChecklist() {
               href="https://profapp.dsb.no/profapp/"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline"
+              className="font-semibold text-gold underline-offset-2 hover:text-gold-hover hover:underline"
             >
               Go to DSB application portal
             </a>
