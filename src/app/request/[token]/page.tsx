@@ -73,12 +73,9 @@ type RequestForm = {
   locations: string[];
   startDateMode: "Immediate" | "Specific start date";
   startDate: string;
-  salaryMin: string;
-  salaryMax: string;
   qualification: string;
   /** Stored as employer_requests.d_number: has_d_number | we_handle */
   dNumberChoice: "has_d_number" | "we_handle" | "";
-  /** Norwegian licence classes (multi) or "No driving license required" (exclusive) */
   driverLicenseSelections: string[];
   tradeCertificatePreferred: "Yes" | "No";
   jaguarLandRoverPreferred: "Yes" | "No";
@@ -91,6 +88,7 @@ type RequestForm = {
   subscribeUpdates: boolean;
   /** Exact label from rotation dropdown; also appended to requirements on submit */
   rotationSchedule: string;
+  rotationScheduleOther: string;
   howDidYouHear: string;
   socialMediaPlatform: string;
   socialMediaOther: string;
@@ -103,7 +101,6 @@ const ACCOMMODATION_WE_HELP = "We help find accommodation";
 const ACCOMMODATION_CANDIDATE_OWN = "Candidate finds own";
 
 const ROTATION_SCHEDULE_OPTIONS = [
-  "No rotation / Standard schedule",
   "1 week on / 1 week off",
   "2 weeks on / 2 weeks off",
   "3 weeks on / 3 weeks off",
@@ -112,6 +109,7 @@ const ROTATION_SCHEDULE_OPTIONS = [
   "6 weeks on / 6 weeks off",
   "7 weeks on / 7 weeks off",
   "8 weeks on / 8 weeks off",
+  "Other (specify)",
 ] as const;
 
 function rotationScheduleToPayloadFields(schedule: string): {
@@ -119,9 +117,6 @@ function rotationScheduleToPayloadFields(schedule: string): {
   rotationWeeksOn: string;
   rotationWeeksOff: string;
 } {
-  if (schedule === "No rotation / Standard schedule") {
-    return { hasRotation: "No", rotationWeeksOn: "", rotationWeeksOff: "" };
-  }
   for (let n = 1; n <= 8; n += 1) {
     const label = n === 1 ? "1 week on / 1 week off" : `${n} weeks on / ${n} weeks off`;
     if (schedule === label) {
@@ -146,8 +141,6 @@ const HOW_DID_YOU_HEAR_OPTIONS = [
   "Other",
 ] as const;
 
-const NO_DRIVING_LICENSE_REQUIRED = "No driving license required";
-
 const NORWEGIAN_DRIVING_LICENSE_CLASSES = [
   "AM",
   "A1",
@@ -167,7 +160,6 @@ const NORWEGIAN_DRIVING_LICENSE_CLASSES = [
 ] as const;
 
 function formatDriverLicenseForPayload(selections: string[]): string {
-  if (selections.includes(NO_DRIVING_LICENSE_REQUIRED)) return NO_DRIVING_LICENSE_REQUIRED;
   return selections.join(", ");
 }
 
@@ -184,7 +176,7 @@ const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
     "referralEmail",
   ],
   1: ["industry", "workerType", "contractType", "locations", "startDate", "candidates"],
-  2: ["salaryMin", "salaryMax", "accommodation", "localTransport", "internationalTransport"],
+  2: ["salary", "accommodation", "localTransport", "internationalTransport"],
   3: ["qualification", "dNumberChoice"],
   4: ["workTasks"],
   5: ["personalQualities"],
@@ -216,8 +208,7 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     if (f.locations.length === 0) invalid.add("locations");
     if (f.startDateMode === "Specific start date" && !f.startDate.trim()) invalid.add("startDate");
   } else if (s === 2) {
-    if (!f.salaryMin.trim()) invalid.add("salaryMin");
-    if (!f.salaryMax.trim()) invalid.add("salaryMax");
+    if (!f.salary.trim()) invalid.add("salary");
     if (f.accommodation !== ACCOMMODATION_WE_HELP && f.accommodation !== ACCOMMODATION_CANDIDATE_OWN) {
       invalid.add("accommodation");
     }
@@ -257,7 +248,6 @@ const INDUSTRY_OPTIONS = [
   "Industry and Production",
   "Cleaning",
   "HoReCa",
-  "Healthcare",
 ];
 
 const WORKER_TYPES_BY_INDUSTRY: Record<string, string[]> = {
@@ -366,16 +356,6 @@ const WORKER_TYPES_BY_INDUSTRY: Record<string, string[]> = {
     "Bartender",
     "Hotel receptionist",
     "Pastry chef",
-    "Other",
-  ],
-  Healthcare: [
-    "Nurse",
-    "Practical nurse",
-    "Healthcare assistant",
-    "Care worker",
-    "Elderly care worker",
-    "Personal assistant",
-    "Physiotherapist",
     "Other",
   ],
 };
@@ -499,13 +479,6 @@ const CERTIFICATIONS_BY_WORKER_TYPE: Record<string, string[]> = {
   Bartender: ["Food safety certificate", "Other"],
   "Hotel receptionist": ["None required", "Other"],
   "Pastry chef": ["Food safety certificate", "Other"],
-  Nurse: ["Healthcare authorization", "Other"],
-  "Practical nurse": ["Healthcare authorization", "Other"],
-  "Healthcare assistant": ["Healthcare authorization", "Other"],
-  "Care worker": ["Healthcare authorization", "Other"],
-  "Elderly care worker": ["Healthcare authorization", "Other"],
-  "Personal assistant": ["Healthcare authorization", "Other"],
-  Physiotherapist: ["Healthcare authorization", "Other"],
   Other: ["None required", "Other"],
 };
 
@@ -545,8 +518,6 @@ const initialForm: RequestForm = {
   locations: [],
   startDateMode: "Immediate",
   startDate: "",
-  salaryMin: "",
-  salaryMax: "",
   qualification: "",
   dNumberChoice: "",
   driverLicenseSelections: [],
@@ -560,6 +531,7 @@ const initialForm: RequestForm = {
   additionalNotes: "",
   subscribeUpdates: false,
   rotationSchedule: ROTATION_SCHEDULE_OPTIONS[0],
+  rotationScheduleOther: "",
   howDidYouHear: "",
   socialMediaPlatform: "",
   socialMediaOther: "",
@@ -603,7 +575,7 @@ function wizardInputClass(invalid: boolean, extraClass = "") {
   return [
     "w-full min-h-[44px] rounded-[12px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30",
     "focus:outline-none focus:border-2 focus:border-[#C9A84C]",
-    invalid ? "border-2 border-[#ef4444]" : "border border-white/10",
+    invalid ? "border-2 border-red-500 ring-4 ring-red-500/20" : "border border-white/10",
     extraClass,
   ]
     .filter(Boolean)
@@ -612,7 +584,7 @@ function wizardInputClass(invalid: boolean, extraClass = "") {
 
 function wizardGroupShell(invalid: boolean, extraClass = "") {
   if (!invalid) return extraClass || "";
-  return ["rounded-[12px] border-2 border-[#ef4444] p-2", extraClass].filter(Boolean).join(" ");
+  return ["rounded-[12px] border-2 border-red-500 p-2 ring-4 ring-red-500/20", extraClass].filter(Boolean).join(" ");
 }
 
 const INDUSTRY_ICONS: Record<string, LucideIcon> = {
@@ -898,17 +870,12 @@ export default function RequestTokenPage() {
 
   const toggleDriverLicenseChip = (value: string) => {
     setForm((prev) => {
-      if (value === NO_DRIVING_LICENSE_REQUIRED) {
-        if (prev.driverLicenseSelections.includes(NO_DRIVING_LICENSE_REQUIRED)) {
-          return { ...prev, driverLicenseSelections: [] };
-        }
-        return { ...prev, driverLicenseSelections: [NO_DRIVING_LICENSE_REQUIRED] };
-      }
-      const withoutNo = prev.driverLicenseSelections.filter((item) => item !== NO_DRIVING_LICENSE_REQUIRED);
-      const exists = withoutNo.includes(value);
+      const exists = prev.driverLicenseSelections.includes(value);
       return {
         ...prev,
-        driverLicenseSelections: exists ? withoutNo.filter((item) => item !== value) : [...withoutNo, value],
+        driverLicenseSelections: exists
+          ? prev.driverLicenseSelections.filter((item) => item !== value)
+          : [...prev.driverLicenseSelections, value],
       };
     });
   };
@@ -1020,7 +987,7 @@ export default function RequestTokenPage() {
       phoneNumber: form.contactPhone.replace(/\D/g, "").slice(0, 15),
       phone: (() => {
         const digits = form.contactPhone.replace(/\D/g, "").slice(0, 15);
-        return digits.length >= 6 ? `${form.contactPhonePrefix} ${digits}` : "";
+        return digits.length >= 6 ? `${form.contactPhonePrefix}${digits}` : "";
       })(),
       job_summary: form.jobSummary,
       hiringType: form.hiringType,
@@ -1042,14 +1009,16 @@ export default function RequestTokenPage() {
       driverLicenseOther: "",
       dNumber: form.dNumberChoice,
       dNumberOther: "",
-      requirements: `${generatedNotes}\n\nRotation schedule: ${form.rotationSchedule}`.trim(),
+      requirements: `${generatedNotes}\n\nRotation schedule: ${
+        form.rotationSchedule === "Other (specify)" ? form.rotationScheduleOther.trim() : form.rotationSchedule
+      }`.trim(),
       contractType: form.contractType,
       salaryPeriod: form.salaryPeriod === "per hour" ? "Per hour" : "Per month",
       salaryMode: form.salaryMode,
-      salary: `${form.salaryMin.trim()}-${form.salaryMax.trim()}`,
+      salary: form.salary,
       salaryAmount: "",
-      salaryFrom: form.salaryMin.trim(),
-      salaryTo: form.salaryMax.trim(),
+      salaryFrom: "",
+      salaryTo: "",
       hoursUnit: "",
       hoursAmount: "",
       overtime:
@@ -2181,89 +2150,46 @@ export default function RequestTokenPage() {
               <div className="space-y-5">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Salary and conditions</h2>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <div>
-                    <p className={labelClass}>Salary mode</p>
-                    <div className="flex gap-2">
-                      {(["Range", "Fixed"] as const).map((mode) => (
-                        <button
-                          key={mode}
-                          type="button"
-                          className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${form.salaryMode === mode ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`}
-                          onClick={() => setForm((p) => ({ ...p, salaryMode: mode }))}
-                        >
-                          {mode}
-                        </button>
-                      ))}
-                    </div>
+                <div data-wizard-field="salary" className="space-y-2">
+                  <p className={labelClass}>Minimum wage compliance</p>
+                  <a
+                    href="https://www.arbeidstilsynet.no/en/working-conditions/pay-and-minimum-wage/minimum-wage/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block text-[12px] font-medium text-[#C9A84C] underline decoration-[#C9A84C]/40 underline-offset-2 hover:text-[#b8953f]"
+                  >
+                    Based on Norwegian minimum wage rates
+                  </a>
+                  <div className={wizardGroupShell(!!fieldErrors.salary, "flex flex-col gap-3")}>
+                    {[
+                      "We pay according to tariff / collective agreement",
+                      "We pay above minimum wage",
+                      "We are unsure, please advise",
+                    ].map((opt) => (
+                      <label
+                        key={opt}
+                        className={`flex min-h-[44px] cursor-pointer items-center gap-3 rounded-[12px] border px-4 py-3 ${
+                          form.salary === opt
+                            ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
+                            : "border-white/10 bg-white/[0.03] text-white"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="minimumWageCompliance"
+                          value={opt}
+                          checked={form.salary === opt}
+                          onChange={() => {
+                            setForm((p) => ({ ...p, salary: opt }));
+                            clearFieldError("salary");
+                          }}
+                          className="h-4 w-4 shrink-0 accent-[#C9A84C] focus:outline-none"
+                        />
+                        <span className="text-sm font-semibold">{opt}</span>
+                      </label>
+                    ))}
                   </div>
-                  <div>
-                    <p className={labelClass}>Salary period</p>
-                    <div className="flex gap-2">
-                      {(["per hour", "per month"] as const).map((period) => (
-                        <button
-                          key={period}
-                          type="button"
-                          className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${form.salaryPeriod === period ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`}
-                          onClick={() => setForm((p) => ({ ...p, salaryPeriod: period }))}
-                        >
-                          {period === "per hour" ? "Per hour" : "Per month"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
-                    <p className="block text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
-                      Salary (per hour, NOK)
-                    </p>
-                    <a
-                      href="https://www.arbeidstilsynet.no/arbeidsforhold/lonn/minstelonn/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 text-[11px] font-medium text-[#C9A84C] underline decoration-[#C9A84C]/40 underline-offset-2 hover:text-[#b8953f]"
-                    >
-                      View minimum wages →
-                    </a>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div data-wizard-field="salaryMin">
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min={0}
-                        step={1}
-                        className={wizardInputClass(!!fieldErrors.salaryMin)}
-                        value={form.salaryMin}
-                        onChange={(e) => {
-                          setForm((p) => ({ ...p, salaryMin: e.target.value }));
-                          clearFieldError("salaryMin");
-                        }}
-                        placeholder="e.g. 220 NOK/hour"
-                      />
-                      {fieldErrors.salaryMin ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
-                    </div>
-                    <div data-wizard-field="salaryMax">
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min={0}
-                        step={1}
-                        className={wizardInputClass(!!fieldErrors.salaryMax)}
-                        value={form.salaryMax}
-                        onChange={(e) => {
-                          setForm((p) => ({ ...p, salaryMax: e.target.value }));
-                          clearFieldError("salaryMax");
-                        }}
-                        placeholder="To (NOK/hour)"
-                      />
-                      {fieldErrors.salaryMax ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
-                    </div>
-                  </div>
-                  <p className="text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.4)" }}>
-                    Must meet Arbeidstilsynet minimum wage requirements
-                  </p>
+                  {fieldErrors.salary ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
                 <div data-wizard-field="accommodation">
                   <p className={labelClass}>Accommodation</p>
@@ -2286,28 +2212,19 @@ export default function RequestTokenPage() {
                   </div>
                   {fieldErrors.accommodation ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
-                <div
-                  aria-hidden={form.accommodation !== ACCOMMODATION_WE_HELP}
-                  className={`overflow-hidden transition-all duration-200 ease-out ${
-                    form.accommodation === ACCOMMODATION_WE_HELP
-                      ? "max-h-[160px] opacity-100"
-                      : "pointer-events-none max-h-0 opacity-0"
-                  }`}
-                >
+                {form.accommodation === ACCOMMODATION_WE_HELP ? (
                   <div className="pb-1 pt-2">
                     <p className={labelClass}>Accommodation cost</p>
                     <input
                       className={wizardInputClass(false)}
-                      value={form.accommodation === ACCOMMODATION_WE_HELP ? form.accommodationCost : ""}
+                      value={form.accommodationCost}
                       onChange={(e) => {
-                        if (form.accommodation !== ACCOMMODATION_WE_HELP) return;
                         setForm((p) => ({ ...p, accommodationCost: e.target.value }));
                       }}
                       placeholder="e.g. 5000 NOK or describe"
-                      tabIndex={form.accommodation === ACCOMMODATION_WE_HELP ? 0 : -1}
                     />
                   </div>
-                </div>
+                ) : null}
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div data-wizard-field="localTransport">
                     <p className={labelClass}>Local travel</p>
@@ -2365,18 +2282,34 @@ export default function RequestTokenPage() {
                 </div>
                 <div className="self-start">
                   <p className={labelClass}>Rotation</p>
-                  <select
-                    aria-label="Rotation or work schedule"
-                    value={form.rotationSchedule}
-                    onChange={(e) => setForm((p) => ({ ...p, rotationSchedule: e.target.value }))}
-                    className="block w-[min(288px,92vw)] max-w-[288px] min-h-[44px] rounded-[12px] border border-white/10 bg-white/[0.05] px-3 py-3 text-sm text-white focus:outline-none focus:border-2 focus:border-[#C9A84C]"
-                  >
-                    {ROTATION_SCHEDULE_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt} className="bg-[#0D1B2A] text-white">
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="space-y-3">
+                    <select
+                      aria-label="Rotation or work schedule"
+                      value={form.rotationSchedule}
+                      onChange={(e) =>
+                        setForm((p) => ({
+                          ...p,
+                          rotationSchedule: e.target.value,
+                          rotationScheduleOther: e.target.value === "Other (specify)" ? p.rotationScheduleOther : "",
+                        }))
+                      }
+                      className="block w-[min(288px,92vw)] max-w-[288px] min-h-[44px] rounded-[12px] border border-white/10 bg-white/[0.05] px-3 py-3 text-sm text-white focus:outline-none focus:border-2 focus:border-[#C9A84C]"
+                    >
+                      {ROTATION_SCHEDULE_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt} className="bg-[#0D1B2A] text-white">
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                    {form.rotationSchedule === "Other (specify)" ? (
+                      <input
+                        className={wizardInputClass(false, "w-[min(288px,92vw)] max-w-[288px]")}
+                        value={form.rotationScheduleOther}
+                        onChange={(e) => setForm((p) => ({ ...p, rotationScheduleOther: e.target.value }))}
+                        placeholder="Specify rotation"
+                      />
+                    ) : null}
+                  </div>
                 </div>
                 <div className="flex items-center justify-between rounded-[10px] border border-[rgba(201,168,76,0.2)] px-4 py-3">
                   <p className="text-sm text-white/80">Subscribe to candidate updates</p>
@@ -2446,35 +2379,28 @@ export default function RequestTokenPage() {
                     Driving license{" "}
                     <span className="font-normal normal-case tracking-normal text-white/40">(optional)</span>
                   </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-col gap-2">
                     {NORWEGIAN_DRIVING_LICENSE_CLASSES.map((cls) => {
                       const selected = form.driverLicenseSelections.includes(cls);
                       return (
-                        <button
+                        <label
                           key={cls}
-                          type="button"
-                          onClick={() => toggleDriverLicenseChip(cls)}
-                          className={`min-h-[40px] rounded-lg border border-solid px-3 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${
+                          className={`flex min-h-[44px] cursor-pointer items-center gap-3 rounded-[12px] border px-4 py-3 text-sm font-semibold ${
                             selected
-                              ? "border-[rgba(255,255,255,0.2)] bg-[#C9A84C] text-[#0D1B2A]"
-                              : "border-[rgba(255,255,255,0.2)] bg-transparent text-white/90"
+                              ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
+                              : "border-white/10 bg-white/[0.03] text-white"
                           }`}
                         >
-                          {cls}
-                        </button>
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => toggleDriverLicenseChip(cls)}
+                            className="h-4 w-4 shrink-0 accent-[#C9A84C] focus:outline-none"
+                          />
+                          <span>{cls}</span>
+                        </label>
                       );
                     })}
-                    <button
-                      type="button"
-                      onClick={() => toggleDriverLicenseChip(NO_DRIVING_LICENSE_REQUIRED)}
-                      className={`min-h-[40px] rounded-lg border border-solid px-3 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${
-                        form.driverLicenseSelections.includes(NO_DRIVING_LICENSE_REQUIRED)
-                          ? "border-[rgba(255,255,255,0.2)] bg-[#C9A84C] text-[#0D1B2A]"
-                          : "border-[rgba(255,255,255,0.2)] bg-transparent text-white/90"
-                      }`}
-                    >
-                      {NO_DRIVING_LICENSE_REQUIRED}
-                    </button>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
