@@ -658,26 +658,26 @@ function OptionCard({
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-[44px] w-full items-center justify-between gap-3 rounded-[12px] border px-4 py-3 text-left transition-all duration-180 focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${
+      className={`flex min-h-[64px] w-full items-center justify-between gap-3 rounded-[12px] border px-4 py-4 text-left transition-all duration-150 focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${
         selected
-          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
-          : "border-white/10 bg-white/[0.03] text-white hover:border-white/20 hover:bg-white/[0.05]"
+          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.10)] text-[#C9A84C]"
+          : "border-white/10 bg-white/[0.03] text-white hover:border-[rgba(201,168,76,0.4)]"
       } ${className || ""}`}
     >
       <span className="flex items-center gap-3">
         {icon}
         <span>
-          <span className={`block text-sm font-semibold ${labelClassName || ""}`}>{label}</span>
-          {sublabel ? <span className="block text-xs text-white/50">{sublabel}</span> : null}
+          <span className={`block text-[14px] font-semibold leading-tight ${labelClassName || ""}`}>{label}</span>
+          {sublabel ? <span className="block text-xs text-white/50 mt-0.5">{sublabel}</span> : null}
         </span>
       </span>
       <span
-        className={`flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 ${
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 ${
           selected ? "border-[#C9A84C] bg-[#C9A84C]" : "border-white/20"
         }`}
       >
         {selected ? (
-          <svg viewBox="0 0 20 20" className="h-[10px] w-[10px] text-[#0f1923]" fill="none" stroke="currentColor" strokeWidth="3">
+          <svg viewBox="0 0 20 20" className="h-3 w-3 text-[#0f1923]" fill="none" stroke="currentColor" strokeWidth="3">
             <path d="M4 10l4 4 8-8" />
           </svg>
         ) : null}
