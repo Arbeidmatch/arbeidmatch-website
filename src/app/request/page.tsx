@@ -313,6 +313,9 @@ export default function RequestPage() {
   const [getStartedSubmitting, setGetStartedSubmitting] = useState(false);
   /** After successful Send link: show in-modal confirmation instead of redirecting to wizard. */
   const [getStartedSuccessEmail, setGetStartedSuccessEmail] = useState<string | null>(null);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [privacyContent, setPrivacyContent] = useState<string>("");
+  const [privacyLoading, setPrivacyLoading] = useState(false);
   /** Set after partner email verify; used for direct /request/[token] without simple-request email. */
   const [partnerWizardToken, setPartnerWizardToken] = useState<string | null>(null);
   const [waitlistCountdown, setWaitlistCountdown] = useState(0);
@@ -650,6 +653,26 @@ export default function RequestPage() {
     } catch {
       setNotifyStatus("error");
       toast.error("Could not save your subscription right now.");
+    }
+  };
+
+  const openPrivacyModal = async () => {
+    setShowPrivacyModal(true);
+    if (privacyContent) return; // Already fetched
+    setPrivacyLoading(true);
+    try {
+      const atsUrl = process.env.NEXT_PUBLIC_ATS_URL?.replace(/\/$/, "") || "";
+      const res = await fetch(`${atsUrl}/api/public/legal/privacy-notice`, {
+        headers: { Accept: "application/json" },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPrivacyContent(data.content_md || "");
+      }
+    } catch {
+      // Fallback handled by modal
+    } finally {
+      setPrivacyLoading(false);
     }
   };
 
@@ -1308,12 +1331,16 @@ export default function RequestPage() {
                       />
                       <span>
                         I agree to the processing of my data according to the{" "}
-                        <Link
-                          href="/privacy"
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            void openPrivacyModal();
+                          }}
                           className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]"
                         >
                           Privacy Policy
-                        </Link>
+                        </button>
                         .
                       </span>
                     </label>
@@ -1889,6 +1916,91 @@ export default function RequestPage() {
           </div>
         </>
       )}
+
+      {/* Privacy Policy Modal */}
+      <AnimatePresence>
+        {showPrivacyModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4"
+            onClick={() => setShowPrivacyModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", stiffness: 400, damping: 32 }}
+              className="relative max-h-[80vh] w-full max-w-lg overflow-hidden rounded-[4px] border border-white/10 bg-[#0f1923] shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+                <h3 className="text-lg font-bold text-white">Privacy Policy</h3>
+                <button
+                  type="button"
+                  aria-label="Close"
+                  onClick={() => setShowPrivacyModal(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-md text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <span className="text-xl leading-none">×</span>
+                </button>
+              </div>
+              <div className="max-h-[60vh] overflow-y-auto px-6 py-4">
+                {privacyLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-[#C9A84C]" />
+                  </div>
+                ) : privacyContent ? (
+                  <div className="prose prose-sm prose-invert max-w-none text-white/80">
+                    <div dangerouslySetInnerHTML={{ __html: privacyContent.replace(/\n/g, "<br />") }} />
+                  </div>
+                ) : (
+                  <div className="space-y-4 text-sm leading-relaxed text-white/80">
+                    <p>
+                      <strong className="text-white">Data Controller:</strong> ArbeidMatch Norge AS, Org.nr 932 953 728
+                    </p>
+                    <p>
+                      We collect and process personal data (name, email, CV, work history) to match candidates with employers and facilitate recruitment services in Norway.
+                    </p>
+                    <p>
+                      <strong className="text-white">Legal Basis:</strong> Consent (GDPR Art. 6(1)(a)) and legitimate interest for recruitment matching.
+                    </p>
+                    <p>
+                      <strong className="text-white">Your Rights:</strong> Access, rectification, erasure, data portability, and withdrawal of consent at any time.
+                    </p>
+                    <p>
+                      <strong className="text-white">Retention:</strong> Data is retained for the duration of active recruitment and up to 2 years after last activity, unless you request deletion.
+                    </p>
+                    <p>
+                      <strong className="text-white">Contact:</strong> post@arbeidmatch.no
+                    </p>
+                    <p className="pt-2">
+                      <Link
+                        href="/privacy"
+                        target="_blank"
+                        className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]"
+                      >
+                        Read full Privacy Policy →
+                      </Link>
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="border-t border-white/10 px-6 py-4">
+                <button
+                  type="button"
+                  onClick={() => setShowPrivacyModal(false)}
+                  className="inline-flex rounded-[4px] bg-[#C9A84C] px-6 py-2 text-sm font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style jsx>{`
         .result-cta-primary {
