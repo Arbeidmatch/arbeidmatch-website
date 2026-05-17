@@ -530,7 +530,7 @@ const initialForm: RequestForm = {
   certificationsOther: "",
   candidates: 1,
   contractType: "",
-  hiringType: "",
+  hiringType: "Recruitment of personnel for companies",
   jobSummary: "",
   salary: "",
   salaryPeriod: "per hour",
@@ -2644,26 +2644,26 @@ export default function RequestTokenPage() {
 
       <style jsx>{`
         .card-enter {
-          animation: cardIn ${reducedMotion ? "0ms" : "250ms"} ease forwards;
+          animation: slideIn ${reducedMotion ? "0ms" : "300ms"} ease forwards;
           animation-delay: 0ms;
           opacity: ${reducedMotion ? "1" : "0"};
-          transform: ${reducedMotion ? "translateY(0)" : "translateY(8px)"};
+          transform: ${reducedMotion ? "translateX(0)" : "translateX(40px)"};
         }
         .card-exit {
           opacity: ${reducedMotion ? "1" : "0"};
-          transform: ${reducedMotion ? "translateY(0)" : "translateY(8px)"};
+          transform: ${reducedMotion ? "translateX(0)" : "translateX(-40px)"};
           transition:
-            opacity ${reducedMotion ? "0ms" : "250ms"} ease,
-            transform ${reducedMotion ? "0ms" : "250ms"} ease;
+            opacity ${reducedMotion ? "0ms" : "300ms"} ease,
+            transform ${reducedMotion ? "0ms" : "300ms"} ease;
         }
-        @keyframes cardIn {
+        @keyframes slideIn {
           from {
             opacity: 0;
-            transform: translateY(8px);
+            transform: translateX(40px);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateX(0);
           }
         }
         @keyframes spin {
