@@ -2030,15 +2030,50 @@ export default function RequestTokenPage() {
                 </div>
                 <div data-wizard-field="workerType">
                   <p className={labelClass}>Trade or position</p>
-                  <input
-                    className={wizardInputClass(!!fieldErrors.workerType)}
-                    value={form.workerType}
-                    onChange={(e) => {
-                      setForm((p) => ({ ...p, workerType: e.target.value }));
-                      clearFieldError("workerType");
-                    }}
-                    placeholder="Position or role title"
-                  />
+                  {workerTypeOptions.length > 0 ? (
+                    <div className={wizardGroupShell(!!fieldErrors.workerType)}>
+                      <div className="flex flex-wrap gap-2">
+                        {workerTypeOptions.map((role) => (
+                          <button
+                            key={role}
+                            type="button"
+                            onClick={() => {
+                              setForm((p) => ({ ...p, workerType: role === "Other" ? "" : role }));
+                              clearFieldError("workerType");
+                            }}
+                            className={`min-h-[48px] rounded-[12px] border px-4 py-2.5 text-sm font-semibold transition-all duration-150 ${
+                              form.workerType === role || (role === "Other" && !workerTypeOptions.slice(0, -1).includes(form.workerType) && form.workerType !== "")
+                                ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]"
+                                : "border-white/20 text-white/70 hover:border-[rgba(201,168,76,0.4)]"
+                            }`}
+                          >
+                            {role}
+                          </button>
+                        ))}
+                      </div>
+                      {(!workerTypeOptions.slice(0, -1).includes(form.workerType) || form.workerType === "") && workerTypeOptions.includes("Other") && (
+                        <input
+                          className={`${wizardInputClass(false)} mt-3`}
+                          value={workerTypeOptions.slice(0, -1).includes(form.workerType) ? "" : form.workerType}
+                          onChange={(e) => {
+                            setForm((p) => ({ ...p, workerType: e.target.value }));
+                            clearFieldError("workerType");
+                          }}
+                          placeholder="Enter custom position..."
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <input
+                      className={wizardInputClass(!!fieldErrors.workerType)}
+                      value={form.workerType}
+                      onChange={(e) => {
+                        setForm((p) => ({ ...p, workerType: e.target.value }));
+                        clearFieldError("workerType");
+                      }}
+                      placeholder="Select industry first or enter position"
+                    />
+                  )}
                   {fieldErrors.workerType ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
                 {(() => {
