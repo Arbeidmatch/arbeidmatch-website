@@ -34,6 +34,9 @@ type TokenData = {
   phone?: string;
   gdpr_consent?: boolean;
   how_did_you_hear?: string | null;
+  isPartner?: boolean;
+  isOwner?: boolean;
+  partnerCompanyName?: string;
 };
 
 type RequestForm = {
@@ -238,7 +241,10 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
   return invalid;
 }
 
-const TOTAL_STEPS = 9;
+// Step 0 = Company & Contact (sarit pentru parteneri/owner)
+// TOTAL_STEPS_FULL = 9 pentru non-parteneri, 8 pentru parteneri/owner
+const TOTAL_STEPS_FULL = 9;
+const TOTAL_STEPS_PARTNER = 8;
 
 const CITY_OPTIONS = [
   "Oslo", "Bergen", "Trondheim", "Stavanger", "Kristiansand", "Drammen", "Tromso", "Fredrikstad",
@@ -713,6 +719,13 @@ export default function RequestTokenPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState<RequestForm>(initialForm);
   const [tokenGate, setTokenGate] = useState<"loading" | "ready" | "blocked" | "error">("loading");
+  // Partenerii existenti si owner-ul ArbeidMatch sar Step 0
+  const [isPartnerOrOwner, setIsPartnerOrOwner] = useState(false);
+  const TOTAL_STEPS = isPartnerOrOwner ? TOTAL_STEPS_PARTNER : TOTAL_STEPS_FULL;
+  // Max internal step index (always 8 regardless of partner status)
+  const MAX_STEP_INDEX = TOTAL_STEPS_FULL - 1;
+  // Display step adjusted for partners (they start at internal step 1, but show as Step 1)
+  const displayStep = isPartnerOrOwner ? step : step + 1;
   const [reducedMotion, setReducedMotion] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
@@ -771,22 +784,35 @@ export default function RequestTokenPage() {
     if (!token) return;
     void fetch(`/api/token-data/${token}`)
       .then((res) => res.json())
-      .then((data) => {
-        if (!data?.success || !data?.data) {
+      .then((resp) => {
+        if (!resp?.success || !resp?.data) {
           setTokenGate("error");
           return;
         }
-        const row = data.data as TokenData;
+        const row = resp.data as TokenData & { isPartner?: boolean; isOwner?: boolean; partnerCompanyName?: string };
         if (row.gdpr_consent !== true) {
           setTokenGate("blocked");
           return;
         }
-        if (row.how_did_you_hear === "partner") {
+        // Detecteaza partener existent sau owner ArbeidMatch
+        const partnerOrOwner = row.isPartner === true || row.isOwner === true;
+        setIsPartnerOrOwner(partnerOrOwner);
+
+        if (partnerOrOwner) {
+          // Pre-completeaza datele si sar direct la step 1 (care devine step 0 vizual)
+          const companyToUse = row.partnerCompanyName || row.company || "";
           setForm((p) => ({
             ...p,
-            companyName: (row.company || "").trim(),
+            companyName: companyToUse.trim(),
+            orgNumber: (row.org_number || "").trim(),
             contactEmail: (row.email || "").trim().toLowerCase(),
+            contactFirstName: (row.full_name || "").split(" ")[0] || "",
+            contactLastName: (row.full_name || "").split(" ").slice(1).join(" ") || "",
+            contactPhone: (row.phone || "").replace(/\D/g, ""),
+            howDidYouHear: "partner",
           }));
+          // Sar Step 0 - merg direct la step 1 (primul step real pentru parteneri)
+          setStep(1);
         }
         setTokenGate("ready");
       })
@@ -803,7 +829,8 @@ export default function RequestTokenPage() {
   }, [startWizard]);
 
   const goTo = (next: number) => {
-    if (next < 0 || next > TOTAL_STEPS - 1 || animating) return;
+    const minStep = isPartnerOrOwner ? 1 : 0;
+    if (next < minStep || next > MAX_STEP_INDEX || animating) return;
     if (next > step) {
       trackEvent("wizard_step_complete", { step: step + 1 });
     }
@@ -990,7 +1017,7 @@ export default function RequestTokenPage() {
     event.preventDefault();
     if (animating || isSubmitting) return;
     if (!runStepValidation(step)) return;
-    if (step < TOTAL_STEPS - 1) {
+    if (step < MAX_STEP_INDEX) {
       handleNext();
       return;
     }
@@ -998,7 +1025,7 @@ export default function RequestTokenPage() {
   };
 
   const handleNext = () => {
-    if (step < TOTAL_STEPS - 1) goTo(step + 1);
+    if (step < MAX_STEP_INDEX) goTo(step + 1);
   };
 
   const performEmployerSubmit = async () => {
@@ -1758,13 +1785,13 @@ export default function RequestTokenPage() {
             <span className="text-[#C9A84C]">Arbeid</span>Match
           </p>
           <p className="text-right text-xs font-semibold tabular-nums text-white/60">
-            Step {step + 1} of {TOTAL_STEPS}
+            Step {displayStep} of {TOTAL_STEPS}
           </p>
         </div>
         <div className="w-full bg-white/10 h-1" aria-hidden>
           <div
             className={`h-1 bg-[#C9A84C] ${reducedMotion ? "transition-none" : "transition-all duration-500"}`}
-            style={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
+            style={{ width: `${(displayStep / TOTAL_STEPS) * 100}%` }}
           />
         </div>
       </header>
@@ -1781,9 +1808,10 @@ export default function RequestTokenPage() {
           >
             <div className="absolute left-[10%] right-[10%] top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(201,168,76,0.5),transparent)]" />
 
-            {step === 0 && (
+            {/* Step 0 - Company and contact: skip pentru parteneri/owner */}
+            {step === 0 && !isPartnerOrOwner && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Company and contact</h2>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div data-wizard-field="companyName">
@@ -1984,7 +2012,7 @@ export default function RequestTokenPage() {
 
             {step === 1 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Job basics</h2>
                 <div>
                   <p className={labelClass}>Job category</p>
@@ -2214,7 +2242,7 @@ export default function RequestTokenPage() {
 
             {step === 2 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Salary and conditions</h2>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div>
@@ -2424,7 +2452,7 @@ export default function RequestTokenPage() {
 
             {step === 3 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Requirements</h2>
                 <div data-wizard-field="qualification">
                   <p className={labelClass}>Qualification</p>
@@ -2548,7 +2576,7 @@ export default function RequestTokenPage() {
 
             {step === 4 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Work tasks</h2>
                 <div data-wizard-field="workTasks">
                   <div className={wizardGroupShell(!!fieldErrors.workTasks, "flex flex-wrap gap-2")}>
@@ -2570,7 +2598,7 @@ export default function RequestTokenPage() {
 
             {step === 5 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Personal qualities</h2>
                 <div data-wizard-field="personalQualities">
                   <div className={wizardGroupShell(!!fieldErrors.personalQualities, "flex flex-wrap gap-2")}>
@@ -2592,7 +2620,7 @@ export default function RequestTokenPage() {
 
             {step === 6 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">We offer</h2>
                 <div data-wizard-field="offerItems">
                   <div className={wizardGroupShell(!!fieldErrors.offerItems, "flex flex-wrap gap-2")}>
@@ -2614,7 +2642,7 @@ export default function RequestTokenPage() {
 
             {step === 7 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Review your request</h2>
                 <p className="text-sm text-white/55">Check the summary below. You can add optional notes on the next step.</p>
                 <div className="rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-4">
@@ -2625,7 +2653,7 @@ export default function RequestTokenPage() {
 
             {step === 8 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Additional notes</h2>
                 <div>
                   <p className={labelClass}>Additional notes (optional)</p>
@@ -2641,7 +2669,7 @@ export default function RequestTokenPage() {
             )}
 
             <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/10">
-              {step > 0 ? (
+              {(isPartnerOrOwner ? step > 1 : step > 0) ? (
                 <button
                   type="button"
                   onClick={() => goTo(step - 1)}
@@ -2664,7 +2692,7 @@ export default function RequestTokenPage() {
                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#0f1923]/40 border-t-[#0f1923]" />
                     Submitting...
                   </>
-                ) : step === TOTAL_STEPS - 1 ? (
+                ) : step === MAX_STEP_INDEX ? (
                   "Submit"
                 ) : (
                   "Continue →"
