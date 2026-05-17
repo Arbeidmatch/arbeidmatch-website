@@ -2640,20 +2640,24 @@ export default function RequestTokenPage() {
               </div>
             )}
 
-            <div className="mt-6 flex w-full flex-col-reverse gap-2 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-              <button
-                type="button"
-                onClick={() => (step > 0 ? goTo(step - 1) : router.push("/request"))}
-                disabled={animating || isSubmitting}
-                className="inline-flex w-full shrink-0 items-center justify-center rounded-[10px] border border-solid border-[rgba(255,255,255,0.2)] bg-transparent px-4 py-2 text-sm font-semibold text-white/90 transition-colors duration-200 hover:border-[rgba(201,168,76,0.45)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-              >
-                Back
-              </button>
+            <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/10">
+              {step > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => goTo(step - 1)}
+                  disabled={animating || isSubmitting}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-white/20 text-sm font-medium text-white/70 w-fit transition-colors duration-150 hover:border-[rgba(201,168,76,0.4)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  ← Back
+                </button>
+              ) : (
+                <div />
+              )}
 
               <button
                 type="submit"
                 disabled={animating || isSubmitting}
-                className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-5 py-2 text-sm font-bold text-[#0D1B2A] transition-[filter,background-color] duration-200 hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40 sm:ml-auto sm:w-auto"
+                className="inline-flex items-center gap-1.5 px-6 py-2 rounded-lg bg-[#C9A84C] text-[#0D1B2A] text-sm font-bold ml-auto w-fit transition-colors duration-150 hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isSubmitting ? (
                   <>
@@ -2661,9 +2665,9 @@ export default function RequestTokenPage() {
                     Submitting...
                   </>
                 ) : step === TOTAL_STEPS - 1 ? (
-                  "Submit Request"
+                  "Submit"
                 ) : (
-                  "Continue"
+                  "Continue →"
                 )}
               </button>
             </div>
