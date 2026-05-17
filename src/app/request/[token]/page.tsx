@@ -1757,13 +1757,13 @@ export default function RequestTokenPage() {
           <p className="text-base font-bold">
             <span className="text-[#C9A84C]">Arbeid</span>Match
           </p>
-          <p className="text-right text-[11px] font-semibold tabular-nums text-white/80">
+          <p className="text-right text-xs font-semibold tabular-nums text-white/60">
             Step {step + 1} of {TOTAL_STEPS}
           </p>
         </div>
-        <div className="relative h-[3px] w-full shrink-0 bg-[rgba(255,255,255,0.12)]" aria-hidden>
+        <div className="w-full bg-white/10 h-1" aria-hidden>
           <div
-            className={`absolute left-0 top-0 h-full bg-[#C9A84C] ease-out ${reducedMotion ? "transition-none" : "transition-[width] duration-300"}`}
+            className={`h-1 bg-[#C9A84C] ${reducedMotion ? "transition-none" : "transition-all duration-500"}`}
             style={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
           />
         </div>
