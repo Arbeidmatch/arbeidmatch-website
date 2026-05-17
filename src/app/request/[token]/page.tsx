@@ -37,6 +37,8 @@ type TokenData = {
   isPartner?: boolean;
   isOwner?: boolean;
   partnerCompanyName?: string;
+  industry?: string | null;
+  role?: string | null;
 };
 
 type RequestForm = {
@@ -265,6 +267,43 @@ const INDUSTRY_OPTIONS = [
   "HoReCa",
   "Healthcare",
 ];
+
+/**
+ * Maps Faza 1 industry names (from /request page) to Faza 2 INDUSTRY_OPTIONS.
+ * Used to pre-select industry when partner comes from Faza 1 with selected industry.
+ */
+const FAZA1_TO_FAZA2_INDUSTRY_MAP: Record<string, string> = {
+  Building: "Construction",
+  Infrastructure: "Construction",
+  Welding: "Welding and Metal",
+  Electrical: "Electrical",
+  Production: "Industry and Production",
+  Logistics: "Logistics",
+  Cleaning: "Cleaning",
+  Hospitality: "HoReCa",
+  Automotive: "Industry and Production",
+  Offshore: "Welding and Metal",
+  "Fish Industry": "Industry and Production",
+};
+
+/**
+ * Maps Faza 1 role names to Faza 2 workerType options.
+ * Returns exact match if found in WORKER_TYPES_BY_INDUSTRY, otherwise returns original.
+ */
+function mapFaza1RoleToFaza2(role: string | null | undefined, industry: string): string {
+  if (!role) return "";
+  const workerTypes = WORKER_TYPES_BY_INDUSTRY[industry] || [];
+  // Exact match
+  if (workerTypes.includes(role)) return role;
+  // Case-insensitive match
+  const lowerRole = role.toLowerCase();
+  const found = workerTypes.find((wt) => wt.toLowerCase() === lowerRole);
+  if (found) return found;
+  // Partial match (e.g., "Carpenter" matches "Carpenter")
+  const partial = workerTypes.find((wt) => wt.toLowerCase().includes(lowerRole) || lowerRole.includes(wt.toLowerCase()));
+  if (partial) return partial;
+  return "";
+}
 
 const WORKER_TYPES_BY_INDUSTRY: Record<string, string[]> = {
   Electrical: [
@@ -801,6 +840,15 @@ export default function RequestTokenPage() {
         if (partnerOrOwner) {
           // Pre-completeaza datele si sar direct la step 1 (care devine step 0 vizual)
           const companyToUse = row.partnerCompanyName || row.company || "";
+
+          // Map Faza 1 industry to Faza 2 industry
+          const rawIndustry = row.industry || "";
+          const mappedIndustry = FAZA1_TO_FAZA2_INDUSTRY_MAP[rawIndustry] || rawIndustry;
+          const finalIndustry = INDUSTRY_OPTIONS.includes(mappedIndustry) ? mappedIndustry : "";
+
+          // Map Faza 1 role to Faza 2 workerType
+          const mappedWorkerType = mapFaza1RoleToFaza2(row.role, finalIndustry);
+
           setForm((p) => ({
             ...p,
             companyName: companyToUse.trim(),
@@ -810,6 +858,8 @@ export default function RequestTokenPage() {
             contactLastName: (row.full_name || "").split(" ").slice(1).join(" ") || "",
             contactPhone: (row.phone || "").replace(/\D/g, ""),
             howDidYouHear: "partner",
+            industry: finalIndustry,
+            workerType: mappedWorkerType,
           }));
           // Sar Step 0 - merg direct la step 1 (primul step real pentru parteneri)
           setStep(1);

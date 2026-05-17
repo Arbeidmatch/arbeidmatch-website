@@ -165,7 +165,11 @@ export default function RequestPageClient() {
       const response = await fetch("/api/verify-partner", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: accessEmail.trim().toLowerCase() }),
+        body: JSON.stringify({
+          email: accessEmail.trim().toLowerCase(),
+          industry: selectedIndustry || undefined,
+          role: searchTerm || undefined,
+        }),
       });
       const data = (await response.json()) as VerifyPartnerResponse;
       let nextStatus: "partner" | "non_partner";
