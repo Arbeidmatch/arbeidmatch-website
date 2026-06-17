@@ -3,8 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
 
-// Temporary one-time migration endpoint
-// Remove after running: src/app/api/internal/migrate-request-tokens/route.ts
+// Temporary one-time migration endpoint ? remove after use
 const SECRET = "mig-883379-request-tokens-2026";
 
 const CREATE_SQL = `
@@ -55,7 +54,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ status: "already_exists", message: "Table request_tokens already exists" });
   }
 
-  // Try Supabase Management API /pg/query endpoint
   const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
   const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
   const projectRef = supabaseUrl.replace("https://", "").replace(".supabase.co", "");
@@ -76,7 +74,9 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({ query: CREATE_SQL }),
     });
-    const mgmtBody = await mgmtResp.json().catch(() => ({ raw: await mgmtResp.text() }));
+    const mgmtText = await mgmtResp.text();
+    let mgmtBody: unknown;
+    try { mgmtBody = JSON.parse(mgmtText); } catch { mgmtBody = mgmtText; }
     diagnostics.mgmtStatus = mgmtResp.status;
     diagnostics.mgmtBody = mgmtBody;
 
@@ -88,15 +88,20 @@ export async function POST(request: NextRequest) {
     diagnostics.mgmtError = String(e);
   }
 
-  // Attempt 2: Try pg connection with POSTGRES_URL env var (set by Supabase Vercel integration)
+  // Attempt 2: pg connection with POSTGRES_URL (set by Supabase Vercel integration)
   const pgUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL ?? "";
   diagnostics.hasPgUrl = !!pgUrl;
+  diagnostics.pgUrlHost = pgUrl ? new URL(pgUrl).hostname : null;
 
   if (pgUrl) {
     try {
-      // Dynamic import to avoid bundling issues
-      const { Client } = await import("pg" as any);
-      const client = new Client({ connectionString: pgUrl, ssl: { rejectUnauthorized: false }, connectionTimeoutMillis: 10000 });
+      const pg = await import("pg");
+      const Client = pg.Client ?? (pg as unknown as { default: { Client: new (...a: unknown[]) => unknown } }).default?.Client;
+      const client = new (Client as new (opts: object) => { connect(): Promise<void>; query(q: string): Promise<unknown>; end(): Promise<void> })({
+        connectionString: pgUrl,
+        ssl: { rejectUnauthorized: false },
+        connectionTimeoutMillis: 10000,
+      });
       await client.connect();
       await client.query(CREATE_SQL);
       await client.end();
@@ -108,11 +113,11 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // All attempts failed - return SQL for manual execution
+  // All attempts failed ? return SQL for manual execution
   return NextResponse.json(
     {
       success: false,
-      message: "All automated migration attempts failed. Apply SQL manually in Supabase Dashboard > SQL Editor.",
+      message: "Automated migration failed. Apply SQL manually in Supabase Dashboard > SQL Editor.",
       sql: CREATE_SQL,
       diagnostics,
     },
