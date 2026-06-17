@@ -3,7 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
 
-// Temporary one-time migration endpoint ? remove after use
+// Temporary one-time migration endpoint — remove after use
 const SECRET = "mig-883379-request-tokens-2026";
 
 const CREATE_SQL = `
@@ -35,7 +35,7 @@ CREATE INDEX IF NOT EXISTS request_tokens_email_idx      ON public.request_token
 CREATE INDEX IF NOT EXISTS request_tokens_expires_at_idx ON public.request_tokens (expires_at);
 ALTER TABLE public.request_tokens ENABLE ROW LEVEL SECURITY;
 COMMENT ON TABLE public.request_tokens IS 'Secure tokens for arbeidmatch.no/request employer wizard.';
-`;
+`.trim();
 
 export async function POST(request: NextRequest) {
   const secret = request.headers.get("x-migration-secret");
@@ -64,7 +64,9 @@ export async function POST(request: NextRequest) {
     checkError: checkErr?.message,
   };
 
-  // Attempt 1: Supabase Management API
+  // Attempt: Supabase Management API
+  // NOTE: This requires a Supabase Personal Access Token (PAT), not the service role key.
+  // If this fails (401), the SQL must be applied manually via the Supabase Dashboard SQL editor.
   try {
     const mgmtResp = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
       method: "POST",
@@ -76,7 +78,11 @@ export async function POST(request: NextRequest) {
     });
     const mgmtText = await mgmtResp.text();
     let mgmtBody: unknown;
-    try { mgmtBody = JSON.parse(mgmtText); } catch { mgmtBody = mgmtText; }
+    try {
+      mgmtBody = JSON.parse(mgmtText);
+    } catch {
+      mgmtBody = mgmtText;
+    }
     diagnostics.mgmtStatus = mgmtResp.status;
     diagnostics.mgmtBody = mgmtBody;
 
@@ -88,36 +94,11 @@ export async function POST(request: NextRequest) {
     diagnostics.mgmtError = String(e);
   }
 
-  // Attempt 2: pg connection with POSTGRES_URL (set by Supabase Vercel integration)
-  const pgUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL ?? "";
-  diagnostics.hasPgUrl = !!pgUrl;
-  diagnostics.pgUrlHost = pgUrl ? new URL(pgUrl).hostname : null;
-
-  if (pgUrl) {
-    try {
-      const pg = await import("pg");
-      const Client = pg.Client ?? (pg as unknown as { default: { Client: new (...a: unknown[]) => unknown } }).default?.Client;
-      const client = new (Client as new (opts: object) => { connect(): Promise<void>; query(q: string): Promise<unknown>; end(): Promise<void> })({
-        connectionString: pgUrl,
-        ssl: { rejectUnauthorized: false },
-        connectionTimeoutMillis: 10000,
-      });
-      await client.connect();
-      await client.query(CREATE_SQL);
-      await client.end();
-
-      const { error: verifyErr } = await supabase.from("request_tokens").select("id").limit(0);
-      return NextResponse.json({ success: true, method: "pg_direct", tableExists: !verifyErr, diagnostics });
-    } catch (e) {
-      diagnostics.pgError = String(e);
-    }
-  }
-
-  // All attempts failed ? return SQL for manual execution
+  // Management API failed — return SQL for manual execution
   return NextResponse.json(
     {
       success: false,
-      message: "Automated migration failed. Apply SQL manually in Supabase Dashboard > SQL Editor.",
+      message: "Automated migration failed. Apply SQL manually in Supabase Dashboard > SQL Editor at: https://supabase.com/dashboard/project/" + projectRef + "/sql/new",
       sql: CREATE_SQL,
       diagnostics,
     },
