@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
-import { CANDIDATE_PORTAL_LOGIN_URL } from "@/lib/candidatePortal";
+import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
 import { NAV_CITY_LINKS, NAV_INDUSTRY_LINKS } from "@/lib/navIndustriesLocations";
 import { ArrowRight, ChevronDown, UserPlus } from "lucide-react";
 
@@ -18,6 +18,10 @@ const desktopNavTail = [
 
 function goToCandidateLogin() {
   window.location.assign(CANDIDATE_PORTAL_LOGIN_URL);
+}
+
+function goToCandidateSignup() {
+  window.location.assign(CANDIDATE_PORTAL_SIGNUP_URL);
 }
 
 function linkActive(pathname: string, href: string): boolean {
@@ -182,13 +186,14 @@ export default function Navbar() {
                     <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
                   </button>
                   <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
-                  <Link
-                    href="/for-candidates#register"
+                  <button
+                    type="button"
+                    onClick={goToCandidateSignup}
                     className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
                   >
                     <span>Create your profile</span>
                     <UserPlus className="h-4 w-4 shrink-0" aria-hidden />
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>
