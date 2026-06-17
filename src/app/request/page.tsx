@@ -1,5 +1,3 @@
-export const revalidate = 86400;
-
 "use client";
 
 import Link from "next/link";
