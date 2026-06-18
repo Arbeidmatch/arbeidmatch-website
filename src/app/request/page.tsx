@@ -1326,17 +1326,17 @@ export default function RequestPage() {
                         className="mt-1 h-4 w-4 shrink-0 rounded border-white/30 text-[#C9A84C] focus:ring-[#C9A84C]"
                       />
                       <span>
-                        I agree to the processing of my data according to the{" "}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            void openPrivacyModal();
-                          }}
+                        I confirm that I am authorized to submit this request on
+                        behalf of my company and agree to the processing of the
+                        provided contact information in accordance with the{" "}
+                        <a
+                          href="https://arbeidmatch.no/privacy"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]"
                         >
                           Privacy Policy
-                        </button>
+                        </a>
                         .
                       </span>
                     </label>
