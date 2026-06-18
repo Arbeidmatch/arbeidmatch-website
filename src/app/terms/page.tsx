@@ -4,7 +4,7 @@ import { AtsLegalDocumentFallback, AtsLegalDocumentPage } from "@/components/leg
 import { fetchAtsLegalDocument } from "@/lib/atsLegalDocument";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 const TITLE = "Terms of Service | ArbeidMatch";
 const DESCRIPTION = "Terms of service for ArbeidMatch Norge AS, governing use of arbeidmatch.no.";
