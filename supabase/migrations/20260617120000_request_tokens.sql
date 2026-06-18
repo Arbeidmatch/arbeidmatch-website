@@ -33,3 +33,12 @@ CREATE INDEX IF NOT EXISTS request_tokens_expires_at_idx ON public.request_token
 ALTER TABLE public.request_tokens ENABLE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE public.request_tokens IS 'Secure tokens for arbeidmatch.no/request employer wizard.';
+
+-- Grant table-level privileges so the Supabase client (service_role key) and anon can INSERT.
+-- Without these, PostgreSQL raises "permission denied for table request_tokens" (error 42501)
+-- even though RLS is enabled — table privileges are checked before RLS policies.
+GRANT ALL ON public.request_tokens TO postgres;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.request_tokens TO service_role;
+GRANT USAGE ON SEQUENCE public.request_tokens_id_seq TO service_role;
+GRANT ALL ON SEQUENCE public.request_tokens_id_seq TO postgres;
+GRANT SELECT, INSERT, UPDATE ON public.request_tokens TO anon;
