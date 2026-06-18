@@ -983,14 +983,6 @@ export default function RequestPage() {
 
   return (
     <section className="flex min-h-screen flex-col items-center overflow-x-hidden bg-[#0D1B2A] px-4 py-6 text-white md:min-h-dvh md:px-6 md:py-10">
-      {verifiedPartnerCompany ? (
-        <div className="mx-auto mb-3 flex w-full max-w-sm justify-center md:max-w-[980px] md:justify-start">
-          <span className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 px-3 py-1.5 text-xs font-medium text-[#C9A84C]">
-            Verified partner
-            <span className="truncate font-normal text-white/75">{verifiedPartnerCompany}</span>
-          </span>
-        </div>
-      ) : null}
       <div
         className={`mx-auto w-full max-w-sm bg-white/5 p-6 transition-all duration-300 md:max-w-[980px] md:p-9 md:bg-[rgba(255,255,255,0.03)] ${
           checkState === "idle" && pickerStep === "industries"
