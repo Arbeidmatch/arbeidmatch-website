@@ -31,9 +31,15 @@ export async function fetchAtsLegalDocument(slug: string): Promise<AtsLegalDocum
     if (typeof data.content_md !== "string" || !data.content_md.trim()) return null;
     if (typeof data.name !== "string" || !data.name.trim()) return null;
 
+    // Decode escaped \n sequences that may appear if content_markdown was stored
+    // with literal backslash-n instead of real newlines (data integrity guard).
+    const content_md = data.content_md.includes("\\n")
+      ? data.content_md.replace(/\\n/g, "\n")
+      : data.content_md;
+
     return {
       name: data.name.trim(),
-      content_md: data.content_md,
+      content_md,
       version: data.version ?? "",
       updated_at: typeof data.updated_at === "string" ? data.updated_at : "",
     };
