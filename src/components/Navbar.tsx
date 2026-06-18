@@ -244,6 +244,8 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {/* More menu hidden — restore by removing the `false &&` wrapper */}
+            {false && (
             <div className="group relative">
               <button
                 type="button"
@@ -296,6 +298,7 @@ export default function Navbar() {
                 </div>
               </div>
             </div>
+            )}
           </nav>
 
           <div className="hidden shrink-0 xl:block">

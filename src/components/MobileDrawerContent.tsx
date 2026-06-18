@@ -181,6 +181,8 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
           </Link>
         </div>
 
+        {/* More menu hidden — restore by removing the `false &&` wrapper */}
+        {false && (
         <div className="border-b border-white/[0.06]">
           <button
             type="button"
@@ -204,6 +206,7 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
             </div>
           ) : null}
         </div>
+        )}
       </nav>
     </>
   );
