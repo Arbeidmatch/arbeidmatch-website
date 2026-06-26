@@ -31,11 +31,16 @@ import { REQUEST_INDUSTRY_ROLE_GROUPS } from "@/lib/industry-roles";
 import { clearPartnerRequestContext, writePartnerRequestContext } from "@/lib/partnerRequestContext";
 import { useToast } from "@/lib/toast-context";
 
-type VerifyPartnerResponse = {
-  verified?: boolean;
-  company_name?: string;
-  token?: string;
-  reason?: string;
+type PartnerVerifyCompany = {
+  id: string;
+  name: string;
+  email?: string | null;
+};
+
+type PartnerVerifyResponse = {
+  found?: boolean;
+  company?: PartnerVerifyCompany;
+  error?: string;
 };
 
 const AM_PARTNER_TOKEN_KEY = "am_partner_token";
@@ -535,7 +540,8 @@ export default function RequestPage() {
   const verifyAccess = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!verifyCanResend) return;
-    if (!accessEmail.includes("@")) {
+    const email = accessEmail.trim().toLowerCase();
+    if (!email.includes("@")) {
       toast.error("Please enter a valid company email address.");
       return;
     }
@@ -543,28 +549,30 @@ export default function RequestPage() {
     setAccessErrorMessage("");
     setIsLoadingExit(false);
     try {
-      const response = await fetch("/api/verify-partner", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: accessEmail.trim().toLowerCase(),
-          industry: selectedIndustry || "",
-          role: selectedRole || "",
-        }),
-      });
-      const data = (await response.json()) as VerifyPartnerResponse;
-      let nextStatus: "partner" | "non_partner";
-      if (response.ok && data.verified) {
-        setCompanyName(data.company_name || "your company");
-        nextStatus = "partner";
+      const response = await fetch(`/api/public/partner-verify?email=${encodeURIComponent(email)}`);
+      let data: PartnerVerifyResponse = {};
+      try {
+        data = (await response.json()) as PartnerVerifyResponse;
+      } catch {
+        data = {};
+      }
+
+      if (response.status === 400) {
+        toast.error("Please enter a valid company email address.");
+        setAccessStatus("idle");
+        return;
+      }
+
+      if (response.ok && data.found && data.company) {
+        const verifiedCompanyName = (data.company.name || "your company").trim() || "your company";
+        setCompanyName(verifiedCompanyName);
+        const nextStatus: "partner" | "non_partner" = "partner";
         startCountdown(setVerifyCountdown, setVerifyCanResend);
         trackRequestSubmit(selectedIndustry || selectedRole || "unknown", 0);
         try {
-          if (data.token && typeof window !== "undefined") {
-            window.sessionStorage.setItem(AM_PARTNER_TOKEN_KEY, data.token);
-            window.sessionStorage.setItem(AM_PARTNER_COMPANY_KEY, (data.company_name || "").trim());
-            window.sessionStorage.setItem(AM_PARTNER_EMAIL_KEY, accessEmail.trim().toLowerCase());
-            setPartnerWizardToken(data.token);
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem(AM_PARTNER_COMPANY_KEY, verifiedCompanyName);
+            window.sessionStorage.setItem(AM_PARTNER_EMAIL_KEY, email);
           }
         } catch {
           /* ignore */
@@ -573,11 +581,11 @@ export default function RequestPage() {
         if (partnerVerifyFromRef.current === "partner_check") {
           try {
             window.localStorage.setItem(REQUEST_PARTNER_VERIFIED_KEY, "1");
-            window.localStorage.setItem(REQUEST_PARTNER_COMPANY_KEY, data.company_name || "");
+            window.localStorage.setItem(REQUEST_PARTNER_COMPANY_KEY, verifiedCompanyName);
           } catch {
             /* ignore */
           }
-          setVerifiedPartnerCompany((data.company_name || "").trim() || "Partner");
+          setVerifiedPartnerCompany(verifiedCompanyName || "Partner");
           setIsLoadingExit(true);
           await new Promise((resolve) => setTimeout(resolve, 200));
           setResultAction("none");
@@ -594,24 +602,17 @@ export default function RequestPage() {
           partnerVerifyFromRef.current = "modal";
           return;
         }
-      } else if (data.reason === "personal_email") {
-        setAccessErrorMessage("email_not_recognized");
         setIsLoadingExit(true);
         await new Promise((resolve) => setTimeout(resolve, 200));
-        setAccessStatus("error");
-        setIsLoadingExit(false);
-        return;
-      } else {
-        setAccessErrorMessage("email_not_recognized");
-        setIsLoadingExit(true);
-        await new Promise((resolve) => setTimeout(resolve, 200));
-        setAccessStatus("error");
+        setAccessStatus(nextStatus);
         setIsLoadingExit(false);
         return;
       }
+
+      setAccessErrorMessage("email_not_recognized");
       setIsLoadingExit(true);
       await new Promise((resolve) => setTimeout(resolve, 200));
-      setAccessStatus(nextStatus);
+      setAccessStatus("error");
       setIsLoadingExit(false);
     } catch {
       setAccessErrorMessage("Could not check access right now. Please try again.");
