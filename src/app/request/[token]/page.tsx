@@ -735,7 +735,7 @@ export default function RequestTokenPage() {
   const { token } = useParams<{ token: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
-  /** Default wizard for /request/[token] links (e.g. from simple-request). Only ?start=choice opens the entry cards first. */
+  /** Default wizard for /request/[token] links after OTP verification. Only ?start=choice opens the entry cards first. */
   const startWizard = searchParams.get("start") !== "choice";
   const SEARCH_MESSAGES = [
     "Connecting to candidate database...",
@@ -1499,7 +1499,7 @@ export default function RequestTokenPage() {
                   Check now
                 </button>
               </div>
-              {partnerFlowVisible && (
+              {false && partnerFlowVisible && (
                 <div className="md:col-span-3 rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-9">
                   <p className="text-sm font-semibold text-white">Enter your company email</p>
                   <div className="mt-3 flex flex-col gap-3 md:flex-row">

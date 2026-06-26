@@ -316,8 +316,14 @@ export default function RequestPage() {
   const [getStartedGdpr, setGetStartedGdpr] = useState(false);
   const [getStartedError, setGetStartedError] = useState("");
   const [getStartedSubmitting, setGetStartedSubmitting] = useState(false);
-  /** After successful Send link: show in-modal confirmation instead of redirecting to wizard. */
-  const [getStartedSuccessEmail, setGetStartedSuccessEmail] = useState<string | null>(null);
+  const [getStartedStep, setGetStartedStep] = useState<"form" | "otp">("form");
+  const [getStartedOtp, setGetStartedOtp] = useState("");
+  const [getStartedVerificationId, setGetStartedVerificationId] = useState<string | null>(null);
+  const [partnerOtpStep, setPartnerOtpStep] = useState<"email" | "otp">("email");
+  const [partnerOtp, setPartnerOtp] = useState("");
+  const [partnerVerificationId, setPartnerVerificationId] = useState<string | null>(null);
+  const [otpError, setOtpError] = useState("");
+  const [otpBusy, setOtpBusy] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [privacyContent, setPrivacyContent] = useState<string>("");
   const [privacyLoading, setPrivacyLoading] = useState(false);
@@ -367,15 +373,6 @@ export default function RequestPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      if (window.localStorage.getItem(REQUEST_PARTNER_VERIFIED_KEY) === "1") {
-        const name = (window.localStorage.getItem(REQUEST_PARTNER_COMPANY_KEY) || "").trim();
-        setVerifiedPartnerCompany(name || "Partner");
-        setPickerStep("industries");
-        setSelectedIndustry("");
-        setSelectedRole(null);
-        setRoleQuery("");
-        setCheckState("idle");
-      }
       const storedToken = readPartnerWizardTokenFromSession();
       if (storedToken) setPartnerWizardToken(storedToken);
     } catch {
@@ -537,9 +534,9 @@ export default function RequestPage() {
     }
   }, [partnerSessionHydrated]);
 
-  const verifyAccess = async (event: FormEvent<HTMLFormElement>) => {
+  const sendPartnerOtp = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!verifyCanResend) return;
+    if (!verifyCanResend || otpBusy) return;
     const email = accessEmail.trim().toLowerCase();
     if (!email.includes("@")) {
       toast.error("Please enter a valid company email address.");
@@ -547,73 +544,66 @@ export default function RequestPage() {
     }
     setAccessStatus("submitting");
     setAccessErrorMessage("");
+    setOtpError("");
     setIsLoadingExit(false);
     try {
-      const response = await fetch(`/api/public/partner-verify?email=${encodeURIComponent(email)}`);
-      let data: PartnerVerifyResponse = {};
+      const verifyResponse = await fetch(`/api/public/partner-verify?email=${encodeURIComponent(email)}`);
+      let verifyData: PartnerVerifyResponse = {};
       try {
-        data = (await response.json()) as PartnerVerifyResponse;
+        verifyData = (await verifyResponse.json()) as PartnerVerifyResponse;
       } catch {
-        data = {};
+        verifyData = {};
       }
 
-      if (response.status === 400) {
+      if (verifyResponse.status === 400) {
         toast.error("Please enter a valid company email address.");
         setAccessStatus("idle");
         return;
       }
 
-      if (response.ok && data.found && data.company) {
-        const verifiedCompanyName = (data.company.name || "your company").trim() || "your company";
-        setCompanyName(verifiedCompanyName);
-        const nextStatus: "partner" | "non_partner" = "partner";
-        startCountdown(setVerifyCountdown, setVerifyCanResend);
-        trackRequestSubmit(selectedIndustry || selectedRole || "unknown", 0);
-        try {
-          if (typeof window !== "undefined") {
-            window.sessionStorage.setItem(AM_PARTNER_COMPANY_KEY, verifiedCompanyName);
-            window.sessionStorage.setItem(AM_PARTNER_EMAIL_KEY, email);
-          }
-        } catch {
-          /* ignore */
-        }
-        toast.success("Partner verified. Choose an industry and role to start your request.");
-        if (partnerVerifyFromRef.current === "partner_check") {
-          try {
-            window.localStorage.setItem(REQUEST_PARTNER_VERIFIED_KEY, "1");
-            window.localStorage.setItem(REQUEST_PARTNER_COMPANY_KEY, verifiedCompanyName);
-          } catch {
-            /* ignore */
-          }
-          setVerifiedPartnerCompany(verifiedCompanyName || "Partner");
-          setIsLoadingExit(true);
-          await new Promise((resolve) => setTimeout(resolve, 200));
-          setResultAction("none");
-          setAccessStatus("idle");
-          setAccessEmail("");
-          setPartnerModalView("not_found");
-          setAccessErrorMessage("");
-          setIsLoadingExit(false);
-          setPickerStep("industries");
-          setSelectedIndustry("");
-          setSelectedRole(null);
-          setRoleQuery("");
-          setCheckState("idle");
-          partnerVerifyFromRef.current = "modal";
-          return;
-        }
+      if (!verifyResponse.ok || !verifyData.found || !verifyData.company) {
+        setAccessErrorMessage("email_not_recognized");
         setIsLoadingExit(true);
         await new Promise((resolve) => setTimeout(resolve, 200));
-        setAccessStatus(nextStatus);
+        setAccessStatus("error");
         setIsLoadingExit(false);
         return;
       }
 
-      setAccessErrorMessage("email_not_recognized");
-      setIsLoadingExit(true);
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      setAccessStatus("error");
+      const verifiedCompanyName = (verifyData.company.name || "your company").trim() || "your company";
+      setCompanyName(verifiedCompanyName);
+
+      const otpResponse = await fetch("/api/request-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, flow: "partner" }),
+      });
+      const otpData = (await otpResponse.json().catch(() => null)) as
+        | { success?: boolean; verificationId?: string; error?: string; retryAfterSeconds?: number }
+        | null;
+
+      if (!otpResponse.ok || !otpData?.success || !otpData.verificationId) {
+        setOtpError(otpData?.error || "Could not send verification code. Please try again.");
+        setAccessStatus("idle");
+        return;
+      }
+
+      startCountdown(setVerifyCountdown, setVerifyCanResend);
+      trackRequestSubmit(selectedIndustry || selectedRole || "unknown", 0);
+      try {
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem(AM_PARTNER_COMPANY_KEY, verifiedCompanyName);
+          window.sessionStorage.setItem(AM_PARTNER_EMAIL_KEY, email);
+        }
+      } catch {
+        /* ignore */
+      }
+      setPartnerVerificationId(otpData.verificationId);
+      setPartnerOtp("");
+      setPartnerOtpStep("otp");
+      setAccessStatus("partner");
       setIsLoadingExit(false);
+      toast.success("Verification code sent. Check your email.");
     } catch {
       setAccessErrorMessage("Could not check access right now. Please try again.");
       toast.error("Could not verify partner access right now.");
@@ -624,10 +614,52 @@ export default function RequestPage() {
     }
   };
 
+  const verifyPartnerOtp = async (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    if (otpBusy) return;
+    const email = accessEmail.trim().toLowerCase();
+    const code = partnerOtp.replace(/\D/g, "").slice(0, 6);
+    if (!email.includes("@") || code.length !== 6) {
+      setOtpError("Enter the 6-digit code from your email.");
+      return;
+    }
+    setOtpBusy(true);
+    setOtpError("");
+    try {
+      const response = await fetch("/api/verify-request-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          otp: code,
+          flow: "partner",
+          verificationId: partnerVerificationId || undefined,
+        }),
+      });
+      const data = (await response.json().catch(() => null)) as
+        | { success?: boolean; redirectUrl?: string; error?: string }
+        | null;
+      if (!response.ok || !data?.success || !data.redirectUrl) {
+        setOtpError(data?.error || "Could not verify code. Please try again.");
+        return;
+      }
+      allowNextNavigationRef.current = true;
+      router.push(data.redirectUrl);
+    } catch {
+      setOtpError("Could not verify code right now. Please try again.");
+    } finally {
+      setOtpBusy(false);
+    }
+  };
+
   const resetEmail = () => {
     setAccessEmail("");
     setAccessErrorMessage("");
     setAccessStatus("idle");
+    setPartnerOtpStep("email");
+    setPartnerOtp("");
+    setPartnerVerificationId(null);
+    setOtpError("");
     setIsLoadingExit(false);
   };
 
@@ -681,7 +713,7 @@ export default function RequestPage() {
     }
   };
 
-  const submitGetStartedLink = async () => {
+  const submitGetStartedOtpRequest = async () => {
     const industryResolved =
       selectedIndustry.trim() ||
       (selectedRole
@@ -694,15 +726,10 @@ export default function RequestPage() {
     }
     if (!selectedRole) {
       setGetStartedError("Please choose a role first.");
-      console.error("[simple-request] Submit blocked: missing selectedRole");
       return;
     }
     if (!industryResolved) {
       setGetStartedError("Please select an industry so we can route your request.");
-      console.error("[simple-request] Submit blocked: missing industry", {
-        selectedRole,
-        selectedIndustry,
-      });
       return;
     }
 
@@ -714,48 +741,71 @@ export default function RequestPage() {
 
     setGetStartedSubmitting(true);
     setGetStartedError("");
+    setOtpError("");
     try {
-      const response = await fetch("/api/simple-request", {
+      const response = await fetch("/api/request-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
-          first_name: "Employer",
-          last_name: "Request",
-          company: "To be completed",
-          phone: "000000",
-          job_summary: selectedRole,
-          howDidYouHear: "website-request",
+          flow: "new_company",
           gdprConsent: true,
           role: selectedRole,
           industry: industryResolved,
         }),
       });
       const data = (await response.json().catch(() => null)) as
-        | { success?: boolean; token?: string; error?: string }
+        | { success?: boolean; verificationId?: string; error?: string }
         | null;
 
-      if (!response.ok) {
-        console.error("[simple-request] Server error:", response.status, data ?? "(empty body)");
-        setGetStartedError("Server error. Please try again or contact support@arbeidmatch.no.");
+      if (!response.ok || !data?.success || !data.verificationId) {
+        setGetStartedError(data?.error || "Could not send verification code. Please try again.");
         return;
       }
-      if (!data?.success || !data.token) {
-        console.error("[simple-request] Unexpected response:", data);
-        setGetStartedError("Something went wrong. Please try again or contact support@arbeidmatch.no.");
-        return;
-      }
-      try {
-        sessionStorage.setItem("request-picker-restore", JSON.stringify({ industry: industryResolved }));
-      } catch {
-        /* ignore */
-      }
-      setGetStartedSuccessEmail(email);
-    } catch (err) {
-      console.error("[simple-request] Submit failed:", err);
-      setGetStartedError("Could not send link. Please try again or contact support@arbeidmatch.no.");
+      setGetStartedVerificationId(data.verificationId);
+      setGetStartedOtp("");
+      setGetStartedStep("otp");
+    } catch {
+      setGetStartedError("Could not send verification code. Please try again.");
     } finally {
       setGetStartedSubmitting(false);
+    }
+  };
+
+  const verifyGetStartedOtp = async () => {
+    if (otpBusy) return;
+    const email = getStartedEmail.trim().toLowerCase();
+    const code = getStartedOtp.replace(/\D/g, "").slice(0, 6);
+    if (!email.includes("@") || code.length !== 6) {
+      setOtpError("Enter the 6-digit code from your email.");
+      return;
+    }
+    setOtpBusy(true);
+    setOtpError("");
+    try {
+      const response = await fetch("/api/verify-request-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          otp: code,
+          flow: "new_company",
+          verificationId: getStartedVerificationId || undefined,
+        }),
+      });
+      const data = (await response.json().catch(() => null)) as
+        | { success?: boolean; redirectUrl?: string; error?: string }
+        | null;
+      if (!response.ok || !data?.success || !data.redirectUrl) {
+        setOtpError(data?.error || "Could not verify code. Please try again.");
+        return;
+      }
+      allowNextNavigationRef.current = true;
+      router.push(data.redirectUrl);
+    } catch {
+      setOtpError("Could not verify code right now. Please try again.");
+    } finally {
+      setOtpBusy(false);
     }
   };
 
@@ -770,7 +820,10 @@ export default function RequestPage() {
       setGetStartedEmail("");
       setGetStartedGdpr(false);
       setGetStartedError("");
-      setGetStartedSuccessEmail(null);
+      setGetStartedStep("form");
+      setGetStartedOtp("");
+      setGetStartedVerificationId(null);
+      setOtpError("");
       return;
     }
     if (pickerStep === "roles" && selectedIndustry) {
@@ -796,8 +849,13 @@ export default function RequestPage() {
     setGetStartedEmail("");
     setGetStartedGdpr(false);
     setGetStartedError("");
-    setGetStartedSuccessEmail(null);
-    setGetStartedSubmitting(false);
+    setGetStartedStep("form");
+    setGetStartedOtp("");
+    setGetStartedVerificationId(null);
+    setOtpError("");
+    setPartnerOtpStep("email");
+    setPartnerOtp("");
+    setPartnerVerificationId(null);
     setAccessEmail("");
     setAccessStatus("idle");
     setAccessErrorMessage("");
@@ -972,7 +1030,10 @@ export default function RequestPage() {
         setGetStartedEmail("");
         setGetStartedGdpr(false);
         setGetStartedError("");
-        setGetStartedSuccessEmail(null);
+        setGetStartedStep("form");
+        setGetStartedOtp("");
+        setGetStartedVerificationId(null);
+        setOtpError("");
       }
     };
     window.addEventListener("keydown", onKey);
@@ -1023,6 +1084,10 @@ export default function RequestPage() {
                       setAccessErrorMessage("");
                       setPartnerModalView("not_found");
                       setAccessStatus("idle");
+                      setPartnerOtpStep("email");
+                      setPartnerOtp("");
+                      setPartnerVerificationId(null);
+                      setOtpError("");
                       setResultAction("partner");
                       trackPartnerAccessRequest();
                     }}
@@ -1160,7 +1225,10 @@ export default function RequestPage() {
                               setGetStartedEmail("");
                               setGetStartedGdpr(false);
                               setGetStartedError("");
-                              setGetStartedSuccessEmail(null);
+                              setGetStartedStep("form");
+                  setGetStartedOtp("");
+                  setGetStartedVerificationId(null);
+                  setOtpError("");
                             }}
                             initial={reduceMotion ? false : { opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -1210,7 +1278,10 @@ export default function RequestPage() {
               setGetStartedEmail("");
               setGetStartedGdpr(false);
               setGetStartedError("");
-              setGetStartedSuccessEmail(null);
+              setGetStartedStep("form");
+        setGetStartedOtp("");
+        setGetStartedVerificationId(null);
+        setOtpError("");
             }}
           >
             <motion.div
@@ -1230,77 +1301,66 @@ export default function RequestPage() {
                   setGetStartedEmail("");
                   setGetStartedGdpr(false);
                   setGetStartedError("");
-                  setGetStartedSuccessEmail(null);
+                  setGetStartedStep("form");
+                  setGetStartedOtp("");
+                  setGetStartedVerificationId(null);
+                  setOtpError("");
                 }}
                 className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-md text-white/50 transition-colors hover:bg-white/10 hover:text-white"
               >
                 <span className="text-xl leading-none">×</span>
               </button>
-              {getStartedSuccessEmail ? (
+              {getStartedStep === "otp" ? (
                 <div className="mt-2 space-y-5 text-left">
-                  <h3 className="pr-10 text-2xl font-bold text-white">Check your email</h3>
+                  <h3 className="pr-10 text-2xl font-bold text-white">Enter verification code</h3>
                   <p className="text-sm leading-relaxed text-white/75">
-                    We sent a secure link to{" "}
-                    <span className="break-all font-medium text-[#C9A84C]">{getStartedSuccessEmail}</span>. Click it to
-                    complete your request.
+                    We sent a 6-digit code to{" "}
+                    <span className="break-all font-medium text-[#C9A84C]">{getStartedEmail}</span>. It expires in 10
+                    minutes.
                   </p>
+                  <label className="block text-sm font-medium text-white/90" htmlFor="get-started-otp">
+                    Verification code
+                  </label>
+                  <input
+                    id="get-started-otp"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={getStartedOtp}
+                    onChange={(event) => {
+                      setGetStartedOtp(event.target.value.replace(/\D/g, "").slice(0, 6));
+                      if (otpError) setOtpError("");
+                    }}
+                    placeholder="000000"
+                    className="h-11 w-full rounded-[4px] border border-[#0D1B2A]/30 bg-[#0D1B2A] px-3 text-center text-lg tracking-[0.35em] text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]"
+                  />
+                  {otpError ? <p className="text-sm text-red-400">{otpError}</p> : null}
                   <button
                     type="button"
-                    onClick={() => router.push("/")}
-                    className="inline-flex min-h-[44px] w-full items-center justify-center rounded-[4px] bg-[#C9A84C] px-6 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95"
+                    onClick={() => void verifyGetStartedOtp()}
+                    disabled={otpBusy || getStartedOtp.replace(/\D/g, "").length !== 6}
+                    className="inline-flex min-h-[44px] w-full items-center justify-center rounded-[4px] bg-[#C9A84C] px-6 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Back to homepage
+                    {otpBusy ? "Verifying…" : "Continue →"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGetStartedStep("form");
+                      setGetStartedOtp("");
+                      setOtpError("");
+                    }}
+                    className="block w-full pt-1 text-left text-[13px] text-white/60 transition-colors hover:text-white/80"
+                  >
+                    ← Back to email
                   </button>
                 </div>
-              ) : partnerWizardToken ? (
-                <>
-                  <h3 className="pr-10 text-left text-2xl font-bold text-white">Start your request</h3>
-                  <p className="mt-2 text-left text-sm leading-relaxed text-white/70">
-                    Continuing as{" "}
-                    <span className="font-medium text-[#C9A84C]">
-                      {(verifiedPartnerCompany || companyName || "your company").trim()}
-                    </span>
-                  </p>
-                  <p className="mt-2 text-left text-[12px] text-white/60">Selected role: {selectedRole}</p>
-                  <div className="mt-6 space-y-4 text-left">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!partnerWizardToken) return;
-                        try {
-                          window.sessionStorage.setItem(AM_PARTNER_TOKEN_KEY, partnerWizardToken);
-                          const c = (verifiedPartnerCompany || companyName || "").trim();
-                          if (c) window.sessionStorage.setItem(AM_PARTNER_COMPANY_KEY, c);
-                        } catch {
-                          /* ignore */
-                        }
-                        router.push(`/request/${partnerWizardToken}`);
-                      }}
-                      className="inline-flex min-h-[44px] w-full items-center justify-center rounded-[4px] bg-[#C9A84C] px-6 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95"
-                    >
-                      Start request →
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPickerStep("roles");
-                        setSelectedRole(null);
-                        setGetStartedEmail("");
-                        setGetStartedGdpr(false);
-                        setGetStartedError("");
-                        setGetStartedSuccessEmail(null);
-                      }}
-                      className="block w-full pt-1 text-left text-[13px] text-white/60 transition-colors hover:text-white/80"
-                    >
-                      ← Choose different role
-                    </button>
-                  </div>
-                </>
               ) : (
                 <>
                   <h3 className="pr-10 text-left text-2xl font-bold text-white">Get started</h3>
                   <p className="mt-2 text-left text-sm leading-relaxed text-white/70">
-                    We will send a secure link to complete your request.
+                    We will send a verification code to your work email.
                   </p>
                   <p className="mt-2 text-left text-[12px] text-white/60">Selected role: {selectedRole}</p>
                   <div className="mt-6 space-y-4 text-left">
@@ -1344,11 +1404,11 @@ export default function RequestPage() {
                     {getStartedError ? <p className="text-sm text-red-400">{getStartedError}</p> : null}
                     <button
                       type="button"
-                      onClick={() => void submitGetStartedLink()}
+                      onClick={() => void submitGetStartedOtpRequest()}
                       disabled={getStartedSubmitting || !getStartedGdpr || !getStartedEmail.includes("@")}
                       className="inline-flex rounded-[4px] bg-[#C9A84C] px-6 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {getStartedSubmitting ? "Sending" : "Send link"}
+                      {getStartedSubmitting ? "Sending…" : "Send code"}
                     </button>
                     <button
                       type="button"
@@ -1358,7 +1418,10 @@ export default function RequestPage() {
                         setGetStartedEmail("");
                         setGetStartedGdpr(false);
                         setGetStartedError("");
-                        setGetStartedSuccessEmail(null);
+                        setGetStartedStep("form");
+                        setGetStartedOtp("");
+                        setGetStartedVerificationId(null);
+                        setOtpError("");
                       }}
                       className="block w-full pt-1 text-left text-[13px] text-white/60 transition-colors hover:text-white/80"
                     >
@@ -1713,7 +1776,9 @@ export default function RequestPage() {
             </p>
             <p className="mt-2 text-center text-sm leading-relaxed text-white/60">
               {accessStatus === "idle" || accessStatus === "submitting"
-                ? "Enter your registered partner email to continue."
+                ? partnerOtpStep === "otp"
+                  ? "Enter the 6-digit code we sent to your email."
+                  : "Enter your registered partner email to continue."
                 : null}
             </p>
 
@@ -1724,27 +1789,66 @@ export default function RequestPage() {
                   <path className="shield-check" d="m24 33 6 6 11-12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <p className="mt-5 text-[17px] font-bold text-white">
-                  Verifying your access
+                  Checking partner access
                   <span className="dot dot-1">.</span>
                   <span className="dot dot-2">.</span>
                   <span className="dot dot-3">.</span>
                 </p>
                 <p className="mt-2 text-[13px] leading-[1.6] text-[rgba(255,255,255,0.45)]">
-                  We are checking your company credentials against our partner registry.
+                  We are verifying your company against our partner registry.
                 </p>
                 <div className="mt-6 h-[2px] w-full rounded-full bg-[rgba(255,255,255,0.08)]">
                   <div className="loading-progress-fill h-full rounded-full bg-[#C9A84C]" />
                 </div>
               </div>
-            ) : accessStatus === "partner" ? (
-              <div className="partner-success-enter mt-6 text-center">
-                <svg className="mx-auto h-6 w-6 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <p className="mt-3 text-[18px] font-bold text-white">Partner verified</p>
-                <p className="mt-2 text-sm text-[rgba(255,255,255,0.6)]">
-                  Close this window to pick an industry and role, then start your request in the wizard.
+            ) : accessStatus === "partner" && partnerOtpStep === "otp" ? (
+              <div className="mt-6 space-y-4">
+                <p className="text-center text-sm text-white/70">
+                  Code sent to{" "}
+                  <span className="font-medium text-[#C9A84C]">{accessEmail}</span>
+                  {companyName ? (
+                    <>
+                      {" "}
+                      for <span className="font-medium text-white">{companyName}</span>
+                    </>
+                  ) : null}
+                  .
                 </p>
+                <form onSubmit={(event) => void verifyPartnerOtp(event)} className="space-y-3">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={partnerOtp}
+                    onChange={(event) => {
+                      setPartnerOtp(event.target.value.replace(/\D/g, "").slice(0, 6));
+                      if (otpError) setOtpError("");
+                    }}
+                    placeholder="000000"
+                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-center text-lg tracking-[0.35em] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
+                  />
+                  {otpError ? <p className="text-center text-sm text-red-300">{otpError}</p> : null}
+                  <button
+                    type="submit"
+                    disabled={otpBusy || partnerOtp.replace(/\D/g, "").length !== 6}
+                    className="w-full rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {otpBusy ? "Verifying…" : "Continue →"}
+                  </button>
+                </form>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPartnerOtpStep("email");
+                    setPartnerOtp("");
+                    setOtpError("");
+                    setAccessStatus("idle");
+                  }}
+                  className="w-full text-center text-xs text-white/50 hover:text-white/75"
+                >
+                  ← Use a different email
+                </button>
               </div>
             ) : accessStatus === "error" || accessStatus === "non_partner" ? (
               <motion.div
@@ -1791,7 +1895,7 @@ export default function RequestPage() {
               </motion.div>
             ) : (
               <div className="mt-6 space-y-4">
-                <form onSubmit={verifyAccess} className="space-y-3">
+                <form onSubmit={sendPartnerOtp} className="space-y-3">
                   <input
                     type="email"
                     value={accessEmail}
@@ -1799,16 +1903,19 @@ export default function RequestPage() {
                     placeholder="your@company.com"
                     className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
                   />
+                  {otpError && partnerOtpStep === "email" ? (
+                    <p className="text-center text-sm text-red-300">{otpError}</p>
+                  ) : null}
                   <button
                     type="submit"
-                    disabled={!accessEmail.includes("@") || !verifyCanResend}
+                    disabled={!accessEmail.includes("@") || !verifyCanResend || otpBusy}
                     className={`w-full rounded-[12px] px-5 py-3 text-sm font-bold ${
                       verifyCanResend && accessEmail.includes("@")
                         ? "bg-[#C9A84C] text-[#0D1B2A]"
                         : "cursor-not-allowed bg-white/10 text-white/30"
                     }`}
                   >
-                    {verifyCountdown > 0 ? `Resend in ${verifyCountdown}s` : "Continue →"}
+                    {verifyCountdown > 0 ? `Resend in ${verifyCountdown}s` : "Send code →"}
                   </button>
                 </form>
                 <p className="text-center text-xs leading-relaxed text-white/45">

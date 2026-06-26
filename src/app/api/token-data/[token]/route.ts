@@ -22,7 +22,7 @@ export async function GET(
   try {
     const { data, error } = await supabase
       .from("request_tokens")
-      .select("company, email, full_name, phone, job_summary, org_number, gdpr_consent, how_did_you_hear, industry, role")
+      .select("company, email, full_name, phone, job_summary, org_number, gdpr_consent, how_did_you_hear, industry, role, ats_company_id")
       .eq("token", token)
       .single();
 
@@ -34,7 +34,7 @@ export async function GET(
     const email = (data.email || "").trim().toLowerCase();
     const domain = email.split("@")[1]?.toLowerCase() || "";
     const isOwner = domain === "arbeidmatch.no";
-    let isPartner = data.how_did_you_hear === "partner";
+    let isPartner = data.how_did_you_hear === "partner" || Boolean(data.ats_company_id);
     let partnerCompanyName = isPartner ? (data.company || "") : "";
 
     // If not already flagged as partner, check partners table by domain
