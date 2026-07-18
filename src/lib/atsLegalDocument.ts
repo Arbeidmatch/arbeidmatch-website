@@ -10,16 +10,22 @@ export type AtsLegalDocumentJson = {
   updated_at: string;
 };
 
-function atsPublicBaseUrl(): string | null {
-  const raw = process.env.NEXT_PUBLIC_ATS_URL?.trim();
-  if (!raw) return null;
+function atsPublicBaseUrl(): string {
+  // Matches the fallback chain in partner-verify-fetch.ts - NEXT_PUBLIC_ATS_URL isn't the only
+  // name this base URL is configured under across this repo's env vars, and unlike that file,
+  // this one had no fallback at all: if the var was unset/named differently, fetchAtsLegalDocument
+  // silently returned null and every legal-document page (privacy, terms) fell back to
+  // "Document not currently available" - confirmed happening in production.
+  const raw =
+    process.env.ATS_PUBLIC_BASE_URL?.trim() ||
+    process.env.ATS_BASE_URL?.trim() ||
+    process.env.NEXT_PUBLIC_ATS_URL?.trim() ||
+    "https://ats.arbeidmatch.no";
   return raw.replace(/\/$/, "");
 }
 
 export async function fetchAtsLegalDocument(slug: string): Promise<AtsLegalDocumentJson | null> {
   const base = atsPublicBaseUrl();
-  if (!base) return null;
-
   const url = `${base}/api/public/legal/${encodeURIComponent(slug)}`;
 
   try {

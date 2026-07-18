@@ -698,7 +698,7 @@ export default function RequestPage() {
     if (privacyContent) return; // Already fetched
     setPrivacyLoading(true);
     try {
-      const atsUrl = process.env.NEXT_PUBLIC_ATS_URL?.replace(/\/$/, "") || "";
+      const atsUrl = (process.env.NEXT_PUBLIC_ATS_URL?.trim() || "https://ats.arbeidmatch.no").replace(/\/$/, "");
       const res = await fetch(`${atsUrl}/api/public/legal/privacy-notice`, {
         headers: { Accept: "application/json" },
       });
