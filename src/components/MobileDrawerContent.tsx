@@ -33,7 +33,6 @@ const primaryMenuLinks = [
 
 const moreMenuLinks = [
   { href: "/about", label: "About" },
-  { href: "/dsb-support", label: "DSB Authorization Guide" },
   { href: "/premium", label: "Premium Guides" },
   { href: "/outside-eu-eea", label: "Non-EU Workers" },
   { href: "/blog", label: "Blog" },

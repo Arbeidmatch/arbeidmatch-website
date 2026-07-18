@@ -24,7 +24,6 @@ function pathnameShowsFooter(pathname: string): boolean {
   if (p === "/download" || p.startsWith("/download/")) return false;
   if (p === "/feedback" || p.startsWith("/feedback/")) return false;
   if (p === "/become-a-partner" || p.startsWith("/become-a-partner/")) return false;
-  if (p.startsWith("/dsb-")) return false;
   if (p.startsWith("/premium")) return false;
 
   if (p === "/") return true;

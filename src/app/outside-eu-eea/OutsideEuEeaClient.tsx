@@ -18,9 +18,9 @@ const sectionHeading = "mt-2 text-2xl font-bold text-white";
 function GuideTeaserCta({ href }: { href: string }) {
   return (
     <p className="mt-8 text-center text-[13px] leading-relaxed text-[rgba(255,255,255,0.48)]">
-      Our complete guide covers this in full detail.{" "}
+      Want more detail?{" "}
       <Link href={href} className="text-[#C9A84C] underline underline-offset-2 hover:text-[#d8bc6a]">
-        Get the full guide
+        Continue here
       </Link>
     </p>
   );
@@ -152,7 +152,7 @@ export default function OutsideEuEeaClient() {
               </p>
             </article>
           </div>
-          <GuideTeaserCta href="/dsb-support/non-eu" />
+          <GuideTeaserCta href="/outside-eu-eea#lead-magnet" />
         </div>
       </section>
 
@@ -229,7 +229,7 @@ export default function OutsideEuEeaClient() {
               </ul>
             </div>
           </div>
-          <GuideTeaserCta href="/dsb-support/non-eu" />
+          <GuideTeaserCta href="/outside-eu-eea#lead-magnet" />
         </div>
       </section>
 
@@ -306,7 +306,7 @@ export default function OutsideEuEeaClient() {
               </p>
             </article>
           </div>
-          <GuideTeaserCta href="/dsb-support/non-eu" />
+          <GuideTeaserCta href="/outside-eu-eea#lead-magnet" />
         </div>
       </section>
 
@@ -435,17 +435,15 @@ export default function OutsideEuEeaClient() {
         <div className="mx-auto w-full max-w-content px-4 md:px-6 lg:px-12">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
           <article className={`${cardClass} flex h-full flex-col`}>
-            <h3 className="text-lg font-bold text-white">DSB Authorization Guide</h3>
+            <h3 className="text-lg font-bold text-white">Electricians in Norway</h3>
             <p className="mt-2 flex-1 text-sm text-[rgba(255,255,255,0.65)]">
-              For electricians who need Norwegian DSB approval
+              Requirements and how ArbeidMatch helps qualified electricians find work
             </p>
-            <p className="mt-4 text-xl font-bold text-[#C9A84C]">39 EUR</p>
             <Link
-              href="/dsb-support/non-eu"
-              onClick={() => trackEvent("dsb_guide_click", { source: "outside-eu-eea" })}
+              href="/electricians-norway"
               className="mt-6 inline-flex min-h-[44px] w-full items-center justify-center rounded-[10px] bg-[#C9A84C] px-4 py-3 text-center text-sm font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
             >
-              Get the guide
+              Learn more
             </Link>
           </article>
           <article className={`${cardClass} flex h-full flex-col`}>
@@ -485,7 +483,7 @@ export default function OutsideEuEeaClient() {
             </button>
           </article>
           </div>
-          <GuideTeaserCta href="/dsb-support/non-eu" />
+          <GuideTeaserCta href="/outside-eu-eea#lead-magnet" />
         </div>
       </section>
 

@@ -22,7 +22,7 @@ const EmployerExitIntentPopup = dynamic(() => import("./EmployerExitIntentPopup"
 export default function MonetizationOverlays() {
   const pathname = usePathname() || "";
 
-  const exitIntentEnabled = pathname === "/for-candidates" || pathname === "/dsb-support";
+  const exitIntentEnabled = pathname === "/for-candidates";
   const employerExitIntentEnabled = pathname === "/for-employers";
 
   const scrollCtaEnabled = pathname === "/for-candidates" || pathname === "/for-employers";

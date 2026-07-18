@@ -12,17 +12,17 @@ const NAVY = "#0f1923";
 const ARBEIDSTILSYNET_MIN =
   "https://www.arbeidstilsynet.no/en/pay-and-engagement-of-employees/pay-and-minimum-rates-of-pay/minimum-wage/";
 
-function InlineRegisterBlock({ onPrimaryDsb }: { onPrimaryDsb: () => void }) {
+function InlineRegisterBlock({ onPrimaryCta }: { onPrimaryCta: () => void }) {
   return (
     <div className="mt-8 w-full max-w-2xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
         <button
           type="button"
-          onClick={onPrimaryDsb}
+          onClick={onPrimaryCta}
           className="inline-flex min-h-[48px] items-center justify-center rounded-[10px] px-8 py-3.5 text-[15px] font-bold text-[#0f1923] transition-opacity duration-200 hover:opacity-95"
           style={{ background: GOLD }}
         >
-          Get the Full DSB Guide
+          Browse electrician roles
         </button>
         <a
           href="https://jobs.arbeidmatch.no/sign-up"
@@ -88,7 +88,7 @@ export default function ElectriciansNorwayPage() {
             Norway has strong demand for qualified electricians. As an EU/EEA citizen, you have the right to apply for legal
             employment. Here is what you need to know before you start.
           </p>
-          <InlineRegisterBlock onPrimaryDsb={() => router.push("/dsb-support")} />
+          <InlineRegisterBlock onPrimaryCta={() => { window.location.href = "https://jobs.arbeidmatch.no"; }} />
         </div>
       </section>
 
@@ -229,18 +229,19 @@ export default function ElectriciansNorwayPage() {
           <div
             className="rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-6 py-6 md:px-7"
           >
-            <h2 className="text-[15px] font-semibold text-white">Want the complete step-by-step DSB process?</h2>
+            <h2 className="text-[15px] font-semibold text-white">Ready to work as an electrician in Norway?</h2>
             <p className="mt-3 text-[14px] leading-[1.7] text-white/70">
-              The full DSB application process, required documents checklist, common rejection reasons, FSE safety
-              requirements, and additional authorizations for datacenter or naval work are covered in our detailed DSB
-              Authorization Guide.
+              Browse open roles or register for job alerts. ArbeidMatch connects qualified EU/EEA electricians with
+              Norwegian employers.
             </p>
             <Link
-              href="/dsb-support"
+              href="https://jobs.arbeidmatch.no"
+              target="_blank"
+              rel="noopener noreferrer"
               className="mt-4 inline-flex items-center justify-center rounded-[8px] px-6 py-3 text-[14px] font-bold text-[#0f1923]"
               style={{ background: GOLD }}
             >
-              Get the Full Guide
+              Browse open positions
             </Link>
           </div>
         </div>

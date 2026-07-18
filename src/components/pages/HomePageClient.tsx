@@ -360,7 +360,7 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
                 </span>
                 <div className="min-w-0">
                   <p className="text-lg font-semibold tracking-tight text-white">Electricians in Norway</p>
-                  <p className="mt-1 text-sm text-white/60">Authorization guide, DSB requirements and official resources.</p>
+                  <p className="mt-1 text-sm text-white/60">Requirements, roles and how ArbeidMatch supports electricians.</p>
                 </div>
               </div>
               <Link

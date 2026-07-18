@@ -22,7 +22,7 @@ export interface ATSCandidate {
   profession: string;
   experienceYears?: number;
   hasDsb?: boolean;
-  source: "website" | "dsb-guide" | "checklist";
+  source: "website" | "checklist";
 }
 
 export interface ATSEmployerRequest {
