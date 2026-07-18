@@ -44,3 +44,6 @@ next-env.d.ts
 # local tooling artifacts
 .cursor/
 build-output.txt
+
+# Supabase CLI local cache
+supabase/.temp/
