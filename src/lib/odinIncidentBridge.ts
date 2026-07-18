@@ -145,6 +145,7 @@ export async function reportWebsiteIncident(params: WebsiteIncidentParams): Prom
         severity: "critical",
         source: `arbeidmatch-website${params.route}`,
         message,
+        source_link: `https://arbeidmatch.no${params.route}`,
         affected_module: "arbeidmatch-website",
         dedupe_key: dedupeKey,
         dedupe_window_minutes: dedupeWindowMinutes,
