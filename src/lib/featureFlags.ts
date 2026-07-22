@@ -1,5 +1,5 @@
-/** BETA: homepage audience welcome slide-up is off. */
-export const WELCOME_MODAL_ENABLED = false;
+/** Homepage audience welcome slide-up routes visitors to the right journey. */
+export const WELCOME_MODAL_ENABLED = true;
 
 /** Candidate intake is verified by email before the candidate continues to Recman. */
 export const TALENT_NETWORK_FORM_ENABLED = true;
