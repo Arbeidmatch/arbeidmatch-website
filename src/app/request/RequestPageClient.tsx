@@ -565,6 +565,10 @@ export default function RequestPageClient() {
                   {notifyStatus === "submitting" ? "Sending..." : "Notify me"}
                 </button>
               </div>
+              <p className="mt-3 text-[12px] leading-relaxed text-[rgba(255,255,255,0.4)]">
+                By submitting, you agree to our{" "}
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#C9A84C] underline underline-offset-2 hover:opacity-80">privacy policy</a>.
+              </p>
               {notifyStatus === "success" && (
                 <div className="waitlist-success-card mt-4">
                   <svg viewBox="0 0 24 24" className="mx-auto h-7 w-7 text-[#C9A84C]" fill="none" aria-hidden>

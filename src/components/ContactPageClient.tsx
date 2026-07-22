@@ -144,7 +144,7 @@ export default function ContactPageClient() {
                 <p className="mt-4 text-center text-[11px] leading-relaxed text-[rgba(255,255,255,0.45)]">
                   By sending this form you agree to our{" "}
                   <Link href="/privacy" className="text-[#C9A84C] underline-offset-2 hover:underline">
-                    Privacy Policy
+                    privacy policy
                   </Link>
                   .
                 </p>

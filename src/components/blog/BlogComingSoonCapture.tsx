@@ -81,7 +81,7 @@ export default function BlogComingSoonCapture() {
           <span>
             I agree to receive updates from ArbeidMatch. I have read and accept the{" "}
             <Link href="/privacy" className="underline" style={{ color: GOLD }}>
-              Privacy Policy
+              privacy policy
             </Link>
             .
           </span>

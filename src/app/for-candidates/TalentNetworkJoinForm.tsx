@@ -90,7 +90,7 @@ export default function TalentNetworkJoinForm() {
             rel="noopener noreferrer"
             className="font-medium text-[#C9A84C] underline-offset-2 hover:underline"
           >
-            Terms of Service
+            terms of service
           </Link>{" "}
           and{" "}
           <Link
@@ -99,7 +99,7 @@ export default function TalentNetworkJoinForm() {
             rel="noopener noreferrer"
             className="font-medium text-[#C9A84C] underline-offset-2 hover:underline"
           >
-            Privacy Policy
+            privacy policy
           </Link>
           . By submitting, I consent to ArbeidMatch processing my data for recruitment purposes.
         </span>

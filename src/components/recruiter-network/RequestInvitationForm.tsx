@@ -167,7 +167,8 @@ export default function RequestInvitationForm() {
               </svg>
             </span>
             <span id="gdpr-invite-desc" className="text-[13px] leading-[1.5] text-[rgba(255,255,255,0.60)]">
-              I agree that ArbeidMatch Norge AS may store and process my information to evaluate my invitation request. *
+              I agree that ArbeidMatch Norge AS may store and process my information to evaluate my invitation request, in accordance with the{" "}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-[#C9A84C] underline underline-offset-2 hover:opacity-80">privacy policy</a>. *
             </span>
           </label>
 

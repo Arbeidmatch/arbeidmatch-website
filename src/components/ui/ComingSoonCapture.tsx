@@ -144,7 +144,7 @@ export default function ComingSoonCapture({ featureName, isOpen, onClose }: Comi
               <span>
                 I agree to receive updates from ArbeidMatch. I have read and accept the{" "}
                 <Link href="/privacy" className="text-[#C9A84C] underline">
-                  Privacy Policy
+                  privacy policy
                 </Link>
                 .
               </span>
