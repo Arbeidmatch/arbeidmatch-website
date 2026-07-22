@@ -17,10 +17,6 @@ const desktopNavTail = [
   { href: "/contact", label: "Contact" },
 ] as const;
 
-function goToCandidateLogin() {
-  window.location.assign(CANDIDATE_PORTAL_LOGIN_URL);
-}
-
 function goToCandidateSignup() {
   window.location.assign(CANDIDATE_PORTAL_SIGNUP_URL);
 }
@@ -223,26 +219,13 @@ export default function Navbar() {
                     <UserPlus className="h-4 w-4 shrink-0" aria-hidden />
                   </button>
                   <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
-                  <button
-                    type="button"
-                    onClick={() => navigateAfterCloseCandidates(goToCandidateLogin)}
-                    className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
-                  >
-                    <span>Sign in to your profile</span>
-                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
-                  </button>
-                  <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
-                  <Link
-                    href="/employees"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigateAfterCloseCandidates(() => router.push("/employees"));
-                    }}
+                  <a
+                    href={CANDIDATE_PORTAL_LOGIN_URL}
                     className="flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
                   >
                     <span>Employee portal</span>
                     <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
-                  </Link>
+                  </a>
                   <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
                   <Link
                     href="/for-candidates"
