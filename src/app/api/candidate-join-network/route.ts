@@ -26,10 +26,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (isRateLimited(request, "candidate-join-network", 8, 15 * 60 * 1000)) {
-      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
-    }
-
     const json = (await request.json()) as unknown;
     const parsed = bodySchema.safeParse(json);
     if (!parsed.success) {
@@ -37,6 +33,9 @@ export async function POST(request: NextRequest) {
     }
 
     const { email } = parsed.data;
+    if (isRateLimited(request, `candidate-join-network:${email}`, 1, 60 * 1000)) {
+      return NextResponse.json({ error: "Please wait one minute before sending another request." }, { status: 429 });
+    }
     const transporter = createSmtpTransporter();
     if (!transporter) {
       return NextResponse.json({ error: "Email service is not configured." }, { status: 500 });
