@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 const bodySchema = z.object({
   email: z.string().trim().toLowerCase().email(),
   gdpr_consent: z.literal(true),
+  eu_eea_passport_confirmed: z.literal(true),
 });
 
 export async function POST(request: NextRequest) {
@@ -42,30 +43,31 @@ export async function POST(request: NextRequest) {
     }
 
     const ts = formatEmailTimestampCet();
-    const internalText = `Talent network join request\n\nCandidate email: ${email}\nTimestamp: ${ts}`;
+    const internalText = `Verified Recman profile request\n\nCandidate email: ${email}\nEU/EEA passport confirmed: yes\nGDPR consent confirmed: yes\nTimestamp: ${ts}`;
 
     await transporter.sendMail({
       ...mailHeaders(),
       to: "cv@arbeidmatch.no",
-      subject: `New talent network interest: ${email}`,
+      subject: `Verified Recman profile request: ${email}`,
       text: internalText,
     });
 
     const innerHtml = [
-      `<h1 style="margin:0 0 20px;font-size:22px;font-weight:800;color:#0D1B2A;letter-spacing:-0.02em;">We received your interest</h1>`,
+      `<h1 style="margin:0 0 20px;font-size:22px;font-weight:800;color:#0D1B2A;letter-spacing:-0.02em;">Continue your profile request</h1>`,
       emailParagraph(
-        "Thank you for reaching out to ArbeidMatch. We are currently building our system and the registration process may be delayed. We are doing our best to make this as fast as possible.",
+        "You are receiving this email because you, or someone who entered your email address, requested to create a candidate profile with ArbeidMatch.",
       ),
       emailParagraph(
-        'In the meantime, you can send your CV directly to <a href="mailto:cv@arbeidmatch.no" style="color:#B8860B;text-decoration:none;font-weight:600;">cv@arbeidmatch.no</a> and we will be in touch soon.',
+        'If this was you, continue your request by creating your profile in our recruitment portal: <a href="https://jobs.arbeidmatch.no/sign-up" style="color:#B8860B;text-decoration:none;font-weight:600;">Create your profile</a>.',
       ),
+      emailParagraph("This confirmation step helps us reduce false accounts and make sure we handle personal data in accordance with GDPR. If you did not make this request, you can safely ignore this email."),
     ].join("");
 
     await transporter.sendMail({
       ...mailHeaders(),
       to: email,
-      subject: "We received your interest - ArbeidMatch",
-      text: `We received your interest\n\nThank you for reaching out to ArbeidMatch. We are currently building our system and the registration process may be delayed. We are doing our best to make this as fast as possible.\n\nIn the meantime, you can send your CV directly to cv@arbeidmatch.no and we will be in touch soon.`,
+      subject: "Continue your ArbeidMatch profile request",
+      text: `You are receiving this email because you, or someone who entered your email address, requested to create a candidate profile with ArbeidMatch.\n\nIf this was you, continue by creating your profile here: https://jobs.arbeidmatch.no/sign-up\n\nThis confirmation step helps us reduce false accounts and make sure we handle personal data in accordance with GDPR. If you did not make this request, you can safely ignore this email.`,
       html: wrapPremiumEmail(innerHtml),
     });
 
