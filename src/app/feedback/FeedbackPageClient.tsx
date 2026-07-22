@@ -240,6 +240,10 @@ export default function FeedbackPageClient() {
               </div>
             )}
 
+            <p className="text-xs leading-relaxed text-text-secondary">
+              By sending feedback, you agree to our{" "}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#C9A84C] underline underline-offset-2 hover:opacity-80">privacy policy</a>.
+            </p>
             <button
               type="submit"
               disabled={status === "submitting"}
