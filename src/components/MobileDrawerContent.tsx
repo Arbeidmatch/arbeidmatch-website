@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, ChevronDown, X } from "lucide-react";
 
 import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
+import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 
 function navigateAfterClose(onClose: () => void, navigate: () => void) {
   onClose();
@@ -144,6 +145,14 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
         <DrawerRowLink href="/for-candidates" pathname={pathname} onClose={onClose}>
           For Candidates
         </DrawerRowLink>
+        <a
+          href={JOBS_PORTAL_URL}
+          className="flex min-h-[44px] items-center justify-between border-b border-white/[0.04] px-6 py-3.5 text-[15px] font-semibold text-[#C9A84C]"
+          onClick={onClose}
+        >
+          <span>Browse open jobs</span>
+          <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+        </a>
         <div className="border-b border-white/[0.04] border-t border-white/[0.08] px-6 py-3">
           <button
             type="button"

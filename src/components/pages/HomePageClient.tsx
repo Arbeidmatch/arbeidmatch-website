@@ -16,7 +16,7 @@ import BemanningCard from "@/components/home/BemanningCard";
 import HomeIndustriesSection from "@/components/home/HomeIndustriesSection";
 import HomeWhyArbeidMatchSection from "@/components/home/HomeWhyArbeidMatchSection";
 import HomeWelcomeUserTypeSlideup from "@/components/home/HomeWelcomeUserTypeSlideup";
-import { WELCOME_MODAL_ENABLED } from "@/lib/featureFlags";
+import { JOBS_PORTAL_URL, WELCOME_MODAL_ENABLED } from "@/lib/featureFlags";
 import ScrollReveal from "@/components/ScrollReveal";
 
 const HERO_DURATION = 0.72;
@@ -82,8 +82,8 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
   const goWork = useCallback(() => {
     trackEvent("home_user_type", { userType: "candidate", source: "hero_cards" });
     writeHomeUserType("candidate");
-    router.push("/for-candidates#join-talent");
-  }, [router]);
+    window.location.assign(JOBS_PORTAL_URL);
+  }, []);
 
   const fade = (delaySec: number) =>
     reduce

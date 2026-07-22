@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
 import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
+import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 import { NAV_CITY_LINKS, NAV_INDUSTRY_LINKS } from "@/lib/navIndustriesLocations";
 import { ArrowRight, ChevronDown, UserPlus } from "lucide-react";
 
@@ -204,6 +205,14 @@ export default function Navbar() {
                 aria-hidden={!candidatesMenuOpen}
               >
                 <div className="rounded-lg border border-white/10 bg-[#0D1B2A] p-2 shadow-[0_16px_48px_rgba(0,0,0,0.45)]">
+                  <a
+                    href={JOBS_PORTAL_URL}
+                    className="flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
+                  >
+                    <span>Browse open jobs</span>
+                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+                  </a>
+                  <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
                   <Link
                     href="/for-candidates"
                     onClick={(e) => {
