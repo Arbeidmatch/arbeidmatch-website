@@ -55,7 +55,7 @@ function allKeywordsForIndustry(industry: string): string[] {
   return [...terms];
 }
 
-/** OR filter: current_job_title ilike only (single source with per-role counts). */
+/** OR filter for role matching against current_job_title. */
 function buildCurrentTitleOrFilter(keywords: string[]): string {
   const parts: string[] = [];
   for (const kw of keywords) {
@@ -69,7 +69,13 @@ function buildCurrentTitleOrFilter(keywords: string[]): string {
 
 async function countWithCurrentTitleOr(supabase: SupabaseClient, orFilter: string): Promise<number> {
   if (!orFilter) return 0;
-  const { data, error } = await supabase.from("ats_candidates").select("id").or(orFilter).limit(QUERY_LIMIT);
+  const { data, error } = await supabase
+    .from("ats_candidates")
+    .select("id")
+    .eq("status", "active")
+    .eq("availability_status", "available")
+    .or(orFilter)
+    .limit(QUERY_LIMIT);
   return error ? 0 : (data?.length ?? 0);
 }
 
