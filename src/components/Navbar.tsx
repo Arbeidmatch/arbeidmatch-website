@@ -224,6 +224,18 @@ export default function Navbar() {
                     Information for candidates
                   </Link>
                   <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
+                  <Link
+                    href="/employees"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateAfterCloseCandidates(() => router.push("/employees"));
+                    }}
+                    className="flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
+                  >
+                    <span>Employee portal</span>
+                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+                  </Link>
+                  <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
                   <button
                     type="button"
                     onClick={() => navigateAfterCloseCandidates(goToCandidateLogin)}

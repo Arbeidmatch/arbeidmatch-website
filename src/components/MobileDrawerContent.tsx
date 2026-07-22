@@ -145,6 +145,9 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
         <DrawerRowLink href="/for-candidates" pathname={pathname} onClose={onClose}>
           For Candidates
         </DrawerRowLink>
+        <DrawerRowLink href="/employees" pathname={pathname} onClose={onClose}>
+          Employee portal
+        </DrawerRowLink>
         <a
           href={JOBS_PORTAL_URL}
           className="flex min-h-[44px] items-center justify-between border-b border-white/[0.04] px-6 py-3.5 text-[15px] font-semibold text-[#C9A84C]"
