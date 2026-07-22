@@ -27,9 +27,9 @@ function pathnameShowsFooter(pathname: string): boolean {
 
   // Admin and utility pages
   if (p.startsWith("/admin")) return false;
-  if (p.startsWith("/download")) return false;
-  if (p.startsWith("/feedback")) return false;
-  if (p.startsWith("/become-a-partner")) return false;
+  if (p === "/download" || p.startsWith("/download/")) return false;
+  if (p === "/feedback" || p.startsWith("/feedback/")) return false;
+  if (p === "/become-a-partner" || p.startsWith("/become-a-partner/")) return false;
   if (p.startsWith("/dsb-")) return false;
   if (p.startsWith("/premium")) return false;
 

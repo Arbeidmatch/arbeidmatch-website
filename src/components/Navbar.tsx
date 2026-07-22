@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { startTransition, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { startTransition, useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
 import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
+import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 import { NAV_CITY_LINKS, NAV_INDUSTRY_LINKS } from "@/lib/navIndustriesLocations";
 import { ArrowRight, ChevronDown, UserPlus } from "lucide-react";
 
@@ -16,12 +17,13 @@ const desktopNavTail = [
   { href: "/contact", label: "Contact" },
 ] as const;
 
-function goToCandidateLogin() {
-  window.location.assign(CANDIDATE_PORTAL_LOGIN_URL);
-}
-
 function goToCandidateSignup() {
   window.location.assign(CANDIDATE_PORTAL_SIGNUP_URL);
+}
+
+function navigateAfterClose(closeMenu: () => void, navigate: () => void) {
+  closeMenu();
+  requestAnimationFrame(() => navigate());
 }
 
 function linkActive(pathname: string, href: string): boolean {
@@ -33,9 +35,17 @@ const DRAWER_EASE = [0.32, 0.72, 0, 1] as const;
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [candidatesMenuOpen, setCandidatesMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  const closeCandidatesMenu = useCallback(() => setCandidatesMenuOpen(false), []);
+  const navigateAfterCloseCandidates = useCallback(
+    (navigate: () => void) => navigateAfterClose(closeCandidatesMenu, navigate),
+    [closeCandidatesMenu],
+  );
 
   useEffect(() => {
     startTransition(() => setMounted(true));
@@ -49,7 +59,10 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    startTransition(() => setIsOpen(false));
+    startTransition(() => {
+      setIsOpen(false);
+      setCandidatesMenuOpen(false);
+    });
   }, [pathname]);
 
   useEffect(() => {
@@ -153,47 +166,77 @@ export default function Navbar() {
             >
               For Employers
             </Link>
-            <div className="group relative">
+            <div
+              className="relative"
+              onMouseEnter={() => setCandidatesMenuOpen(true)}
+              onMouseLeave={closeCandidatesMenu}
+              onFocusCapture={() => setCandidatesMenuOpen(true)}
+              onBlurCapture={(e) => {
+                const next = e.relatedTarget;
+                if (next instanceof Node && e.currentTarget.contains(next)) return;
+                closeCandidatesMenu();
+              }}
+            >
               <button
                 type="button"
                 className={`${navItemClass} inline-flex items-center gap-1 whitespace-nowrap ${linkActive(pathname, "/for-candidates") ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""}`}
-                aria-expanded="false"
+                aria-expanded={candidatesMenuOpen}
                 aria-haspopup="true"
                 aria-label="For candidates menu"
               >
                 For Candidates
-                <ChevronDown className="h-4 w-4 shrink-0 opacity-70 transition-transform duration-200 group-hover:rotate-180" aria-hidden />
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 opacity-70 transition-transform duration-200 ${candidatesMenuOpen ? "rotate-180" : ""}`}
+                  aria-hidden
+                />
               </button>
               <div
-                className="pointer-events-none invisible absolute left-1/2 top-full z-[300] w-[min(92vw,280px)] -translate-x-1/2 pt-2 opacity-0 transition-[opacity,visibility] duration-150 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100"
+                className={`absolute left-1/2 top-full z-[300] w-[min(92vw,280px)] -translate-x-1/2 pt-2 transition-[opacity,visibility] duration-150 ${
+                  candidatesMenuOpen
+                    ? "pointer-events-auto visible opacity-100"
+                    : "pointer-events-none invisible opacity-0"
+                }`}
                 role="region"
                 aria-label="For candidates"
+                aria-hidden={!candidatesMenuOpen}
               >
                 <div className="rounded-lg border border-white/10 bg-[#0D1B2A] p-2 shadow-[0_16px_48px_rgba(0,0,0,0.45)]">
-                  <Link
-                    href="/for-candidates"
-                    className="block rounded-md px-3 py-2 text-[13px] text-white/80 transition-colors hover:bg-white/5 hover:text-white"
+                  <a
+                    href={JOBS_PORTAL_URL}
+                    className="flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
                   >
-                    Information for candidates
-                  </Link>
-                  <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
-                  <button
-                    type="button"
-                    onClick={goToCandidateLogin}
-                    className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
-                  >
-                    <span>Sign in to your profile</span>
+                    <span>Browse open jobs</span>
                     <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
-                  </button>
+                  </a>
+                  <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
                   <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
                   <button
                     type="button"
-                    onClick={goToCandidateSignup}
+                    onClick={() => navigateAfterCloseCandidates(goToCandidateSignup)}
                     className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
                   >
                     <span>Create your profile</span>
                     <UserPlus className="h-4 w-4 shrink-0" aria-hidden />
                   </button>
+                  <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
+                  <a
+                    href={CANDIDATE_PORTAL_LOGIN_URL}
+                    className="flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
+                  >
+                    <span>Employee portal</span>
+                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+                  </a>
+                  <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
+                  <Link
+                    href="/for-candidates"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateAfterCloseCandidates(() => router.push("/for-candidates"));
+                    }}
+                    className="block rounded-md px-3 py-2 text-[13px] text-white/80 transition-colors hover:bg-white/5 hover:text-white"
+                  >
+                    Information for candidates
+                  </Link>
                 </div>
               </div>
             </div>
@@ -206,6 +249,8 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {/* More menu hidden — restore by removing the `false &&` wrapper */}
+            {false && (
             <div className="group relative">
               <button
                 type="button"
@@ -258,15 +303,16 @@ export default function Navbar() {
                 </div>
               </div>
             </div>
+            )}
           </nav>
 
           <div className="hidden shrink-0 xl:block">
-            <Link
-              href="/request"
+            <a
+              href={JOBS_PORTAL_URL}
               className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[6px] bg-[#C9A84C] px-4 py-2 text-[14px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
             >
-              Request candidates
-            </Link>
+              Find jobs
+            </a>
           </div>
 
           <button

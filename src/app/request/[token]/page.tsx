@@ -34,6 +34,11 @@ type TokenData = {
   phone?: string;
   gdpr_consent?: boolean;
   how_did_you_hear?: string | null;
+  isPartner?: boolean;
+  isOwner?: boolean;
+  partnerCompanyName?: string;
+  industry?: string | null;
+  role?: string | null;
 };
 
 type RequestForm = {
@@ -229,7 +234,10 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
   return invalid;
 }
 
-const TOTAL_STEPS = 9;
+// Step 0 = Company & Contact (sarit pentru parteneri/owner)
+// TOTAL_STEPS_FULL = 9 pentru non-parteneri, 8 pentru parteneri/owner
+const TOTAL_STEPS_FULL = 9;
+const TOTAL_STEPS_PARTNER = 8;
 
 const CITY_OPTIONS = [
   "Oslo", "Bergen", "Trondheim", "Stavanger", "Kristiansand", "Drammen", "Tromso", "Fredrikstad",
@@ -249,6 +257,43 @@ const INDUSTRY_OPTIONS = [
   "Cleaning",
   "HoReCa",
 ];
+
+/**
+ * Maps Faza 1 industry names (from /request page) to Faza 2 INDUSTRY_OPTIONS.
+ * Used to pre-select industry when partner comes from Faza 1 with selected industry.
+ */
+const FAZA1_TO_FAZA2_INDUSTRY_MAP: Record<string, string> = {
+  Building: "Construction",
+  Infrastructure: "Construction",
+  Welding: "Welding and Metal",
+  Electrical: "Electrical",
+  Production: "Industry and Production",
+  Logistics: "Logistics",
+  Cleaning: "Cleaning",
+  Hospitality: "HoReCa",
+  Automotive: "Industry and Production",
+  Offshore: "Welding and Metal",
+  "Fish Industry": "Industry and Production",
+};
+
+/**
+ * Maps Faza 1 role names to Faza 2 workerType options.
+ * Returns exact match if found in WORKER_TYPES_BY_INDUSTRY, otherwise returns original.
+ */
+function mapFaza1RoleToFaza2(role: string | null | undefined, industry: string): string {
+  if (!role) return "";
+  const workerTypes = WORKER_TYPES_BY_INDUSTRY[industry] || [];
+  // Exact match
+  if (workerTypes.includes(role)) return role;
+  // Case-insensitive match
+  const lowerRole = role.toLowerCase();
+  const found = workerTypes.find((wt) => wt.toLowerCase() === lowerRole);
+  if (found) return found;
+  // Partial match (e.g., "Carpenter" matches "Carpenter")
+  const partial = workerTypes.find((wt) => wt.toLowerCase().includes(lowerRole) || lowerRole.includes(wt.toLowerCase()));
+  if (partial) return partial;
+  return "";
+}
 
 const WORKER_TYPES_BY_INDUSTRY: Record<string, string[]> = {
   Electrical: [
@@ -503,7 +548,7 @@ const initialForm: RequestForm = {
   certificationsOther: "",
   candidates: 1,
   contractType: "",
-  hiringType: "",
+  hiringType: "Recruitment of personnel for companies",
   jobSummary: "",
   salary: "",
   salaryPeriod: "per hour",
@@ -630,26 +675,26 @@ function OptionCard({
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-[44px] w-full items-center justify-between gap-3 rounded-[12px] border px-4 py-3 text-left transition-all duration-180 focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${
+      className={`flex min-h-[64px] w-full items-center justify-between gap-3 rounded-[12px] border px-4 py-4 text-left transition-all duration-150 focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${
         selected
-          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.08)] text-[#C9A84C]"
-          : "border-white/10 bg-white/[0.03] text-white hover:border-white/20 hover:bg-white/[0.05]"
+          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.10)] text-[#C9A84C]"
+          : "border-white/10 bg-white/[0.03] text-white hover:border-[rgba(201,168,76,0.4)]"
       } ${className || ""}`}
     >
       <span className="flex items-center gap-3">
         {icon}
         <span>
-          <span className={`block text-sm font-semibold ${labelClassName || ""}`}>{label}</span>
-          {sublabel ? <span className="block text-xs text-white/50">{sublabel}</span> : null}
+          <span className={`block text-[14px] font-semibold leading-tight ${labelClassName || ""}`}>{label}</span>
+          {sublabel ? <span className="block text-xs text-white/50 mt-0.5">{sublabel}</span> : null}
         </span>
       </span>
       <span
-        className={`flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 ${
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-150 ${
           selected ? "border-[#C9A84C] bg-[#C9A84C]" : "border-white/20"
         }`}
       >
         {selected ? (
-          <svg viewBox="0 0 20 20" className="h-[10px] w-[10px] text-[#0f1923]" fill="none" stroke="currentColor" strokeWidth="3">
+          <svg viewBox="0 0 20 20" className="h-3 w-3 text-[#0f1923]" fill="none" stroke="currentColor" strokeWidth="3">
             <path d="M4 10l4 4 8-8" />
           </svg>
         ) : null}
@@ -662,7 +707,7 @@ export default function RequestTokenPage() {
   const { token } = useParams<{ token: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
-  /** Default wizard for /request/[token] links (e.g. from simple-request). Only ?start=choice opens the entry cards first. */
+  /** Default wizard for /request/[token] links after OTP verification. Only ?start=choice opens the entry cards first. */
   const startWizard = searchParams.get("start") !== "choice";
   const SEARCH_MESSAGES = [
     "Connecting to candidate database...",
@@ -685,6 +730,13 @@ export default function RequestTokenPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState<RequestForm>(initialForm);
   const [tokenGate, setTokenGate] = useState<"loading" | "ready" | "blocked" | "error">("loading");
+  // Partenerii existenti si owner-ul ArbeidMatch sar Step 0
+  const [isPartnerOrOwner, setIsPartnerOrOwner] = useState(false);
+  const TOTAL_STEPS = isPartnerOrOwner ? TOTAL_STEPS_PARTNER : TOTAL_STEPS_FULL;
+  // Max internal step index (always 8 regardless of partner status)
+  const MAX_STEP_INDEX = TOTAL_STEPS_FULL - 1;
+  // Display step adjusted for partners (they start at internal step 1, but show as Step 1)
+  const displayStep = isPartnerOrOwner ? step : step + 1;
   const [reducedMotion, setReducedMotion] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
@@ -743,22 +795,46 @@ export default function RequestTokenPage() {
     if (!token) return;
     void fetch(`/api/token-data/${token}`)
       .then((res) => res.json())
-      .then((data) => {
-        if (!data?.success || !data?.data) {
+      .then((resp) => {
+        if (!resp?.success || !resp?.data) {
           setTokenGate("error");
           return;
         }
-        const row = data.data as TokenData;
+        const row = resp.data as TokenData & { isPartner?: boolean; isOwner?: boolean; partnerCompanyName?: string };
         if (row.gdpr_consent !== true) {
           setTokenGate("blocked");
           return;
         }
-        if (row.how_did_you_hear === "partner") {
+        // Detecteaza partener existent sau owner ArbeidMatch
+        const partnerOrOwner = row.isPartner === true || row.isOwner === true;
+        setIsPartnerOrOwner(partnerOrOwner);
+
+        if (partnerOrOwner) {
+          // Pre-completeaza datele si sar direct la step 1 (care devine step 0 vizual)
+          const companyToUse = row.partnerCompanyName || row.company || "";
+
+          // Map Faza 1 industry to Faza 2 industry
+          const rawIndustry = row.industry || "";
+          const mappedIndustry = FAZA1_TO_FAZA2_INDUSTRY_MAP[rawIndustry] || rawIndustry;
+          const finalIndustry = INDUSTRY_OPTIONS.includes(mappedIndustry) ? mappedIndustry : "";
+
+          // Map Faza 1 role to Faza 2 workerType
+          const mappedWorkerType = mapFaza1RoleToFaza2(row.role, finalIndustry);
+
           setForm((p) => ({
             ...p,
-            companyName: (row.company || "").trim(),
+            companyName: companyToUse.trim(),
+            orgNumber: (row.org_number || "").trim(),
             contactEmail: (row.email || "").trim().toLowerCase(),
+            contactFirstName: (row.full_name || "").split(" ")[0] || "",
+            contactLastName: (row.full_name || "").split(" ").slice(1).join(" ") || "",
+            contactPhone: (row.phone || "").replace(/\D/g, ""),
+            howDidYouHear: "partner",
+            industry: finalIndustry,
+            workerType: mappedWorkerType,
           }));
+          // Sar Step 0 - merg direct la step 1 (primul step real pentru parteneri)
+          setStep(1);
         }
         setTokenGate("ready");
       })
@@ -775,7 +851,8 @@ export default function RequestTokenPage() {
   }, [startWizard]);
 
   const goTo = (next: number) => {
-    if (next < 0 || next > TOTAL_STEPS - 1 || animating) return;
+    const minStep = isPartnerOrOwner ? 1 : 0;
+    if (next < minStep || next > MAX_STEP_INDEX || animating) return;
     if (next > step) {
       trackEvent("wizard_step_complete", { step: step + 1 });
     }
@@ -957,7 +1034,7 @@ export default function RequestTokenPage() {
     event.preventDefault();
     if (animating || isSubmitting) return;
     if (!runStepValidation(step)) return;
-    if (step < TOTAL_STEPS - 1) {
+    if (step < MAX_STEP_INDEX) {
       handleNext();
       return;
     }
@@ -965,7 +1042,7 @@ export default function RequestTokenPage() {
   };
 
   const handleNext = () => {
-    if (step < TOTAL_STEPS - 1) goTo(step + 1);
+    if (step < MAX_STEP_INDEX) goTo(step + 1);
   };
 
   const performEmployerSubmit = async () => {
@@ -1391,7 +1468,7 @@ export default function RequestTokenPage() {
                   Check now
                 </button>
               </div>
-              {partnerFlowVisible && (
+              {false && partnerFlowVisible && (
                 <div className="md:col-span-3 rounded-[20px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-9">
                   <p className="text-sm font-semibold text-white">Enter your company email</p>
                   <div className="mt-3 flex flex-col gap-3 md:flex-row">
@@ -1726,14 +1803,14 @@ export default function RequestTokenPage() {
           <p className="text-base font-bold">
             <span className="text-[#C9A84C]">Arbeid</span>Match
           </p>
-          <p className="text-right text-[11px] font-semibold tabular-nums text-white/80">
-            Step {step + 1} of {TOTAL_STEPS}
+          <p className="text-right text-xs font-semibold tabular-nums text-white/60">
+            Step {displayStep} of {TOTAL_STEPS}
           </p>
         </div>
-        <div className="relative h-[3px] w-full shrink-0 bg-[rgba(255,255,255,0.12)]" aria-hidden>
+        <div className="w-full bg-white/10 h-1" aria-hidden>
           <div
-            className={`absolute left-0 top-0 h-full bg-[#C9A84C] ease-out ${reducedMotion ? "transition-none" : "transition-[width] duration-300"}`}
-            style={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
+            className={`h-1 bg-[#C9A84C] ${reducedMotion ? "transition-none" : "transition-all duration-500"}`}
+            style={{ width: `${(displayStep / TOTAL_STEPS) * 100}%` }}
           />
         </div>
       </header>
@@ -1750,9 +1827,10 @@ export default function RequestTokenPage() {
           >
             <div className="absolute left-[10%] right-[10%] top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(201,168,76,0.5),transparent)]" />
 
-            {step === 0 && (
+            {/* Step 0 - Company and contact: skip pentru parteneri/owner */}
+            {step === 0 && !isPartnerOrOwner && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Company and contact</h2>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div data-wizard-field="companyName">
@@ -1953,7 +2031,7 @@ export default function RequestTokenPage() {
 
             {step === 1 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Job basics</h2>
                 <div>
                   <p className={labelClass}>Job category</p>
@@ -1999,15 +2077,50 @@ export default function RequestTokenPage() {
                 </div>
                 <div data-wizard-field="workerType">
                   <p className={labelClass}>Trade or position</p>
-                  <input
-                    className={wizardInputClass(!!fieldErrors.workerType)}
-                    value={form.workerType}
-                    onChange={(e) => {
-                      setForm((p) => ({ ...p, workerType: e.target.value }));
-                      clearFieldError("workerType");
-                    }}
-                    placeholder="Position or role title"
-                  />
+                  {workerTypeOptions.length > 0 ? (
+                    <div className={wizardGroupShell(!!fieldErrors.workerType)}>
+                      <div className="flex flex-wrap gap-2">
+                        {workerTypeOptions.map((role) => (
+                          <button
+                            key={role}
+                            type="button"
+                            onClick={() => {
+                              setForm((p) => ({ ...p, workerType: role === "Other" ? "" : role }));
+                              clearFieldError("workerType");
+                            }}
+                            className={`min-h-[48px] rounded-[12px] border px-4 py-2.5 text-sm font-semibold transition-all duration-150 ${
+                              form.workerType === role || (role === "Other" && !workerTypeOptions.slice(0, -1).includes(form.workerType) && form.workerType !== "")
+                                ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]"
+                                : "border-white/20 text-white/70 hover:border-[rgba(201,168,76,0.4)]"
+                            }`}
+                          >
+                            {role}
+                          </button>
+                        ))}
+                      </div>
+                      {(!workerTypeOptions.slice(0, -1).includes(form.workerType) || form.workerType === "") && workerTypeOptions.includes("Other") && (
+                        <input
+                          className={`${wizardInputClass(false)} mt-3`}
+                          value={workerTypeOptions.slice(0, -1).includes(form.workerType) ? "" : form.workerType}
+                          onChange={(e) => {
+                            setForm((p) => ({ ...p, workerType: e.target.value }));
+                            clearFieldError("workerType");
+                          }}
+                          placeholder="Enter custom position..."
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <input
+                      className={wizardInputClass(!!fieldErrors.workerType)}
+                      value={form.workerType}
+                      onChange={(e) => {
+                        setForm((p) => ({ ...p, workerType: e.target.value }));
+                        clearFieldError("workerType");
+                      }}
+                      placeholder="Select industry first or enter position"
+                    />
+                  )}
                   {fieldErrors.workerType ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                 </div>
                 {(() => {
@@ -2148,7 +2261,7 @@ export default function RequestTokenPage() {
 
             {step === 2 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Salary and conditions</h2>
                 <div data-wizard-field="salary" className="space-y-2">
                   <p className={labelClass}>Minimum wage compliance</p>
@@ -2190,6 +2303,73 @@ export default function RequestTokenPage() {
                     ))}
                   </div>
                   {fieldErrors.salary ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  <div>
+                    <p className={labelClass}>Salary period</p>
+                    <div className="flex gap-2">
+                      {(["per hour", "per month"] as const).map((period) => (
+                        <button
+                          key={period}
+                          type="button"
+                          className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${form.salaryPeriod === period ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`}
+                          onClick={() => setForm((p) => ({ ...p, salaryPeriod: period }))}
+                        >
+                          {period === "per hour" ? "Per hour" : "Per month"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+                    <p className="block text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
+                      Salary (per hour, NOK)
+                    </p>
+                    <a
+                      href="https://www.arbeidstilsynet.no/arbeidsforhold/lonn/minstelonn/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 text-[11px] font-medium text-[#C9A84C] underline decoration-[#C9A84C]/40 underline-offset-2 hover:text-[#b8953f]"
+                    >
+                      View minimum wages →
+                    </a>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div data-wizard-field="salaryMin">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        step={1}
+                        className={wizardInputClass(!!fieldErrors.salaryMin)}
+                        value={form.salaryMin}
+                        onChange={(e) => {
+                          setForm((p) => ({ ...p, salaryMin: e.target.value }));
+                          clearFieldError("salaryMin");
+                        }}
+                        placeholder="e.g. 220 NOK/hour"
+                      />
+                      {fieldErrors.salaryMin ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                    </div>
+                    <div data-wizard-field="salaryMax">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        step={1}
+                        className={wizardInputClass(!!fieldErrors.salaryMax)}
+                        value={form.salaryMax}
+                        onChange={(e) => {
+                          setForm((p) => ({ ...p, salaryMax: e.target.value }));
+                          clearFieldError("salaryMax");
+                        }}
+                        placeholder="To (NOK/hour)"
+                      />
+                      {fieldErrors.salaryMax ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                    </div>
+                  </div>
+                  <p className="text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    Must meet Arbeidstilsynet minimum wage requirements
+                  </p>
                 </div>
                 <div data-wizard-field="accommodation">
                   <p className={labelClass}>Accommodation</p>
@@ -2322,7 +2502,7 @@ export default function RequestTokenPage() {
 
             {step === 3 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Requirements</h2>
                 <div data-wizard-field="qualification">
                   <p className={labelClass}>Qualification</p>
@@ -2439,7 +2619,7 @@ export default function RequestTokenPage() {
 
             {step === 4 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Work tasks</h2>
                 <div data-wizard-field="workTasks">
                   <div className={wizardGroupShell(!!fieldErrors.workTasks, "flex flex-wrap gap-2")}>
@@ -2461,7 +2641,7 @@ export default function RequestTokenPage() {
 
             {step === 5 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Personal qualities</h2>
                 <div data-wizard-field="personalQualities">
                   <div className={wizardGroupShell(!!fieldErrors.personalQualities, "flex flex-wrap gap-2")}>
@@ -2483,7 +2663,7 @@ export default function RequestTokenPage() {
 
             {step === 6 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">We offer</h2>
                 <div data-wizard-field="offerItems">
                   <div className={wizardGroupShell(!!fieldErrors.offerItems, "flex flex-wrap gap-2")}>
@@ -2505,7 +2685,7 @@ export default function RequestTokenPage() {
 
             {step === 7 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Review your request</h2>
                 <p className="text-sm text-white/55">Check the summary below. You can add optional notes on the next step.</p>
                 <div className="rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-4">
@@ -2516,7 +2696,7 @@ export default function RequestTokenPage() {
 
             {step === 8 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Additional notes</h2>
                 <div>
                   <p className={labelClass}>Additional notes (optional)</p>
@@ -2531,30 +2711,34 @@ export default function RequestTokenPage() {
               </div>
             )}
 
-            <div className="mt-6 flex w-full flex-col-reverse gap-2 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-              <button
-                type="button"
-                onClick={() => (step > 0 ? goTo(step - 1) : router.push("/request"))}
-                disabled={animating || isSubmitting}
-                className="inline-flex w-full shrink-0 items-center justify-center rounded-[10px] border border-solid border-[rgba(255,255,255,0.2)] bg-transparent px-4 py-2 text-sm font-semibold text-white/90 transition-colors duration-200 hover:border-[rgba(201,168,76,0.45)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-              >
-                Back
-              </button>
+            <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/10">
+              {(isPartnerOrOwner ? step > 1 : step > 0) ? (
+                <button
+                  type="button"
+                  onClick={() => goTo(step - 1)}
+                  disabled={animating || isSubmitting}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-white/20 text-sm font-medium text-white/70 w-fit transition-colors duration-150 hover:border-[rgba(201,168,76,0.4)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  ← Back
+                </button>
+              ) : (
+                <div />
+              )}
 
               <button
                 type="submit"
                 disabled={animating || isSubmitting}
-                className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-[10px] bg-[#C9A84C] px-5 py-2 text-sm font-bold text-[#0D1B2A] transition-[filter,background-color] duration-200 hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40 sm:ml-auto sm:w-auto"
+                className="inline-flex items-center gap-1.5 px-6 py-2 rounded-lg bg-[#C9A84C] text-[#0D1B2A] text-sm font-bold ml-auto w-fit transition-colors duration-150 hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isSubmitting ? (
                   <>
                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#0f1923]/40 border-t-[#0f1923]" />
                     Submitting...
                   </>
-                ) : step === TOTAL_STEPS - 1 ? (
-                  "Submit Request"
+                ) : step === MAX_STEP_INDEX ? (
+                  "Submit"
                 ) : (
-                  "Continue"
+                  "Continue →"
                 )}
               </button>
             </div>
@@ -2570,26 +2754,26 @@ export default function RequestTokenPage() {
 
       <style jsx>{`
         .card-enter {
-          animation: cardIn ${reducedMotion ? "0ms" : "250ms"} ease forwards;
+          animation: slideIn ${reducedMotion ? "0ms" : "300ms"} ease forwards;
           animation-delay: 0ms;
           opacity: ${reducedMotion ? "1" : "0"};
-          transform: ${reducedMotion ? "translateY(0)" : "translateY(8px)"};
+          transform: ${reducedMotion ? "translateX(0)" : "translateX(40px)"};
         }
         .card-exit {
           opacity: ${reducedMotion ? "1" : "0"};
-          transform: ${reducedMotion ? "translateY(0)" : "translateY(8px)"};
+          transform: ${reducedMotion ? "translateX(0)" : "translateX(-40px)"};
           transition:
-            opacity ${reducedMotion ? "0ms" : "250ms"} ease,
-            transform ${reducedMotion ? "0ms" : "250ms"} ease;
+            opacity ${reducedMotion ? "0ms" : "300ms"} ease,
+            transform ${reducedMotion ? "0ms" : "300ms"} ease;
         }
-        @keyframes cardIn {
+        @keyframes slideIn {
           from {
             opacity: 0;
-            transform: translateY(8px);
+            transform: translateX(40px);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateX(0);
           }
         }
         @keyframes spin {

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import ScrollProgressCTA from "./ScrollProgressCTA";
 
 const ExitIntentPopup = dynamic(() => import("./ExitIntentPopup"), { ssr: false });
+const EmployerExitIntentPopup = dynamic(() => import("./EmployerExitIntentPopup"), { ssr: false });
 
 /**
  * Monetization / passive conversion layer (Nordic Precision UI).
@@ -21,13 +22,15 @@ const ExitIntentPopup = dynamic(() => import("./ExitIntentPopup"), { ssr: false 
 export default function MonetizationOverlays() {
   const pathname = usePathname() || "";
 
-  const exitIntentEnabled = pathname === "/for-candidates" || pathname === "/dsb-support";
+  const exitIntentEnabled = pathname === "/for-candidates";
+  const employerExitIntentEnabled = pathname === "/for-employers";
 
   const scrollCtaEnabled = pathname === "/for-candidates" || pathname === "/for-employers";
 
   return (
     <>
       {exitIntentEnabled && <ExitIntentPopup enabled />}
+      {employerExitIntentEnabled && <EmployerExitIntentPopup enabled />}
       {scrollCtaEnabled && <ScrollProgressCTA pathname={pathname} />}
     </>
   );

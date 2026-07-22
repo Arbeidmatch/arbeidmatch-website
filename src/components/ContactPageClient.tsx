@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useState } from "react";
 import Link from "next/link";
-import { Clock, Mail, MapPin, Shield } from "lucide-react";
+import { Mail, MapPin, Shield } from "lucide-react";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 import ScrollReveal from "@/components/ScrollReveal";
 import { trackEvent } from "@/lib/analytics";
@@ -10,10 +11,25 @@ import { trackEvent } from "@/lib/analytics";
 const inputClass =
   "w-full rounded-lg border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.05)] px-4 py-3 text-[15px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[#C9A84C] focus:outline-none";
 
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
+const needsTurnstile = Boolean(TURNSTILE_SITE_KEY);
+
+// Split so the address never appears as a plain string in the page source - stops basic
+// regex/HTML scrapers. Not shown (or made a mailto: link) until the visitor clicks reveal.
+const EMAIL_USER = "support";
+const EMAIL_DOMAIN = "arbeidmatch.no";
+
 export default function ContactPageClient() {
   const [submitted, setSubmitted] = useState(false);
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileKey, setTurnstileKey] = useState(0);
+  const [emailRevealed, setEmailRevealed] = useState(false);
+
+  const onTurnstileSuccess = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -26,6 +42,7 @@ export default function ContactPageClient() {
       need: "Website contact",
       message: String(formData.get("message") || "").trim(),
       website: String(formData.get("website") || ""),
+      turnstileToken: turnstileToken ?? "",
     };
 
     setStatus("submitting");
@@ -45,10 +62,14 @@ export default function ContactPageClient() {
       setSubmitted(true);
       trackEvent("contact_form_submitted");
       form.reset();
+      setTurnstileToken(null);
+      setTurnstileKey((k) => k + 1);
     } catch (error) {
       setSubmitted(false);
       setStatus("error");
       setErrorMessage(error instanceof Error ? error.message : "Something went wrong. Please try again.");
+      setTurnstileToken(null);
+      setTurnstileKey((k) => k + 1);
       return;
     }
 
@@ -100,9 +121,21 @@ export default function ContactPageClient() {
                   </label>
                 </div>
 
+                {needsTurnstile ? (
+                  <div className="mt-4 flex justify-center">
+                    <Turnstile
+                      key={turnstileKey}
+                      siteKey={TURNSTILE_SITE_KEY}
+                      onSuccess={onTurnstileSuccess}
+                      onExpire={() => setTurnstileToken(null)}
+                      onError={() => setTurnstileToken(null)}
+                    />
+                  </div>
+                ) : null}
+
                 <button
                   type="submit"
-                  disabled={status === "submitting"}
+                  disabled={status === "submitting" || (needsTurnstile && !turnstileToken)}
                   className="mt-6 w-full rounded-lg bg-[#C9A84C] py-3.5 text-[15px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f] disabled:opacity-60"
                 >
                   {status === "submitting" ? "Sending…" : "Send message"}
@@ -142,21 +175,24 @@ export default function ContactPageClient() {
             <aside className="space-y-8 lg:pl-4">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[rgba(255,255,255,0.45)]">Email</p>
-                <a
-                  href="mailto:support@arbeidmatch.no"
-                  className="mt-2 inline-flex items-center gap-2 text-lg font-medium text-[#C9A84C] transition-colors hover:text-[#d8bc6a]"
-                >
-                  <Mail className="h-5 w-5 shrink-0" strokeWidth={1.75} aria-hidden />
-                  support@arbeidmatch.no
-                </a>
-              </div>
-              <div className="border-t border-[rgba(255,255,255,0.08)] pt-8">
-                <p className="flex items-start gap-2 text-[15px] leading-relaxed text-[rgba(255,255,255,0.55)]">
-                  <Clock className="mt-0.5 h-5 w-5 shrink-0 text-[#C9A84C]" strokeWidth={1.75} aria-hidden />
-                  <span>
-                    <span className="font-medium text-[rgba(255,255,255,0.75)]">Response time:</span> within 1 business day
-                  </span>
-                </p>
+                {emailRevealed ? (
+                  <a
+                    href={`mailto:${EMAIL_USER}@${EMAIL_DOMAIN}`}
+                    className="mt-2 inline-flex items-center gap-2 text-lg font-medium text-[#C9A84C] transition-colors hover:text-[#d8bc6a]"
+                  >
+                    <Mail className="h-5 w-5 shrink-0" strokeWidth={1.75} aria-hidden />
+                    {EMAIL_USER}@{EMAIL_DOMAIN}
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setEmailRevealed(true)}
+                    className="mt-2 inline-flex items-center gap-2 text-lg font-medium text-[#C9A84C] transition-colors hover:text-[#d8bc6a]"
+                  >
+                    <Mail className="h-5 w-5 shrink-0" strokeWidth={1.75} aria-hidden />
+                    Show email address
+                  </button>
+                )}
               </div>
               <div className="border-t border-[rgba(255,255,255,0.08)] pt-8">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[rgba(255,255,255,0.45)]">Address</p>

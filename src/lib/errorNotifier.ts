@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
+import { reportWebsiteIncident } from "@/lib/odinIncidentBridge";
 
 function createTransporter() {
   const pass = process.env.SMTP_PASS;
@@ -96,6 +97,15 @@ export async function notifyError({
     console.error("[errorNotifier] Unexpected error while persisting error_log:", persistErr);
   }
 
+  const incident = await reportWebsiteIncident({ route, message: errorMessage }).catch(() => null);
+  const incidentLine = incident ? `\nODIN Incident: ${incident.incident_ref} (assigned: ${incident.assigned_agent})\n` : "";
+
+  // Once ODIN has an open incident for this exact error, don't re-alert on every
+  // repeat occurrence within the dedupe window — the incident's occurrence_count
+  // already tracks recurrence. Alert only on a genuinely new incident, or when
+  // the ODIN bridge itself is unreachable (no other visibility in that case).
+  const shouldAlertHuman = !incident || incident.is_new;
+
   const emailBody = `
 ArbeidMatch - Error Notification
 ==================================
@@ -103,7 +113,7 @@ ArbeidMatch - Error Notification
 Time: ${timestamp}
 Route: ${route}
 Environment: Production
-
+${incidentLine}
 ERROR:
 ${errorMessage}
 
@@ -119,6 +129,11 @@ This is an automated error notification from arbeidmatch.no
 
   const fromAddr = process.env.SMTP_USER || "no-reply@arbeidmatch.no";
   const subjectSnippet = errorMessage.slice(0, 60).replace(/\s+/g, " ").trim() || "Error";
+
+  if (!shouldAlertHuman) {
+    console.error(`[errorNotifier] Suppressed repeat alert for ${route} — ODIN incident ${incident?.incident_ref} already open.`);
+    return;
+  }
 
   try {
     const transporter = createTransporter();

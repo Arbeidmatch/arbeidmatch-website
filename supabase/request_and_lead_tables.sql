@@ -96,33 +96,6 @@ create index if not exists employer_requests_created_at_idx on public.employer_r
 create index if not exists employer_requests_email_idx on public.employer_requests (lower(email));
 create index if not exists employer_requests_token_id_idx on public.employer_requests (token_id);
 
-create table if not exists public.discount_leads (
-  id uuid primary key default gen_random_uuid(),
-  email text not null,
-  guide_type text not null check (guide_type in ('eu', 'non-eu')),
-  coupon_code text not null unique,
-  expires_at timestamptz not null,
-  used boolean not null default false,
-  reminder_sent boolean not null default false,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
-create index if not exists discount_leads_email_guide_idx on public.discount_leads (lower(email), guide_type);
-create index if not exists discount_leads_expires_idx on public.discount_leads (expires_at);
-
-create table if not exists public.dsb_leads (
-  id uuid primary key default gen_random_uuid(),
-  first_name text not null,
-  email text not null,
-  gdpr_consent boolean not null default false,
-  source text not null default 'dsb-checklist',
-  created_at timestamptz not null default now()
-);
-
-create index if not exists dsb_leads_email_idx on public.dsb_leads (lower(email));
-create index if not exists dsb_leads_created_at_idx on public.dsb_leads (created_at desc);
-
 create table if not exists public.recruiter_applications (
   id uuid primary key default gen_random_uuid(),
   full_name text not null,

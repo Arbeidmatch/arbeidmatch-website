@@ -10,17 +10,17 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/request", "/request/", "/feedback", "/feedback/", "/admin", "/admin/", "/api/", "/dsb-preview", "/*?"],
+        disallow: ["/request", "/request/", "/feedback", "/feedback/", "/admin", "/admin/", "/api/", "/*?"],
       },
       {
         userAgent: "Googlebot",
         allow: "/",
-        disallow: ["/request", "/request/", "/feedback", "/feedback/", "/admin", "/admin/", "/api/", "/dsb-preview", "/*?"],
+        disallow: ["/request", "/request/", "/feedback", "/feedback/", "/admin", "/admin/", "/api/", "/*?"],
       },
       {
         userAgent: "Bingbot",
         allow: "/",
-        disallow: ["/request", "/request/", "/feedback", "/feedback/", "/admin", "/admin/", "/api/", "/dsb-preview", "/*?"],
+        disallow: ["/request", "/request/", "/feedback", "/feedback/", "/admin", "/admin/", "/api/", "/*?"],
       },
     ],
     sitemap: "https://www.arbeidmatch.no/sitemap.xml",

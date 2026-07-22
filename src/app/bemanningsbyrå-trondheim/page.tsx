@@ -23,9 +23,9 @@ export default function BemanningsbyraTrondheimPage() {
             in Ranheim and supports Trondheim staffing with close follow-up, clear screening, and practical role matching.
           </p>
           <p>
-            Typical assignments include construction, logistics, and production. Learn about{" "}
-            <Link href="/dsb-support" className="font-medium text-gold hover:underline">
-              DSB authorization
+            Typical assignments include construction, logistics, and production. Learn more about{" "}
+            <Link href="/electricians-norway" className="font-medium text-gold hover:underline">
+              electricians in Norway
             </Link>{" "}
             where relevant, or send a staffing{" "}
             <Link href="/request" className="font-medium text-gold hover:underline">

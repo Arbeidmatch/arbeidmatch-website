@@ -1,8 +1,8 @@
-/** BETA: homepage audience welcome slide-up is off. */
-export const WELCOME_MODAL_ENABLED = false;
+/** Homepage audience welcome slide-up routes visitors to the right journey. */
+export const WELCOME_MODAL_ENABLED = true;
 
-/** BETA: internal talent network email form is off; candidates use the external jobs portal. */
-export const TALENT_NETWORK_FORM_ENABLED = false;
+/** Candidate intake is verified by email before the candidate continues to Recman. */
+export const TALENT_NETWORK_FORM_ENABLED = true;
 
 /** BETA: recruiter network is invite-only; public signup POST /apply is off. */
 export const RECRUITER_PUBLIC_SIGNUP_ENABLED = false;

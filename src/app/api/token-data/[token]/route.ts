@@ -22,7 +22,7 @@ export async function GET(
   try {
     const { data, error } = await supabase
       .from("request_tokens")
-      .select("company, email, full_name, phone, job_summary, org_number, gdpr_consent, how_did_you_hear")
+      .select("company, email, full_name, phone, job_summary, org_number, gdpr_consent, how_did_you_hear, industry, role, ats_company_id")
       .eq("token", token)
       .single();
 
@@ -30,7 +30,36 @@ export async function GET(
       return noStoreJson({ success: false, error: "Token not found" }, { status: 404 });
     }
 
-    return noStoreJson({ success: true, data });
+    // Detect partner or owner status
+    const email = (data.email || "").trim().toLowerCase();
+    const domain = email.split("@")[1]?.toLowerCase() || "";
+    const isOwner = domain === "arbeidmatch.no";
+    let isPartner = data.how_did_you_hear === "partner" || Boolean(data.ats_company_id);
+    let partnerCompanyName = isPartner ? (data.company || "") : "";
+
+    // If not already flagged as partner, check partners table by domain
+    if (!isPartner && !isOwner && domain) {
+      const { data: partner } = await supabase
+        .from("partners")
+        .select("company_name")
+        .eq("domain", domain)
+        .eq("active", true)
+        .maybeSingle();
+      if (partner) {
+        isPartner = true;
+        partnerCompanyName = partner.company_name || "";
+      }
+    }
+
+    return noStoreJson({
+      success: true,
+      data: {
+        ...data,
+        isPartner,
+        isOwner,
+        partnerCompanyName,
+      },
+    });
   } catch (error) {
     logApiError("token-data", error);
     await notifyError({ route: "/api/token-data/[token]", error });

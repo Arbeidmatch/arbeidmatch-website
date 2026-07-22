@@ -16,6 +16,12 @@ type ContactPayload = {
   message?: string;
 };
 
+/** Server-side Turnstile siteverify disabled (Vercel Hobby outbound); widget still gates submit on client. Re-enable when on Pro. */
+async function verifyTurnstileToken(token: string | undefined): Promise<boolean> {
+  void token;
+  return true;
+}
+
 function getSmtpConfig(): { host: string; port: number; user: string; pass: string } | null {
   const host = process.env.SMTP_HOST?.trim();
   const user = process.env.SMTP_USER?.trim();
@@ -34,6 +40,10 @@ export async function POST(request: NextRequest) {
     }
     if (isRateLimited(request, "contact-form", 8, 10 * 60 * 1000)) {
       return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
+    }
+    const turnstileToken = typeof rawBody.turnstileToken === "string" ? rawBody.turnstileToken : "";
+    if (!(await verifyTurnstileToken(turnstileToken))) {
+      return NextResponse.json({ success: false, error: "Bot detected" }, { status: 400 });
     }
     const body = sanitizeStringRecord(rawBody) as ContactPayload;
 

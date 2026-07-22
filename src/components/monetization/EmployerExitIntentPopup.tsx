@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 
-const STORAGE_UNTIL = "am_exit_intent_until";
+const STORAGE_KEY = "am_employer_exit_intent_until";
 
-export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
+export default function EmployerExitIntentPopup({ enabled }: { enabled: boolean }) {
   const [open, setOpen] = useState(false);
   const shownRef = useRef(false);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -23,7 +23,7 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
   const dismiss = useCallback((persist: boolean) => {
     if (persist) {
       try {
-        localStorage.setItem(STORAGE_UNTIL, String(Date.now() + 7 * 24 * 60 * 60 * 1000));
+        localStorage.setItem(STORAGE_KEY, String(Date.now() + 7 * 24 * 60 * 60 * 1000));
       } catch {
         /* ignore */
       }
@@ -35,7 +35,7 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
     if (!enabled || !isDesktop) return;
 
     try {
-      const until = localStorage.getItem(STORAGE_UNTIL);
+      const until = localStorage.getItem(STORAGE_KEY);
       if (until && Date.now() < parseInt(until, 10)) return;
     } catch {
       /* ignore */
@@ -57,7 +57,7 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
     <AnimatePresence>
       {open && (
         <motion.div
-          key="exit-overlay"
+          key="employer-exit-overlay"
           className="fixed inset-0 z-[150] flex items-end justify-center p-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:items-center sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -65,7 +65,7 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           role="dialog"
           aria-modal="true"
-          aria-labelledby="exit-intent-title"
+          aria-labelledby="employer-exit-intent-title"
         >
           <button
             type="button"
@@ -86,24 +86,34 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
                 className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-gold/30 bg-gold/10 text-4xl animate-pulse-glow"
                 aria-hidden
               >
-                ⚡
+                🎯
               </div>
               <h2
-                id="exit-intent-title"
+                id="employer-exit-intent-title"
                 className="font-sans text-2xl font-bold tracking-tight text-white sm:text-3xl"
               >
-                Before you leave...
+                Build your candidate pipeline before you leave
               </h2>
-              <p className="mt-3 bg-gradient-to-r from-gold via-amber-200 to-gold bg-clip-text text-base font-medium text-transparent sm:text-lg">
-                Browse open jobs in Norway or create your candidate profile.
-              </p>
+              <div className="mt-4 space-y-3 text-left">
+                <p className="text-sm leading-relaxed text-white/70 sm:text-base">
+                  Every day, qualified EU/EEA workers become available.
+                </p>
+                <p className="text-sm leading-relaxed text-white/70 sm:text-base">
+                  Let our sourcing specialists find, screen and present candidates that match your hiring needs, so your
+                  team can focus on hiring instead of searching.
+                </p>
+                <p className="text-sm leading-relaxed text-white/70 sm:text-base">
+                  Whether you&apos;re a recruitment agency, staffing company or employer, we&apos;ll help you build a
+                  stronger candidate pipeline.
+                </p>
+              </div>
               <div className="mt-8">
                 <Link
-                  href="/for-candidates"
+                  href="/request"
                   onClick={() => dismiss(true)}
                   className="btn-gold-shine relative inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#b8923f] via-gold to-[#d4b45c] px-6 py-3.5 text-sm font-semibold text-[#0a0f14] shadow-[0_8px_32px_rgba(201,168,76,0.35)] transition-[transform,box-shadow] duration-300 ease-premium hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(201,168,76,0.45)]"
                 >
-                  For candidates
+                  Start sourcing today
                 </Link>
               </div>
               <button
@@ -113,6 +123,10 @@ export default function ExitIntentPopup({ enabled }: { enabled: boolean }) {
               >
                 No thanks, continue browsing
               </button>
+              <p className="mt-4 text-[11px] leading-relaxed text-white/35">
+                No obligation. We&apos;ll review your requirements and recommend the best sourcing solution for your
+                business.
+              </p>
             </div>
           </motion.div>
         </motion.div>

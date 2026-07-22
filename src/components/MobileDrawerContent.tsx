@@ -1,11 +1,28 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, ChevronDown, X } from "lucide-react";
 
-import { CANDIDATE_PORTAL_LOGIN_URL } from "@/lib/candidatePortal";
+import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
+import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
+
+function navigateAfterClose(onClose: () => void, navigate: () => void) {
+  onClose();
+  requestAnimationFrame(() => navigate());
+}
+
+function handleDrawerLinkClick(
+  e: MouseEvent<HTMLAnchorElement>,
+  href: string,
+  onClose: () => void,
+  router: ReturnType<typeof useRouter>,
+) {
+  e.preventDefault();
+  navigateAfterClose(onClose, () => router.push(href));
+}
 
 const GOLD = "#C9A84C";
 
@@ -17,7 +34,6 @@ const primaryMenuLinks = [
 
 const moreMenuLinks = [
   { href: "/about", label: "About" },
-  { href: "/dsb-support", label: "DSB Authorization Guide" },
   { href: "/premium", label: "Premium Guides" },
   { href: "/outside-eu-eea", label: "Non-EU Workers" },
   { href: "/blog", label: "Blog" },
@@ -52,6 +68,7 @@ function DrawerRowLink({
   pathname: string;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const active = linkActive(pathname, href);
   const row = active
     ? "border-l-2 border-l-[#C9A84C] pl-[22px] font-medium text-[#C9A84C]"
@@ -61,7 +78,7 @@ function DrawerRowLink({
     <Link
       href={href}
       className={`block min-h-[44px] border-b border-white/[0.04] px-6 py-3.5 text-[15px] transition-colors ${row}`}
-      onClick={onClose}
+      onClick={(e) => handleDrawerLinkClick(e, href, onClose, router)}
     >
       {children}
     </Link>
@@ -69,11 +86,12 @@ function DrawerRowLink({
 }
 
 function DrawerMoreLink({ href, children, pathname, onClose }: { href: string; children: ReactNode; pathname: string; onClose: () => void }) {
+  const router = useRouter();
   const active = linkActive(pathname, href);
   return (
     <Link
       href={href}
-      onClick={onClose}
+      onClick={(e) => handleDrawerLinkClick(e, href, onClose, router)}
       className={`block min-h-[44px] border-b border-white/[0.04] py-3 pl-10 pr-6 text-[14px] leading-snug transition-colors ${
         active ? "font-medium text-[#C9A84C]" : "font-normal text-white/70 hover:text-white/90"
       }`}
@@ -84,6 +102,7 @@ function DrawerMoreLink({ href, children, pathname, onClose }: { href: string; c
 }
 
 export default function MobileDrawerContent({ pathname, onClose }: { pathname: string; onClose: () => void }) {
+  const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
 
   return (
@@ -92,7 +111,7 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
         <Link
           href="/"
           className="flex min-h-[44px] min-w-0 items-center gap-2 text-inherit no-underline"
-          onClick={onClose}
+          onClick={(e) => handleDrawerLinkClick(e, "/", onClose, router)}
         >
           <span className="shrink-0 text-xl font-bold leading-none text-[#C9A84C]" style={{ fontWeight: 700 }}>
             ArbeidMatch
@@ -123,22 +142,35 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
         <DrawerRowLink href="/request" pathname={pathname} onClose={onClose}>
           For Employers
         </DrawerRowLink>
-        <DrawerRowLink href="/for-candidates" pathname={pathname} onClose={onClose}>
-          For Candidates
-        </DrawerRowLink>
+        <a
+          href={JOBS_PORTAL_URL}
+          className="flex min-h-[44px] items-center justify-between border-b border-white/[0.04] px-6 py-3.5 text-[15px] font-semibold text-[#C9A84C]"
+          onClick={onClose}
+        >
+          <span>Browse open jobs</span>
+          <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+        </a>
         <div className="border-b border-white/[0.04] border-t border-white/[0.08] px-6 py-3">
           <button
             type="button"
             className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-md py-2.5 text-left text-[15px] font-semibold text-[#C9A84C] transition-colors hover:text-[#d4b55d]"
-            onClick={() => {
-              onClose();
-              window.location.assign(CANDIDATE_PORTAL_LOGIN_URL);
-            }}
+            onClick={() => navigateAfterClose(onClose, () => window.location.assign(CANDIDATE_PORTAL_SIGNUP_URL))}
           >
-            <span>Sign in to your profile</span>
+            <span>Create your profile</span>
             <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
           </button>
         </div>
+        <a
+          href={CANDIDATE_PORTAL_LOGIN_URL}
+          className="flex min-h-[44px] items-center justify-between border-b border-white/[0.04] px-6 py-3.5 text-[15px] font-semibold text-[#C9A84C]"
+          onClick={onClose}
+        >
+          <span>Employee portal</span>
+          <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+        </a>
+        <DrawerRowLink href="/for-candidates" pathname={pathname} onClose={onClose}>
+          Information for candidates
+        </DrawerRowLink>
         {primaryMenuLinks
           .filter((item) => item.href !== "/request")
           .map((item) => (
@@ -150,13 +182,15 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
         <div className="border-b border-white/[0.06] px-6 py-4">
           <Link
             href="/request"
-            onClick={onClose}
+            onClick={(e) => handleDrawerLinkClick(e, "/request", onClose, router)}
             className="flex min-h-[44px] w-full items-center justify-center rounded-[6px] bg-[#C9A84C] px-4 py-3 text-[14px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
           >
             Request candidates
           </Link>
         </div>
 
+        {/* More menu hidden — restore by removing the `false &&` wrapper */}
+        {false && (
         <div className="border-b border-white/[0.06]">
           <button
             type="button"
@@ -180,6 +214,7 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
             </div>
           ) : null}
         </div>
+        )}
       </nav>
     </>
   );

@@ -117,6 +117,8 @@ export async function POST(request: NextRequest) {
       referral_email: referralEmail,
       expires_at: expiresAt,
       used: false,
+      industry: parsed.data.industry?.trim() || null,
+      role: parsed.data.role?.trim() || null,
     });
 
     if (error) {

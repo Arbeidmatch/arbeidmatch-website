@@ -7,6 +7,8 @@ import { notifyError } from "@/lib/errorNotifier";
 const schema = z.object({
   email: z.string().email(),
   token: z.string().uuid().optional(),
+  industry: z.string().max(120).optional(),
+  role: z.string().max(160).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -50,16 +52,22 @@ export async function POST(request: NextRequest) {
     const company = (partner.company_name || domain).trim() || domain;
     const requestExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
+    // Include industry and role from Faza 1 selection
+    const industryValue = parsed.data.industry?.trim() || null;
+    const roleValue = parsed.data.role?.trim() || null;
+
     const tokenRow = {
       full_name: "Partner Contact",
       company,
       email,
       phone: "N/A",
-      job_summary: "Partner candidate request",
+      job_summary: roleValue || "Partner candidate request",
       gdpr_consent: true,
       how_did_you_hear: "partner",
       expires_at: requestExpiresAt,
       used: false,
+      industry: industryValue,
+      role: roleValue,
     };
 
     let requestToken: string;
