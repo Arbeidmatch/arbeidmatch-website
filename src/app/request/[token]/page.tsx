@@ -64,6 +64,8 @@ type RequestForm = {
   hiringType: string;
   jobSummary: string;
   salary: string;
+  salaryMin: string;
+  salaryMax: string;
   salaryPeriod: "per hour" | "per month";
   salaryMode: "Range" | "Fixed";
   overtime: string;
@@ -551,6 +553,8 @@ const initialForm: RequestForm = {
   hiringType: "Recruitment of personnel for companies",
   jobSummary: "",
   salary: "",
+  salaryMin: "",
+  salaryMax: "",
   salaryPeriod: "per hour",
   salaryMode: "Range",
   overtime: "",
