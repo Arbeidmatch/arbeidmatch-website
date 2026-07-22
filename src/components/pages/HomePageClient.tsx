@@ -98,7 +98,7 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
     "inline-flex min-h-[48px] min-w-[44px] w-full items-center justify-center rounded-md bg-[#C9A84C] px-6 py-[14px] text-center text-[15px] font-bold tracking-tight text-[#0D1B2A] transition-colors duration-300 hover:bg-[#b8953f] md:w-auto md:min-w-[200px]";
 
   const heroSecondaryLinkClass =
-    "inline-flex min-h-[44px] w-full items-center justify-center text-center text-[15px] font-medium text-[#C9A84C] underline decoration-[#C9A84C]/50 decoration-2 underline-offset-[6px] transition-colors hover:decoration-[#C9A84C] md:inline-flex md:w-auto md:justify-start";
+    "inline-flex min-h-[44px] w-full items-center justify-center rounded-md border border-[#C9A84C]/50 px-6 text-center text-[15px] font-semibold text-[#C9A84C] transition-colors hover:bg-[#C9A84C]/10 md:inline-flex md:w-auto";
 
   const hero = !reduce ? (
     <div className="min-w-0 max-w-full lg:max-w-none">
@@ -124,12 +124,9 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
         className="mt-8 flex min-w-0 flex-col items-stretch gap-4 md:mt-10 md:flex-row md:flex-wrap md:items-center md:gap-6"
         {...fade(0.36)}
       >
-        <Link href="/request" className={heroPrimaryCtaClass}>
-          Request candidates →
-        </Link>
-        <Link href="/#how-it-works" className={heroSecondaryLinkClass}>
-          Learn how it works
-        </Link>
+        <a href={JOBS_PORTAL_URL} className={heroPrimaryCtaClass}>Find jobs in Norway</a>
+        <Link href="/candidate-request" className={heroSecondaryLinkClass}>Create your profile</Link>
+        <Link href="/request" className="text-center text-sm font-semibold text-white/70 transition-colors hover:text-white md:text-left">I&apos;m hiring</Link>
       </motion.div>
     </div>
   ) : (
@@ -142,12 +139,9 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
       </h1>
       <p className="mt-4 max-w-[600px] text-base leading-normal text-white/80 sm:mt-5 md:text-lg lg:text-xl">{HERO_SUB}</p>
       <div className="mt-8 flex min-w-0 flex-col items-stretch gap-4 md:mt-10 md:flex-row md:flex-wrap md:items-center md:gap-6">
-        <Link href="/request" className={heroPrimaryCtaClass}>
-          Request candidates →
-        </Link>
-        <Link href="/#how-it-works" className={heroSecondaryLinkClass}>
-          Learn how it works
-        </Link>
+        <a href={JOBS_PORTAL_URL} className={heroPrimaryCtaClass}>Find jobs in Norway</a>
+        <Link href="/candidate-request" className={heroSecondaryLinkClass}>Create your profile</Link>
+        <Link href="/request" className="text-center text-sm font-semibold text-white/70 transition-colors hover:text-white md:text-left">I&apos;m hiring</Link>
       </div>
     </div>
   );
@@ -200,6 +194,25 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
                 aria-hidden
               />
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-[#C9A84C]/20 bg-[#111f2e] px-6 py-10 md:px-12 lg:px-20">
+        <div className="mx-auto max-w-content">
+          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#C9A84C]">For candidates</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-white md:text-3xl">Find a job, create your profile, then apply.</h2>
+              <p className="mt-2 max-w-2xl text-white/70">Applications are processed only after you apply to a published role. Your profile helps us match you with relevant opportunities.</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <a href={JOBS_PORTAL_URL} className="rounded-lg bg-[#C9A84C] px-5 py-3 text-sm font-semibold text-[#0D1B2A]">Browse open jobs</a>
+              <Link href="/candidate-request" className="rounded-lg border border-[#C9A84C]/50 px-5 py-3 text-sm font-semibold text-[#C9A84C]">Create your profile</Link>
+            </div>
+          </div>
+          <div className="mt-7 grid gap-3 md:grid-cols-3">
+            {["1. Browse open jobs", "2. Create your profile", "3. Apply for the role"].map((step) => <p key={step} className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white/85">{step}</p>)}
           </div>
         </div>
       </section>

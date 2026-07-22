@@ -160,8 +160,8 @@ export default function Navbar() {
           </Link>
 
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-6 xl:flex xl:gap-8 2xl:gap-10">
-            <Link
-              href="/request"
+            <a
+              href={JOBS_PORTAL_URL}
               className={`${navItemClass} ${linkActive(pathname, "/request") ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""}`}
             >
               For Employers
@@ -311,8 +311,8 @@ export default function Navbar() {
               href="/request"
               className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[6px] bg-[#C9A84C] px-4 py-2 text-[14px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
             >
-              Request candidates
-            </Link>
+              Find jobs
+            </a>
           </div>
 
           <button
