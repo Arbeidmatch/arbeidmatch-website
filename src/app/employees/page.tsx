@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { BriefcaseBusiness, ClipboardCheck, FileText, LogIn } from "lucide-react";
-import { CANDIDATE_PORTAL_LOGIN_URL } from "@/lib/candidatePortal";
+import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
 
 export const metadata: Metadata = {
   title: "Employee portal | ArbeidMatch",
@@ -35,9 +34,9 @@ export default function EmployeesPage() {
           </a>
           <p className="mt-4 text-sm text-white/55">
             New to ArbeidMatch?{" "}
-            <Link href="/for-candidates" className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline">
+            <a href={CANDIDATE_PORTAL_SIGNUP_URL} className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline">
               Create your profile
-            </Link>
+            </a>
           </p>
         </section>
 
