@@ -142,12 +142,6 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
         <DrawerRowLink href="/request" pathname={pathname} onClose={onClose}>
           For Employers
         </DrawerRowLink>
-        <DrawerRowLink href="/for-candidates" pathname={pathname} onClose={onClose}>
-          For Candidates
-        </DrawerRowLink>
-        <DrawerRowLink href="/employees" pathname={pathname} onClose={onClose}>
-          Employee portal
-        </DrawerRowLink>
         <a
           href={JOBS_PORTAL_URL}
           className="flex min-h-[44px] items-center justify-between border-b border-white/[0.04] px-6 py-3.5 text-[15px] font-semibold text-[#C9A84C]"
@@ -160,20 +154,28 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
           <button
             type="button"
             className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-md py-2.5 text-left text-[15px] font-semibold text-[#C9A84C] transition-colors hover:text-[#d4b55d]"
-            onClick={() => navigateAfterClose(onClose, () => window.location.assign(CANDIDATE_PORTAL_LOGIN_URL))}
-          >
-            <span>Sign in to your profile</span>
-            <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
-          </button>
-          <button
-            type="button"
-            className="mt-1 flex min-h-[44px] w-full items-center justify-between gap-2 rounded-md py-2.5 text-left text-[15px] font-semibold text-[#C9A84C] transition-colors hover:text-[#d4b55d]"
             onClick={() => navigateAfterClose(onClose, () => window.location.assign(CANDIDATE_PORTAL_SIGNUP_URL))}
           >
             <span>Create your profile</span>
             <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
           </button>
         </div>
+        <div className="border-b border-white/[0.04] px-6 py-3">
+          <button
+            type="button"
+            className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-md py-2.5 text-left text-[15px] font-semibold text-[#C9A84C] transition-colors hover:text-[#d4b55d]"
+            onClick={() => navigateAfterClose(onClose, () => window.location.assign(CANDIDATE_PORTAL_LOGIN_URL))}
+          >
+            <span>Sign in to your profile</span>
+            <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+          </button>
+        </div>
+        <DrawerRowLink href="/employees" pathname={pathname} onClose={onClose}>
+          Employee portal
+        </DrawerRowLink>
+        <DrawerRowLink href="/for-candidates" pathname={pathname} onClose={onClose}>
+          Information for candidates
+        </DrawerRowLink>
         {primaryMenuLinks
           .filter((item) => item.href !== "/request")
           .map((item) => (

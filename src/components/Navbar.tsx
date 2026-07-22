@@ -213,16 +213,24 @@ export default function Navbar() {
                     <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
                   </a>
                   <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
-                  <Link
-                    href="/for-candidates"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigateAfterCloseCandidates(() => router.push("/for-candidates"));
-                    }}
-                    className="block rounded-md px-3 py-2 text-[13px] text-white/80 transition-colors hover:bg-white/5 hover:text-white"
+                  <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
+                  <button
+                    type="button"
+                    onClick={() => navigateAfterCloseCandidates(goToCandidateSignup)}
+                    className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
                   >
-                    Information for candidates
-                  </Link>
+                    <span>Create your profile</span>
+                    <UserPlus className="h-4 w-4 shrink-0" aria-hidden />
+                  </button>
+                  <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
+                  <button
+                    type="button"
+                    onClick={() => navigateAfterCloseCandidates(goToCandidateLogin)}
+                    className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
+                  >
+                    <span>Sign in to your profile</span>
+                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
+                  </button>
                   <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
                   <Link
                     href="/employees"
@@ -236,23 +244,16 @@ export default function Navbar() {
                     <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
                   </Link>
                   <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
-                  <button
-                    type="button"
-                    onClick={() => navigateAfterCloseCandidates(goToCandidateLogin)}
-                    className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
+                  <Link
+                    href="/for-candidates"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateAfterCloseCandidates(() => router.push("/for-candidates"));
+                    }}
+                    className="block rounded-md px-3 py-2 text-[13px] text-white/80 transition-colors hover:bg-white/5 hover:text-white"
                   >
-                    <span>Sign in to your profile</span>
-                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
-                  </button>
-                  <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
-                  <button
-                    type="button"
-                    onClick={() => navigateAfterCloseCandidates(goToCandidateSignup)}
-                    className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
-                  >
-                    <span>Create your profile</span>
-                    <UserPlus className="h-4 w-4 shrink-0" aria-hidden />
-                  </button>
+                    Information for candidates
+                  </Link>
                 </div>
               </div>
             </div>
