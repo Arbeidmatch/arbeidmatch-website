@@ -211,11 +211,12 @@ export default function WeldingSpecialistsPage() {
           className="mx-auto max-w-[800px] rounded-lg border-l-[3px] border-[#C9A84C] px-7 py-6"
           style={{ background: "rgba(201,168,76,0.06)" }}
         >
-          <h2 className="text-[15px] font-semibold text-[#0f1923]">About staffing and direct hire options</h2>
+          <h2 className="text-[15px] font-semibold text-[#0f1923]">Staffing or direct hire</h2>
           <p className="mt-3 text-[14px] leading-[1.7] text-[#374151]">
-            ArbeidMatch offers both staffing (innleie) and direct hire (fast ansettelse) solutions for welding specialists.
-            Staffing arrangements comply with Norwegian labor law requirements under arbeidsmiljøloven. We will advise you
-            on the most suitable employment structure for your project type and duration during our initial consultation.
+            ArbeidMatch offers both staffing (innleie) and direct hire (fast ansettelse) for welding specialists. Which one
+            fits depends on how long you need the capacity and how the work is organised, and we go through that with you
+            before we start. We are recruiters rather than legal advisers, so for the rules themselves use Arbeidstilsynet
+            or your own adviser.
           </p>
           <a
             href="https://www.arbeidstilsynet.no"
@@ -340,8 +341,9 @@ export default function WeldingSpecialistsPage() {
             sourceUrl="https://www.arbeidstilsynet.no/en/pay-and-engagement-of-employees/pay-and-minimum-rates-of-pay/minimum-wage/"
           />
           <p className="mt-2 max-w-[800px] text-[11px] leading-relaxed text-white/[0.35]">
-            Salary data draws on market rates observed in Norwegian shipyard and offshore sector job postings, April 2026,
-            and minimum rates per Arbeidstilsynet.no allmenngjøring for maritime construction sector where applicable.
+            Ranges are drawn from Norwegian shipyard and offshore job postings and are an estimate, not an offer. There is
+            also a minimum rate that applies to this kind of work; we confirm the rate for your assignment before you accept
+            it, and you can check the current figure at the link above.
           </p>
 
           <h4 className="mt-8 text-[18px] font-semibold text-white">Transport and accommodation</h4>
