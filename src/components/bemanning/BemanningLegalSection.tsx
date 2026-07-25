@@ -9,7 +9,16 @@ export default function BemanningLegalSection() {
         When can you hire through a staffing agency?
       </h2>
       <p className="mt-3 text-sm leading-relaxed text-text-secondary md:text-[14px] md:leading-[1.7] md:text-[rgba(255,255,255,0.75)]">
-        Under Norwegian law (Arbeidsmiljøloven), hiring through a staffing agency is permitted across Norway for temporary needs, project-based work, substitution for permanent employees, and seasonal work. This applies nationally - there are no regional restrictions on staffing agency use. ArbeidMatch operates in full compliance with Norwegian labor law and collective agreements, serving employers across all of Norway from our base in Trondheim.
+        Under Norwegian law (Arbeidsmiljøloven), hiring in from a staffing agency is allowed on specific grounds rather than
+        whenever it suits. The main ones are covering for an absent employee (vikariat) and a written agreement with elected
+        representatives where the business is bound by a nationwide collective agreement. Separate rules apply to health
+        personnel and to specialist consultants. There are also geographic limits: hiring in for construction work on building
+        sites is banned in the Oslo area and neighbouring counties. Which basis applies depends on your situation, so we
+        establish it with you before anyone is placed, and we document it on the assignment.
+      </p>
+      <p className="mt-3 text-sm leading-relaxed text-text-secondary md:text-[13px] md:leading-[1.7] md:text-[rgba(255,255,255,0.55)]">
+        This is general information, not legal advice, and the rules on hiring in have changed several times in recent years.
+        Check the current rules and the exact geographic scope with Arbeidstilsynet before planning an assignment.
       </p>
       <p className="mt-4">
         <a
