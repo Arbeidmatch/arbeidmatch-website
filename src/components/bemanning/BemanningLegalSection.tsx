@@ -6,19 +6,17 @@ export default function BemanningLegalSection() {
       aria-labelledby="bemanning-innleie-heading"
     >
       <h2 id="bemanning-innleie-heading" className="text-lg font-semibold text-navy md:text-base md:font-bold md:text-white">
-        When can you hire through a staffing agency?
+        Before we place anyone with you
       </h2>
       <p className="mt-3 text-sm leading-relaxed text-text-secondary md:text-[14px] md:leading-[1.7] md:text-[rgba(255,255,255,0.75)]">
-        Under Norwegian law (Arbeidsmiljøloven), hiring in from a staffing agency is allowed on specific grounds rather than
-        whenever it suits. The main ones are covering for an absent employee (vikariat) and a written agreement with elected
-        representatives where the business is bound by a nationwide collective agreement. Separate rules apply to health
-        personnel and to specialist consultants. There are also geographic limits: hiring in for construction work on building
-        sites is banned in the Oslo area and neighbouring counties. Which basis applies depends on your situation, so we
-        establish it with you before anyone is placed, and we document it on the assignment.
+        Hiring in from a staffing agency is not open-ended in Norway, and what is allowed depends on your situation, your
+        trade and where the work happens. We go through that with you before anyone starts, agree the basis in writing, and
+        keep it on the assignment together with the contract, the pay terms and the registered hours. That is the file you
+        want to have ready if you are ever asked about it.
       </p>
       <p className="mt-3 text-sm leading-relaxed text-text-secondary md:text-[13px] md:leading-[1.7] md:text-[rgba(255,255,255,0.55)]">
-        This is general information, not legal advice, and the rules on hiring in have changed several times in recent years.
-        Check the current rules and the exact geographic scope with Arbeidstilsynet before planning an assignment.
+        We are recruiters, not lawyers, so we do not interpret the rules for you. They are published by Arbeidstilsynet, and
+        for anything binding you should use them or your own legal adviser.
       </p>
       <p className="mt-4">
         <a

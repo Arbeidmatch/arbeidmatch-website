@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Briefcase, Clock, FileCheck } from "lucide-react";
 
 import SourceDisclaimer from "@/components/ui/SourceDisclaimer";
@@ -65,8 +64,6 @@ function RequirementCard({
 }
 
 export default function ElectriciansNorwayPage() {
-  const router = useRouter();
-
   return (
     <main>
       <section className="bg-[#0f1923] px-6 pb-10 pt-14 text-white md:pb-16 md:pt-20 lg:pb-16 lg:pt-[80px]">
@@ -85,8 +82,8 @@ export default function ElectriciansNorwayPage() {
             Work as a Qualified Electrician in Norway
           </h1>
           <p className="mt-5 max-w-[600px] text-[17px] leading-[1.75] text-white/[0.65]">
-            Norway has strong demand for qualified electricians. As an EU/EEA citizen, you have the right to apply for legal
-            employment. Here is what you need to know before you start.
+            Norway has steady demand for qualified electricians. This page covers what the work looks like, what to have
+            ready before you apply, and what you can expect to earn.
           </p>
           <InlineRegisterBlock onPrimaryCta={() => { window.location.href = "https://jobs.arbeidmatch.no"; }} />
         </div>
@@ -101,21 +98,21 @@ export default function ElectriciansNorwayPage() {
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <RequirementCard
               icon={<FileCheck size={32} strokeWidth={1.5} />}
-              title="DSB Authorization"
-              body="DSB (Directorate for Civil Protection) is the Norwegian authority that approves foreign electricians. DSB authorization is required by law to work on electrical installations in Norway."
-              badge="Required by law"
+              title="Get your qualification recognised"
+              body="Electrical work in Norway is approved by DSB. Start that application early, because it decides when you can begin. DSB publishes the requirements and the current processing times, and we point you to the right page for your situation."
+              badge="Start this first"
             />
             <RequirementCard
               icon={<Briefcase size={32} strokeWidth={1.5} />}
-              title="Valid Trade Certificate"
-              body="A recognized trade certificate or equivalent qualification from your home country is the starting point for your DSB application. Documents not in English, Swedish or Danish must be translated by a certified translator."
-              badge="Part of DSB application"
+              title="Have your papers ready"
+              body="Trade certificate, proof of training and employer references covering dates and the type of work you did. Documents not in Norwegian, English, Swedish or Danish need a certified translation. Getting this together early is usually what decides how fast everything else moves."
+              badge="Prepare in advance"
             />
             <RequirementCard
               icon={<Clock size={32} strokeWidth={1.5} />}
-              title="Documented Work Experience"
-              body="At least 1 year of documented practical experience in the electrical trade within the last 10 years is required. Employer references must confirm dates and type of work performed."
-              badge="Minimum 1 year required"
+              title="Know your own experience"
+              body="Be able to say clearly what you have worked on: installation, service, industry, high voltage, automation, offshore. That is what an employer asks about first, and it is what we match you on. Certificates for specialised work are worth listing separately."
+              badge="Know what you can do"
             />
           </div>
         </div>
@@ -124,38 +121,36 @@ export default function ElectriciansNorwayPage() {
       <section className="px-6 text-white" style={{ background: NAVY, padding: "64px 24px" }}>
         <div className="mx-auto max-w-content">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: GOLD }}>
-            Processing time
+            The work
           </p>
-          <h2 className="mt-2 text-[30px] font-bold text-white">Temporary or permanent: choose your path</h2>
+          <h2 className="mt-2 text-[30px] font-bold text-white">What the job looks like here</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-2">
             <article
               className="rounded-[20px] border border-[rgba(201,168,76,0.15)] px-8 py-8"
               style={{ background: "rgba(255,255,255,0.02)", borderTop: "3px solid #C9A84C" }}
             >
               <p className="text-[12px] font-semibold uppercase tracking-[0.08em]" style={{ color: GOLD }}>
-                Faster option
+                Where you work
               </p>
-              <h3 className="mt-2 text-xl font-bold text-white">Temporary Approval</h3>
-              <p className="mt-3 text-[32px] font-extrabold text-white">1 to 2 months</p>
+              <h3 className="mt-2 text-xl font-bold text-white">Sites and sectors</h3>
               <ul className="mt-4 flex flex-col gap-2 text-[13px] text-white/[0.7]">
-                <li>Valid for maximum 12 months</li>
-                <li>DSB initial response within 1 month</li>
-                <li>Suitable for project-based work</li>
-                <li>Requires project description</li>
+                <li>New build and renovation, housing and commercial</li>
+                <li>Industry and process plants</li>
+                <li>Service and maintenance work</li>
+                <li>Specialised work: high voltage, automation, offshore</li>
               </ul>
             </article>
             <article
               className="rounded-[20px] border border-[rgba(201,168,76,0.15)] px-8 py-8"
               style={{ background: "rgba(255,255,255,0.02)", borderTop: "3px solid #1D9E75" }}
             >
-              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D9E75]">Long-term option</p>
-              <h3 className="mt-2 text-xl font-bold text-white">Permanent Authorization</h3>
-              <p className="mt-3 text-[32px] font-extrabold text-white">Up to 4 months</p>
+              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#1D9E75]">Day to day</p>
+              <h3 className="mt-2 text-xl font-bold text-white">Conditions on the job</h3>
               <ul className="mt-4 flex flex-col gap-2 text-[13px] text-white/[0.7]">
-                <li>Valid indefinitely</li>
-                <li>Recommended for permanent employment</li>
-                <li>Full recognition of qualifications</li>
-                <li>Required for stable long-term work</li>
+                <li>Normally full time, often with a fixed shift rotation</li>
+                <li>Away-from-home projects usually include accommodation and travel</li>
+                <li>Norwegian or English on site, depending on the employer</li>
+                <li>Your own hand tools are often expected, protective equipment is provided</li>
               </ul>
             </article>
           </div>
@@ -173,12 +168,14 @@ export default function ElectriciansNorwayPage() {
               260 to 330 NOK per hour
             </p>
             <p className="mt-4 text-[14px] leading-[1.7] text-white/70">
-              Salary for electricians in Norway is governed by collective agreements (tariffavtale) under the allmenngjøring
-              system. The electrical sector minimum for qualified workers is set by Tariffnemnda and updated periodically.
+              There is a minimum hourly rate for the electrical trade in Norway, and it is updated from time to time. We tell
+              you the rate that applies to your assignment before you accept it, and you can check the current figure
+              yourself at the link below.
             </p>
             <p className="mt-3 text-[14px] leading-[1.7] text-white/70">
-              Your actual hourly rate depends on: your DSB authorization level, years of experience in Norway, specialized
-              certifications (high-voltage, automation, offshore), and references from previous Norwegian employers.
+              What you actually earn on top of that depends on your experience, specialised certifications such as high
+              voltage, automation or offshore, how long you have worked in Norway, and references from previous Norwegian
+              employers.
             </p>
             <p className="mt-3 text-[14px] leading-[1.7] text-white/70">
               Norwegian employer references are highly valued. A strong recommendation from a previous Norwegian employer can
@@ -192,16 +189,16 @@ export default function ElectriciansNorwayPage() {
               {[
                 {
                   l: "Sector minimum (qualified workers)",
-                  v: "270.45 NOK/hour",
-                  n: "As of June 2025, electrical sector allmenngjøring",
+                  v: "See current rate",
+                  n: "Set centrally and updated periodically, check the link below",
                 },
                 {
-                  l: "Average market rate (certified)",
+                  l: "Typical market rate (certified)",
                   v: "approx. 290 to 330 NOK/hour",
-                  n: "Based on market data, varies by employer and project",
+                  n: "Estimate only, varies by employer and project",
                 },
                 { l: "Accommodation", v: "Often provided", n: "For away-from-home assignments, employer typically covers costs" },
-                { l: "Overtime supplement", v: "Minimum 40%", n: "Per Norwegian Working Environment Act" },
+                { l: "Overtime", v: "Paid on top", n: "The supplement is stated in your contract before you sign" },
               ].map((row) => (
                 <div key={row.l} className="rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-4 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-white/70">{row.l}</p>
@@ -217,8 +214,7 @@ export default function ElectriciansNorwayPage() {
               sourceUrl={ARBEIDSTILSYNET_MIN}
             />
             <p className="mt-2 text-[11px] italic leading-relaxed text-white/70">
-              Additional context may include ERI Economic Research Institute Norway 2026 and NorwayExplained.com. Always
-              verify current rates with your employer and the relevant collective agreement.
+              Always confirm the rate for your own assignment with the employer and in your contract before you accept it.
             </p>
           </div>
         </div>
