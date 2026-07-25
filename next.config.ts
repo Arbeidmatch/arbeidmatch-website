@@ -10,7 +10,9 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "frame-src https://challenges.cloudflare.com",
   "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
-  "connect-src 'self' https://data.brreg.no https://challenges.cloudflare.com",
+  // ats.arbeidmatch.no receives the first-party pageview beacon; without it here the browser
+  // blocks the send and this site stays invisible in our own traffic figures.
+  "connect-src 'self' https://data.brreg.no https://challenges.cloudflare.com https://ats.arbeidmatch.no",
   "form-action 'self'",
 ].join("; ");
 

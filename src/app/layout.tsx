@@ -7,6 +7,7 @@ import ConditionalFooter from "@/components/ConditionalFooter";
 import ScrollProgressBar from "@/components/ScrollProgressBar";
 import NavigationProgressBar from "@/components/NavigationProgressBar";
 import CookieConsent from "@/components/CookieConsent";
+import { TrafficBeacon } from "@/components/TrafficBeacon";
 import HomeJsonLd from "@/components/seo/HomeJsonLd";
 
 const DeferredAppOverlays = dynamic(() => import("@/components/client/DeferredAppOverlays"), { loading: () => null });
@@ -98,6 +99,7 @@ export default function RootLayout({
         <ConditionalFooter />
         <DeferredAppOverlays />
         <CookieConsent />
+        <TrafficBeacon />
         <HomeJsonLd />
       </body>
     </html>
