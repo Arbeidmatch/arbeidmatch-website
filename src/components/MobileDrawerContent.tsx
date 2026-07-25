@@ -172,7 +172,8 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
           Information for candidates
         </DrawerRowLink>
         {primaryMenuLinks
-          .filter((item) => item.href !== "/request")
+          // "For Employers" is rendered explicitly further up; skip the duplicate here.
+          .filter((item) => item.href !== "/for-employers")
           .map((item) => (
             <DrawerRowLink key={item.href} href={item.href} pathname={pathname} onClose={onClose}>
               {item.label}
