@@ -40,7 +40,7 @@ export default function BemanningByggAnleggNb() {
             <Link href="/for-employers" className="font-medium text-gold hover:underline">
               employer requirements
             </Link>{" "}
-            and compliant delivery.
+            and what we document on each assignment.
           </p>
           <p>
             When you need international construction workers, we assess trade fit, certifications, and language needs.
@@ -155,7 +155,7 @@ export default function BemanningByggAnleggNb() {
         />
 
         <section className="rounded-2xl border border-gold/30 bg-navy px-6 py-10 text-center text-white">
-          <h2 className="text-2xl font-bold">Ready for compliant staffing on your construction site?</h2>
+          <h2 className="text-2xl font-bold">Ready to staff your construction site?</h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-white/80">
             Send us your role requirements and we will respond with candidate profiles and a practical delivery plan.
           </p>
