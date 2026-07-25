@@ -7,7 +7,7 @@ import { PREMIUM_ARTICLES, type PremiumArticle } from "@/lib/premium/articles";
 
 const CATEGORIES = [
   "All",
-  "Workers Rights",
+  "Working in Norway",
   "DSB and Electrical",
   "Tax and Finance",
   "Employment Contracts",
