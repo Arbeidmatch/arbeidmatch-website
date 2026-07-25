@@ -27,7 +27,7 @@ function handleDrawerLinkClick(
 const GOLD = "#C9A84C";
 
 const primaryMenuLinks = [
-  { href: "/request", label: "For Employers" },
+  { href: "/for-employers", label: "For Employers" },
   { href: "/recruiter-network", label: "Recruiter Network" },
   { href: "/contact", label: "Contact" },
 ] as const;
@@ -139,7 +139,7 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
             Menu
           </p>
         </div>
-        <DrawerRowLink href="/request" pathname={pathname} onClose={onClose}>
+        <DrawerRowLink href="/for-employers" pathname={pathname} onClose={onClose}>
           For Employers
         </DrawerRowLink>
         <a

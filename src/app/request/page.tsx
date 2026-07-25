@@ -1073,9 +1073,6 @@ export default function RequestPage() {
                 exit={reduceMotion ? undefined : "exit"}
               >
                 <h1 className="text-2xl font-bold">Are you already an ArbeidMatch partner?</h1>
-                <p className="mt-2 text-sm leading-relaxed text-white/55">
-                  Verified partners get instant access to candidate availability
-                </p>
                 <div className="mt-8 flex flex-col gap-3 md:flex-row md:gap-4">
                   <button
                     type="button"

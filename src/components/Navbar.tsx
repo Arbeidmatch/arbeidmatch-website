@@ -160,9 +160,12 @@ export default function Navbar() {
           </Link>
 
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-6 xl:flex xl:gap-8 2xl:gap-10">
+            {/* Lands on the employer page, which explains the service and sends them to /request.
+                Linking straight to the funnel dropped them into a partner-or-new question before
+                they had been told what they were signing up for. */}
             <Link
-              href="/request"
-              className={`${navItemClass} ${linkActive(pathname, "/request") ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""}`}
+              href="/for-employers"
+              className={`${navItemClass} ${linkActive(pathname, "/for-employers") ? "font-medium text-white underline decoration-[#C9A84C] decoration-2 underline-offset-[10px]" : ""}`}
             >
               For Employers
             </Link>
