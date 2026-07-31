@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "cv:verify-pdf": "vitest run src/lib/cv/pdf-parsability.test.ts",
+    "cv:screenshots": "ts-node --compilerOptions {\"module\":\"commonjs\"} src/scripts/generate-cv-guide-screenshots.ts",
     "fix-error": "ts-node src/scripts/parse-error-email.ts",
     "test:save-request-bools": "node src/scripts/validate-save-employer-request-booleans.mjs"
   },
@@ -43,6 +44,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
     "pdf-parse": "^2.4.5",
+    "playwright": "^1.62.1",
     "postcss": "^8.5.9",
     "tailwindcss": "^3.4.17",
     "typescript": "^5",

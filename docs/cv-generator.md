@@ -1,9 +1,7 @@
 # CV generator
 
 Free, public CV builder for blue collar and trades candidates applying to Norwegian
-employers. Two routes are planned: `/cv` (guide and landing page) and `/cv-gen`
-(the builder). This document covers the parts that exist today plus the data flow
-they are built for.
+employers. Two routes: `/cv` (guide and landing page) and `/cv-gen` (the builder).
 
 ## What is built
 
@@ -14,13 +12,34 @@ they are built for.
 | Five CV templates plus a cover letter template | Done |
 | PDF pipeline: render, metadata, embedded JSON, XMP | Done |
 | Parsability test suite (build gate) | Done, passing |
-| `/cv-gen` builder UI | Not built |
-| `/api/cv/*` routes, OTP, consent, download | Not built |
-| `/cv` landing page and guide screenshots | Not built |
-| ATS and RecMan push | Not built |
+| `/cv-gen` builder, stepper, live preview, mobile preview tab, ATS meter | Done |
+| "Improve this" suggestion engine | Done |
+| `/api/cv/*` routes: OTP, consent, download, my-data, erasure, retention | Done |
+| `/cv` landing page and guide | Done |
+| Guide screenshots | Script written, **not run** |
+| ATS and RecMan push | Written, behind `CV_PUSH_TO_ATS`, **endpoints unconfirmed** |
+| Privacy policy section | Drafted in `cv-generator-privacy-section.md`, **not published** |
 
-Nothing in the list above is reachable by a visitor yet. The library code ships
-ahead of the routes so the PDF output can be reviewed before any UI is written.
+**Two things must happen before this works for a real visitor.** The migration has to be
+applied, otherwise every API route fails against a database with no `cv_` tables. And
+nothing here has been confirmed in a browser: it passes typecheck, lint, the build and 26
+tests, which is not the same as someone having built a CV on a phone.
+
+## The "Improve this" button
+
+Next to the summary, every experience bullet and the skill field. It rewrites weak English
+into the phrasing a Norwegian employer and their software expect, and explains what it
+changed. It never overwrites: the user picks "Use this" or "Keep mine".
+
+**It makes no network call and uses no AI service at runtime.** The wording lives in
+`lib/cv/phrasing-library.ts`, authored offline with the Claude Code CLI and shipped as
+static data; `lib/cv/suggest.ts` matches against it in the browser. That is deliberate on
+two counts: it costs nothing per use, and it does not break the promise below by sending a
+candidate's draft text anywhere before they have consented.
+
+Adding a trade means adding a `TradeProfile` block to the library, not changing code.
+Outside the trades in the library the button still fixes grammar, tense and filler, but it
+cannot rewrite content it has no vocabulary for.
 
 ## Architecture
 
@@ -178,15 +197,25 @@ download links, which expire after 15 minutes anyway.
 
 ```
 npm run cv:verify-pdf    parsability gate for all five templates
+npm run cv:screenshots   guide screenshots, needs a dev server and `npx playwright install`
 npm test                 the full vitest suite
 ```
 
+`cv:screenshots` drives `/cv-gen?demo=1`, which is disabled in production, so no real
+person's data can appear in a screenshot. Until it is run, `GuideShot` renders nothing and
+the guide simply shows no step images rather than broken ones.
+
 ## Open items
 
+- **Apply the migration.** Nothing works against the database until it exists.
 - ATS ingest endpoint is unknown. `lib/atsClient.ts` is an unactivated skeleton, so
-  `ATS_INGEST_URL` has no confirmed target yet.
-- RecMan credentials and API base are not available, so `lib/cv/recman.ts` is not written.
-- The privacy policy needs a CV Generator section covering controller, purpose,
-  lawful basis (consent, Art. 6(1)(a)), categories, recipients, retention and rights.
-- `TURNSTILE_SECRET_KEY` is not set, so server side captcha verification in front of
-  `consent/start` cannot be enabled yet.
+  `ATS_INGEST_URL` has no confirmed target and `pushToOwnAts` skips itself.
+- RecMan credentials are not available. `lib/cv/recman.ts` maps the fields in one place but
+  has never run against a live account, so the endpoint paths need confirming before
+  `CV_PUSH_TO_ATS` is switched on.
+- The privacy policy section is drafted but not published. The policy lives in the
+  `legal_documents` table, not in this repo.
+- `TURNSTILE_SECRET_KEY` is not set. `lib/cv/captcha.ts` passes the check when the secret
+  is missing, so the OTP endpoint is currently protected only by its own rate limits.
+- Rate limits for the CV flow are enforced in the `cv_otp` table rather than the in-memory
+  limiter in `lib/apiSecurity.ts`, which does not survive a lambda.
