@@ -5,18 +5,21 @@ import { logApiError } from "@/lib/secureLogger";
 const VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
 /**
- * Cloudflare Turnstile. The widget is already allowed by the CSP and the site key is
- * already in the environment; only the secret is new.
+ * Cloudflare Turnstile, enforced only when it is fully configured.
  *
- * When TURNSTILE_SECRET_KEY is unset the check passes, so the CV flow keeps working on
- * environments where the secret has not been configured. Set it in production.
+ * Both halves must be present: the secret to verify with, and the public site key that
+ * makes the browser render a widget in the first place. With only the secret set, the
+ * modal shows no widget, the request carries no token, and every real user is turned
+ * away. That happened in production, so the check now requires both rather than
+ * demanding a token the client was never given the means to produce.
  */
 export async function verifyCaptcha(
   token: string | null,
   remoteIp: string | null,
 ): Promise<{ ok: boolean; skipped: boolean }> {
   const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
-  if (!secret) return { ok: true, skipped: true };
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
+  if (!secret || !siteKey) return { ok: true, skipped: true };
   if (!token) return { ok: false, skipped: false };
 
   try {
