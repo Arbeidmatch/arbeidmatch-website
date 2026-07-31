@@ -37,6 +37,8 @@ export type PublicJob = {
   salary_mode: string | null;
   accommodation_provided: boolean | null;
   public_slug: string | null;
+  public_show_company: boolean | null;
+  project?: { name?: string | null; company?: { name?: string } | { name?: string }[] | null } | null;
   external_image_url: string | null;
   published_at: string | null;
   created_at: string | null;
@@ -47,13 +49,31 @@ export type PublicJobsResult = { jobs: PublicJob[]; totalOpen: number; ok: boole
 /** The hourly rate as one line, or null when the posting does not state one. */
 export function rateLine(job: PublicJob): string | null {
   if (typeof job.hourly_rate_offer === "number" && Number.isFinite(job.hourly_rate_offer)) {
-    return `${job.hourly_rate_offer} NOK/t`;
+    return `${job.hourly_rate_offer} NOK/hour`;
   }
   if (job.salary_mode === "range" && job.salary_range_min && job.salary_range_max) {
-    return `${job.salary_range_min}-${job.salary_range_max} NOK/t`;
+    return `${job.salary_range_min}-${job.salary_range_max} NOK/hour`;
   }
-  if (job.salary_fixed) return `${job.salary_fixed} NOK/t`;
+  if (job.salary_fixed) return `${job.salary_fixed} NOK/hour`;
   return null;
+}
+
+/**
+ * Who employs the reader.
+ *
+ * On most of these jobs it is us, on some it is a client. The ATS says which,
+ * through the company on the job's project, and the board used to print
+ * "Confidential employer" on all of them - a phrase that described neither and
+ * withheld our own name.
+ */
+export function jobEmployerLabel(job: PublicJob): string {
+  const project = job.project;
+  const raw = project?.company;
+  const company = Array.isArray(raw) ? raw[0] : raw;
+  const name = (company?.name ?? "").trim();
+  if (name && /arbeidmatch/i.test(name)) return name;
+  if (name && job.public_show_company === true) return name;
+  return "Client of ArbeidMatch";
 }
 
 /** Where a visitor goes to read the whole advert and apply. Always the ATS. */

@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
-import { fetchPublicJobs, jobImage, jobUrl, rateLine, type PublicJob } from "@/lib/jobs-fetch";
+import { fetchPublicJobs, jobEmployerLabel, jobImage, jobUrl, rateLine, type PublicJob } from "@/lib/jobs-fetch";
 
 export const dynamic = "force-dynamic";
 
 /**
  * The open jobs, on the website, where a job seeker would look for them.
+ *
+ * IN ENGLISH, like the ATS board it links into. The rest of this site speaks
+ * Norwegian because it is addressed to employers; this page is addressed to
+ * tradesmen across the EEA who found us through the bot, and we ask them for a
+ * CV in English. It was written in Norwegian first, which was the site's habit
+ * rather than a thought about who is reading it.
  *
  * The ATS keeps the board's data, the apply form, the attribution and the
  * consent, and it stays that way: this page reads `/api/public/jobs` and hands
@@ -26,30 +32,43 @@ export const metadata: Metadata = {
 function JobCard({ job }: { job: PublicJob }) {
   const href = jobUrl(job);
   const rate = rateLine(job);
-  const where = (job.location ?? "").trim() || (job.country ?? "").trim() || "Norge";
+  const where = (job.location ?? "").trim() || (job.country ?? "").trim() || "Norway";
+  // Who employs the reader: us on most of these, a client on some. Never
+  // "Confidential employer", which described neither.
+  const employer = jobEmployerLabel(job);
 
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition hover:shadow-md">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={jobImage(job)} alt={job.title} width={1200} height={630} loading="lazy" className="w-full" />
+      {/* One shape for every card. These photographs come from the source board
+          and are not all the same proportions, so a plain image made one advert
+          tall and the next short and the grid read as a scrapbook. */}
+      <div className="relative aspect-[1200/630] w-full overflow-hidden bg-black/5">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={jobImage(job)} alt={job.title} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+      </div>
       <div className="flex flex-1 flex-col gap-2 p-5">
-        <h2 className="text-lg font-bold leading-snug text-navy">{job.title}</h2>
-        <p className="text-sm text-text-secondary">
+        {/* Two lines always, so the rate and the button stay in step across a
+            row whatever the trade is called. */}
+        <h2 className="line-clamp-2 min-h-[3.5rem] text-lg font-bold leading-snug text-navy">{job.title}</h2>
+        <p className="truncate text-sm text-text-secondary">{employer}</p>
+        <p className="truncate text-sm text-text-secondary">
           {where}
           {job.category ? ` · ${job.category}` : ""}
         </p>
-        {/* The rate is the fact somebody reads this page for, so it is the one
-            thing set apart. Absent rather than invented when the posting does
-            not state one. */}
-        {rate ? <p className="text-base font-semibold text-gold">{rate}</p> : null}
-        {job.accommodation_provided ? <p className="text-sm text-text-secondary">Bolig inkludert</p> : null}
+        {/* The rate is what this page is read for, so it keeps its own line
+            whether or not the posting states one - an empty slot on one card
+            and a filled one on the next is what breaks the alignment. */}
+        <p className="text-base font-semibold text-gold">{rate ?? "Rate on request"}</p>
+        <p className="text-sm text-text-secondary">
+          {job.accommodation_provided ? "Accommodation included" : " "}
+        </p>
         <div className="mt-auto pt-4">
           {href ? (
             <a
               href={href}
               className="inline-flex w-full items-center justify-center rounded-xl bg-navy px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
             >
-              Se stillingen og søk
+              See the job and apply
             </a>
           ) : null}
         </div>
@@ -63,20 +82,20 @@ export default async function JobsPage() {
 
   return (
     <main className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20">
-      <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Ledige stillinger</p>
+      <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Open jobs</p>
       <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold leading-tight tracking-tight text-navy">
-        {totalOpen > 0 ? `${totalOpen} ledige stillinger i Norge` : "Ledige stillinger i Norge"}
+        {totalOpen > 0 ? `${totalOpen} open jobs in Norway` : "Open jobs in Norway"}
       </h1>
       <p className="mt-4 max-w-3xl leading-relaxed text-text-secondary">
-        Faste og prosjektbaserte stillinger for fagarbeidere. Du søker direkte, og en rådgiver leser hver søknad.
+        Permanent and project work for skilled trades. You apply directly, and a recruiter reads every application.
       </p>
 
       {/* An empty board and an unreachable ATS look identical to a visitor, and
           they are not the same thing to whoever has to fix it. */}
       {!ok ? (
-        <p className="mt-10 text-text-secondary">Stillingene kunne ikke hentes akkurat nå. Prøv igjen om litt.</p>
+        <p className="mt-10 text-text-secondary">The jobs could not be loaded just now. Please try again shortly.</p>
       ) : jobs.length === 0 ? (
-        <p className="mt-10 text-text-secondary">Ingen utlyste stillinger akkurat nå.</p>
+        <p className="mt-10 text-text-secondary">No open jobs at the moment.</p>
       ) : (
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {jobs.map((job) => (
