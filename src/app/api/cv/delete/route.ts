@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 
 import { noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
-import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { logApiError } from "@/lib/secureLogger";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { buildOtpEmail, otpEmailSubject, resolveLang } from "@/lib/cv/emails";
@@ -17,6 +16,7 @@ import {
   hashOtpCode,
   verifyOtpCode,
 } from "@/lib/cv/otp";
+import { sendCvEmail } from "@/lib/cv/mailer";
 import { removeObjects } from "@/lib/cv/storage";
 
 export const dynamic = "force-dynamic";
@@ -93,18 +93,17 @@ export async function POST(request: NextRequest) {
       });
       if (insertError) throw insertError;
 
-      const transporter = createSmtpTransporter();
-      if (!transporter) {
-        return noStoreJson({ success: false, error: "Service unavailable." }, { status: 503 });
-      }
-
       const lang = resolveLang(parsed.data.lang);
-      await transporter.sendMail({
-        from: '"ArbeidMatch" <no-reply@arbeidmatch.no>',
+      const sent = await sendCvEmail({
         to: email,
         subject: otpEmailSubject(lang),
         html: buildOtpEmail(code, lang),
       });
+
+      if (!sent.ok) {
+        logApiError("cv/delete/mail", new Error(sent.error ?? "send_failed"));
+        return noStoreJson({ success: false, error: "Could not send the code." }, { status: 502 });
+      }
 
       return noStoreJson({ success: true, codeSent: true });
     }

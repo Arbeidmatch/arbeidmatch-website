@@ -30,13 +30,25 @@ candidate, the consent record and both documents, the PDF downloading at 29 KB u
 right filename, the download token refused on replay, erasure anonymising the candidate
 while keeping the consent proof, and the retention function running.
 
-**The one step that could not be exercised locally is the email itself.** The provider
-rejected the SMTP credentials on this machine with `535 Authentication failed`, so the
-mail send has not been proven end to end. The failure path did behave correctly: the route
-returned 502 and deleted the OTP row rather than leaving a code nobody can receive.
+**The one step that could not be exercised locally is the email itself.** Before switching
+this on for real traffic, send yourself one code from a deployed environment and confirm it
+arrives. The failure path is correct either way: the route returns 502 and deletes the OTP
+row rather than leaving a code nobody can receive.
 
-Before switching this on for real traffic, send yourself one code from a deployed
-environment and confirm it arrives.
+## Mail goes through the ATS
+
+The website does not send CV mail itself. The ATS owns the mail infrastructure:
+suppression lists, bounce handling, SMTP routing and the Gmail circuit breaker. A second
+path from the website to the same mailboxes would mean a hard bounce recorded in the ATS
+would not stop us mailing that person from here.
+
+`lib/cv/mailer.ts` posts to `POST {ATS_BASE_URL}/api/public/website-email`, authenticated
+with `ATS_EMAIL_SECRET`, which must match `WEBSITE_EMAIL_SECRET` in the ATS environment.
+Everything is sent as no-reply, which the ATS endpoint enforces rather than trusting the
+caller. Attachments travel base64 encoded and are capped at 3 files of 5 MB each.
+
+That endpoint and the attachment support in `sendHtmlEmailDirect` are new work in the ATS
+repo, so the ATS side must be deployed before the CV flow can send anything.
 
 ## The "Improve this" button
 
@@ -233,13 +245,20 @@ only what the manifest lists, so a missing shot leaves a gap rather than a broke
   is missing, so the OTP endpoint is currently protected only by its own rate limits.
 - Rate limits for the CV flow are enforced in the `cv_otp` table rather than the in-memory
   limiter in `lib/apiSecurity.ts`, which does not survive a lambda.
-- The SMTP send has never succeeded from a local machine. Confirm one code arrives from a
-  deployed environment before announcing the feature.
+- No email has been delivered yet. Confirm one code arrives from a deployed environment
+  before announcing the feature.
 
 ## Environment variables
 
-`CV_OTP_PEPPER`, `CV_DOWNLOAD_TOKEN_SECRET` and `CV_INTERNAL_SHARED_SECRET` must be set in
-Vercel for Production, Preview and Development. Without the pepper, `hashEmail` and
-`hashOtpCode` return null and the consent routes fail closed with a generic error rather
-than storing anything unhashed. `CV_POLICY_VERSION` defaults to `2026-07-31` in code; bump
-it in the environment whenever the consent wording changes.
+`CV_OTP_PEPPER`, `CV_DOWNLOAD_TOKEN_SECRET`, `CV_INTERNAL_SHARED_SECRET` and
+`ATS_EMAIL_SECRET` must be set in Vercel for Production, Preview and Development.
+
+Without the pepper, `hashEmail` and `hashOtpCode` return null and the consent routes fail
+closed with a generic error rather than storing anything unhashed. Without
+`ATS_EMAIL_SECRET`, no mail is sent and `consent/start` returns 502 having deleted the
+code it created.
+
+`CV_POLICY_VERSION` defaults to `2026-07-31` in code; bump it in the environment whenever
+the consent wording changes.
+
+On the ATS side, set `WEBSITE_EMAIL_SECRET` to the same value as `ATS_EMAIL_SECRET`.

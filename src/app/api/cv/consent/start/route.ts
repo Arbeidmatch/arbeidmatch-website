@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 
 import { hasHoneypotValue, noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
-import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { logApiError } from "@/lib/secureLogger";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { CONSENT_TEXT_SHA256, getPolicyVersion } from "@/lib/cv/consent";
@@ -20,6 +19,7 @@ import {
   normalizeEmail,
 } from "@/lib/cv/otp";
 import { verifyCaptcha } from "@/lib/cv/captcha";
+import { sendCvEmail } from "@/lib/cv/mailer";
 
 export const dynamic = "force-dynamic";
 
@@ -156,21 +156,16 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     if (insertError) throw insertError;
 
-    const transporter = createSmtpTransporter();
-    if (!transporter) {
-      return noStoreJson({ success: false, error: GENERIC_ERROR }, { status: 503 });
-    }
-
     const lang = resolveLang(body.lang);
-    try {
-      await transporter.sendMail({
-        from: '"ArbeidMatch" <no-reply@arbeidmatch.no>',
-        to: normalizeEmail(body.email),
-        subject: otpEmailSubject(lang),
-        html: buildOtpEmail(code, lang),
-      });
-    } catch (mailError) {
-      logApiError("cv/consent/start/mail", mailError);
+    const sent = await sendCvEmail({
+      to: normalizeEmail(body.email),
+      subject: otpEmailSubject(lang),
+      html: buildOtpEmail(code, lang),
+    });
+
+    if (!sent.ok) {
+      // Never leave a code nobody can receive.
+      logApiError("cv/consent/start/mail", new Error(sent.error ?? "send_failed"));
       if (inserted?.id) await supabase.from("cv_otp").delete().eq("id", inserted.id);
       return noStoreJson({ success: false, error: GENERIC_ERROR }, { status: 502 });
     }

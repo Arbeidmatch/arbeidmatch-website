@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 
 import { noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
-import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { logApiError } from "@/lib/secureLogger";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { CONSENT_TEXT_SHA256, getPolicyVersion } from "@/lib/cv/consent";
@@ -23,6 +22,7 @@ import { renderCoverLetterPdf, renderCvPdf } from "@/lib/cv/pdf";
 import { cvDocumentSchema } from "@/lib/cv/schema";
 import { sha256Hex, storagePath, uploadPdf } from "@/lib/cv/storage";
 import { queueHandoff } from "@/lib/cv/handoff";
+import { sendCvEmail } from "@/lib/cv/mailer";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -201,24 +201,20 @@ export async function POST(request: NextRequest) {
 
     const lang = resolveLang(body.lang);
     const myDataUrl = `${siteOrigin()}/cv/my-data?token=${encodeURIComponent(myData.token)}`;
-    const transporter = createSmtpTransporter();
-    if (transporter) {
-      const attachments = [{ filename: cv.fileName, content: Buffer.from(cv.bytes) }];
-      if (coverLetter) {
-        attachments.push({ filename: coverLetter.fileName, content: Buffer.from(coverLetter.bytes) });
-      }
-      try {
-        await transporter.sendMail({
-          from: '"ArbeidMatch" <no-reply@arbeidmatch.no>',
-          to: email,
-          subject: cvEmailSubject(lang),
-          html: buildCvEmail(myDataUrl, lang),
-          attachments,
-        });
-      } catch (mailError) {
-        // The download still works, so a mail failure must not fail the request.
-        logApiError("cv/consent/verify/mail", mailError);
-      }
+    const attachments = [{ filename: cv.fileName, content: cv.bytes }];
+    if (coverLetter) {
+      attachments.push({ filename: coverLetter.fileName, content: coverLetter.bytes });
+    }
+
+    const sent = await sendCvEmail({
+      to: email,
+      subject: cvEmailSubject(lang),
+      html: buildCvEmail(myDataUrl, lang),
+      attachments,
+    });
+    if (!sent.ok) {
+      // The browser download still works, so a mail failure must not fail the request.
+      logApiError("cv/consent/verify/mail", new Error(sent.error ?? "send_failed"));
     }
 
     await queueHandoff({ documentId: cvDocumentId });
