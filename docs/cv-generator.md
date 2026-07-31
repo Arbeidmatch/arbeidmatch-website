@@ -146,13 +146,11 @@ returns the storage paths to delete.
 
 ## Database
 
-Target project: **`navzhgscvzngzbfxayoh`** (the website and the ATS share it, which
-is why every table is prefixed `cv_`).
+Target project: **`arbeidmatch-ats` (`navzhgscvzngzbfxayoh`)**, which serves both the
+ATS and the website. That shared schema is why every table here is prefixed `cv_`.
 
-The Supabase CLI link in `supabase/.temp/` points at a different project entirely,
-so do not run `supabase db push` from this repo. Apply
-`supabase/migrations/20260731120000_cv_builder.sql` through the dashboard SQL editor
-or an admin client that targets `navzhgscvzngzbfxayoh` explicitly.
+Apply `supabase/migrations/20260731120000_cv_builder.sql` through the dashboard SQL
+editor or an admin client pointed at that project.
 
 RLS is enabled and forced on every table with **no policies at all**, so `anon` and
 `authenticated` can read nothing. All access is service role, through our API routes.

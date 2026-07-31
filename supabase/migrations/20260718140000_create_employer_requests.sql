@@ -1,5 +1,5 @@
 -- Production hotfix 2026-07-18: /api/save-employer-request → PGRST205
--- public.employer_requests missing from website Supabase (ktfgxaoxoboovjatgyam / Fixnow).
+-- public.employer_requests missing from the arbeidmatch-ats project (navzhgscvzngzbfxayoh).
 
 create extension if not exists pgcrypto;
 

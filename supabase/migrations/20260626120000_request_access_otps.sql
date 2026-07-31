@@ -1,5 +1,5 @@
 -- OTP storage for /request access (partner + new company flows)
--- Apply in Supabase SQL editor for project ktfgxaoxoboovjatgyam
+-- Apply in the SQL editor of the arbeidmatch-ats project (navzhgscvzngzbfxayoh).
 
 CREATE TABLE IF NOT EXISTS public.request_access_otps (
   id                  bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

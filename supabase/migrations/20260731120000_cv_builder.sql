@@ -1,5 +1,5 @@
 -- CV builder (arbeidmatch.no/cv and /cv-gen).
--- Target project: navzhgscvzngzbfxayoh (the website and ATS share this project).
+-- Target project: arbeidmatch-ats (navzhgscvzngzbfxayoh), which serves both the ATS and the website.
 -- Rollback: supabase/migrations/20260731120000_cv_builder_rollback.sql
 --
 -- Access model: RLS is enabled on every table with NO policies, so anon and

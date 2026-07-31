@@ -1,6 +1,6 @@
 -- request_tokens table for arbeidmatch.no/request employer wizard
 -- Apply this in the Supabase Dashboard SQL editor:
--- https://supabase.com/dashboard/project/ktfgxaoxoboovjatgyam/sql/new
+-- https://supabase.com/dashboard/project/navzhgscvzngzbfxayoh/sql/new
 
 CREATE TABLE IF NOT EXISTS public.request_tokens (
   id                     bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

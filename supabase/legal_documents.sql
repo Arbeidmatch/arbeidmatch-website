@@ -1,5 +1,5 @@
 -- AM-WEB-076: legal_documents, legal_document_versions, legal_requests
--- Run in Supabase Website project (ktfgxaoxoboovjatgyam)
+-- Run in the arbeidmatch-ats Supabase project (navzhgscvzngzbfxayoh), which serves both the ATS and the website.
 
 CREATE TABLE IF NOT EXISTS public.legal_documents (
   id text PRIMARY KEY,
