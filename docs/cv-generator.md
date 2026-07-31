@@ -16,14 +16,27 @@ employers. Two routes: `/cv` (guide and landing page) and `/cv-gen` (the builder
 | "Improve this" suggestion engine | Done |
 | `/api/cv/*` routes: OTP, consent, download, my-data, erasure, retention | Done |
 | `/cv` landing page and guide | Done |
-| Guide screenshots | Script written, **not run** |
+| Guide screenshots | Generated, 9 steps at 1440x900 and 390x844 |
+| Supabase migration applied to `navzhgscvzngzbfxayoh` | Done, 2026-07-31 |
 | ATS and RecMan push | Written, behind `CV_PUSH_TO_ATS`, **endpoints unconfirmed** |
 | Privacy policy section | Drafted in `cv-generator-privacy-section.md`, **not published** |
 
-**Two things must happen before this works for a real visitor.** The migration has to be
-applied, otherwise every API route fails against a database with no `cv_` tables. And
-nothing here has been confirmed in a browser: it passes typecheck, lint, the build and 26
-tests, which is not the same as someone having built a CV on a phone.
+## What has actually been exercised
+
+The whole flow was run against the real database on 2026-07-31: consent refused without
+both boxes, a tampered consent hash rejected, a code issued with nothing personal stored
+yet and the address held only as a hash, a wrong code refused, verification creating the
+candidate, the consent record and both documents, the PDF downloading at 29 KB under the
+right filename, the download token refused on replay, erasure anonymising the candidate
+while keeping the consent proof, and the retention function running.
+
+**The one step that could not be exercised locally is the email itself.** The provider
+rejected the SMTP credentials on this machine with `535 Authentication failed`, so the
+mail send has not been proven end to end. The failure path did behave correctly: the route
+returned 502 and deleted the OTP row rather than leaving a code nobody can receive.
+
+Before switching this on for real traffic, send yourself one code from a deployed
+environment and confirm it arrives.
 
 ## The "Improve this" button
 
@@ -201,13 +214,14 @@ npm run cv:screenshots   guide screenshots, needs a dev server and `npx playwrig
 npm test                 the full vitest suite
 ```
 
-`cv:screenshots` drives `/cv-gen?demo=1`, which is disabled in production, so no real
-person's data can appear in a screenshot. Until it is run, `GuideShot` renders nothing and
-the guide simply shows no step images rather than broken ones.
+`cv:screenshots` needs a dev server running and `npx playwright install chromium` done
+once. It drives `/cv-gen?demo=1`, which is disabled in production, so no real person's
+data can appear in a screenshot. It dismisses the cookie banner, hides the dev overlay,
+captures nine steps at both viewports, and converts each shot to webp. `GuideShot` renders
+only what the manifest lists, so a missing shot leaves a gap rather than a broken image.
 
 ## Open items
 
-- **Apply the migration.** Nothing works against the database until it exists.
 - ATS ingest endpoint is unknown. `lib/atsClient.ts` is an unactivated skeleton, so
   `ATS_INGEST_URL` has no confirmed target and `pushToOwnAts` skips itself.
 - RecMan credentials are not available. `lib/cv/recman.ts` maps the fields in one place but
@@ -219,3 +233,13 @@ the guide simply shows no step images rather than broken ones.
   is missing, so the OTP endpoint is currently protected only by its own rate limits.
 - Rate limits for the CV flow are enforced in the `cv_otp` table rather than the in-memory
   limiter in `lib/apiSecurity.ts`, which does not survive a lambda.
+- The SMTP send has never succeeded from a local machine. Confirm one code arrives from a
+  deployed environment before announcing the feature.
+
+## Environment variables
+
+`CV_OTP_PEPPER`, `CV_DOWNLOAD_TOKEN_SECRET` and `CV_INTERNAL_SHARED_SECRET` must be set in
+Vercel for Production, Preview and Development. Without the pepper, `hashEmail` and
+`hashOtpCode` return null and the consent routes fail closed with a generic error rather
+than storing anything unhashed. `CV_POLICY_VERSION` defaults to `2026-07-31` in code; bump
+it in the environment whenever the consent wording changes.

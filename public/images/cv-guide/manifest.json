@@ -1,4 +1,59 @@
 {
-  "generatedAt": null,
-  "shots": {}
+  "generatedAt": "2026-07-31T10:59:25.790Z",
+  "shots": {
+    "step-1-template": {
+      "desktop": "/images/cv-guide/step-1-template-desktop.webp",
+      "mobile": "/images/cv-guide/step-1-template-mobile.webp",
+      "width": 1440,
+      "height": 900
+    },
+    "step-2-details": {
+      "desktop": "/images/cv-guide/step-2-details-desktop.webp",
+      "mobile": "/images/cv-guide/step-2-details-mobile.webp",
+      "width": 1440,
+      "height": 900
+    },
+    "step-3-summary": {
+      "desktop": "/images/cv-guide/step-3-summary-desktop.webp",
+      "mobile": "/images/cv-guide/step-3-summary-mobile.webp",
+      "width": 1440,
+      "height": 900
+    },
+    "step-4-experience": {
+      "desktop": "/images/cv-guide/step-4-experience-desktop.webp",
+      "mobile": "/images/cv-guide/step-4-experience-mobile.webp",
+      "width": 1440,
+      "height": 900
+    },
+    "step-5-education": {
+      "desktop": "/images/cv-guide/step-5-education-desktop.webp",
+      "mobile": "/images/cv-guide/step-5-education-mobile.webp",
+      "width": 1440,
+      "height": 900
+    },
+    "step-6-certificates": {
+      "desktop": "/images/cv-guide/step-6-certificates-desktop.webp",
+      "mobile": "/images/cv-guide/step-6-certificates-mobile.webp",
+      "width": 1440,
+      "height": 900
+    },
+    "step-7-skills": {
+      "desktop": "/images/cv-guide/step-7-skills-desktop.webp",
+      "mobile": "/images/cv-guide/step-7-skills-mobile.webp",
+      "width": 1440,
+      "height": 900
+    },
+    "step-8-cover-letter": {
+      "desktop": "/images/cv-guide/step-8-cover-letter-desktop.webp",
+      "mobile": "/images/cv-guide/step-8-cover-letter-mobile.webp",
+      "width": 1440,
+      "height": 900
+    },
+    "step-9-review": {
+      "desktop": "/images/cv-guide/step-9-review-desktop.webp",
+      "mobile": "/images/cv-guide/step-9-review-mobile.webp",
+      "width": 1440,
+      "height": 900
+    }
+  }
 }

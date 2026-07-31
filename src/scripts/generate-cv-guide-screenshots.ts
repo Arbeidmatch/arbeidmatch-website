@@ -1,6 +1,7 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { chromium, type Page } from "playwright";
+import sharp from "sharp";
 
 /**
  * Captures the builder steps and the finished layouts for the /cv guide.
@@ -27,11 +28,33 @@ const STEPS: Array<{ key: string; step: number }> = [
   { key: "step-9-review", step: 9 },
 ];
 
+/** The dev server's own overlay badge, which belongs in no screenshot. */
+const HIDE_DEV_OVERLAY = "nextjs-portal { display: none !important; }";
+
+/** Accept the cookie banner once, so it does not sit across the bottom of every shot. */
+async function dismissCookieBanner(page: Page): Promise<void> {
+  const accept = page.getByRole("button", { name: /got it|accept/i }).first();
+  if (await accept.isVisible().catch(() => false)) {
+    await accept.click();
+    await page.waitForTimeout(300);
+  }
+}
+
+/**
+ * Playwright writes PNG only. Nine steps at two viewports and 2x density comes to
+ * several megabytes of PNG, so each shot is converted to webp and the PNG discarded.
+ */
 async function capture(page: Page, url: string, file: string): Promise<void> {
   await page.goto(url, { waitUntil: "networkidle" });
+  await page.addStyleTag({ content: HIDE_DEV_OVERLAY });
+  await dismissCookieBanner(page);
   // The preview debounces at 300ms, so wait past it before the shutter.
-  await page.waitForTimeout(600);
-  await page.screenshot({ path: file, type: "png", fullPage: false });
+  await page.waitForTimeout(700);
+
+  const temporaryPng = `${file}.png`;
+  await page.screenshot({ path: temporaryPng, type: "png", fullPage: false });
+  await sharp(temporaryPng).webp({ quality: 82 }).toFile(file);
+  await rm(temporaryPng, { force: true });
 }
 
 async function main() {
@@ -46,15 +69,13 @@ async function main() {
 
     for (const { key, step } of STEPS) {
       const url = `${BASE_URL}/cv-gen?demo=1&step=${step}`;
-      const desktopFile = path.join(OUT_DIR, `${key}-desktop.png`);
-      const mobileFile = path.join(OUT_DIR, `${key}-mobile.png`);
 
-      await capture(desktop, url, desktopFile);
-      await capture(mobile, url, mobileFile);
+      await capture(desktop, url, path.join(OUT_DIR, `${key}-desktop.webp`));
+      await capture(mobile, url, path.join(OUT_DIR, `${key}-mobile.webp`));
 
       shots[key] = {
-        desktop: `/images/cv-guide/${key}-desktop.png`,
-        mobile: `/images/cv-guide/${key}-mobile.png`,
+        desktop: `/images/cv-guide/${key}-desktop.webp`,
+        mobile: `/images/cv-guide/${key}-mobile.webp`,
         width: DESKTOP.width,
         height: DESKTOP.height,
       };

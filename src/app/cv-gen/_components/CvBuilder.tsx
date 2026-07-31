@@ -71,18 +71,21 @@ export function CvBuilder({ policyVersion, demo }: { policyVersion: string; demo
   useEffect(() => {
     if (hydrated.current) return;
     hydrated.current = true;
+
+    // The requested step applies in both modes. It is how the guide screenshots land
+    // on the right step and how a shared link reopens where someone left off.
+    const params = new URLSearchParams(window.location.search);
+    const requested = Number(params.get("step"));
+    if (Number.isFinite(requested) && requested >= 1 && requested <= STEPS.length) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setStep(requested - 1);
+    }
+
     if (demo) return;
     const stored = loadDraft();
     // Reading localStorage is only possible after mount, so restoring a draft is
     // necessarily a second render. There is no server value to hydrate from.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (stored) setDoc(stored);
-
-    const params = new URLSearchParams(window.location.search);
-    const requested = Number(params.get("step"));
-    if (Number.isFinite(requested) && requested >= 1 && requested <= STEPS.length) {
-      setStep(requested - 1);
-    }
   }, [demo]);
 
   useEffect(() => {
@@ -219,8 +222,9 @@ export function CvBuilder({ policyVersion, demo }: { policyVersion: string; demo
             >
               Back
             </button>
+            {/* Demo mode never writes to storage, so it has no save status to report. */}
             <span className="text-[13px] text-[#8A929C]" aria-live="polite">
-              {savedDoc === doc ? "Saved in this browser" : "Saving..."}
+              {demo ? "" : savedDoc === doc ? "Saved in this browser" : "Saving..."}
             </span>
             <button
               type="button"
@@ -598,7 +602,7 @@ function ExperienceStep({ doc, update, issues = {} }: StepProps) {
             }
             error={issues[`experience.${index}.jobTitle`]}
           />
-          <div className="grid gap-x-4 sm:grid-cols-2">
+          <div className="grid gap-x-4 sm:grid-cols-3">
             <TextField
               label="Company"
               required
@@ -623,8 +627,6 @@ function ExperienceStep({ doc, update, issues = {} }: StepProps) {
               }
               error={issues[`experience.${index}.city`]}
             />
-          </div>
-          <div className="grid gap-x-4 sm:grid-cols-3">
             <TextField
               label="Country"
               required
@@ -637,6 +639,8 @@ function ExperienceStep({ doc, update, issues = {} }: StepProps) {
               }
               error={issues[`experience.${index}.country`]}
             />
+          </div>
+          <div className="grid gap-x-4 sm:grid-cols-2">
             <TextField
               label="Start"
               required
@@ -653,8 +657,7 @@ function ExperienceStep({ doc, update, issues = {} }: StepProps) {
             <TextField
               label="End"
               required
-              help="Write Present if you still work there."
-              example="02/2024 or Present"
+              example="02/2024, or write Present if you are still there"
               value={entry.endDate}
               onChange={(value) =>
                 update((draft) => {
@@ -768,7 +771,7 @@ function EducationStep({ doc, update }: StepProps) {
               })
             }
           />
-          <div className="grid gap-x-4 sm:grid-cols-2">
+          <div className="grid gap-x-4 sm:grid-cols-3">
             <TextField
               label="Institution"
               required
@@ -791,8 +794,6 @@ function EducationStep({ doc, update }: StepProps) {
                 })
               }
             />
-          </div>
-          <div className="grid gap-x-4 sm:grid-cols-3">
             <TextField
               label="Country"
               required
@@ -804,6 +805,8 @@ function EducationStep({ doc, update }: StepProps) {
                 })
               }
             />
+          </div>
+          <div className="grid gap-x-4 sm:grid-cols-2">
             <TextField
               label="Start"
               required

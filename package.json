@@ -9,7 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "cv:verify-pdf": "vitest run src/lib/cv/pdf-parsability.test.ts",
-    "cv:screenshots": "ts-node --compilerOptions {\"module\":\"commonjs\"} src/scripts/generate-cv-guide-screenshots.ts",
+    "cv:screenshots": "tsx src/scripts/generate-cv-guide-screenshots.ts",
     "fix-error": "ts-node src/scripts/parse-error-email.ts",
     "test:save-request-bools": "node src/scripts/validate-save-employer-request-booleans.mjs"
   },
@@ -47,6 +47,7 @@
     "playwright": "^1.62.1",
     "postcss": "^8.5.9",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.1",
     "typescript": "^5",
     "vitest": "^4.1.10"
   }

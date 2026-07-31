@@ -28,7 +28,9 @@ function FieldShell({
     .join(" ");
 
   return (
-    <div className="mb-4">
+    // Flex column with the control pushed down, so inputs sitting side by side line up
+    // even when their helper text runs to a different number of lines.
+    <div className="mb-4 flex h-full flex-col">
       <label htmlFor={id} className="mb-1 block text-sm font-semibold text-[#0D1B2A]">
         {label}
         {required ? <span className="ml-1 text-[#B03A2E]">*</span> : null}
@@ -39,7 +41,9 @@ function FieldShell({
           {example ? <span className="block text-[#8A929C]">Example: {example}</span> : null}
         </p>
       ) : null}
-      <div aria-describedby={describedBy || undefined}>{children}</div>
+      <div className="mt-auto" aria-describedby={describedBy || undefined}>
+        {children}
+      </div>
       {error ? (
         <p id={`${id}-error`} role="alert" className="mt-1 text-[13px] font-medium text-[#B03A2E]">
           {error}
