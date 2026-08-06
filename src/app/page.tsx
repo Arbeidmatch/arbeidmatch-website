@@ -7,13 +7,13 @@ export const revalidate = 60;
 
 const TITLE = "Qualified EU/EEA Workers for Norway | ArbeidMatch";
 const DESCRIPTION =
-  "Connect your Norwegian business with pre-screened EU/EEA workers in construction, logistics, and industry. Compliant recruitment with clear expectations.";
+  "Staffing and recruitment for Norwegian companies: we employ qualified EU/EEA workers in construction, logistics and industry and hire them out to you, or recruit them directly into your own payroll.";
 
 const OG_IMAGE = {
   url: "/og-image.png",
   width: 1200,
   height: 630,
-  alt: "ArbeidMatch | EU/EEA Recruitment Norway",
+  alt: "ArbeidMatch | EU/EEA staffing and recruitment in Norway",
 } as const;
 
 export const metadata: Metadata = {

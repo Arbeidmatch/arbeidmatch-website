@@ -69,8 +69,13 @@ export default function Footer() {
 
         <div className="mt-10 border-t border-[rgba(255,255,255,0.08)] pt-8 md:mt-12 md:pt-10">
           <p className="mx-auto max-w-[900px] text-center text-[11px] italic leading-relaxed text-white/45">
-            ArbeidMatch is a private recruitment agency, not an official Norwegian authority. We share practical guidance to
-            help foreign workers navigate the process. Always verify legal requirements with official sources.
+            {/* His correction, 6 August 2026: we are not only a recruiter. We employ the
+                people we hire out, and we recruit directly as well. Saying only
+                "recruitment" describes half of what we do and the wrong half for
+                somebody asking who will pay their wages. */}
+            ArbeidMatch is a private staffing and recruitment company, not an official Norwegian authority. On staffing
+            work we are the employer; on direct recruitment the client is. We share practical guidance to help foreign
+            workers navigate the process. Always verify legal requirements with official sources.
           </p>
           <p className="mx-auto mt-2 max-w-[900px] text-center text-[11px] leading-relaxed">
             <a
