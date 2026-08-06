@@ -25,6 +25,8 @@ const base: PublicJob = {
   shift_type: null,
   required_driver_licenses: null,
   public_applies: null,
+  public_views: null,
+  public_likes: null,
   public_slug: "bricklayer-trondheim",
   public_show_company: false,
   external_image_url: null,

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { fetchPublicJobs, jobEmployerLabel, jobFacts, jobImage, jobUrl, type PublicJob } from "@/lib/jobs-fetch";
+import { JobEyeAndHeart } from "@/components/jobs/JobEyeAndHeart";
+import { atsBaseUrl, fetchPublicJobs, jobEmployerLabel, jobFacts, jobImage, jobUrl, type PublicJob } from "@/lib/jobs-fetch";
 
 export const dynamic = "force-dynamic";
 
@@ -72,7 +73,12 @@ function JobCard({ job }: { job: PublicJob }) {
             </span>
           ))}
         </div>
-        <div className="mt-auto pt-4">
+        {/* Above the button, on the right, as he asked: how many looked and how many
+            liked it. The count lives on the job in the ATS, so the press posts there. */}
+        <div className="mt-auto pt-3">
+          <JobEyeAndHeart jobId={job.id} views={job.public_views} likes={job.public_likes} atsBaseUrl={atsBaseUrl()} />
+        </div>
+        <div className="pt-2">
           {href ? (
             <a
               href={href}

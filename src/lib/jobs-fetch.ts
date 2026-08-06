@@ -41,6 +41,8 @@ export type PublicJob = {
   shift_type: string | null;
   required_driver_licenses: string[] | null;
   public_applies: number | null;
+  public_views: number | null;
+  public_likes: number | null;
   public_slug: string | null;
   public_show_company: boolean | null;
   project?: { name?: string | null; company?: { name?: string } | { name?: string }[] | null } | null;
@@ -102,10 +104,18 @@ export function jobEmployerLabel(job: PublicJob): string {
  * actually decides on, capped at three so a row of cards still lines up, and empty when
  * a posting carries none of them - a blank is honest, a filler sentence is not.
  */
+/**
+ * Values that mean "there is no rotation". He saw a chip that said "No" on the live page,
+ * because that is literally what the field holds on several postings.
+ */
+const ROTATION_MEANS_NOTHING = new Set(["no", "none", "nei", "ingen", "nu", "-", "--", "n/a", "na", "false", "0"]);
+
 export function jobFacts(job: PublicJob, now: Date = new Date()): string[] {
   const facts: string[] = [];
   const rotation = (job.rotation ?? "").trim();
-  if (rotation) facts.push(rotation.length > 28 ? `${rotation.slice(0, 27)}…` : rotation);
+  if (rotation && !ROTATION_MEANS_NOTHING.has(rotation.toLowerCase())) {
+    facts.push(rotation.length > 28 ? `${rotation.slice(0, 27)}…` : rotation);
+  }
   if (job.accommodation_provided) facts.push("Help with accommodation");
   const shift = (job.shift_type ?? "").trim();
   if (shift && shift.toLowerCase() !== "day") facts.push(shift);
