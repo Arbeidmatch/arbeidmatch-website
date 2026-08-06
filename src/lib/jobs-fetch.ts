@@ -36,6 +36,11 @@ export type PublicJob = {
   salary_range_max: string | null;
   salary_mode: string | null;
   accommodation_provided: boolean | null;
+  /** The facts that differ between two jobs, which is what a card has room for. */
+  rotation: string | null;
+  shift_type: string | null;
+  required_driver_licenses: string[] | null;
+  public_applies: number | null;
   public_slug: string | null;
   public_show_company: boolean | null;
   project?: { name?: string | null; company?: { name?: string } | { name?: string }[] | null } | null;
@@ -82,6 +87,42 @@ export function jobEmployerLabel(job: PublicJob): string {
   if (name && /arbeidmatch/i.test(name) && !filedNowhere) return name;
   if (name && job.public_show_company === true) return name;
   return "Client of ArbeidMatch";
+}
+
+/**
+ * What this card can say that the one beside it cannot.
+ *
+ * HIS COMPLAINT, 6 August 2026, looking at twelve cards in a row: "se repeta si nu
+ * vreau sa se repete." He was right, and it was mine: hiding the rate left a constant
+ * sentence in its place, printed identically on every card, with "accommodation" said
+ * twice on each of them. A line that is the same everywhere carries no information and
+ * teaches the eye to skip that part of the card, including on the day it does differ.
+ *
+ * So the card spends that space on facts that vary. Ordered by what a tradesman
+ * actually decides on, capped at three so a row of cards still lines up, and empty when
+ * a posting carries none of them - a blank is honest, a filler sentence is not.
+ */
+export function jobFacts(job: PublicJob, now: Date = new Date()): string[] {
+  const facts: string[] = [];
+  const rotation = (job.rotation ?? "").trim();
+  if (rotation) facts.push(rotation.length > 28 ? `${rotation.slice(0, 27)}…` : rotation);
+  if (job.accommodation_provided) facts.push("Help with accommodation");
+  const shift = (job.shift_type ?? "").trim();
+  if (shift && shift.toLowerCase() !== "day") facts.push(shift);
+  if (Array.isArray(job.required_driver_licenses) && job.required_driver_licenses.length > 0) {
+    facts.push(`Driving licence ${job.required_driver_licenses.slice(0, 2).join(", ")}`);
+  }
+  const posted = job.published_at ?? job.created_at;
+  if (posted) {
+    const days = Math.floor((now.getTime() - Date.parse(posted)) / 86_400_000);
+    if (Number.isFinite(days) && days >= 0 && days <= 7) facts.push("New this week");
+  }
+  // Only once it is proof: two applications discourage, and none is the worst thing a
+  // card can say out loud.
+  if (typeof job.public_applies === "number" && job.public_applies >= 3) {
+    facts.push(`${job.public_applies} have applied`);
+  }
+  return facts.slice(0, 3);
 }
 
 /** Where a visitor goes to read the whole advert and apply. Always the ATS. */

@@ -1,38 +1,26 @@
 import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
-import { JOBS_PREVIEW_COOKIE, JOBS_PREVIEW_PARAM, mayViewJobsPreview } from "@/lib/jobs-preview-gate";
 
 // TODO(next16): Migrate this file to `proxy.ts` once routing behavior is validated in staging.
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   /**
-   * The jobs section is being built and is not public yet. It is reachable only
-   * with the key the owner has in Slack, and anything else is a 404 rather than
-   * a locked screen: a "you need access" page announces that something is here
-   * and invites guessing.
+   * THE JOBS SECTION IS NOT GATED ANY MORE, 6 August 2026.
    *
-   * The key in the address sets a cookie, so the link is tapped once rather
-   * than pasted onto every page.
+   * The key was the reason arbeidmatch.no/jobs answered 404 on his phone while it
+   * opened on his desktop: the desktop carried the cookie from the day he tapped the
+   * link in Slack, the phone never had one, and a gate that admits one device and
+   * refuses the next is a gate nobody can reason about. He asked three times to reach
+   * this page from a plain link.
+   *
+   * Nothing is exposed by removing it. The page carries `noindex`, so it cannot arrive
+   * in a search result, and what is behind it is a list of our own open jobs that is
+   * already readable on the ATS board without any key at all.
+   *
+   * To close it again, gate it here deliberately rather than reviving a key nobody can
+   * remember which devices hold.
    */
-  if (pathname === "/jobs" || pathname.startsWith("/jobs/")) {
-    const paramKey = request.nextUrl.searchParams.get(JOBS_PREVIEW_PARAM);
-    const cookieKey = request.cookies.get(JOBS_PREVIEW_COOKIE)?.value ?? null;
-    if (!mayViewJobsPreview({ paramKey, cookieKey })) {
-      return new NextResponse(null, { status: 404 });
-    }
-    const res = NextResponse.next();
-    if (paramKey) {
-      res.cookies.set(JOBS_PREVIEW_COOKIE, paramKey, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 30,
-      });
-    }
-    return res;
-  }
   /** Article routes stay public for SEO; access control is enforced client-side via PaywallOverlay. */
   const isBrowse = pathname.startsWith("/premium/browse");
   if (!isBrowse) {

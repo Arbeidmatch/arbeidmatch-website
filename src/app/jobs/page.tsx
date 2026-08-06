@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { fetchPublicJobs, jobEmployerLabel, jobImage, jobUrl, type PublicJob } from "@/lib/jobs-fetch";
+import { fetchPublicJobs, jobEmployerLabel, jobFacts, jobImage, jobUrl, type PublicJob } from "@/lib/jobs-fetch";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +35,7 @@ function JobCard({ job }: { job: PublicJob }) {
   // Who employs the reader: us on most of these, a client on some. Never
   // "Confidential employer", which described neither.
   const employer = jobEmployerLabel(job);
+  const facts = jobFacts(job);
 
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition hover:shadow-md">
@@ -55,26 +56,22 @@ function JobCard({ job }: { job: PublicJob }) {
           {job.category ? ` · ${job.category}` : ""}
         </p>
         {/*
-          NO NUMBER ON THE CARD, by his decision of 6 August 2026: "sa nu fie
-          specificat salariul ci numai inauntru... ca sa i atragem inauntru nu sa ramana
-          pe dinafara."
+          The facts that differ, not a sentence that repeats. See jobFacts: he counted
+          the same two lines on twelve cards and was right to.
 
-          A rate printed here is a decision taken from outside, on the one fact a list
-          cannot put in context: 250 an hour with accommodation arranged and rotation
-          paid is a different job from 250 without either, and a card has no room to say
-          so. The line keeps its place in the grid, because an empty slot on one card and
-          a filled one on the next is what breaks a row, and spends it on the reason to
-          open the advert instead.
-
-          What it must never say is "on request". That reads as something withheld, and
-          it is the same mistake this page already corrected about the employer.
+          The row keeps a minimum height so a posting with nothing to say does not pull
+          its button up out of line with the row.
         */}
-        <p className="text-base font-semibold text-gold">Rate, shift and accommodation inside</p>
-        <p className="text-sm text-text-secondary">
-          {/* His rule: "accommodation provided" is for housing that is free. Where it is
-              arranged and paid for, we help with it. */}
-          {job.accommodation_provided ? "Help with accommodation" : " "}
-        </p>
+        <div className="mt-1 flex min-h-[2.75rem] flex-wrap content-start gap-1.5">
+          {facts.map((fact) => (
+            <span
+              key={fact}
+              className="rounded-md bg-navy/[0.06] px-2 py-1 text-xs font-medium text-text-secondary"
+            >
+              {fact}
+            </span>
+          ))}
+        </div>
         <div className="mt-auto pt-4">
           {href ? (
             <a
