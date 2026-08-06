@@ -61,17 +61,25 @@ export function rateLine(job: PublicJob): string | null {
 /**
  * Who employs the reader.
  *
- * On most of these jobs it is us, on some it is a client. The ATS says which,
- * through the company on the job's project, and the board used to print
- * "Confidential employer" on all of them - a phrase that described neither and
- * withheld our own name.
+ * CORRECTED 6 August 2026, by the owner: we are the employer on the painter work and
+ * on nothing else at the moment; the rest belong to different clients. Eleven of
+ * twelve open jobs sit in the ATS catch-all project "General", whose company is ours,
+ * so this label printed our name on ten jobs that are somebody else's. Who signs the
+ * contract is not a detail to get wrong on a public page.
+ *
+ * A job filed in a catch-all tells us nothing, so it is read as a client's, which is
+ * what it is. Our name appears when a job sits in one of our own projects on purpose,
+ * and a client is named only when they agreed to be.
  */
+const CATCH_ALL_PROJECTS = new Set(["general", "default", "uncategorised", "uncategorized", "misc", "other"]);
+
 export function jobEmployerLabel(job: PublicJob): string {
   const project = job.project;
   const raw = project?.company;
   const company = Array.isArray(raw) ? raw[0] : raw;
   const name = (company?.name ?? "").trim();
-  if (name && /arbeidmatch/i.test(name)) return name;
+  const filedNowhere = CATCH_ALL_PROJECTS.has((project?.name ?? "").trim().toLowerCase());
+  if (name && /arbeidmatch/i.test(name) && !filedNowhere) return name;
   if (name && job.public_show_company === true) return name;
   return "Client of ArbeidMatch";
 }

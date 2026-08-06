@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { fetchPublicJobs, jobEmployerLabel, jobImage, jobUrl, rateLine, type PublicJob } from "@/lib/jobs-fetch";
+import { fetchPublicJobs, jobEmployerLabel, jobImage, jobUrl, type PublicJob } from "@/lib/jobs-fetch";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +31,6 @@ export const metadata: Metadata = {
 
 function JobCard({ job }: { job: PublicJob }) {
   const href = jobUrl(job);
-  const rate = rateLine(job);
   const where = (job.location ?? "").trim() || (job.country ?? "").trim() || "Norway";
   // Who employs the reader: us on most of these, a client on some. Never
   // "Confidential employer", which described neither.
@@ -55,12 +54,26 @@ function JobCard({ job }: { job: PublicJob }) {
           {where}
           {job.category ? ` · ${job.category}` : ""}
         </p>
-        {/* The rate is what this page is read for, so it keeps its own line
-            whether or not the posting states one - an empty slot on one card
-            and a filled one on the next is what breaks the alignment. */}
-        <p className="text-base font-semibold text-gold">{rate ?? "Rate on request"}</p>
+        {/*
+          NO NUMBER ON THE CARD, by his decision of 6 August 2026: "sa nu fie
+          specificat salariul ci numai inauntru... ca sa i atragem inauntru nu sa ramana
+          pe dinafara."
+
+          A rate printed here is a decision taken from outside, on the one fact a list
+          cannot put in context: 250 an hour with accommodation arranged and rotation
+          paid is a different job from 250 without either, and a card has no room to say
+          so. The line keeps its place in the grid, because an empty slot on one card and
+          a filled one on the next is what breaks a row, and spends it on the reason to
+          open the advert instead.
+
+          What it must never say is "on request". That reads as something withheld, and
+          it is the same mistake this page already corrected about the employer.
+        */}
+        <p className="text-base font-semibold text-gold">Rate, shift and accommodation inside</p>
         <p className="text-sm text-text-secondary">
-          {job.accommodation_provided ? "Accommodation included" : " "}
+          {/* His rule: "accommodation provided" is for housing that is free. Where it is
+              arranged and paid for, we help with it. */}
+          {job.accommodation_provided ? "Help with accommodation" : " "}
         </p>
         <div className="mt-auto pt-4">
           {href ? (
