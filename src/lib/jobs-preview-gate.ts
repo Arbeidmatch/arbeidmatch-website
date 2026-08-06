@@ -17,9 +17,22 @@
  * anybody who wanders past that there is something here and invites them to
  * guess. Nothing should be visible at all.
  *
- * The key is `JOBS_PREVIEW_KEY` in the environment. With none set the section is
- * closed to everybody, including whoever forgot to set it - a preview that
- * defaults to open is how an unfinished page ends up in a search result.
+ * The key is `JOBS_PREVIEW_KEY` in the environment.
+ *
+ * WITH NO KEY SET THE SECTION IS OPEN, changed on 6 August 2026 on the owner's
+ * word: he wants to reach arbeidmatch.no/jobs from a plain link, and the earlier
+ * default made that impossible without an environment variable and a redeploy on a
+ * second Vercel project. He asked twice; the second time it was clear the gate was
+ * costing more than it protected.
+ *
+ * The reason the old default existed is handled elsewhere and still holds: the page
+ * carries `noindex`, so it cannot arrive in a search result whether it is gated or
+ * not. And there is nothing behind this gate that is not already public - it is a
+ * list of our own open jobs, readable today on the ATS board without any key.
+ *
+ * SET A KEY AND IT LOCKS AGAIN, exactly as before, which is what makes this
+ * reversible with no deploy: `JOBS_PREVIEW_KEY=<12+ characters>` closes the section
+ * to everybody without the link.
  */
 
 export const JOBS_PREVIEW_COOKIE = "am_jobs_preview";
@@ -50,7 +63,16 @@ export function isPreviewKeyValid(candidate: string | null | undefined): boolean
   return sameKey(value, key);
 }
 
-/** True when this request may see the section: a key in the url, or the cookie it set. */
+/** True when no key is configured at all: the section is open to anyone with the link. */
+export function isJobsSectionOpen(): boolean {
+  return configuredKey() === null;
+}
+
+/**
+ * True when this request may see the section: nobody configured a key, or the key is
+ * in the url, or in the cookie that url set.
+ */
 export function mayViewJobsPreview(args: { paramKey?: string | null; cookieKey?: string | null }): boolean {
+  if (isJobsSectionOpen()) return true;
   return isPreviewKeyValid(args.paramKey) || isPreviewKeyValid(args.cookieKey);
 }
