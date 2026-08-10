@@ -1,7 +1,11 @@
 import {
   ACTION_VERBS,
   EMPTY_PHRASES,
+  FIRST_PERSON_REWRITES,
   GERUND_TO_PAST,
+  MISSPELLINGS,
+  NOT_TRUNCATED,
+  PREFIX_COMPLETIONS,
   SKILL_NORMALISATION,
   TRADE_PROFILES,
   WEAK_OPENERS,
@@ -35,6 +39,68 @@ export function findTrade(headline: string, jobTitles: string[] = []): TradeProf
     if (profile.match.some((word) => haystack.includes(word))) return profile;
   }
   return null;
+}
+
+/** Keeps the capitalisation of the word that was typed. */
+function matchCase(original: string, replacement: string): string {
+  if (original[0] === original[0]?.toUpperCase() && original[1] !== original[1]?.toUpperCase()) {
+    return replacement.charAt(0).toUpperCase() + replacement.slice(1);
+  }
+  return replacement;
+}
+
+/** Completes a word cut short mid-typing, such as "experie" for "experience". */
+function completeTruncated(lower: string): string | null {
+  if (lower.length < 5 || NOT_TRUNCATED.has(lower)) return null;
+  const targets = PREFIX_COMPLETIONS.filter(
+    (word) => word.length > lower.length && word.startsWith(lower),
+  );
+  if (targets.length === 0) return null;
+  return targets.reduce((shortest, word) => (word.length < shortest.length ? word : shortest));
+}
+
+/**
+ * Fixes spelling without sending the text anywhere. The browser underlines the same words
+ * as the candidate types; this makes the fix happen on a single click instead.
+ */
+export function fixTypos(value: string): { text: string; fixed: Array<[string, string]> } {
+  const fixed: Array<[string, string]> = [];
+  const text = value.replace(/[A-Za-z']+/g, (word) => {
+    const lower = word.toLowerCase();
+    const replacement = MISSPELLINGS[lower] ?? completeTruncated(lower);
+    if (!replacement || replacement === lower) return word;
+    const cased = matchCase(word, replacement);
+    if (!fixed.some(([from]) => from.toLowerCase() === lower)) fixed.push([word, cased]);
+    return cased;
+  });
+  return { text, fixed };
+}
+
+/** Rewrites "I am a carpenter" as "Carpenter", which is the Norwegian CV convention. */
+export function toThirdPerson(value: string): { text: string; changed: boolean } {
+  let text = value;
+  for (const { pattern, replacement } of FIRST_PERSON_REWRITES) {
+    text = text.replace(pattern, replacement);
+  }
+  return { text: text.replace(/\s{2,}/g, " ").trim(), changed: text.trim() !== value.trim() };
+}
+
+/** Years of experience written into the summary itself, when no roles have been added yet. */
+function yearsFromText(value: string): number | null {
+  const match = /\b(\d{1,2})\s*(?:\+\s*)?(?:years?|yrs?|yeas|yers|ani|lat|år)\b/i.exec(value);
+  const years = match ? Number(match[1]) : 0;
+  return years > 0 ? years : null;
+}
+
+/** Removes the punctuation left behind once filler and pronouns are cut out. */
+function tidy(value: string): string {
+  return value
+    .replace(/\s+([,.;:])/g, "$1")
+    .replace(/,\s*\./g, ".")
+    .replace(/\s{2,}/g, " ")
+    .replace(/[\s,;:]+(and|or|but|with|for)\s*$/i, "")
+    .replace(/[,;:]\s*$/, "")
+    .trim();
 }
 
 function capitaliseFirst(value: string): string {
@@ -97,25 +163,49 @@ function countryList(doc: CvDocument): string {
 
 /** Suggestion for the professional summary. */
 export function suggestSummary(doc: CvDocument): Suggestion | null {
-  const trade = findTrade(doc.personal.headline, doc.experience.map((entry) => entry.jobTitle));
   const notes: string[] = [];
-  const cleaned = stripEmptyPhrases(doc.summary);
+  const original = doc.summary.trim();
 
+  const cleaned = stripEmptyPhrases(original);
   if (cleaned.removed.length > 0) {
     notes.push(
       `Removed phrases that say nothing to an employer: ${cleaned.removed.slice(0, 3).join(", ")}.`,
     );
   }
 
-  if (!trade) {
-    if (!doc.summary.trim()) return null;
-    const rewritten = endWithFullStop(capitaliseFirst(fixPersonalPronouns(cleaned.text)));
-    if (rewritten === doc.summary.trim()) return null;
-    notes.push("Tidied the wording. Add the years of experience and your main certificates.");
-    return { text: rewritten, notes };
+  const spelling = fixTypos(cleaned.text);
+  if (spelling.fixed.length > 0) {
+    notes.push(
+      `Corrected spelling: ${spelling.fixed
+        .slice(0, 4)
+        .map(([from, to]) => `${from} to ${to}`)
+        .join(", ")}.`,
+    );
   }
 
-  const years = yearsOfExperience(doc);
+  // The summary itself counts as evidence of the trade: a candidate often writes
+  // "carpenter" there before filling in the headline or a single role. Detection runs on the
+  // corrected text, so a trade spelled wrong is still recognised.
+  const trade = findTrade(doc.personal.headline, [
+    ...doc.experience.map((entry) => entry.jobTitle),
+    spelling.text,
+  ]);
+
+  const person = toThirdPerson(spelling.text);
+  if (person.changed) {
+    notes.push("Rewrote it in the third person, which is the convention on a Norwegian CV.");
+  }
+
+  let text = endWithFullStop(capitaliseFirst(tidy(person.text)));
+
+  if (!trade) {
+    if (!original) return null;
+    if (text === original) return null;
+    notes.push("Add the years of experience and your main certificates.");
+    return { text: text.slice(0, 800), notes };
+  }
+
+  const years = yearsOfExperience(doc) ?? yearsFromText(original);
   const opener = years
     ? `${trade.title} with ${years} years of experience ${trade.summary[0]}${countryList(doc)}.`
     : `${trade.title} ${trade.summary[0]}${countryList(doc)}.`;
@@ -124,13 +214,32 @@ export function suggestSummary(doc: CvDocument): Suggestion | null {
     ? "Holds a valid HSE card and works safely in mixed-trade teams."
     : "";
 
-  const sentences = [opener, ...trade.summary.slice(1), certificateSentence].filter(Boolean);
-  const text = sentences.join(" ").slice(0, 800);
+  // Nothing usable was written, or the trade is buried too far in: lead with the title an
+  // employer searches for. Otherwise the candidate's own wording is kept and extended.
+  const leadsWithTrade = normalise(text).slice(0, 60).includes(trade.title.toLowerCase());
+  if (!text || !leadsWithTrade) {
+    text = opener;
+    notes.push(`Put the job title an employer searches for, ${trade.title}, in the first words.`);
+    if (years) notes.push(`Stated your ${years} years of experience up front.`);
+  }
 
-  notes.push(`Put the job title an employer searches for, ${trade.title}, in the first words.`);
-  if (years) notes.push(`Stated your ${years} years of experience up front.`);
-  notes.push("Wrote it in the third person, which is the convention on a Norwegian CV.");
+  const additions = [...trade.summary.slice(1), certificateSentence]
+    .filter(Boolean)
+    .filter((sentence) => !normalise(text).includes(normalise(sentence).slice(0, 25)));
 
+  // Only pad a summary that is too thin to answer what an employer reads it for.
+  if (text.length < 220 && additions.length > 0) {
+    for (const sentence of additions) {
+      if (`${text} ${sentence}`.length > 800) break;
+      text = `${text} ${sentence}`;
+    }
+    notes.push(
+      `Added ${trade.title.toLowerCase()} sentences an employer looks for. Edit them so they match what you have actually done.`,
+    );
+  }
+
+  text = text.slice(0, 800);
+  if (text === original && notes.length === 0) return null;
   return { text, notes };
 }
 
@@ -161,6 +270,17 @@ export function suggestBullet(bullet: string, doc: CvDocument, roleIndex = 0): S
   if (cleaned.removed.length > 0) {
     notes.push("Removed filler that adds nothing.");
     text = cleaned.text;
+  }
+
+  const spelling = fixTypos(text);
+  if (spelling.fixed.length > 0) {
+    text = spelling.text;
+    notes.push(
+      `Corrected spelling: ${spelling.fixed
+        .slice(0, 4)
+        .map(([from, to]) => `${from} to ${to}`)
+        .join(", ")}.`,
+    );
   }
 
   for (const { pattern, replacement } of WEAK_OPENERS) {

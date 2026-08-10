@@ -5,6 +5,7 @@ import type { Style } from "@react-pdf/stylesheet";
 import {
   SECTION_HEADINGS,
   dateRange,
+  dateRangeWithDuration,
   fullName,
   type CvCertification,
   type CvDocument,
@@ -142,7 +143,8 @@ export function ExperienceEntry({ entry }: { entry: CvExperience }) {
     <View style={base.entry} wrap={false}>
       <Text style={base.entryTitle}>{entry.jobTitle}</Text>
       <Text style={base.entryMeta}>{[entry.company, entry.city, entry.country].join(", ")}</Text>
-      <Text style={base.entryDates}>{dateRange(entry.startDate, entry.endDate)}</Text>
+      {/* The plain range stays first in the string, so a parser still reads the dates it expects. */}
+      <Text style={base.entryDates}>{dateRangeWithDuration(entry.startDate, entry.endDate)}</Text>
       <Bullets items={entry.bullets} />
     </View>
   );

@@ -59,6 +59,7 @@ export function TextField({
   placeholder,
   type = "text",
   maxLength,
+  spellCheck = false,
   ...rest
 }: BaseProps & {
   value: string;
@@ -66,6 +67,8 @@ export function TextField({
   placeholder?: string;
   type?: string;
   maxLength?: number;
+  /** On for fields holding English words, off for names, emails and numbers. */
+  spellCheck?: boolean;
 }) {
   const id = useId();
   const idWarning = type !== "email" && looksLikeNationalId(value);
@@ -79,6 +82,8 @@ export function TextField({
         value={value}
         maxLength={maxLength}
         placeholder={placeholder}
+        spellCheck={spellCheck}
+        lang={spellCheck ? "en" : undefined}
         onChange={(event) => onChange(event.target.value)}
       />
       {idWarning ? (
@@ -109,12 +114,20 @@ export function TextArea({
 
   return (
     <FieldShell id={id} {...rest}>
+      {/*
+        The page is lang="nb", so without lang="en" here the browser checks English CV text
+        against a Norwegian dictionary and underlines every word. With it, the candidate gets
+        their own operating system's English spell checker: red underline, right click to fix.
+        The basic checker runs on the device, so nothing is sent anywhere before consent.
+      */}
       <textarea
         id={id}
         rows={rows}
         maxLength={maxLength}
         className={`${inputClass} resize-y`}
         value={value}
+        spellCheck
+        lang="en"
         onChange={(event) => onChange(event.target.value)}
       />
       {counter ? (

@@ -66,6 +66,37 @@ Adding a trade means adding a `TradeProfile` block to the library, not changing 
 Outside the trades in the library the button still fixes grammar, tense and filler, but it
 cannot rewrite content it has no vocabulary for.
 
+### Spelling
+
+Two things fix spelling, and they are separate on purpose.
+
+The text fields carry `spellCheck` and `lang="en"`, which gives the candidate the spell
+checker already installed on their own machine: red underline while typing, right click to
+correct. The `lang` attribute is not optional here. The page is `lang="nb"`, so without it
+the browser checks English CV text against a Norwegian dictionary and underlines every
+word. The basic checker runs on the device. Chrome's "enhanced spell check" is a setting
+the user owns, not something the page can turn on.
+
+The button also corrects spelling itself, from `MISSPELLINGS` and `PREFIX_COMPLETIONS` in
+the phrasing library, so a candidate who never right clicks still gets it fixed and is told
+which words changed. `MISSPELLINGS` is an exact map; `PREFIX_COMPLETIONS` finishes a long
+word cut short mid-typing, such as `experie`. A real word that happens to start a longer one
+goes in `NOT_TRUNCATED` so it is left alone. Trade detection runs after the correction, so a
+trade spelled wrong is still recognised. Add a row, do not change the code.
+
+## Work experience order and length
+
+Roles are sorted most recent first when the candidate leaves the work experience step, not
+while they type, so a card never jumps away mid-date. `sortExperienceByDate` ranks on the end
+date and then the start date; a role whose dates cannot be read yet keeps its own order at
+the bottom. Move up and move down still work within the step.
+
+`durationLabel` works the length out from the two dates and the CV prints it after the
+range: `01/2025 - 01/2026 (1 year)`. It is counted as the distance between the dates, so a
+January to January year reads as one year rather than thirteen months, and a role inside a
+single month still counts as one. The plain range stays in front of the duration because
+`parsability.ts` requires a parser to extract exactly that substring.
+
 ## Architecture
 
 ```

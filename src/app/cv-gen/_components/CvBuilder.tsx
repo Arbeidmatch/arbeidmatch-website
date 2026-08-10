@@ -25,6 +25,9 @@ import {
   TEMPLATE_META,
   WORK_PERMITS,
   WORK_PERMIT_LABELS,
+  dateRangeWithDuration,
+  durationLabel,
+  sortExperienceByDate,
   type CvDocument,
   type TemplateId,
 } from "@/lib/cv/schema";
@@ -40,6 +43,9 @@ const STEPS = [
   "Cover letter",
   "Review",
 ] as const;
+
+/** Index of "Work experience" in STEPS, the step whose roles get sorted on the way out. */
+const EXPERIENCE_STEP = 3;
 
 const BADGE_COPY: Record<string, { label: string; colour: string }> = {
   best: { label: "Best for ATS", colour: "#1D9E75" },
@@ -123,6 +129,26 @@ export function CvBuilder({ policyVersion, demo }: { policyVersion: string; demo
     setDoc((current) => mutate(structuredClone(current)));
   }, []);
 
+  /**
+   * Moving between steps. Leaving the work experience step puts the roles in the order a
+   * recruiter expects, most recent first. It happens on the way out rather than while
+   * typing, so a card never jumps away mid-date.
+   */
+  const goToStep = useCallback(
+    (target: number) => {
+      const next = Math.max(0, Math.min(STEPS.length - 1, target));
+      if (step === EXPERIENCE_STEP && next !== EXPERIENCE_STEP) {
+        setDoc((current) => {
+          const sorted = sortExperienceByDate(current.experience);
+          const unchanged = sorted.every((entry, index) => entry === current.experience[index]);
+          return unchanged ? current : { ...current, experience: sorted };
+        });
+      }
+      setStep(next);
+    },
+    [step],
+  );
+
   const wipeEverything = useCallback(() => {
     wipeDraft();
     const message: DraftMessage = { type: "wipe" };
@@ -185,7 +211,7 @@ export function CvBuilder({ policyVersion, demo }: { policyVersion: string; demo
 
   return (
     <div className="min-h-screen bg-[#F5F6F8] pb-28 lg:pb-0">
-      <Stepper step={step} onSelect={setStep} />
+      <Stepper step={step} onSelect={goToStep} />
 
       <div className="mx-auto grid max-w-[1400px] gap-6 px-4 py-6 lg:grid-cols-[45fr_55fr]">
         <div>
@@ -208,7 +234,7 @@ export function CvBuilder({ policyVersion, demo }: { policyVersion: string; demo
                 onDownload={() => setShowConsent(true)}
                 downloadState={downloadState}
                 downloadError={downloadError}
-                onGoToStep={setStep}
+                onGoToStep={goToStep}
               />
             ) : null}
           </form>
@@ -217,7 +243,7 @@ export function CvBuilder({ policyVersion, demo }: { policyVersion: string; demo
             <button
               type="button"
               className={ghostButton}
-              onClick={() => setStep((value) => Math.max(0, value - 1))}
+              onClick={() => goToStep(step - 1)}
               disabled={step === 0}
             >
               Back
@@ -229,7 +255,7 @@ export function CvBuilder({ policyVersion, demo }: { policyVersion: string; demo
             <button
               type="button"
               className={primaryButton}
-              onClick={() => setStep((value) => Math.min(STEPS.length - 1, value + 1))}
+              onClick={() => goToStep(step + 1)}
               disabled={step === STEPS.length - 1}
             >
               Next
@@ -436,6 +462,7 @@ function DetailsStep({ doc, update, issues = {} }: StepProps) {
       <TextField
         label="Headline"
         required
+        spellCheck
         help="Use a standard job title an employer would search for."
         example="Write Tiler rather than Tile artist."
         maxLength={60}
@@ -553,7 +580,7 @@ function ExperienceStep({ doc, update, issues = {} }: StepProps) {
     <>
       <StepHeading
         title="Work experience"
-        intro="Most recent job first. For each one, write two to six bullets that say what you actually did. Start each bullet with an action verb."
+        intro="Add every job. They are put in order for you, most recent first, when you continue to the next step, and how long each one lasted is worked out from the dates. For each one, write two to six bullets that say what you actually did. Start each bullet with an action verb."
       />
 
       {doc.experience.map((entry, index) => (
@@ -591,6 +618,7 @@ function ExperienceStep({ doc, update, issues = {} }: StepProps) {
           <TextField
             label="Job title"
             required
+            spellCheck
             help="Use the title an employer would search for."
             example="Tiler, not Tile artist"
             value={entry.jobTitle}
@@ -668,6 +696,13 @@ function ExperienceStep({ doc, update, issues = {} }: StepProps) {
               error={issues[`experience.${index}.endDate`]}
             />
           </div>
+
+          {/* Counted from the two dates and printed on the CV, so nobody has to work it out. */}
+          {durationLabel(entry.startDate, entry.endDate) ? (
+            <p className="-mt-2 mb-4 text-[13px] text-[#55616D]" aria-live="polite">
+              {dateRangeWithDuration(entry.startDate, entry.endDate)} shows on your CV.
+            </p>
+          ) : null}
 
           <p className="mb-2 text-sm font-semibold text-[#0D1B2A]">What you did</p>
           {entry.bullets.map((bullet, bulletIndex) => (
@@ -762,6 +797,7 @@ function EducationStep({ doc, update }: StepProps) {
           <TextField
             label="Qualification"
             required
+            spellCheck
             example="Vocational diploma, Construction and finishing works"
             value={entry.qualification}
             onChange={(value) =>

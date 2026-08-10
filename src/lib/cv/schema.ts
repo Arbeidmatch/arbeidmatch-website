@@ -207,6 +207,83 @@ export function dateRange(startDate: string, endDate: string): string {
   return `${startDate} - ${endDate}`;
 }
 
+/** Months since year zero, so two MM/YYYY dates can be compared and subtracted. */
+function monthNumber(value: string): number | null {
+  const match = /^(\d{1,2})\s*[/.-]\s*(\d{4})$/.exec(value.trim());
+  if (!match) return null;
+  const month = Number(match[1]);
+  if (month < 1 || month > 12) return null;
+  return Number(match[2]) * 12 + (month - 1);
+}
+
+function currentMonthNumber(): number {
+  const now = new Date();
+  return now.getFullYear() * 12 + now.getMonth();
+}
+
+/** True for the word the End field accepts instead of a date. */
+function isPresent(value: string): boolean {
+  return /^present$/i.test(value.trim());
+}
+
+/**
+ * Length of a role in months. Counted as the distance between the two dates, so
+ * 01/2025 to 01/2026 is one year rather than thirteen months, and a role that starts
+ * and ends inside the same month still counts as one.
+ */
+export function monthsBetween(startDate: string, endDate: string): number | null {
+  const start = monthNumber(startDate);
+  if (start === null) return null;
+  const end = isPresent(endDate) ? currentMonthNumber() : monthNumber(endDate);
+  if (end === null || end < start) return null;
+  return Math.max(1, end - start);
+}
+
+/** "2 years 11 months", "1 year", "5 months". Empty when the dates cannot be read. */
+export function durationLabel(startDate: string, endDate: string): string {
+  const months = monthsBetween(startDate, endDate);
+  if (months === null) return "";
+  const years = Math.floor(months / 12);
+  const rest = months % 12;
+  const parts: string[] = [];
+  if (years > 0) parts.push(`${years} ${years === 1 ? "year" : "years"}`);
+  if (rest > 0) parts.push(`${rest} ${rest === 1 ? "month" : "months"}`);
+  return parts.join(" ");
+}
+
+/** The date range an employer reads, with how long it lasted: "03/2021 - Present (4 years)". */
+export function dateRangeWithDuration(startDate: string, endDate: string): string {
+  const label = durationLabel(startDate, endDate);
+  return label ? `${dateRange(startDate, endDate)} (${label})` : dateRange(startDate, endDate);
+}
+
+/**
+ * Most recent role first, which is the order every recruiter and every parser expects.
+ * Ranked on the end date, then the start date. Roles whose dates cannot be read yet keep
+ * their own order and sit at the bottom, so nothing a candidate is still typing jumps away.
+ */
+export function sortExperienceByDate<T extends { startDate: string; endDate: string }>(
+  entries: T[],
+): T[] {
+  const ranked = entries.map((entry, index) => {
+    const start = monthNumber(entry.startDate);
+    const end = isPresent(entry.endDate) ? Number.MAX_SAFE_INTEGER : monthNumber(entry.endDate);
+    return { entry, index, start, end: end ?? start };
+  });
+
+  ranked.sort((a, b) => {
+    const aDated = a.start !== null;
+    const bDated = b.start !== null;
+    if (aDated !== bDated) return aDated ? -1 : 1;
+    if (!aDated || !bDated) return a.index - b.index;
+    if (a.end !== b.end) return (b.end ?? 0) - (a.end ?? 0);
+    if (a.start !== b.start) return (b.start ?? 0) - (a.start ?? 0);
+    return a.index - b.index;
+  });
+
+  return ranked.map((item) => item.entry);
+}
+
 /** ASCII transliteration for filenames. Keeps Romanian and Norwegian names readable. */
 export function transliterate(value: string): string {
   const map: Record<string, string> = {

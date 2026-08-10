@@ -1,6 +1,12 @@
 "use client";
 
-import { SECTION_HEADINGS, dateRange, fullName, type CvDocument } from "@/lib/cv/schema";
+import {
+  SECTION_HEADINGS,
+  dateRange,
+  dateRangeWithDuration,
+  fullName,
+  type CvDocument,
+} from "@/lib/cv/schema";
 
 /**
  * Screen preview of the PDF. It mirrors the print templates closely enough to judge the
@@ -47,7 +53,9 @@ function Experience({ doc }: { doc: CvDocument }) {
         <div key={index} className="mb-2.5">
           <p className="font-bold text-[#0D1B2A]">{entry.jobTitle || "Job title"}</p>
           <p>{[entry.company, entry.city, entry.country].filter(Boolean).join(", ")}</p>
-          <p className="text-[#55616D]">{dateRange(entry.startDate || "MM/YYYY", entry.endDate || "Present")}</p>
+          <p className="text-[#55616D]">
+            {dateRangeWithDuration(entry.startDate || "MM/YYYY", entry.endDate || "Present")}
+          </p>
           <Bullets items={entry.bullets} />
         </div>
       ))}

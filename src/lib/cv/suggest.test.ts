@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SAMPLE_CV } from "@/lib/cv/fixtures/sample-cv";
-import { findTrade, suggestBullet, suggestSkill, suggestSummary } from "@/lib/cv/suggest";
+import { findTrade, fixTypos, suggestBullet, suggestSkill, suggestSummary } from "@/lib/cv/suggest";
 import type { CvDocument } from "@/lib/cv/schema";
 
 const base: CvDocument = SAMPLE_CV;
@@ -32,6 +32,48 @@ describe("summary suggestions", () => {
     const doc = { ...base, summary: "i am a tiler, team player" };
     const suggestion = suggestSummary(doc);
     expect(suggestion?.notes.length).toBeGreaterThan(0);
+  });
+});
+
+describe("spelling", () => {
+  it("fixes the misspellings and the words cut short", () => {
+    const result = fixTypos("I am a carpender with 20 yeas experie on constructin sites");
+    expect(result.text).toBe("I am a carpenter with 20 years experience on construction sites");
+    expect(result.fixed.length).toBe(4);
+  });
+
+  it("leaves correct words and real words that start a longer one alone", () => {
+    expect(fixTypos("Certificate for machine and scaffold work").fixed).toEqual([]);
+  });
+
+  it("keeps the capital letter that was typed", () => {
+    expect(fixTypos("Experiance in Constuction").text).toBe("Experience in Construction");
+  });
+
+  it("corrects the summary and says which words it changed", () => {
+    const doc = { ...base, summary: "I am a carpender with 20 yeas experie" };
+    const suggestion = suggestSummary(doc);
+
+    expect(suggestion?.text).not.toMatch(/yeas|experie\b|carpender/);
+    expect(suggestion?.text).toMatch(/experience/i);
+    expect(suggestion?.notes.join(" ")).toMatch(/Corrected spelling/i);
+  });
+
+  it("drops the first person the field help asks candidates to avoid", () => {
+    const doc = { ...base, summary: "I am a carpenter and i have 20 years experience" };
+    expect(suggestSummary(doc)?.text).not.toMatch(/\bI\b/);
+  });
+
+  it("finds the trade in the summary when the headline does not name it", () => {
+    const doc = {
+      ...base,
+      personal: { ...base.personal, headline: "Test example" },
+      experience: [],
+      summary: "I am a carpender with 20 yeas experie",
+    };
+    const suggestion = suggestSummary(doc);
+    expect(suggestion?.text.length).toBeGreaterThan(60);
+    expect(suggestion?.text).toMatch(/formwork|framing|drawings/i);
   });
 });
 
