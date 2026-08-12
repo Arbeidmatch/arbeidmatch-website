@@ -30,7 +30,18 @@ export default function FlisleggerPage() {
       <header className="absolute inset-x-0 top-0 z-20 border-b border-white/15">
         <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8">
           <Link href="/" className="inline-flex min-h-11 items-center gap-3" aria-label="ArbeidMatch forside">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sm font-bold text-[#0f1923]">A</span>
+            {/*
+              The real mark, not a letter in a circle.
+
+              The page shipped with a white disc and an "A" standing in for the
+              logo, and the owner caught it on 12 August. It is the one thing on
+              a page announcing a new department that must not be approximated:
+              a customer arrives here from the tile shop and compares it with the
+              card he was handed. `arbeidmatch-logo.svg` is the file the ATS has
+              used since April, copied here because this site carried no logo of
+              its own at all.
+            */}
+            <Image src="/brand/arbeidmatch-logo.svg" alt="" width={36} height={36} unoptimized className="h-9 w-9 rounded-full" />
             <span className="text-sm font-bold tracking-wide">ArbeidMatch</span>
             <span className="hidden border-l border-white/30 pl-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/65 sm:block">Flislegger</span>
           </Link>

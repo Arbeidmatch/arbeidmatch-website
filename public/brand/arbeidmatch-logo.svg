@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ArbeidMatch logo">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="172" fill="#0b1220" stroke="#334155" stroke-width="10"/>
+  <path d="M156 326l64-160h32l64 160h-34l-12-34h-76l-12 34h-26zm84-126l-28 72h56l-28-72z" fill="#e2e8f0"/>
+  <path d="M288 186l66 140h-33l-66-140h33z" fill="url(#accent)"/>
+  <rect x="112" y="370" width="288" height="24" rx="12" fill="#1e293b"/>
+</svg>
