@@ -29,7 +29,7 @@ export default function FlisleggerPage() {
       <style>{`.ats-route-progress{background-color:#1d9e75!important}`}</style>
       <header className="absolute inset-x-0 top-0 z-20 border-b border-white/15">
         <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8">
-          <Link href="/" className="inline-flex min-h-11 items-center gap-3" aria-label="ArbeidMatch forside">
+          <Link href="/flislegger" className="inline-flex min-h-11 items-center gap-3" aria-label="Flislegger forside">
             {/*
               The real mark, not a letter in a circle.
 
