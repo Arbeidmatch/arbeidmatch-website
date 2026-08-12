@@ -580,25 +580,39 @@ function ExperienceStep({ doc, update, issues = {} }: StepProps) {
     <>
       <StepHeading
         title="Work experience"
-        intro="Add every job. They are put in order for you, most recent first, when you continue to the next step, and how long each one lasted is worked out from the dates. For each one, write two to six bullets that say what you actually did. Start each bullet with an action verb."
+        intro="Add every job. They are put in order for you, most recent first, when you continue to the next step, and how long each one lasted is worked out from the dates. For each one, write two to six short lines that say what you actually did. Start each line with an action verb."
       />
 
       {doc.experience.map((entry, index) => (
         <fieldset key={index} className="mb-6 rounded border border-[#E2E5EA] bg-white p-4">
           <legend className="px-1 text-sm font-bold text-[#0D1B2A]">Role {index + 1}</legend>
 
-          <div className="mb-3 flex flex-wrap gap-2">
-            <button type="button" className={smallButton} onClick={() => move(index, -1)} disabled={index === 0}>
-              Move up
-            </button>
-            <button
-              type="button"
-              className={smallButton}
-              onClick={() => move(index, 1)}
-              disabled={index === doc.experience.length - 1}
-            >
-              Move down
-            </button>
+          {/*
+            Reordering appears once there is something to reorder.
+
+            The owner photographed this on 12 August: one job on the page, and
+            two dead grey buttons above the first thing he had to fill in. Both
+            were disabled, because there is nowhere to move the only role, so the
+            first thing the form said to him was two words he could not act on.
+            The intro already promises the jobs are ordered for him by date,
+            which makes the pair doubly puzzling on a single role.
+          */}
+          <div className="mb-3 flex flex-wrap gap-2 empty:mb-0">
+            {doc.experience.length > 1 ? (
+              <>
+                <button type="button" className={smallButton} onClick={() => move(index, -1)} disabled={index === 0}>
+                  Move up
+                </button>
+                <button
+                  type="button"
+                  className={smallButton}
+                  onClick={() => move(index, 1)}
+                  disabled={index === doc.experience.length - 1}
+                >
+                  Move down
+                </button>
+              </>
+            ) : null}
             {doc.experience.length > 1 ? (
               <button
                 type="button"
@@ -708,7 +722,7 @@ function ExperienceStep({ doc, update, issues = {} }: StepProps) {
           {entry.bullets.map((bullet, bulletIndex) => (
             <div key={bulletIndex}>
               <TextArea
-                label={`Bullet ${bulletIndex + 1}`}
+                label={`Line ${bulletIndex + 1}`}
                 rows={2}
                 maxLength={220}
                 value={bullet}
@@ -744,7 +758,7 @@ function ExperienceStep({ doc, update, issues = {} }: StepProps) {
                   })
                 }
               >
-                Add a bullet
+                Add a line
               </button>
             ) : null}
             {entry.bullets.length > 2 ? (
@@ -758,7 +772,7 @@ function ExperienceStep({ doc, update, issues = {} }: StepProps) {
                   })
                 }
               >
-                Remove last bullet
+                Remove last line
               </button>
             ) : null}
           </div>
@@ -1015,7 +1029,7 @@ function SkillsStep({ doc, update, issues = {} }: StepProps) {
             }
           }}
           placeholder="Wall and floor tiling"
-          className="flex-1 rounded border border-[#E2E5EA] px-3 py-2.5 text-[15px] outline-none focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40"
+          className="flex-1 rounded border border-[#E2E5EA] bg-white px-3 py-2.5 text-[15px] text-[#0D1B2A] outline-none placeholder:text-[#8A929C] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40"
         />
         <button type="button" className={ghostButton} onClick={() => addSkill(entry)}>
           Add

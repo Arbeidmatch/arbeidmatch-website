@@ -66,8 +66,19 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
+  /**
+   * The button asked less of the address than the server does.
+   *
+   * `includes("@")` let "mirel@" through, the server answered with its validator's
+   * own words, "Invalid request payload", and the person was left guessing which
+   * of six fields was wrong. Photographed by the owner on 12 August, on a screen
+   * where the address he had typed was also invisible, so he could not even read
+   * back what he had written. Same rule on both sides, and the complaint names
+   * the field.
+   */
+  const emailLooksRight = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
   const canSend =
-    privacy && workProfile && email.includes("@") && !busy && (!needsTurnstile || Boolean(turnstileToken));
+    privacy && workProfile && emailLooksRight && !busy && (!needsTurnstile || Boolean(turnstileToken));
 
   async function sendCode() {
     if (!canSend) return;
@@ -89,7 +100,14 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
       });
       const result = (await response.json()) as { success?: boolean; error?: string };
       if (!response.ok || !result.success) {
-        setError(result.error ?? "Could not send the code. Please try again.");
+        // The server's validator speaks to programmers. A person who mistyped an
+        // address should be told that, not shown the shape of the request.
+        const raw = result.error ?? "";
+        setError(
+          /invalid request payload/i.test(raw)
+            ? "That email address does not look right. Check it and try again."
+            : raw || "Could not send the code. Please try again.",
+        );
         // A Turnstile token is single use, so a retry needs a fresh one.
         setTurnstileToken(null);
         setTurnstileKey((value) => value + 1);
@@ -228,7 +246,7 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded border border-[#E2E5EA] px-3 py-2.5 text-[15px] outline-none focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40"
+                className="w-full rounded border border-[#E2E5EA] bg-white px-3 py-2.5 text-[15px] text-[#0D1B2A] outline-none placeholder:text-[#8A929C] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40"
                 placeholder="you@example.com"
               />
             </div>
@@ -292,7 +310,7 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
               maxLength={6}
               value={code}
               onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))}
-              className="w-full rounded border border-[#E2E5EA] px-3 py-3 text-center text-2xl tracking-[0.4em] outline-none focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40"
+              className="w-full rounded border border-[#E2E5EA] bg-white px-3 py-3 text-center text-2xl tracking-[0.4em] text-[#0D1B2A] outline-none focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40"
               placeholder="000000"
             />
 

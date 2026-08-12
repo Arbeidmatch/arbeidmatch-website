@@ -69,9 +69,17 @@ export const DRIVING_LICENCES = ["B", "BE", "C", "CE", "D"] as const;
 
 export const LANGUAGE_LEVELS = ["Native", "Fluent", "Professional", "Intermediate", "Basic"] as const;
 
-/** Norwegian trades certificates, English first with the Norwegian term in brackets. */
+/**
+ * Norwegian trades certificates, English first with the Norwegian term in brackets.
+ *
+ * NO HMS-KORT HERE, and the owner said so on 12 August looking at this list. An
+ * HMS card is not a qualification somebody earns and carries to an interview: it
+ * is an identity card the employer orders once a person is hired onto a site, so
+ * a candidate writing his CV either does not have one yet or has one that says
+ * nothing about what he can do. Offering it as a chip invites him to claim a
+ * document he is not the holder of and teaches the reader nothing.
+ */
 export const CERTIFICATION_SUGGESTIONS = [
-  "HSE card (HMS-kort)",
   "Hot work certificate (varme arbeider)",
   "Scaffolding course (stillaskurs)",
   "Forklift licence (truckforerbevis)",
@@ -107,9 +115,15 @@ export const experienceSchema = z.object({
   startDate: monthYear,
   endDate: endMonthYear,
   bullets: z
-    .array(z.string().trim().min(1).max(220, "Keep each bullet under 220 characters"))
-    .min(2, "Add at least 2 bullets")
-    .max(6, "Use at most 6 bullets"),
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1, "Write what you did here, or remove this line")
+        .max(220, "Keep each line under 220 characters"),
+    )
+    .min(2, "Add at least 2 lines")
+    .max(6, "Use at most 6 lines"),
 });
 
 export const educationSchema = z.object({
@@ -156,7 +170,7 @@ export const cvDocumentSchema = z.object({
   education: z.array(educationSchema).max(8),
   certifications: z.array(certificationSchema).max(20),
   skills: z
-    .array(z.string().trim().min(1).max(60))
+    .array(z.string().trim().min(1, "Write the skill, or remove it").max(60, "Keep each skill under 60 characters"))
     .min(6, "List at least 6 skills")
     .max(20, "Use at most 20 skills"),
   languages: z.array(languageSchema).min(1, "Add at least one language").max(10),
