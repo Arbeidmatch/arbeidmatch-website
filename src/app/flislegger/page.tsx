@@ -5,7 +5,7 @@ import { ArrowRight, Award, Bath, Building2, Check, ChevronRight, FileCheck2, Gr
 import { FlisleggerProjectForm } from "./FlisleggerProjectForm";
 
 export const metadata: Metadata = {
-  title: "Flislegger i Trondheim | ArbeidMatch",
+  title: "Flislegger i Trondheim",
   description: "ArbeidMatch tar ansvar for hele flisprosjektet, fra gratis vurdering til ferdig resultat.",
 };
 
@@ -109,4 +109,3 @@ export default function FlisleggerPage() {
     </div>
   );
 }
-

@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { portfolioCategories, portfolioImageCount } from "../portfolio-data";
 
 export const metadata: Metadata = {
-  title: "Prosjekter og galleri | ArbeidMatch Flislegger",
+  title: "Prosjekter og galleri | Flislegger",
   description: "Se utførte arbeider innen bad, kjøkken, trapper, terrasser og venetiansk stukkatur.",
 };
 
@@ -24,4 +24,3 @@ export default function FlisleggerProjectsPage() {
     </div>
   );
 }
-

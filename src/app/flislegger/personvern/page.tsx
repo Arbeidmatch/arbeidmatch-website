@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, Mail, Phone, ShieldCheck } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Personvern for Flislegger | ArbeidMatch",
+  title: "Personvern for Flislegger",
   description: "Slik behandler ArbeidMatch personopplysninger fra prosjektforespørsler og nyhetsbrev.",
 };
 
@@ -76,4 +76,3 @@ export default function FlisleggerPrivacyPage() {
     </div>
   );
 }
-

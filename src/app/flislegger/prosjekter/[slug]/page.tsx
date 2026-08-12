@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const project = portfolioCategories.find(item => item.slug === slug);
   if (!project) return {};
-  return { title: `${project.title} | ArbeidMatch Flislegger`, description: project.description };
+  return { title: `${project.title} | Flislegger`, description: project.description };
 }
 
 export default async function FlisleggerPortfolioProjectPage({ params }: Props) {
@@ -34,4 +34,3 @@ export default async function FlisleggerPortfolioProjectPage({ params }: Props) 
     </div>
   );
 }
-
