@@ -7,7 +7,6 @@ const localBusiness = {
   name: "ArbeidMatch Norge AS",
   url: SITE,
   image: `${SITE}/logo.png`,
-  email: "support@arbeidmatch.no",
   priceRange: "$$",
   address: {
     "@type": "PostalAddress",
@@ -52,7 +51,6 @@ const organization = {
   legalName: "ArbeidMatch Norge AS",
   url: SITE,
   logo: `${SITE}/logo.png`,
-  email: "support@arbeidmatch.no",
   taxID: "935667089",
   address: {
     "@type": "PostalAddress",

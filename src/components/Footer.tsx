@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ProtectedEmail } from "@/components/ProtectedEmail";
 import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 
 function FooterColumnTitle({ children }: { children: string }) {
@@ -110,8 +111,14 @@ export default function Footer() {
 
       <div className="border-t border-[rgba(255,255,255,0.08)]">
         <div className="mx-auto max-w-[1280px] px-6 py-4 text-center text-xs leading-relaxed text-[rgba(255,255,255,0.5)] md:px-10 lg:px-12">
-          © 2026 ArbeidMatch Norge AS · Org.nr 935 667 089 MVA · Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway ·
-          support@arbeidmatch.no · arbeidmatch.no
+          © 2026 ArbeidMatch Norge AS · Org.nr 935 667 089 MVA · Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway ·{" "}
+          <ProtectedEmail
+            username="support"
+            domain="arbeidmatch.no"
+            className="text-[rgba(255,255,255,0.5)] no-underline hover:text-[rgba(255,255,255,0.85)]"
+            loadingLabel=""
+          />{" "}
+          · arbeidmatch.no
         </div>
       </div>
     </footer>

@@ -16,7 +16,6 @@ const schema = {
     },
     contactPoint: {
       "@type": "ContactPoint",
-      email: "support@arbeidmatch.no",
       telephone: "+47-967-34-730",
       contactType: "customer service",
       availableLanguage: ["Norwegian", "English", "Romanian", "Polish"],

@@ -4,6 +4,7 @@ import { Turnstile } from "@marsidev/react-turnstile";
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { ProtectedEmail } from "@/components/ProtectedEmail";
 import { getWorkGuidePageMetadata } from "@/lib/eligibilityGuidePageTitle";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
@@ -431,12 +432,12 @@ export function EligibilityAssistanceClient() {
               We could not verify your email. This link may have expired or already been used.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
-              <a
-                href="mailto:support@arbeidmatch.no"
+              <ProtectedEmail
+                username="support"
+                domain="arbeidmatch.no"
+                label="Contact Support"
                 className="inline-flex rounded-md border border-[#E24B4A] bg-white px-4 py-2 text-sm font-medium text-[#E24B4A] hover:bg-[rgba(226,75,74,0.1)]"
-              >
-                Contact Support
-              </a>
+              />
               <Link
                 href="/eligibility-assistance"
                 className="inline-flex rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#111e2e]"
@@ -453,12 +454,12 @@ export function EligibilityAssistanceClient() {
               We could not verify your email. This link may have expired or already been used.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
-              <a
-                href="mailto:support@arbeidmatch.no"
+              <ProtectedEmail
+                username="support"
+                domain="arbeidmatch.no"
+                label="Contact Support"
                 className="inline-flex rounded-md border border-[#E24B4A] bg-white px-4 py-2 text-sm font-medium text-[#E24B4A] hover:bg-[rgba(226,75,74,0.1)]"
-              >
-                Contact Support
-              </a>
+              />
               <Link
                 href="/eligibility-assistance"
                 className="inline-flex rounded-md bg-[#0D1B2A] px-4 py-2 text-sm font-medium text-white hover:bg-[#111e2e]"
