@@ -144,7 +144,7 @@ export function evaluateAts(doc: CvDocument): AtsReport {
       label: "Phone number in international format",
       weight: 12,
       passed: PHONE_RE.test(doc.personal.phone.replace(/\s/g, "")),
-      fix: "Write your number with the country code, for example +47 96734730.",
+      fix: "Write your number with the country code, for example +47 90000000.",
     },
     {
       id: "recent-role-bullets",

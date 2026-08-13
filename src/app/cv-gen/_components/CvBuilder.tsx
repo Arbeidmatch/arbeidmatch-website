@@ -483,7 +483,7 @@ function DetailsStep({ doc, update, issues = {} }: StepProps) {
           label="Phone"
           required
           help="Include the country code. A Norwegian number gets answered faster."
-          example="+47 96734730"
+          example="+47 90000000"
           value={doc.personal.phone}
           onChange={(value) => set("phone", value.replace(/[^\d+]/g, ""))}
           error={issues["personal.phone"]}

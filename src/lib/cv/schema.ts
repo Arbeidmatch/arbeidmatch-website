@@ -97,7 +97,9 @@ export const personalSchema = z.object({
   lastName: trimmed(60, "Last name"),
   headline: trimmed(60, "Headline"),
   email: z.string().trim().email("Enter a valid email address").max(200),
-  phone: z.string().trim().regex(PHONE_RE, "Use international format, for example +47 96734730"),
+  // The example number is the placeholder pattern from SAMPLE_CV, never a number that
+  // belongs to anyone. An office line printed as a hint gets typed into real CVs.
+  phone: z.string().trim().regex(PHONE_RE, "Use international format, for example +47 90000000"),
   city: trimmed(80, "City"),
   country: trimmed(80, "Country"),
   streetAddress: z.string().trim().max(160).optional(),
