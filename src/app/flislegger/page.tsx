@@ -31,17 +31,24 @@ export default function FlisleggerPage() {
         <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8">
           <Link href="/flislegger" className="inline-flex min-h-11 items-center gap-3" aria-label="Flislegger forside">
             {/*
-              The real mark, not a letter in a circle.
+              The company's own mark, which is the gold badge and nothing else.
 
-              The page shipped with a white disc and an "A" standing in for the
-              logo, and the owner caught it on 12 August. It is the one thing on
-              a page announcing a new department that must not be approximated:
-              a customer arrives here from the tile shop and compares it with the
-              card he was handed. `arbeidmatch-logo.svg` is the file the ATS has
-              used since April, copied here because this site carried no logo of
-              its own at all.
+              This has now been wrong twice. The page first shipped with a white
+              disc and an "A", and on 12 August that was replaced with
+              `arbeidmatch-logo.svg`, described in the commit as the real logo
+              because the ATS had served it since April. It is not: that file is
+              a generated dark square with an amber gradient and a letterform, a
+              placeholder somebody drew, and served for months without anybody
+              comparing it with the badge on the company's own letterhead. The
+              owner caught it again on 14 August, in the header of the page a
+              customer reaches from the tile shop.
+
+              The mark is `arbeidmatch-emblem.png`, the gold ring reading
+              ARBEIDMATCH NORGE, the one on the emails and on the card the
+              customer is holding. It carries transparency, so the ring sits on
+              the dark header rather than on a square of its own.
             */}
-            <Image src="/brand/arbeidmatch-logo.svg" alt="" width={36} height={36} unoptimized className="h-9 w-9 rounded-full" />
+            <Image src="/brand/arbeidmatch-emblem.png" alt="" width={36} height={36} className="h-9 w-9" />
             <span className="text-sm font-bold tracking-wide">ArbeidMatch</span>
             <span className="hidden border-l border-white/30 pl-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/65 sm:block">Flislegger</span>
           </Link>
