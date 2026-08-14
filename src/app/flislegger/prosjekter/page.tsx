@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { portfolioCategories, portfolioImageCount } from "../portfolio-data";
+import { FlisleggerBrand } from "../FlisleggerBrand";
 
 export const metadata: Metadata = {
   title: "Prosjekter og galleri | Flislegger",
@@ -14,7 +15,7 @@ export default function FlisleggerProjectsPage() {
     <div className="min-h-screen bg-[#0f1923] text-white">
       <style>{`.ats-route-progress{background-color:#1d9e75!important}`}</style>
       <header className="border-b border-white/10">
-        <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8"><Link href="/flislegger" className="inline-flex min-h-11 items-center gap-3 font-semibold"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sm font-bold text-[#0f1923]">A</span> ArbeidMatch <span className="hidden text-white/45 sm:inline">/ Flislegger</span></Link><Link href="/flislegger#kontakt" className="inline-flex min-h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-[#0f1923]">Få et tilbud</Link></div>
+        <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8"><FlisleggerBrand /><Link href="/flislegger#kontakt" className="inline-flex min-h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-[#0f1923]">Få et tilbud</Link></div>
       </header>
       <main>
         <section className="py-20 sm:py-28"><div className="mx-auto max-w-7xl px-5 sm:px-8"><Link href="/flislegger" className="inline-flex min-h-11 items-center gap-2 text-sm text-white/60 hover:text-white"><ArrowLeft className="h-4 w-4" /> Tilbake</Link><p className="mt-10 text-xs font-bold uppercase tracking-[0.22em] text-[#1d9e75]">Komplett prosjektarkiv</p><h1 className="mt-4 max-w-4xl text-5xl font-semibold tracking-[-0.04em] sm:text-7xl">Utførte arbeider, samlet på ett sted.</h1><p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/60">{portfolioImageCount} bilder fra det eksisterende prosjektarkivet, organisert etter type arbeid. Bildene viser både ferdige flater, detaljer og arbeid underveis.</p></div></section>

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Award, Bath, Building2, Check, ChevronRight, FileCheck2, Grid3X3, Hammer, House, Ruler, ShieldCheck, Sparkles } from "lucide-react";
 import { FlisleggerProjectForm } from "./FlisleggerProjectForm";
+import { FlisleggerBrand } from "./FlisleggerBrand";
 
 export const metadata: Metadata = {
   title: "Flislegger i Trondheim",
@@ -29,29 +30,7 @@ export default function FlisleggerPage() {
       <style>{`.ats-route-progress{background-color:#1d9e75!important}`}</style>
       <header className="absolute inset-x-0 top-0 z-20 border-b border-white/15">
         <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8">
-          <Link href="/flislegger" className="inline-flex min-h-11 items-center gap-3" aria-label="Flislegger forside">
-            {/*
-              The company's own mark, which is the gold badge and nothing else.
-
-              This has now been wrong twice. The page first shipped with a white
-              disc and an "A", and on 12 August that was replaced with
-              `arbeidmatch-logo.svg`, described in the commit as the real logo
-              because the ATS had served it since April. It is not: that file is
-              a generated dark square with an amber gradient and a letterform, a
-              placeholder somebody drew, and served for months without anybody
-              comparing it with the badge on the company's own letterhead. The
-              owner caught it again on 14 August, in the header of the page a
-              customer reaches from the tile shop.
-
-              The mark is `arbeidmatch-emblem.png`, the gold ring reading
-              ARBEIDMATCH NORGE, the one on the emails and on the card the
-              customer is holding. It carries transparency, so the ring sits on
-              the dark header rather than on a square of its own.
-            */}
-            <Image src="/brand/arbeidmatch-emblem.png" alt="" width={36} height={36} className="h-9 w-9" />
-            <span className="text-sm font-bold tracking-wide">ArbeidMatch</span>
-            <span className="hidden border-l border-white/30 pl-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/65 sm:block">Flislegger</span>
-          </Link>
+          <FlisleggerBrand />
           <nav className="hidden items-center gap-6 text-sm font-medium text-white/65 lg:flex"><a href="#tjenester" className="inline-flex min-h-11 items-center hover:text-white">Tjenester</a><Link href="/flislegger/prosjekter" className="inline-flex min-h-11 items-center hover:text-white">Prosjekter</Link><a href="#prosess" className="inline-flex min-h-11 items-center hover:text-white">Prosess</a><a href="#kontakt" className="inline-flex min-h-11 items-center hover:text-white">Kontakt</a></nav>
           <div className="flex items-center gap-2 sm:gap-5"><a href="tel:+4741063773" className="hidden min-h-11 items-center text-sm font-medium text-white/80 hover:text-white sm:inline-flex">+47 410 63 773</a><a href="#kontakt" className="inline-flex min-h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-[#0f1923] hover:bg-white/90">Få et tilbud</a></div>
         </div>

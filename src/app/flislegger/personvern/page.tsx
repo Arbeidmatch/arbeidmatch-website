@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Mail, Phone, ShieldCheck } from "lucide-react";
+import { FlisleggerBrand } from "../FlisleggerBrand";
 
 export const metadata: Metadata = {
   title: "Personvern for Flislegger",
@@ -52,7 +53,7 @@ export default function FlisleggerPrivacyPage() {
       <style>{`.ats-route-progress{background-color:#1d9e75!important}`}</style>
       <header className="border-b border-[#0f1923]/10 bg-[#0f1923] text-white">
         <div className="mx-auto flex min-h-[76px] max-w-5xl items-center justify-between px-5 sm:px-8">
-          <Link href="/flislegger" className="inline-flex min-h-11 items-center gap-3 font-semibold"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sm font-bold text-[#0f1923]">A</span> ArbeidMatch <span className="hidden text-white/50 sm:inline">/ Flislegger</span></Link>
+          <FlisleggerBrand />
           <Link href="/flislegger#kontakt" className="inline-flex min-h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-[#0f1923]">Kontakt oss</Link>
         </div>
       </header>
