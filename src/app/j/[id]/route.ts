@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 
 import { boardDestination, clickRecordUrl } from "@/lib/boardJobLink";
 
@@ -22,9 +22,15 @@ export const dynamic = "force-dynamic";
  * it is the same row, in the same table, as every other tap. Nothing is stored
  * here.
  *
- * A REDIRECT THAT NEVER WAITS. The recording is fired without being awaited and
- * every failure is swallowed: a person on their way to a job posting is the last
- * thing that should wait on our analytics, or be stopped by it.
+ * A REDIRECT THAT NEVER WAITS, AND A RECORDING THAT SURVIVES IT. The first
+ * version of this used a bare `void fetch(...)`, and the first real tap through
+ * it recorded nothing at all: on Vercel the function is frozen the instant the
+ * response is returned, so work still in flight is simply dropped. The ATS
+ * redirect has that same scar written on it from 31 July 2026. `after` keeps the
+ * instance alive until the call finishes while the redirect still leaves
+ * immediately, and every failure is swallowed: a person on their way to a job
+ * posting is the last thing that should wait on our analytics, or be stopped by
+ * it.
  */
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
@@ -32,14 +38,15 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   const record = clickRecordUrl(id, request.nextUrl.searchParams.get("src"));
 
   if (record) {
-    void fetch(record, {
-      redirect: "manual",
-      cache: "no-store",
-      headers: {
+    const userAgent = request.headers.get("user-agent") ?? "ArbeidMatch Website";
+    after(async () => {
+      await fetch(record, {
+        redirect: "manual",
+        cache: "no-store",
         // Carried over so the ATS can tell a person from a link preview.
-        "user-agent": request.headers.get("user-agent") ?? "ArbeidMatch Website",
-      },
-    }).catch(() => undefined);
+        headers: { "user-agent": userAgent },
+      }).catch(() => undefined);
+    });
   }
 
   return NextResponse.redirect(destination, { status: 302 });
