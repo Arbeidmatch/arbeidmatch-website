@@ -6,6 +6,7 @@ import {
   previewFromHtml,
   previewHtml,
 } from "./linkPreview";
+import { readSource } from "./jobLinkRoute";
 
 /**
  * The five kilobytes the board actually returns, cut to the tags that matter.
@@ -100,5 +101,19 @@ describe("the page a crawler receives", () => {
     expect(nasty).not.toContain("alert(1)</script>");
     expect(nasty).toContain("&lt;script&gt;");
     expect(nasty).toContain("&amp;");
+  });
+});
+
+describe("the surface, in the path", () => {
+  it("accepts the surfaces we count and refuses the rest", () => {
+    expect(readSource("comment")).toBe("comment");
+    expect(readSource("POST")).toBe("post");
+    expect(readSource("message")).toBe("message");
+    // Anything else is not an error: the tap is recorded on the default surface
+    // rather than on an invented one.
+    expect(readSource("482823")).toBeNull();
+    expect(readSource("../admin")).toBeNull();
+    expect(readSource(null)).toBeNull();
+    expect(readSource("")).toBeNull();
   });
 });
