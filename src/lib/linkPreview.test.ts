@@ -77,8 +77,16 @@ describe("the page a crawler receives", () => {
   });
 
   it("sends anything that renders it on to the posting", () => {
-    expect(html).toContain('http-equiv="refresh" content="0;url=https://jobs.arbeidmatch.no/job/482823"');
     expect(html).toContain('href="https://jobs.arbeidmatch.no/job/482823"');
+    expect(html).toContain("location.replace(\"https://jobs.arbeidmatch.no/job/482823\")");
+  });
+
+  it("names no canonical but its own, which is what the grey box was", () => {
+    // MEASURED 30 August 2026: with a canonical to the board, Meta returned an
+    // empty object for every ?src= link, and every link the page publishes has
+    // one.
+    expect(html).not.toContain("rel=\"canonical\"");
+    expect(html).not.toContain("http-equiv=\"refresh\"");
   });
 
   it("escapes what came off a page we do not control", () => {
@@ -87,7 +95,10 @@ describe("the page a crawler receives", () => {
       "https://arbeidmatch.no/j/1",
       "https://jobs.arbeidmatch.no/job/1",
     );
-    expect(nasty).not.toContain("<script>");
+    // The only script on the page is our own redirect; what came off the board
+    // is text.
+    expect(nasty).not.toContain("alert(1)</script>");
+    expect(nasty).toContain("&lt;script&gt;");
     expect(nasty).toContain("&amp;");
   });
 });

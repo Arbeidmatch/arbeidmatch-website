@@ -110,6 +110,21 @@ function escapeHtml(value: string): string {
  * attributes shares, comments and reactions to the canonical url it is given,
  * and pointing it at the board would hand the engagement on our own adverts to
  * a domain we do not own.
+ *
+ * NO `rel="canonical"` AND NO META REFRESH, and both were measured rather than
+ * assumed. The first version of this page carried a canonical to the board and a
+ * `<meta http-equiv="refresh">`, and Meta's scraper answered with an empty shell
+ * for every tracked link:
+ *
+ *   arbeidmatch.no/j/482823              -> the board's title and photo
+ *   arbeidmatch.no/j/482823?src=comment  -> url and type, nothing else
+ *
+ * which is the grey box again on exactly the links the page publishes, because
+ * every one of them carries `?src=`. Facebook resolves a canonical and folds the
+ * object into it, so the card we build for our own address was being thrown away
+ * in favour of the board's. The redirect for anything that renders this page is
+ * a script instead: a crawler does not run it, and a person is not reading this
+ * page in the first place.
  */
 export function previewHtml(preview: PostingPreview, canonicalUrl: string, destination: string): string {
   const title = escapeHtml(preview.title);
@@ -136,11 +151,10 @@ export function previewHtml(preview: PostingPreview, canonicalUrl: string, desti
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${description}">
 <meta name="twitter:image" content="${image}">
-<link rel="canonical" href="${to}">
-<meta http-equiv="refresh" content="0;url=${to}">
 </head>
 <body>
 <p><a href="${to}">${title}</a></p>
+<script>location.replace(${JSON.stringify(destination)});</script>
 </body>
 </html>`;
 }
