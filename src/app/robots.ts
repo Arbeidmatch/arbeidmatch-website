@@ -23,7 +23,41 @@ import type { MetadataRoute } from "next";
  */
 const PRIVATE_PATHS = ["/request", "/request/", "/feedback", "/feedback/", "/admin", "/admin/", "/api/"];
 
-const INDEXER_DISALLOW = [...PRIVATE_PATHS, "/*?"];
+/**
+ * `Disallow: /*?` IS GONE, and it was doing more harm than the duplicate
+ * content it was there to prevent.
+ *
+ * It blocked every address with a question mark in it. That is every search
+ * this site can answer: `/jobs?search=tomrer`, `/jobs?location=Bergen`,
+ * `/jobs?industry=automotive` - which are exactly the pages that answer the
+ * questions people type. Checked live on 2 September 2026: those pages could
+ * not be indexed at all, so the one part of the site that is a direct answer
+ * to a search was invisible to search.
+ *
+ * The duplicate-content worry it addressed is real but is not robots.txt's job
+ * any more: the canonical tag on each page says which address is the one, and
+ * Search Console handles parameters. Refusing the crawl instead means the page
+ * is never seen well enough to be de-duplicated in the first place.
+ *
+ * The preview crawlers already had it removed on 30 August for the same shape
+ * of reason: every advert link this company publishes carries `?src=comment`,
+ * and every one of them was being refused at the door and drawn as a grey box.
+ */
+const INDEXER_DISALLOW = [...PRIVATE_PATHS];
+
+/**
+ * The crawlers that read for an assistant rather than for an index.
+ *
+ * Listed so that allowing them is a decision on the record rather than an
+ * accident of the wildcard. They were never blocked here - many sites block
+ * them by mistake and become invisible to every assistant at once - and this
+ * says out loud that we do not.
+ *
+ * Being crawled is necessary and is not sufficient: a place in an answer cannot
+ * be bought, and what earns a citation is being the most exact source on a
+ * narrow question. That is what the JobPosting and FAQ markup is for.
+ */
+const AI_CRAWLERS = ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-User", "PerplexityBot", "Google-Extended", "Applebot-Extended", "CCBot"];
 
 /**
  * The user agents that draw a card rather than index a page. Kept in step with
@@ -54,6 +88,11 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: "Googlebot", allow: "/", disallow: INDEXER_DISALLOW },
       { userAgent: "Bingbot", allow: "/", disallow: INDEXER_DISALLOW },
       ...PREVIEW_CRAWLERS.map((userAgent) => ({
+        userAgent,
+        allow: "/",
+        disallow: PRIVATE_PATHS,
+      })),
+      ...AI_CRAWLERS.map((userAgent) => ({
         userAgent,
         allow: "/",
         disallow: PRIVATE_PATHS,

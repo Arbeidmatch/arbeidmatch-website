@@ -49,9 +49,41 @@ export type PublicJob = {
   external_image_url: string | null;
   published_at: string | null;
   created_at: string | null;
+
+  /**
+   * Added by the ATS on 2 September 2026, so the front page does not have to
+   * work any of it out a second time. Optional, because this site deploys
+   * separately: a build that goes out before the ATS one must not blank the
+   * page, it must fall back.
+   */
+  /** AM-J-2026-4E631. The tail of the slug, which both sides can quote. */
+  reference?: string | null;
+  /** One of four: construction, automotive, industry, electrical. */
+  industry?: Industry | null;
+  /** Our own address, and the photograph behind it carries our mark. */
+  image_url?: string | null;
+  /** False when the posting has no photograph and is wearing the logo. */
+  has_own_photo?: boolean | null;
+  /** Who is named on the advert, resolved once in the ATS. */
+  employer_label?: string | null;
+  /** Set on the postings whose trade the law itself certifies. */
+  public_requires_dsb?: boolean | null;
 };
 
-export type PublicJobsResult = { jobs: PublicJob[]; totalOpen: number; ok: boolean };
+export type Industry = "construction" | "automotive" | "industry" | "electrical";
+
+export type IndustryCount = { key: Industry; en: string; no: string; count: number };
+export type LocationCount = { name: string; count: number };
+
+export type PublicJobsResult = {
+  jobs: PublicJob[];
+  totalOpen: number;
+  ok: boolean;
+  /** The strip under the search. Four, always, and they add up to the board. */
+  industries: IndustryCount[];
+  /** The towns that actually have postings in them, biggest first. */
+  locations: LocationCount[];
+};
 
 /** The hourly rate as one line, or null when the posting does not state one. */
 export function rateLine(job: PublicJob): string | null {
@@ -149,14 +181,121 @@ export function jobImage(job: PublicJob): string {
   return `${atsBaseUrl()}/api/public/job-card/${encodeURIComponent(job.id)}?lang=en`;
 }
 
-export async function fetchPublicJobs(): Promise<PublicJobsResult> {
+/**
+ * @param revalidateSeconds Cache the ATS answer for this long instead of asking
+ * on every request. The front page passes five minutes: it is the first thing
+ * every visitor sees, a board that is five minutes stale is not wrong, and a
+ * round trip to the ATS in front of every visit is a round trip in front of
+ * every visit. The /jobs page passes nothing and stays live.
+ */
+export async function fetchPublicJobs(revalidateSeconds?: number): Promise<PublicJobsResult> {
   try {
-    const res = await fetch(`${atsBaseUrl()}/api/public/jobs`, { cache: "no-store" });
-    if (!res.ok) return { jobs: [], totalOpen: 0, ok: false };
-    const body = (await res.json()) as { data?: PublicJob[]; meta?: { total_open_positions?: number } };
+    const res = await fetch(
+      `${atsBaseUrl()}/api/public/jobs`,
+      revalidateSeconds ? { next: { revalidate: revalidateSeconds } } : { cache: "no-store" },
+    );
+    if (!res.ok) return EMPTY_RESULT;
+    const body = (await res.json()) as {
+      data?: PublicJob[];
+      meta?: { total_open_positions?: number; industries?: IndustryCount[]; locations?: LocationCount[] };
+    };
     const jobs = (body.data ?? []).filter((j) => Boolean(j.public_slug));
-    return { jobs, totalOpen: body.meta?.total_open_positions ?? jobs.length, ok: true };
+    return {
+      jobs,
+      totalOpen: body.meta?.total_open_positions ?? jobs.length,
+      ok: true,
+      // The ATS counts these over the whole board. When it has not shipped the
+      // change yet the page works them out from what it has, which is right for
+      // an unfiltered front page and wrong for nothing it currently does.
+      industries: body.meta?.industries ?? industryCountsFrom(jobs),
+      locations: body.meta?.locations ?? locationCountsFrom(jobs),
+    };
   } catch {
-    return { jobs: [], totalOpen: 0, ok: false };
+    return EMPTY_RESULT;
   }
+}
+
+
+const EMPTY_RESULT: PublicJobsResult = { jobs: [], totalOpen: 0, ok: false, industries: [], locations: [] };
+
+/**
+ * The four industries, in case the ATS has not sent them.
+ *
+ * A copy of the rule that lives in the ATS, and it is a copy on purpose: this
+ * site deploys separately, so a build that goes out first must still draw four
+ * industries rather than an empty strip. The ATS's answer wins whenever it is
+ * there.
+ */
+const INDUSTRY_LABELS: Record<Industry, { en: string; no: string }> = {
+  construction: { en: "Building and civil works", no: "Bygg og anlegg" },
+  automotive: { en: "Car workshops", no: "Bilverksted" },
+  industry: { en: "Industry and manufacturing", no: "Industri og produksjon" },
+  electrical: { en: "Electrical installation", no: "Elektro" },
+};
+
+const INDUSTRY_ORDER: Industry[] = ["construction", "automotive", "industry", "electrical"];
+
+const FALLBACK_PATTERNS: Array<{ industry: Industry; words: RegExp }> = [
+  { industry: "industry", words: /\b(factory|fabrikk|precast|prefab)\b/i },
+  { industry: "electrical", words: /\b(electric\w*|elektr\w*|dsb)\b/i },
+  { industry: "automotive", words: /\b(mechanic\w*|mekanik\w*|bilmekaniker|verksted|workshop|car|bil)\b/i },
+  { industry: "construction", words: /\b(carpenter|t[øo]mrer|bricklayer|murer|concrete|betong|painter|maler|bygg|anlegg|construction)\b/i },
+  { industry: "industry", words: /\b(welder|sveiser|industri|manufactur\w*|produksjon|cnc)\b/i },
+];
+
+export function industryOf(job: PublicJob): Industry {
+  if (job.industry && INDUSTRY_ORDER.includes(job.industry)) return job.industry;
+  const title = job.title ?? "";
+  for (const entry of FALLBACK_PATTERNS) {
+    if (entry.words.test(title)) return entry.industry;
+  }
+  return "construction";
+}
+
+function industryCountsFrom(jobs: PublicJob[]): IndustryCount[] {
+  const tally = new Map<Industry, number>(INDUSTRY_ORDER.map((k) => [k, 0]));
+  for (const job of jobs) {
+    const key = industryOf(job);
+    tally.set(key, (tally.get(key) ?? 0) + 1);
+  }
+  return INDUSTRY_ORDER.map((key) => ({ key, ...INDUSTRY_LABELS[key], count: tally.get(key) ?? 0 }));
+}
+
+function locationCountsFrom(jobs: PublicJob[]): LocationCount[] {
+  const tally = new Map<string, number>();
+  for (const job of jobs) {
+    const name = (job.location ?? "").trim();
+    if (!name) continue;
+    tally.set(name, (tally.get(name) ?? 0) + 1);
+  }
+  return [...tally.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+    .slice(0, 12);
+}
+
+/**
+ * The reference on the card, and the last resort when the ATS has not sent one.
+ *
+ * It is the tail of the slug either way; reading it here means an older ATS
+ * deployment still shows a reference rather than a gap.
+ */
+export function jobReference(job: PublicJob): string | null {
+  if (job.reference) return job.reference;
+  const match = /am-j-\d{4}-[0-9a-f]+$/.exec((job.public_slug ?? "").toLowerCase());
+  return match ? match[0].toUpperCase() : null;
+}
+
+/**
+ * The picture, from our host, with our mark burned into it.
+ *
+ * The ATS answers this address by fetching the photograph from the source
+ * board, stamping it and caching it, so the picture that ends up on Facebook
+ * carries the mark too. A posting with no photograph gets the logo rather than
+ * a hole in the row.
+ */
+export function jobCardImage(job: PublicJob): string {
+  if (job.image_url) return `${atsBaseUrl()}${job.image_url}`;
+  if (job.public_slug) return `${atsBaseUrl()}/api/public/job-card-image/${encodeURIComponent(job.public_slug)}`;
+  return `${atsBaseUrl()}/api/public/job-card-image/fallback`;
 }
