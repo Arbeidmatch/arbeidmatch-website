@@ -18,7 +18,22 @@ import { facetLabel, facetPath, getBoard, jobsForFacet, listFacets } from "@/lib
  * and hands the visitor to the ATS job page, exactly as before.
  */
 
-export const revalidate = 300;
+/**
+ * Rendered per request, with the upstream call cached for five minutes.
+ *
+ * NOT ISR, and the reason is measured. The Vercel build cannot reach
+ * ats.arbeidmatch.no: every board read during a build fails, so a statically
+ * generated page bakes in "the job list could not be loaded" and serves it to
+ * the first visitor after every single deploy, until a revalidation replaces
+ * it. That is what the first deploy of the front page did, and it was mistaken
+ * for the ATS being mid-deploy.
+ *
+ * Rendering per request costs nothing extra upstream, because
+ * `fetchPublicJobs(300)` caches the ATS response for five minutes: many
+ * requests, one call. What it buys is that a page about open jobs is never
+ * served saying it has none.
+ */
+export const dynamic = "force-dynamic";
 
 const TITLE = "Open jobs in Norway for EU and EEA tradespeople | ArbeidMatch";
 const DESCRIPTION =

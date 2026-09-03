@@ -6,14 +6,17 @@ import { facetPath, listFacets } from "@/lib/jobs-facets";
 const SITE = "https://www.arbeidmatch.no";
 
 /**
- * Rebuilt hourly rather than frozen at deploy.
+ * Built when it is asked for, not when the site is deployed.
  *
- * The job pages come from the live board, so a sitemap fixed at build time is a
- * sitemap that is wrong the moment an advert opens or closes, and one that is
- * empty for ever if the board could not be read during that particular build.
- * That is not hypothetical: it is what the first deploy of these pages did.
+ * The job pages come from the live board, and the Vercel build cannot reach the
+ * ATS, so a sitemap generated at build time contains none of them, for ever.
+ * That is not hypothetical: the first two deploys of these pages shipped a
+ * sitemap with one job line in it and nineteen pages missing.
+ *
+ * A sitemap is fetched by a crawler a few times a day, so rendering it per
+ * request costs nothing worth counting.
  */
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 /** lastmod for homepage + primary commercial URLs (task spec: “today”) */
 const primaryLastMod = new Date("2026-04-19T12:00:00.000Z");
