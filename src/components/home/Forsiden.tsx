@@ -31,6 +31,24 @@ type Lang = "en" | "no";
 
 const ATS_BASE = process.env.NEXT_PUBLIC_ATS_URL?.replace(/\/$/, "") || "https://ats.arbeidmatch.no";
 
+/**
+ * The town chips lead to the town's own page, not to a query string the list
+ * ignores. Slugged the same way lib/jobs-facets does it, including the three
+ * Norwegian letters, so a chip and its page cannot disagree.
+ */
+function townSlug(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/ø/g, "o")
+    .replace(/æ/g, "ae")
+    .replace(/å/g, "a")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 const COPY = {
   en: {
     headline: "There is work in Norway",
@@ -149,7 +167,7 @@ export async function Forsiden({ lang = "en" }: { lang?: Lang }) {
             {locations.slice(0, 4).map((location) => (
               <a
                 key={location.name}
-                href={`/jobs?location=${encodeURIComponent(location.name)}`}
+                href={`/jobs/${townSlug(location.name)}`}
                 className="rounded-full border border-white/25 bg-navy/40 px-3 py-1.5 text-xs text-white/85 transition hover:border-gold"
               >
                 {location.name} <span className="font-semibold text-gold">{location.count}</span>
@@ -170,9 +188,9 @@ export async function Forsiden({ lang = "en" }: { lang?: Lang }) {
           <span className="text-xs text-text-secondary">
             {totalOpen} {totalOpen === 1 ? "result" : "results"} &middot; {copy.resultsSuffix}
           </span>
-          <a href="/jobs" className="ml-auto text-sm font-semibold text-gold hover:underline">
+          <Link href="/jobs" className="ml-auto text-sm font-semibold text-gold hover:underline">
             {copy.seeAll}
-          </a>
+          </Link>
         </div>
 
         {!ok ? (

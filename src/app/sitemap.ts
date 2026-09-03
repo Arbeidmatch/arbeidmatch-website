@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { PREMIUM_ARTICLE_SLUGS } from "@/lib/premium/articleSlugs";
+import { facetPath, listFacets } from "@/lib/jobs-facets";
 
 const SITE = "https://www.arbeidmatch.no";
 
@@ -8,8 +9,37 @@ const SITE = "https://www.arbeidmatch.no";
 const primaryLastMod = new Date("2026-04-19T12:00:00.000Z");
 const stableLastMod = new Date("2026-01-15T12:00:00.000Z");
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  /**
+   * The job pages, from the live board.
+   *
+   * Not a hand-written list: the set changes every time a posting opens or
+   * closes, and a sitemap naming a page that has since 404'd is worse than one
+   * that names fewer. `listFacets` only returns combinations that currently
+   * hold adverts, which is the same list the routes are generated from.
+   *
+   * Never fatal. A sitemap that cannot reach the ATS still has to answer, with
+   * everything else in it, rather than 500 and take the whole file out of use.
+   */
+  const jobPages = await listFacets()
+    .then((facets) =>
+      facets.map((facet) => ({
+        url: `${SITE}${facetPath(facet)}`,
+        lastModified: new Date(),
+        changeFrequency: "daily" as const,
+        priority: 0.8,
+      })),
+    )
+    .catch(() => []);
+
   return [
+    {
+      url: `${SITE}/jobs`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    ...jobPages,
     {
       url: `${SITE}/`,
       lastModified: primaryLastMod,

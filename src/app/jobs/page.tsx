@@ -1,124 +1,61 @@
 import type { Metadata } from "next";
-import { JobEyeAndHeart } from "@/components/jobs/JobEyeAndHeart";
-import { atsBaseUrl, fetchPublicJobs, jobEmployerLabel, jobFacts, jobImage, jobUrl, type PublicJob } from "@/lib/jobs-fetch";
-
-export const dynamic = "force-dynamic";
+import { JobsListing } from "@/components/jobs/JobsListing";
+import { facetLabel, facetPath, jobsForFacet, listFacets } from "@/lib/jobs-facets";
+import { fetchPublicJobs } from "@/lib/jobs-fetch";
 
 /**
- * The open jobs, on the website, where a job seeker would look for them.
+ * Every open job, and the way into the pages that answer a narrower question.
  *
- * IN ENGLISH, like the ATS board it links into. The rest of this site speaks
- * Norwegian because it is addressed to employers; this page is addressed to
- * tradesmen across the EEA who found us through the bot, and we ask them for a
- * CV in English. It was written in Norwegian first, which was the site's habit
- * rather than a thought about who is reading it.
+ * IT IS INDEXABLE NOW, and that is a correction rather than a new decision. The
+ * page carried `noindex` from the months when the board was gated and not
+ * public. Since 2 September the front page IS the board, listed publicly with
+ * JobPosting markup on it, so this page was showing the same adverts as the
+ * home page while telling search engines to ignore it: two surfaces, one list,
+ * opposite instructions. The gate itself came off on 6 August.
  *
- * The ATS keeps the board's data, the apply form, the attribution and the
- * consent, and it stays that way: this page reads `/api/public/jobs` and hands
- * every visitor straight to the ATS job page to read the advert and apply.
- * Publishing a job is one action in one place, and there is one apply flow to
- * keep working.
- *
- * NOT PUBLIC YET. The middleware answers 404 to anybody without the key the
- * owner has in Slack, and the metadata below says `noindex` as well, so a page
- * that ever slips past the gate still does not end up in a search result.
+ * The trade and town pages under /jobs are where the traffic actually comes
+ * from, and every one of them is reachable from here. The ATS still keeps the
+ * board's data, the apply form and the consent; this page reads the public API
+ * and hands the visitor to the ATS job page, exactly as before.
  */
 
+export const revalidate = 300;
+
+const TITLE = "Open jobs in Norway for EU and EEA tradespeople | ArbeidMatch";
+const DESCRIPTION =
+  "Every open position: carpenters, bricklayers, concrete workers, car mechanics, welders and DSB-certified electricians. EU or EEA passport required, trade certificate or documented equivalent experience.";
+
 export const metadata: Metadata = {
-  title: "Open jobs | ArbeidMatch",
-  description: "Open positions in Norway for skilled trades.",
-  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: "https://www.arbeidmatch.no/jobs" },
+  openGraph: { title: TITLE, description: DESCRIPTION, url: "https://www.arbeidmatch.no/jobs", locale: "en_US" },
 };
 
-function JobCard({ job }: { job: PublicJob }) {
-  const href = jobUrl(job);
-  const where = (job.location ?? "").trim() || (job.country ?? "").trim() || "Norway";
-  // Who employs the reader: us on most of these, a client on some. Never
-  // "Confidential employer", which described neither.
-  const employer = jobEmployerLabel(job);
-  const facts = jobFacts(job);
-
-  return (
-    <article className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition hover:shadow-md">
-      {/* One shape for every card. These photographs come from the source board
-          and are not all the same proportions, so a plain image made one advert
-          tall and the next short and the grid read as a scrapbook. */}
-      <div className="relative aspect-[1200/630] w-full overflow-hidden bg-black/5">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={jobImage(job)} alt={job.title} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-      </div>
-      <div className="flex flex-1 flex-col gap-2 p-5">
-        {/* Two lines always, so the rate and the button stay in step across a
-            row whatever the trade is called. */}
-        <h2 className="line-clamp-2 min-h-[3.5rem] text-lg font-bold leading-snug text-navy">{job.title}</h2>
-        <p className="truncate text-sm text-text-secondary">{employer}</p>
-        <p className="truncate text-sm text-text-secondary">
-          {where}
-          {job.category ? ` · ${job.category}` : ""}
-        </p>
-        {/*
-          The facts that differ, not a sentence that repeats. See jobFacts: he counted
-          the same two lines on twelve cards and was right to.
-
-          The row keeps a minimum height so a posting with nothing to say does not pull
-          its button up out of line with the row.
-        */}
-        <div className="mt-1 flex min-h-[2.75rem] flex-wrap content-start gap-1.5">
-          {facts.map((fact) => (
-            <span
-              key={fact}
-              className="rounded-md bg-navy/[0.06] px-2 py-1 text-xs font-medium text-text-secondary"
-            >
-              {fact}
-            </span>
-          ))}
-        </div>
-        {/* Above the button, on the right, as he asked: how many looked and how many
-            liked it. The count lives on the job in the ATS, so the press posts there. */}
-        <div className="mt-auto pt-3">
-          <JobEyeAndHeart jobId={job.id} views={job.public_views} likes={job.public_likes} atsBaseUrl={atsBaseUrl()} />
-        </div>
-        <div className="pt-2">
-          {href ? (
-            <a
-              href={href}
-              className="inline-flex w-full items-center justify-center rounded-xl bg-navy px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-            >
-              See the job and apply
-            </a>
-          ) : null}
-        </div>
-      </div>
-    </article>
-  );
-}
-
 export default async function JobsPage() {
-  const { jobs, totalOpen, ok } = await fetchPublicJobs();
+  const { jobs, totalOpen, ok } = await fetchPublicJobs(300);
+  const facets = await listFacets();
+
+  // Only lists that have something in them. A chip leading to an empty page is
+  // worse than no chip, and the facet list is computed from the live board so
+  // this cannot drift out of step with what is open.
+  const related = facets
+    .map((f) => ({
+      href: facetPath(f),
+      label: facetLabel(f),
+      count: jobsForFacet(jobs, f).length,
+    }))
+    .filter((f) => f.count > 0)
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+    .slice(0, 16);
 
   return (
-    <main className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20">
-      <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Open jobs</p>
-      <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold leading-tight tracking-tight text-navy">
-        {totalOpen > 0 ? `${totalOpen} open jobs in Norway` : "Open jobs in Norway"}
-      </h1>
-      <p className="mt-4 max-w-3xl leading-relaxed text-text-secondary">
-        Permanent and project work for skilled trades. You apply directly, and a recruiter reads every application.
-      </p>
-
-      {/* An empty board and an unreachable ATS look identical to a visitor, and
-          they are not the same thing to whoever has to fix it. */}
-      {!ok ? (
-        <p className="mt-10 text-text-secondary">The jobs could not be loaded just now. Please try again shortly.</p>
-      ) : jobs.length === 0 ? (
-        <p className="mt-10 text-text-secondary">No open jobs at the moment.</p>
-      ) : (
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div>
-      )}
-    </main>
+    <JobsListing
+      jobs={jobs}
+      ok={ok}
+      heading={totalOpen > 0 ? `${totalOpen} open jobs in Norway` : "Open jobs in Norway"}
+      lede="Work for people with a trade. What each job runs on, and for how long, is written in the advert itself. An EU or EEA passport is required on every one of them, and we do not sponsor visas."
+      related={related}
+    />
   );
 }
