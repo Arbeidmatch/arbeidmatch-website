@@ -68,6 +68,12 @@ export type PublicJob = {
   employer_label?: string | null;
   /** Set on the postings whose trade the law itself certifies. */
   public_requires_dsb?: boolean | null;
+  /**
+   * Who employs the person: "staffing" is us, "recruitment" is the client.
+   * Null and undefined both mean nobody has said, and the card then states
+   * nothing rather than guessing at the one sentence that must not be wrong.
+   */
+  engagement?: "staffing" | "recruitment" | null;
 };
 
 export type Industry = "construction" | "automotive" | "industry" | "electrical";

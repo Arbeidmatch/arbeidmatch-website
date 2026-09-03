@@ -34,6 +34,21 @@ export function ForsidenJobCard({ job, featured = false }: { job: PublicJob; fea
   const certificate = job.public_requires_dsb || job.industry === "electrical" ? "DSB certified" : "Trade certificate";
   const badges = [certificate, EU_EEA_BADGE];
 
+  /**
+   * Who employs the person, which is the first thing a tradesman needs and the
+   * one sentence that must never be guessed. Two arrangements wear the same
+   * shape on a board: we employ him and hire him out, or the client employs him
+   * and we found the position. Different contract, different payslip.
+   *
+   * An advert nobody has typed an answer for says nothing at all here.
+   */
+  const employs =
+    job.engagement === "staffing"
+      ? { text: "We employ you", tone: "border-gold/45 text-gold" }
+      : job.engagement === "recruitment"
+        ? { text: "The company employs you", tone: "border-border text-text-secondary" }
+        : null;
+
   const card = (
     <article
       className={`flex h-full flex-col overflow-hidden rounded-lg border bg-white transition hover:border-gold/60 ${
@@ -71,6 +86,14 @@ export function ForsidenJobCard({ job, featured = false }: { job: PublicJob; fea
           {where}
           {trade ? ` · ${trade}` : ""}
         </p>
+
+        {employs ? (
+          <span
+            className={`mt-2.5 inline-flex w-fit rounded-full border px-2 py-0.5 text-[10.5px] font-semibold ${employs.tone}`}
+          >
+            {employs.text}
+          </span>
+        ) : null}
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           {badges.map((badge) => (
