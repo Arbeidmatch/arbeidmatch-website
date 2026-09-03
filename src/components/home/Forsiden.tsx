@@ -6,7 +6,8 @@ import { IndustryStrip } from "@/components/home/IndustryStrip";
 import { JobSearchBar } from "@/components/home/JobSearchBar";
 import { ForsidenFaq, ForsidenFaqJsonLd } from "@/components/seo/ForsidenFaqJsonLd";
 import { JobPostingJsonLd, OrganizationJsonLd } from "@/components/seo/JobPostingJsonLd";
-import { fetchPublicJobs, jobCardImage, type PublicJob } from "@/lib/jobs-fetch";
+import { getBoard } from "@/lib/jobs-facets";
+import { jobCardImage, type PublicJob } from "@/lib/jobs-fetch";
 
 /**
  * The front page answers one question in its first second: what jobs have you got?
@@ -94,7 +95,7 @@ export async function Forsiden({ lang = "en" }: { lang?: Lang }) {
   // Five minutes. The board does not change between one visitor and the next,
   // and a round trip to the ATS in front of every visit is a round trip in
   // front of every visit.
-  const { jobs, totalOpen, industries, locations, ok } = await fetchPublicJobs(300);
+  const { jobs, totalOpen, industries, locations, ok } = await getBoard();
   const copy = COPY[lang];
 
   // The advert at the top is the widest one, and today that is simply the one

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { fetchPublicJobs, industryOf, type Industry, type PublicJob } from "@/lib/jobs-fetch";
 import { tradeFromTitle } from "@/lib/trades";
 
@@ -73,8 +74,19 @@ function townOf(job: PublicJob): string | null {
  * A trade or a town needs at least one open advert. A trade crossed with a town
  * needs one too, which in practice keeps the list short and every page full.
  */
+/**
+ * The board, read once per render rather than once per caller.
+ *
+ * Every page here asks for the facet list and then asks for the jobs, and
+ * `resolveFacet` asks for the list again. Without this each of those was its
+ * own request to the ATS, and a build rendering twenty pages made sixty calls
+ * inside a minute from a handful of addresses, tripped the rate limit, and got
+ * an empty list back. The pages then 404'd while the build reported success.
+ */
+export const getBoard = cache(() => fetchPublicJobs(300));
+
 export async function listFacets(): Promise<Facet[]> {
-  const { jobs, industries } = await fetchPublicJobs(300);
+  const { jobs, industries } = await getBoard();
   const trades = new Map<string, string>();
   const towns = new Map<string, string>();
   const pairs = new Map<string, { trade: string; town: string }>();

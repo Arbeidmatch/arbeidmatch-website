@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { JobsListing } from "@/components/jobs/JobsListing";
-import { facetCopy, facetLabel, facetPath, jobsForFacet, listFacets, resolveFacet } from "@/lib/jobs-facets";
-import { fetchPublicJobs } from "@/lib/jobs-fetch";
+import { facetCopy, facetLabel, facetPath, getBoard, jobsForFacet, listFacets, resolveFacet } from "@/lib/jobs-facets";
+
 
 /**
  * A page for each question somebody types.
@@ -22,7 +22,21 @@ import { fetchPublicJobs } from "@/lib/jobs-fetch";
  */
 
 export const revalidate = 300;
-export const dynamicParams = false;
+/**
+ * ON, deliberately, and it was off for one deploy.
+ *
+ * With it off the whole route depended on the build being able to read the
+ * board: one refused request and `generateStaticParams` returned nothing, so
+ * every trade and town page answered 404 while the build reported success.
+ * That is exactly what happened on the first deploy.
+ *
+ * Nothing is lost by turning it on, because the thin-page guard was never here.
+ * `resolveFacet` checks the segments against the live board on every render and
+ * calls `notFound()` for anything that has no adverts in it, so a made-up
+ * address is still a 404 - it is just a 404 decided by the data rather than by
+ * whether a build succeeded three hours ago.
+ */
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const facets = await listFacets();
@@ -34,7 +48,7 @@ export async function generateMetadata({ params }: { params: Promise<{ facet: st
   const facet = await resolveFacet(segments);
   if (!facet) return { title: "Open jobs | ArbeidMatch" };
 
-  const { jobs } = await fetchPublicJobs(300);
+  const { jobs } = await getBoard();
   const copy = facetCopy(facet, jobsForFacet(jobs, facet).length);
   const url = `https://www.arbeidmatch.no${facetPath(facet)}`;
 
@@ -51,7 +65,7 @@ export default async function FacetJobsPage({ params }: { params: Promise<{ face
   const facet = await resolveFacet(segments);
   if (!facet) notFound();
 
-  const { jobs, ok } = await fetchPublicJobs(300);
+  const { jobs, ok } = await getBoard();
   const mine = jobsForFacet(jobs, facet);
   const copy = facetCopy(facet, mine.length);
 

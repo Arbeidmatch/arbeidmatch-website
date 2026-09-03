@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { JobsListing } from "@/components/jobs/JobsListing";
-import { facetLabel, facetPath, jobsForFacet, listFacets } from "@/lib/jobs-facets";
-import { fetchPublicJobs } from "@/lib/jobs-fetch";
+import { facetLabel, facetPath, getBoard, jobsForFacet, listFacets } from "@/lib/jobs-facets";
 
 /**
  * Every open job, and the way into the pages that answer a narrower question.
@@ -33,7 +32,7 @@ export const metadata: Metadata = {
 };
 
 export default async function JobsPage() {
-  const { jobs, totalOpen, ok } = await fetchPublicJobs(300);
+  const { jobs, totalOpen, ok } = await getBoard();
   const facets = await listFacets();
 
   // Only lists that have something in them. A chip leading to an empty page is
