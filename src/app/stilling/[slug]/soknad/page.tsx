@@ -30,7 +30,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const job = await fetchPublicJob(slug, 300);
+  const job = await fetchPublicJob(slug);
   const title = job ? `Apply: ${job.title} | ArbeidMatch` : "Apply | ArbeidMatch";
   return {
     title,
@@ -59,7 +59,7 @@ async function mintApplyToken(slug: string): Promise<string | null> {
 
 export default async function SoknadPage({ params }: Props) {
   const { slug } = await params;
-  const job = await fetchPublicJob(slug, 300);
+  const job = await fetchPublicJob(slug);
   if (!job) notFound();
 
   const token = await mintApplyToken(slug);

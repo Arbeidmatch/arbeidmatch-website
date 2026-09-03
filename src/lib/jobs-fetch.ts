@@ -24,6 +24,29 @@ export function atsBaseUrl(): string {
   return ATS_PUBLIC_BASE_URL.replace(/\/$/, "");
 }
 
+/**
+ * How long a job read is reused, and how a change gets through sooner.
+ *
+ * HIS QUESTION, 3 September 2026: "vezi daca sunt legate joburile de pe pagina
+ * sa se actualizeze imediat cand schimb ceva in ele din spate? fara sa fie
+ * ridicate in vercel ci sa fie conectate repede ca modificarile sa fie vizibile
+ * imediat cum le salvez."
+ *
+ * No deploy was ever needed: the pages are rendered per request. What stood in
+ * the way was this window, which was five minutes, so a title corrected in the
+ * ATS took up to five minutes to show. Fifteen seconds is short enough that
+ * saving and refreshing behaves the way he expects, and long enough that a
+ * crawler walking twenty pages still makes one call rather than twenty.
+ *
+ * The tags are the exact answer on top of the approximate one. The ATS calls
+ * `/api/revalidate` here when a public job is saved, that drops these two tags,
+ * and the very next view is the new one with no waiting at all. The window is
+ * what covers a call that never arrives.
+ */
+export const JOB_CACHE_SECONDS = 15;
+export const BOARD_TAG = "jobs-board";
+export const jobTag = (slug: string) => `job:${slug}`;
+
 export type PublicJob = {
   id: string;
   title: string;
@@ -227,10 +250,9 @@ export async function fetchPublicJob(
   revalidateSeconds?: number,
 ): Promise<PublicJobDetail | null> {
   try {
-    const res = await fetch(
-      `${atsBaseUrl()}/api/public/jobs/s/${encodeURIComponent(slug)}`,
-      revalidateSeconds ? { next: { revalidate: revalidateSeconds } } : { cache: "no-store" },
-    );
+    const res = await fetch(`${atsBaseUrl()}/api/public/jobs/s/${encodeURIComponent(slug)}`, {
+      next: { revalidate: revalidateSeconds ?? JOB_CACHE_SECONDS, tags: [BOARD_TAG, jobTag(slug)] },
+    });
     if (!res.ok) return null;
     const body = (await res.json()) as { data?: PublicJobDetail };
     return body.data && body.data.public_slug ? body.data : null;
@@ -257,10 +279,9 @@ export function jobImage(job: PublicJob): string {
  */
 export async function fetchPublicJobs(revalidateSeconds?: number): Promise<PublicJobsResult> {
   try {
-    const res = await fetch(
-      `${atsBaseUrl()}/api/public/jobs`,
-      revalidateSeconds ? { next: { revalidate: revalidateSeconds } } : { cache: "no-store" },
-    );
+    const res = await fetch(`${atsBaseUrl()}/api/public/jobs`, {
+      next: { revalidate: revalidateSeconds ?? JOB_CACHE_SECONDS, tags: [BOARD_TAG] },
+    });
     if (!res.ok) return EMPTY_RESULT;
     const body = (await res.json()) as {
       data?: PublicJob[];

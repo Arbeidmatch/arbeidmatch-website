@@ -62,7 +62,7 @@ function companyName(job: PublicJobDetail): string | null {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const job = await fetchPublicJob(slug, 300);
+  const job = await fetchPublicJob(slug);
   if (!job) return { title: "Stilling | ArbeidMatch" };
 
   const where = (job.location ?? "").trim();
@@ -83,7 +83,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function StillingPage({ params }: Props) {
   const { slug } = await params;
-  const job = await fetchPublicJob(slug, 300);
+  const job = await fetchPublicJob(slug);
   // A closed advert, a wrong address and an ATS that did not answer all arrive
   // here the same way, and a 404 is the honest answer to all three. A page that
   // renders an error where the job should be reads as us having lost it.

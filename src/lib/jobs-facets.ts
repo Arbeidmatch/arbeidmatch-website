@@ -83,7 +83,7 @@ function townOf(job: PublicJob): string | null {
  * inside a minute from a handful of addresses, tripped the rate limit, and got
  * an empty list back. The pages then 404'd while the build reported success.
  */
-export const getBoard = cache(() => fetchPublicJobs(300));
+export const getBoard = cache(() => fetchPublicJobs());
 
 export async function listFacets(): Promise<Facet[]> {
   const { jobs, industries } = await getBoard();
