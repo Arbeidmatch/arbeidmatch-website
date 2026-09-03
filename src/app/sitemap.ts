@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 
 import { PREMIUM_ARTICLE_SLUGS } from "@/lib/premium/articleSlugs";
-import { facetPath, listFacets } from "@/lib/jobs-facets";
+import { facetPath, getBoard, listFacets } from "@/lib/jobs-facets";
+import { jobUrl } from "@/lib/jobs-fetch";
 
 const SITE = "https://www.arbeidmatch.no";
 
@@ -45,7 +46,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     )
     .catch(() => []);
 
+  /**
+   * The adverts themselves, one page each.
+   *
+   * Added 3 September 2026, the day the job page moved off the ATS and onto
+   * this site. Until then the only job addresses here were the trade and town
+   * lists, and the advert a person actually reads lived on ats.arbeidmatch.no,
+   * which is now closed to search entirely. Without these lines Google for Jobs
+   * has nothing of ours to read, which was the whole point of the front page.
+   *
+   * Highest priority on the board, because a posting is the thing somebody
+   * searches for; the lists exist to lead to it. Never fatal, for the same
+   * reason as the lists above.
+   */
+  const advertPages = await getBoard()
+    .then(({ jobs }) =>
+      jobs
+        .map((job) => jobUrl(job))
+        .filter((href): href is string => Boolean(href))
+        .map((href) => ({
+          url: `${SITE}${href}`,
+          lastModified: new Date(),
+          changeFrequency: "daily" as const,
+          priority: 0.9,
+        })),
+    )
+    .catch(() => []);
+
   return [
+    ...advertPages,
     {
       url: `${SITE}/jobs`,
       lastModified: new Date(),

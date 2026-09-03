@@ -173,9 +173,70 @@ export function jobFacts(job: PublicJob, now: Date = new Date()): string[] {
   return facts.slice(0, 3);
 }
 
-/** Where a visitor goes to read the whole advert and apply. Always the ATS. */
+/**
+ * Where an advert opens, which is here and no longer in the ATS.
+ *
+ * HIS INSTRUCTION, 3 September 2026: "eu nu vreau sa expun ats ul ci websiteul
+ * vreau sa fie public." This returned `ats.arbeidmatch.no/jobs/public/<slug>`,
+ * so every card on the front page put the ATS address in front of a stranger,
+ * and everything we had written about a job lived on a page that is now closed
+ * to search and that nobody was meant to reach.
+ *
+ * `/stilling/` and not `/jobs/`, because `/jobs/[...facet]` already owns that
+ * segment for the trade and town pages and Next cannot hold two different
+ * dynamic names at one level. Norwegian for the position itself, on a Norwegian
+ * site, beside pages already called bemanning-bygg-anlegg.
+ */
 export function jobUrl(job: PublicJob): string | null {
-  return job.public_slug ? `${atsBaseUrl()}/jobs/public/${encodeURIComponent(job.public_slug)}` : null;
+  return job.public_slug ? `/stilling/${encodeURIComponent(job.public_slug)}` : null;
+}
+
+/** One advert, in full, for the page that shows it. */
+export type PublicJobDetail = PublicJob & {
+  description_html?: string | null;
+  employment_type?: string | null;
+  start_date_text?: string | null;
+  skills_required?: string[] | null;
+  required_certificates?: string[] | null;
+  required_specialties?: string[] | null;
+  engagement_model?: string | null;
+  external_url?: string | null;
+  public_requires_norwegian?: boolean | null;
+  /**
+   * What the advert asks of the reader, and whether failing it stops them.
+   *
+   * Prompt and required only. The expected answer stays in the ATS: printing it
+   * beside the question is printing the answer key.
+   */
+  requirements?: Array<{ prompt: string; required: boolean }> | null;
+  project?:
+    | { name?: string | null; project_type?: string | null; company?: { name?: string } | { name?: string }[] | null }
+    | null;
+};
+
+/**
+ * One advert by its slug, or null.
+ *
+ * Null covers both "no such advert" and "the ATS did not answer", and the page
+ * treats them the same way, as a 404. A page that renders an error where the job
+ * should be is worse than one that says the job is not there, because a person
+ * reads the first as us having lost it.
+ */
+export async function fetchPublicJob(
+  slug: string,
+  revalidateSeconds?: number,
+): Promise<PublicJobDetail | null> {
+  try {
+    const res = await fetch(
+      `${atsBaseUrl()}/api/public/jobs/s/${encodeURIComponent(slug)}`,
+      revalidateSeconds ? { next: { revalidate: revalidateSeconds } } : { cache: "no-store" },
+    );
+    if (!res.ok) return null;
+    const body = (await res.json()) as { data?: PublicJobDetail };
+    return body.data && body.data.public_slug ? body.data : null;
+  } catch {
+    return null;
+  }
 }
 
 /** The picture the ATS resolved: the employer's photograph, or the card it draws. */

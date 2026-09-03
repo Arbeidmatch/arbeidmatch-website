@@ -51,7 +51,10 @@ export function JobPostingJsonLd({ jobs }: { jobs: PublicJob[] }) {
         "@type": "JobPosting",
         "@id": `${SITE}/#job-${job.public_slug}`,
         title: job.title,
-        url: href,
+        // Absolute, always. `jobUrl` became a path on this site on 3 September
+        // 2026, when the advert page moved off the ATS, and a relative url in
+        // structured data is a url an aggregator cannot follow.
+        url: href.startsWith("http") ? href : `${SITE}${href}`,
         identifier: {
           "@type": "PropertyValue",
           name: "ArbeidMatch",
