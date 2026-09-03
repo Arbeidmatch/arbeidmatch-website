@@ -113,12 +113,92 @@ export async function listFacets(): Promise<Facet[]> {
   ];
 }
 
+/**
+ * Percent-decodes a URL segment without throwing.
+ *
+ * MEASURED LIVE, 3 September 2026: /jobs/t%F8mrer returned 500. `%F8` is a
+ * latin-1 encoded ø, a perfectly valid escape that is not valid UTF-8, so
+ * decodeURIComponent threw URIError and nothing caught it. Older clients and
+ * some crawlers still encode Norwegian letters that way, and this is a
+ * Norwegian site, so the URLs most likely to be built that way are the ones
+ * with our own letters in them.
+ *
+ * A URL we cannot read is a page we do not have. That is a 404, never a crash.
+ */
+function safeDecode(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    // Not valid UTF-8, so try it as latin-1: %F8 is ø in the encoding older
+    // clients still use. Reading it means the person arrives on the page
+    // instead of on a 404 that looks like we have no electricians.
+    try {
+      return segment.replace(/%([0-9a-f]{2})/gi, (_m, hex: string) => String.fromCharCode(parseInt(hex, 16)));
+    } catch {
+      return segment;
+    }
+  }
+}
+
 /** What the URL segments mean, or null when they mean nothing we have. */
 export async function resolveFacet(segments: string[]): Promise<Facet | null> {
   if (segments.length === 0 || segments.length > 2) return null;
-  const wanted = segments.map((s) => slugify(decodeURIComponent(s))).join("/");
+  const wanted = segments.map((s) => slugify(safeDecode(s))).join("/");
   const facets = await listFacets();
   return facets.find((f) => f.slug === wanted) ?? null;
+}
+
+/**
+ * The English trade slug a Norwegian word is asking for.
+ *
+ * MEASURED LIVE, 3 September 2026: every trade page is at an English slug.
+ * /jobs/electrician answers and /jobs/elektriker is a 404, on a site whose own
+ * service pages are called bemanning-bygg-anlegg and bemanningsbyra-bergen. A
+ * Norwegian searching in Norwegian, which is the reason these pages exist at
+ * all, lands nowhere.
+ *
+ * The English slug stays canonical: it is what the sitemap lists and what is
+ * indexed, and the pages are written for somebody arriving from the EEA. The
+ * Norwegian word redirects to it rather than serving the same page at two
+ * addresses, because two URLs with identical content compete with each other.
+ *
+ * Keys are already slugified, so o and not ø: slugify maps the three Norwegian
+ * letters before this table is consulted.
+ */
+const NORWEGIAN_TRADE_SLUGS: Record<string, string> = {
+  elektriker: "electrician",
+  tomrer: "carpenter",
+  snekker: "carpenter",
+  murer: "bricklayer",
+  betongarbeider: "concrete-worker",
+  bilmekaniker: "car-mechanic",
+  maler: "painter",
+  sveiser: "welder",
+  rorlegger: "plumber",
+  stillasbygger: "scaffolder",
+  flislegger: "tiler",
+  taktekker: "roofer",
+  gipser: "plasterer",
+  fabrikkarbeider: "factory-worker",
+  maskinoperator: "machine-operator",
+  lagermedarbeider: "warehouse-worker",
+  lagerarbeider: "warehouse-worker",
+  sjafor: "driver",
+  hjelpearbeider: "general-labourer",
+};
+
+/**
+ * Where a Norwegian trade URL should go, or null if it is not one.
+ *
+ * The town half is carried through unchanged: /jobs/elektriker/stavanger is a
+ * real search and it should arrive at /jobs/electrician/stavanger.
+ */
+export function canonicalFacetPath(segments: string[]): string | null {
+  if (segments.length === 0 || segments.length > 2) return null;
+  const parts = segments.map((s) => slugify(safeDecode(s)));
+  const english = NORWEGIAN_TRADE_SLUGS[parts[0] ?? ""];
+  if (!english) return null;
+  return `/jobs/${[english, ...parts.slice(1)].join("/")}`;
 }
 
 /** The postings a facet actually holds. */

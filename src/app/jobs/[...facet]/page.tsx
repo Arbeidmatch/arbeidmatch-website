@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { JobsListing } from "@/components/jobs/JobsListing";
-import { facetCopy, facetLabel, facetPath, getBoard, jobsForFacet, listFacets, resolveFacet } from "@/lib/jobs-facets";
+import { canonicalFacetPath, facetCopy, facetLabel, facetPath, getBoard, jobsForFacet, listFacets, resolveFacet } from "@/lib/jobs-facets";
 
 
 /**
@@ -78,7 +78,18 @@ export async function generateMetadata({ params }: { params: Promise<{ facet: st
 export default async function FacetJobsPage({ params }: { params: Promise<{ facet: string[] }> }) {
   const { facet: segments } = await params;
   const facet = await resolveFacet(segments);
-  if (!facet) notFound();
+  if (!facet) {
+    // A Norwegian trade word goes to the English page rather than nowhere.
+    // /jobs/elektriker was a 404 on a Norwegian site until 3 September 2026.
+    // A redirect and not a second page, so the two do not compete for the
+    // search they both answer.
+    const canonical = canonicalFacetPath(segments);
+    if (canonical) {
+      const target = canonical.slice("/jobs/".length).split("/");
+      if (await resolveFacet(target)) redirect(canonical);
+    }
+    notFound();
+  }
 
   const { jobs, ok } = await getBoard();
   const mine = jobsForFacet(jobs, facet);
