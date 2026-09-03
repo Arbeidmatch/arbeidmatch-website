@@ -160,8 +160,17 @@ export function OrganizationJsonLd({ openJobs }: { openJobs: number }) {
     legalName: "ArbeidMatch Norge AS",
     url: SITE,
     logo: `${SITE}/logo.png`,
-    // The registry number, which is what makes the rest of the record checkable.
-    identifier: { "@type": "PropertyValue", name: "Organisasjonsnummer", value: "934 592 776" },
+    /**
+     * The registry number, which is what makes the rest of the record checkable
+     * and is therefore the one field here that must not be approximate.
+     *
+     * CORRECTED 3 September 2026. It shipped the day before as 934 592 776,
+     * which is not us. Checked against the Enhetsregisteret: ARBEIDMATCH NORGE
+     * AS is 935667089, Sverre Svendsens veg 38, 7056 Ranheim, registered
+     * 12 June 2025. A wrong number in an Organization block is worse than none:
+     * it is an invitation to look us up and find somebody else.
+     */
+    identifier: { "@type": "PropertyValue", name: "Organisasjonsnummer", value: "935667089" },
     address: {
       "@type": "PostalAddress",
       streetAddress: "Sverre Svendsens veg 38",
