@@ -41,6 +41,15 @@ const RENDERED_AT = "form_rendered_at";
  * Sorted, EU and EEA, kept in step with the ATS's own list by hand because it
  * is the EEA and it changes about once a decade.
  */
+/** The five the ATS accepts, in its own words. Kept in step by hand. */
+const AVAILABILITY: Array<[string, string]> = [
+  ["asap", "Right away"],
+  ["in_1_week", "In a week"],
+  ["in_2_weeks", "In two weeks"],
+  ["in_1_month", "In a month"],
+  ["notice_period", "After my notice period"],
+];
+
 const EU_EEA_COUNTRIES = [
   "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czechia", "Denmark", "Estonia",
   "Finland", "France", "Germany", "Greece", "Hungary", "Iceland", "Ireland", "Italy",
@@ -58,13 +67,47 @@ export function ApplyForm({ token, jobTitle }: Props) {
     if (state === "sending") return;
     setError(null);
 
-    const form = new FormData(event.currentTarget);
-    form.set(RENDERED_AT, renderedAt.current);
-    // The consents arrive as checkbox values and the ATS reads booleans.
-    for (const key of ["privacy_policy_accepted", "recruitment_contact_consent", "gdpr_consent", "gdpr_processing_consent"]) {
-      form.set(key, form.get(key) === "on" ? "true" : "false");
-    }
-    form.set("marketing_consent", form.get("marketing_consent") === "on" ? "true" : "false");
+    const entered = new FormData(event.currentTarget);
+    const text = (name: string) => String(entered.get(name) ?? "").trim();
+    const ticked = (name: string) => entered.get(name) === "on";
+
+    /**
+     * The shape the ATS reads, which is not the shape a form posts.
+     *
+     * Its multipart branch wants one `payload` field holding the whole answer
+     * as JSON, and the file beside it. Posting the fields flat returns "Missing
+     * payload field", which is how this was found: by sending a real
+     * application rather than by reading the route.
+     */
+    const payload = {
+      full_name: text("full_name"),
+      email: text("email"),
+      phone: text("phone"),
+      nationality: text("nationality"),
+      current_job_title: text("current_job_title") || null,
+      // One field to fill in, a list on the way out.
+      skills: text("skills_text")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+      availability_type: text("availability_type"),
+      privacy_policy_accepted: ticked("privacy_policy_accepted"),
+      recruitment_contact_consent: ticked("recruitment_contact_consent"),
+      // What they actually ticked. It decides whether we may come back to them
+      // about other work, and it is not the same as agreeing to be contacted
+      // about this position.
+      gdpr_consent: ticked("gdpr_consent"),
+      gdpr_processing_consent: true,
+      marketing_consent: false,
+      // The two invisible checks, passed straight through.
+      [HONEYPOT]: text(HONEYPOT),
+      [RENDERED_AT]: renderedAt.current,
+    };
+
+    const form = new FormData();
+    form.set("payload", JSON.stringify(payload));
+    const cv = entered.get("cv_file");
+    if (cv instanceof File && cv.size > 0) form.set("cv_file", cv);
 
     setState("sending");
     try {
@@ -139,6 +182,49 @@ export function ApplyForm({ token, jobTitle }: Props) {
         <legend className="text-sm font-semibold uppercase tracking-[0.12em] text-text-secondary">What you do</legend>
         <div className="mt-4 grid gap-4">
           <Field name="current_job_title" label="Your trade" placeholder="Carpenter, electrician, car mechanic" />
+          {/* Required by the ATS, and the third such field found by sending a
+              real application on 3 September 2026: without it every applicant
+              was refused with "Add at least one skill." Comma separated,
+              because a tag box on a phone is a fight and this is a list of
+              words. */}
+          <label className="block">
+            <span className="text-sm font-semibold text-navy">
+              What you can do<span className="text-gold"> *</span>
+            </span>
+            <input
+              name="skills_text"
+              required
+              placeholder="Formwork, rebar, concrete finishing"
+              className="mt-1.5 block min-h-12 w-full rounded-lg border border-border px-3 text-navy outline-none focus:border-gold"
+            />
+            <span className="mt-1 block text-xs text-text-secondary">
+              A few words, separated by commas. This is what a recruiter reads first.
+            </span>
+          </label>
+          {/* Required by the ATS, and found missing on 3 September 2026 by
+              sending a real application: without it every applicant would have
+              been refused with "Please select availability." It is also the
+              first thing a recruiter asks, so it belongs on the form anyway. */}
+          <label className="block">
+            <span className="text-sm font-semibold text-navy">
+              When can you start<span className="text-gold"> *</span>
+            </span>
+            <select
+              name="availability_type"
+              required
+              defaultValue=""
+              className="mt-1.5 block min-h-12 w-full rounded-lg border border-border bg-white px-3 text-navy outline-none focus:border-gold"
+            >
+              <option value="" disabled>
+                Choose
+              </option>
+              {AVAILABILITY.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="block">
             <span className="text-sm font-semibold text-navy">Your CV</span>
             <input
@@ -169,7 +255,6 @@ export function ApplyForm({ token, jobTitle }: Props) {
           <Consent name="gdpr_consent">
             You may keep my details on file and tell me about other work that fits my trade.
           </Consent>
-          <input type="hidden" name="gdpr_processing_consent" value="true" />
         </div>
       </fieldset>
 
