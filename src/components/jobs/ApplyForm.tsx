@@ -29,6 +29,25 @@ type Props = { token: string; jobTitle: string };
 const HONEYPOT = "company_website";
 const RENDERED_AT = "form_rendered_at";
 
+/**
+ * The passports we can take, and it is a list rather than a text box.
+ *
+ * MEASURED 3 September 2026, applying to a live advert with this field as free
+ * text: "Romanian" was refused with "Nationality must be EU / EEA". The ATS
+ * matches against country names, so the true answer to "nationality" was read
+ * as somebody from outside Europe. A menu removes the mismatch entirely, and it
+ * also tells the person the rule before they type rather than after.
+ *
+ * Sorted, EU and EEA, kept in step with the ATS's own list by hand because it
+ * is the EEA and it changes about once a decade.
+ */
+const EU_EEA_COUNTRIES = [
+  "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czechia", "Denmark", "Estonia",
+  "Finland", "France", "Germany", "Greece", "Hungary", "Iceland", "Ireland", "Italy",
+  "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", "Malta", "Netherlands", "Norway",
+  "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden",
+];
+
 export function ApplyForm({ token, jobTitle }: Props) {
   const renderedAt = useRef(String(Date.now()));
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
@@ -89,8 +108,30 @@ export function ApplyForm({ token, jobTitle }: Props) {
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <Field name="full_name" label="Full name" required autoComplete="name" />
           <Field name="email" label="Email" type="email" required autoComplete="email" />
-          <Field name="phone" label="Phone" type="tel" autoComplete="tel" />
-          <Field name="nationality" label="Nationality" autoComplete="country-name" />
+          <Field name="phone" label="Phone" type="tel" required autoComplete="tel" />
+          <label className="block">
+            <span className="text-sm font-semibold text-navy">
+              Country on your passport<span className="text-gold"> *</span>
+            </span>
+            <select
+              name="nationality"
+              required
+              defaultValue=""
+              className="mt-1.5 block min-h-12 w-full rounded-lg border border-border bg-white px-3 text-navy outline-none focus:border-gold"
+            >
+              <option value="" disabled>
+                Choose
+              </option>
+              {EU_EEA_COUNTRIES.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+            <span className="mt-1 block text-xs text-text-secondary">
+              EU or EEA only. We do not sponsor visas, so a passport from outside cannot be accepted.
+            </span>
+          </label>
         </div>
       </fieldset>
 
