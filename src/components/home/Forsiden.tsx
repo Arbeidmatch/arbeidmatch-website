@@ -113,14 +113,13 @@ export async function Forsiden({ lang = "en" }: { lang?: Lang }) {
       <JobPostingJsonLd jobs={jobs} />
       <ForsidenFaqJsonLd />
 
-      {/* The two doors and the language, on one line. Log in is the employee
-          portal on the board - the same door the navbar, the drawer and
-          /employees use - and a company enters through Post a job or through
+      {/* The two doors and the language, on one line. Log in is the candidate
+          portal in the ATS, and a company enters through Post a job or through
           its own workspace link.
 
-          It pointed at the ATS candidate login when this front page was
-          written, which is the back office and not the place a man signs in to
-          see his own file; every login on the site reads one constant now. */}
+          This page had the destination right by hand and every other login on
+          the site had it wrong. All of them read one constant now, and it is
+          the constant that moved - see lib/candidatePortal. */}
       <div className="flex flex-wrap items-center justify-end gap-3 border-b border-border px-6 py-3">
         <div className="inline-flex overflow-hidden rounded border border-border text-[11px] font-semibold">
           <span className="bg-gold/15 px-3 py-1.5 text-gold">{lang === "en" ? "EN" : "NO"}</span>

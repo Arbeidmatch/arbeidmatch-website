@@ -7,14 +7,13 @@ import { CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
 /**
  * The two doors, and where each one lands.
  *
- * This site keeps no accounts of its own. The candidate's account lives on the
- * board, and the two constants in lib/candidatePortal are the only place that
- * is written down, so a door here cannot fall out of step with the navbar, the
- * drawer or /employees.
+ * This site keeps no accounts of its own. The candidate's account lives in the
+ * ATS, and the two constants in lib/candidatePortal are the only place either
+ * address is written down, so a door here cannot fall out of step with the
+ * navbar, the drawer or /employees.
  *
- * Create profile used to open the ATS candidate login. That is the wrong door
- * twice over: the ATS is the back office, and a man who has no profile yet
- * needs the place where one is made, not a password box.
+ * Create profile opened the candidate login. Right host, wrong page: a man who
+ * has no profile yet needs the place where one is made, not a password box.
  *
  * It is a client component because pressing a service is also what tells the
  * leaving panel which conversation the visitor was in - somebody reading about
