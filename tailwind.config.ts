@@ -7,7 +7,10 @@ const config: Config = {
       colors: {
         navy: "#0D1B2A",
         gold: "#C9A84C",
-        "gold-hover": "#B8913A",
+        // The pressed gold twenty-three files write by hand as #B8953F. The
+        // token said #B8913A, so two buttons side by side went to two
+        // different golds under a finger; the token follows the buttons.
+        "gold-hover": "#B8953F",
         surface: "#F5F6F8",
         "text-secondary": "#555555",
         border: "#E2E5EA",
