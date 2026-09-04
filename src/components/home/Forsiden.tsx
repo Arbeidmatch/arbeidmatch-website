@@ -6,6 +6,7 @@ import { IndustryStrip } from "@/components/home/IndustryStrip";
 import { JobSearchBar } from "@/components/home/JobSearchBar";
 import { ForsidenFaq, ForsidenFaqJsonLd } from "@/components/seo/ForsidenFaqJsonLd";
 import { JobPostingJsonLd, OrganizationJsonLd } from "@/components/seo/JobPostingJsonLd";
+import { CANDIDATE_PORTAL_LOGIN_URL } from "@/lib/candidatePortal";
 import { getBoard } from "@/lib/jobs-facets";
 import { jobCardImage, type PublicJob } from "@/lib/jobs-fetch";
 
@@ -29,8 +30,6 @@ import { jobCardImage, type PublicJob } from "@/lib/jobs-fetch";
  */
 
 type Lang = "en" | "no";
-
-const ATS_BASE = process.env.NEXT_PUBLIC_ATS_URL?.replace(/\/$/, "") || "https://ats.arbeidmatch.no";
 
 /**
  * The town chips lead to the town's own page, not to a query string the list
@@ -114,9 +113,14 @@ export async function Forsiden({ lang = "en" }: { lang?: Lang }) {
       <JobPostingJsonLd jobs={jobs} />
       <ForsidenFaqJsonLd />
 
-      {/* The two doors and the language, on one line. The site keeps no
-          accounts: Log in is the ATS's candidate login, and a company enters
-          through Register company or through its own workspace link. */}
+      {/* The two doors and the language, on one line. Log in is the employee
+          portal on the board - the same door the navbar, the drawer and
+          /employees use - and a company enters through Post a job or through
+          its own workspace link.
+
+          It pointed at the ATS candidate login when this front page was
+          written, which is the back office and not the place a man signs in to
+          see his own file; every login on the site reads one constant now. */}
       <div className="flex flex-wrap items-center justify-end gap-3 border-b border-border px-6 py-3">
         <div className="inline-flex overflow-hidden rounded border border-border text-[11px] font-semibold">
           <span className="bg-gold/15 px-3 py-1.5 text-gold">{lang === "en" ? "EN" : "NO"}</span>
@@ -125,7 +129,7 @@ export async function Forsiden({ lang = "en" }: { lang?: Lang }) {
           </a>
         </div>
         <a
-          href={`${ATS_BASE}/candidate/login`}
+          href={CANDIDATE_PORTAL_LOGIN_URL}
           className="rounded border border-border px-4 py-2 text-sm font-semibold text-navy transition hover:border-gold"
         >
           {lang === "en" ? "Log in" : "Logg inn"}

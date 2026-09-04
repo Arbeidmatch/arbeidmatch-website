@@ -2,19 +2,24 @@
 
 import Link from "next/link";
 
+import { CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
+
 /**
  * The two doors, and where each one lands.
  *
- * This site keeps no accounts. The login is the ATS's, and this page sends
- * people there with the right context: one user base, one password to reset,
- * and no second list of companies to fall out of step with the first.
+ * This site keeps no accounts of its own. The candidate's account lives on the
+ * board, and the two constants in lib/candidatePortal are the only place that
+ * is written down, so a door here cannot fall out of step with the navbar, the
+ * drawer or /employees.
+ *
+ * Create profile used to open the ATS candidate login. That is the wrong door
+ * twice over: the ATS is the back office, and a man who has no profile yet
+ * needs the place where one is made, not a password box.
  *
  * It is a client component because pressing a service is also what tells the
  * leaving panel which conversation the visitor was in - somebody reading about
  * staffing should not be offered a job alert on the way out.
  */
-
-const ATS_BASE = process.env.NEXT_PUBLIC_ATS_URL?.replace(/\/$/, "") || "https://ats.arbeidmatch.no";
 
 function rememberService(service: "recruitment" | "staffing" | "job_ad") {
   try {
@@ -39,12 +44,12 @@ export function ForsidenDoors() {
           <li>You can see who has read it</li>
           <li>You delete it whenever you want</li>
         </ul>
-        <a
-          href={`${ATS_BASE}/candidate/login`}
+        <Link
+          href={CANDIDATE_PORTAL_SIGNUP_URL}
           className="mt-6 inline-flex items-center rounded bg-gold px-6 py-3 text-sm font-bold text-navy transition hover:bg-gold-hover"
         >
           Create profile
-        </a>
+        </Link>
       </div>
 
       {/* The company that needs people. Three ways, and the choice decides what opens. */}

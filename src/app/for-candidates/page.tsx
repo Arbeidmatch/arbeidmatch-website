@@ -197,7 +197,7 @@ export default function ForCandidatesPage() {
         </div>
       </section>
 
-      <section className="border-t border-[rgba(13,27,42,0.08)] bg-[#eef1f5] py-14 md:py-20 lg:py-24">
+      <section className="border-t border-[rgba(13,27,42,0.08)] bg-surface py-14 md:py-20 lg:py-24">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
             <h2 className="am-h2 font-display font-extrabold tracking-[-0.02em] text-[#0D1B2A]">Industries we cover</h2>
@@ -253,7 +253,7 @@ export default function ForCandidatesPage() {
         </div>
       </section>
 
-      <section className="border-t border-[rgba(201,168,76,0.08)] bg-[#0a121c] py-14 md:py-20 lg:py-24">
+      <section className="border-t border-[rgba(201,168,76,0.08)] bg-navy py-14 md:py-20 lg:py-24">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
             <h2 className="am-h2 font-display font-extrabold text-white">What we offer</h2>
@@ -264,7 +264,7 @@ export default function ForCandidatesPage() {
           <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
             {OFFER_CARDS.map((card) => (
               <ScrollReveal key={card.title} variant="fadeUp">
-                <article className="flex h-full flex-col rounded-2xl border border-[rgba(201,168,76,0.18)] bg-[#0D1B2A] p-6 md:p-7">
+                <article className="flex h-full flex-col rounded-2xl border border-[rgba(201,168,76,0.18)] bg-white/[0.04] p-6 md:p-7">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-[rgba(201,168,76,0.25)] bg-[rgba(201,168,76,0.06)]">
                     <ShieldCheck className="text-[#C9A84C]" size={20} strokeWidth={1.75} aria-hidden />
                   </div>

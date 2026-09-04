@@ -5,12 +5,12 @@ const goldBtn =
 
 export default function CandidateAccountSection() {
   return (
-    <section className="border-b border-[rgba(201,168,76,0.14)] bg-[#0a121c] py-12 md:py-16 lg:py-20">
+    <section className="border-b border-[rgba(201,168,76,0.14)] bg-navy py-12 md:py-16 lg:py-20">
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <div className="mx-auto max-w-3xl space-y-10 md:space-y-12">
           <div
             id="register"
-            className="scroll-mt-[100px] rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#0D1B2A] p-6 md:p-8"
+            className="scroll-mt-[100px] rounded-2xl border border-white/[0.1] bg-white/[0.04] p-6 md:p-8"
           >
             <h2 className="font-display text-2xl font-bold tracking-tight text-white md:text-[28px]">
               New here? Join our candidate network
@@ -29,7 +29,7 @@ export default function CandidateAccountSection() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[rgba(201,168,76,0.35)] bg-[#0D1B2A] p-6 shadow-[0_12px_40px_rgba(0,0,0,0.25)] md:p-8">
+          <div className="rounded-2xl border border-[rgba(201,168,76,0.35)] bg-white/[0.04] p-6 md:p-8">
             <h2 className="font-display text-2xl font-bold tracking-tight text-white md:text-[28px]">Already registered?</h2>
             <p className="mt-3 text-sm leading-relaxed text-white/70 md:text-base">
               Access your profile and track your applications.
