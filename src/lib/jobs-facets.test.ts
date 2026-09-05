@@ -53,6 +53,7 @@ describe("canonicalFacetPath", () => {
     expect(canonicalFacetPath(["gipsmontør"])).toBe("/jobs/plasterer");
     expect(canonicalFacetPath(["gipsmontor"])).toBe("/jobs/plasterer");
     expect(canonicalFacetPath(["gipsplater"])).toBe("/jobs/plasterer");
+    expect(canonicalFacetPath(["rigips"])).toBe("/jobs/plasterer");
     expect(canonicalFacetPath(["regips", "oslo"])).toBe("/jobs/plasterer/oslo");
   });
 

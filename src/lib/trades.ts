@@ -53,16 +53,19 @@ export const TRADES: readonly Trade[] = [
    * no trade-and-town page and no line in the sitemap: nothing on this site
    * answered the search that brought people to it.
    *
-   * So: `re` optional in front, and the Norwegian letters after, which covers
-   * regips, gips, gipser, gipsmontør, gipsplater, gipsarbeider and regipsing
-   * without a list that has to be kept complete. No closing `\b`, because ø is
-   * not a word character and a boundary after it does not exist.
+   * So: an optional `re` or `ri` in front, and the Norwegian letters after,
+   * which covers regips, gips, gipser, gipsmontør, gipsplater, gipsarbeider and
+   * regipsing without a list that has to be kept complete. `ri` is there for
+   * "rigips", the brand that is the everyday word for the same boards in
+   * Romanian and Polish, which is the language half our applicants write in.
+   * No closing `\b`, because ø is not a word character and a boundary after it
+   * does not exist.
    *
    * It stays ONE trade with plastering, under the English name already used by
    * the page and the slug. Splitting it would put the same work on two thin
    * pages competing for the same search.
    */
-  { name: "Plasterer", words: /\b(plasterers?|plasterboard|drywall\w*)\b|\b(re)?gips[a-zæøå]*/i },
+  { name: "Plasterer", words: /\b(plasterers?|plasterboard|drywall\w*)\b|\b(re|ri)?gips[a-zæøå]*/i },
   { name: "Factory worker", words: /\b(factory workers?|fabrikkarbeidere?|production workers?|produksjonsmedarbeidere?)\b/i },
   { name: "Machine operator", words: /\b(machine operators?|maskinoperat[øo]rer?|cnc)\b/i },
   { name: "Warehouse worker", words: /\b(warehouse|lagermedarbeidere?|lagerarbeidere?)\b/i },

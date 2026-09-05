@@ -184,6 +184,7 @@ const NORWEGIAN_TRADE_SLUGS: Record<string, string> = {
   // written. Keys are slugified already, so gipsmontør arrives as gipsmontor.
   gipser: "plasterer",
   regips: "plasterer",
+  rigips: "plasterer",
   gips: "plasterer",
   gipsmontor: "plasterer",
   gipsplater: "plasterer",

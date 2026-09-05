@@ -51,6 +51,9 @@ describe("tradeFromTitle", () => {
     expect(tradeFromTitle("Gipsarbeider")).toBe("Plasterer");
     expect(tradeFromTitle("Drywall installers - Norway")).toBe("Plasterer");
     expect(tradeFromTitle("Plasterboard fitters wanted")).toBe("Plasterer");
+    // "rigips" is the same boards under the brand name, and it is the word the
+    // Romanian and Polish half of our applicants write.
+    expect(tradeFromTitle("Montatori rigips - Norvegia")).toBe("Plasterer");
   });
 
   it("still reads the trades that share a page or a syllable with it", () => {
