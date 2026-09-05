@@ -165,7 +165,15 @@ export const ROLE_SYNONYMS: Record<string, string[]> = {
   Painter: ["painter", "maler"],
   Tiler: ["tiler", "flislegger"],
   Insulator: ["insulator", "isolasjonsarbeider"],
-  Drywaller: ["drywaller", "drywall fitter", "plasterboard", "gipsmonter"],
+  /**
+   * These become `current_job_title ilike '%token%'` in /api/candidate-count,
+   * which compares the letters exactly: "gipsmonter" does not match the
+   * "Gipsmontør" a Norwegian candidate is actually registered as, and nothing
+   * here matched "Regips" at all. Every one of those people was counted as
+   * zero. "gips" is the token that covers regips, gipsmontør, gipsplater and
+   * gipser at once; the rest are spelled out so the list reads as what it is.
+   */
+  Drywaller: ["drywaller", "drywall fitter", "plasterboard", "gips", "regips", "gipsmontør", "gipsmonter", "gipsplater"],
   Glazier: ["glazier", "glassmester"],
   Roofer: ["roofer", "taktekker"],
   Plumber: ["plumber", "rørlegger"],

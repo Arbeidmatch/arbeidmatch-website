@@ -45,6 +45,18 @@ describe("canonicalFacetPath", () => {
     expect(canonicalFacetPath(["sjåfør"])).toBe("/jobs/driver");
   });
 
+  it("sends every plasterboard word to the one English page", () => {
+    // "gipser" was the only Norwegian word listed for this trade, and it is
+    // the one nobody types. The searches are "regips" and "gipsmontør".
+    expect(canonicalFacetPath(["regips"])).toBe("/jobs/plasterer");
+    expect(canonicalFacetPath(["gips"])).toBe("/jobs/plasterer");
+    expect(canonicalFacetPath(["gipsmontør"])).toBe("/jobs/plasterer");
+    expect(canonicalFacetPath(["gipsmontor"])).toBe("/jobs/plasterer");
+    expect(canonicalFacetPath(["gipsplater"])).toBe("/jobs/plasterer");
+    expect(canonicalFacetPath(["rigips"])).toBe("/jobs/plasterer");
+    expect(canonicalFacetPath(["regips", "oslo"])).toBe("/jobs/plasterer/oslo");
+  });
+
   it("carries the town through, because that is the search people run", () => {
     expect(canonicalFacetPath(["elektriker", "stavanger"])).toBe("/jobs/electrician/stavanger");
     expect(canonicalFacetPath(["tømrer", "bergen"])).toBe("/jobs/carpenter/bergen");

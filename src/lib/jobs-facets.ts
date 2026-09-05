@@ -178,7 +178,17 @@ const NORWEGIAN_TRADE_SLUGS: Record<string, string> = {
   stillasbygger: "scaffolder",
   flislegger: "tiler",
   taktekker: "roofer",
+  // The plasterboard words, all of them pointing at the one English page.
+  // "gipser" was the only one here, and it is the one nobody types: the search
+  // is "regips jobb" or "gipsmontør", which is also how the adverts are
+  // written. Keys are slugified already, so gipsmontør arrives as gipsmontor.
   gipser: "plasterer",
+  regips: "plasterer",
+  rigips: "plasterer",
+  gips: "plasterer",
+  gipsmontor: "plasterer",
+  gipsplater: "plasterer",
+  gipsarbeider: "plasterer",
   fabrikkarbeider: "factory-worker",
   maskinoperator: "machine-operator",
   lagermedarbeider: "warehouse-worker",
