@@ -41,7 +41,28 @@ export const TRADES: readonly Trade[] = [
   { name: "Scaffolder", words: /\b(scaffold\w*|stillasbygger|stillas)\b/i },
   { name: "Tiler", words: /\b(tilers?|flisleggere?)\b/i },
   { name: "Roofer", words: /\b(roofers?|taktekkere?)\b/i },
-  { name: "Plasterer", words: /\b(plasterers?|gipsere?|drywall)\b/i },
+  /**
+   * PLASTERBOARD IS CALLED REGIPS HERE, and that word could not be matched.
+   *
+   * `\b(gipsere?)\b` reads "gipser" and nothing else. It does not read
+   * "gipsmontør", which is the job title, and it cannot read "regips" at all:
+   * the word boundary is at the start of "regips", not in front of the "gips"
+   * inside it, so `\bgips` never fires on the word the trade is actually known
+   * by on a Norwegian site. An advert called "Regips / gipsmontør - Oslo"
+   * therefore named no trade, and a posting with no trade gets no trade page,
+   * no trade-and-town page and no line in the sitemap: nothing on this site
+   * answered the search that brought people to it.
+   *
+   * So: `re` optional in front, and the Norwegian letters after, which covers
+   * regips, gips, gipser, gipsmontør, gipsplater, gipsarbeider and regipsing
+   * without a list that has to be kept complete. No closing `\b`, because ø is
+   * not a word character and a boundary after it does not exist.
+   *
+   * It stays ONE trade with plastering, under the English name already used by
+   * the page and the slug. Splitting it would put the same work on two thin
+   * pages competing for the same search.
+   */
+  { name: "Plasterer", words: /\b(plasterers?|plasterboard|drywall\w*)\b|\b(re)?gips[a-zæøå]*/i },
   { name: "Factory worker", words: /\b(factory workers?|fabrikkarbeidere?|production workers?|produksjonsmedarbeidere?)\b/i },
   { name: "Machine operator", words: /\b(machine operators?|maskinoperat[øo]rer?|cnc)\b/i },
   { name: "Warehouse worker", words: /\b(warehouse|lagermedarbeidere?|lagerarbeidere?)\b/i },

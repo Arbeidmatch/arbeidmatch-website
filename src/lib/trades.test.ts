@@ -41,6 +41,26 @@ describe("tradeFromTitle", () => {
     expect(tradeFromTitle("Sveiser til industri")).toBe("Welder");
   });
 
+  it("reads the plasterboard words, including the one with a prefix on it", () => {
+    // "regips" is what the trade is called here, and `\bgips` could not match
+    // it: the boundary is in front of the "re". The advert named no trade, so
+    // no trade page existed for the search that brought people to it.
+    expect(tradeFromTitle("Regips / gipsmontør - Oslo")).toBe("Plasterer");
+    expect(tradeFromTitle("Regipsmontør søkes")).toBe("Plasterer");
+    expect(tradeFromTitle("Gipsmontør til prosjekt i Bergen")).toBe("Plasterer");
+    expect(tradeFromTitle("Gipsarbeider")).toBe("Plasterer");
+    expect(tradeFromTitle("Drywall installers - Norway")).toBe("Plasterer");
+    expect(tradeFromTitle("Plasterboard fitters wanted")).toBe("Plasterer");
+  });
+
+  it("still reads the trades that share a page or a syllable with it", () => {
+    // The plasterboard rule sits below these in the table and must not take
+    // adverts off them: a carpenter who also does gips is a carpenter advert.
+    expect(tradeFromTitle("Tømrer med regipserfaring, Bergen")).toBe("Carpenter");
+    expect(tradeFromTitle("Murer, Trondheim")).toBe("Bricklayer");
+    expect(tradeFromTitle("Plasterers for interior works")).toBe("Plasterer");
+  });
+
   it("says nothing rather than inventing a trade", () => {
     // A page named after a guess is a page nobody searches for, holding one
     // advert. Better to have no page.
