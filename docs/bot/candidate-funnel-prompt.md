@@ -1,15 +1,17 @@
-# The candidate bot's prompt
+# The candidate bot, read from this side of the fence
 
-The text in the block below is the bot's **system prompt**. It is the whole
-instruction: paste it into the system field of whatever runs the conversation
-(Make / ManyChat / the ATS), not into a user message, and leave it byte-identical
-between calls so the prompt cache keeps working. If it runs on the Claude API,
-`claude-opus-5` is the model.
+**THE LIVE PROMPT IS NOT THIS FILE.** It is `agentPrompt` in
+`src/lib/social-bot/agent-turn.ts` in the ats repository, and the sentences the
+bot may use are the copy tables in `src/lib/social-bot/flow.ts` beside it. That
+is where the rules written after 5 September 2026 went, and a second prompt
+pasted into anything would be a second voice for the same company. Change it
+there.
 
-The bot itself does not live in this repository. This file is kept here because
-the words in it are about the same board, the same trades and the same pages
-this site serves, and because the failure below was the same missing word in two
-places: the bot's mouth and `src/lib/trades.ts`.
+What is left here is the trade vocabulary and the page each word belongs to,
+which is this site's half of the same job, plus the failure that produced both.
+The block below is kept as the plain-language statement of what the bot must
+never do; every rule in it now exists in the ats code, and this is the
+readable version of them.
 
 ## Why it was rewritten
 
