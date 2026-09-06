@@ -65,49 +65,63 @@ export default async function SoknadPage({ params }: Props) {
   const token = await mintApplyToken(slug);
 
   return (
-    <main className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20">
-      <nav aria-label="Breadcrumb" className="text-sm text-text-secondary">
-        <Link href="/" className="hover:text-gold">
-          Open jobs
-        </Link>
-        <span aria-hidden className="mx-2">
-          /
-        </span>
-        <Link href={`/stilling/${encodeURIComponent(slug)}`} className="hover:text-gold">
-          {job.title}
-        </Link>
-        <span aria-hidden className="mx-2">
-          /
-        </span>
-        <span className="text-navy">Apply</span>
-      </nav>
+    <article>
+      {/* The same two surfaces as the advert, and for the same reason. This
+          page was navy-on-navy too: the title, the breadcrumb, and - worse
+          than either - every field label in ApplyForm, which is `text-navy`,
+          and the text a person typed into an input, which is also `text-navy`.
+          Somebody filling this in on 5 September was typing invisibly. */}
+      <header className="bg-navy">
+        <div className="mx-auto w-full max-w-content px-6 py-10 md:px-12 md:py-12 lg:px-20">
+          <nav aria-label="Breadcrumb" className="text-sm text-white/60">
+            <Link href="/" className="transition hover:text-gold">
+              Open jobs
+            </Link>
+            <span aria-hidden className="mx-2 text-white/40">
+              /
+            </span>
+            <Link href={`/stilling/${encodeURIComponent(slug)}`} className="transition hover:text-gold">
+              {job.title}
+            </Link>
+            <span aria-hidden className="mx-2 text-white/40">
+              /
+            </span>
+            <span className="text-white/85">Apply</span>
+          </nav>
 
-      <p className="am-eyebrow mt-6 font-semibold uppercase tracking-[0.14em] text-gold">Application</p>
-      <h1 className="am-h1 mt-3 max-w-[820px] font-extrabold leading-tight tracking-tight text-navy">{job.title}</h1>
-      <p className="mt-4 max-w-prose text-text-secondary">
-        {(job.location ?? "").trim() ? `${job.location}. ` : ""}A recruiter reads every application. We answer by
-        email, whichever way the answer goes.
-      </p>
+          <p className="am-eyebrow mt-8 font-semibold uppercase tracking-[0.14em] text-gold">Application</p>
+          <h1 className="am-h-advert mt-3 max-w-[720px] font-extrabold text-white">{job.title}</h1>
+          <p className="mt-4 max-w-prose text-white/70">
+            {(job.location ?? "").trim() ? `${job.location}. ` : ""}A recruiter reads every application. We answer by
+            email, whichever way the answer goes.
+          </p>
+        </div>
+      </header>
 
-      <div className="mt-10">
-        {token ? (
-          <ApplyForm token={token} jobTitle={job.title} />
-        ) : (
-          /* An advert that closed between the list being drawn and this page
-             being opened, or a recruiter who is no longer active. Saying so is
-             better than a form that cannot be sent. */
-          <div className="rounded-2xl border border-border p-8">
-            <h2 className="text-xl font-bold text-navy">This position is not taking applications.</h2>
-            <p className="mt-3 max-w-prose text-text-secondary">
-              It may have just closed.{" "}
-              <Link href="/" className="font-semibold text-gold hover:underline">
-                See every open job
-              </Link>
-              .
-            </p>
-          </div>
-        )}
+      <div className="bg-white">
+        <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20">
+          {token ? (
+            <ApplyForm token={token} jobTitle={job.title} />
+          ) : (
+            /* An advert that closed between the list being drawn and this page
+               being opened, or a recruiter who is no longer active. Saying so is
+               better than a form that cannot be sent. */
+            <div className="max-w-2xl rounded-2xl border border-border bg-surface p-8">
+              <h2 className="text-xl font-bold text-navy">This position is not taking applications.</h2>
+              <p className="mt-3 max-w-prose text-text-secondary">
+                It may have just closed.{" "}
+                <Link
+                  href="/"
+                  className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4"
+                >
+                  See every open job
+                </Link>
+                .
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-    </main>
+    </article>
   );
 }

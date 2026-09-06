@@ -83,6 +83,153 @@ body {
     font-size: 11px;
     line-height: 1.3;
   }
+
+  /* An advert title is not a hero headline. 68px of am-h1 on a job title
+     pushed two words per line and the facts below the fold. */
+  .am-h-advert {
+    font-size: clamp(28px, 3.6vw, 44px);
+    line-height: 1.14;
+    letter-spacing: -0.02em;
+  }
+}
+
+/*
+ * Sanitised advert HTML, on a light sheet.
+ *
+ * The body of a job advert arrives from the ATS as h2 / p / ul that nothing
+ * styled: Tailwind's preflight had already stripped the browser's own heading
+ * sizes, list markers and margins, so every advert on /stilling rendered as one
+ * undifferentiated block of grey text with no bullets and no headings. This is
+ * the missing half. It is written for a white background and lives only inside
+ * the white sheet on the advert page.
+ */
+.am-prose {
+  color: #555555;
+  font-size: clamp(15px, 1.35vw, 17px);
+  line-height: 1.75;
+}
+
+.am-prose > *:first-child {
+  margin-top: 0;
+}
+
+.am-prose h2 {
+  margin: 2.5rem 0 0.85rem;
+  font-size: clamp(19px, 2vw, 23px);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: #0d1b2a;
+}
+
+.am-prose h3,
+.am-prose h4 {
+  margin: 1.75rem 0 0.5rem;
+  font-size: clamp(16px, 1.6vw, 18px);
+  font-weight: 700;
+  line-height: 1.35;
+  color: #0d1b2a;
+}
+
+.am-prose p {
+  margin: 0 0 1.05rem;
+}
+
+.am-prose ul,
+.am-prose ol {
+  margin: 0 0 1.35rem;
+  padding: 0;
+  list-style: none;
+}
+
+.am-prose ol {
+  counter-reset: am-prose-item;
+}
+
+.am-prose li {
+  position: relative;
+  margin-top: 0.55rem;
+  padding-left: 1.6rem;
+}
+
+.am-prose ul > li::before {
+  content: "";
+  position: absolute;
+  left: 0.3rem;
+  top: 0.72em;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #c9a84c;
+}
+
+.am-prose ol > li {
+  counter-increment: am-prose-item;
+}
+
+.am-prose ol > li::before {
+  content: counter(am-prose-item) ".";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #b8953f;
+}
+
+.am-prose li > ul,
+.am-prose li > ol {
+  margin: 0.4rem 0 0;
+}
+
+.am-prose strong,
+.am-prose b {
+  font-weight: 700;
+  color: #0d1b2a;
+}
+
+/* Gold is 2.1:1 on white and can never carry text there. On the sheet a link
+   is navy, and the gold is the underline. */
+.am-prose a {
+  color: #0d1b2a;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: #c9a84c;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.am-prose blockquote {
+  margin: 1.35rem 0;
+  border-left: 3px solid #c9a84c;
+  padding-left: 1rem;
+  color: #0d1b2a;
+}
+
+.am-prose hr {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid #e2e5ea;
+}
+
+.am-prose table {
+  width: 100%;
+  margin: 0 0 1.35rem;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+
+.am-prose th,
+.am-prose td {
+  border: 1px solid #e2e5ea;
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+}
+
+.am-prose th {
+  color: #0d1b2a;
+  font-weight: 700;
+  background: #f5f6f8;
 }
 
 /* /for-candidates - floating feedback pill (hidden on small viewports) */

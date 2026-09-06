@@ -162,7 +162,7 @@ export function ApplyForm({ token, jobTitle }: Props) {
           <Field name="phone" label="Phone" type="tel" required autoComplete="tel" />
           <label className="block">
             <span className="text-sm font-semibold text-navy">
-              Country on your passport<span className="text-gold"> *</span>
+              Country on your passport<span className="font-bold text-navy"> *</span>
             </span>
             <select
               name="nationality"
@@ -197,13 +197,13 @@ export function ApplyForm({ token, jobTitle }: Props) {
               words. */}
           <label className="block">
             <span className="text-sm font-semibold text-navy">
-              What you can do<span className="text-gold"> *</span>
+              What you can do<span className="font-bold text-navy"> *</span>
             </span>
             <input
               name="skills_text"
               required
               placeholder="Formwork, rebar, concrete finishing"
-              className="mt-1.5 block min-h-12 w-full rounded-lg border border-border px-3 text-navy outline-none focus:border-gold"
+              className="mt-1.5 block min-h-12 w-full rounded-lg border border-border bg-white px-3 text-navy outline-none focus:border-gold"
             />
             <span className="mt-1 block text-xs text-text-secondary">
               A few words, separated by commas. This is what a recruiter reads first.
@@ -215,7 +215,7 @@ export function ApplyForm({ token, jobTitle }: Props) {
               first thing a recruiter asks, so it belongs on the form anyway. */}
           <label className="block">
             <span className="text-sm font-semibold text-navy">
-              When can you start<span className="text-gold"> *</span>
+              When can you start<span className="font-bold text-navy"> *</span>
             </span>
             <select
               name="availability_type"
@@ -254,7 +254,13 @@ export function ApplyForm({ token, jobTitle }: Props) {
         </legend>
         <div className="mt-4 space-y-3">
           <Consent name="privacy_policy_accepted" required>
-            I have read the <a href="/privacy" className="font-semibold text-gold hover:underline">privacy notice</a>{" "}
+            I have read the{" "}
+            <a
+              href="/privacy"
+              className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4"
+            >
+              privacy notice
+            </a>{" "}
             and accept it.
           </Consent>
           <Consent name="recruitment_contact_consent" required>
@@ -275,7 +281,7 @@ export function ApplyForm({ token, jobTitle }: Props) {
       <button
         type="submit"
         disabled={state === "sending"}
-        className="mt-8 inline-flex min-h-12 items-center rounded-full bg-gold px-7 font-semibold text-navy transition hover:brightness-95 disabled:opacity-60"
+        className="mt-8 inline-flex min-h-12 items-center rounded-full bg-gold px-7 font-semibold text-navy transition hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy disabled:opacity-60"
       >
         {state === "sending" ? "Sending" : "Send application"}
       </button>
@@ -305,7 +311,7 @@ function Field({
     <label className="block">
       <span className="text-sm font-semibold text-navy">
         {label}
-        {required ? <span className="text-gold"> *</span> : null}
+        {required ? <span className="font-bold text-navy"> *</span> : null}
       </span>
       <input
         name={name}
@@ -313,7 +319,7 @@ function Field({
         required={required}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className="mt-1.5 block min-h-12 w-full rounded-lg border border-border px-3 text-navy outline-none focus:border-gold"
+        className="mt-1.5 block min-h-12 w-full rounded-lg border border-border bg-white px-3 text-navy outline-none focus:border-gold"
       />
     </label>
   );
@@ -338,7 +344,7 @@ function Consent({
       />
       <span>
         {children}
-        {required ? <span className="text-gold"> *</span> : null}
+        {required ? <span className="font-bold text-navy"> *</span> : null}
       </span>
     </label>
   );
