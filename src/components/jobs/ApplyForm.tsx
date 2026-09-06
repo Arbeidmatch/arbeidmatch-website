@@ -24,7 +24,13 @@ import { useRef, useState } from "react";
  * irritating check costs more than the spam it stops.
  */
 
-type Props = { token: string; jobTitle: string };
+/**
+ * `jobTitle` is optional because this same form is also how somebody registers
+ * with a recruiter rather than applying to one advert: the invitation link at
+ * /register/<name> has no job behind it, and the ATS accepts both through the
+ * same pipeline. What changes is one sentence of copy, not the form.
+ */
+type Props = { token: string; jobTitle?: string | null };
 
 const HONEYPOT = "company_website";
 const RENDERED_AT = "form_rendered_at";
@@ -130,8 +136,10 @@ export function ApplyForm({ token, jobTitle }: Props) {
       <div className="rounded-2xl border border-border p-8">
         <h2 className="text-xl font-bold text-navy">We have your application.</h2>
         <p className="mt-3 max-w-prose text-text-secondary">
-          A recruiter reads it and comes back to you by email. If it fits {jobTitle.toLowerCase()}, the next
-          step is a conversation, not another form.
+          A recruiter reads it and comes back to you by email.{" "}
+          {(jobTitle ?? "").trim()
+            ? `If it fits ${String(jobTitle).toLowerCase()}, the next step is a conversation, not another form.`
+            : "When something fits you, the next step is a conversation, not another form."}
         </p>
       </div>
     );
