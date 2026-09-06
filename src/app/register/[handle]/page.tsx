@@ -59,7 +59,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
   const invitation = await resolveInvitation(handle);
   const who = invitation?.recruiter_name;
-  const title = who ? `Register with ${who} | ArbeidMatch` : "Register | ArbeidMatch";
+  // The root layout appends " | ArbeidMatch" to every title, so this must not
+  // carry its own or the tab reads it twice - which it did, live, the minute
+  // the page went up.
+  const title = who ? `Register with ${who}` : "Register";
   const description = who
     ? `${who} at ArbeidMatch invites you to register. One form, a real person reading it, and work in Norway that matches what you have done.`
     : "Register with ArbeidMatch. One form, a real person reading it, and work in Norway that matches what you have done.";
