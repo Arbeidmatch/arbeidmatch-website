@@ -100,7 +100,7 @@ export default function ComingSoonCapture({ featureName, isOpen, onClose }: Comi
           type="button"
           aria-label="Close"
           onClick={onClose}
-          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center text-white/40 transition-colors duration-150 hover:text-white"
+          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center text-white/55 transition-colors duration-150 hover:text-white"
         >
           <X className="h-5 w-5" strokeWidth={1.75} />
         </button>
@@ -132,7 +132,7 @@ export default function ComingSoonCapture({ featureName, isOpen, onClose }: Comi
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Your email address"
-              className="w-full rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-[14px] py-2.5 text-[13px] text-white placeholder:text-white/40"
+              className="w-full rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-[14px] py-2.5 text-[13px] text-white placeholder:text-white/55"
             />
             <label className="mt-2 flex cursor-pointer items-start gap-2 text-[12px] text-white/[0.6]">
               <input

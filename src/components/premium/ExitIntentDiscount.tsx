@@ -96,7 +96,7 @@ export default function ExitIntentDiscount({ email }: { email: string }) {
           </Link>
           <button
             type="button"
-            className="mt-4 w-full text-center text-[13px] text-white/40"
+            className="mt-4 w-full text-center text-[13px] text-white/55"
             onClick={() => setOpen(false)}
           >
             Close

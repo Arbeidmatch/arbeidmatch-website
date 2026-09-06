@@ -9,7 +9,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import { trackEvent } from "@/lib/analytics";
 
 const inputClass =
-  "w-full rounded-lg border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.05)] px-4 py-3 text-[15px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[#C9A84C] focus:outline-none";
+  "w-full rounded-lg border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.05)] px-4 py-3 text-[15px] text-white placeholder:text-white/55 focus:border-[#C9A84C] focus:outline-none";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 const needsTurnstile = Boolean(TURNSTILE_SITE_KEY);
@@ -141,7 +141,7 @@ export default function ContactPageClient() {
                   {status === "submitting" ? "Sending…" : "Send message"}
                 </button>
 
-                <p className="mt-4 text-center text-[11px] leading-relaxed text-[rgba(255,255,255,0.45)]">
+                <p className="mt-4 text-center text-[11px] leading-relaxed text-white/60">
                   By sending this form you agree to our{" "}
                   <Link href="/privacy" className="text-[#C9A84C] underline-offset-2 hover:underline">
                     privacy policy
@@ -174,7 +174,7 @@ export default function ContactPageClient() {
           <ScrollReveal variant="fadeUp">
             <aside className="space-y-8 lg:pl-4">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[rgba(255,255,255,0.45)]">Email</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">Email</p>
                 {emailRevealed ? (
                   <a
                     href={`mailto:${EMAIL_USER}@${EMAIL_DOMAIN}`}
@@ -195,7 +195,7 @@ export default function ContactPageClient() {
                 )}
               </div>
               <div className="border-t border-[rgba(255,255,255,0.08)] pt-8">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[rgba(255,255,255,0.45)]">Address</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">Address</p>
                 <p className="mt-2 flex items-start gap-2 text-[15px] leading-relaxed text-[rgba(255,255,255,0.55)]">
                   <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#C9A84C]" strokeWidth={1.75} aria-hidden />
                   <span>Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway</span>

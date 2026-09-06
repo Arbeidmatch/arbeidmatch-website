@@ -131,11 +131,11 @@ export default function HomeWelcomeUserTypeSlideup() {
             <button
               type="button"
               onClick={dismissBrowse}
-              className="mt-5 w-full text-center text-sm font-medium text-white/40 underline-offset-2 transition hover:text-white/70"
+              className="mt-5 w-full text-center text-sm font-medium text-white/55 underline-offset-2 transition hover:text-white/70"
             >
               Just browsing
             </button>
-            <p className="mt-6 text-center text-xs leading-relaxed text-white/30">
+            <p className="mt-6 text-center text-xs leading-relaxed text-white/55">
               By continuing you agree to our{" "}
               <Link href="/privacy" className="text-white/50 underline-offset-2 hover:text-white/75 hover:underline">
                 Privacy Policy

@@ -4,7 +4,7 @@ import { useId } from "react";
 import { looksLikeNationalId } from "@/lib/cv/schema";
 
 const inputClass =
-  "w-full rounded border border-[#E2E5EA] bg-white px-3 py-2.5 text-[15px] text-[#0D1B2A] outline-none transition-colors placeholder:text-[#8A929C] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40";
+  "w-full rounded border border-[#E2E5EA] bg-white px-3 py-2.5 text-[15px] text-[#0D1B2A] outline-none transition-colors placeholder:text-[#5F6873] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40";
 
 interface BaseProps {
   label: string;
@@ -38,7 +38,7 @@ function FieldShell({
       {help || example ? (
         <p id={`${id}-help`} className="mb-1.5 text-[13px] leading-snug text-[#55616D]">
           {help}
-          {example ? <span className="block text-[#8A929C]">Example: {example}</span> : null}
+          {example ? <span className="block text-[#5F6873]">Example: {example}</span> : null}
         </p>
       ) : null}
       <div className="mt-auto" aria-describedby={describedBy || undefined}>
@@ -87,7 +87,7 @@ export function TextField({
         onChange={(event) => onChange(event.target.value)}
       />
       {idWarning ? (
-        <p className="mt-1 text-[13px] font-medium text-[#B26A00]" aria-live="polite">
+        <p className="mt-1 text-[13px] font-medium text-[#9C5C00]" aria-live="polite">
           Do not include your national identity number in a CV.
         </p>
       ) : null}
@@ -131,12 +131,12 @@ export function TextArea({
         onChange={(event) => onChange(event.target.value)}
       />
       {counter ? (
-        <p className="mt-1 text-right text-[12px] text-[#8A929C]" aria-live="polite">
+        <p className="mt-1 text-right text-[12px] text-[#5F6873]" aria-live="polite">
           {value.trim().length} characters
         </p>
       ) : null}
       {idWarning ? (
-        <p className="mt-1 text-[13px] font-medium text-[#B26A00]" aria-live="polite">
+        <p className="mt-1 text-[13px] font-medium text-[#9C5C00]" aria-live="polite">
           Do not include your national identity number in a CV.
         </p>
       ) : null}

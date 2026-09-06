@@ -208,6 +208,7 @@ export default function ElectriciansNorwayPage() {
               ))}
             </div>
             <SourceDisclaimer
+              variant="dark"
               className="mt-4 text-left"
               text="Salary ranges are general market estimates based on collective agreements and publicly available sources. Actual pay depends on qualifications, employer, project type, and individual negotiation. ArbeidMatch is not responsible for salary outcomes."
               sourceLabel="Source: Arbeidstilsynet.no"
@@ -271,7 +272,7 @@ export default function ElectriciansNorwayPage() {
             >
               Register your profile
             </a>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 12, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.62)", marginTop: 12, lineHeight: 1.6 }}>
               You will be redirected to our job portal to create your candidate profile.
             </p>
           </div>

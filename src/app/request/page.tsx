@@ -252,7 +252,7 @@ function PremiumIndustryCard({
         <div>
           <p className={`text-base tracking-tight ${selected ? "font-semibold text-white" : "font-semibold text-white/90"}`}>{industry}</p>
           {candidateCount === null ? (
-            <p className="mt-1 text-sm text-white/40">...</p>
+            <p className="mt-1 text-sm text-white/55">...</p>
           ) : candidateCount === 0 ? (
             <p className="mt-1 text-sm text-white/60">Sourced on request</p>
           ) : (
@@ -1198,12 +1198,12 @@ export default function RequestPage() {
                       </button>
                     </div>
                     <div className="relative">
-                      <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                      <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/55" />
                       <input
                         value={roleQuery}
                         onChange={(event) => setRoleQuery(event.target.value)}
                         placeholder="Search for a role..."
-                        className="w-full rounded-xl border border-white/10 bg-[#0D1B2A] py-3 pl-11 pr-4 text-white placeholder:text-white/30 outline-none ring-0 transition-[border,box-shadow] duration-200 focus:border-[#C9A84C]/60 focus:shadow-[0_0_0_3px_rgba(201,168,76,0.14)]"
+                        className="w-full rounded-xl border border-white/10 bg-[#0D1B2A] py-3 pl-11 pr-4 text-white placeholder:text-white/55 outline-none ring-0 transition-[border,box-shadow] duration-200 focus:border-[#C9A84C]/60 focus:shadow-[0_0_0_3px_rgba(201,168,76,0.14)]"
                       />
                     </div>
                   </div>
@@ -1238,7 +1238,7 @@ export default function RequestPage() {
                           >
                             <span className="block font-medium">{role}</span>
                             {rc === null || rc === undefined ? (
-                              <span className="mt-1 block text-xs text-white/40">...</span>
+                              <span className="mt-1 block text-xs text-white/55">...</span>
                             ) : rc === 0 ? (
                               <span className="mt-1 block text-xs text-white/55">Sourced on request</span>
                             ) : (
@@ -1251,7 +1251,7 @@ export default function RequestPage() {
                       })}
                     </motion.div>
                   ) : (
-                    <p className="mt-4 text-sm text-[rgba(255,255,255,0.4)]">No roles found. Try a different search.</p>
+                    <p className="mt-4 text-sm text-white/55">No roles found. Try a different search.</p>
                   )}
                 </motion.div>
               )}
@@ -1330,7 +1330,7 @@ export default function RequestPage() {
                       if (otpError) setOtpError("");
                     }}
                     placeholder="000000"
-                    className="h-11 w-full rounded-[4px] border border-[#0D1B2A]/30 bg-[#0D1B2A] px-3 text-center text-lg tracking-[0.35em] text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]"
+                    className="h-11 w-full rounded-[4px] border border-[#0D1B2A]/30 bg-[#0D1B2A] px-3 text-center text-lg tracking-[0.35em] text-white outline-none transition-colors placeholder:text-white/55 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]"
                   />
                   {otpError ? <p className="text-sm text-red-400">{otpError}</p> : null}
                   <button
@@ -1374,7 +1374,7 @@ export default function RequestPage() {
                         if (getStartedError) setGetStartedError("");
                       }}
                       placeholder="your@company.com"
-                      className="h-11 w-full rounded-[4px] border border-[#0D1B2A]/30 bg-[#0D1B2A] px-3 text-sm text-white outline-none transition-colors placeholder:text-white/35 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]"
+                      className="h-11 w-full rounded-[4px] border border-[#0D1B2A]/30 bg-[#0D1B2A] px-3 text-sm text-white outline-none transition-colors placeholder:text-white/55 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]"
                     />
                     <label className="flex cursor-pointer items-start gap-3 text-sm text-white/85">
                       <input
@@ -1475,7 +1475,7 @@ export default function RequestPage() {
                         <button
                           type="button"
                           disabled
-                          className="inline-flex h-12 w-full cursor-not-allowed items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/30"
+                          className="inline-flex h-12 w-full cursor-not-allowed items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/55"
                         >
                           Coming Soon
                         </button>
@@ -1607,13 +1607,13 @@ export default function RequestPage() {
                         <p className="mt-2 text-[14px] leading-[1.7] text-[rgba(255,255,255,0.55)]">
                           You will be among the first to know when this launches. We are building something worth waiting for.
                         </p>
-                        <p className="mt-4 text-[12px] text-[rgba(255,255,255,0.3)]">
+                        <p className="mt-4 text-[12px] text-white/55">
                           We will reach out directly when access becomes available.
                         </p>
                       </div>
                     ) : (
                       <div className="mt-8 flex flex-col gap-4">
-                        <label className="block text-left text-[11px] font-semibold uppercase tracking-[0.1em] text-white/40">
+                        <label className="block text-left text-[11px] font-semibold uppercase tracking-[0.1em] text-white/55">
                           Work email
                         </label>
                         <input
@@ -1622,14 +1622,14 @@ export default function RequestPage() {
                           onChange={(event) => setNotifyEmail(event.target.value)}
                           placeholder="yourname@company.no"
                           autoComplete="email"
-                          className="w-full rounded-[14px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.05)] px-5 py-4 text-[15px] text-white outline-none ring-0 transition-[border-color,background-color] placeholder:text-white/35 focus:border-[#C9A84C] focus:bg-[rgba(255,255,255,0.07)]"
+                          className="w-full rounded-[14px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.05)] px-5 py-4 text-[15px] text-white outline-none ring-0 transition-[border-color,background-color] placeholder:text-white/55 focus:border-[#C9A84C] focus:bg-[rgba(255,255,255,0.07)]"
                         />
                         <button
                           type="button"
                           onClick={() => void submitFeatureWaitlist()}
                           disabled={!notifyEmail.includes("@") || notifyStatus === "submitting" || !waitlistCanResend}
                           className={`min-h-[52px] w-full rounded-[12px] px-5 py-3.5 text-[15px] font-bold ${
-                            waitlistCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+                            waitlistCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/55 cursor-not-allowed"
                           }`}
                         >
                           {notifyStatus === "submitting" ? "Sending..." : waitlistCountdown > 0 ? `Resend in ${waitlistCountdown}s` : "Resend email"}
@@ -1681,7 +1681,7 @@ export default function RequestPage() {
                 setShowLeaveDialog(false);
               }}
               aria-label="Close leave dialog"
-              className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.9)]"
+              className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-white/55 transition-colors hover:text-[rgba(255,255,255,0.9)]"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
                 <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -1761,7 +1761,7 @@ export default function RequestPage() {
                 setAccessErrorMessage("");
               }}
               aria-label="Close partner verification modal"
-              className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.9)]"
+              className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-white/55 transition-colors hover:text-[rgba(255,255,255,0.9)]"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
                 <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -1791,7 +1791,7 @@ export default function RequestPage() {
                   <span className="dot dot-2">.</span>
                   <span className="dot dot-3">.</span>
                 </p>
-                <p className="mt-2 text-[13px] leading-[1.6] text-[rgba(255,255,255,0.45)]">
+                <p className="mt-2 text-[13px] leading-[1.6] text-white/60">
                   We are verifying your company against our partner registry.
                 </p>
                 <div className="mt-6 h-[2px] w-full rounded-full bg-[rgba(255,255,255,0.08)]">
@@ -1823,7 +1823,7 @@ export default function RequestPage() {
                       if (otpError) setOtpError("");
                     }}
                     placeholder="000000"
-                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-center text-lg tracking-[0.35em] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
+                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-center text-lg tracking-[0.35em] text-[15px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
                   />
                   {otpError ? <p className="text-center text-sm text-red-300">{otpError}</p> : null}
                   <button
@@ -1898,7 +1898,7 @@ export default function RequestPage() {
                     value={accessEmail}
                     onChange={(event) => setAccessEmail(event.target.value)}
                     placeholder="your@company.com"
-                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
+                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
                   />
                   {otpError && partnerOtpStep === "email" ? (
                     <p className="text-center text-sm text-red-300">{otpError}</p>
@@ -1909,13 +1909,13 @@ export default function RequestPage() {
                     className={`w-full rounded-[12px] px-5 py-3 text-sm font-bold ${
                       verifyCanResend && accessEmail.includes("@")
                         ? "bg-[#C9A84C] text-[#0D1B2A]"
-                        : "cursor-not-allowed bg-white/10 text-white/30"
+                        : "cursor-not-allowed bg-white/10 text-white/55"
                     }`}
                   >
                     {verifyCountdown > 0 ? `Resend in ${verifyCountdown}s` : "Send code →"}
                   </button>
                 </form>
-                <p className="text-center text-xs leading-relaxed text-white/45">
+                <p className="text-center text-xs leading-relaxed text-white/60">
                   Not yet a partner? Apply at{" "}
                   <a
                     href="https://www.arbeidmatch.no/recruiter-network"
@@ -1952,7 +1952,7 @@ export default function RequestPage() {
                 setShowPartnerApplicationModal(false);
               }}
               aria-label="Close partner application modal"
-              className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.9)]"
+              className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-white/55 transition-colors hover:text-[rgba(255,255,255,0.9)]"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
                 <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -1968,8 +1968,8 @@ export default function RequestPage() {
                 <p className="mt-2 text-[14px] leading-[1.6] text-[rgba(255,255,255,0.55)]">
                   We sent a link to complete your application.
                 </p>
-                <p className="mt-2 text-[13px] leading-[1.6] text-[rgba(255,255,255,0.45)]">{partnerApplicationEmail}</p>
-                <p className="mt-4 text-[12px] text-[rgba(255,255,255,0.35)]">Emails may take up to 5 minutes.</p>
+                <p className="mt-2 text-[13px] leading-[1.6] text-white/60">{partnerApplicationEmail}</p>
+                <p className="mt-4 text-[12px] text-white/55">Emails may take up to 5 minutes.</p>
               </div>
             ) : (
               <>
@@ -1986,7 +1986,7 @@ export default function RequestPage() {
                     value={partnerApplicationEmail}
                     onChange={(event) => setPartnerApplicationEmail(event.target.value)}
                     placeholder="you@company.no"
-                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
+                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
                   />
                   {partnerApplicationError ? (
                     <div className="mt-3">
@@ -2002,7 +2002,7 @@ export default function RequestPage() {
                     type="submit"
                     disabled={!partnerApplicationEmail.includes("@") || partnerApplicationStatus === "submitting" || !partnerApplicationCanResend}
                     className={`mt-3 w-full rounded-[12px] px-5 py-3 text-sm font-bold ${
-                      partnerApplicationCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/30 cursor-not-allowed"
+                      partnerApplicationCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/55 cursor-not-allowed"
                     }`}
                   >
                     {partnerApplicationStatus === "submitting"

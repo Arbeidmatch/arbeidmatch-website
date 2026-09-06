@@ -165,7 +165,7 @@ export default async function StillingPage({ params }: Props) {
             <Link href="/" className="transition hover:text-gold">
               Open jobs
             </Link>
-            <span aria-hidden className="mx-2 text-white/40">
+            <span aria-hidden className="mx-2 text-white/55">
               /
             </span>
             <span className="text-white/85">{job.title}</span>

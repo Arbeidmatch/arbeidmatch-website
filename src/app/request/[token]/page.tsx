@@ -646,7 +646,7 @@ const fieldErrorTextClass = "mt-1 text-[12px] text-[#ef4444]";
 
 function wizardInputClass(invalid: boolean, extraClass = "") {
   return [
-    "w-full min-h-[44px] rounded-[12px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/30",
+    "w-full min-h-[44px] rounded-[12px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/55",
     "focus:outline-none focus:border-2 focus:border-[#C9A84C]",
     invalid ? "border-2 border-[#ef4444]" : "border border-white/10",
     extraClass,
@@ -1508,7 +1508,7 @@ export default function RequestTokenPage() {
                       value={partnerEmail}
                       onChange={(event) => setPartnerEmail(event.target.value)}
                       placeholder="you@company.com"
-                      className="w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                      className="w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/60 focus:outline-none"
                     />
                     <button
                       type="button"
@@ -1600,12 +1600,12 @@ export default function RequestTokenPage() {
                         </div>
                       ) : (
                         <>
-                          <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.4)]">Type to search or select from the list</p>
+                          <p className="mt-2 text-[13px] text-white/55">Type to search or select from the list</p>
                           <input
                             value={roleQuery}
                             onChange={(event) => setRoleQuery(event.target.value)}
                             placeholder="Search for a role..."
-                            className="mt-4 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                            className="mt-4 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/60 focus:outline-none"
                           />
                           {filteredRoles.length > 0 ? (
                             <div className="mt-4 flex flex-wrap gap-[10px]">
@@ -1632,7 +1632,7 @@ export default function RequestTokenPage() {
                               ))}
                             </div>
                           ) : (
-                            <p className="mt-4 text-sm text-[rgba(255,255,255,0.4)]">No roles found. Try a different search.</p>
+                            <p className="mt-4 text-sm text-white/55">No roles found. Try a different search.</p>
                           )}
                         </>
                       )}
@@ -1647,7 +1647,7 @@ export default function RequestTokenPage() {
                   <span className={`h-12 w-12 rounded-full border-[3px] border-[rgba(201,168,76,0.2)] border-t-[#C9A84C] ${reducedMotion ? "" : "animate-[spin_1s_linear_infinite]"}`} />
                   <p className="mt-5 text-sm text-[rgba(255,255,255,0.7)]">{SEARCH_MESSAGES[searchMessageIndex]}</p>
                   <div className="mx-auto mt-5 h-px w-[120px] bg-[rgba(201,168,76,0.1)]" />
-                  <p className="mt-5 text-center text-[12px] text-[rgba(255,255,255,0.35)]">This search takes a moment.</p>
+                  <p className="mt-5 text-center text-[12px] text-white/55">This search takes a moment.</p>
                   <button
                     type="button"
                     onClick={() => {
@@ -1714,7 +1714,7 @@ export default function RequestTokenPage() {
                       setSearchTerm("");
                       setCheckCount(0);
                     }}
-                    className="mx-auto mt-4 block cursor-pointer text-center text-[13px] text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.7)]"
+                    className="mx-auto mt-4 block cursor-pointer text-center text-[13px] text-white/55 transition-colors hover:text-[rgba(255,255,255,0.7)]"
                   >
                     Search another role
                   </button>
@@ -1799,7 +1799,7 @@ export default function RequestTokenPage() {
                           value={notifyEmail}
                           onChange={(event) => setNotifyEmail(event.target.value)}
                           placeholder="you@example.com"
-                          className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[#0D1B2A] px-3 py-2 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                          className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[#0D1B2A] px-3 py-2 text-sm text-white placeholder:text-white/60 focus:outline-none"
                         />
                         <button
                           type="button"
@@ -2087,7 +2087,7 @@ export default function RequestTokenPage() {
                 <div>
                   <p className={labelClass}>
                     Hiring type{" "}
-                    <span className="font-normal normal-case tracking-normal text-white/40">(optional)</span>
+                    <span className="font-normal normal-case tracking-normal text-white/55">(optional)</span>
                   </p>
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                     {["Recruitment of personnel for companies", "Temporary staffing request"].map((option) => (
@@ -2098,7 +2098,7 @@ export default function RequestTokenPage() {
                 <div>
                   <p className={labelClass}>
                     Job summary{" "}
-                    <span className="font-normal normal-case tracking-normal text-white/40">(optional)</span>
+                    <span className="font-normal normal-case tracking-normal text-white/55">(optional)</span>
                   </p>
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                     {["General hiring inquiry", "Urgent replacement need", "Planned team expansion", "Project-specific hiring"].map((option) => (
@@ -2374,7 +2374,7 @@ export default function RequestTokenPage() {
                       {fieldErrors.salaryMax ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                     </div>
                   </div>
-                  <p className="text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  <p className="text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.62)" }}>
                     Must meet Arbeidstilsynet minimum wage requirements
                   </p>
                 </div>
@@ -2557,7 +2557,7 @@ export default function RequestTokenPage() {
                 <div>
                   <p className={labelClass}>
                     Driving license{" "}
-                    <span className="font-normal normal-case tracking-normal text-white/40">(optional)</span>
+                    <span className="font-normal normal-case tracking-normal text-white/55">(optional)</span>
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {NORWEGIAN_DRIVING_LICENSE_CLASSES.map((cls) => {
@@ -2600,7 +2600,7 @@ export default function RequestTokenPage() {
                     <div key={key}>
                       <p className={labelClass}>
                         {label}{" "}
-                        <span className="font-normal normal-case tracking-normal text-white/40">(optional)</span>
+                        <span className="font-normal normal-case tracking-normal text-white/55">(optional)</span>
                       </p>
                       <div className="flex gap-2">
                         {(["Yes", "No"] as const).map((value) => (

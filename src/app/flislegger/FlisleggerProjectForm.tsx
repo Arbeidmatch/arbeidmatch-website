@@ -97,7 +97,7 @@ export function FlisleggerProjectForm() {
       </div>
       <label className="mt-4 block text-sm font-medium text-white/75">
         Fortell kort om prosjektet
-        <textarea name="project" required minLength={10} rows={4} placeholder="For eksempel: totalrenovering av bad, ca. 8 m²" className="mt-2 w-full rounded-[12px] border border-white/20 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-white/35 focus:border-[#1d9e75]" />
+        <textarea name="project" required minLength={10} rows={4} placeholder="For eksempel: totalrenovering av bad, ca. 8 m²" className="mt-2 w-full rounded-[12px] border border-white/20 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-white/55 focus:border-[#1d9e75]" />
       </label>
       <label className="mt-5 flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-white/70">
         <input name="privacy" value="accepted" required type="checkbox" className="mt-1 h-5 w-5 shrink-0 accent-[#1d9e75]" />
@@ -108,11 +108,11 @@ export function FlisleggerProjectForm() {
         <span>Ja takk, jeg vil motta nyheter, prosjektinspirasjon og relevante tilbud på e-post. Valgfritt, og kan trekkes tilbake når som helst.</span>
       </label>
       {error ? <p className="mt-3 text-sm text-white">{error}</p> : null}
-      <button disabled={busy} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#1d9e75] px-6 font-semibold text-white hover:brightness-110 disabled:opacity-60">
+      <button disabled={busy} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#157a59] px-6 font-semibold text-white hover:brightness-110 disabled:opacity-60">
         {busy ? "Sender..." : "Be om gratis vurdering"}
         {!busy ? <ArrowRight className="h-4 w-4" aria-hidden="true" /> : null}
       </button>
-      <p className="mt-4 text-center text-xs text-white/45">Uforpliktende. Vi deler ikke opplysningene dine med andre.</p>
+      <p className="mt-4 text-center text-xs text-white/60">Uforpliktende. Vi deler ikke opplysningene dine med andre.</p>
     </form>
   );
 }

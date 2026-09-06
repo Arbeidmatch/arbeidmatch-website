@@ -85,7 +85,7 @@ export default function ScrollProgressCTA({ pathname }: { pathname: string }) {
             type="button"
             onClick={dismiss}
             aria-label="Close"
-            className="absolute right-1 top-1 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-white/45 transition-all duration-300 hover:bg-white/10 hover:text-white"
+            className="absolute right-1 top-1 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-white/60 transition-all duration-300 hover:bg-white/10 hover:text-white"
           >
             <X size={16} />
           </button>

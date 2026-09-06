@@ -13,7 +13,7 @@ export default function BemanningHorecaPage() {
   return (
     <article className="bg-white">
       <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
-        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Bemanning HoReCa</p>
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold-ink">Bemanning HoReCa</p>
         <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
           Bemanning HoReCa når gjesteøkningen kommer over natta
         </h1>
@@ -27,11 +27,11 @@ export default function BemanningHorecaPage() {
             Vi kartlegger skift, språk i møte med gjester og mattrygghet. Kandidater presenteres med tydelig erfaring
             fra tilsvarende miljø. Målet er forutsigbar bemanning som kan skaleres - uten å love ubegrenset kapasitet i
             alle topper. Les mer om{" "}
-            <Link href="/for-employers" className="font-medium text-gold hover:underline">
+            <Link href="/for-employers" className="font-medium text-gold-ink hover:underline">
               arbeidsgiverløsning
             </Link>{" "}
             eller send{" "}
-            <Link href="/request" className="font-medium text-gold hover:underline">
+            <Link href="/request" className="font-medium text-gold-ink hover:underline">
               forespørsel
             </Link>
             .
@@ -64,13 +64,13 @@ export default function BemanningHorecaPage() {
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
           <Link
             href="/request"
-            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
+            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-gold-hover sm:w-auto"
           >
             Planlegg bemanning
           </Link>
           <Link
             href="/contact"
-            className="inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center text-sm font-semibold text-gold underline sm:w-auto"
+            className="inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center text-sm font-semibold text-gold-ink underline sm:w-auto"
           >
             Kontakt oss
           </Link>

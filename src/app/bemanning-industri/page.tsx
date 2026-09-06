@@ -13,7 +13,7 @@ export default function BemanningIndustriPage() {
   return (
     <article className="bg-white">
       <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
-        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Bemanning industri</p>
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold-ink">Bemanning industri</p>
         <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
           Bemanning industri for linjestopp som ikke kan vente
         </h1>
@@ -28,11 +28,11 @@ export default function BemanningIndustriPage() {
             erfaring fra tilsvarende miljø. Når prosjektet krever dokumentasjon mot internkontroll, hjelper vi med å
             strukturere informasjonen slik at verksleder og HMS får det de trenger. Vi tilstreber ryddige prosesser og
             viser vei til{" "}
-            <Link href="/request" className="font-medium text-gold hover:underline">
+            <Link href="/request" className="font-medium text-gold-ink hover:underline">
               kapasitetsavklaring
             </Link>{" "}
             og{" "}
-            <Link href="/for-employers" className="font-medium text-gold hover:underline">
+            <Link href="/for-employers" className="font-medium text-gold-ink hover:underline">
               arbeidsgiverinformasjon
             </Link>
             .
@@ -74,13 +74,13 @@ export default function BemanningIndustriPage() {
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
           <Link
             href="/request"
-            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
+            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-gold-hover sm:w-auto"
           >
             Avklar kapasitet
           </Link>
           <Link
             href="/contact"
-            className="inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center text-sm font-semibold text-gold underline sm:w-auto"
+            className="inline-flex min-h-[48px] w-full min-w-[44px] items-center justify-center text-sm font-semibold text-gold-ink underline sm:w-auto"
           >
             Kontakt
           </Link>

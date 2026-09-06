@@ -24,7 +24,7 @@ export default function BemanningByggAnleggNb() {
     <article className="bg-white">
       <header className="border-b border-border bg-surface">
         <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
-          <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Construction staffing</p>
+          <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold-ink">Construction staffing</p>
           <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold leading-tight tracking-tight text-navy">
             Construction and site staffing with verified EU/EEA talent
           </h1>
@@ -37,7 +37,7 @@ export default function BemanningByggAnleggNb() {
             Norwegian construction projects must balance delivery speed, safety, and skilled workforce availability.
             ArbeidMatch connects employers with pre-screened EU/EEA candidates where documentation and expectations are
             clarified early. We keep communication clear around{" "}
-            <Link href="/for-employers" className="font-medium text-gold hover:underline">
+            <Link href="/for-employers" className="font-medium text-gold-ink hover:underline">
               employer requirements
             </Link>{" "}
             and what we document on each assignment.
@@ -45,11 +45,11 @@ export default function BemanningByggAnleggNb() {
           <p>
             When you need international construction workers, we assess trade fit, certifications, and language needs.
             Our goal is quality matching, not volume. For regulated roles (for example electricians), see{" "}
-            <Link href="/electricians-norway" className="font-medium text-gold hover:underline">
+            <Link href="/electricians-norway" className="font-medium text-gold-ink hover:underline">
               electricians in Norway
             </Link>{" "}
             where relevant. Start with a staffing brief via{" "}
-            <Link href="/request" className="font-medium text-gold hover:underline">
+            <Link href="/request" className="font-medium text-gold-ink hover:underline">
               request form
             </Link>
             .
@@ -162,7 +162,7 @@ export default function BemanningByggAnleggNb() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
             <Link
               href="/request"
-              className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-white hover:bg-gold-hover sm:w-auto"
+              className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-navy hover:bg-gold-hover sm:w-auto"
             >
               Request candidates
             </Link>

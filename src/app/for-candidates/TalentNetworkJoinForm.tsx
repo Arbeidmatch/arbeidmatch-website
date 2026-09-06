@@ -71,7 +71,7 @@ export default function TalentNetworkJoinForm() {
         placeholder="Your email"
         value={email}
         onChange={(ev) => setEmail(ev.target.value)}
-        className="min-h-[48px] w-full rounded-lg border border-[rgba(201,168,76,0.25)] bg-[rgba(255,255,255,0.05)] px-4 text-[15px] text-white placeholder:text-white/40 focus:border-[#C9A84C] focus:outline-none focus:ring-0"
+        className="min-h-[48px] w-full rounded-lg border border-[rgba(201,168,76,0.25)] bg-[rgba(255,255,255,0.05)] px-4 text-[15px] text-white placeholder:text-white/55 focus:border-[#C9A84C] focus:outline-none focus:ring-0"
       />
 
       <label className="flex cursor-pointer gap-3 text-sm leading-relaxed text-white/80">

@@ -161,13 +161,13 @@ export default function BecomePartnerClient({ initialEmail, token }: Props) {
   return (
     <section className="min-h-dvh bg-[#0D1B2A] px-6 py-20 text-white">
       <div className="mx-auto max-w-[620px] rounded-[18px] border border-[rgba(201,168,76,0.2)] border-t-2 border-t-[rgba(201,168,76,0.45)] bg-[rgba(255,255,255,0.03)] p-8">
-        <p className="text-[11px] uppercase tracking-[0.12em] text-[rgba(255,255,255,0.45)]">Partner application</p>
+        <p className="text-[11px] uppercase tracking-[0.12em] text-white/60">Partner application</p>
         <h1 className="mt-2 text-[30px] font-bold text-white">Complete your company details</h1>
         <p className="mt-2 text-[14px] text-[rgba(255,255,255,0.58)]">This application is used for partner approval and secure platform access.</p>
 
         <form onSubmit={handleSubmit} className="mt-7 space-y-4">
           <div>
-            <label className="mb-1.5 block text-[12px] text-[rgba(255,255,255,0.45)]">Company email</label>
+            <label className="mb-1.5 block text-[12px] text-white/60">Company email</label>
             <input
               type="email"
               readOnly
@@ -177,7 +177,7 @@ export default function BecomePartnerClient({ initialEmail, token }: Props) {
           </div>
 
           <div className="relative">
-            <label className="mb-1.5 block text-[12px] text-[rgba(255,255,255,0.45)]">Company name</label>
+            <label className="mb-1.5 block text-[12px] text-white/60">Company name</label>
             <input
               type="text"
               value={companyQuery}
@@ -192,7 +192,7 @@ export default function BecomePartnerClient({ initialEmail, token }: Props) {
                 setShowSuggestions(true);
               }}
               placeholder="Search company in Bronnoysund register..."
-              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
             />
             {showSuggestions && companySuggestions.length > 0 ? (
               <div className="absolute z-20 mt-1 w-full rounded-[10px] border border-[rgba(201,168,76,0.25)] bg-[#102033] p-1">
@@ -215,15 +215,15 @@ export default function BecomePartnerClient({ initialEmail, token }: Props) {
               </div>
             ) : null}
             {companyLookupStatus === "loading" ? (
-              <p className="mt-1 text-[12px] text-[rgba(255,255,255,0.45)]">Searching register...</p>
+              <p className="mt-1 text-[12px] text-white/60">Searching register...</p>
             ) : null}
             {companyLookupStatus === "error" ? (
-              <p className="mt-1 text-[12px] text-[rgba(255,255,255,0.45)]">Could not load register results. Please try again.</p>
+              <p className="mt-1 text-[12px] text-white/60">Could not load register results. Please try again.</p>
             ) : null}
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[12px] text-[rgba(255,255,255,0.45)]">Org number</label>
+            <label className="mb-1.5 block text-[12px] text-white/60">Org number</label>
             <input
               type="text"
               value={orgNumber}
@@ -233,42 +233,42 @@ export default function BecomePartnerClient({ initialEmail, token }: Props) {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[12px] text-[rgba(255,255,255,0.45)]">First name</label>
+            <label className="mb-1.5 block text-[12px] text-white/60">First name</label>
             <input
               type="text"
               value={firstName}
               onChange={(event) => setFirstName(event.target.value)}
-              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[12px] text-[rgba(255,255,255,0.45)]">Last name</label>
+            <label className="mb-1.5 block text-[12px] text-white/60">Last name</label>
             <input
               type="text"
               value={lastName}
               onChange={(event) => setLastName(event.target.value)}
-              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[12px] text-[rgba(255,255,255,0.45)]">Role in company</label>
+            <label className="mb-1.5 block text-[12px] text-white/60">Role in company</label>
             <input
               type="text"
               value={role}
               onChange={(event) => setRole(event.target.value)}
-              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[12px] text-[rgba(255,255,255,0.45)]">Phone</label>
+            <label className="mb-1.5 block text-[12px] text-white/60">Phone</label>
             <input
               type="text"
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
-              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+              className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
             />
           </div>
 

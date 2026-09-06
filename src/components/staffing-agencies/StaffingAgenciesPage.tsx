@@ -115,7 +115,7 @@ export default function StaffingAgenciesPage() {
           </ul>
           <Link
             href="/contact"
-            className="btn-gold-premium mt-10 inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md bg-gold px-8 py-3 text-sm font-semibold text-white hover:bg-gold-hover sm:w-auto"
+            className="btn-gold-premium mt-10 inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md bg-gold px-8 py-3 text-sm font-semibold text-navy hover:bg-gold-hover sm:w-auto"
           >
             Ta kontakt for et partnerskap
           </Link>

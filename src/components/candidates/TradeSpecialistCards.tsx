@@ -117,7 +117,7 @@ function InlineSignup({
                   setClientError(null);
                 }}
                 placeholder="Your email address"
-                className="box-border w-full min-w-0 rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-[14px] py-2.5 text-[13px] text-white placeholder:text-white/40"
+                className="box-border w-full min-w-0 rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-[14px] py-2.5 text-[13px] text-white placeholder:text-white/55"
                 autoComplete="email"
               />
               <label className="mt-2 flex cursor-pointer items-start gap-2">
@@ -131,7 +131,7 @@ function InlineSignup({
                   className="mt-0.5 h-4 min-h-[16px] w-4 min-w-[16px] shrink-0 rounded border-white/20 bg-transparent"
                   style={{ accentColor: GOLD }}
                 />
-                <span className="text-[11px] leading-[1.5] text-white/[0.5]">
+                <span className="text-[11px] leading-[1.5] text-white/[0.6]">
                   I agree to receive job-related emails from ArbeidMatch. I have read and accept the{" "}
                   <Link href="/privacy" className="text-[#C9A84C] underline">
                     Privacy Policy
@@ -352,7 +352,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
             <button
               type="button"
               onClick={() => navigate("initial", "back")}
-              className="mb-6 flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-[12px] text-white/[0.3]"
+              className="mb-6 flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-[12px] text-white/[0.55]"
             >
               <ArrowLeft size={12} aria-hidden />
               Back
@@ -410,7 +410,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
             <button
               type="button"
               onClick={() => navigate("initial", "back")}
-              className="mb-6 flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-[12px] text-white/[0.3]"
+              className="mb-6 flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-[12px] text-white/[0.55]"
             >
               <ArrowLeft size={12} aria-hidden />
               Back
@@ -467,7 +467,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
               </svg>
             </button>
           </div>
-          <p className="mt-4 text-center text-[11px] italic text-white/[0.3]">
+          <p className="mt-4 text-center text-[11px] italic text-white/[0.55]">
             Not sure? Check if your country is in the EU/EEA on{" "}
             <a
               href="https://european-union.europa.eu/principles-countries-history/country-profiles_en"
@@ -480,7 +480,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
             </a>
           </p>
           <div className="mt-6">
-            <Link href="/electricians-norway" className="text-[12px] text-white/[0.4] underline underline-offset-2">
+            <Link href="/electricians-norway" className="text-[12px] text-white/[0.55] underline underline-offset-2">
               Learn more about working as an electrician in Norway
             </Link>
           </div>
@@ -551,7 +551,7 @@ function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
             <button
               type="button"
               onClick={() => navigate("initial", "back")}
-              className="mb-6 flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-[12px] text-white/[0.3]"
+              className="mb-6 flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-[12px] text-white/[0.55]"
             >
               <ArrowLeft size={12} aria-hidden />
               Back
@@ -567,7 +567,7 @@ function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
               ISO 9606 certified welders are in high demand at Norwegian shipyards. Transport and accommodation are typically
               part of the package. Many employers confirm details before signing. We work to connect you with active openings.
             </p>
-            <p className="mt-2 text-[11px] italic leading-snug text-white/[0.4]">
+            <p className="mt-2 text-[11px] italic leading-snug text-white/[0.55]">
               Typical range: 280 to 330 NOK per hour. Rotation: 4 weeks on, 2 weeks home or 6 weeks on, 2 weeks home. Verify
               specifics with each employer.
             </p>
@@ -613,7 +613,7 @@ function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
             <button
               type="button"
               onClick={() => navigate("initial", "back")}
-              className="mb-6 flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-[12px] text-white/[0.3]"
+              className="mb-6 flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-[12px] text-white/[0.55]"
             >
               <ArrowLeft size={12} aria-hidden />
               Back

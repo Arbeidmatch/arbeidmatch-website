@@ -13,7 +13,7 @@ export default function BemanningRenholdPage() {
   return (
     <article className="bg-white">
       <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
-        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Bemanning renhold</p>
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold-ink">Bemanning renhold</p>
         <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
           Bemanning renhold med fokus på kvalitet og trygghet
         </h1>
@@ -27,7 +27,7 @@ export default function BemanningRenholdPage() {
             Vi avklarer arbeidstid, transport og språkbehov tidlig. Bemanning renhold skal være forutsigbar: faste team
             der det er behov, og fleksible vikarer når topper oppstår. Vi hjelper dere å finne riktig balanse og viser vei
             til{" "}
-            <Link href="/request" className="font-medium text-gold hover:underline">
+            <Link href="/request" className="font-medium text-gold-ink hover:underline">
               forespørsel
             </Link>{" "}
             når dere er klare.
@@ -66,7 +66,7 @@ export default function BemanningRenholdPage() {
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
           <Link
             href="/request"
-            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
+            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-gold-hover sm:w-auto"
           >
             Få tilbud
           </Link>

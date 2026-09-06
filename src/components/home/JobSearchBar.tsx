@@ -73,7 +73,7 @@ export function JobSearchBar({
       className="mt-8 flex max-w-3xl flex-wrap overflow-hidden rounded border border-gold/40 shadow-lg"
     >
       <label className="min-w-[150px] flex-[1.2] border-r border-border bg-white px-4 py-3 text-left">
-        <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-gold">{labels.role}</span>
+        <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-gold-ink">{labels.role}</span>
         <input
           name="role"
           value={role}
@@ -84,7 +84,7 @@ export function JobSearchBar({
       </label>
 
       <label className="min-w-[140px] flex-[0.8] border-r border-border bg-white px-4 py-3 text-left">
-        <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-gold">{labels.where}</span>
+        <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-gold-ink">{labels.where}</span>
         <select
           name="where"
           value={where}
@@ -103,7 +103,7 @@ export function JobSearchBar({
       </label>
 
       <label className="min-w-[140px] flex-[0.9] border-r border-border bg-white px-4 py-3 text-left">
-        <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-gold">{labels.company}</span>
+        <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-gold-ink">{labels.company}</span>
         <input
           name="company"
           value={company}

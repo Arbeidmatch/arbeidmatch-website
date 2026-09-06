@@ -77,7 +77,7 @@ export default function AdminErrorsPage() {
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="mt-4 w-full rounded-lg border border-white/20 bg-white/[0.08] px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-[#C9A84C] focus:outline-none"
+            className="mt-4 w-full rounded-lg border border-white/20 bg-white/[0.08] px-4 py-3 text-sm text-white placeholder:text-white/55 focus:border-[#C9A84C] focus:outline-none"
             placeholder="Admin password"
           />
           <button

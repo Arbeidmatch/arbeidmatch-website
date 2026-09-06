@@ -77,7 +77,7 @@ export function ProjectGallery({ categories, otherProjectsHref }: { categories: 
             <h2 id="project-choice-title" className="mt-4 pr-10 text-3xl font-semibold tracking-[-0.03em]">Inspirert av prosjektet?</h2>
             <p className="mt-3 leading-relaxed text-[#0f1923]/60">Vi kan vurdere prosjektet ditt gratis, eller du kan fortsette å se flere arbeider.</p>
             <div className="mt-7 grid gap-3">
-              <Link href="/flislegger#kontakt" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#1d9e75] px-6 font-semibold text-white"><Ruler className="h-4 w-4" /> Ja, jeg ønsker gratis befaring</Link>
+              <Link href="/flislegger#kontakt" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#157a59] px-6 font-semibold text-white"><Ruler className="h-4 w-4" /> Ja, jeg ønsker gratis befaring</Link>
               {otherProjectsHref ? <Link href={otherProjectsHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#0f1923]/20 px-6 font-semibold">Se andre porteføljeprosjekter <ArrowRight className="h-4 w-4" /></Link> : <button onClick={() => setShowChoice(false)} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#0f1923]/20 px-6 font-semibold">Se flere bilder <ArrowRight className="h-4 w-4" /></button>}
               <Link href="/flislegger" className="inline-flex min-h-11 items-center justify-center gap-2 text-sm text-[#0f1923]/55 hover:text-[#0f1923]"><ArrowLeft className="h-4 w-4" /> Tilbake til forsiden</Link>
             </div>

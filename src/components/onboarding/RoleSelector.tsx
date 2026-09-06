@@ -255,7 +255,7 @@ export default function RoleSelector() {
 
               <button
                 type="button"
-                className="mt-2 shrink-0 cursor-pointer pt-1 text-center text-[12px] text-white/[0.3] transition-colors hover:text-white/60 md:mt-8 md:text-[13px]"
+                className="mt-2 shrink-0 cursor-pointer pt-1 text-center text-[12px] text-white/[0.55] transition-colors hover:text-white/60 md:mt-8 md:text-[13px]"
                 onClick={() => {
                   trackEvent("skip_role_selection");
                   closeWithOptionalRedirect("skipped", null);

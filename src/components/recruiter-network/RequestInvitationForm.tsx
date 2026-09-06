@@ -4,7 +4,7 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 
 const fieldClass =
-  "w-full min-h-[44px] rounded-[4px] border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.06)] px-4 py-3 text-[15px] text-[rgba(255,255,255,0.98)] placeholder:text-[rgba(255,255,255,0.35)] shadow-none focus:border-[#C9A84C] focus:outline-none focus:ring-2 focus:ring-[rgba(201,168,76,0.15)]";
+  "w-full min-h-[44px] rounded-[4px] border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.06)] px-4 py-3 text-[15px] text-[rgba(255,255,255,0.98)] placeholder:text-white/55 shadow-none focus:border-[#C9A84C] focus:outline-none focus:ring-2 focus:ring-[rgba(201,168,76,0.15)]";
 
 const labelClass = "text-sm font-medium leading-none text-[rgba(255,255,255,0.75)]";
 

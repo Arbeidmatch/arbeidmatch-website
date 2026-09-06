@@ -10,7 +10,7 @@ const cardClass =
 const teaserCard =
   "rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 md:p-8";
 const inputClass =
-  "w-full rounded-lg border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.05)] px-4 py-3 text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.4)] focus:outline-none";
+  "w-full rounded-lg border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.05)] px-4 py-3 text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.4)] focus:outline-none";
 
 const sectionGold = "text-[11px] font-bold uppercase tracking-[0.1em] text-[#C9A84C]";
 const sectionHeading = "mt-2 text-2xl font-bold text-white";
@@ -414,7 +414,7 @@ export default function OutsideEuEeaClient() {
                 >
                   {leadLoading ? "Sending…" : "Send me the free guide"}
                 </button>
-                <p className="text-center text-[12px] text-[rgba(255,255,255,0.4)]">
+                <p className="text-center text-[12px] text-white/55">
                   No spam. One email. Practical information only.
                 </p>
                 <p className="text-center text-[13px] text-[rgba(255,255,255,0.55)]">
@@ -459,7 +459,7 @@ export default function OutsideEuEeaClient() {
             <button
               type="button"
               disabled
-              className="mt-6 w-full cursor-not-allowed rounded-[10px] border border-[rgba(201,168,76,0.2)] py-3 text-sm font-semibold text-[rgba(255,255,255,0.35)]"
+              className="mt-6 w-full cursor-not-allowed rounded-[10px] border border-[rgba(201,168,76,0.2)] py-3 text-sm font-semibold text-white/55"
             >
               Coming soon
             </button>
@@ -477,7 +477,7 @@ export default function OutsideEuEeaClient() {
             <button
               type="button"
               disabled
-              className="mt-6 w-full cursor-not-allowed rounded-[10px] border border-[rgba(201,168,76,0.2)] py-3 text-sm font-semibold text-[rgba(255,255,255,0.35)]"
+              className="mt-6 w-full cursor-not-allowed rounded-[10px] border border-[rgba(201,168,76,0.2)] py-3 text-sm font-semibold text-white/55"
             >
               Coming soon
             </button>
@@ -542,7 +542,7 @@ export default function OutsideEuEeaClient() {
 
       {/* Disclaimer: unchanged copy, at bottom */}
       <section className="border-t border-[rgba(201,168,76,0.1)] bg-[#0a0f18] px-4 py-10">
-        <div className="mx-auto max-w-3xl text-center text-[13px] leading-relaxed text-[rgba(255,255,255,0.4)]">
+        <div className="mx-auto max-w-3xl text-center text-[13px] leading-relaxed text-white/55">
           <p>
             ArbeidMatch Norge AS is a private recruitment agency, not an official Norwegian government authority. We do
             not sponsor visas or work permits. Information provided is for guidance only. Always verify current

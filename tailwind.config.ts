@@ -11,6 +11,20 @@ const config: Config = {
         // token said #B8913A, so two buttons side by side went to two
         // different golds under a finger; the token follows the buttons.
         "gold-hover": "#B8953F",
+        /**
+         * Gold, for text on a light surface.
+         *
+         * `gold` is a background, and a text colour on navy, where it reads
+         * 7.6:1. On white it reads 2.29:1 and on `surface` 2.11:1 - under half
+         * the 4.5:1 a body of text has to clear - and a sweep on 6 September
+         * 2026 found fifty-six places where it was carrying text on a sheet
+         * anyway: eyebrows, inline links, counters, the small print on the trade
+         * pages. This is the same hue taken down until it clears: 5.03:1 on
+         * white, 4.65:1 on `surface`.
+         *
+         * Gold on navy stays `gold`. Gold on a sheet is `gold-ink`.
+         */
+        "gold-ink": "#8C6A00",
         surface: "#F5F6F8",
         "text-secondary": "#555555",
         border: "#E2E5EA",

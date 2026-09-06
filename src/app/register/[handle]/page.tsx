@@ -91,28 +91,38 @@ export default async function RegisterPage({ params }: Props) {
   const who = invitation.recruiter_name;
 
   return (
-    <main className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20">
-      <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Registration</p>
-      <h1 className="am-h1 mt-3 max-w-[820px] font-extrabold leading-tight tracking-tight text-navy">
-        {who ? `${who} invited you to ArbeidMatch` : "Register with ArbeidMatch"}
-      </h1>
-      <p className="mt-4 max-w-prose text-text-secondary">
-        Fill this in once. {who ? `${who.split(" ")[0]} reads it` : "A recruiter reads it"} and comes back to you by
-        email, whichever way the answer goes. You are registering with us, not applying to one advert, so it counts for
-        every job we are working on.
-      </p>
+    /* The band and the sheet, as on the advert and its form. This page had the
+       same fault they had: `text-navy` and `#555` written for a light page,
+       landing on the site's own navy body, so the invitation somebody's name is
+       on read as a blank screen with a form in the middle of it. */
+    <main>
+      <header className="bg-navy">
+        <div className="mx-auto w-full max-w-content px-6 py-10 md:px-12 md:py-12 lg:px-20">
+          <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Registration</p>
+          <h1 className="am-h-advert mt-3 max-w-[820px] font-extrabold text-white">
+            {who ? `${who} invited you to ArbeidMatch` : "Register with ArbeidMatch"}
+          </h1>
+          <p className="mt-4 max-w-prose text-white/70">
+            Fill this in once. {who ? `${who.split(" ")[0]} reads it` : "A recruiter reads it"} and comes back to you by
+            email, whichever way the answer goes. You are registering with us, not applying to one advert, so it counts
+            for every job we are working on.
+          </p>
+        </div>
+      </header>
 
-      <div className="mt-10">
-        <ApplyForm token={invitation.token} />
+      <div className="bg-white">
+        <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20">
+          <ApplyForm token={invitation.token} />
+
+          <p className="mt-10 text-sm text-text-secondary">
+            Looking for something specific?{" "}
+            <Link href="/" className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">
+              See every open job
+            </Link>
+            .
+          </p>
+        </div>
       </div>
-
-      <p className="mt-10 text-sm text-text-secondary">
-        Looking for something specific?{" "}
-        <Link href="/" className="font-semibold text-gold hover:underline">
-          See every open job
-        </Link>
-        .
-      </p>
     </main>
   );
 }

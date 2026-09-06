@@ -136,7 +136,7 @@ export function CvPreview({ doc, scale = 1 }: { doc: CvDocument; scale?: number 
           <div className="h-full">
             <div className="-mx-[6%] -mt-[6%] mb-3 border-b-2 border-[#C9A84C] px-[6%] pt-[6%] pb-3">
               <p className="text-[2.1em] font-bold leading-tight text-[#0D1B2A]">{name}</p>
-              <p className="text-[1.1em] font-semibold text-[#C9A84C]">{doc.personal.headline}</p>
+              <p className="text-[1.1em] font-semibold text-gold-ink">{doc.personal.headline}</p>
               <p className="mt-1.5 text-[#55616D]">{contactLine(doc)}</p>
             </div>
             <Heading>{SECTION_HEADINGS.summary}</Heading>
@@ -158,7 +158,7 @@ export function CvPreview({ doc, scale = 1 }: { doc: CvDocument; scale?: number 
         return (
           <div>
             <p className="text-[1.8em] font-bold leading-tight text-[#0D1B2A]">{name}</p>
-            <p className="font-semibold text-[#C9A84C]">{doc.personal.headline}</p>
+            <p className="font-semibold text-gold-ink">{doc.personal.headline}</p>
             <p className="mt-1 text-[#55616D]">{contactLine(doc)}</p>
             <div className="mt-3 flex gap-4">
               <div className="w-[64%]">
@@ -186,7 +186,7 @@ export function CvPreview({ doc, scale = 1 }: { doc: CvDocument; scale?: number 
         return (
           <div>
             <p className="text-[1.9em] font-bold leading-tight text-[#0D1B2A]">{name}</p>
-            <p className="font-semibold text-[#C9A84C]">{doc.personal.headline}</p>
+            <p className="font-semibold text-gold-ink">{doc.personal.headline}</p>
             <p className="mt-1.5 text-[#55616D]">{contactLine(doc)}</p>
             <Row label={SECTION_HEADINGS.summary}>
               <p>{doc.summary}</p>
@@ -219,7 +219,7 @@ export function CvPreview({ doc, scale = 1 }: { doc: CvDocument; scale?: number 
           <div className="-m-[6%] flex h-[calc(100%+12%)]">
             <div className="w-[30%] bg-[#0D1B2A] p-[4%] text-white">
               <p className="text-[1.5em] font-bold leading-tight">{name}</p>
-              <p className="mt-1 font-semibold text-[#C9A84C]">{doc.personal.headline}</p>
+              <p className="mt-1 font-semibold text-gold">{doc.personal.headline}</p>
               <div className="my-2 w-8 border-b border-[#C9A84C]" />
               {[
                 [doc.personal.city, doc.personal.country].filter(Boolean).join(", "),
@@ -233,14 +233,14 @@ export function CvPreview({ doc, scale = 1 }: { doc: CvDocument; scale?: number 
                   </p>
                 ))}
               {doc.certifications.length > 0 ? (
-                <Heading className="!text-[#C9A84C]">{SECTION_HEADINGS.certifications}</Heading>
+                <Heading className="!text-gold">{SECTION_HEADINGS.certifications}</Heading>
               ) : null}
               <div className="text-white">
                 <Certifications doc={doc} />
               </div>
-              <Heading className="!text-[#C9A84C]">{SECTION_HEADINGS.skills}</Heading>
+              <Heading className="!text-gold">{SECTION_HEADINGS.skills}</Heading>
               <p>{doc.skills.join(", ")}</p>
-              <Heading className="!text-[#C9A84C]">{SECTION_HEADINGS.languages}</Heading>
+              <Heading className="!text-gold">{SECTION_HEADINGS.languages}</Heading>
               <Languages doc={doc} />
             </div>
             <div className="flex-1 p-[4%]">
@@ -258,7 +258,7 @@ export function CvPreview({ doc, scale = 1 }: { doc: CvDocument; scale?: number 
         return (
           <div>
             <p className="text-[1.8em] font-bold leading-tight text-[#0D1B2A]">{name}</p>
-            <p className="font-semibold text-[#C9A84C]">{doc.personal.headline}</p>
+            <p className="font-semibold text-gold-ink">{doc.personal.headline}</p>
             <p className="mt-1 text-[#55616D]">{contactLine(doc)}</p>
             <RuledHeading>{SECTION_HEADINGS.summary}</RuledHeading>
             <p>{doc.summary}</p>

@@ -155,7 +155,7 @@ export function MyData({ token }: { token: string | null }) {
             ["Created", new Date(profile.created_at).toLocaleDateString("en-GB")],
           ].map(([label, value]) => (
             <div key={String(label)}>
-              <dt className="text-[13px] font-semibold uppercase tracking-wide text-[#8A929C]">{label}</dt>
+              <dt className="text-[13px] font-semibold uppercase tracking-wide text-[#5F6873]">{label}</dt>
               <dd className="text-[15px] text-[#0D1B2A]">{value || "Not set"}</dd>
             </div>
           ))}

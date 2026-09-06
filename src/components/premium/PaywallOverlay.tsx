@@ -152,7 +152,7 @@ export default function PaywallOverlay({
               type="email"
               value={workEmail}
               onChange={(e) => setWorkEmail(e.target.value)}
-              className="mt-1 w-full rounded-[10px] border border-white/12 bg-white/[0.06] px-4 py-3 text-[14px] text-white placeholder:text-white/30"
+              className="mt-1 w-full rounded-[10px] border border-white/12 bg-white/[0.06] px-4 py-3 text-[14px] text-white placeholder:text-white/55"
               placeholder="you@company.com"
             />
           </label>
@@ -205,7 +205,7 @@ export default function PaywallOverlay({
               <input
                 value={reEmail}
                 onChange={(e) => setReEmail(e.target.value)}
-                className="w-full rounded-[10px] border border-white/12 bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-white/30"
+                className="w-full rounded-[10px] border border-white/12 bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-white/55"
                 placeholder="Work email"
               />
               <button
@@ -218,10 +218,10 @@ export default function PaywallOverlay({
             </div>
           )}
 
-          <p className="mt-6 text-center text-xs text-white/40">
+          <p className="mt-6 text-center text-xs text-white/55">
             Secure payment via Stripe. Cancel anytime from your account.
           </p>
-          <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-white/30">
+          <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-white/55">
             <StripeMark />
             <span>Powered by Stripe</span>
           </div>

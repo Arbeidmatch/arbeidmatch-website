@@ -62,7 +62,7 @@ export default function FlisleggerPrivacyPage() {
         <section className="bg-[#0f1923] pb-20 pt-14 text-white sm:pb-24 sm:pt-20">
           <div className="mx-auto max-w-5xl px-5 sm:px-8">
             <Link href="/flislegger" className="inline-flex min-h-11 items-center gap-2 text-sm text-white/65 hover:text-white"><ArrowLeft className="h-4 w-4" /> Tilbake til Flislegger</Link>
-            <div className="mt-10 max-w-3xl"><div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1d9e75]"><ShieldCheck className="h-6 w-6" /></div><p className="mt-8 text-xs font-bold uppercase tracking-[0.22em] text-[#1d9e75]">Personvern</p><h1 className="mt-4 text-4xl font-semibold tracking-[-0.03em] sm:text-6xl">Dine opplysninger. Tydelig forklart.</h1><p className="mt-6 text-lg leading-relaxed text-white/65">Denne erklæringen gjelder opplysninger som behandles gjennom ArbeidMatch sin Flislegger-tjeneste.</p><p className="mt-4 text-sm text-white/45">Sist oppdatert: 12. august 2026</p></div>
+            <div className="mt-10 max-w-3xl"><div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#157a59]"><ShieldCheck className="h-6 w-6" /></div><p className="mt-8 text-xs font-bold uppercase tracking-[0.22em] text-[#1d9e75]">Personvern</p><h1 className="mt-4 text-4xl font-semibold tracking-[-0.03em] sm:text-6xl">Dine opplysninger. Tydelig forklart.</h1><p className="mt-6 text-lg leading-relaxed text-white/65">Denne erklæringen gjelder opplysninger som behandles gjennom ArbeidMatch sin Flislegger-tjeneste.</p><p className="mt-4 text-sm text-white/60">Sist oppdatert: 12. august 2026</p></div>
           </div>
         </section>
 

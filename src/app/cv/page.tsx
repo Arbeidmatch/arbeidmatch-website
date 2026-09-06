@@ -21,9 +21,9 @@ export const metadata: Metadata = {
 };
 
 const BADGE_COLOUR: Record<string, string> = {
-  best: "#1D9E75",
-  good: "#C9A84C",
-  acceptable: "#B26A00",
+  best: "#157A59",
+  good: "#8C6A00",
+  acceptable: "#9C5C00",
 };
 
 const BADGE_LABEL: Record<string, string> = {

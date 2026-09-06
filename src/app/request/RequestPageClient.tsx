@@ -396,12 +396,12 @@ export default function RequestPageClient() {
                     <span className="text-sm">x</span>
                   </button>
                 </div>
-                <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.4)]">Type to search or select from the list</p>
+                <p className="mt-2 text-[13px] text-white/55">Type to search or select from the list</p>
                 <input
                   value={roleQuery}
                   onChange={(event) => setRoleQuery(event.target.value)}
                   placeholder="Search for a role..."
-                  className="mt-4 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/45 focus:outline-none"
+                  className="mt-4 w-full rounded-[12px] border border-[rgba(201,168,76,0.6)] bg-[#0D1B2A] px-4 py-3 text-sm text-white placeholder:text-white/60 focus:outline-none"
                 />
                 {filteredRoles.length > 0 ? (
                   <div className="mt-4 flex flex-wrap gap-[10px]">
@@ -417,7 +417,7 @@ export default function RequestPageClient() {
                     ))}
                   </div>
                 ) : (
-                  <p className="mt-4 text-sm text-[rgba(255,255,255,0.4)]">No roles found. Try a different search.</p>
+                  <p className="mt-4 text-sm text-white/55">No roles found. Try a different search.</p>
                 )}
               </>
             )}
@@ -554,7 +554,7 @@ export default function RequestPageClient() {
                   value={notifyEmail}
                   onChange={(event) => setNotifyEmail(event.target.value)}
                   placeholder="yourname@company.no"
-                  className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.35)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+                  className="w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
                 />
                 <button
                   type="button"
@@ -565,7 +565,7 @@ export default function RequestPageClient() {
                   {notifyStatus === "submitting" ? "Sending..." : "Notify me"}
                 </button>
               </div>
-              <p className="mt-3 text-[12px] leading-relaxed text-[rgba(255,255,255,0.4)]">
+              <p className="mt-3 text-[12px] leading-relaxed text-white/55">
                 By submitting, you agree to our{" "}
                 <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#C9A84C] underline underline-offset-2 hover:opacity-80">privacy policy</a>.
               </p>
@@ -578,7 +578,7 @@ export default function RequestPageClient() {
                   <p className="mt-2 text-[14px] leading-[1.7] text-[rgba(255,255,255,0.55)]">
                     You will be among the first to know when this launches. We are building something worth waiting for.
                   </p>
-                  <p className="mt-4 text-[12px] text-[rgba(255,255,255,0.3)]">We will reach out directly when access becomes available.</p>
+                  <p className="mt-4 text-[12px] text-white/55">We will reach out directly when access becomes available.</p>
                 </div>
               )}
               {notifyStatus === "error" && <p className="mt-3 text-[13px] text-[rgba(255,255,255,0.5)]">Could not save your request. Please try again.</p>}
@@ -642,7 +642,7 @@ export default function RequestPageClient() {
               type="button"
               onClick={() => setResultAction("none")}
               aria-label="Close partner verification modal"
-              className="absolute right-4 top-4 text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.8)]"
+              className="absolute right-4 top-4 text-white/55 transition-colors hover:text-[rgba(255,255,255,0.8)]"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
                 <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -670,7 +670,7 @@ export default function RequestPageClient() {
                   <span className="dot dot-2">.</span>
                   <span className="dot dot-3">.</span>
                 </p>
-                <p className="mt-2 text-[13px] leading-[1.6] text-[rgba(255,255,255,0.45)]">
+                <p className="mt-2 text-[13px] leading-[1.6] text-white/60">
                   We are checking your company credentials against our partner registry.
                 </p>
                 <div className="mt-6 h-[2px] w-full rounded-full bg-[rgba(255,255,255,0.08)]">
@@ -740,21 +740,21 @@ export default function RequestPageClient() {
                     <p className="mt-1.5 text-center text-[13px] text-[rgba(255,255,255,0.5)]">
                       Tell us what happened and we will look into it right away.
                     </p>
-                    <label className="mt-5 block text-[12px] text-[rgba(255,255,255,0.45)]">Your email</label>
+                    <label className="mt-5 block text-[12px] text-white/60">Your email</label>
                     <input
                       type="email"
                       value={feedbackEmail}
                       onChange={(event) => setFeedbackEmail(event.target.value)}
                       placeholder="your@company.no"
-                      className="mt-1.5 mb-3 w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+                      className="mt-1.5 mb-3 w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
                     />
-                    <label className="block text-[12px] text-[rgba(255,255,255,0.45)]">Describe the issue</label>
+                    <label className="block text-[12px] text-white/60">Describe the issue</label>
                     <textarea
                       rows={4}
                       value={partnerIssueMessage}
                       onChange={(event) => setPartnerIssueMessage(event.target.value)}
                       placeholder="Describe the issue. For example: I work at Company X and my email should be registered."
-                      className="mt-1.5 w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
+                      className="mt-1.5 w-full rounded-[10px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[14px] py-3 text-[14px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.5)] focus:outline-none"
                     />
                     <button
                       type="button"
@@ -781,7 +781,7 @@ export default function RequestPageClient() {
                       <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     <p className="mt-3 text-[16px] font-bold text-white">Report sent.</p>
-                    <p className="mt-2 text-[13px] text-[rgba(255,255,255,0.45)]">
+                    <p className="mt-2 text-[13px] text-white/60">
                       We will review your request and contact you at {accessEmail} shortly.
                     </p>
                   </div>
@@ -804,7 +804,7 @@ export default function RequestPageClient() {
                     value={accessEmail}
                     onChange={(event) => setAccessEmail(event.target.value)}
                     placeholder="yourname@company.no"
-                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
+                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
                   />
                   <button
                     type="submit"
@@ -824,7 +824,7 @@ export default function RequestPageClient() {
                 <p className="mt-2 text-sm text-[rgba(255,255,255,0.6)]">
                   A secure access link has been sent to {accessEmail}. The link is valid for 30 minutes.
                 </p>
-                <p className="mt-3 text-xs text-[rgba(255,255,255,0.35)]">
+                <p className="mt-3 text-xs text-white/55">
                   Emails are usually delivered within a few seconds, but may occasionally take up to 5 minutes. In the meantime, you can close this window and continue browsing. Check your spam folder if nothing arrives.
                 </p>
               </div>
@@ -843,7 +843,7 @@ export default function RequestPageClient() {
               type="button"
               onClick={() => setShowPartnerApplicationModal(false)}
               aria-label="Close partner application modal"
-              className="absolute right-4 top-4 text-[rgba(255,255,255,0.4)] transition-colors hover:text-[rgba(255,255,255,0.8)]"
+              className="absolute right-4 top-4 text-white/55 transition-colors hover:text-[rgba(255,255,255,0.8)]"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
                 <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -859,8 +859,8 @@ export default function RequestPageClient() {
                 <p className="mt-2 text-[14px] leading-[1.6] text-[rgba(255,255,255,0.55)]">
                   We sent a link to complete your application.
                 </p>
-                <p className="mt-2 text-[13px] leading-[1.6] text-[rgba(255,255,255,0.45)]">{partnerApplicationEmail}</p>
-                <p className="mt-4 text-[12px] text-[rgba(255,255,255,0.35)]">Emails may take up to 5 minutes.</p>
+                <p className="mt-2 text-[13px] leading-[1.6] text-white/60">{partnerApplicationEmail}</p>
+                <p className="mt-4 text-[12px] text-white/55">Emails may take up to 5 minutes.</p>
               </div>
             ) : (
               <>
@@ -877,7 +877,7 @@ export default function RequestPageClient() {
                     value={partnerApplicationEmail}
                     onChange={(event) => setPartnerApplicationEmail(event.target.value)}
                     placeholder="you@company.no"
-                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-[rgba(255,255,255,0.3)] focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
+                    className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
                   />
                   {partnerApplicationError ? (
                     <p className="mt-3 text-[13px] text-red-300">{partnerApplicationError}</p>

@@ -5,8 +5,8 @@ import { evaluateAts, linearise } from "@/lib/cv/ats-rules";
 import type { CvDocument } from "@/lib/cv/schema";
 
 function scoreColour(score: number): string {
-  if (score >= 85) return "#1D9E75";
-  if (score >= 60) return "#C9A84C";
+  if (score >= 85) return "#157A59";
+  if (score >= 60) return "#8C6A00";
   return "#B03A2E";
 }
 
@@ -26,7 +26,7 @@ export function AtsMeter({ doc }: { doc: CvDocument }) {
         <h2 className="text-sm font-bold uppercase tracking-wide text-[#0D1B2A]">ATS readiness</h2>
         <span className="text-2xl font-bold" style={{ color: colour }} aria-live="polite">
           {report.score}
-          <span className="text-sm font-semibold text-[#8A929C]">/100</span>
+          <span className="text-sm font-semibold text-[#5F6873]">/100</span>
         </span>
       </div>
 

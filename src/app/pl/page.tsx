@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 export default function PolishLandingPage() {
   return (
     <div className="mx-auto w-full max-w-content px-6 py-16 md:px-12 lg:px-20">
-      <h1 className="text-3xl font-extrabold text-navy">Polski</h1>
-      <p className="mt-4 max-w-2xl text-text-secondary">
+      <h1 className="text-3xl font-extrabold text-white">Polski</h1>
+      <p className="mt-4 max-w-2xl text-white/70">
         Wersja językowa jest w przygotowaniu. Prosimy obecnie o korzystanie z norweskiej strony głównej.
       </p>
       <Link href="/" className="mt-8 inline-flex text-sm font-semibold text-gold underline">

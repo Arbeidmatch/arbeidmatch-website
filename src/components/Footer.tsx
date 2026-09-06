@@ -69,7 +69,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 border-t border-[rgba(255,255,255,0.08)] pt-8 md:mt-12 md:pt-10">
-          <p className="mx-auto max-w-[900px] text-center text-[11px] italic leading-relaxed text-white/45">
+          <p className="mx-auto max-w-[900px] text-center text-[11px] italic leading-relaxed text-white/60">
             {/* His correction, 6 August 2026: we are not only a recruiter. We employ the
                 people we hire out, and we recruit directly as well. Saying only
                 "recruitment" describes half of what we do and the wrong half for
@@ -87,7 +87,7 @@ export default function Footer() {
             >
               DSB.no
             </a>
-            <span className="text-white/35"> · </span>
+            <span className="text-white/55"> · </span>
             <a
               href="https://www.arbeidstilsynet.no/en/"
               target="_blank"
@@ -96,7 +96,7 @@ export default function Footer() {
             >
               Arbeidstilsynet.no
             </a>
-            <span className="text-white/35"> · </span>
+            <span className="text-white/55"> · </span>
             <a
               href="https://www.nav.no/en/home"
               target="_blank"

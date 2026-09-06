@@ -21,7 +21,7 @@ export default function SeeAlsoSection({ items, variant = "surface" }: Props) {
             <li key={item.href}>
               <Link
                 href={item.href}
-                className="inline-flex min-h-[44px] min-w-[44px] items-center text-sm font-medium text-gold underline decoration-gold/40 underline-offset-4 transition-colors hover:text-gold-hover hover:decoration-gold"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center text-sm font-medium text-gold-ink underline decoration-gold-ink/40 underline-offset-4 transition-colors hover:text-navy hover:decoration-gold"
               >
                 {item.label}
               </Link>

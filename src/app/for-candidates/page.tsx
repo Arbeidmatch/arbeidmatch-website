@@ -318,7 +318,7 @@ export default function ForCandidatesPage() {
           {TALENT_NETWORK_FORM_ENABLED ? <TalentNetworkJoinForm /> : <JobsPortalCTA />}
           {TALENT_NETWORK_FORM_ENABLED ? (
             <ScrollReveal variant="fadeUp">
-              <p className="mt-8 text-xs text-white/45">
+              <p className="mt-8 text-xs text-white/60">
                 Prefer browsing first?{" "}
                 <a
                   href={JOBS_PORTAL_URL}

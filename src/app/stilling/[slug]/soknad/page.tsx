@@ -77,13 +77,13 @@ export default async function SoknadPage({ params }: Props) {
             <Link href="/" className="transition hover:text-gold">
               Open jobs
             </Link>
-            <span aria-hidden className="mx-2 text-white/40">
+            <span aria-hidden className="mx-2 text-white/55">
               /
             </span>
             <Link href={`/stilling/${encodeURIComponent(slug)}`} className="transition hover:text-gold">
               {job.title}
             </Link>
-            <span aria-hidden className="mx-2 text-white/40">
+            <span aria-hidden className="mx-2 text-white/55">
               /
             </span>
             <span className="text-white/85">Apply</span>

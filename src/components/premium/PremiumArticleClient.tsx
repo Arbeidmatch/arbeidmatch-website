@@ -98,7 +98,7 @@ export default function PremiumArticleClient({ article }: { article: PremiumArti
         </span>
         <h1 className="mt-4 text-4xl font-extrabold leading-tight text-white">{article.title}</h1>
         <p className="mt-4 text-lg leading-relaxed text-white/65">{article.excerpt}</p>
-        <div className="mt-6 flex flex-wrap gap-3 text-[12px] text-white/45">
+        <div className="mt-6 flex flex-wrap gap-3 text-[12px] text-white/60">
           <span>Last updated: {article.lastUpdated}</span>
           <span aria-hidden>|</span>
           <span>Sources: {article.officialSources.join(", ")}</span>

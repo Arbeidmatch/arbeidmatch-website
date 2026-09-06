@@ -334,7 +334,7 @@ export default function RecruiterNetworkClient() {
                   <button
                     type="button"
                     onClick={scrollToForm}
-                    className="btn-gold-premium inline-block min-h-[48px] rounded-md bg-gold px-8 py-3.5 text-base font-semibold text-white hover:bg-gold-hover"
+                    className="btn-gold-premium inline-block min-h-[48px] rounded-md bg-gold px-8 py-3.5 text-base font-semibold text-navy hover:bg-gold-hover"
                   >
                     Request invitation
                   </button>
@@ -363,7 +363,7 @@ export default function RecruiterNetworkClient() {
                   <button
                     type="button"
                     onClick={scrollToForm}
-                    className="btn-gold-premium inline-block min-h-[48px] rounded-md bg-gold px-8 py-3.5 text-base font-semibold text-white hover:bg-gold-hover"
+                    className="btn-gold-premium inline-block min-h-[48px] rounded-md bg-gold px-8 py-3.5 text-base font-semibold text-navy hover:bg-gold-hover"
                   >
                     Request invitation
                   </button>
@@ -409,7 +409,7 @@ export default function RecruiterNetworkClient() {
                 <button
                   type="button"
                   onClick={scrollToForm}
-                  className="btn-gold-premium inline-block min-h-[48px] rounded-md bg-gold px-8 py-3.5 text-base font-semibold text-white hover:bg-gold-hover"
+                  className="btn-gold-premium inline-block min-h-[48px] rounded-md bg-gold px-8 py-3.5 text-base font-semibold text-navy hover:bg-gold-hover"
                 >
                   Apply to Join →
                 </button>
@@ -440,7 +440,7 @@ export default function RecruiterNetworkClient() {
                 <button
                   type="button"
                   onClick={scrollToForm}
-                  className="btn-gold-premium inline-block min-h-[48px] rounded-md bg-gold px-8 py-3.5 text-base font-semibold text-white hover:bg-gold-hover"
+                  className="btn-gold-premium inline-block min-h-[48px] rounded-md bg-gold px-8 py-3.5 text-base font-semibold text-navy hover:bg-gold-hover"
                 >
                   Apply to Join →
                 </button>
@@ -637,7 +637,7 @@ export default function RecruiterNetworkClient() {
                   <input
                     name="full_name"
                     required
-                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -648,7 +648,7 @@ export default function RecruiterNetworkClient() {
                     name="email"
                     type="email"
                     required
-                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -670,7 +670,7 @@ export default function RecruiterNetworkClient() {
                     onChange={(e) => setForm({ ...form, country: e.target.value, city: "" })}
                     required
                     className={`w-full appearance-none rounded-[10px] border border-white/25 bg-[#0f1923] px-[18px] py-[14px] text-[15px] focus:border-[#C9A84C] focus:bg-[#0f1923] focus:outline-none ${
-                      form.country ? "text-white" : "text-white/45"
+                      form.country ? "text-white" : "text-white/60"
                     }`}
                   >
                     <option value="" disabled className="bg-white text-[#0f1923]">
@@ -694,7 +694,7 @@ export default function RecruiterNetworkClient() {
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-white/70">
                     Area you want to cover *
                   </label>
-                  <p className="mb-2 text-xs text-white/40">
+                  <p className="mb-2 text-xs text-white/55">
                     Select the city or region where you will recruit candidates.
                   </p>
                   {form.country === "Other" ? (
@@ -704,7 +704,7 @@ export default function RecruiterNetworkClient() {
                       onChange={(e) => setForm({ ...form, city: e.target.value })}
                       required
                       placeholder="Enter your city or region"
-                      className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                      className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
                     />
                   ) : (
                     <select
@@ -713,7 +713,7 @@ export default function RecruiterNetworkClient() {
                       onChange={(e) => setForm({ ...form, city: e.target.value })}
                       required
                       className={`w-full appearance-none rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none ${
-                        form.city ? "text-white" : "text-white/45"
+                        form.city ? "text-white" : "text-white/60"
                       }`}
                     >
                       <option value="" disabled className="bg-white text-[#0f1923]">
@@ -732,7 +732,7 @@ export default function RecruiterNetworkClient() {
                   <legend className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
                     How do you invoice?
                   </legend>
-                  <p className="mb-3 text-xs text-white/40">
+                  <p className="mb-3 text-xs text-white/55">
                     We work with invoicing only. Select how you prefer to invoice.
                   </p>
                   <div className="space-y-2.5">
@@ -841,7 +841,7 @@ export default function RecruiterNetworkClient() {
                     type="url"
                     required
                     placeholder="https://"
-                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -854,7 +854,7 @@ export default function RecruiterNetworkClient() {
                     inputMode="numeric"
                     required
                     placeholder="e.g. 150,000"
-                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                    className="rn-input input-premium input-premium--dark w-full rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
                   />
                 </div>
 
@@ -871,9 +871,9 @@ export default function RecruiterNetworkClient() {
                     placeholder="What drives you? What is your market? What makes you the right partner?"
                     value={motivation}
                     onChange={(ev) => setMotivation(ev.target.value)}
-                    className="rn-input input-premium input-premium--dark textarea-premium w-full resize-y rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/45 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
+                    className="rn-input input-premium input-premium--dark textarea-premium w-full resize-y rounded-[10px] border border-white/25 bg-white/[0.10] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:bg-white/[0.13] focus:outline-none"
                   />
-                  <p className="mt-1 text-right text-[11px] text-white/40">{motivation.length}/500</p>
+                  <p className="mt-1 text-right text-[11px] text-white/55">{motivation.length}/500</p>
                 </div>
 
                 <label className="flex cursor-pointer items-start gap-3 text-sm leading-snug text-white/80">
@@ -890,7 +890,7 @@ export default function RecruiterNetworkClient() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn-gold-premium w-full min-h-[48px] rounded-md bg-gold py-3.5 text-base font-semibold text-white hover:bg-gold-hover disabled:opacity-60"
+                  className="btn-gold-premium w-full min-h-[48px] rounded-md bg-gold py-3.5 text-base font-semibold text-navy hover:bg-gold-hover disabled:opacity-60"
                 >
                   {submitting ? "Sending…" : "Submit Application →"}
                 </button>

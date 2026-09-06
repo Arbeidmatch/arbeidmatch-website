@@ -123,7 +123,7 @@ export default function EmployerExitIntentPopup({ enabled }: { enabled: boolean 
               >
                 No thanks, continue browsing
               </button>
-              <p className="mt-4 text-[11px] leading-relaxed text-white/35">
+              <p className="mt-4 text-[11px] leading-relaxed text-white/55">
                 No obligation. We&apos;ll review your requirements and recommend the best sourcing solution for your
                 business.
               </p>

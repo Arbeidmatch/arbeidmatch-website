@@ -38,7 +38,7 @@ function VerifiedContent() {
     <section className="bg-surface py-12">
       <div className="mx-auto w-full max-w-2xl px-4">
         <div className="rounded-xl border border-border bg-white p-8 text-center shadow-[0_10px_30px_rgba(13,27,42,0.08)]">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-white">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-navy">
             ✓
           </div>
           <h1 className="mt-4 text-3xl font-bold text-navy">Your email has been verified!</h1>

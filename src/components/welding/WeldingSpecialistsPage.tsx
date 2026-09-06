@@ -136,7 +136,7 @@ export default function WeldingSpecialistsPage() {
       {/* Section 3 certifications */}
       <section className="bg-white px-6 py-16 md:py-20 lg:py-[80px]">
         <div className="mx-auto max-w-content">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">Certification coverage</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gold-ink">Certification coverage</p>
           <h2 className="mt-3 text-[36px] font-bold text-[#0f1923]">Every major welding standard, checked in screening.</h2>
           <div className="mt-12">
             <WeldingCertGrid variant="light" />
@@ -190,7 +190,7 @@ export default function WeldingSpecialistsPage() {
       {/* Section 5 Industries */}
       <section className="bg-white px-6 py-16 md:py-20 lg:py-[80px]">
         <div className="mx-auto max-w-content">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gold">Industries we serve</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gold-ink">Industries we serve</p>
           <h2 className="mt-3 text-[32px] font-bold text-[#0f1923]">Where our welding specialists work</h2>
           <div className="mt-8 flex flex-wrap gap-2.5">
             {INDUSTRIES.map((label) => (
@@ -222,7 +222,7 @@ export default function WeldingSpecialistsPage() {
             href="https://www.arbeidstilsynet.no"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 inline-block text-[13px] font-medium text-gold underline-offset-4 hover:underline"
+            className="mt-3 inline-block text-[13px] font-medium text-gold-ink underline-offset-4 hover:underline"
           >
             Read Norwegian staffing regulations at Arbeidstilsynet.no
           </a>
@@ -335,12 +335,12 @@ export default function WeldingSpecialistsPage() {
 
           <SourceDisclaimer
             variant="dark"
-            className="mt-4 max-w-[800px] text-left text-white/[0.4]"
+            className="mt-4 max-w-[800px] text-left text-white/[0.55]"
             text="Salary ranges are general market estimates based on collective agreements and publicly available sources. Actual pay depends on qualifications, employer, project type, and individual negotiation. ArbeidMatch is not responsible for salary outcomes."
             sourceLabel="Source: Arbeidstilsynet.no"
             sourceUrl="https://www.arbeidstilsynet.no/en/pay-and-engagement-of-employees/pay-and-minimum-rates-of-pay/minimum-wage/"
           />
-          <p className="mt-2 max-w-[800px] text-[11px] leading-relaxed text-white/[0.35]">
+          <p className="mt-2 max-w-[800px] text-[11px] leading-relaxed text-white/[0.55]">
             Ranges are drawn from Norwegian shipyard and offshore job postings and are an estimate, not an offer. There is
             also a minimum rate that applies to this kind of work; we confirm the rate for your assignment before you accept
             it, and you can check the current figure at the link above.

@@ -201,7 +201,7 @@ export default function PremiumLandingPage() {
               style={{
                 display: "inline-block",
                 background: "rgba(226,75,74,0.12)",
-                color: "#E24B4A",
+                color: "#EA6462",
                 fontSize: 11,
                 fontWeight: 600,
                 letterSpacing: "0.08em",
@@ -295,7 +295,7 @@ export default function PremiumLandingPage() {
                 onChange={(e) => setConsent(e.target.checked)}
                 style={{ marginTop: 2, accentColor: "#C9A84C", minWidth: 16, height: 16 }}
               />
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.62)", lineHeight: 1.5 }}>
                 I agree to receive updates from ArbeidMatch. I have read and accept the{" "}
                 <Link href="/privacy" className="text-[#C9A84C] underline">
                   Privacy Policy
@@ -304,7 +304,7 @@ export default function PremiumLandingPage() {
               </span>
             </label>
 
-            {error ? <p style={{ fontSize: 13, color: "#E24B4A", marginTop: 10 }}>{error}</p> : null}
+            {error ? <p style={{ fontSize: 13, color: "#EA6462", marginTop: 10 }}>{error}</p> : null}
 
             {success ? (
               <p style={{ fontSize: 13, color: "#1D9E75", fontWeight: 500, marginTop: 10 }}>
@@ -312,7 +312,7 @@ export default function PremiumLandingPage() {
               </p>
             ) : null}
 
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 10 }}>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.62)", marginTop: 10 }}>
               No payment required. No spam. Just a launch notification.
             </p>
           </div>
@@ -401,7 +401,7 @@ export default function PremiumLandingPage() {
             >
               Notify me at launch
             </button>
-            <p className="mt-3 text-center text-[11px] text-white/40">No credit card required to start trial</p>
+            <p className="mt-3 text-center text-[11px] text-white/55">No credit card required to start trial</p>
           </div>
 
           <div className="relative rounded-[14px] border-2 border-[#C9A84C] bg-white/[0.04] p-7">
@@ -435,7 +435,7 @@ export default function PremiumLandingPage() {
             >
               Notify me at launch
             </button>
-            <p className="mt-3 text-center text-[11px] text-white/40">No credit card required to start trial</p>
+            <p className="mt-3 text-center text-[11px] text-white/55">No credit card required to start trial</p>
           </div>
         </div>
       </section>
@@ -462,7 +462,7 @@ export default function PremiumLandingPage() {
             <div key={t.who} className="rounded-[14px] bg-white/[0.04] p-7">
               <StarRow />
               <p className="mt-4 text-[15px] leading-relaxed text-white/85">{t.quote}</p>
-              <p className="mt-4 text-[13px] text-white/45">{t.who}</p>
+              <p className="mt-4 text-[13px] text-white/60">{t.who}</p>
             </div>
           ))}
         </div>
@@ -483,7 +483,7 @@ export default function PremiumLandingPage() {
           >
             Notify me at launch
           </button>
-          <p className="mt-4 text-[12px] text-white/40">
+          <p className="mt-4 text-[12px] text-white/55">
             By requesting launch notifications you agree to our{" "}
             <Link href="/terms" className="text-[#C9A84C] underline">
               Terms of Service

@@ -103,14 +103,14 @@ export default function DownloadPage() {
         >
           <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
           <p className="text-center text-sm font-semibold text-white">Join the waitlist</p>
-          <label className="form-label-premium mt-4 block text-xs font-medium uppercase tracking-wide text-white/45">
+          <label className="form-label-premium mt-4 block text-xs font-medium uppercase tracking-wide text-white/60">
             Email
             <input
               type="email"
               value={email}
               onChange={(ev) => setEmail(ev.target.value)}
               disabled={status === "loading" || status === "success"}
-              className="input-premium input-premium--dark mt-2 w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35"
+              className="input-premium input-premium--dark mt-2 w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/55"
               placeholder="you@example.com"
               autoComplete="email"
             />

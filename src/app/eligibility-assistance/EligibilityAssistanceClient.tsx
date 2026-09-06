@@ -291,7 +291,7 @@ export function EligibilityAssistanceClient() {
       <section className="bg-surface py-10">
         <div className="mx-auto w-full max-w-2xl px-4">
           <div className="rounded-xl bg-white p-8 text-center shadow-[0_10px_30px_rgba(13,27,42,0.08)]">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-white">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-navy">
               ✓
             </div>
             <h1 className="mt-4 text-3xl font-bold text-navy">
@@ -344,7 +344,7 @@ export function EligibilityAssistanceClient() {
       <section className="bg-surface py-10">
         <div className="mx-auto w-full max-w-2xl px-4">
           <div className="rounded-xl bg-white p-5 text-center shadow-[0_10px_30px_rgba(13,27,42,0.08)]">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-white">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-navy">
               ✓
             </div>
             <h1 className="mt-4 text-3xl font-bold text-navy">One more step: verify your email</h1>
@@ -407,7 +407,7 @@ export function EligibilityAssistanceClient() {
             </div>
             <Link
               href="/"
-              className="mt-5 inline-flex rounded-md bg-[#C9A84C] px-6 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
+              className="mt-5 inline-flex rounded-md bg-[#C9A84C] px-6 py-2.5 text-sm font-medium text-navy hover:bg-gold-hover"
             >
               Back to home
             </Link>
@@ -697,7 +697,7 @@ export function EligibilityAssistanceClient() {
                   disabled={
                     status === "submitting" || (needsTurnstile && !turnstileToken)
                   }
-                  className="w-full rounded-md bg-gold py-3 text-sm font-medium text-white hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
+                  className="w-full rounded-md bg-gold py-3 text-sm font-medium text-navy hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {status === "submitting" ? "Sending..." : "Notify me"}
                 </button>
@@ -714,7 +714,7 @@ export function EligibilityAssistanceClient() {
 
         <p className="mt-4 text-sm text-text-secondary">
           Already eligible to work? Return to{" "}
-          <Link href="/for-candidates" className="font-medium text-gold">
+          <Link href="/for-candidates" className="font-medium text-gold-ink">
             For candidates
           </Link>
           .

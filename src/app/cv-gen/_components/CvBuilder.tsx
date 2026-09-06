@@ -48,9 +48,9 @@ const STEPS = [
 const EXPERIENCE_STEP = 3;
 
 const BADGE_COPY: Record<string, { label: string; colour: string }> = {
-  best: { label: "Best for ATS", colour: "#1D9E75" },
-  good: { label: "Good", colour: "#C9A84C" },
-  acceptable: { label: "Acceptable", colour: "#B26A00" },
+  best: { label: "Best for ATS", colour: "#157A59" },
+  good: { label: "Good", colour: "#8C6A00" },
+  acceptable: { label: "Acceptable", colour: "#9C5C00" },
 };
 
 const primaryButton =
@@ -249,7 +249,7 @@ export function CvBuilder({ policyVersion, demo }: { policyVersion: string; demo
               Back
             </button>
             {/* Demo mode never writes to storage, so it has no save status to report. */}
-            <span className="text-[13px] text-[#8A929C]" aria-live="polite">
+            <span className="text-[13px] text-[#5F6873]" aria-live="polite">
               {demo ? "" : savedDoc === doc ? "Saved in this browser" : "Saving..."}
             </span>
             <button
@@ -265,7 +265,7 @@ export function CvBuilder({ policyVersion, demo }: { policyVersion: string; demo
           <button
             type="button"
             onClick={wipeEverything}
-            className="mt-6 text-[13px] font-semibold text-[#8A929C] underline transition-colors hover:text-[#B03A2E] focus:outline-none focus:ring-2 focus:ring-[#0D1B2A]"
+            className="mt-6 text-[13px] font-semibold text-[#5F6873] underline transition-colors hover:text-[#B03A2E] focus:outline-none focus:ring-2 focus:ring-[#0D1B2A]"
           >
             Clear everything and start again
           </button>
@@ -318,7 +318,7 @@ function PreviewFrame({ doc }: { doc: CvDocument }) {
       <div className="max-h-[70vh] overflow-auto border border-[#E2E5EA] bg-[#E9ECF0] p-3">
         <CvPreview doc={doc} scale={zoom} />
       </div>
-      <p className="mt-2 text-[12px] text-[#8A929C]">Page 1 of the PDF, at {Math.round(zoom * 100)}%.</p>
+      <p className="mt-2 text-[12px] text-[#5F6873]">Page 1 of the PDF, at {Math.round(zoom * 100)}%.</p>
     </>
   );
 }
@@ -423,7 +423,7 @@ function TemplateStep({ doc, update }: StepProps) {
               </div>
               <p className="mt-1 text-[13px] leading-snug text-[#55616D]">{meta.bestFor}</p>
               {meta.warning ? (
-                <p className="mt-1 text-[13px] font-medium text-[#B26A00]">{meta.warning}</p>
+                <p className="mt-1 text-[13px] font-medium text-[#9C5C00]">{meta.warning}</p>
               ) : null}
             </button>
           );
@@ -1029,7 +1029,7 @@ function SkillsStep({ doc, update, issues = {} }: StepProps) {
             }
           }}
           placeholder="Wall and floor tiling"
-          className="flex-1 rounded border border-[#E2E5EA] bg-white px-3 py-2.5 text-[15px] text-[#0D1B2A] outline-none placeholder:text-[#8A929C] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40"
+          className="flex-1 rounded border border-[#E2E5EA] bg-white px-3 py-2.5 text-[15px] text-[#0D1B2A] outline-none placeholder:text-[#5F6873] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40"
         />
         <button type="button" className={ghostButton} onClick={() => addSkill(entry)}>
           Add

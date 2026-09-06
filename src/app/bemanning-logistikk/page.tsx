@@ -13,7 +13,7 @@ export default function BemanningLogistikkPage() {
   return (
     <article className="bg-white">
       <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20 lg:py-[100px]">
-        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Bemanning logistikk</p>
+        <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold-ink">Bemanning logistikk</p>
         <h1 className="am-h1 mt-3 max-w-[700px] font-extrabold text-navy">
           Bemanning logistikk med folk som behersker terminaltempo
         </h1>
@@ -22,7 +22,7 @@ export default function BemanningLogistikkPage() {
             Norske distribusjonsnett presser kapasiteten: sesongtopper, JIT-leveranser og strengere krav til sikker
             truck- og truckløyve. ArbeidMatch rekrutterer EU/EEA-kandidater til lager, terminal og kjøring der
             dokumentasjon og språkbehov er avklart på forhånd. Vi tilstreber tydelig forventningsstyring før{" "}
-            <Link href="/request" className="font-medium text-gold hover:underline">
+            <Link href="/request" className="font-medium text-gold-ink hover:underline">
               bestilling
             </Link>
             .
@@ -30,7 +30,7 @@ export default function BemanningLogistikkPage() {
           <p>
             Vi kartlegger skift, truckklasser, terminalerfaring og ordreplukk, og støtter i dialog om innleie og
             onboarding. Målet vårt er færre avbrudd i flyt og mer forutsigbar bemanning - i tråd med{" "}
-            <Link href="/for-employers" className="font-medium text-gold hover:underline">
+            <Link href="/for-employers" className="font-medium text-gold-ink hover:underline">
               arbeidsgiverløsningen
             </Link>{" "}
             deres.
@@ -90,7 +90,7 @@ export default function BemanningLogistikkPage() {
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
           <Link
             href="/request"
-            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md px-6 py-3 text-sm font-semibold text-white sm:w-auto"
+            className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-gold-hover sm:w-auto"
           >
             Diskuter behov
           </Link>

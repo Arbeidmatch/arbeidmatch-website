@@ -46,7 +46,7 @@ export default function FlisleggerPage() {
             <h1 className="max-w-4xl text-5xl font-semibold leading-[0.98] tracking-[-0.04em] sm:text-7xl lg:text-[88px]">Vi tar ansvar for hele flisprosjektet.</h1>
             <p className="mt-7 max-w-xl text-lg leading-relaxed text-white/75 sm:text-xl">Fra første befaring til siste fuge. Du får fagfolk, fremdrift og kvalitet samlet hos én ansvarlig partner.</p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <a href="#kontakt" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#1d9e75] px-7 font-semibold text-white hover:brightness-110">Be om gratis vurdering <ArrowRight className="h-4 w-4" /></a>
+              <a href="#kontakt" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#157a59] px-7 font-semibold text-white hover:brightness-110">Be om gratis vurdering <ArrowRight className="h-4 w-4" /></a>
               <Link href="/flislegger/prosjekter" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/40 px-7 font-semibold hover:border-white">Se porteføljen <ArrowRight className="h-4 w-4" /></Link>
             </div>
           </div>
@@ -74,7 +74,7 @@ export default function FlisleggerPage() {
 
         <section className="bg-[#003d82] py-20 sm:py-24">
           <div className="mx-auto grid max-w-7xl gap-10 px-5 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-            <div><p className="text-xs font-bold uppercase tracking-[0.22em] text-white/55">Erfaring og leveranse</p><h2 className="mt-4 text-4xl font-semibold tracking-[-0.03em] sm:text-6xl">25 år med håndverk. 17 år i Trondheim.</h2><p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/70">Fagmiljøet bak leveransen har erfaring med flislegging, marmor, granitt og skifer. Hvert prosjekt planlegges med presise målinger, tydelig budsjett, kvalitetskontroll og dokumentert overlevering.</p></div>
+            <div><p className="text-xs font-bold uppercase tracking-[0.22em] text-white/75">Erfaring og leveranse</p><h2 className="mt-4 text-4xl font-semibold tracking-[-0.03em] sm:text-6xl">25 år med håndverk. 17 år i Trondheim.</h2><p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/70">Fagmiljøet bak leveransen har erfaring med flislegging, marmor, granitt og skifer. Hvert prosjekt planlegges med presise målinger, tydelig budsjett, kvalitetskontroll og dokumentert overlevering.</p></div>
             <div className="grid gap-4 sm:grid-cols-2"><div className="rounded-[20px] border border-white/20 p-6"><Award className="h-7 w-7 text-[#1d9e75]" /><p className="mt-7 text-3xl font-semibold">5 års</p><p className="mt-2 text-sm leading-relaxed text-white/60">garanti på utført arbeid, i tråd med vilkårene for bruk og vedlikehold.</p></div><div className="rounded-[20px] border border-white/20 p-6"><FileCheck2 className="h-7 w-7 text-[#1d9e75]" /><p className="mt-7 text-3xl font-semibold">Full oversikt</p><p className="mt-2 text-sm leading-relaxed text-white/60">Sluttrapport, bilder fra arbeidsfasene, materialoversikt og detaljert faktura.</p></div></div>
           </div>
         </section>

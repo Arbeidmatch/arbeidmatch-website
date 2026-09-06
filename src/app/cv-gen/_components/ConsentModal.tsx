@@ -246,7 +246,7 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded border border-[#E2E5EA] bg-white px-3 py-2.5 text-[15px] text-[#0D1B2A] outline-none placeholder:text-[#8A929C] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40"
+                className="w-full rounded border border-[#E2E5EA] bg-white px-3 py-2.5 text-[15px] text-[#0D1B2A] outline-none placeholder:text-[#5F6873] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40"
                 placeholder="you@example.com"
               />
             </div>
@@ -286,7 +286,7 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
                 I do not agree
               </button>
             </div>
-            <p className="mt-3 text-[13px] leading-snug text-[#8A929C]">
+            <p className="mt-3 text-[13px] leading-snug text-[#5F6873]">
               If you do not agree, everything you typed is deleted from this browser and you
               will need to start the CV again.
             </p>
@@ -354,7 +354,7 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
             <button
               type="button"
               onClick={decline}
-              className="mt-4 text-[13px] font-semibold text-[#8A929C] underline focus:outline-none focus:ring-2 focus:ring-[#0D1B2A]"
+              className="mt-4 text-[13px] font-semibold text-[#5F6873] underline focus:outline-none focus:ring-2 focus:ring-[#0D1B2A]"
             >
               Cancel and delete what I typed
             </button>

@@ -118,7 +118,7 @@ export default function PremiumBrowsePage() {
             <button
               type="button"
               onClick={() => onLogout()}
-              className="text-xs text-white/45 underline"
+              className="text-xs text-white/60 underline"
             >
               Leave
             </button>
@@ -131,7 +131,7 @@ export default function PremiumBrowsePage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search guides, topics, or regulations..."
-          className="w-full rounded-[10px] border border-white/10 bg-white/[0.06] px-5 py-3.5 text-[15px] text-white placeholder:text-white/35"
+          className="w-full rounded-[10px] border border-white/10 bg-white/[0.06] px-5 py-3.5 text-[15px] text-white placeholder:text-white/55"
         />
 
         <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
@@ -171,7 +171,7 @@ function ArticleCard({ article: a }: { article: PremiumArticle }) {
       </span>
       <p className="mt-4 text-[17px] font-bold leading-snug text-white">{a.title}</p>
       <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-white/65">{a.excerpt}</p>
-      <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-white/40">
+      <div className="mt-4 flex flex-wrap gap-3 text-[11px] text-white/55">
         <span>{a.readingTime} min read</span>
         <span>Last updated: {a.lastUpdated}</span>
       </div>

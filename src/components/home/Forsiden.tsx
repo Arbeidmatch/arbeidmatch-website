@@ -122,7 +122,7 @@ export async function Forsiden({ lang = "en" }: { lang?: Lang }) {
           the constant that moved - see lib/candidatePortal. */}
       <div className="flex flex-wrap items-center justify-end gap-3 border-b border-border px-6 py-3">
         <div className="inline-flex overflow-hidden rounded border border-border text-[11px] font-semibold">
-          <span className="bg-gold/15 px-3 py-1.5 text-gold">{lang === "en" ? "EN" : "NO"}</span>
+          <span className="bg-gold/10 px-3 py-1.5 text-gold-ink">{lang === "en" ? "EN" : "NO"}</span>
           <a href={other.href} className="px-3 py-1.5 text-text-secondary transition hover:text-navy">
             {other.label}
           </a>
@@ -192,7 +192,7 @@ export async function Forsiden({ lang = "en" }: { lang?: Lang }) {
           <span className="text-xs text-text-secondary">
             {totalOpen} {totalOpen === 1 ? "result" : "results"} &middot; {copy.resultsSuffix}
           </span>
-          <Link href="/jobs" className="ml-auto text-sm font-semibold text-gold hover:underline">
+          <Link href="/jobs" className="ml-auto text-sm font-semibold text-gold-ink hover:underline">
             {copy.seeAll}
           </Link>
         </div>

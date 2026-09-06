@@ -71,7 +71,7 @@ export default function FeedbackPageClient() {
       <section className="bg-surface py-10">
         <div className="mx-auto w-full max-w-2xl px-4">
           <div className="rounded-xl bg-white p-6 text-center shadow-[0_10px_30px_rgba(13,27,42,0.08)]">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-white">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gold text-3xl font-bold text-navy">
               ✓
             </div>
             <h1 className="mt-4 text-3xl font-bold text-navy">Feedback sent successfully!</h1>
@@ -80,7 +80,7 @@ export default function FeedbackPageClient() {
             </p>
             <Link
               href="/"
-              className="mt-5 inline-flex rounded-md bg-[#C9A84C] px-6 py-2.5 text-sm font-medium text-white hover:bg-gold-hover"
+              className="mt-5 inline-flex rounded-md bg-[#C9A84C] px-6 py-2.5 text-sm font-medium text-navy hover:bg-gold-hover"
             >
               Back to home
             </Link>
@@ -242,7 +242,7 @@ export default function FeedbackPageClient() {
 
             <p className="text-xs leading-relaxed text-text-secondary">
               By sending feedback, you agree to our{" "}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#C9A84C] underline underline-offset-2 hover:opacity-80">privacy policy</a>.
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-gold-ink underline underline-offset-2 hover:opacity-80">privacy policy</a>.
             </p>
             <button
               type="submit"
