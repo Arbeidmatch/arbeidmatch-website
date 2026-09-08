@@ -59,6 +59,24 @@ export type PublicJob = {
   salary_range_max: string | null;
   salary_mode: string | null;
   accommodation_provided: boolean | null;
+  /**
+   * The wording, decided by the ATS rather than here.
+   *
+   * HIS CORRECTION, 8 September 2026: free accommodation means free, help
+   * with accommodation means the worker pays - and neither sentence may say
+   * that we are the ones helping, because usually it is the employer. This
+   * site was printing "Help with accommodation" off the boolean above, so a
+   * job offering free accommodation told the candidate they would pay for it.
+   *
+   * One advert is drawn by the board, the detail page, the card image and the
+   * JSON-LD. Four copies of a sentence are four chances to disagree, so the
+   * sentence arrives already written.
+   */
+  accommodation?: { kind: "none" | "free" | "help"; label: string; labelNo: string; costNok: number | null } | null;
+  travel?: { kind: "none" | "covered" | "allowance"; label: string; labelNo: string; allowanceNok: number | null } | null;
+  hours_per_week?: number | null;
+  probation_period_weeks?: number | null;
+  notice_period_weeks?: number | null;
   /** The facts that differ between two jobs, which is what a card has room for. */
   rotation: string | null;
   shift_type: string | null;
@@ -177,7 +195,9 @@ export function jobFacts(job: PublicJob, now: Date = new Date()): string[] {
   if (rotation && !ROTATION_MEANS_NOTHING.has(rotation.toLowerCase())) {
     facts.push(rotation.length > 28 ? `${rotation.slice(0, 27)}…` : rotation);
   }
-  if (job.accommodation_provided) facts.push("Help with accommodation");
+  const accommodationFact = job.accommodation?.label?.trim();
+  if (accommodationFact) facts.push(accommodationFact.length > 28 ? "Accommodation" : accommodationFact);
+  else if (job.accommodation_provided) facts.push("Accommodation");
   const shift = (job.shift_type ?? "").trim();
   if (shift && shift.toLowerCase() !== "day") facts.push(shift);
   if (Array.isArray(job.required_driver_licenses) && job.required_driver_licenses.length > 0) {

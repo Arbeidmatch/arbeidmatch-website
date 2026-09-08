@@ -56,8 +56,36 @@ describe("jobFacts", () => {
     // Ordered by what a tradesman decides on: the rotation first, then the roof over
     // his head, then the shift.
     expect(facts[0]).toBe("4 weeks on / 2 off");
-    expect(facts[1]).toBe("Help with accommodation");
+    // The bare boolean no longer claims the worker pays: it says only that there
+    // is accommodation. Which kind it is comes from the ATS as a written
+    // sentence - see PublicJob.accommodation - because "free" and "help, you
+    // pay" were the same flag until 8 September 2026.
+    expect(facts[1]).toBe("Accommodation");
     expect(facts[2]).toBe("night");
+  });
+
+  it("prints the sentence the ATS decided, when there is one", () => {
+    const free = jobFacts(
+      { ...base, accommodation_provided: true, accommodation: { kind: "free", label: "Free accommodation", labelNo: "Gratis bolig", costNok: 0 } },
+      now,
+    );
+    expect(free).toContain("Free accommodation");
+
+    // A long one would break the card, so the card falls back to the word.
+    const paid = jobFacts(
+      {
+        ...base,
+        accommodation_provided: true,
+        accommodation: {
+          kind: "help",
+          label: "Help with accommodation, 3 500 NOK per month, paid by you",
+          labelNo: "Hjelp med bolig",
+          costNok: 3500,
+        },
+      },
+      now,
+    );
+    expect(paid).toContain("Accommodation");
   });
 
   it("does not say accommodation twice", () => {

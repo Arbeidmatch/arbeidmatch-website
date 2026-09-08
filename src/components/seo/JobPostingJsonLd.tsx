@@ -94,7 +94,9 @@ export function JobPostingJsonLd({ jobs }: { jobs: PublicJob[] }) {
           value: { "@type": "QuantitativeValue", unitText: "HOUR", value: job.hourly_rate_offer ?? undefined },
         };
       }
-      if (job.accommodation_provided) posting.jobBenefits = "Help with accommodation";
+      const benefit = job.accommodation?.label?.trim();
+      if (benefit) posting.jobBenefits = benefit;
+      else if (job.accommodation_provided) posting.jobBenefits = "Accommodation";
 
       return posting;
     })
@@ -130,7 +132,9 @@ function buildDescription(job: PublicJob): string {
 
   parts.push("EU or EEA passport required; we do not sponsor visas and we do not cover travel costs.");
   parts.push("Trade certificate or documented equivalent experience.");
-  if (job.accommodation_provided) parts.push("Help with accommodation.");
+  const benefitLine = job.accommodation?.label?.trim();
+  if (benefitLine) parts.push(`${benefitLine}.`);
+  else if (job.accommodation_provided) parts.push("Accommodation.");
   if (job.rotation) parts.push(`Rotation: ${job.rotation}.`);
   return parts.join(" ");
 }

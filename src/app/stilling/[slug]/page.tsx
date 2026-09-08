@@ -140,7 +140,12 @@ export default async function StillingPage({ params }: Props) {
   if (job.start_date_text?.trim()) terms.push({ label: "Start", value: job.start_date_text.trim() });
   if (job.rotation?.trim()) terms.push({ label: "Rotation", value: job.rotation.trim() });
   if (job.shift_type?.trim()) terms.push({ label: "Shift", value: job.shift_type.trim() });
-  if (job.accommodation_provided) terms.push({ label: "Accommodation", value: "Help with accommodation" });
+  if (job.hours_per_week) terms.push({ label: "Hours", value: `${job.hours_per_week} per week` });
+  // The sentence comes from the ATS already written; see PublicJob.accommodation.
+  const accommodationValue = job.accommodation?.label?.trim();
+  if (accommodationValue) terms.push({ label: "Accommodation", value: accommodationValue });
+  const travelValue = job.travel?.label?.trim();
+  if (travelValue) terms.push({ label: "Travel", value: travelValue });
 
   return (
     <article>
