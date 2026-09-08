@@ -10,6 +10,7 @@ import {
   rateLine,
   type PublicJobDetail,
 } from "@/lib/jobs-fetch";
+import { contractLabel, hiringModelLabel, type HiringModel } from "@/lib/job-contract";
 
 /**
  * The advert itself, on our own site.
@@ -70,19 +71,8 @@ type Props = { params: Promise<{ slug: string }> };
  * who pays him, so it is never guessed. The ATS resolves it once, on the row,
  * and sends the answer; this only puts it into a sentence.
  */
-function employmentLine(job: PublicJobDetail): string | null {
-  const model = job.engagement ?? (job.engagement_model as "staffing" | "recruitment" | null | undefined) ?? null;
-  if (model === "staffing") return "We employ you and hire you in to the client";
-  if (model === "recruitment") return "The client employs you; we find the person";
-  return null;
-}
-
-/** The same answer, short enough to stand in a band under the title. */
-function employmentShort(job: PublicJobDetail): string | null {
-  const model = job.engagement ?? (job.engagement_model as "staffing" | "recruitment" | null | undefined) ?? null;
-  if (model === "staffing") return "We employ you";
-  if (model === "recruitment") return "The client employs you";
-  return null;
+function hiringModel(job: PublicJobDetail): HiringModel {
+  return job.engagement ?? (job.engagement_model as HiringModel | undefined) ?? null;
 }
 
 function companyName(job: PublicJobDetail): string | null {
@@ -121,8 +111,8 @@ export default async function StillingPage({ params }: Props) {
   // renders an error where the job should be reads as us having lost it.
   if (!job) notFound();
 
-  const employer = employmentLine(job);
-  const employerShort = employmentShort(job);
+  const contract = contractLabel(job.employment_type);
+  const employer = hiringModelLabel(hiringModel(job));
   const company = job.public_show_company ? companyName(job) : null;
   const rate = rateLine(job);
   const where = (job.location ?? "").trim() || (job.country ?? "").trim() || "Norway";
@@ -143,7 +133,8 @@ export default async function StillingPage({ params }: Props) {
   // advert body, which is written by a generator and has been wrong.
   const terms: Array<{ label: string; value: string }> = [
     { label: "Pay", value: rate ?? "Agreed at interview" },
-    { label: "Employment", value: employer ?? "Not stated" },
+    { label: "Contract", value: contract ?? "Not stated" },
+    { label: "Employer", value: employer ?? "Not stated" },
     { label: "Where", value: where },
   ];
   if (job.start_date_text?.trim()) terms.push({ label: "Start", value: job.start_date_text.trim() });
@@ -202,7 +193,7 @@ export default async function StillingPage({ params }: Props) {
                 </div>
                 <div>
                   <dt className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50">Contract</dt>
-                  <dd className="mt-1.5 text-xl font-bold leading-tight text-white">{employerShort ?? "Not stated"}</dd>
+                  <dd className="mt-1.5 text-xl font-bold leading-tight text-white">{contract ?? "Not stated"}</dd>
                 </div>
               </dl>
             </div>
