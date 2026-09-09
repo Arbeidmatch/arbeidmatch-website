@@ -1,6 +1,6 @@
 import path from "node:path";
 import React from "react";
-import { Font, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Font, Link, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { Style } from "@react-pdf/stylesheet";
 import {
   SECTION_HEADINGS,
@@ -90,6 +90,17 @@ export const base = StyleSheet.create({
     fontSize: 8,
     color: PALETTE.muted,
   },
+  pageFoot: {
+    position: "absolute",
+    bottom: 14,
+    left: 0,
+    right: 0,
+    textAlign: "center",
+    fontSize: 8,
+    lineHeight: 1.5,
+    color: PALETTE.muted,
+  },
+  pageFootLink: { color: PALETTE.gold, textDecoration: "underline" },
 });
 
 export interface TemplateProps {
@@ -211,13 +222,29 @@ export function NameBlock({ personal }: { personal: CvPersonal }) {
   );
 }
 
+/** Where a candidate builds one of these. Clickable in the PDF. */
+export const CV_BUILDER_URL = "https://arbeidmatch.no/cv";
+
+/**
+ * The foot of every page: the page number when there is more than one, and the
+ * line saying where the CV was made.
+ *
+ * The credit sits below the page number rather than beside it so the numbering
+ * keeps the position a reader's eye already knows. It is deliberately quiet -
+ * this is the candidate's document, and our name on it is a footnote, not a
+ * letterhead.
+ */
 export function PageNumber() {
   return (
-    <Text
-      style={base.pageNumber}
-      render={({ pageNumber, totalPages }) => (totalPages > 1 ? `${pageNumber} / ${totalPages}` : "")}
-      fixed
-    />
+    <View style={base.pageFoot} fixed>
+      <Text render={({ pageNumber, totalPages }) => (totalPages > 1 ? `${pageNumber} / ${totalPages}` : "")} />
+      <Text>
+        Created with ArbeidMatch{" "}
+        <Link src={CV_BUILDER_URL} style={base.pageFootLink}>
+          arbeidmatch.no/cv
+        </Link>
+      </Text>
+    </View>
   );
 }
 
