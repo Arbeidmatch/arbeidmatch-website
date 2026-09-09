@@ -1,7 +1,8 @@
 import path from "node:path";
 import React from "react";
-import { Font, Link, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Font, Image, Link, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { Style } from "@react-pdf/stylesheet";
+import { CV_CONTROLLER } from "@/lib/cv/org";
 import {
   SECTION_HEADINGS,
   dateRange,
@@ -59,11 +60,15 @@ export const base = StyleSheet.create({
     lineHeight: 1.4,
     color: PALETTE.body,
     paddingTop: PAGE_PADDING,
-    paddingBottom: PAGE_PADDING + 10,
+    // Clears the fixed footer: emblem, page number and the company block.
+    paddingBottom: 78,
     paddingHorizontal: PAGE_PADDING,
   },
-  name: { fontSize: 21, fontWeight: 700, color: PALETTE.ink },
-  headline: { fontSize: 11, fontWeight: 600, color: PALETTE.gold, marginTop: 2 },
+  // Explicit line height: without one the 21pt name sits in a box too short
+  // for Inter's ascenders and descenders, and the gold headline underneath
+  // printed straight through the bottom of it.
+  name: { fontSize: 21, lineHeight: 1.25, fontWeight: 700, color: PALETTE.ink },
+  headline: { fontSize: 11, lineHeight: 1.3, fontWeight: 600, color: PALETTE.gold, marginTop: 4 },
   contactLine: { fontSize: 9, color: PALETTE.muted, marginTop: 5 },
   sectionHeading: {
     fontSize: 9.5,
@@ -101,6 +106,7 @@ export const base = StyleSheet.create({
     color: PALETTE.muted,
   },
   pageFootLink: { color: PALETTE.gold, textDecoration: "underline" },
+  pageFootEmblem: { width: 18, height: 18, alignSelf: "center", marginBottom: 3 },
 });
 
 export interface TemplateProps {
@@ -225,6 +231,9 @@ export function NameBlock({ personal }: { personal: CvPersonal }) {
 /** Where a candidate builds one of these. Clickable in the PDF. */
 export const CV_BUILDER_URL = "https://arbeidmatch.no/cv";
 
+/** The gold seal, so the foot of the page carries the mark as well as the name. */
+const EMBLEM = path.join(process.cwd(), "public", "brand", "arbeidmatch-emblem.png");
+
 /**
  * The foot of every page: the page number when there is more than one, and the
  * line saying where the CV was made.
@@ -237,12 +246,17 @@ export const CV_BUILDER_URL = "https://arbeidmatch.no/cv";
 export function PageNumber() {
   return (
     <View style={base.pageFoot} fixed>
+      <Image style={base.pageFootEmblem} src={EMBLEM} />
       <Text render={({ pageNumber, totalPages }) => (totalPages > 1 ? `${pageNumber} / ${totalPages}` : "")} />
+      <Text>
+        {CV_CONTROLLER.name} &middot; {CV_CONTROLLER.address}, {CV_CONTROLLER.country}
+      </Text>
       <Text>
         Created with ArbeidMatch{" "}
         <Link src={CV_BUILDER_URL} style={base.pageFootLink}>
           arbeidmatch.no/cv
-        </Link>
+        </Link>{" "}
+        &middot; Org.nr {CV_CONTROLLER.orgNumber} MVA
       </Text>
     </View>
   );
