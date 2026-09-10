@@ -248,10 +248,11 @@ export type PublicJobDetail = PublicJob & {
   /**
    * What the advert asks of the reader, and whether failing it stops them.
    *
-   * Prompt and required only. The expected answer stays in the ATS: printing it
-   * beside the question is printing the answer key.
+   * Prompt and required, plus `id` and `kind` so the application form can ask
+   * the question rather than only print it. The expected answer stays in the
+   * ATS: printing it beside the question is printing the answer key.
    */
-  requirements?: Array<{ prompt: string; required: boolean }> | null;
+  requirements?: Array<{ id?: string; kind?: string; prompt: string; required: boolean }> | null;
   project?:
     | { name?: string | null; project_type?: string | null; company?: { name?: string } | { name?: string }[] | null }
     | null;

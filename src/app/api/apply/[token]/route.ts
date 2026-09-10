@@ -41,16 +41,28 @@ export async function POST(request: NextRequest, context: { params: Promise<{ to
     return NextResponse.json({ error: "We could not read that application." }, { status: 400 });
   }
 
+  // The applicant's address, so the ATS rate limit and human check count the
+  // person rather than this server. Forwarding X-Forwarded-For alone did not do
+  // it: Vercel overwrites that header on the ATS side, so every applicant looked
+  // like one visitor, five applications a minute for the whole site (found
+  // 10 September 2026). The address travels in its own header, signed with the
+  // secret the ATS already checks for our mail relay; without the secret the ATS
+  // ignores it.
+  const applicantIp =
+    request.headers.get("x-real-ip")?.trim() || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "";
+  const secret = process.env.ATS_EMAIL_SECRET?.trim() ?? "";
+
   try {
     const upstream = await fetch(`${atsBaseUrl()}/api/public/apply/${encodeURIComponent(clean)}/submit`, {
       method: "POST",
       body,
       cache: "no-store",
-      // The applicant's address, so the ATS rate limiting and human check see
-      // the person rather than seeing this server for every application.
       headers: {
         "x-forwarded-for": request.headers.get("x-forwarded-for") ?? "",
         "x-real-ip": request.headers.get("x-real-ip") ?? "",
+        ...(secret && applicantIp
+          ? { "x-arbeidmatch-website-secret": secret, "x-arbeidmatch-applicant-ip": applicantIp }
+          : {}),
       },
     });
 

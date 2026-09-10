@@ -30,10 +30,40 @@ import { useRef, useState } from "react";
  * /register/<name> has no job behind it, and the ATS accepts both through the
  * same pipeline. What changes is one sentence of copy, not the form.
  */
-type Props = { token: string; jobTitle?: string | null };
+type Props = { token: string; jobTitle?: string | null; questions?: ScreeningQuestion[] | null };
+
+/**
+ * The advert's own screening questions, asked here rather than only printed.
+ *
+ * FOUND 10 September 2026, before a campaign: the advert listed these as text
+ * and the form never asked them, so the ATS received no answers - and since
+ * 7 September it files an application that fails a required question as
+ * rejected. Every applicant to six of the seven open adverts was being turned
+ * down for questions nobody had put to them.
+ */
+export type ScreeningQuestion = { id?: string; kind?: string; prompt: string; required: boolean };
 
 const HONEYPOT = "company_website";
 const RENDERED_AT = "form_rendered_at";
+
+/**
+ * The body limit on the way in. Vercel refuses a request over 4.5 MB before our
+ * code sees it, and the browser then shows a response that is not ours. Checked
+ * here so the person is told in words, with room left for the rest of the form.
+ */
+const MAX_CV_BYTES = 4 * 1024 * 1024;
+
+/** A start-date question is already answered by the availability menu above it. */
+function isStartDateQuestion(q: ScreeningQuestion): boolean {
+  return q.kind === "date" && /\bstart\b/i.test(q.prompt);
+}
+
+/** The date the availability answer means, as the ATS reads a date answer. */
+function startDateFor(availability: string, noticeWeeks: number | null): string {
+  const days: Record<string, number> = { asap: 0, in_1_week: 7, in_2_weeks: 14, in_1_month: 30 };
+  const offset = availability === "notice_period" ? (noticeWeeks ?? 4) * 7 : (days[availability] ?? 0);
+  return new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
+}
 
 /**
  * The passports we can take, and it is a list rather than a text box.
@@ -63,10 +93,15 @@ const EU_EEA_COUNTRIES = [
   "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden",
 ];
 
-export function ApplyForm({ token, jobTitle }: Props) {
+export function ApplyForm({ token, jobTitle, questions }: Props) {
   const renderedAt = useRef(String(Date.now()));
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [availability, setAvailability] = useState("");
+  // Only the questions the ATS can take an answer to: an id to send it back
+  // under. The start date is answered by the availability menu, not asked twice.
+  const asked = (questions ?? []).filter((q) => (q.id ?? "").trim() && !isStartDateQuestion(q));
+  const startQuestions = (questions ?? []).filter((q) => (q.id ?? "").trim() && isStartDateQuestion(q));
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -76,6 +111,22 @@ export function ApplyForm({ token, jobTitle }: Props) {
     const entered = new FormData(event.currentTarget);
     const text = (name: string) => String(entered.get(name) ?? "").trim();
     const ticked = (name: string) => entered.get(name) === "on";
+
+    const cv = entered.get("cv_file");
+    if (cv instanceof File && cv.size > MAX_CV_BYTES) {
+      setError("Your CV is larger than 4 MB. Please send a smaller file, for example a PDF.");
+      return;
+    }
+
+    const noticeWeeks = availability === "notice_period" ? Number.parseInt(text("availability_notice_weeks"), 10) : null;
+    const screenerAnswers: Record<string, string> = {};
+    for (const q of asked) {
+      const value = text(`q_${q.id}`);
+      if (value) screenerAnswers[String(q.id)] = value;
+    }
+    for (const q of startQuestions) {
+      if (availability) screenerAnswers[String(q.id)] = startDateFor(availability, noticeWeeks);
+    }
 
     /**
      * The shape the ATS reads, which is not the shape a form posts.
@@ -97,6 +148,10 @@ export function ApplyForm({ token, jobTitle }: Props) {
         .map((s) => s.trim())
         .filter(Boolean),
       availability_type: text("availability_type"),
+      // Required by the ATS when the answer is "after my notice period"; the
+      // form had no field for it, so that answer was always refused.
+      ...(noticeWeeks !== null ? { availability_notice_weeks: noticeWeeks } : {}),
+      screener_answers: screenerAnswers,
       privacy_policy_accepted: ticked("privacy_policy_accepted"),
       recruitment_contact_consent: ticked("recruitment_contact_consent"),
       // What they actually ticked. It decides whether we may come back to them
@@ -112,15 +167,17 @@ export function ApplyForm({ token, jobTitle }: Props) {
 
     const form = new FormData();
     form.set("payload", JSON.stringify(payload));
-    const cv = entered.get("cv_file");
     if (cv instanceof File && cv.size > 0) form.set("cv_file", cv);
 
     setState("sending");
     try {
       const response = await fetch(`/api/apply/${encodeURIComponent(token)}`, { method: "POST", body: form });
-      const payload = (await response.json().catch(() => ({}))) as { error?: string };
+      // The ATS writes its refusals as `error`, and its duplicate answer as
+      // `message`. Reading only the first showed "please try again" to somebody
+      // who needed to be told something else.
+      const payload = (await response.json().catch(() => ({}))) as { error?: string; message?: string };
       if (!response.ok) {
-        setError(payload.error ?? "We could not accept that application. Please try again.");
+        setError(payload.error ?? payload.message ?? "We could not accept that application. Please try again.");
         setState("idle");
         return;
       }
@@ -189,7 +246,9 @@ export function ApplyForm({ token, jobTitle }: Props) {
       <fieldset className="mt-10 border-0 p-0">
         <legend className="text-sm font-semibold uppercase tracking-[0.12em] text-text-secondary">What you do</legend>
         <div className="mt-4 grid gap-4">
-          <Field name="current_job_title" label="Your trade" placeholder="Carpenter, electrician, car mechanic" />
+          {/* Required by the ATS ("Please enter your job title"), so it is marked
+              required here rather than refused after sending. */}
+          <Field name="current_job_title" label="Your trade" required placeholder="Carpenter, electrician, car mechanic" />
           {/* Required by the ATS, and the third such field found by sending a
               real application on 3 September 2026: without it every applicant
               was refused with "Add at least one skill." Comma separated,
@@ -220,7 +279,8 @@ export function ApplyForm({ token, jobTitle }: Props) {
             <select
               name="availability_type"
               required
-              defaultValue=""
+              value={availability}
+              onChange={(e) => setAvailability(e.target.value)}
               className="mt-1.5 block min-h-12 w-full rounded-lg border border-border bg-white px-3 text-navy outline-none focus:border-gold"
             >
               <option value="" disabled>
@@ -233,20 +293,55 @@ export function ApplyForm({ token, jobTitle }: Props) {
               ))}
             </select>
           </label>
+          {availability === "notice_period" ? (
+            <label className="block">
+              <span className="text-sm font-semibold text-navy">
+                How many weeks is your notice period<span className="font-bold text-navy"> *</span>
+              </span>
+              <input
+                name="availability_notice_weeks"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={104}
+                required
+                className="mt-1.5 block min-h-12 w-full rounded-lg border border-border bg-white px-3 text-navy outline-none focus:border-gold"
+              />
+            </label>
+          ) : null}
+          {/* Required: the ATS refuses an application without one. The file gate
+              there takes PDF, Word (.docx) and a photo; the old .doc format is
+              refused by it, so it is not offered here. */}
           <label className="block">
-            <span className="text-sm font-semibold text-navy">Your CV</span>
+            <span className="text-sm font-semibold text-navy">
+              Your CV<span className="font-bold text-navy"> *</span>
+            </span>
             <input
               type="file"
               name="cv_file"
-              accept=".pdf,.doc,.docx"
+              required
+              accept=".pdf,.docx,.jpg,.jpeg,.png"
               className="mt-1.5 block w-full rounded-lg border border-border px-3 py-2.5 text-sm text-navy file:mr-3 file:rounded-md file:border-0 file:bg-navy file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white"
             />
             <span className="mt-1 block text-xs text-text-secondary">
-              PDF or Word. Not required, but it is the fastest way for us to see what you have done.
+              PDF, Word (.docx) or a photo of your CV, up to 4 MB. Show where you worked, for how long and what work you did.
             </span>
           </label>
         </div>
       </fieldset>
+
+      {asked.length > 0 ? (
+        <fieldset className="mt-10 border-0 p-0">
+          <legend className="text-sm font-semibold uppercase tracking-[0.12em] text-text-secondary">
+            About this position
+          </legend>
+          <div className="mt-4 grid gap-5">
+            {asked.map((q) => (
+              <Question key={q.id} question={q} />
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
 
       <fieldset className="mt-10 border-0 p-0">
         <legend className="text-sm font-semibold uppercase tracking-[0.12em] text-text-secondary">
@@ -321,6 +416,52 @@ function Field({
         autoComplete={autoComplete}
         className="mt-1.5 block min-h-12 w-full rounded-lg border border-border bg-white px-3 text-navy outline-none focus:border-gold"
       />
+    </label>
+  );
+}
+
+/** One screening question, drawn as the kind of answer it takes. */
+function Question({ question }: { question: ScreeningQuestion }) {
+  const name = `q_${question.id}`;
+  const star = question.required ? <span className="font-bold text-navy"> *</span> : null;
+  const input =
+    "mt-1.5 block min-h-12 w-full rounded-lg border border-border bg-white px-3 text-navy outline-none focus:border-gold";
+
+  if (question.kind === "yes_no") {
+    return (
+      <fieldset className="border-0 p-0">
+        <legend className="text-sm font-semibold text-navy">
+          {question.prompt}
+          {star}
+        </legend>
+        <div className="mt-2 flex gap-6">
+          {[
+            ["true", "Yes"],
+            ["false", "No"],
+          ].map(([value, label]) => (
+            <label key={value} className="flex min-h-11 items-center gap-2 text-sm text-navy">
+              <input type="radio" name={name} value={value} required={question.required} className="h-4 w-4 accent-gold" />
+              {label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    );
+  }
+
+  return (
+    <label className="block">
+      <span className="text-sm font-semibold text-navy">
+        {question.prompt}
+        {star}
+      </span>
+      {question.kind === "number" ? (
+        <input name={name} type="number" inputMode="numeric" min={0} max={60} required={question.required} className={input} />
+      ) : question.kind === "date" ? (
+        <input name={name} type="date" required={question.required} className={input} />
+      ) : (
+        <input name={name} type="text" maxLength={500} required={question.required} className={input} />
+      )}
     </label>
   );
 }

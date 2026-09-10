@@ -101,7 +101,7 @@ export default async function SoknadPage({ params }: Props) {
       <div className="bg-white">
         <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20">
           {token ? (
-            <ApplyForm token={token} jobTitle={job.title} />
+            <ApplyForm token={token} jobTitle={job.title} questions={job.requirements ?? []} />
           ) : (
             /* An advert that closed between the list being drawn and this page
                being opened, or a recruiter who is no longer active. Saying so is
