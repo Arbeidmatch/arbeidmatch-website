@@ -5,7 +5,7 @@ import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { notifyError } from "@/lib/errorNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
-import { isUnsubscribed } from "@/lib/emailSubscription";
+import { isUnsubscribed, unsubscribeUrlFor } from "@/lib/emailSubscription";
 import { featureWaitlistLetter } from "@/lib/emails/letters";
 
 export const dynamic = "force-dynamic";
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
         }
         const letter = featureWaitlistLetter({
           to: email,
-          unsubscribeUrl: `https://arbeidmatch.no/unsubscribed?email=${encodeURIComponent(email)}`,
+          unsubscribeUrl: await unsubscribeUrlFor(email, "feature-waitlist"),
         });
         await transporter.sendMail({
           ...mailHeaders(),

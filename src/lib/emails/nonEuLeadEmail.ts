@@ -49,6 +49,6 @@ export function buildNonEuLeadEmail(firstName: string, recipientEmail: string, u
     recipient: recipientEmail,
     unsubscribeUrl: unsubscribeToken
       ? `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
-      : `https://arbeidmatch.no/unsubscribed?email=${encodeURIComponent(recipientEmail)}`,
+      : `mailto:post@arbeidmatch.no?subject=${encodeURIComponent(`Unsubscribe ${recipientEmail}`)}`,
   });
 }

@@ -4,6 +4,7 @@ import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { siteFeedbackNoticeLetter, siteFeedbackReceiptLetter } from "@/lib/emails/letters";
+import { unsubscribeUrlFor } from "@/lib/emailSubscription";
 
 type SiteFeedbackPayload = {
   rating?: number;
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     const receipt = siteFeedbackReceiptLetter({
       rating,
       to: emailRaw,
-      unsubscribeUrl: `https://arbeidmatch.no/unsubscribed?email=${encodeURIComponent(emailRaw)}`,
+      unsubscribeUrl: await unsubscribeUrlFor(emailRaw, "site-feedback"),
     });
     await transporter.sendMail({
       ...mailHeaders(),

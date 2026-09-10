@@ -5,6 +5,7 @@ import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { partnerApplicationLinkLetter } from "@/lib/emails/letters";
+import { unsubscribeUrlFor } from "@/lib/emailSubscription";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 const freeEmailDomains = new Set([
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const applicationUrl = `https://arbeidmatch.no/become-a-partner?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
-    const unsubscribeResolved = `https://arbeidmatch.no/unsubscribed?email=${encodeURIComponent(email)}`;
+    const unsubscribeResolved = await unsubscribeUrlFor(email, "partner-request");
 
     const transporter = createSmtpTransporter();
     if (transporter) {
