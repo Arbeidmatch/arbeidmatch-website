@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { verifyEligibilityVerificationToken } from "@/lib/notificationToken";
-import { buildInternalEmailHtml, emailParagraph, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
+import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { unsubscribeUrlFor } from "@/lib/emailSubscription";
+import {
+  eligibilityVerifiedLetter,
+  verificationErrorNoticeLetter,
+  verifiedSignupNoticeLetter,
+} from "@/lib/emails/letters";
 import { notifyError } from "@/lib/errorNotifier";
 
 function getSupabaseClient() {
@@ -48,21 +54,19 @@ async function sendErrorReport(
     const clientIp = getClientIp(request);
     const timestamp = new Date().toISOString();
 
+    const notice = verificationErrorNoticeLetter({
+      timestamp,
+      errorType,
+      errorMessage,
+      tokenPreview,
+      userAgent,
+      clientIp,
+    });
     await transporter.sendMail({
       ...mailHeaders(),
       to: "post@arbeidmatch.no",
-      subject: `Verification error: ${errorType}`,
-      html: buildInternalEmailHtml({
-        title: `Verification error: ${errorType}`,
-        rows: [
-          { label: "Timestamp (ISO)", value: timestamp },
-          { label: "Error type", value: errorType },
-          { label: "Error message", value: errorMessage || "-" },
-          { label: "Token preview", value: tokenPreview },
-          { label: "User agent", value: userAgent },
-          { label: "Client IP", value: clientIp },
-        ],
-      }),
+      subject: notice.subject,
+      html: notice.html,
     });
   } catch (reportError) {
     const message = reportError instanceof Error ? reportError.message : "Unknown report error";
@@ -158,35 +162,29 @@ export async function GET(request: NextRequest) {
         },
       });
 
-      const internalHtml = buildInternalEmailHtml({
-        title: `Verified guide notification signup: ${payload.notifyEmail}`,
-        rows: [
-          { label: "Email", value: payload.notifyEmail },
-          { label: "Target region", value: payload.targetRegion || "-" },
-          { label: "Target country", value: payload.targetCountry || "-" },
-          { label: "Marketing consent", value: payload.marketingConsent || "No" },
-          { label: "Verified at (ISO)", value: verifiedAt },
-        ],
+      const notice = verifiedSignupNoticeLetter({
+        email: payload.notifyEmail,
+        targetRegion: payload.targetRegion || "",
+        targetCountry: payload.targetCountry || "",
+        marketingConsent: payload.marketingConsent || "",
+        verifiedAt,
       });
-
       await transporter.sendMail({
         ...mailHeaders(),
         to: "post@arbeidmatch.no",
-        subject: `Verified guide notification signup: ${payload.notifyEmail}`,
-        html: internalHtml,
+        subject: notice.subject,
+        html: notice.html,
       });
 
-      const userInner = [
-        emailParagraph("Your email is now verified."),
-        emailParagraph("You are now registered in our notification system."),
-        emailParagraph("We will contact you by email when the updated guide is available."),
-      ].join("");
-
+      const letter = eligibilityVerifiedLetter({
+        to: payload.notifyEmail,
+        unsubscribeUrl: await unsubscribeUrlFor(payload.notifyEmail, "eligibility-assistance"),
+      });
       await transporter.sendMail({
         ...mailHeaders(),
         to: payload.notifyEmail,
-        subject: "Email verified for notifications | ArbeidMatch",
-        html: wrapPremiumEmail(userInner),
+        subject: letter.subject,
+        html: letter.html,
       });
     } catch (mailError) {
       const message = mailError instanceof Error ? mailError.message : "unknown mail error";

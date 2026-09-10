@@ -3,8 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
-import { escapeHtml } from "@/lib/htmlSanitizer";
-import { buildEmail } from "@/lib/emailTemplate";
+import { guideInterestLetter } from "@/lib/emails/letters";
 import { notifyError } from "@/lib/errorNotifier";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
@@ -100,7 +99,8 @@ export async function POST(request: NextRequest) {
       if (guideWanted) {
         lines.push("", "We will also notify you when the guide for your profession becomes available.");
       }
-      lines.push("", "Best regards,", "ArbeidMatch Team", "support@arbeidmatch.no");
+      // A candidate is sent to cv@ (the letter's contact box), not to support@.
+      lines.push("", "If you want to reach us, send your CV to: cv@arbeidmatch.no");
       const bodyText = lines.join("\n");
 
       try {
@@ -108,30 +108,18 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: true });
         }
         const unsubToken = await getOrCreateSubscription(email, "guide-interest");
-        const safeSpecialty = escapeHtml(specialty);
-        const htmlBody = [
-          `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">Hi, thank you for registering your interest with ArbeidMatch.</p>`,
-          `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">We have noted your profile as: <strong>${safeSpecialty}</strong>.</p>`,
-          `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">We will contact you personally when we have a matching opportunity in Norway.</p>`,
-          guideWanted
-            ? `<p style="margin:0 0 16px;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">We will also notify you when the guide for your profession becomes available.</p>`
-            : "",
-          `<p style="margin:0;line-height:1.7;font-size:15px;color:rgba(255,255,255,0.92);">Best regards,<br/>ArbeidMatch Team<br/>support@arbeidmatch.no</p>`,
-        ]
-          .filter(Boolean)
-          .join("");
+        const letter = guideInterestLetter({
+          specialty,
+          guideWanted,
+          to: email,
+          unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
+        });
         await transporter.sendMail({
           from: `"ArbeidMatch" <no-reply@arbeidmatch.no>`,
           to: email,
-          subject: "You are registered with ArbeidMatch",
+          subject: letter.subject,
           text: bodyText,
-          html: buildEmail({
-            title: "You are registered with ArbeidMatch",
-            preheader: "We will notify you when opportunities match your profile",
-            body: htmlBody,
-            recipientEmail: email,
-            unsubscribeToken: unsubToken,
-          }),
+          html: letter.html,
         });
       } catch {
         /* ignore email transport errors */

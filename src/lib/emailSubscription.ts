@@ -20,6 +20,24 @@ export async function getOrCreateSubscription(email: string, source: string): Pr
   return data.unsubscribe_token;
 }
 
+/**
+ * The way off the list for a letter that never had one.
+ *
+ * The ArbeidMatch letter always carries one unless it is an internal notice, and
+ * a link to "#" is a way off the list that goes nowhere. Some mails here had no
+ * unsubscribe at all (a code, an access link, a partner decision), so they get
+ * the same token link as the rest. The mail must still leave if the table cannot
+ * be reached, so the fallback is a request to the office, which a person acts on.
+ */
+export async function unsubscribeUrlFor(email: string, source: string): Promise<string> {
+  try {
+    const token = await getOrCreateSubscription(email, source);
+    return `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(token)}`;
+  } catch {
+    return `mailto:post@arbeidmatch.no?subject=${encodeURIComponent(`Unsubscribe ${email}`)}`;
+  }
+}
+
 export async function isUnsubscribed(email: string): Promise<boolean> {
   const supabase = getSupabaseAdminClient();
   if (!supabase) return false;

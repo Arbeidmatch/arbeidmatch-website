@@ -10,8 +10,9 @@ import {
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
 import { fetchPartnerVerifyByEmail } from "@/lib/partner-verify-fetch";
+import { unsubscribeUrlFor } from "@/lib/emailSubscription";
+import { requestOtpLetter } from "@/lib/emails/letters";
 import {
-  buildOtpEmailHtml,
   generateOtpCode,
   hashOtpCode,
   isValidRequestEmail,
@@ -201,11 +202,16 @@ export async function POST(request: NextRequest) {
     }
 
     try {
+      const letter = requestOtpLetter({
+        code: otpCode,
+        to: email,
+        unsubscribeUrl: await unsubscribeUrlFor(email, "request-otp"),
+      });
       await transporter.sendMail({
         from: '"ArbeidMatch" <no-reply@arbeidmatch.no>',
         to: email,
-        subject: "Your ArbeidMatch verification code",
-        html: buildOtpEmailHtml(otpCode),
+        subject: letter.subject,
+        html: letter.html,
       });
     } catch (mailError) {
       logApiError("request-otp/mail", mailError);

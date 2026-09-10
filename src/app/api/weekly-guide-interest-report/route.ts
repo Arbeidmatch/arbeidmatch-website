@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
-import { buildInternalEmailHtml, formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
+import { formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
+import { weeklyGuideInterestReportLetter } from "@/lib/emails/letters";
 import { notifyError } from "@/lib/errorNotifier";
 
 function getSupabaseClient() {
@@ -70,22 +71,19 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const html = buildInternalEmailHtml({
-      title: `Weekly guide interest report - total ${totalInterested}`,
-      rows: [
-        { label: "Report generated (CET)", value: formatEmailTimestampCet() },
-        { label: "Context", value: "Guide interest signups (eligibility assistance flow)" },
-        { label: "Total interested candidates", value: String(totalInterested) },
-        { label: "New interested this week", value: String(weeklyInterested) },
-        { label: "Product launch target", value: String(launchTarget) },
-        { label: "Progress", value: `${progressPercent}% (${remaining} remaining to target)` },
-      ],
+    const { subject, html } = weeklyGuideInterestReportLetter({
+      generatedAt: formatEmailTimestampCet(),
+      totalInterested,
+      weeklyInterested,
+      launchTarget,
+      progressPercent,
+      remaining,
     });
 
     await transporter.sendMail({
       ...mailHeaders(),
       to: "post@arbeidmatch.no",
-      subject: `Weekly guide interest report | Total ${totalInterested}`,
+      subject,
       html,
     });
 

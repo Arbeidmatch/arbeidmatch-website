@@ -3,10 +3,10 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
-import { mailHeaders, premiumCtaButton } from "@/lib/emailPremiumTemplate";
+import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { createEligibilityVerificationToken } from "@/lib/notificationToken";
 import { notifyError } from "@/lib/errorNotifier";
-import { buildEmail, emailBodyParagraph, emailBodySupportHint, emailFieldRows } from "@/lib/emailTemplate";
+import { eligibilityVerifyLetter } from "@/lib/emails/letters";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
@@ -173,27 +173,23 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://arbeidmatch.no";
     const verificationUrl = `${baseUrl}/api/verify-notification-email?token=${encodeURIComponent(token)}`;
 
-    const candidateInner = [
-      emailBodyParagraph(
-        "Please verify your email address to confirm consent and activate your notification subscription.",
-      ),
-      emailFieldRows([
-        { label: "Target region", value: data.targetRegion || "-" },
-        { label: "Target country", value: data.targetCountry || "-" },
-        { label: "Notification email", value: emailTrimmed },
-        { label: "Marketing consent", value: data.marketingConsent || "No" },
-      ]),
-      `<p style="margin:8px 0 0;text-align:center;">${premiumCtaButton(verificationUrl, "Verify email and activate notifications")}</p>`,
-      emailBodySupportHint(),
-      `<p style="margin:16px 0 0;text-align:center;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</p>`,
-    ].join("");
+    // The letter escapes what it prints, so it gets the words as typed, not the escaped copy.
+    const typed = (key: string) => (typeof rawData[key] === "string" ? (rawData[key] as string).trim() : "");
 
     if (!(await isUnsubscribed(emailTrimmed))) {
       const unsubToken = await getOrCreateSubscription(emailTrimmed, "eligibility-assistance");
+      const letter = eligibilityVerifyLetter({
+        targetRegion: typed("targetRegion"),
+        targetCountry: typed("targetCountry"),
+        marketingConsent: typed("marketingConsent"),
+        verificationUrl,
+        to: typed("notifyEmail"),
+        unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
+      });
       await transporter.sendMail({
         ...mailHeaders(),
         to: emailTrimmed,
-        subject: "Verify your email for notifications | ArbeidMatch",
+        subject: letter.subject,
         text: `Please verify your email to activate notifications.
 
 Open the HTML version of this message and use the verify button.
@@ -202,13 +198,7 @@ Target region: ${data.targetRegion || "-"}
 Target country: ${data.targetCountry || "-"}
 
 If the button does not work, reply to this email for help.`,
-        html: buildEmail({
-          title: "Verify your email for notifications",
-          preheader: "Confirm consent and activate your subscription",
-          body: candidateInner,
-          recipientEmail: emailTrimmed,
-          unsubscribeToken: unsubToken,
-        }),
+        html: letter.html,
       });
     }
 

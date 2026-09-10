@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { buildInternalEmailHtml, formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
+import { formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
+import { weeklyFeedbackReportLetter } from "@/lib/emails/letters";
 import { notifyError } from "@/lib/errorNotifier";
 
 type FeedbackRow = {
@@ -165,17 +166,14 @@ export async function GET(request: NextRequest) {
     }
     reportRows.push({ label: "Attachment", value: "Detailed PDF report (see attachment)" });
 
-    const html = buildInternalEmailHtml({
-      title: `Weekly candidate feedback report - avg ${avgScore.toFixed(2)}/10`,
-      rows: reportRows,
-    });
+    const { subject, html } = weeklyFeedbackReportLetter({ avgScore, rows: reportRows });
 
     const filename = `candidate-feedback-report-${endDate.toISOString().slice(0, 10)}.pdf`;
 
     await transporter.sendMail({
       ...mailHeaders(),
       to: "post@arbeidmatch.no",
-      subject: `Weekly candidate feedback report | Avg ${avgScore.toFixed(2)}/10`,
+      subject,
       html,
       attachments: [
         {

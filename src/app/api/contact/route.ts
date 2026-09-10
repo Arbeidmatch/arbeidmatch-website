@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
-import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
-import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTemplate";
-import { mailHeaders, premiumCtaButton } from "@/lib/emailPremiumTemplate";
+import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { contactNoticeLetter, contactReceiptLetter } from "@/lib/emails/letters";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 type ContactPayload = {
@@ -45,14 +45,18 @@ export async function POST(request: NextRequest) {
     if (!(await verifyTurnstileToken(turnstileToken))) {
       return NextResponse.json({ success: false, error: "Bot detected" }, { status: 400 });
     }
+    // Slack gets the escaped copy, as before. The letters escape what they print,
+    // so they are given the words as typed: escaped twice, "Bygg & Anlegg AS"
+    // arrived as "Bygg &amp; Anlegg AS", in the mail and in the ATS proposal.
     const body = sanitizeStringRecord(rawBody) as ContactPayload;
+    const typed = (key: keyof ContactPayload) => (typeof rawBody[key] === "string" ? (rawBody[key] as string).trim() : "");
 
-    const name = (body.name || "").trim();
-    const companyRaw = (body.company || "").trim();
+    const name = typed("name");
+    const companyRaw = typed("company");
     const company = companyRaw || "Not provided";
-    const email = (body.email || "").trim();
-    const need = (body.need || "").trim() || "Website contact";
-    const message = (body.message || "").trim();
+    const email = typed("email");
+    const need = typed("need") || "Website contact";
+    const message = typed("message");
 
     if (!name || !email || !email.includes("@") || !message) {
       return NextResponse.json({ success: false, error: "Please fill in all required fields." }, { status: 400 });
@@ -77,56 +81,37 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const internalBody = emailFieldRows([
-      { label: "Name", value: name },
-      { label: "Company", value: company },
-      { label: "Email", value: email },
-      { label: "Request type", value: need },
-      { label: "Message", value: message },
-    ]);
-
+    // Read back by the ATS intake: see contactNoticeLetter before changing a label.
+    const notice = contactNoticeLetter({ name, company, email, need, message, isSupport: isSupportRequest, to: recipient });
     await transporter.sendMail({
       ...mailHeaders(),
       to: recipient,
-      subject: `${isSupportRequest ? "Support request" : "New contact message"}: ${name} from ${company}`,
-      html: buildEmail({
-        title: `${isSupportRequest ? "Support request" : "Contact message"}: ${name} from ${company}`,
-        preheader: "New inbound contact form submission",
-        body: internalBody,
-      }),
+      subject: notice.subject,
+      html: notice.html,
     });
-
-    const safeName = escapeHtml(name);
-    const safeNeed = escapeHtml(need);
-    const userInner = [
-      emailBodyParagraph(`Hi ${safeName},`),
-      emailBodyParagraph("Thank you for contacting us. We received your message and will respond shortly."),
-      emailBodyParagraph(`<strong>Request type:</strong> ${safeNeed}`),
-      `<p style="margin:8px 0 0;text-align:center;">${premiumCtaButton("https://arbeidmatch.no/feedback", "Share feedback")}</p>`,
-    ].join("");
 
     if (!(await isUnsubscribed(email))) {
       const unsubToken = await getOrCreateSubscription(email, "contact");
+      const receipt = contactReceiptLetter({
+        name,
+        need,
+        to: email,
+        unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
+      });
       await transporter.sendMail({
         ...mailHeaders(),
         to: email,
-        subject: "We received your message - ArbeidMatch",
-        html: buildEmail({
-          title: "We received your message",
-          preheader: "Our team will respond shortly",
-          body: userInner,
-          recipientEmail: email,
-          unsubscribeToken: unsubToken,
-        }),
+        subject: receipt.subject,
+        html: receipt.html,
       });
     }
 
     void notifySlack("contacts", {
       title: "New Contact Form Submission",
       fields: {
-        Name: name,
-        Email: email,
-        Message: message.slice(0, 100),
+        Name: (body.name || "").trim(),
+        Email: (body.email || "").trim(),
+        Message: (body.message || "").trim().slice(0, 100),
       },
     });
 

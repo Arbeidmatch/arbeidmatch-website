@@ -43,18 +43,6 @@ export function verifyOtpCode(code: string, storedHash: string): boolean {
   return timingSafeEqual(a, b);
 }
 
-export function buildOtpEmailHtml(code: string): string {
-  const safeCode = code.replace(/[^\d]/g, "");
-  return `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
-  <h2 style="color: #0D1B2A;">Your verification code</h2>
-  <p style="color: #0D1B2A;">Use this code to continue your ArbeidMatch request:</p>
-  <p style="font-size: 32px; font-weight: 700; letter-spacing: 0.25em; color: #0D1B2A; margin: 24px 0;">${safeCode}</p>
-  <p style="color: #666; font-size: 14px;">This code expires in 10 minutes. If you did not request it, you can ignore this email.</p>
-  <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;">
-  <p style="color: #999; font-size: 12px;">ArbeidMatch Norge AS | Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway</p>
-</div>`;
-}
-
 export function requestAccessRedirectUrl(token: string): string {
   return `/request/${token}`;
 }

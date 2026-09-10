@@ -4,7 +4,9 @@ import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
 import { TALENT_NETWORK_FORM_ENABLED } from "@/lib/featureFlags";
 import { isRateLimited } from "@/lib/requestProtection";
-import { formatEmailTimestampCet, mailHeaders, wrapPremiumEmail, emailParagraph } from "@/lib/emailPremiumTemplate";
+import { formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
+import { profileRequestLetter, verifiedProfileNoticeLetter } from "@/lib/emails/letters";
+import { unsubscribeUrlFor } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -44,30 +46,25 @@ export async function POST(request: NextRequest) {
     const ts = formatEmailTimestampCet();
     const internalText = `Verified profile request\n\nCandidate email: ${email}\nEU/EEA passport confirmed: yes\nGDPR consent confirmed: yes\nTimestamp: ${ts}`;
 
+    const notice = verifiedProfileNoticeLetter({ email, timestamp: ts });
     await transporter.sendMail({
       ...mailHeaders(),
       to: "cv@arbeidmatch.no",
-      subject: `Verified profile request: ${email}`,
+      subject: notice.subject,
       text: internalText,
+      html: notice.html,
     });
 
-    const innerHtml = [
-      `<h1 style="margin:0 0 20px;font-size:22px;font-weight:800;color:#0D1B2A;letter-spacing:-0.02em;">Continue your profile request</h1>`,
-      emailParagraph(
-        "You are receiving this email because you, or someone who entered your email address, requested to create a candidate profile with ArbeidMatch.",
-      ),
-      emailParagraph(
-        'If this was you, continue your request by creating your profile in our recruitment portal: <a href="https://jobs.arbeidmatch.no/sign-up" style="color:#B8860B;text-decoration:none;font-weight:600;">Create your profile</a>.',
-      ),
-      emailParagraph("This confirmation step helps us reduce false accounts and make sure we handle personal data in accordance with GDPR. If you did not make this request, you can safely ignore this email."),
-    ].join("");
-
+    const letter = profileRequestLetter({
+      to: email,
+      unsubscribeUrl: await unsubscribeUrlFor(email, "candidate-join-network"),
+    });
     await transporter.sendMail({
       ...mailHeaders(),
       to: email,
-      subject: "Continue your ArbeidMatch profile request",
+      subject: letter.subject,
       text: `You are receiving this email because you, or someone who entered your email address, requested to create a candidate profile with ArbeidMatch.\n\nIf this was you, continue by creating your profile here: https://jobs.arbeidmatch.no/sign-up\n\nThis confirmation step helps us reduce false accounts and make sure we handle personal data in accordance with GDPR. If you did not make this request, you can safely ignore this email.`,
-      html: wrapPremiumEmail(innerHtml),
+      html: letter.html,
     });
 
     return NextResponse.json({ success: true });

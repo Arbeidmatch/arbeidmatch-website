@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
-import { escapeHtml } from "@/lib/htmlSanitizer";
-import { buildInternalEmailHtml, emailParagraph, formatEmailTimestampCet, mailHeaders, wrapPremiumEmail } from "@/lib/emailPremiumTemplate";
+import { formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
+import { feedbackNoticeLetter, feedbackReceiptLetter } from "@/lib/emails/letters";
+import { unsubscribeUrlFor } from "@/lib/emailSubscription";
 import { notifyError } from "@/lib/errorNotifier";
 
 type FeedbackPayload = {
@@ -51,7 +52,6 @@ export async function POST(request: NextRequest) {
     const noteRaw = (body.note || "").trim();
     const emailRaw = (body.email || "").trim();
 
-    const source = escapeHtml(sourceRaw);
     const submittedAt = formatEmailTimestampCet();
     const isAnonymous = !emailRaw;
 
@@ -83,39 +83,35 @@ export async function POST(request: NextRequest) {
 
     const weeklyOnlySources = new Set(["candidate-eligibility-check"]);
     if (!weeklyOnlySources.has(sourceRaw)) {
-      const feedbackRows = [
-        { label: "Source", value: sourceRaw },
-        { label: "Purpose", value: purposeRaw },
-        { label: "Page URL", value: pageUrlRaw },
-        { label: "Score", value: `${score}/10` },
-        { label: "Submitted (CET)", value: submittedAt },
-        { label: "Email", value: emailRaw || "-" },
-      ];
-      if (noteRaw) {
-        feedbackRows.push({ label: "Note", value: noteRaw });
-      }
+      const notice = feedbackNoticeLetter({
+        score,
+        source: sourceRaw,
+        purpose: purposeRaw,
+        pageUrl: pageUrlRaw,
+        submittedAt,
+        email: emailRaw,
+        note: noteRaw,
+      });
       await transporter.sendMail({
         ...mailHeaders(),
         to: "post@arbeidmatch.no",
-        subject: `New feedback: ${score}/10 from ${sourceRaw}`,
-        html: buildInternalEmailHtml({
-          title: `New feedback: ${score}/10 from ${sourceRaw}`,
-          rows: feedbackRows,
-        }),
+        subject: notice.subject,
+        html: notice.html,
       });
     }
 
     if (emailRaw.includes("@")) {
-      const userInner = [
-        emailParagraph("Thank you for sharing your feedback."),
-        emailParagraph(`We received your score: <strong>${score}/10</strong>.`),
-        emailParagraph(`Source: <strong>${source}</strong>`),
-      ].join("");
+      const receipt = feedbackReceiptLetter({
+        score,
+        source: sourceRaw,
+        to: emailRaw,
+        unsubscribeUrl: await unsubscribeUrlFor(emailRaw, "confirmation-feedback"),
+      });
       await transporter.sendMail({
         ...mailHeaders(),
         to: emailRaw,
-        subject: "Thank you for your feedback - ArbeidMatch",
-        html: wrapPremiumEmail(userInner),
+        subject: receipt.subject,
+        html: receipt.html,
       });
     }
 

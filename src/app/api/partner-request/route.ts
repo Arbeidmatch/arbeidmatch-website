@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
-import { buildInternalEmailHtml, mailHeaders } from "@/lib/emailPremiumTemplate";
+import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { partnerRequestNoticeLetter } from "@/lib/emails/letters";
 import { notifyError } from "@/lib/errorNotifier";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
@@ -59,22 +60,12 @@ async function sendInternalPartnerRequestEmail(input: {
   const transporter = createSmtpTransporter();
   if (!transporter) return;
 
-  const html = buildInternalEmailHtml({
-    title: "New Partner Request",
-    rows: [
-      { label: "Company", value: input.companyName },
-      { label: "Email", value: input.email },
-      { label: "Org Number", value: input.orgNumber },
-      { label: "Phone", value: input.phone },
-      { label: "Contact", value: input.contact },
-      { label: "Request ID", value: input.requestId },
-    ],
-  });
+  const { subject, html } = partnerRequestNoticeLetter(input);
 
   await transporter.sendMail({
     ...mailHeaders(),
     to: "post@arbeidmatch.no",
-    subject: `New Partner Request: ${input.companyName}`,
+    subject,
     text:
       `New partner request received.\n` +
       `Company: ${input.companyName}\n` +

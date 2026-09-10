@@ -5,8 +5,8 @@ import { isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
-import { buildEmail, emailBodyParagraph } from "@/lib/emailTemplate";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { appWaitlistLetter } from "@/lib/emails/letters";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 export const dynamic = "force-dynamic";
@@ -53,32 +53,20 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: true });
         }
         const unsubToken = await getOrCreateSubscription(email, "app-waitlist");
-        const inner = [
-          emailBodyParagraph("Hi there,"),
-          emailBodyParagraph(
-            "You are on the list. We will notify you as soon as the ArbeidMatch app is available on iOS and Android.",
-          ),
-          `<p style="text-align:center;margin:8px 0 20px;"><span style="display:inline-block;padding:8px 14px;border-radius:999px;border:1px solid rgba(184,134,11,0.45);background:rgba(184,134,11,0.1);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#C9A84C;">In Development</span></p>`,
-          emailBodyParagraph("We are building something great and you will be among the first to know."),
-        ].join("");
+        const letter = appWaitlistLetter({
+          to: email,
+          unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
+        });
         await transporter.sendMail({
           ...mailHeaders(),
           to: email,
-          subject: "You are on the ArbeidMatch App waitlist",
+          subject: letter.subject,
           text: `Hi there,
 
 You are on the ArbeidMatch app waitlist. We will notify you when the app is available on iOS and Android.
 
 Visit https://arbeidmatch.no`,
-          html: buildEmail({
-            title: "You are on the ArbeidMatch App waitlist",
-            preheader: "We will notify you when the app is available",
-            body: inner,
-            ctaText: "Visit ArbeidMatch",
-            ctaUrl: "https://arbeidmatch.no",
-            recipientEmail: email,
-            unsubscribeToken: unsubToken,
-          }),
+          html: letter.html,
         });
       } catch (e) {
         console.error("[app-waitlist] confirmation email", e);

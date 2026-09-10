@@ -3,11 +3,11 @@ import nodemailer from "nodemailer";
 import { RECRUITER_PUBLIC_SIGNUP_ENABLED } from "@/lib/featureFlags";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
-import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
-import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTemplate";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { recruiterApplicationNoticeLetter, recruiterApplicationReceiptLetter } from "@/lib/emails/letters";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
 const PARTNER_TYPES = new Set(["influencer", "recruiter", "learner"]);
@@ -125,62 +125,45 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const safeName = escapeHtml(full_name);
-    const applicantHtml = [
-      emailBodyParagraph(`Hi ${safeName},`),
-      emailBodyParagraph("Thank you for applying to the ArbeidMatch Recruiter Network."),
-      emailFieldRows([
-        { label: "Name", value: full_name },
-        { label: "Country", value: country },
-        { label: "Region", value: region },
-        { label: "Partner type", value: typeLabel },
-        { label: "Monthly reach", value: String(monthly_reach) },
-      ]),
-      emailBodyParagraph("Our team will review your application and contact you within 48 hours."),
-      emailBodyParagraph("We look forward to potentially building together."),
-    ].join("");
-
-    const internalRows = [
-      { label: "Full name", value: full_name },
-      { label: "Email", value: email },
-      { label: "Country", value: country },
-      { label: "Region / city", value: region },
-      { label: "Partner type", value: typeLabel },
-      { label: "Profile URL", value: social_url },
-      { label: "Monthly reach", value: String(monthly_reach) },
-      { label: "ENK / AS", value: companyLabel },
-      { label: "Motivation", value: motivation || "None provided" },
-    ];
-
-    const adminBody = emailFieldRows(internalRows);
+    // The letters escape what they print, so they get the words as typed rather
+    // than the escaped copy above, which would print "&amp;" for "&".
+    const typed = (key: string) => (typeof rawBody[key] === "string" ? (rawBody[key] as string).trim() : "");
 
     if (!(await isUnsubscribed(email))) {
       const unsubToken = await getOrCreateSubscription(email, "recruiter-apply");
+      const receipt = recruiterApplicationReceiptLetter({
+        fullName: typed("full_name"),
+        country: typed("country"),
+        region: typed("region"),
+        partnerType: typeLabel,
+        monthlyReach: String(monthly_reach),
+        to: email,
+        unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
+      });
       await transporter.sendMail({
         ...mailHeaders(),
         to: email,
-        subject: "We received your application - ArbeidMatch Recruiter Network",
-        html: buildEmail({
-          title: "We received your application",
-          preheader: "ArbeidMatch Recruiter Network",
-          body: applicantHtml,
-          ctaText: "Visit ArbeidMatch",
-          ctaUrl: "https://arbeidmatch.no",
-          recipientEmail: email,
-          unsubscribeToken: unsubToken,
-        }),
+        subject: receipt.subject,
+        html: receipt.html,
       });
     }
 
+    const notice = recruiterApplicationNoticeLetter({
+      fullName: typed("full_name"),
+      email,
+      country: typed("country"),
+      region: typed("region"),
+      partnerType: typeLabel,
+      profileUrl: typed("social_url"),
+      monthlyReach: String(monthly_reach),
+      company: companyLabel,
+      motivation: typed("motivation").slice(0, 500),
+    });
     await transporter.sendMail({
       ...mailHeaders(),
       to: "post@arbeidmatch.no",
-      subject: `New Recruiter Network application: ${full_name} from ${country}`,
-      html: buildEmail({
-        title: `New Recruiter Network application: ${full_name} from ${country}`,
-        preheader: "Internal recruiter network lead",
-        body: adminBody,
-      }),
+      subject: notice.subject,
+      html: notice.html,
     });
 
     void notifySlack("recruiters", {

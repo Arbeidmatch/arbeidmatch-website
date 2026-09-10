@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 
 import { buildNonEuLeadEmail } from "@/lib/emails/nonEuLeadEmail";
-import { buildEmail, emailFieldRows } from "@/lib/emailTemplate";
+import { nonEuLeadNoticeLetter } from "@/lib/emails/letters";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import {
@@ -77,18 +77,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const notice = nonEuLeadNoticeLetter({ firstName, email: emailLower });
     await transporter.sendMail({
       ...mailHeaders(),
       to: "post@arbeidmatch.no",
-      subject: `New Non-EU Lead: ${firstName} ${emailLower}`,
-      html: buildEmail({
-        title: "New Non-EU Lead",
-        preheader: "Internal lead notification",
-        body: emailFieldRows([
-          { label: "Name", value: firstName },
-          { label: "Email", value: emailLower },
-        ]),
-      }),
+      subject: notice.subject,
+      html: notice.html,
     });
 
     void notifySlack("nonEu", {

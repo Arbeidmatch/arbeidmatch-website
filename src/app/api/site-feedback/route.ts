@@ -3,7 +3,7 @@ import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
-import { buildEmail, emailBodyParagraph, emailFieldRows } from "@/lib/emailTemplate";
+import { siteFeedbackNoticeLetter, siteFeedbackReceiptLetter } from "@/lib/emails/letters";
 
 type SiteFeedbackPayload = {
   rating?: number;
@@ -52,44 +52,33 @@ export async function POST(request: NextRequest) {
 
     const submittedAt = formatEmailTimestampCet();
 
-    const internalBody = emailFieldRows([
-      { label: "Rating", value: `${rating}/10` },
-      { label: "Email", value: emailRaw },
-      { label: "Source", value: sourceRaw },
-      { label: "Submitted (CET)", value: submittedAt },
-      { label: "Related to website", value: siteRelatedRaw || "-" },
-      { label: "Category", value: issueCategoryRaw || "-" },
-      { label: "Improvement note", value: noteRaw || "-" },
-      { label: "Issue details", value: issueDetailsRaw || "-" },
-    ]);
-
+    const notice = siteFeedbackNoticeLetter({
+      rating,
+      email: emailRaw,
+      source: sourceRaw,
+      submittedAt,
+      siteRelated: siteRelatedRaw,
+      category: issueCategoryRaw,
+      note: noteRaw,
+      issueDetails: issueDetailsRaw,
+    });
     await transporter.sendMail({
       ...mailHeaders(),
       to: "post@arbeidmatch.no",
-      subject: `New site feedback: ${rating}/10 from ${emailRaw}`,
-      html: buildEmail({
-        title: `New site feedback: ${rating}/10 from ${emailRaw}`,
-        preheader: "Internal site feedback notification",
-        body: internalBody,
-      }),
+      subject: notice.subject,
+      html: notice.html,
     });
 
-    const userInner = [
-      emailBodyParagraph("Thank you for sharing your feedback with us."),
-      emailBodyParagraph(`We received your rating: <strong>${rating}/10</strong>.`),
-      emailBodyParagraph("Your input helps us improve the candidate and employer experience."),
-    ].join("");
-
+    const receipt = siteFeedbackReceiptLetter({
+      rating,
+      to: emailRaw,
+      unsubscribeUrl: `https://arbeidmatch.no/unsubscribed?email=${encodeURIComponent(emailRaw)}`,
+    });
     await transporter.sendMail({
       ...mailHeaders(),
       to: emailRaw,
-      subject: "Thank you for your feedback - ArbeidMatch",
-      html: buildEmail({
-        title: "Thank you for your feedback",
-        preheader: "Your feedback helps us improve",
-        body: userInner,
-        recipientEmail: emailRaw,
-      }),
+      subject: receipt.subject,
+      html: receipt.html,
     });
 
     return NextResponse.json({ success: true });

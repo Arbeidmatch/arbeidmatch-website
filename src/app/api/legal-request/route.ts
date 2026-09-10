@@ -2,18 +2,11 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
+import { unsubscribeUrlFor } from "@/lib/emailSubscription";
+import { legalRequestNoticeLetter, legalRequestReceiptLetter } from "@/lib/emails/letters";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function escapeHtml(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 function createLegalTransporter() {
   const host = process.env.SMTP_HOST;
@@ -103,59 +96,44 @@ export async function POST(request: Request) {
   let userAckSent = false;
 
   if (transporter) {
-    const internalHtml = `
-      <p><strong>Legal request</strong></p>
-      <p>Request type: ${escapeHtml(request_type)}</p>
-      <p>Full name: ${escapeHtml(full_name)}</p>
-      <p>Email: ${escapeHtml(email)}</p>
-      <p>Identity verification: ${escapeHtml(identity_verification_method ?? "(none)")}</p>
-      <p>Message:</p>
-      <pre style="white-space:pre-wrap;font-family:system-ui,sans-serif">${escapeHtml(message)}</pre>
-      <p>IP: ${escapeHtml(ip_address)}</p>
-      <p>User agent: ${escapeHtml(user_agent)}</p>
-      <p>Timestamp: ${escapeHtml(ts)}</p>
-      <p>Reference: ${escapeHtml(reference)}</p>
-      <p>Row id: ${escapeHtml(id)}</p>
-      <p style="margin-top:16px;font-size:12px;color:#666;">ArbeidMatch Legal</p>
-    `;
-
-    const ackHtml = `
-      <div style="max-width:600px;margin:0 auto;font-family:system-ui,-apple-system,sans-serif;background:#ffffff;padding:32px;color:#0D1B2A;">
-        <p style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0D1B2A;">ArbeidMatch <span style="color:#C9A84C;">Legal</span></p>
-        <p style="margin:16px 0;">Dear ${escapeHtml(full_name)},</p>
-        <p style="margin:12px 0;">We confirm receipt of your legal request submitted on ${escapeHtml(ts)}.</p>
-        <p style="margin:12px 0;"><strong>Request type:</strong> ${escapeHtml(request_type)}</p>
-        <p style="margin:12px 0;"><strong>Reference number:</strong> ${escapeHtml(reference)}</p>
-        <p style="margin:12px 0;">We will respond within 30 days as required by GDPR Article 12(3). If we need additional information to verify your identity, we will contact you at this email address.</p>
-        <p style="margin:12px 0;">If you did not submit this request, please reply to this email immediately.</p>
-        <p style="margin:24px 0 8px;">Best regards,<br/>ArbeidMatch Legal</p>
-        <p style="margin:0;font-size:13px;color:#0D1B2A;">ArbeidMatch Norge AS, Org.nr 935 667 089 MVA<br/>
-        Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway</p>
-        <p style="margin-top:24px;font-size:12px;">
-          <a href="https://www.arbeidmatch.no/privacy" style="color:#C9A84C;">Privacy Policy</a>
-          &nbsp;|&nbsp;
-          <a href="https://www.arbeidmatch.no/terms" style="color:#C9A84C;">Terms of Service</a>
-        </p>
-      </div>
-    `;
+    const notice = legalRequestNoticeLetter({
+      requestType: request_type,
+      fullName: full_name,
+      email,
+      identityVerification: identity_verification_method,
+      message,
+      ip: ip_address,
+      userAgent: user_agent,
+      timestamp: ts,
+      reference,
+      rowId: id,
+    });
 
     try {
       await transporter.sendMail({
         from: "legal@arbeidmatch.no",
         to: "legal@arbeidmatch.no",
-        subject: `[Legal Request] ${request_type} from ${full_name}`,
-        html: internalHtml,
+        subject: notice.subject,
+        html: notice.html,
       });
     } catch (e) {
       console.error("[legal-request] internal mail", e);
     }
 
     try {
+      const receipt = legalRequestReceiptLetter({
+        fullName: full_name,
+        requestType: request_type,
+        reference,
+        timestamp: ts,
+        to: email,
+        unsubscribeUrl: await unsubscribeUrlFor(email, "legal-request"),
+      });
       await transporter.sendMail({
         from: "legal@arbeidmatch.no",
         to: email,
-        subject: "We received your legal request - ArbeidMatch",
-        html: ackHtml,
+        subject: receipt.subject,
+        html: receipt.html,
       });
       userAckSent = true;
     } catch (e) {

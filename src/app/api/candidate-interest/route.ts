@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { z } from "zod";
 
+import { candidateInterestNoticeLetter } from "@/lib/emails/letters";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 const bodySchema = z.object({
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
 
   const transporter = createTransporter();
   if (transporter) {
-    const subject = `New candidate interest - ${role}`;
+    const letter = candidateInterestNoticeLetter({ candidateId, role, partnerDomain, timestamp });
     const text = [
       "A partner expressed interest in a candidate profile.",
       "",
@@ -94,8 +95,9 @@ export async function POST(request: NextRequest) {
       .sendMail({
         from: process.env.SMTP_USER,
         to: "post@arbeidmatch.no",
-        subject,
+        subject: letter.subject,
         text,
+        html: letter.html,
       })
       .catch(() => undefined);
   }

@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { reportWebsiteIncident } from "@/lib/odinIncidentBridge";
+import { errorAlertLetter } from "@/lib/emails/letters";
 
 function createTransporter() {
   const pass = process.env.SMTP_PASS;
@@ -101,7 +102,7 @@ export async function notifyError({
   const incidentLine = incident ? `\nODIN Incident: ${incident.incident_ref} (assigned: ${incident.assigned_agent})\n` : "";
 
   // Once ODIN has an open incident for this exact error, don't re-alert on every
-  // repeat occurrence within the dedupe window — the incident's occurrence_count
+  // repeat occurrence within the dedupe window: the incident's occurrence_count
   // already tracks recurrence. Alert only on a genuinely new incident, or when
   // the ODIN bridge itself is unreachable (no other visibility in that case).
   const shouldAlertHuman = !incident || incident.is_new;
@@ -131,7 +132,7 @@ This is an automated error notification from arbeidmatch.no
   const subjectSnippet = errorMessage.slice(0, 60).replace(/\s+/g, " ").trim() || "Error";
 
   if (!shouldAlertHuman) {
-    console.error(`[errorNotifier] Suppressed repeat alert for ${route} — ODIN incident ${incident?.incident_ref} already open.`);
+    console.error(`[errorNotifier] Suppressed repeat alert for ${route}: ODIN incident ${incident?.incident_ref} already open.`);
     return;
   }
 
@@ -148,6 +149,14 @@ This is an automated error notification from arbeidmatch.no
       to: "post@arbeidmatch.no",
       subject: `[ERROR] ${route} - ${subjectSnippet}`,
       text: emailBody,
+      html: errorAlertLetter({
+        route,
+        timestamp,
+        incident: incident ? `${incident.incident_ref} (assigned: ${incident.assigned_agent})` : null,
+        errorMessage,
+        errorStack,
+        context: contextLines,
+      }),
     });
   } catch (notifyErr) {
     console.error("Failed to send error notification:", notifyErr);
