@@ -553,7 +553,7 @@ export function partnerRejectedLetter(args: { to: string; unsubscribeUrl: string
     html: buildArbeidmatchLetter({
       title: "Thank you for your interest",
       innerHtml: letterParagraph(
-        "After reviewing your request, we are unable to offer partner access at this time. You are welcome to reapply in the future or contact us at support@arbeidmatch.no for more information.",
+        "After reviewing your request, we are unable to offer partner access at this time. You are welcome to reapply in the future, or reply to this email if you would like to know more.",
       ),
       lang: EN,
       recipient: args.to,
