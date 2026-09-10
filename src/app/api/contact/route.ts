@@ -107,11 +107,11 @@ export async function POST(request: NextRequest) {
     }
 
     void notifySlack("contacts", {
-      title: "New Contact Form Submission",
+      title: "Mesaj nou prin formularul de contact",
       fields: {
-        Name: (body.name || "").trim(),
+        Nume: (body.name || "").trim(),
         Email: (body.email || "").trim(),
-        Message: (body.message || "").trim().slice(0, 100),
+        Mesaj: (body.message || "").trim().slice(0, 100),
       },
     });
 

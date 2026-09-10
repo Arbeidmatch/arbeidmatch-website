@@ -247,82 +247,54 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    /**
+     * The owner's message on Slack, in Romanian.
+     *
+     * HIS INSTRUCTION, 10 September 2026: the Slack messages he receives are in
+     * Romanian. The old card was English, and it printed every field the wizard
+     * sent under its code name: "Token", "Phone Prefix", "Salary Mode", the
+     * salary three times, "has_d_number", "company_covered". Now an explicit
+     * list, in the order he reads a request, with the coded answers in words.
+     * The client's own free text (the requirements he wrote) stays as he wrote it.
+     */
+    const ro = (value: string, words: Record<string, string>) => words[value] ?? value;
     const slackFields: Record<string, string> = {};
-    pushSlackField(slackFields, "Company name", data.company);
-    pushSlackField(slackFields, "Contact name", data.full_name);
+    pushSlackField(slackFields, "Referință", referenceId);
+    pushSlackField(slackFields, "Serviciu", ro(text(data.hiringType), { staffing: "Staffing (bemanning)", recruitment: "Recrutare", advertising: "Anunț de angajare" }));
+    pushSlackField(slackFields, "Firmă", data.company);
+    pushSlackField(slackFields, "Nr. org.", data.orgNumber);
+    pushSlackField(slackFields, "Persoană de contact", data.full_name);
     pushSlackField(slackFields, "Email", data.email);
-    pushSlackField(slackFields, "Phone", data.phone);
-    pushSlackField(slackFields, "Job category", categoryValue);
-    pushSlackField(slackFields, "Trade / position", selectedPosition);
-    pushSlackField(slackFields, "Location / city", cityValue);
-    pushSlackField(slackFields, "Number of workers needed", numberOfPositionsValue);
-    pushSlackField(slackFields, "Contract type", contractTypeValue);
-    pushSlackField(slackFields, "Start date", selectedStartDate);
+    pushSlackField(slackFields, "Telefon", data.phone);
+    pushSlackField(slackFields, "Contact pe anunț", adContactLine);
+    pushSlackField(slackFields, "Domeniu", categoryValue);
+    pushSlackField(slackFields, "Post", selectedPosition);
+    pushSlackField(slackFields, "Oraș", cityValue);
+    pushSlackField(slackFields, "Număr de oameni", numberOfPositionsValue);
+    pushSlackField(slackFields, "Tip contract", ro(text(contractTypeValue), { "Permanent employment": "Angajare permanentă", "Temporary hire": "Angajare temporară", "Project-based": "Pe proiect" }));
+    pushSlackField(slackFields, "Început", ro(text(selectedStartDate), { Immediate: "Imediat" }));
     pushSlackField(
       slackFields,
-      "Duration / rotation",
-      [data.hasRotation, data.rotationWeeksOn, data.rotationWeeksOff].filter(hasValue).join(" | "),
+      "Salariu",
+      text(data.salary)
+        ? `${text(data.salary)} NOK${text(data.salaryPeriod) === "Per month" ? " / lună" : text(data.salaryPeriod) === "Per hour" ? " / oră" : ""}`
+        : "",
     );
-    pushSlackField(slackFields, "Salary", data.salary);
-    pushSlackField(slackFields, "Accommodation", data.accommodation);
-    pushSlackField(slackFields, "D-number status", data.dNumber || data.dNumberOther);
-    pushSlackField(
-      slackFields,
-      "Language requirements",
-      [data.norwegianLevel, data.englishLevel].filter(hasValue).join(" | "),
-    );
-    pushSlackField(slackFields, "Driver's license", data.driverLicense || data.driverLicenseOther);
-    pushSlackField(slackFields, "How did you hear about us", leadSource);
-
-    const coveredKeys = new Set([
-      "company",
-      "full_name",
-      "email",
-      "phone",
-      "category",
-      "position",
-      "positionOther",
-      "city",
-      "numberOfPositions",
-      "contractType",
-      "startDate",
-      "startDateOther",
-      "hasRotation",
-      "rotationWeeksOn",
-      "rotationWeeksOff",
-      "salary",
-      "accommodation",
-      "dNumber",
-      "dNumberOther",
-      "norwegianLevel",
-      "englishLevel",
-      "driverLicense",
-      "driverLicenseOther",
-      "howDidYouHear",
-      "socialMediaPlatform",
-      "socialMediaOther",
-      "howDidYouHearOther",
-      "referralCompanyName",
-      "referralOrgNumber",
-      "referralEmail",
-      "website",
-      "company_website",
-      "honeypot",
-    ]);
-
-    for (const [key, value] of Object.entries(data)) {
-      if (coveredKeys.has(key) || !hasValue(value)) continue;
-      // The wizard sends the same summary as both notes and requirements; Slack showed it twice.
-      if (key === "notes" && hasValue(data.requirements) && String(data.requirements).includes(String(value).trim())) continue;
-      const label = key
-        .replace(/([a-z])([A-Z])/g, "$1 $2")
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, (char) => char.toUpperCase());
-      pushSlackField(slackFields, label, value);
-    }
+    pushSlackField(slackFields, "Experiență", data.qualification);
+    pushSlackField(slackFields, "Permis de conducere", ro(text(data.driverLicense || data.driverLicenseOther), { "No driving license required": "Nu e necesar" }));
+    pushSlackField(slackFields, "D-nummer", ro(text(data.dNumber || data.dNumberOther), { has_d_number: "Are deja D-nummer", we_handle: "Ne ocupăm noi de procedură" }));
+    pushSlackField(slackFields, "Cazare", ro(text(data.accommodation), { "Candidate finds own": "Își găsește singur", "We help find accommodation": "Ajutăm noi să găsească" }));
+    pushSlackField(slackFields, "Călătoria internațională", ro(text(data.internationalTravel), { company_covered: "Plătită de firmă", own_responsibility: "Pe cont propriu" }));
+    pushSlackField(slackFields, "Transport local", ro(text(data.localTravel), { Covered: "Asigurat", "Not covered": "Neasigurat" }));
+    pushSlackField(slackFields, "Certificări", data.certifications);
+    pushSlackField(slackFields, "Cerințe (scrise de client)", data.requirements || data.notes);
+    pushSlackField(slackFields, "Cum a aflat de noi", leadSource);
+    pushSlackField(slackFields, "Recomandat de", data.referralCompanyName);
+    pushSlackField(slackFields, "Vrea noutăți despre candidați", data.subscribe ? "Da" : "");
+    pushSlackField(slackFields, "Deschide în ATS", "https://ats.arbeidmatch.no/command-center/intake-proposals");
 
     void notifySlack("employers", {
-      title: "New Employer Request",
+      title: "Cerere nouă de la un angajator",
       fields: slackFields,
     });
 

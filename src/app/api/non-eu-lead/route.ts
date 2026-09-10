@@ -86,8 +86,8 @@ export async function POST(request: NextRequest) {
     });
 
     void notifySlack("nonEu", {
-      title: "New Non-EU Lead",
-      fields: { Name: firstName, Email: email },
+      title: "Lead nou din afara UE",
+      fields: { Nume: firstName, Email: email },
     });
 
     return noStoreJson({ success: true });

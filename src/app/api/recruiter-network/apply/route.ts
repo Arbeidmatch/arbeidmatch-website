@@ -167,11 +167,11 @@ export async function POST(request: NextRequest) {
     });
 
     void notifySlack("recruiters", {
-      title: "New Recruiter Application",
+      title: "Aplicare nouă în rețeaua de recrutori",
       fields: {
-        Name: full_name,
+        Nume: full_name,
         Email: email,
-        Experience: motivation || "Not specified",
+        Experiență: motivation || "Nespecificat",
       },
     });
 

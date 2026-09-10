@@ -127,12 +127,12 @@ export async function POST(request: NextRequest) {
     if (errors.length > 0) {
       // No personal data in this message, only the internal document id.
       await notifySlack("errors", {
-        title: "CV handoff incomplete",
+        title: "CV-ul nu a ajuns complet în ATS",
         fields: {
           Document: documentId,
-          Errors: errors.join("; ").slice(0, 300),
-          ATS: atsPushedAt ? "pushed" : "pending",
-          RecMan: recmanPushedAt ? "pushed" : "pending",
+          Erori: errors.join("; ").slice(0, 300),
+          ATS: atsPushedAt ? "trimis" : "în așteptare",
+          RecMan: recmanPushedAt ? "trimis" : "în așteptare",
         },
       });
     }
