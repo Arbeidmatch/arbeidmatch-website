@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
@@ -6,7 +6,7 @@ import { getRateLimitResult, hasHoneypotValue, noStoreJson, parseJsonBodyWithSch
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import { notifySlack } from "@/lib/slackNotifier";
-import { buildEmail, buildEmailFieldRow, emailBodyParagraph } from "@/lib/emailTemplate";
+import { buildArbeidmatchLetter, letterFacts, letterHeading, letterParagraph } from "@/lib/arbeidmatchEmailShell";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 import {
   mailHeaders,
@@ -31,11 +31,30 @@ const requestSchema = z
     referralCompanyName: z.string().trim().max(160).optional().or(z.literal("")),
     referralOrgNumber: z.string().trim().max(40).optional().or(z.literal("")),
     referralEmail: z.string().trim().email().max(200).optional().or(z.literal("")),
+    referenceId: z.string().trim().max(40).optional().or(z.literal("")),
     website: z.string().max(256).optional(),
     company_website: z.string().max(256).optional(),
     honeypot: z.string().max(256).optional(),
   })
   .passthrough();
+
+/**
+ * The labels of the internal copy, and their order, are read back by the ATS.
+ *
+ * The Gmail intake (ats-recruitment `src/lib/intake/form-notification-parser.ts`,
+ * STACKED_LABELS) recognises this mail by its subject, "New candidate request:",
+ * and finds each answer by the label in front of it. A label renamed here, or a
+ * new one it does not know, runs into the value before it. Add a row only after
+ * adding its label there.
+ */
+const INTERNAL_SECTIONS = ["Contact details", "Position details", "Conditions offered", "Location"] as const;
+
+/** The wizard stores the travel answer as a code; a letter says it in words. */
+function travelLabel(value: string): string {
+  if (value === "company_covered") return "Covered by the company";
+  if (value === "own_responsibility") return "The candidate's own responsibility";
+  return value;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,19 +89,6 @@ export async function POST(request: NextRequest) {
           : data.howDidYouHear === "Other"
             ? data.howDidYouHearOther || "Other"
             : data.howDidYouHear;
-    const socialMediaPlatformValue =
-      data.howDidYouHear === "Social media" ? data.socialMediaPlatform : "";
-    const socialMediaOtherValue =
-      data.howDidYouHear === "Social media" && data.socialMediaPlatform === "Other"
-        ? data.socialMediaOther
-        : "";
-    const howDidYouHearOtherValue = data.howDidYouHear === "Other" ? data.howDidYouHearOther : "";
-    const referralCompanyValue =
-      data.howDidYouHear === "Referral from another company" ? data.referralCompanyName : "";
-    const referralOrgNumberValue =
-      data.howDidYouHear === "Referral from another company" ? data.referralOrgNumber : "";
-    const referralEmailValue =
-      data.howDidYouHear === "Referral from another company" ? data.referralEmail : "";
 
     const transporter = createSmtpTransporter();
     if (!transporter) {
@@ -94,146 +100,95 @@ export async function POST(request: NextRequest) {
       if (!hasValue(value)) return;
       fields[label] = String(value).trim();
     };
-
-    const normalizeFieldValue = (value?: string) => {
-      if (value === undefined || value === null) return null;
-      const text = String(value).trim();
-      return text ? text : "";
-    };
-
-    const renderValue = (value: string, isEmail = false) => {
-      if (!value) {
-        return '<span style="color: rgba(255,255,255,0.35); font-style: italic;">Not specified</span>';
-      }
-      const safe = escapeHtml(value);
-      if (isEmail) {
-        return `<a href="mailto:${safe}" style="color: #C9A84C; text-decoration: none;">${safe}</a>`;
-      }
-      return safe;
-    };
-
-    const rowHtml = (label: string, rawValue?: string, isEmail = false) => {
-      const normalized = normalizeFieldValue(rawValue);
-      if (normalized === null) return "";
-      return `<div style="display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
-        <div style="color: rgba(255,255,255,0.5); font-size: 13px; line-height: 1.5;">${escapeHtml(label)}</div>
-        <div style="color: #ffffff; font-size: 13px; font-weight: 500; line-height: 1.5; text-align: right; max-width: 60%;">${renderValue(normalized, isEmail)}</div>
-      </div>`;
-    };
-
-    const sectionHtml = (title: string, rows: string[], marginTop = 0) => {
-      const visibleRows = rows.filter(Boolean);
-      if (!visibleRows.length) return "";
-      return `<div style="margin-top: ${marginTop}px;">
-        <div style="color:#C9A84C;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:16px;">${escapeHtml(title)}</div>
-        ${visibleRows.join("")}
-      </div>`;
-    };
+    const text = (value?: string) => (hasValue(value) ? String(value).trim() : "");
 
     const companyName = data.company ?? "Unknown company";
     const cityLabel = cityValue || "-";
-    const nowLabel = new Date().toISOString();
-    const adminUrl = "https://www.arbeidmatch.no/admin";
-    const adminBody = `
-      ${sectionHtml(
-        "Contact details",
-        [
-          rowHtml("Company", data.company),
-          rowHtml("Org.nr", data.orgNumber),
-          rowHtml("Email", data.email, true),
-          rowHtml("Full name", data.full_name),
-          rowHtml("Phone", data.phone),
-        ],
-        0,
-      )}
-      ${sectionHtml(
-        "Position details",
-        [
-          rowHtml("Category", categoryValue),
-          rowHtml("Position", selectedPosition),
-          rowHtml("Contract type", contractTypeValue),
-          rowHtml("Qualification", data.qualification),
-          rowHtml("Candidates needed", numberOfPositionsValue),
-          rowHtml("Certifications", data.certifications),
-          rowHtml("Urgency", selectedStartDate),
-        ],
-        32,
-      )}
-      ${sectionHtml(
-        "Conditions offered",
-        [
-          rowHtml("Salary", data.salary),
-          rowHtml("Salary period", data.salaryPeriod),
-          rowHtml("Overtime", data.overtime),
-          rowHtml("Accommodation", data.accommodation),
-          rowHtml("Transport", data.internationalTravel || data.localTravel),
-          rowHtml("Rotation", data.hasRotation),
-          rowHtml("Start date", selectedStartDate),
-        ],
-        32,
-      )}
-      ${sectionHtml(
-        "Location",
-        [
-          rowHtml("City", cityValue),
-          rowHtml("Region", data.localTravelOther || cityValue),
-          rowHtml("Additional notes", data.notes || data.job_summary || leadSource),
-        ],
-        32,
-      )}
-    `;
+    const referenceId = text(data.referenceId);
 
-    const employerRows = [
-      { label: "Position", value: selectedPosition },
-      { label: "Number of candidates", value: numberOfPositionsValue },
-      { label: "Location", value: cityValue },
-      { label: "Preferred start", value: selectedStartDate },
-    ].filter((r) => hasValue(r.value));
+    // The internal copy: to post@, read by the owner and by the ATS intake.
+    const internalRows: Record<(typeof INTERNAL_SECTIONS)[number], { label: string; value: string }[]> = {
+      "Contact details": [
+        { label: "Company", value: text(data.company) },
+        { label: "Org.nr", value: text(data.orgNumber) },
+        { label: "Email", value: text(data.email) },
+        { label: "Full name", value: text(data.full_name) },
+        { label: "Phone", value: text(data.phone) },
+      ],
+      "Position details": [
+        { label: "Category", value: text(categoryValue) },
+        { label: "Position", value: text(selectedPosition) },
+        { label: "Contract type", value: text(contractTypeValue) },
+        { label: "Qualification", value: text(data.qualification) },
+        { label: "Candidates needed", value: text(numberOfPositionsValue) },
+        { label: "Certifications", value: text(data.certifications) },
+        { label: "Urgency", value: text(selectedStartDate) },
+      ],
+      "Conditions offered": [
+        { label: "Salary", value: text(data.salary) },
+        { label: "Salary period", value: text(data.salaryPeriod) },
+        { label: "Overtime", value: text(data.overtime) },
+        { label: "Accommodation", value: text(data.accommodation) },
+        { label: "Transport", value: travelLabel(text(data.internationalTravel || data.localTravel)) },
+        { label: "Rotation", value: text(data.hasRotation) },
+        { label: "Start date", value: text(selectedStartDate) },
+      ],
+      Location: [
+        { label: "City", value: text(cityValue) },
+        { label: "Region", value: text(data.localTravelOther || cityValue) },
+        { label: "Additional notes", value: text(data.notes || data.job_summary || leadSource) },
+      ],
+    };
+    const internalInner = [
+      referenceId ? letterParagraph(`Reference: <strong>${escapeHtml(referenceId)}</strong>`) : "",
+      ...INTERNAL_SECTIONS.map((title) => {
+        const facts = letterFacts(internalRows[title]);
+        return facts ? `${letterHeading(title)}${facts}` : "";
+      }),
+    ].join("");
 
-    const safeCo = escapeHtml(data.company || "team");
-    const employerRowsHtml = employerRows
-      .map((row) => buildEmailFieldRow(escapeHtml(row.label), escapeHtml(row.value)))
-      .join("");
-    const employerInner = [
-      emailBodyParagraph(`Thank you for your request, <strong>${safeCo}</strong>.`),
-      emailBodyParagraph("We have received your candidate request and will get back to you within 1 to 2 business days."),
-      employerRowsHtml,
-      emailBodyParagraph("<strong>What happens next</strong>"),
-      emailBodyParagraph("1. We review your request."),
-      emailBodyParagraph("2. We match suitable candidates."),
-      emailBodyParagraph("3. We contact you within 1 to 2 business days."),
-      emailBodyParagraph("<strong>Contact:</strong> support@arbeidmatch.no | +47 967 34 730"),
-    ]
-      .filter(Boolean)
-      .join("");
-
+    const internalTitle = `New candidate request: ${companyName} from ${cityLabel}`;
     await transporter.sendMail({
       ...mailHeaders(),
       to: "post@arbeidmatch.no",
-      subject: `New candidate request: ${companyName} from ${cityLabel}`,
-      html: buildEmail({
-        title: `New candidate request: ${companyName} from ${cityLabel}`,
-        preheader: nowLabel,
-        body: adminBody,
-        ctaText: "View Full Request in Admin",
-        ctaUrl: adminUrl,
+      subject: internalTitle,
+      html: buildArbeidmatchLetter({
+        title: internalTitle,
+        innerHtml: internalInner,
+        cta: { href: "https://ats.arbeidmatch.no/command-center/intake-proposals", label: "Open in the ATS" },
+        lang: "en",
+        internal: true,
+        recipient: "post@arbeidmatch.no",
       }),
     });
 
+    // The client's confirmation. The form is in English, so the letter is too.
     if (data.email && !(await isUnsubscribed(data.email))) {
       const unsubToken = await getOrCreateSubscription(data.email, "employer-request");
+      const safeCo = escapeHtml(data.company || "your company");
+      const clientInner = [
+        letterParagraph(`Thank you, <strong>${safeCo}</strong>. We have received your request.`),
+        letterFacts([
+          { label: "Reference", value: referenceId },
+          { label: "Position", value: text(selectedPosition) },
+          { label: "Number of candidates", value: text(numberOfPositionsValue) },
+          { label: "Location", value: text(cityValue) },
+          { label: "Preferred start", value: text(selectedStartDate) },
+        ]),
+        letterParagraph(
+          "A recruitment consultant reviews it and replies by email within 1 to 2 business days. If anything in the summary is wrong, reply to this email and we will correct it.",
+        ),
+      ].join("");
       await transporter.sendMail({
         ...mailHeaders(),
         to: data.email,
-        subject: `Thank you for your request | ${data.company ?? "ArbeidMatch"}`,
-        html: buildEmail({
-          title: "Thank you for your request",
-          preheader: "We will get back to you within 24 hours",
-          body: employerInner,
-          ctaText: "Share feedback",
-          ctaUrl: "https://arbeidmatch.no/feedback",
-          recipientEmail: data.email,
-          unsubscribeToken: unsubToken,
+        subject: referenceId ? `We received your request - ${referenceId}` : "We received your request - ArbeidMatch",
+        html: buildArbeidmatchLetter({
+          title: "Request received",
+          innerHtml: clientInner,
+          lang: "en",
+          recipient: data.email,
+          unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
         }),
       });
     }
@@ -242,24 +197,20 @@ export async function POST(request: NextRequest) {
       const referralUnsubToken = await getOrCreateSubscription(data.referralEmail, "employer-request");
       const safeRefCo = escapeHtml(data.company || "-");
       const referralInner = [
-        emailBodyParagraph("Thank you for recommending ArbeidMatch!"),
-        emailBodyParagraph(
-          `We received a request from <strong>${safeRefCo}</strong> and they mentioned your recommendation.`,
-        ),
-        emailBodyParagraph("We appreciate your trust. If we can support your hiring needs in the future, we would be happy to help."),
+        letterParagraph("Thank you for recommending ArbeidMatch."),
+        letterParagraph(`We received a request from <strong>${safeRefCo}</strong>, and they mentioned your recommendation.`),
+        letterParagraph("If we can support your own hiring in the future, we would be glad to help."),
       ].join("");
       await transporter.sendMail({
         ...mailHeaders(),
         to: data.referralEmail,
-        subject: "Thank you for the referral - ArbeidMatch Norge",
-        html: buildEmail({
+        subject: "Thank you for the referral - ArbeidMatch",
+        html: buildArbeidmatchLetter({
           title: "Thank you for the referral",
-          preheader: "We appreciate your recommendation",
-          body: referralInner,
-          ctaText: "Contact us",
-          ctaUrl: "https://arbeidmatch.no/contact",
-          recipientEmail: data.referralEmail,
-          unsubscribeToken: referralUnsubToken,
+          innerHtml: referralInner,
+          lang: "en",
+          recipient: data.referralEmail,
+          unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(referralUnsubToken)}`,
         }),
       });
     }

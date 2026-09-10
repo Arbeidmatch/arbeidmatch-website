@@ -1163,18 +1163,19 @@ export default function RequestTokenPage() {
       if (!saveRes.ok) throw new Error("save-employer-request");
       const saveData = (await saveRes.json()) as { success?: boolean; referenceId?: string };
       if (saveData.success !== true) throw new Error("save-employer-request");
-      setSubmitSuccessFullName(payload.full_name.trim());
-      setSubmitSuccessReference(
+      const referenceId =
         typeof saveData.referenceId === "string" && saveData.referenceId.trim().length > 0
           ? saveData.referenceId.trim()
-          : "",
-      );
+          : "";
+      setSubmitSuccessFullName(payload.full_name.trim());
+      setSubmitSuccessReference(referenceId);
 
       try {
+        // The reference goes in the letters too: the client and the office quote the same one.
         const emailRes = await fetch("/api/send-request-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...payload, referenceId }),
         });
         if (!emailRes.ok) {
           throw new Error("send-request-email");
