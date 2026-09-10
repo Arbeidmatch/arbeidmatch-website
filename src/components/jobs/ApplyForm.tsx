@@ -86,6 +86,14 @@ const AVAILABILITY: Array<[string, string]> = [
   ["notice_period", "After my notice period"],
 ];
 
+/**
+ * The one way in from outside the EU and EEA: a Norwegian permit that already
+ * allows work. HIS DECISION, 10 September 2026: "da, primim si permisul". We
+ * still do not sponsor one. The ATS reads `norwegian_residence_permit` and notes
+ * it on the profile as the candidate's statement, to be checked.
+ */
+const NORWEGIAN_PERMIT = "__norwegian_permit__";
+
 const EU_EEA_COUNTRIES = [
   "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czechia", "Denmark", "Estonia",
   "Finland", "France", "Germany", "Greece", "Hungary", "Iceland", "Ireland", "Italy",
@@ -98,6 +106,8 @@ export function ApplyForm({ token, jobTitle, questions }: Props) {
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState<string | null>(null);
   const [availability, setAvailability] = useState("");
+  const [passportChoice, setPassportChoice] = useState("");
+  const withNorwegianPermit = passportChoice === NORWEGIAN_PERMIT;
   // Only the questions the ATS can take an answer to: an id to send it back
   // under. The start date is answered by the availability menu, not asked twice.
   const asked = (questions ?? []).filter((q) => (q.id ?? "").trim() && !isStartDateQuestion(q));
@@ -140,7 +150,10 @@ export function ApplyForm({ token, jobTitle, questions }: Props) {
       full_name: text("full_name"),
       email: text("email"),
       phone: text("phone"),
-      nationality: text("nationality"),
+      // The passport country. For somebody with a Norwegian permit it is typed,
+      // and the permit is said in its own field so the ATS can accept it.
+      nationality: withNorwegianPermit ? text("passport_country") : text("nationality"),
+      norwegian_residence_permit: withNorwegianPermit,
       current_job_title: text("current_job_title") || null,
       // One field to fill in, a list on the way out.
       skills: text("skills_text")
@@ -224,7 +237,8 @@ export function ApplyForm({ token, jobTitle, questions }: Props) {
             <select
               name="nationality"
               required
-              defaultValue=""
+              value={passportChoice}
+              onChange={(e) => setPassportChoice(e.target.value)}
               className="mt-1.5 block min-h-12 w-full rounded-lg border border-border bg-white px-3 text-navy outline-none focus:border-gold"
             >
               <option value="" disabled>
@@ -235,11 +249,16 @@ export function ApplyForm({ token, jobTitle, questions }: Props) {
                   {country}
                 </option>
               ))}
+              <option value={NORWEGIAN_PERMIT}>Other country, with a Norwegian residence permit that allows work</option>
             </select>
             <span className="mt-1 block text-xs text-text-secondary">
-              EU or EEA only. We do not sponsor visas, so a passport from outside cannot be accepted.
+              EU or EEA citizens, or anyone with a Norwegian residence permit that allows work. We do not sponsor work
+              permits.
             </span>
           </label>
+          {withNorwegianPermit ? (
+            <Field name="passport_country" label="Country on your passport" required autoComplete="country-name" />
+          ) : null}
         </div>
       </fieldset>
 
@@ -381,7 +400,8 @@ export function ApplyForm({ token, jobTitle, questions }: Props) {
         {state === "sending" ? "Sending" : "Send application"}
       </button>
       <p className="mt-3 text-sm text-text-secondary">
-        EU or EEA passport. No visa sponsorship, and we do not cover travel.
+        EU or EEA citizenship, or a Norwegian residence permit that allows work. No sponsorship, and we do not cover
+        travel.
       </p>
     </form>
   );
