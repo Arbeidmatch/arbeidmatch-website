@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { escapeHtml, sanitizeStringRecord } from "@/lib/htmlSanitizer";
+import { escapeHtml } from "@/lib/htmlSanitizer";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { getRateLimitResult, hasHoneypotValue, noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
 import { notifyError } from "@/lib/errorNotifier";
@@ -71,7 +71,20 @@ export async function POST(request: NextRequest) {
     if (hasHoneypotValue(rawData)) {
       return noStoreJson({ success: true });
     }
-    const data = sanitizeStringRecord(rawData);
+    /**
+     * Plain text, escaped once, at the point it enters HTML.
+     *
+     * This used to be `sanitizeStringRecord`, which HTML-escapes every value up
+     * front. The letter escapes what it prints as well, so "Bygg & Anlegg AS"
+     * reached the office as "Bygg &amp;amp; Anlegg AS", and the ATS intake stored
+     * the company under that name. The values stay plain here; the letter escapes
+     * them, and Slack gets the escaped form it always got, in pushSlackField.
+     */
+    const data: Record<string, string> = {};
+    for (const [key, value] of Object.entries(rawData)) {
+      data[key] =
+        typeof value === "string" ? value.trim() : typeof value === "number" || typeof value === "boolean" ? String(value) : "";
+    }
 
     const categoryValue = data.category || data.industry || "";
     const numberOfPositionsValue = data.numberOfPositions || data.candidates || "";
@@ -98,7 +111,7 @@ export async function POST(request: NextRequest) {
     const hasValue = (value?: string) => value !== undefined && value !== null && String(value).trim() !== "";
     const pushSlackField = (fields: Record<string, string>, label: string, value?: string) => {
       if (!hasValue(value)) return;
-      fields[label] = String(value).trim();
+      fields[label] = escapeHtml(String(value).trim());
     };
     const text = (value?: string) => (hasValue(value) ? String(value).trim() : "");
 
