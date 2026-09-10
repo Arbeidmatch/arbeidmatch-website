@@ -86,10 +86,9 @@ type RequestForm = {
   /** Norwegian licence classes (multi) or "No driving license required" (exclusive) */
   driverLicenseSelections: string[];
   tradeCertificatePreferred: "Yes" | "No";
-  jaguarLandRoverPreferred: "Yes" | "No";
   customerCommunicationRequired: "Yes" | "No";
-  diagnosticsExperienceRequired: "Yes" | "No";
-  workTasks: string[];
+  /** Written by the employer, one task per line. Never a fixed list: it once was, lifted from one workshop's ad. */
+  workTasks: string;
   personalQualities: string[];
   offerItems: string[];
   additionalNotes: string;
@@ -193,7 +192,7 @@ const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
   3: ["qualification", "dNumberChoice"],
   4: ["workTasks"],
   5: ["personalQualities"],
-  6: ["offerItems"],
+  6: [],
   7: [],
   8: [],
 };
@@ -234,11 +233,9 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     if (!f.qualification) invalid.add("qualification");
     if (f.dNumberChoice !== "has_d_number" && f.dNumberChoice !== "we_handle") invalid.add("dNumberChoice");
   } else if (s === 4) {
-    if (f.workTasks.length === 0) invalid.add("workTasks");
+    if (f.workTasks.trim().length < 10) invalid.add("workTasks");
   } else if (s === 5) {
     if (f.personalQualities.length === 0) invalid.add("personalQualities");
-  } else if (s === 6) {
-    if (f.offerItems.length === 0) invalid.add("offerItems");
   }
   return invalid;
 }
@@ -596,10 +593,8 @@ const initialForm: RequestForm = {
   dNumberChoice: "",
   driverLicenseSelections: [],
   tradeCertificatePreferred: "No",
-  jaguarLandRoverPreferred: "No",
   customerCommunicationRequired: "No",
-  diagnosticsExperienceRequired: "No",
-  workTasks: [],
+  workTasks: "",
   personalQualities: [],
   offerItems: [],
   additionalNotes: "",
@@ -613,14 +608,6 @@ const initialForm: RequestForm = {
   referralEmail: "",
 };
 
-const WORK_TASK_OPTIONS = [
-  "Service and repair",
-  "Advanced diagnostics and electronics",
-  "Documentation according to manufacturer requirements",
-  "Customer handover and dialogue",
-  "Maintain tidy and safe workshop",
-] as const;
-
 const PERSONAL_QUALITY_OPTIONS = [
   "Accurate",
   "Quality-conscious",
@@ -632,12 +619,9 @@ const PERSONAL_QUALITY_OPTIONS = [
 ] as const;
 
 const OFFER_OPTIONS = [
-  "Brand-new workshop",
-  "New equipment",
   "Competitive terms",
   "Professional development",
   "Training opportunities",
-  "Small highly skilled team",
 ] as const;
 
 const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]";
@@ -957,7 +941,7 @@ export default function RequestTokenPage() {
     });
   };
 
-  const toggleItem = (field: "workTasks" | "personalQualities" | "offerItems", value: string) => {
+  const toggleItem = (field: "personalQualities" | "offerItems", value: string) => {
     setForm((prev) => {
       const exists = prev[field].includes(value);
       return {
@@ -990,14 +974,16 @@ export default function RequestTokenPage() {
     });
   };
 
+  // Only what the employer wrote or picked. A "No" on an optional question is not a requirement.
   const generatedNotes = useMemo(() => {
-    const sections = [
-      "About the Position",
-      form.jobSummary.trim() || "",
-      "",
-      "Work Tasks",
-      ...form.workTasks.map((item) => `- ${item}`),
-      "",
+    const sections: string[] = [];
+    if (form.jobSummary.trim()) sections.push("About the Position", form.jobSummary.trim(), "");
+    const tasks = form.workTasks
+      .split(/\r?\n/)
+      .map((line) => line.replace(/^\s*[-*•]\s*/, "").trim())
+      .filter(Boolean);
+    sections.push("Work Tasks", ...tasks.map((item) => `- ${item}`), "");
+    sections.push(
       "Requirements",
       `- Qualification: ${form.qualification}`,
       `- Driver license: ${
@@ -1005,26 +991,22 @@ export default function RequestTokenPage() {
           ? "Not specified"
           : formatDriverLicenseForPayload(form.driverLicenseSelections)
       }`,
-      `- Trade certificate preferred: ${form.tradeCertificatePreferred}`,
-      `- Jaguar or Land Rover experience preferred: ${form.jaguarLandRoverPreferred}`,
-      `- Customer communication required: ${form.customerCommunicationRequired}`,
-      `- Diagnostics and electronics experience required: ${form.diagnosticsExperienceRequired}`,
-      "",
-      "Personal Qualities",
-      ...form.personalQualities.map((item) => `- ${item}`),
-      "",
-      "We Offer",
-      ...form.offerItems.map((item) => `- ${item}`),
-    ];
+    );
+    if (form.tradeCertificatePreferred === "Yes") sections.push("- Trade certificate preferred");
+    if (form.customerCommunicationRequired === "Yes") sections.push("- Customer communication required");
+    if (form.personalQualities.length > 0) {
+      sections.push("", "Personal Qualities", ...form.personalQualities.map((item) => `- ${item}`));
+    }
+    if (form.offerItems.length > 0) {
+      sections.push("", "We Offer", ...form.offerItems.map((item) => `- ${item}`));
+    }
     if (form.additionalNotes.trim()) {
       sections.push("", "Additional Notes", form.additionalNotes.trim());
     }
     return sections.join("\n");
   }, [
     form.additionalNotes,
-    form.diagnosticsExperienceRequired,
     form.driverLicenseSelections,
-    form.jaguarLandRoverPreferred,
     form.offerItems,
     form.personalQualities,
     form.qualification,
@@ -1106,11 +1088,8 @@ export default function RequestTokenPage() {
       positionOther: "",
       numberOfPositions: String(form.candidates),
       qualification: form.qualification,
-      certifications: [
-        `Role in company: ${form.roleInCompany.trim() || "Contact person"}`,
-        `Trade certificate preferred: ${form.tradeCertificatePreferred}`,
-        `Jaguar or Land Rover preferred: ${form.jaguarLandRoverPreferred}`,
-      ].join(", "),
+      // The contact's role is not a certification; it travels in `requirements` below.
+      certifications: form.tradeCertificatePreferred === "Yes" ? "Trade certificate preferred" : "",
       certificationsOther: form.certification.includes("Other") ? form.certificationsOther.trim() : "",
       experience: "",
       norwegianLevel: "",
@@ -1119,7 +1098,14 @@ export default function RequestTokenPage() {
       driverLicenseOther: "",
       dNumber: form.dNumberChoice,
       dNumberOther: "",
-      requirements: `${generatedNotes}\n\nRotation schedule: ${form.rotationSchedule}`.trim(),
+      requirements: [
+        generatedNotes,
+        "",
+        `Rotation schedule: ${form.rotationSchedule}`,
+        form.roleInCompany.trim() ? `Contact person's role: ${form.roleInCompany.trim()}` : "",
+      ]
+        .join("\n")
+        .trim(),
       contractType: form.contractType,
       salaryPeriod: form.salaryPeriod === "per hour" ? "Per hour" : "Per month",
       salaryMode: form.salaryMode,
@@ -1917,7 +1903,7 @@ export default function RequestTokenPage() {
                       className={wizardInputClass(false)}
                       value={form.roleInCompany}
                       onChange={(e) => setForm((p) => ({ ...p, roleInCompany: e.target.value }))}
-                      placeholder="Contact person name"
+                      placeholder="Your role in the company (e.g. Owner, HR manager)"
                     />
                   </div>
                   <div data-wizard-field="contactPhone">
@@ -2593,9 +2579,7 @@ export default function RequestTokenPage() {
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {[
                     { label: "Trade certificate preferred", key: "tradeCertificatePreferred" as const },
-                    { label: "Jaguar or Land Rover preferred", key: "jaguarLandRoverPreferred" as const },
                     { label: "Customer communication required", key: "customerCommunicationRequired" as const },
-                    { label: "Diagnostics and electronics required", key: "diagnosticsExperienceRequired" as const },
                   ].map(({ label, key }) => (
                     <div key={key}>
                       <p className={labelClass}>
@@ -2628,20 +2612,24 @@ export default function RequestTokenPage() {
               <div className="space-y-4">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Work tasks</h2>
+                <p className="text-sm text-white/55">
+                  {`What will the ${form.workerType.trim() || "worker"} do day to day? One task per line.`}
+                </p>
                 <div data-wizard-field="workTasks">
-                  <div className={wizardGroupShell(!!fieldErrors.workTasks, "flex flex-wrap gap-2")}>
-                    {WORK_TASK_OPTIONS.map((task) => (
-                      <button
-                        key={task}
-                        type="button"
-                        onClick={() => toggleItem("workTasks", task)}
-                        className={`min-h-[40px] rounded-full border px-4 py-2 text-sm ${form.workTasks.includes(task) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}
-                      >
-                        {task}
-                      </button>
-                    ))}
-                  </div>
-                  {fieldErrors.workTasks ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  <textarea
+                    aria-label="Work tasks"
+                    rows={6}
+                    maxLength={1500}
+                    className={wizardInputClass(!!fieldErrors.workTasks, "resize-y")}
+                    value={form.workTasks}
+                    onChange={(e) => {
+                      setForm((p) => ({ ...p, workTasks: e.target.value }));
+                      clearFieldError("workTasks");
+                    }}
+                  />
+                  {fieldErrors.workTasks ? (
+                    <p className={fieldErrorTextClass}>Please describe the work tasks (at least a few words).</p>
+                  ) : null}
                 </div>
               </div>
             )}
@@ -2671,7 +2659,10 @@ export default function RequestTokenPage() {
             {step === 6 && (
               <div className="space-y-4">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
-                <h2 className="text-2xl font-extrabold">We offer</h2>
+                <h2 className="text-2xl font-extrabold">
+                  We offer{" "}
+                  <span className="text-base font-normal text-white/55">(optional)</span>
+                </h2>
                 <div data-wizard-field="offerItems">
                   <div className={wizardGroupShell(!!fieldErrors.offerItems, "flex flex-wrap gap-2")}>
                     {OFFER_OPTIONS.map((item) => (

@@ -329,6 +329,8 @@ export async function POST(request: NextRequest) {
 
     for (const [key, value] of Object.entries(data)) {
       if (coveredKeys.has(key) || !hasValue(value)) continue;
+      // The wizard sends the same summary as both notes and requirements; Slack showed it twice.
+      if (key === "notes" && hasValue(data.requirements) && String(data.requirements).includes(String(value).trim())) continue;
       const label = key
         .replace(/([a-z])([A-Z])/g, "$1 $2")
         .replace(/_/g, " ")
