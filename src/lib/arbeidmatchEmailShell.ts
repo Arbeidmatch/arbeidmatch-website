@@ -35,7 +35,43 @@ export const BRAND = {
   logoSize: 72,
 } as const;
 
-const OFFICE_CONTACT = { name: "Kontoret", phone: "+47 967 34 730", email: "post@arbeidmatch.no" } as const;
+/**
+ * Which address a reader is told to write to. The ATS `BRAND_CONTACT`.
+ *
+ * The owner's rule, 10 August 2026: candidates write to cv@, not to post@ or
+ * support@. A candidate writing to the general post box lands in the same inbox
+ * as invoices and supplier mail, and what he is sending is almost always the one
+ * thing the recruitment side is waiting for. Clients keep the main address.
+ */
+const BRAND_CONTACT = {
+  candidate: { name: "Kontoret", phone: "+47 967 34 730", email: "cv@arbeidmatch.no" },
+  client: { name: "Kontoret", phone: "+47 967 34 730", email: "post@arbeidmatch.no" },
+} as const;
+
+export type EmailAudience = keyof typeof BRAND_CONTACT;
+
+/** Local parts that cannot take a reply, after the ATS `no-reply-address.ts`. */
+const NO_REPLY_EXACT = new Set(["postmaster", "mailer-daemon", "mailerdaemon", "mailer_daemon", "bounce", "bounces", "abuse"]);
+
+/**
+ * The desk a letter came from, when it came from a desk. The ATS `deskContactEmail`.
+ *
+ * Only one of our own @arbeidmatch.no addresses is printed: this line tells the
+ * reader where to write to us, and somebody else's address in it is worse than
+ * the default. A box that refuses mail is not somewhere to send an answer, and
+ * the general inbox is already the default, so neither is worth printing. The
+ * general inbox is not a desk, which keeps the candidate rule standing: naming
+ * post@ would put the office box where a candidate must be given cv@.
+ */
+function deskContactEmail(from: string | null | undefined): string | null {
+  const angled = /<([^>]+)>/.exec(String(from ?? ""));
+  const address = (angled ? angled[1]! : String(from ?? "")).trim().toLowerCase();
+  if (!/^[^\s@]+@arbeidmatch\.no$/.test(address)) return null;
+  const local = address.slice(0, address.lastIndexOf("@"));
+  const collapsed = local.replace(/[.\-_+]/g, "");
+  if (NO_REPLY_EXACT.has(local) || collapsed.includes("noreply") || collapsed.includes("donotreply")) return null;
+  return address === BRAND_CONTACT.client.email ? null : address;
+}
 
 const COMPANY_LEGAL = {
   name: "ArbeidMatch Norge AS",
@@ -50,6 +86,7 @@ const WORDS = {
   no: {
     contactLead: "Har du spørsmål, ta kontakt:",
     unsubscribe: "Meld av",
+    cvLead: "Vil du komme i kontakt, send CV-en din til:",
     why: "Du får denne e-posten fordi du er i kontakt med ArbeidMatch.",
     internal: "Intern melding. Ingen avmelding.",
     confidentialTo: (to: string) =>
@@ -61,6 +98,7 @@ const WORDS = {
   en: {
     contactLead: "Any questions, write or call:",
     unsubscribe: "Unsubscribe",
+    cvLead: "If you want to reach us, send your CV to:",
     why: "You are receiving this because you are in contact with ArbeidMatch.",
     internal: "Internal notice. No unsubscribe.",
     confidentialTo: (to: string) =>
@@ -91,7 +129,7 @@ export function letterFacts(rows: { label: string; value: string }[]): string {
     .map(
       (r) => `<tr>
         <td width="38%" style="width:38%;padding:6px 12px 6px 0;vertical-align:top;font-size:13px;line-height:1.5;color:${BRAND.bodySoft};">${escapeHtml(r.label)}</td>
-        <td style="padding:6px 0;vertical-align:top;font-size:14px;line-height:1.5;color:${BRAND.ink};">${escapeHtml(r.value).replace(/\r?\n/g, "<br/>")}</td>
+        <td style="padding:6px 0;vertical-align:top;font-size:14px;line-height:1.5;color:${BRAND.ink};word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(r.value).replace(/\r?\n/g, "<br/>")}</td>
       </tr>`,
     )
     .join("");
@@ -105,6 +143,22 @@ export function letterHeading(text: string): string {
   return `<p style="margin:22px 0 8px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND.goldMuted};font-weight:600;">${escapeHtml(text)}</p>`;
 }
 
+/** Small print inside the letter: an expiry, a disclaimer, what to do if the button fails. `html` is trusted. */
+export function letterNote(html: string): string {
+  return `<p style="margin:0 0 12px;font-size:13px;line-height:1.6;color:${BRAND.bodySoft};">${html}</p>`;
+}
+
+/** A one-time code, large enough to read off a phone and copy by hand. Digits only. */
+export function letterCode(code: string): string {
+  const digits = code.replace(/\D/g, "");
+  return `<p style="margin:8px 0 22px;font-size:32px;line-height:1.2;font-weight:700;letter-spacing:0.25em;color:${BRAND.ink};">${digits}</p>`;
+}
+
+/** Text kept exactly as it was written or thrown: a message, a stack trace. Escaped here. */
+export function letterPre(text: string): string {
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;table-layout:fixed;margin:0 0 18px;"><tr><td style="background:${BRAND.panel};border-left:2px solid ${BRAND.rule};padding:10px 14px;font-family:ui-monospace,Consolas,'Courier New',monospace;font-size:12px;line-height:1.55;color:${BRAND.ink};white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(text)}</td></tr></table>`;
+}
+
 export function buildArbeidmatchLetter(args: {
   title: string;
   innerHtml: string;
@@ -115,10 +169,21 @@ export function buildArbeidmatchLetter(args: {
   unsubscribeUrl?: string;
   /** Named in the confidentiality line. */
   recipient?: string | null;
+  /** Decides which address the reader is told to write to. Clients keep post@. */
+  audience?: EmailAudience;
+  /**
+   * The desk this letter came from, named back to the reader instead of the
+   * default for his audience: a letter written from legal@ is answered at
+   * legal@. The owner's correction in the ATS, 6 September 2026.
+   */
+  contactEmail?: string | null;
 }): string {
   const lang: EmailLang = args.lang === "en" ? "en" : "no";
   const w = WORDS[lang];
   const unsub = args.unsubscribeUrl?.trim() || "#";
+  const audience: EmailAudience = args.audience ?? "client";
+  const brandContact = BRAND_CONTACT[audience];
+  const contact = { ...brandContact, email: deskContactEmail(args.contactEmail) ?? brandContact.email };
 
   const ctaBlock = args.cta
     ? `<tr><td style="padding:4px 26px 0;">
@@ -126,14 +191,31 @@ export function buildArbeidmatchLetter(args: {
       </td></tr>`
     : "";
 
-  const contactBlock = `<tr><td style="padding:26px 26px 0;">
+  /**
+   * A CANDIDATE IS NOT GIVEN THE OFFICE LINE. The owner's rule in the ATS, 16
+   * August 2026, said twice because the first fix only swapped the address and
+   * left the office phone standing above it. A man asking about work does not
+   * ring the office; if he wants to reach us he sends his CV, and that is the
+   * whole of what this box says to him.
+   */
+  const contactBlock =
+    audience === "candidate"
+      ? `<tr><td style="padding:26px 26px 0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+        <tr><td style="background:${BRAND.panel};border-left:2px solid ${BRAND.gold};padding:14px 16px;font-size:14px;line-height:1.6;color:${BRAND.bodySoft};">
+          ${w.cvLead}<br/>
+          <a href="mailto:${contact.email}" style="color:${BRAND.goldMuted};text-decoration:none;">${contact.email}</a>
+        </td></tr>
+      </table>
+    </td></tr>`
+      : `<tr><td style="padding:26px 26px 0;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
         <tr><td style="background:${BRAND.panel};border-left:2px solid ${BRAND.gold};padding:14px 16px;font-size:14px;line-height:1.6;color:${BRAND.bodySoft};">
           ${w.contactLead}<br/>
-          <strong style="color:${BRAND.ink};">${OFFICE_CONTACT.name}</strong><br/>
-          <a href="tel:${OFFICE_CONTACT.phone.replace(/\s/g, "")}" style="color:${BRAND.goldMuted};text-decoration:none;">${OFFICE_CONTACT.phone}</a>
+          <strong style="color:${BRAND.ink};">${contact.name}</strong><br/>
+          <a href="tel:${contact.phone.replace(/\s/g, "")}" style="color:${BRAND.goldMuted};text-decoration:none;">${contact.phone}</a>
           &middot;
-          <a href="mailto:${OFFICE_CONTACT.email}" style="color:${BRAND.goldMuted};text-decoration:none;">${OFFICE_CONTACT.email}</a>
+          <a href="mailto:${contact.email}" style="color:${BRAND.goldMuted};text-decoration:none;">${contact.email}</a>
         </td></tr>
       </table>
     </td></tr>`;
