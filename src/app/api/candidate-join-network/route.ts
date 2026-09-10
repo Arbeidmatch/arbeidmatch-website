@@ -42,12 +42,12 @@ export async function POST(request: NextRequest) {
     }
 
     const ts = formatEmailTimestampCet();
-    const internalText = `Verified Recman profile request\n\nCandidate email: ${email}\nEU/EEA passport confirmed: yes\nGDPR consent confirmed: yes\nTimestamp: ${ts}`;
+    const internalText = `Verified profile request\n\nCandidate email: ${email}\nEU/EEA passport confirmed: yes\nGDPR consent confirmed: yes\nTimestamp: ${ts}`;
 
     await transporter.sendMail({
       ...mailHeaders(),
       to: "cv@arbeidmatch.no",
-      subject: `Verified Recman profile request: ${email}`,
+      subject: `Verified profile request: ${email}`,
       text: internalText,
     });
 
