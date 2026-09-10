@@ -126,6 +126,11 @@ export async function POST(request: NextRequest) {
     const companyName = data.company ?? "Unknown company";
     const cityLabel = cityValue || "-";
     const referenceId = text(data.referenceId);
+    // Job advertising only: the contact the advert will carry, in one line.
+    const adContactLine =
+      text(data.hiringType) === "advertising"
+        ? [text(data.adContactName), text(data.adContactEmail), text(data.adContactPhone)].filter(Boolean).join(", ")
+        : "";
 
     // The internal copy: to post@, read by the owner and by the ATS intake.
     const internalRows: Record<(typeof INTERNAL_SECTIONS)[number], { label: string; value: string }[]> = {
@@ -165,6 +170,7 @@ export async function POST(request: NextRequest) {
       // Above the first section on purpose: the ATS intake reads fields by the
       // labels inside the sections, and a line before them is not one of its fields.
       text(data.hiringType) ? letterParagraph(`Service: <strong>${escapeHtml(serviceLabel(text(data.hiringType)))}</strong>`) : "",
+      adContactLine ? letterParagraph(`Contact on the advert: <strong>${escapeHtml(adContactLine)}</strong>`) : "",
       ...INTERNAL_SECTIONS.map((title) => {
         const facts = letterFacts(internalRows[title]);
         return facts ? `${letterHeading(title)}${facts}` : "";
@@ -195,6 +201,7 @@ export async function POST(request: NextRequest) {
         letterFacts([
           { label: "Reference", value: referenceId },
           { label: "Service", value: serviceLabel(text(data.hiringType)) },
+          { label: "Contact on the advert", value: adContactLine },
           { label: "Position", value: text(selectedPosition) },
           { label: "Number of candidates", value: text(numberOfPositionsValue) },
           { label: "Location", value: text(cityValue) },

@@ -18,6 +18,9 @@ const requestSchema = z
     phone: z.string().trim().min(6).max(40),
     job_summary: z.string().trim().max(1000).optional().or(z.literal("")),
     hiringType: z.string().trim().min(1).max(180),
+    adContactName: z.string().trim().max(120).optional().or(z.literal("")),
+    adContactEmail: z.string().trim().email().max(200).optional().or(z.literal("")),
+    adContactPhone: z.string().trim().max(40).optional().or(z.literal("")),
     category: z.string().trim().min(1).max(120),
     position: z.string().trim().min(1).max(120),
     positionOther: z.string().trim().max(120).optional().or(z.literal("")),
@@ -199,6 +202,11 @@ export async function POST(request: NextRequest) {
       phone:                         payload.phone,
       job_summary:                   payload.job_summary || "General hiring inquiry",
       hiring_type:                   payload.hiringType,
+      // Job advertising only: the contact the advert carries (ATS migration
+      // 20260910210000_employer_requests_ad_contact.sql).
+      ad_contact_name:               payload.adContactName || null,
+      ad_contact_email:              payload.adContactEmail || null,
+      ad_contact_phone:              payload.adContactPhone || null,
       category:                      payload.category,
       position:                      payload.position,
       position_other:                payload.positionOther || null,

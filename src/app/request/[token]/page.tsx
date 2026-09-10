@@ -62,6 +62,14 @@ type RequestForm = {
   candidates: number;
   contractType: string;
   hiringType: string;
+  /**
+   * Job advertising only: who applicants contact. The advert for this service is
+   * published under the client's own name with this contact on it (the owner,
+   * 10 September 2026), so it is asked for here, by the client, not guessed.
+   */
+  adContactName: string;
+  adContactEmail: string;
+  adContactPhone: string;
   jobSummary: string;
   salary: string;
   salaryPeriod: "per hour" | "per month";
@@ -223,7 +231,7 @@ const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
     "referralCompanyName",
     "referralEmail",
   ],
-  1: ["hiringType", "industry", "workerType", "contractType", "locations", "startDate", "candidates"],
+  1: ["hiringType", "adContactName", "adContactEmail", "industry", "workerType", "contractType", "locations", "startDate", "candidates"],
   2: ["salaryMin", "salaryMax", "accommodation", "localTransport", "internationalTransport"],
   3: ["qualification", "dNumberChoice"],
   4: ["workTasks"],
@@ -250,6 +258,13 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     }
   } else if (s === 1) {
     if (!SERVICE_OPTIONS.some((o) => o.value === f.hiringType)) invalid.add("hiringType");
+    if (f.hiringType === "advertising") {
+      if (f.adContactName.trim().length < 2) invalid.add("adContactName");
+      const email = f.adContactEmail.trim();
+      const phoneDigits = f.adContactPhone.replace(/\D/g, "");
+      if (email && !email.includes("@")) invalid.add("adContactEmail");
+      if (!email && phoneDigits.length < 6) invalid.add("adContactEmail");
+    }
     if (!f.industry) invalid.add("industry");
     if (!f.workerType.trim()) invalid.add("workerType");
     if (f.candidates < 1) invalid.add("candidates");
@@ -610,6 +625,9 @@ const initialForm: RequestForm = {
   candidates: 1,
   contractType: "",
   hiringType: "",
+  adContactName: "",
+  adContactEmail: "",
+  adContactPhone: "",
   jobSummary: "",
   salary: "",
   salaryPeriod: "per hour",
@@ -1120,6 +1138,11 @@ export default function RequestTokenPage() {
       })(),
       job_summary: form.jobSummary,
       hiringType: form.hiringType,
+      // Only an advertising request names a contact for applicants; any other
+      // service sends none, so a contact typed and then abandoned is not kept.
+      adContactName: form.hiringType === "advertising" ? form.adContactName.trim() : "",
+      adContactEmail: form.hiringType === "advertising" ? form.adContactEmail.trim().toLowerCase() : "",
+      adContactPhone: form.hiringType === "advertising" ? form.adContactPhone.trim() : "",
       category: form.industry,
       position: form.workerType.trim(),
       positionOther: "",
@@ -2105,6 +2128,69 @@ export default function RequestTokenPage() {
                   {fieldErrors.hiringType ? <p className={fieldErrorTextClass}>Please choose one of the three services.</p> : null}
                   <p className="mt-2 text-xs text-white/55">{DETAILED_OFFER_NOTE}</p>
                 </div>
+                {form.hiringType === "advertising" ? (
+                  <div className="space-y-3 rounded-[12px] border border-[rgba(201,168,76,0.2)] p-4">
+                    <div>
+                      <p className={labelClass}>Who should applicants contact?</p>
+                      <p className="text-xs text-white/55">
+                        The advert is published under your company name, with this contact person on it. Applicants reach them directly.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="text-xs font-semibold text-[#C9A84C] underline-offset-2 hover:underline"
+                      onClick={() => {
+                        setForm((p) => ({
+                          ...p,
+                          adContactName: `${p.contactFirstName.trim()} ${p.contactLastName.trim()}`.trim(),
+                          adContactEmail: p.contactEmail.trim(),
+                          adContactPhone: p.contactPhone.replace(/\D/g, "") ? `${p.contactPhonePrefix} ${p.contactPhone.replace(/\D/g, "")}` : "",
+                        }));
+                        clearFieldError("adContactName");
+                        clearFieldError("adContactEmail");
+                      }}
+                    >
+                      Use my contact details
+                    </button>
+                    <div data-wizard-field="adContactName">
+                      <input
+                        className={wizardInputClass(!!fieldErrors.adContactName)}
+                        value={form.adContactName}
+                        onChange={(e) => {
+                          setForm((p) => ({ ...p, adContactName: e.target.value }));
+                          clearFieldError("adContactName");
+                        }}
+                        placeholder="Contact person's name"
+                      />
+                      {fieldErrors.adContactName ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                    </div>
+                    <div data-wizard-field="adContactEmail" className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <input
+                        className={wizardInputClass(!!fieldErrors.adContactEmail)}
+                        value={form.adContactEmail}
+                        onChange={(e) => {
+                          setForm((p) => ({ ...p, adContactEmail: e.target.value }));
+                          clearFieldError("adContactEmail");
+                        }}
+                        placeholder="Email for applicants"
+                        inputMode="email"
+                      />
+                      <input
+                        className={wizardInputClass(false)}
+                        value={form.adContactPhone}
+                        onChange={(e) => {
+                          setForm((p) => ({ ...p, adContactPhone: e.target.value }));
+                          clearFieldError("adContactEmail");
+                        }}
+                        placeholder="Phone for applicants"
+                        inputMode="tel"
+                      />
+                    </div>
+                    {fieldErrors.adContactEmail ? (
+                      <p className={fieldErrorTextClass}>Give an email or a phone number applicants can use.</p>
+                    ) : null}
+                  </div>
+                ) : null}
                 <div>
                   <p className={labelClass}>Job category</p>
                   <div
