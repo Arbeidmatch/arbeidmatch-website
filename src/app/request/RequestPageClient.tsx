@@ -362,7 +362,7 @@ export default function RequestPageClient() {
                 Back
               </button>
             )}
-            <h1 className="text-2xl font-bold">Check candidate availability</h1>
+            <h1 className="text-2xl font-bold">Choose your industry</h1>
             {!selectedIndustry ? (
               <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
                 {CHECK_ROLE_GROUPS.map(({ industry, icon: Icon }) => (

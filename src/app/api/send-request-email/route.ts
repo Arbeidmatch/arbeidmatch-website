@@ -49,6 +49,14 @@ const requestSchema = z
  */
 const INTERNAL_SECTIONS = ["Contact details", "Position details", "Conditions offered", "Location"] as const;
 
+/** The service the client chose (the ATS's own keys), in the words the form showed him. */
+function serviceLabel(value: string): string {
+  if (value === "staffing") return "Staffing (bemanning)";
+  if (value === "recruitment") return "Recruitment";
+  if (value === "advertising") return "Job advertising";
+  return value;
+}
+
 /** The wizard stores the travel answer as a code; a letter says it in words. */
 function travelLabel(value: string): string {
   if (value === "company_covered") return "Covered by the company";
@@ -154,6 +162,9 @@ export async function POST(request: NextRequest) {
     };
     const internalInner = [
       referenceId ? letterParagraph(`Reference: <strong>${escapeHtml(referenceId)}</strong>`) : "",
+      // Above the first section on purpose: the ATS intake reads fields by the
+      // labels inside the sections, and a line before them is not one of its fields.
+      text(data.hiringType) ? letterParagraph(`Service: <strong>${escapeHtml(serviceLabel(text(data.hiringType)))}</strong>`) : "",
       ...INTERNAL_SECTIONS.map((title) => {
         const facts = letterFacts(internalRows[title]);
         return facts ? `${letterHeading(title)}${facts}` : "";
@@ -183,13 +194,14 @@ export async function POST(request: NextRequest) {
         letterParagraph(`Thank you, <strong>${safeCo}</strong>. We have received your request.`),
         letterFacts([
           { label: "Reference", value: referenceId },
+          { label: "Service", value: serviceLabel(text(data.hiringType)) },
           { label: "Position", value: text(selectedPosition) },
           { label: "Number of candidates", value: text(numberOfPositionsValue) },
           { label: "Location", value: text(cityValue) },
           { label: "Preferred start", value: text(selectedStartDate) },
         ]),
         letterParagraph(
-          "A recruitment consultant reviews it and replies by email within 1 to 2 business days. If anything in the summary is wrong, reply to this email and we will correct it.",
+          "We analyse your request and send you a detailed offer by email for the service you chose, usually within 1 to 2 business days. If anything in the summary is wrong, reply to this email and we will correct it.",
         ),
       ].join("");
       await transporter.sendMail({

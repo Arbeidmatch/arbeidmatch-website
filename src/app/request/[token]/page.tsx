@@ -175,6 +175,42 @@ function formatDriverLicenseForPayload(selections: string[]): string {
   return selections.join(", ");
 }
 
+/**
+ * The three services, as the client chooses between them.
+ *
+ * THE OWNER, 10 September 2026: the client must pick one of our services -
+ * staffing, recruitment or advertising - and each needs a line saying what
+ * happens. The field used to be optional, with two options named after nothing
+ * the ATS sorts by, and "Recruitment of personnel for companies" preselected, so
+ * every request arrived as recruitment whether the client meant it or not.
+ *
+ * The values are the ATS's own service keys (ats-recruitment
+ * src/lib/requests/service-type.ts), which the intake reads into service_type,
+ * so the request lands in the right list without anyone filing it. The help
+ * lines say the same thing as the ATS's descriptions of the three services.
+ */
+const SERVICE_OPTIONS = [
+  {
+    value: "staffing",
+    label: "Staffing (bemanning)",
+    help: "ArbeidMatch employs the workers and hires them in to you. We handle their contract, pay and paperwork; you lead the work on site.",
+  },
+  {
+    value: "recruitment",
+    label: "Recruitment",
+    help: "We find and screen the candidates. You choose who to hire and employ them directly in your company.",
+  },
+  {
+    value: "advertising",
+    label: "Job advertising",
+    help: "You write the job advert, we publish it on our channels, and the applications go straight to you.",
+  },
+] as const;
+
+/** Said on the service question, the review and the thank-you screen, in the same words. */
+const DETAILED_OFFER_NOTE =
+  "After we have analysed your request, you will receive a detailed offer by email for the service you chose.";
+
 const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
   0: [
     "companyName",
@@ -187,7 +223,7 @@ const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
     "referralCompanyName",
     "referralEmail",
   ],
-  1: ["industry", "workerType", "contractType", "locations", "startDate", "candidates"],
+  1: ["hiringType", "industry", "workerType", "contractType", "locations", "startDate", "candidates"],
   2: ["salaryMin", "salaryMax", "accommodation", "localTransport", "internationalTransport"],
   3: ["qualification", "dNumberChoice"],
   4: ["workTasks"],
@@ -213,6 +249,7 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
       if (refEmail.length > 0 && !refEmail.includes("@")) invalid.add("referralEmail");
     }
   } else if (s === 1) {
+    if (!SERVICE_OPTIONS.some((o) => o.value === f.hiringType)) invalid.add("hiringType");
     if (!f.industry) invalid.add("industry");
     if (!f.workerType.trim()) invalid.add("workerType");
     if (f.candidates < 1) invalid.add("candidates");
@@ -572,7 +609,7 @@ const initialForm: RequestForm = {
   certificationsOther: "",
   candidates: 1,
   contractType: "",
-  hiringType: "Recruitment of personnel for companies",
+  hiringType: "",
   jobSummary: "",
   salary: "",
   salaryPeriod: "per hour",
@@ -1331,9 +1368,7 @@ export default function RequestTokenPage() {
             <h1 className="text-[1.75rem] font-bold tracking-[-0.02em] text-white sm:text-[2rem]">
               {displayName ? `Thank you, ${displayName}!` : "Thank you!"}
             </h1>
-            <p className="text-base text-[rgba(255,255,255,0.82)]">
-              We will review your request and be in touch soon.
-            </p>
+            <p className="text-base text-[rgba(255,255,255,0.82)]">{DETAILED_OFFER_NOTE}</p>
             {submitSuccessReference ? (
               <p className="text-sm font-medium text-[#C9A84C]">Your reference: {submitSuccessReference}</p>
             ) : null}
@@ -2051,6 +2086,25 @@ export default function RequestTokenPage() {
               <div className="space-y-5">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Job basics</h2>
+                <div data-wizard-field="hiringType">
+                  <p className={labelClass}>Which service do you need?</p>
+                  <div className={wizardGroupShell(!!fieldErrors.hiringType, "grid grid-cols-1 gap-2")}>
+                    {SERVICE_OPTIONS.map((option) => (
+                      <OptionCard
+                        key={option.value}
+                        label={option.label}
+                        sublabel={option.help}
+                        selected={form.hiringType === option.value}
+                        onClick={() => {
+                          setForm((p) => ({ ...p, hiringType: option.value }));
+                          clearFieldError("hiringType");
+                        }}
+                      />
+                    ))}
+                  </div>
+                  {fieldErrors.hiringType ? <p className={fieldErrorTextClass}>Please choose one of the three services.</p> : null}
+                  <p className="mt-2 text-xs text-white/55">{DETAILED_OFFER_NOTE}</p>
+                </div>
                 <div>
                   <p className={labelClass}>Job category</p>
                   <div
@@ -2070,17 +2124,6 @@ export default function RequestTokenPage() {
                     ))}
                   </div>
                   {fieldErrors.industry ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
-                </div>
-                <div>
-                  <p className={labelClass}>
-                    Hiring type{" "}
-                    <span className="font-normal normal-case tracking-normal text-white/55">(optional)</span>
-                  </p>
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                    {["Recruitment of personnel for companies", "Temporary staffing request"].map((option) => (
-                      <OptionCard key={option} label={option} selected={form.hiringType === option} onClick={() => setForm((p) => ({ ...p, hiringType: option }))} />
-                    ))}
-                  </div>
                 </div>
                 <div>
                   <p className={labelClass}>
@@ -2686,7 +2729,7 @@ export default function RequestTokenPage() {
               <div className="space-y-4">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Review your request</h2>
-                <p className="text-sm text-white/55">Check the summary below. You can add optional notes on the next step.</p>
+                <p className="text-sm text-white/55">Check the summary below. You can add optional notes on the next step. {DETAILED_OFFER_NOTE}</p>
                 <div className="rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-4">
                   <pre className="whitespace-pre-wrap text-sm text-white/75">{generatedNotes}</pre>
                 </div>

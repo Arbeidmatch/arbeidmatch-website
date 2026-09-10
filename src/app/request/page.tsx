@@ -1123,7 +1123,7 @@ export default function RequestPage() {
               <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
               Back
             </button>
-            <h1 className="text-2xl font-bold">Check candidate availability</h1>
+            <h1 className="text-2xl font-bold">Choose your industry</h1>
             <AnimatePresence mode="wait" custom={flowDirection}>
               {pickerStep === "industries" ? (
                 <motion.div
