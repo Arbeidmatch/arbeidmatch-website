@@ -35,6 +35,12 @@ export default function ForEmployersPage() {
             >
               Request candidates
             </Link>
+            <Link
+              href="/annonse/ny"
+              className="mt-4 inline-flex min-h-[44px] items-center justify-center text-sm font-medium text-white/75 underline decoration-[#C9A84C] underline-offset-4 hover:text-white"
+            >
+              Publiser en stillingsannonse selv
+            </Link>
           </StaggerHero>
         </div>
       </section>

@@ -35,7 +35,7 @@ export interface SendResult {
  * Reading all three names means the feature works with whichever name the deployment
  * already carries, instead of failing silently on a naming difference.
  */
-const ATS_BASE_URL_VARS = ["ATS_BASE_URL", "ATS_PUBLIC_BASE_URL", "NEXT_PUBLIC_ATS_URL"] as const;
+export const ATS_BASE_URL_VARS = ["ATS_BASE_URL", "ATS_PUBLIC_BASE_URL", "NEXT_PUBLIC_ATS_URL"] as const;
 
 export function atsEmailEndpoint(): string | null {
   for (const name of ATS_BASE_URL_VARS) {

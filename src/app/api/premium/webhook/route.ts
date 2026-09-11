@@ -9,6 +9,8 @@ import {
 } from "@/lib/premium/subscribers";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { notifyError } from "@/lib/errorNotifier";
+import { markOrderPaid } from "@/lib/job-ads/atsClient";
+import { jobAdPaidFromSession } from "@/lib/job-ads/stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +65,26 @@ async function applySubscriptionState(stripe: Stripe, sub: Stripe.Subscription) 
   }
 }
 
+/**
+ * A completed checkout for a paid job advert: tell the ATS, which checks the
+ * amount against the frozen total and publishes. Idempotent there per session.
+ *
+ * A refusal the ATS will repeat (a wrong amount, an order in another state) is
+ * reported and acknowledged, so Stripe does not retry it for days; a failure to
+ * reach the ATS throws, so Stripe retries.
+ */
+async function forwardJobAdPayment(session: Stripe.Checkout.Session) {
+  const paid = jobAdPaidFromSession(session);
+  if (!paid) return;
+  const result = await markOrderPaid(paid.token, paid.paid);
+  if (result.ok) return;
+  if (result.status >= 500) throw new Error(`job ad payment not recorded: ${result.status} ${result.error}`);
+  await notifyError({
+    route: "/api/premium/webhook",
+    error: `ATS refused a paid job ad session: ${result.status} ${result.error}`,
+  });
+}
+
 export async function POST(request: NextRequest) {
   const secret = process.env.STRIPE_SECRET_KEY;
   const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -111,6 +133,12 @@ export async function POST(request: NextRequest) {
         if (subId) {
           await updateSubscriberBySubscriptionId(subId, { status: "past_due" });
         }
+        break;
+      }
+      case "checkout.session.completed": {
+        // Paid job adverts only (metadata.kind === "job_ad"); Premium checkouts are
+        // handled by the subscription events above and pass through untouched.
+        await forwardJobAdPayment(event.data.object as Stripe.Checkout.Session);
         break;
       }
       default:
