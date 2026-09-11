@@ -140,23 +140,8 @@ export const REMOTE_LABELS: Record<"no" | "hybrid" | "full", string> = {
 
 export const WORK_LANGUAGE_OPTIONS = ["Norsk", "Engelsk", "Skandinavisk", "Polsk", "Rumensk", "Litauisk"] as const;
 
-/** Tier prices ex. VAT, the ATS floor (pricing.ts AD_PRICE_FLOOR). Only for the estimate on the form. */
-const TIER_PRICE_NOK: Record<1 | 2 | 3 | 4, number> = { 1: 5200, 2: 5450, 3: 6800, 4: 7400 };
-const PART_TIME_FACTOR = 0.8;
-
-export function tierForIndustry(industry: string | null | undefined): 1 | 2 | 3 | 4 {
-  const key = String(industry ?? "").trim().toLowerCase();
-  return INDUSTRIES.find((i) => i.value.toLowerCase() === key)?.tier ?? 2;
-}
-
-/**
- * "Fra X kr eks. mva" on the form, before the reviewer has read the advert.
- * An estimate only: the quote the ATS returns after approval is the price.
- */
-export function estimatedFromNok(industry: string | null | undefined, partTime: boolean): number {
-  const full = TIER_PRICE_NOK[tierForIndustry(industry)];
-  return Math.round(partTime ? full * PART_TIME_FACTOR : full);
-}
+// No price before review (his decision, 11 September 2026: prices are asked
+// for through a request). The ATS quotes the packages once the advert is approved.
 
 export const PACKAGES: readonly { id: AdPackage; name: string; gives: string[]; recommended?: boolean }[] = [
   {

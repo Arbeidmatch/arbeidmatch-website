@@ -9,8 +9,6 @@ import {
   INDUSTRIES,
   REMOTE_LABELS,
   WORK_LANGUAGE_OPTIONS,
-  estimatedFromNok,
-  formatNok,
   validateAdvert,
   type AdvertDraft,
   type EmploymentType,
@@ -316,7 +314,6 @@ export default function AdvertForm({
   const err = (name: string) => errors[name];
 
   const industryLabel = INDUSTRIES.find((i) => i.value === ad.industry)?.label;
-  const estimate = ad.industry ? estimatedFromNok(ad.industry, ad.partTime) : null;
   const descLength = ad.description.trim().length;
 
   return (
@@ -688,15 +685,12 @@ export default function AdvertForm({
               </Field>
             </div>
 
-            {estimate ? (
-              <div className="rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(201,168,76,0.06)] px-4 py-3 text-sm">
-                <p className="font-semibold text-white">Fra {formatNok(estimate)} eks. mva</p>
-                <p className="mt-1 text-white/60">
-                  Anslag for {industryLabel?.toLowerCase()}
-                  {ad.partTime ? ", deltid" : ""}. Endelig pris og pakkene ser dere når annonsen er kontrollert, før dere betaler.
-                </p>
-              </div>
-            ) : null}
+            {/* No price on the public form (his decision, 11 September 2026: prices
+                are asked for through a request). The order page shows the packages
+                and their prices once the advert has been checked. */}
+            <div className="rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(201,168,76,0.06)] px-4 py-3 text-sm">
+              <p className="text-white/70">Pris og pakker ser dere når annonsen er kontrollert, før dere betaler.</p>
+            </div>
           </div>
         ) : null}
 

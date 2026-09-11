@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { jobAdCheckoutParams, jobAdPaidFromSession } from "@/lib/job-ads/stripe";
-import { emptyAdvert, estimatedFromNok, validateAdvert, type PublicOrderView } from "@/lib/job-ads/types";
+import { emptyAdvert, validateAdvert, type PublicOrderView } from "@/lib/job-ads/types";
 
 const TOKEN = "0123456789abcdef".repeat(4);
 
@@ -82,12 +82,6 @@ describe("the checkout charges exactly the frozen total", () => {
 });
 
 describe("the form's own checks", () => {
-  it("estimates from the industry tier, part-time at 80 %", () => {
-    expect(estimatedFromNok("Cleaning", false)).toBe(5200);
-    expect(estimatedFromNok("Electrical", true)).toBe(5920);
-    expect(estimatedFromNok("Something new", false)).toBe(5450);
-  });
-
   it("asks for the fields the ATS requires", () => {
     const problems = validateAdvert(emptyAdvert(), new Date("2026-09-11T10:00:00Z"));
     for (const field of ["employer.name", "employer.orgNumber", "contact.name", "contact", "title", "description", "industry", "location.city", "salary.min", "deadline", "advertFor"]) {
