@@ -246,6 +246,13 @@ export type PublicJobDetail = PublicJob & {
   external_url?: string | null;
   public_requires_norwegian?: boolean | null;
   /**
+   * The job's own search title and description, written in the ATS (by a
+   * person or the assistant, since 11 September 2026). Used by the page's
+   * metadata when set; the page builds its own when they are not.
+   */
+  seo_title?: string | null;
+  seo_description?: string | null;
+  /**
    * What the advert asks of the reader, and whether failing it stops them.
    *
    * Prompt and required, plus `id` and `kind` so the application form can ask

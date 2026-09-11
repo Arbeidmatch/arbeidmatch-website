@@ -88,14 +88,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!job) return { title: "Stilling | ArbeidMatch" };
 
   const where = (job.location ?? "").trim();
-  const title = where ? `${job.title} in ${where} | ArbeidMatch` : `${job.title} | ArbeidMatch`;
+  // The job's own search text first, written in the ATS since 11 September
+  // 2026; what this page built before is the fallback.
+  const ownTitle = (job.seo_title ?? "").trim();
+  const ownDescription = (job.seo_description ?? "").trim();
+  const title = ownTitle || (where ? `${job.title} in ${where} | ArbeidMatch` : `${job.title} | ArbeidMatch`);
   const description =
+    ownDescription ||
     [job.title, where, rateLine(job)].filter(Boolean).join(", ") ||
     "Open position in Norway for EU and EEA tradespeople.";
   const url = `${SITE}/stilling/${encodeURIComponent(slug)}`;
 
   return {
-    title,
+    // Absolute: the layout's "%s | ArbeidMatch" template was adding a second
+    // "| ArbeidMatch" to a title that already ends with one.
+    title: { absolute: title },
     description,
     alternates: { canonical: url },
     openGraph: { title, description, url, type: "article", images: [jobImage(job)] },
