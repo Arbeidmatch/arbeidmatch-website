@@ -8,6 +8,7 @@ import { logApiError } from "@/lib/secureLogger";
 import { notifySlack } from "@/lib/slackNotifier";
 import { buildArbeidmatchLetter, letterFacts, letterHeading, letterParagraph } from "@/lib/arbeidmatchEmailShell";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
+import { roleDetailsEmailSection, roleDetailsFromRequest, stripRoleDetailsBlock } from "@/lib/request-role-details-email";
 import {
   mailHeaders,
 } from "@/lib/emailPremiumTemplate";
@@ -48,6 +49,10 @@ const requestSchema = z
  * adding its label there.
  */
 const INTERNAL_SECTIONS = ["Contact details", "Position details", "Conditions offered", "Location"] as const;
+// After these comes "Role details" (11 September 2026), built in
+// src/lib/request-role-details-email.ts from the labels in
+// src/lib/request-role-questions.ts. It is last on purpose: its labels are new
+// to the ATS, and a section it does not know yet must not sit between two it does.
 
 /** The service the client chose (the ATS's own keys), in the words the form showed him. */
 function serviceLabel(value: string): string {
@@ -131,6 +136,15 @@ export async function POST(request: NextRequest) {
       text(data.hiringType) === "advertising"
         ? [text(data.adContactName), text(data.adContactEmail), text(data.adContactPhone)].filter(Boolean).join(", ")
         : "";
+    // What the client told us about the role: language, trade, and how the
+    // assignment or the hiring is run. Rebuilt from the raw answers with our own
+    // labels, never from text composed in the browser.
+    const roleDetails = roleDetailsFromRequest({
+      service: text(data.hiringType),
+      industry: text(categoryValue),
+      position: text(selectedPosition),
+      answers: rawData.roleAnswers,
+    });
 
     // The internal copy: to post@, read by the owner and by the ATS intake.
     const internalRows: Record<(typeof INTERNAL_SECTIONS)[number], { label: string; value: string }[]> = {
@@ -175,6 +189,7 @@ export async function POST(request: NextRequest) {
         const facts = letterFacts(internalRows[title]);
         return facts ? `${letterHeading(title)}${facts}` : "";
       }),
+      roleDetailsEmailSection(roleDetails.en),
     ].join("");
 
     const internalTitle = `New candidate request: ${companyName} from ${cityLabel}`;
@@ -287,7 +302,8 @@ export async function POST(request: NextRequest) {
     pushSlackField(slackFields, "Călătoria internațională", ro(text(data.internationalTravel), { company_covered: "Plătită de firmă", own_responsibility: "Pe cont propriu" }));
     pushSlackField(slackFields, "Transport local", ro(text(data.localTravel), { Covered: "Asigurat", "Not covered": "Neasigurat" }));
     pushSlackField(slackFields, "Certificări", data.certifications);
-    pushSlackField(slackFields, "Cerințe (scrise de client)", data.requirements || data.notes);
+    for (const row of roleDetails.ro) pushSlackField(slackFields, row.label, row.value);
+    pushSlackField(slackFields, "Cerințe (scrise de client)", stripRoleDetailsBlock(data.requirements || data.notes || "", roleDetails.en));
     pushSlackField(slackFields, "Cum a aflat de noi", leadSource);
     pushSlackField(slackFields, "Recomandat de", data.referralCompanyName);
     pushSlackField(slackFields, "Vrea noutăți despre candidați", data.subscribe ? "Da" : "");

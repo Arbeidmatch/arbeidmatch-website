@@ -24,6 +24,29 @@ import {
 import { trackEvent } from "@/lib/analytics";
 import { REQUEST_INDUSTRY_ROLE_GROUPS } from "@/lib/industry-roles";
 import { ROLE_SKILLS } from "@/lib/role-skills";
+import {
+  ALL_TRADE_FIELD_KEYS,
+  buildRoleDetails,
+  collectLanguageTradeInvalid,
+  collectServiceInvalid,
+  EMPTY_ROLE_ANSWERS,
+  getTradeQuestions,
+  INTERVIEW_ROUND_OPTIONS,
+  LANGUAGE_LEVELS,
+  norwegianNeedsReason,
+  parseHoursPerWeek,
+  PROBATION_OPTIONS,
+  ROLE_LANGUAGE_FIELD_KEYS,
+  ROLE_QUESTION_INDUSTRIES,
+  ROLE_RECRUITMENT_FIELD_KEYS,
+  ROLE_STAFFING_FIELD_KEYS,
+  roleDetailsRequirementsBlock,
+  SHIFT_PATTERNS,
+  tradeFieldKey,
+  YES_NO,
+  type RoleAnswers,
+  type RoleQuestion,
+} from "@/lib/request-role-questions";
 
 type TokenData = {
   company: string;
@@ -63,13 +86,10 @@ type RequestForm = {
   contractType: string;
   hiringType: string;
   /**
-   * Job advertising only: who applicants contact. The advert for this service is
-   * published under the client's own name with this contact on it (the owner,
-   * 10 September 2026), so it is asked for here, by the client, not guessed.
+   * Language, trade and service questions (src/lib/request-role-questions.ts).
+   * Job advertising does not reach them: it leaves this wizard for /annonse/ny.
    */
-  adContactName: string;
-  adContactEmail: string;
-  adContactPhone: string;
+  roleAnswers: RoleAnswers;
   jobSummary: string;
   salary: string;
   salaryPeriod: "per hour" | "per month";
@@ -231,9 +251,17 @@ const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
     "referralCompanyName",
     "referralEmail",
   ],
-  1: ["hiringType", "adContactName", "adContactEmail", "industry", "workerType", "contractType", "locations", "startDate", "candidates"],
-  2: ["salaryMin", "salaryMax", "accommodation", "localTransport", "internationalTransport"],
-  3: ["qualification", "dNumberChoice"],
+  1: ["hiringType", "advertisingHandoff", "industry", "workerType", "contractType", "locations", "startDate", "candidates"],
+  2: [
+    "salaryMin",
+    "salaryMax",
+    "accommodation",
+    "localTransport",
+    "internationalTransport",
+    ...ROLE_STAFFING_FIELD_KEYS,
+    ...ROLE_RECRUITMENT_FIELD_KEYS,
+  ],
+  3: ["qualification", "dNumberChoice", ...ROLE_LANGUAGE_FIELD_KEYS, ...ALL_TRADE_FIELD_KEYS],
   4: ["workTasks"],
   5: ["personalQualities"],
   6: [],
@@ -258,12 +286,10 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     }
   } else if (s === 1) {
     if (!SERVICE_OPTIONS.some((o) => o.value === f.hiringType)) invalid.add("hiringType");
+    // Job advertising goes on at /annonse/ny, never through the rest of this wizard.
     if (f.hiringType === "advertising") {
-      if (f.adContactName.trim().length < 2) invalid.add("adContactName");
-      const email = f.adContactEmail.trim();
-      const phoneDigits = f.adContactPhone.replace(/\D/g, "");
-      if (email && !email.includes("@")) invalid.add("adContactEmail");
-      if (!email && phoneDigits.length < 6) invalid.add("adContactEmail");
+      invalid.add("advertisingHandoff");
+      return invalid;
     }
     if (!f.industry) invalid.add("industry");
     if (!f.workerType.trim()) invalid.add("workerType");
@@ -281,9 +307,11 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     if (f.internationalTransport !== "company_covered" && f.internationalTransport !== "own_responsibility") {
       invalid.add("internationalTransport");
     }
+    for (const k of collectServiceInvalid(f.hiringType, f.roleAnswers)) invalid.add(k);
   } else if (s === 3) {
     if (!f.qualification) invalid.add("qualification");
     if (f.dNumberChoice !== "has_d_number" && f.dNumberChoice !== "we_handle") invalid.add("dNumberChoice");
+    for (const k of collectLanguageTradeInvalid(f.hiringType, f.industry, f.workerType, f.roleAnswers)) invalid.add(k);
   } else if (s === 4) {
     if (f.workTasks.trim().length < 10) invalid.add("workTasks");
   } else if (s === 5) {
@@ -305,17 +333,8 @@ const CITY_OPTIONS = [
   "Steinkjer", "Namsos", "Levanger", "Verdal", "Elverum", "Brumunddal", "Ringerike", "Honefoss",
 ];
 
-const INDUSTRY_OPTIONS = [
-  "Electrical",
-  "Plumbing and HVAC (VVS)",
-  "Construction",
-  "Welding and Metal",
-  "Logistics",
-  "Industry and Production",
-  "Cleaning",
-  "HoReCa",
-  "Healthcare",
-];
+// One list with the trade questions, so a category never goes without its questions.
+const INDUSTRY_OPTIONS: string[] = [...ROLE_QUESTION_INDUSTRIES];
 
 /**
  * Maps Faza 1 industry names (from /request page) to Faza 2 INDUSTRY_OPTIONS.
@@ -625,9 +644,7 @@ const initialForm: RequestForm = {
   candidates: 1,
   contractType: "",
   hiringType: "",
-  adContactName: "",
-  adContactEmail: "",
-  adContactPhone: "",
+  roleAnswers: EMPTY_ROLE_ANSWERS,
   jobSummary: "",
   salary: "",
   salaryPeriod: "per hour",
@@ -770,6 +787,44 @@ function OptionCard({
   );
 }
 
+/** A row of answer buttons: one choice or several. Picking a chosen one again clears it. */
+function ChoiceChips({
+  options,
+  selected,
+  onPick,
+  invalid,
+  ariaLabel,
+}: {
+  options: readonly string[];
+  selected: readonly string[];
+  onPick: (value: string) => void;
+  invalid?: boolean;
+  ariaLabel?: string;
+}) {
+  return (
+    <div role="group" aria-label={ariaLabel} className={wizardGroupShell(!!invalid, "flex flex-wrap gap-2")}>
+      {options.map((opt) => {
+        const on = selected.includes(opt);
+        return (
+          <button
+            key={opt}
+            type="button"
+            aria-pressed={on}
+            onClick={() => onPick(opt)}
+            className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${
+              on ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"
+            }`}
+          >
+            {opt}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+const OPTIONAL_TAG = <span className="font-normal normal-case tracking-normal text-white/55">(optional)</span>;
+
 export default function RequestTokenPage() {
   const { token } = useParams<{ token: string }>();
   const router = useRouter();
@@ -820,7 +875,8 @@ export default function RequestTokenPage() {
   const [selectedCheckRole, setSelectedCheckRole] = useState("");
   const [isDesktopCheckFlow, setIsDesktopCheckFlow] = useState(false);
   const [searchMessageIndex, setSearchMessageIndex] = useState(0);
-  const [checkCount, setCheckCount] = useState(0);
+  /** The count /api/check-candidates returned, or null when it gave none. Never an invented number. */
+  const [checkCount, setCheckCount] = useState<number | null>(null);
   const [showInstantPanel, setShowInstantPanel] = useState(false);
   const [pitchIndex, setPitchIndex] = useState(0);
   const [showOfferCards, setShowOfferCards] = useState(false);
@@ -1080,6 +1136,86 @@ export default function RequestTokenPage() {
     });
   };
 
+  const tradeQuestions = useMemo(
+    () => getTradeQuestions(form.industry, form.workerType),
+    [form.industry, form.workerType],
+  );
+
+  /** The answers about the role as "Label: value" rows, in the words the ATS reads. */
+  const roleDetailRows = useMemo(
+    () =>
+      buildRoleDetails({
+        service: form.hiringType,
+        industry: form.industry,
+        position: form.workerType.trim(),
+        answers: form.roleAnswers,
+      }),
+    [form.hiringType, form.industry, form.workerType, form.roleAnswers],
+  );
+  const roleDetailsBlock = useMemo(() => roleDetailsRequirementsBlock(roleDetailRows), [roleDetailRows]);
+
+  /**
+   * Job advertising leaves this wizard for the advert flow, carrying what the
+   * client already typed so he does not type it twice.
+   */
+  const advertHref = useMemo(() => {
+    const params = new URLSearchParams();
+    const add = (key: string, value: string) => {
+      const v = value.replace(/\s+/g, " ").trim();
+      if (v) params.set(key, v);
+    };
+    add("company", form.companyName);
+    add("org", form.orgNumber);
+    add("name", `${form.contactFirstName} ${form.contactLastName}`);
+    add("email", form.contactEmail.toLowerCase());
+    const digits = form.contactPhone.replace(/\D/g, "").slice(0, 15);
+    if (digits) params.set("phone", `${form.contactPhonePrefix} ${digits}`);
+    add("industry", form.industry);
+    add("title", form.workerType);
+    add("city", form.locations[0] ?? "");
+    const query = params.toString();
+    return query ? `/annonse/ny?${query}` : "/annonse/ny";
+  }, [
+    form.companyName,
+    form.orgNumber,
+    form.contactFirstName,
+    form.contactLastName,
+    form.contactEmail,
+    form.contactPhone,
+    form.contactPhonePrefix,
+    form.industry,
+    form.workerType,
+    form.locations,
+  ]);
+
+  const setRole = (patch: Partial<Omit<RoleAnswers, "trade" | "staffing" | "recruitment">>) => {
+    setForm((p) => ({ ...p, roleAnswers: { ...p.roleAnswers, ...patch } }));
+    for (const key of Object.keys(patch)) clearFieldError(key);
+  };
+  const setStaffing = (patch: Partial<RoleAnswers["staffing"]>) => {
+    setForm((p) => ({ ...p, roleAnswers: { ...p.roleAnswers, staffing: { ...p.roleAnswers.staffing, ...patch } } }));
+    for (const key of Object.keys(patch)) clearFieldError(key);
+    if ("periodOpenEnded" in patch) clearFieldError("periodTo");
+  };
+  const setRecruitment = (patch: Partial<RoleAnswers["recruitment"]>) => {
+    setForm((p) => ({ ...p, roleAnswers: { ...p.roleAnswers, recruitment: { ...p.roleAnswers.recruitment, ...patch } } }));
+    for (const key of Object.keys(patch)) clearFieldError(key);
+  };
+  const pickTradeAnswer = (q: RoleQuestion, option: string) => {
+    setForm((p) => {
+      const current = p.roleAnswers.trade[q.id];
+      let next: string | string[];
+      if (q.kind === "multi") {
+        const list = Array.isArray(current) ? current : [];
+        next = list.includes(option) ? list.filter((o) => o !== option) : [...list, option];
+      } else {
+        next = current === option ? "" : option;
+      }
+      return { ...p, roleAnswers: { ...p.roleAnswers, trade: { ...p.roleAnswers.trade, [q.id]: next } } };
+    });
+    clearFieldError(tradeFieldKey(q.id));
+  };
+
   const runStepValidation = (s: number) => {
     const invalid = collectWizardStepInvalid(s, form);
     const keys = WIZARD_STEP_FIELD_KEYS[s] ?? [];
@@ -1103,6 +1239,8 @@ export default function RequestTokenPage() {
   const handleFormContinue = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (animating || isSubmitting) return;
+    // Job advertising continues at /annonse/ny through the card's own button.
+    if (step === 1 && form.hiringType === "advertising") return;
     if (!runStepValidation(step)) return;
     if (step < MAX_STEP_INDEX) {
       handleNext();
@@ -1123,6 +1261,10 @@ export default function RequestTokenPage() {
     setIsSubmitting(true);
 
     const rotationPayload = rotationScheduleToPayloadFields(form.rotationSchedule);
+    const isStaffing = form.hiringType === "staffing";
+    const staffingHours = isStaffing ? parseHoursPerWeek(form.roleAnswers.staffing.hoursPerWeek) : null;
+    const ppe = form.roleAnswers.staffing.ppeProvided;
+    const ownTools = form.industry === "Construction" ? form.roleAnswers.trade.own_tools : undefined;
 
     const payload = {
       token,
@@ -1138,11 +1280,6 @@ export default function RequestTokenPage() {
       })(),
       job_summary: form.jobSummary,
       hiringType: form.hiringType,
-      // Only an advertising request names a contact for applicants; any other
-      // service sends none, so a contact typed and then abandoned is not kept.
-      adContactName: form.hiringType === "advertising" ? form.adContactName.trim() : "",
-      adContactEmail: form.hiringType === "advertising" ? form.adContactEmail.trim().toLowerCase() : "",
-      adContactPhone: form.hiringType === "advertising" ? form.adContactPhone.trim() : "",
       category: form.industry,
       position: form.workerType.trim(),
       positionOther: "",
@@ -1152,18 +1289,24 @@ export default function RequestTokenPage() {
       certifications: form.tradeCertificatePreferred === "Yes" ? "Trade certificate preferred" : "",
       certificationsOther: form.certification.includes("Other") ? form.certificationsOther.trim() : "",
       experience: "",
-      norwegianLevel: "",
-      englishLevel: "",
+      norwegianLevel: form.roleAnswers.norwegianLevel,
+      englishLevel: form.roleAnswers.englishLevel,
       driverLicense: formatDriverLicenseForPayload(form.driverLicenseSelections),
       driverLicenseOther: "",
       dNumber: form.dNumberChoice,
       dNumberOther: "",
+      // The role details go here as "Label: value" lines, where the ATS matching
+      // reads them. Not into `notes`: the office letter prints notes as a value,
+      // and label-shaped lines inside a value would confuse the intake parser.
       requirements: [
         generatedNotes,
         "",
+        roleDetailsBlock || null,
+        roleDetailsBlock ? "" : null,
         `Rotation schedule: ${form.rotationSchedule}`,
         form.roleInCompany.trim() ? `Contact person's role: ${form.roleInCompany.trim()}` : "",
       ]
+        .filter((line) => line !== null)
         .join("\n")
         .trim(),
       contractType: form.contractType,
@@ -1173,8 +1316,9 @@ export default function RequestTokenPage() {
       salaryAmount: "",
       salaryFrom: form.salaryMin.trim(),
       salaryTo: form.salaryMax.trim(),
-      hoursUnit: "",
-      hoursAmount: "",
+      // Staffing asks the hours per week; the row has columns for exactly that.
+      hoursUnit: staffingHours !== null ? "per week" : "",
+      hoursAmount: staffingHours !== null ? String(staffingHours) : "",
       overtime:
         form.overtime.toLowerCase() === "yes"
           ? true
@@ -1191,9 +1335,14 @@ export default function RequestTokenPage() {
       accommodation: form.accommodation ?? "",
       accommodationCost: form.accommodation === ACCOMMODATION_WE_HELP ? form.accommodationCost.trim() : "",
       accommodationOther: "",
-      equipment: "",
+      equipment:
+        isStaffing && ppe === "Yes"
+          ? "Protective equipment provided by the client"
+          : isStaffing && ppe === "No"
+            ? "Protective equipment not provided by the client"
+            : "",
       equipmentOther: "",
-      tools: "",
+      tools: ownTools === "Yes" ? "Own tools required" : ownTools === "No" ? "Own tools not required" : "",
       toolsOther: "",
       city: form.locations.join(", "),
       startDate: form.startDateMode === "Immediate" ? "Immediate" : form.startDate,
@@ -1235,7 +1384,10 @@ export default function RequestTokenPage() {
         const emailRes = await fetch("/api/send-request-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...payload, referenceId }),
+          // The raw answers go to the letter, which builds its "Role details"
+          // section from them with our own labels. The row does not need them:
+          // it has them as lines in `requirements`.
+          body: JSON.stringify({ ...payload, referenceId, roleAnswers: form.roleAnswers }),
         });
         if (!emailRes.ok) {
           throw new Error("send-request-email");
@@ -1277,15 +1429,17 @@ export default function RequestTokenPage() {
     setNotifyStatus("idle");
     const waitMs = reducedMotion ? 2000 : 10000;
     await new Promise((resolve) => setTimeout(resolve, waitMs));
+    // The number shown is the one the database gave, or none at all. It used to
+    // be made up from the letters of the role (hash % 36 + 12), whatever the
+    // answer was. The route answers 0 when it cannot count as well as when it
+    // counts nobody, so 0 is shown as no number rather than as "0 candidates".
     try {
-      await fetch(`/api/check-candidates?role=${encodeURIComponent(role)}`);
-      let hash = 0;
-      for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
-      setCheckCount((hash % 36) + 12);
+      const res = await fetch(`/api/check-candidates?role=${encodeURIComponent(role)}`);
+      const body = res.ok ? ((await res.json()) as { count?: unknown }) : null;
+      const count = typeof body?.count === "number" && Number.isFinite(body.count) ? Math.floor(body.count) : 0;
+      setCheckCount(count > 0 ? count : null);
     } catch {
-      let hash = 0;
-      for (let i = 0; i < role.length; i += 1) hash += role.charCodeAt(i);
-      setCheckCount((hash % 36) + 12);
+      setCheckCount(null);
     } finally {
       setCheckState("result");
     }
@@ -1293,7 +1447,9 @@ export default function RequestTokenPage() {
 
   const pitchMessages = useMemo(
     () => [
-      `${checkCount} candidates have been pre-screened for ${searchTerm.trim()} roles in our database.`,
+      checkCount !== null
+        ? `${checkCount} ${checkCount === 1 ? "candidate" : "candidates"} in our database match ${searchTerm.trim()}.`
+        : `We match ${searchTerm.trim()} candidates by trade, experience and location once we have your request.`,
       "Each profile includes trade certifications, work history, and availability status.",
       "Our matching system filters by location, language, and employer requirements.",
       "ArbeidMatch has placed candidates across Norway in construction, logistics, and industry.",
@@ -1304,7 +1460,7 @@ export default function RequestTokenPage() {
 
   useEffect(() => {
     if (checkState !== "result") return;
-    trackEvent("check_result_shown", { role: searchTerm.trim(), count: checkCount });
+    trackEvent("check_result_shown", { role: searchTerm.trim(), count: checkCount ?? 0, has_count: checkCount !== null });
     if (reducedMotion) {
       setPitchIndex(pitchMessages.length - 1);
       setShowOfferCards(true);
@@ -1737,8 +1893,21 @@ export default function RequestTokenPage() {
               )}
               {checkState === "result" && (
                 <div className="text-center">
-                  <p className="text-[3rem] font-extrabold text-[#C9A84C]">{checkCount}</p>
-                  <p className="mt-1 text-sm text-white/65">candidates registered for {searchTerm.trim()}</p>
+                  {checkCount !== null ? (
+                    <>
+                      <p className="text-[3rem] font-extrabold text-[#C9A84C]">{checkCount}</p>
+                      <p className="mt-1 text-sm text-white/65">
+                        {checkCount === 1 ? "candidate" : "candidates"} registered for {searchTerm.trim()}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-[1.25rem] font-bold text-white">{searchTerm.trim()}</p>
+                      <p className="mt-1 text-sm text-white/65">
+                        Tell us what the role needs and we will come back to you with the candidates who fit.
+                      </p>
+                    </>
+                  )}
                   {reducedMotion ? (
                     <div className="mt-3 space-y-2">
                       {pitchMessages.map((message) => (
@@ -1757,7 +1926,7 @@ export default function RequestTokenPage() {
                     onClick={() => {
                       setCheckState("idle");
                       setSearchTerm("");
-                      setCheckCount(0);
+                      setCheckCount(null);
                     }}
                     className="mx-auto mt-4 block cursor-pointer text-center text-[13px] text-white/55 transition-colors hover:text-[rgba(255,255,255,0.7)]"
                   >
@@ -2126,71 +2295,32 @@ export default function RequestTokenPage() {
                     ))}
                   </div>
                   {fieldErrors.hiringType ? <p className={fieldErrorTextClass}>Please choose one of the three services.</p> : null}
-                  <p className="mt-2 text-xs text-white/55">{DETAILED_OFFER_NOTE}</p>
+                  {form.hiringType !== "advertising" ? (
+                    <p className="mt-2 text-xs text-white/55">{DETAILED_OFFER_NOTE}</p>
+                  ) : null}
                 </div>
                 {form.hiringType === "advertising" ? (
-                  <div className="space-y-3 rounded-[12px] border border-[rgba(201,168,76,0.2)] p-4">
-                    <div>
-                      <p className={labelClass}>Who should applicants contact?</p>
-                      <p className="text-xs text-white/55">
-                        The advert is published under your company name, with this contact person on it. Applicants reach them directly.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      className="text-xs font-semibold text-[#C9A84C] underline-offset-2 hover:underline"
-                      onClick={() => {
-                        setForm((p) => ({
-                          ...p,
-                          adContactName: `${p.contactFirstName.trim()} ${p.contactLastName.trim()}`.trim(),
-                          adContactEmail: p.contactEmail.trim(),
-                          adContactPhone: p.contactPhone.replace(/\D/g, "") ? `${p.contactPhonePrefix} ${p.contactPhone.replace(/\D/g, "")}` : "",
-                        }));
-                        clearFieldError("adContactName");
-                        clearFieldError("adContactEmail");
-                      }}
+                  <div
+                    data-wizard-field="advertisingHandoff"
+                    className="space-y-3 rounded-[12px] border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.06)] p-5"
+                  >
+                    <p className="text-base font-bold text-white">Job adverts have their own form</p>
+                    <p className="text-sm text-white/75">
+                      There you write the full advert, we check it before it is published, and you choose the package that suits you.
+                      The details you have already given us come along, so you do not type them twice.
+                    </p>
+                    <Link
+                      href={advertHref}
+                      prefetch={false}
+                      onClick={() => trackEvent("request_advert_handoff", { industry: form.industry || "unknown" })}
+                      className="inline-flex min-h-[44px] items-center justify-center rounded-[10px] bg-[#C9A84C] px-6 py-3 text-sm font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
                     >
-                      Use my contact details
-                    </button>
-                    <div data-wizard-field="adContactName">
-                      <input
-                        className={wizardInputClass(!!fieldErrors.adContactName)}
-                        value={form.adContactName}
-                        onChange={(e) => {
-                          setForm((p) => ({ ...p, adContactName: e.target.value }));
-                          clearFieldError("adContactName");
-                        }}
-                        placeholder="Contact person's name"
-                      />
-                      {fieldErrors.adContactName ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
-                    </div>
-                    <div data-wizard-field="adContactEmail" className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                      <input
-                        className={wizardInputClass(!!fieldErrors.adContactEmail)}
-                        value={form.adContactEmail}
-                        onChange={(e) => {
-                          setForm((p) => ({ ...p, adContactEmail: e.target.value }));
-                          clearFieldError("adContactEmail");
-                        }}
-                        placeholder="Email for applicants"
-                        inputMode="email"
-                      />
-                      <input
-                        className={wizardInputClass(false)}
-                        value={form.adContactPhone}
-                        onChange={(e) => {
-                          setForm((p) => ({ ...p, adContactPhone: e.target.value }));
-                          clearFieldError("adContactEmail");
-                        }}
-                        placeholder="Phone for applicants"
-                        inputMode="tel"
-                      />
-                    </div>
-                    {fieldErrors.adContactEmail ? (
-                      <p className={fieldErrorTextClass}>Give an email or a phone number applicants can use.</p>
-                    ) : null}
+                      Write your job advert
+                    </Link>
+                    <p className="text-xs text-white/55">Looking for staffing or recruitment instead? Choose it above.</p>
                   </div>
-                ) : null}
+                ) : (
+                <>
                 <div>
                   <p className={labelClass}>Job category</p>
                   <div
@@ -2403,6 +2533,8 @@ export default function RequestTokenPage() {
                     </div>
                   ) : null}
                 </div>
+                </>
+                )}
               </div>
             )}
 
@@ -2607,6 +2739,200 @@ export default function RequestTokenPage() {
                     ))}
                   </select>
                 </div>
+                {form.hiringType === "staffing" ? (
+                  <div className="space-y-4 border-t border-white/10 pt-5">
+                    <div>
+                      <p className="text-base font-bold text-white">The assignment</p>
+                      <p className="mt-1 text-xs text-white/55">Where and when our workers will be with you, and who leads them on site.</p>
+                    </div>
+                    <div>
+                      <p className={labelClass}>Worksite address</p>
+                      <div className="space-y-3">
+                        <div data-wizard-field="worksiteStreet">
+                          <input
+                            className={wizardInputClass(!!fieldErrors.worksiteStreet)}
+                            value={form.roleAnswers.staffing.worksiteStreet}
+                            onChange={(e) => setStaffing({ worksiteStreet: e.target.value })}
+                            placeholder="Street and number"
+                            autoComplete="street-address"
+                            maxLength={120}
+                          />
+                          {fieldErrors.worksiteStreet ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                        </div>
+                        <div className="grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)] gap-3">
+                          <div data-wizard-field="worksitePostcode">
+                            <input
+                              className={wizardInputClass(!!fieldErrors.worksitePostcode)}
+                              value={form.roleAnswers.staffing.worksitePostcode}
+                              onChange={(e) => setStaffing({ worksitePostcode: e.target.value.replace(/\D/g, "").slice(0, 4) })}
+                              placeholder="Postcode"
+                              inputMode="numeric"
+                              autoComplete="postal-code"
+                            />
+                            {fieldErrors.worksitePostcode ? <p className={fieldErrorTextClass}>4 digits</p> : null}
+                          </div>
+                          <div data-wizard-field="worksiteCity">
+                            <input
+                              className={wizardInputClass(!!fieldErrors.worksiteCity)}
+                              value={form.roleAnswers.staffing.worksiteCity}
+                              onChange={(e) => setStaffing({ worksiteCity: e.target.value })}
+                              placeholder={form.locations[0] ? `e.g. ${form.locations[0]}` : "City"}
+                              autoComplete="address-level2"
+                              maxLength={80}
+                            />
+                            {fieldErrors.worksiteCity ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <p className={labelClass}>Period</p>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div data-wizard-field="periodFrom">
+                          <p className="mb-1 text-xs text-white/55">From</p>
+                          <input
+                            type="date"
+                            className={wizardInputClass(!!fieldErrors.periodFrom)}
+                            value={form.roleAnswers.staffing.periodFrom}
+                            onChange={(e) => setStaffing({ periodFrom: e.target.value })}
+                          />
+                          {fieldErrors.periodFrom ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                        </div>
+                        <div data-wizard-field="periodTo">
+                          <p className="mb-1 text-xs text-white/55">To</p>
+                          <input
+                            type="date"
+                            className={wizardInputClass(!!fieldErrors.periodTo)}
+                            value={form.roleAnswers.staffing.periodOpenEnded ? "" : form.roleAnswers.staffing.periodTo}
+                            min={form.roleAnswers.staffing.periodFrom || undefined}
+                            disabled={form.roleAnswers.staffing.periodOpenEnded}
+                            onChange={(e) => setStaffing({ periodTo: e.target.value })}
+                          />
+                          <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-white/80">
+                            <input
+                              type="checkbox"
+                              checked={form.roleAnswers.staffing.periodOpenEnded}
+                              onChange={(e) => setStaffing({ periodOpenEnded: e.target.checked, periodTo: e.target.checked ? "" : form.roleAnswers.staffing.periodTo })}
+                              className="h-4 w-4 accent-[#C9A84C]"
+                            />
+                            Open-ended
+                          </label>
+                          {fieldErrors.periodTo ? (
+                            <p className={fieldErrorTextClass}>Choose an end date after the start, or tick open-ended.</p>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                    <div data-wizard-field="hoursPerWeek">
+                      <p className={labelClass}>Hours per week</p>
+                      <input
+                        className={wizardInputClass(!!fieldErrors.hoursPerWeek, "max-w-[10rem]")}
+                        value={form.roleAnswers.staffing.hoursPerWeek}
+                        onChange={(e) => setStaffing({ hoursPerWeek: e.target.value.replace(/[^\d.,]/g, "").slice(0, 5) })}
+                        placeholder="e.g. 37.5"
+                        inputMode="decimal"
+                      />
+                      {fieldErrors.hoursPerWeek ? <p className={fieldErrorTextClass}>Enter the hours per week (1 to 80).</p> : null}
+                    </div>
+                    <div>
+                      <p className={labelClass}>Shift pattern {OPTIONAL_TAG}</p>
+                      <ChoiceChips
+                        ariaLabel="Shift pattern"
+                        options={SHIFT_PATTERNS}
+                        selected={form.roleAnswers.staffing.shiftPattern}
+                        onPick={(v) => {
+                          const list = form.roleAnswers.staffing.shiftPattern;
+                          setStaffing({ shiftPattern: list.includes(v) ? list.filter((x) => x !== v) : [...list, v] });
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <p className={labelClass}>Who approves the hours on site</p>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <div data-wizard-field="approverName">
+                          <input
+                            className={wizardInputClass(!!fieldErrors.approverName)}
+                            value={form.roleAnswers.staffing.approverName}
+                            onChange={(e) => setStaffing({ approverName: e.target.value })}
+                            placeholder="Name"
+                            maxLength={120}
+                          />
+                          {fieldErrors.approverName ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                        </div>
+                        <div data-wizard-field="approverPhone">
+                          <input
+                            className={wizardInputClass(!!fieldErrors.approverPhone)}
+                            value={form.roleAnswers.staffing.approverPhone}
+                            onChange={(e) => setStaffing({ approverPhone: e.target.value.replace(/[^\d+\s]/g, "").slice(0, 20) })}
+                            placeholder="Phone"
+                            inputMode="tel"
+                          />
+                          {fieldErrors.approverPhone ? <p className={fieldErrorTextClass}>Enter a phone number.</p> : null}
+                        </div>
+                      </div>
+                    </div>
+                    <div data-wizard-field="ppeProvided">
+                      <p className={labelClass}>Do you provide the protective equipment?</p>
+                      <ChoiceChips
+                        ariaLabel="Protective equipment provided by you"
+                        options={YES_NO}
+                        selected={[form.roleAnswers.staffing.ppeProvided]}
+                        invalid={!!fieldErrors.ppeProvided}
+                        onPick={(v) => setStaffing({ ppeProvided: form.roleAnswers.staffing.ppeProvided === v ? "" : v })}
+                      />
+                      {fieldErrors.ppeProvided ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                    </div>
+                  </div>
+                ) : null}
+                {form.hiringType === "recruitment" ? (
+                  <div className="space-y-4 border-t border-white/10 pt-5">
+                    <div>
+                      <p className="text-base font-bold text-white">The hiring process</p>
+                      <p className="mt-1 text-xs text-white/55">How you will choose the candidate and when you need them.</p>
+                    </div>
+                    <div data-wizard-field="probation">
+                      <p className={labelClass}>Probation period</p>
+                      <ChoiceChips
+                        ariaLabel="Probation period"
+                        options={PROBATION_OPTIONS}
+                        selected={[form.roleAnswers.recruitment.probation]}
+                        invalid={!!fieldErrors.probation}
+                        onPick={(v) => setRecruitment({ probation: form.roleAnswers.recruitment.probation === v ? "" : v })}
+                      />
+                      {fieldErrors.probation ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                    </div>
+                    <div data-wizard-field="interviewRounds">
+                      <p className={labelClass}>Interview rounds</p>
+                      <ChoiceChips
+                        ariaLabel="Interview rounds"
+                        options={INTERVIEW_ROUND_OPTIONS}
+                        selected={[form.roleAnswers.recruitment.interviewRounds]}
+                        invalid={!!fieldErrors.interviewRounds}
+                        onPick={(v) => setRecruitment({ interviewRounds: form.roleAnswers.recruitment.interviewRounds === v ? "" : v })}
+                      />
+                      {fieldErrors.interviewRounds ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                    </div>
+                    <div>
+                      <p className={labelClass}>Who interviews the candidate {OPTIONAL_TAG}</p>
+                      <input
+                        className={wizardInputClass(false)}
+                        value={form.roleAnswers.recruitment.interviewer}
+                        onChange={(e) => setRecruitment({ interviewer: e.target.value })}
+                        placeholder="e.g. the site manager and HR"
+                        maxLength={200}
+                      />
+                    </div>
+                    <div>
+                      <p className={labelClass}>Hire needed by {OPTIONAL_TAG}</p>
+                      <input
+                        type="date"
+                        className={wizardInputClass(false, "max-w-[14rem]")}
+                        value={form.roleAnswers.recruitment.hireBy}
+                        onChange={(e) => setRecruitment({ hireBy: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                ) : null}
                 <div className="flex items-center justify-between rounded-[10px] border border-[rgba(201,168,76,0.2)] px-4 py-3">
                   <p className="text-sm text-white/80">Subscribe to candidate updates</p>
                   <button type="button" className={`h-7 w-12 rounded-full p-1 ${form.subscribeUpdates ? "bg-[#C9A84C]" : "bg-white/20"}`} onClick={() => setForm((p) => ({ ...p, subscribeUpdates: !p.subscribeUpdates }))}>
@@ -2710,7 +3036,10 @@ export default function RequestTokenPage() {
                   {[
                     { label: "Trade certificate preferred", key: "tradeCertificatePreferred" as const },
                     { label: "Customer communication required", key: "customerCommunicationRequired" as const },
-                  ].map(({ label, key }) => (
+                  ]
+                    // A trade that asks "fagbrev required?" below does not also ask "preferred?".
+                    .filter(({ key }) => key !== "tradeCertificatePreferred" || !tradeQuestions.some((q) => q.id === "fagbrev"))
+                    .map(({ label, key }) => (
                     <div key={key}>
                       <p className={labelClass}>
                         {label}{" "}
@@ -2735,6 +3064,96 @@ export default function RequestTokenPage() {
                     </div>
                   ))}
                 </div>
+                <div className="space-y-4 border-t border-white/10 pt-5">
+                  <p className="text-base font-bold text-white">Language at work</p>
+                  <div data-wizard-field="norwegianLevel">
+                    <p className={labelClass}>Norwegian needed at work</p>
+                    <ChoiceChips
+                      ariaLabel="Norwegian needed at work"
+                      options={LANGUAGE_LEVELS}
+                      selected={[form.roleAnswers.norwegianLevel]}
+                      invalid={!!fieldErrors.norwegianLevel}
+                      onPick={(v) => {
+                        setRole({ norwegianLevel: form.roleAnswers.norwegianLevel === v ? "" : v });
+                        clearFieldError("norwegianReason");
+                      }}
+                    />
+                    {fieldErrors.norwegianLevel ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
+                  {norwegianNeedsReason(form.roleAnswers.norwegianLevel) ? (
+                    <div data-wizard-field="norwegianReason">
+                      <p className={labelClass}>Why does the work need Norwegian?</p>
+                      <input
+                        className={wizardInputClass(!!fieldErrors.norwegianReason)}
+                        value={form.roleAnswers.norwegianReason}
+                        onChange={(e) => setRole({ norwegianReason: e.target.value })}
+                        placeholder="e.g. daily contact with customers, safety briefings in Norwegian"
+                        maxLength={300}
+                      />
+                      <p className="mt-1 text-xs text-white/55">
+                        Candidates who speak Norwegian well are fewer, so it helps us to know what the language is used for.
+                      </p>
+                      {fieldErrors.norwegianReason ? (
+                        <p className={fieldErrorTextClass}>Tell us in a few words what the language is needed for.</p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  <div data-wizard-field="englishLevel">
+                    <p className={labelClass}>English needed at work</p>
+                    <ChoiceChips
+                      ariaLabel="English needed at work"
+                      options={LANGUAGE_LEVELS}
+                      selected={[form.roleAnswers.englishLevel]}
+                      invalid={!!fieldErrors.englishLevel}
+                      onPick={(v) => setRole({ englishLevel: form.roleAnswers.englishLevel === v ? "" : v })}
+                    />
+                    {fieldErrors.englishLevel ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                  </div>
+                </div>
+                {tradeQuestions.length > 0 ? (
+                  <div className="space-y-4 border-t border-white/10 pt-5">
+                    <p className="text-base font-bold text-white">{`About the ${form.workerType.trim() || form.industry} role`}</p>
+                    {tradeQuestions.map((q) => {
+                      const key = tradeFieldKey(q.id);
+                      const answer = form.roleAnswers.trade[q.id];
+                      const selected = Array.isArray(answer) ? answer : answer ? [answer] : [];
+                      return (
+                        <div key={q.id} data-wizard-field={key}>
+                          <p className={labelClass}>
+                            {q.label}
+                            {q.required ? null : <> {OPTIONAL_TAG}</>}
+                          </p>
+                          {q.help ? <p className="mb-2 text-xs text-white/55">{q.help}</p> : null}
+                          {q.kind === "text" ? (
+                            <input
+                              className={wizardInputClass(!!fieldErrors[key])}
+                              value={typeof answer === "string" ? answer : ""}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setForm((p) => ({
+                                  ...p,
+                                  roleAnswers: { ...p.roleAnswers, trade: { ...p.roleAnswers.trade, [q.id]: value } },
+                                }));
+                                clearFieldError(key);
+                              }}
+                              placeholder={q.placeholder}
+                              maxLength={300}
+                            />
+                          ) : (
+                            <ChoiceChips
+                              ariaLabel={q.label}
+                              options={q.kind === "yesno" ? YES_NO : (q.options ?? [])}
+                              selected={selected}
+                              invalid={!!fieldErrors[key]}
+                              onPick={(v) => pickTradeAnswer(q, v)}
+                            />
+                          )}
+                          {fieldErrors[key] ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
             )}
 
@@ -2817,7 +3236,9 @@ export default function RequestTokenPage() {
                 <h2 className="text-2xl font-extrabold">Review your request</h2>
                 <p className="text-sm text-white/55">Check the summary below. You can add optional notes on the next step. {DETAILED_OFFER_NOTE}</p>
                 <div className="rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-4">
-                  <pre className="whitespace-pre-wrap text-sm text-white/75">{generatedNotes}</pre>
+                  <pre className="whitespace-pre-wrap text-sm text-white/75">
+                    {roleDetailsBlock ? `${generatedNotes}\n\n${roleDetailsBlock}` : generatedNotes}
+                  </pre>
                 </div>
               </div>
             )}
@@ -2853,6 +3274,7 @@ export default function RequestTokenPage() {
                 <div />
               )}
 
+              {step === 1 && form.hiringType === "advertising" ? null : (
               <button
                 type="submit"
                 disabled={animating || isSubmitting}
@@ -2869,6 +3291,7 @@ export default function RequestTokenPage() {
                   "Continue →"
                 )}
               </button>
+              )}
             </div>
           </div>
         </form>

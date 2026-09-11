@@ -35,7 +35,10 @@ const requestSchema = z
     driverLicenseOther: z.string().trim().max(80).optional().or(z.literal("")),
     dNumber: z.string().trim().max(160).optional().or(z.literal("")),
     dNumberOther: z.string().trim().max(120).optional().or(z.literal("")),
-    requirements: z.string().trim().max(2000).optional().or(z.literal("")),
+    // The wizard's summary: its notes (up to 5000 on their own) plus the "Role
+    // details" lines of src/lib/request-role-questions.ts. At 2000 a long task
+    // list alone was enough to have the whole request refused.
+    requirements: z.string().trim().max(8000).optional().or(z.literal("")),
     contractType: z.string().trim().max(120).optional().or(z.literal("")),
     salaryPeriod: z.string().trim().max(80).optional().or(z.literal("")),
     salaryMode: z.string().trim().max(80).optional().or(z.literal("")),
