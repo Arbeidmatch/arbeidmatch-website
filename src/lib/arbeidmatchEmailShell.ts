@@ -46,6 +46,8 @@ export const BRAND = {
 const BRAND_CONTACT = {
   candidate: { name: "Kontoret", phone: "+47 967 34 730", email: "cv@arbeidmatch.no" },
   client: { name: "Kontoret", phone: "+47 967 34 730", email: "post@arbeidmatch.no" },
+  /** No phone, no desk name: a code or a status check goes to the mailbox, not a call. */
+  support: { name: "Kontoret", phone: "", email: "support@arbeidmatch.no" },
 } as const;
 
 export type EmailAudience = keyof typeof BRAND_CONTACT;
@@ -85,6 +87,7 @@ export type EmailLang = "no" | "en";
 const WORDS = {
   no: {
     contactLead: "Har du spørsmål, ta kontakt:",
+    supportLead: "Har du spørsmål, skriv til:",
     unsubscribe: "Meld av",
     cvLead: "Vil du komme i kontakt, send CV-en din til:",
     why: "Du får denne e-posten fordi du er i kontakt med ArbeidMatch.",
@@ -97,6 +100,7 @@ const WORDS = {
   },
   en: {
     contactLead: "Any questions, write or call:",
+    supportLead: "Any questions, write to:",
     unsubscribe: "Unsubscribe",
     cvLead: "If you want to reach us, send your CV to:",
     why: "You are receiving this because you are in contact with ArbeidMatch.",
@@ -204,6 +208,15 @@ export function buildArbeidmatchLetter(args: {
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
         <tr><td style="background:${BRAND.panel};border-left:2px solid ${BRAND.gold};padding:14px 16px;font-size:14px;line-height:1.6;color:${BRAND.bodySoft};">
           ${w.cvLead}<br/>
+          <a href="mailto:${contact.email}" style="color:${BRAND.goldMuted};text-decoration:none;">${contact.email}</a>
+        </td></tr>
+      </table>
+    </td></tr>`
+      : audience === "support"
+      ? `<tr><td style="padding:26px 26px 0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+        <tr><td style="background:${BRAND.panel};border-left:2px solid ${BRAND.gold};padding:14px 16px;font-size:14px;line-height:1.6;color:${BRAND.bodySoft};">
+          ${w.supportLead}<br/>
           <a href="mailto:${contact.email}" style="color:${BRAND.goldMuted};text-decoration:none;">${contact.email}</a>
         </td></tr>
       </table>

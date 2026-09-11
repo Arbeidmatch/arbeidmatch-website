@@ -206,6 +206,7 @@ export async function POST(request: NextRequest) {
         code: otpCode,
         to: email,
         unsubscribeUrl: await unsubscribeUrlFor(email, "request-otp"),
+        role,
       });
       await transporter.sendMail({
         from: '"ArbeidMatch" <no-reply@arbeidmatch.no>',

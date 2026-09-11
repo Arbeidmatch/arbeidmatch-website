@@ -864,19 +864,26 @@ export function errorAlertLetter(args: {
 // /api/request-otp
 // ---------------------------------------------------------------------------
 
-export function requestOtpLetter(args: { code: string; to: string; unsubscribeUrl: string }): Letter {
+export function requestOtpLetter(args: { code: string; to: string; unsubscribeUrl: string; role?: string | null }): Letter {
+  const role = args.role?.trim();
   return {
     subject: "Your ArbeidMatch verification code",
     html: buildArbeidmatchLetter({
       title: "Your verification code",
       innerHtml: [
-        letterParagraph("Use this code to continue your ArbeidMatch request:"),
+        letterParagraph(
+          role
+            ? `You are receiving this because you requested candidates for the role of <strong>${escapeHtml(role)}</strong> on arbeidmatch.no.`
+            : "You are receiving this because you made a request on arbeidmatch.no.",
+        ),
+        letterParagraph("Use this code to continue your request:"),
         letterCode(args.code),
         letterNote("This code expires in 10 minutes. If you did not request it, you can ignore this email."),
       ].join(""),
       lang: EN,
       recipient: args.to,
       unsubscribeUrl: args.unsubscribeUrl,
+      audience: "support",
     }),
   };
 }
