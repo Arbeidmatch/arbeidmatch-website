@@ -11,6 +11,7 @@ import OurServicesSection from "@/components/for-employers/OurServicesSection";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/for-employers" },
   title: "Hire EU/EEA Workers in Norway | ArbeidMatch",
   description:
     "Get pre-screened EU/EEA professionals for construction, logistics, and industry in Norway. Submit your staffing request to ArbeidMatch.",

@@ -4,6 +4,7 @@ import { ArrowLeft, Mail, Phone, ShieldCheck } from "lucide-react";
 import { FlisleggerBrand } from "../FlisleggerBrand";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/flislegger/personvern" },
   title: "Personvern for Flislegger",
   description: "Slik behandler ArbeidMatch personopplysninger fra prosjektforespørsler og nyhetsbrev.",
 };

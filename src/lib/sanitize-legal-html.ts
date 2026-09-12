@@ -29,6 +29,13 @@ export function sanitizeLegalHtml(raw: string): string {
       .replace(/(href|src|action)\s*=\s*["']?\s*data:[^"'\s>]*/gi, '$1="#"')
       // Strip CSS expression()
       .replace(/expression\s*\([^)]*\)/gi, "")
+      // Document wrappers. The page already puts the content inside its own
+      // <article>, and stripLeadingH1 takes the document's opening <article>
+      // together with its <h1>, which left the closing </article> behind. The
+      // browser used that to close the page's article early, moving the button
+      // below it, and React failed hydration on /privacy (error 418). Found
+      // 12 September 2026.
+      .replace(/<\/?(?:article|main|body|html)\b[^>]*>/gi, "")
       .trim()
   );
 }

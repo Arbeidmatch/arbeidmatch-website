@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/partners" },
   title: "Partners | ArbeidMatch Norway",
   description:
     "ArbeidMatch collaborates with Norwegian businesses and EU/EEA recruiters to deliver qualified workforce solutions quickly and compliantly.",

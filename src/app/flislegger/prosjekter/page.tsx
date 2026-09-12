@@ -6,6 +6,7 @@ import { portfolioCategories, portfolioImageCount } from "../portfolio-data";
 import { FlisleggerBrand } from "../FlisleggerBrand";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/flislegger/prosjekter" },
   title: "Prosjekter og galleri | Flislegger",
   description: "Se utførte arbeider innen bad, kjøkken, trapper, terrasser og venetiansk stukkatur.",
 };

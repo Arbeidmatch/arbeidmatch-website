@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/blog" },
   title: "Blog | ArbeidMatch",
   description:
     "ArbeidMatch blog: articles about EU/EEA recruitment, Norwegian workforce, and industry insights. Coming soon.",

@@ -13,13 +13,14 @@ function parseStatus(value: string | null): ErrorStatus {
 
 export async function GET(request: NextRequest) {
   try {
-    // Update Vercel env var from NEXT_PUBLIC_ADMIN_PASSWORD to ADMIN_PASSWORD
-    const configuredPassword = process.env.ADMIN_PASSWORD;
-    if (configuredPassword) {
-      const suppliedPassword = request.headers.get("x-admin-password") || "";
-      if (suppliedPassword !== configuredPassword) {
-        return noStoreJson({ error: "Unauthorized" }, { status: 401 });
-      }
+    // FAILS CLOSED. The password was checked only when ADMIN_PASSWORD was set,
+    // and it was not set in production, so the error log (routes, messages,
+    // stack traces) answered anyone on the internet. Found 12 September 2026.
+    // With no password configured nobody reads it.
+    const configuredPassword = process.env.ADMIN_PASSWORD?.trim() ?? "";
+    const suppliedPassword = request.headers.get("x-admin-password") || "";
+    if (!configuredPassword || suppliedPassword !== configuredPassword) {
+      return noStoreJson({ error: "Unauthorized" }, { status: 401 });
     }
 
     const status = parseStatus(request.nextUrl.searchParams.get("status"));

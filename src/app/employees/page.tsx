@@ -3,6 +3,7 @@ import { BriefcaseBusiness, ClipboardCheck, FileText, LogIn } from "lucide-react
 import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/employees" },
   title: "Employee portal | ArbeidMatch",
   description: "Sign in to the ArbeidMatch employee portal to manage your profile, applications, and work information.",
 };

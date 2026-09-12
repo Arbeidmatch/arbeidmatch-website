@@ -13,6 +13,7 @@ const OG_IMAGE = {
 } as const;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/contact" },
   title: TITLE,
   description: DESCRIPTION,
   openGraph: {

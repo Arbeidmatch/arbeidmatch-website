@@ -4,6 +4,7 @@ import { getPolicyVersion } from "@/lib/cv/consent";
 import { SAMPLE_CV } from "@/lib/cv/fixtures/sample-cv";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/cv-gen" },
   title: "Build your CV",
   description:
     "Free CV builder for jobs in Norway. Pick a layout, fill in the guided form and download an ATS ready PDF in English.",

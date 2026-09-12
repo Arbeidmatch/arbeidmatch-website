@@ -6,6 +6,7 @@ import { FlisleggerProjectForm } from "./FlisleggerProjectForm";
 import { FlisleggerBrand } from "./FlisleggerBrand";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/flislegger" },
   title: "Flislegger i Trondheim",
   description: "ArbeidMatch tar ansvar for hele flisprosjektet, fra gratis vurdering til ferdig resultat.",
 };

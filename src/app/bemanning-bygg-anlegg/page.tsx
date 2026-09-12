@@ -3,6 +3,7 @@ import BreadcrumbByggAnleggJsonLd from "@/components/seo/BreadcrumbByggAnleggJso
 import BemanningByggAnleggNb from "@/components/seo-pages/BemanningByggAnleggNb";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/bemanning-bygg-anlegg" },
   title: "Construction and Site Staffing | ArbeidMatch",
   description:
     "Construction staffing in Norway with qualified EU/EEA workers. Request screened candidates for building and site projects.",
