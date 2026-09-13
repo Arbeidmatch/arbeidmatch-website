@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 
-import { AtsLegalDocumentFallback, AtsLegalDocumentPage } from "@/components/legal/AtsLegalDocumentPage";
+import { AtsLegalDocumentPage } from "@/components/legal/AtsLegalDocumentPage";
 import { fetchAtsLegalDocument } from "@/lib/atsLegalDocument";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
+import { SEED_TERMS_MD } from "@/lib/legal-seed-documents-data";
 
 export const revalidate = 60;
 
@@ -37,6 +38,18 @@ export const metadata: Metadata = {
 
 export default async function TermsPage() {
   const doc = await fetchAtsLegalDocument("tos-platform");
-  if (!doc) return <AtsLegalDocumentFallback />;
+  if (!doc) {
+    return (
+      <AtsLegalDocumentPage
+        doc={{
+          name: "Terms of Service",
+          content_html: "",
+          content_md: SEED_TERMS_MD,
+          version: "local-fallback",
+          updated_at: "2026-05-04T00:00:00.000Z",
+        }}
+      />
+    );
+  }
   return <AtsLegalDocumentPage doc={doc} />;
 }
