@@ -68,22 +68,22 @@ export default function WeldingSpecialistsCard() {
                 color: GOLD,
               }}
             >
-              Specialized Recruitment
+              Spesialisert rekruttering
             </span>
             <h2 className="mt-4 font-extrabold leading-[1.2] text-white [font-size:clamp(24px,3.5vw,40px)]">
-              ISO-Certified Welders and Specialist Technicians
+              ISO-sertifiserte sveisere og spesialteknikere
             </h2>
             <p className="mt-3 max-w-[560px] text-base leading-[1.7] text-white/[0.6]">
-              We source pre-screened welders and technical specialists holding valid ISO certifications, EN standards, and
-              sector-specific authorizations. We ask candidates to provide current certification documents and check basic
-              validity as part of our screening process. Prepared to start work on demanding Norwegian and international
-              projects.
+              Vi finner forhåndskontrollerte sveisere og tekniske spesialister med gyldige ISO-sertifiseringer,
+              EN-standarder og bransjespesifikke godkjenninger. Vi ber kandidatene om oppdaterte sertifikater og
+              kontrollerer den grunnleggende gyldigheten som en del av screeningen. Klare til å begynne på krevende norske
+              og internasjonale prosjekter.
             </p>
             <Link
               href="/request"
               className="group mt-6 inline-flex w-full min-h-[48px] items-center justify-center gap-2 whitespace-nowrap rounded-[10px] bg-[#C9A84C] px-8 py-4 text-[15px] font-bold text-[#0f1923] transition-[background,transform] duration-200 hover:scale-[1.02] hover:bg-[#b8953f] md:hidden"
             >
-              Request Welding Specialists
+              Be om sveisespesialister
               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" strokeWidth={2} />
             </Link>
           </div>
@@ -92,7 +92,7 @@ export default function WeldingSpecialistsCard() {
               href="/request"
               className="group inline-flex min-h-[48px] items-center justify-center gap-2 whitespace-nowrap rounded-[10px] bg-[#C9A84C] px-8 py-4 text-[15px] font-bold text-[#0f1923] transition-[background,transform] duration-200 hover:scale-[1.02] hover:bg-[#b8953f]"
             >
-              Request Welding Specialists
+              Be om sveisespesialister
               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" strokeWidth={2} />
             </Link>
           </div>
@@ -100,14 +100,14 @@ export default function WeldingSpecialistsCard() {
 
         <div className="my-9 h-px bg-white/[0.06]" />
 
-        <WeldingCertGrid variant="dark" />
+        <WeldingCertGrid variant="dark" lang="nb" />
 
         <div className="mt-9 flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-6">
             {[
-              "Basic certificate validity check included in our screening",
-              "EU/EEA legal compliance",
-              "Our goal is to connect you with candidates within about two weeks",
+              "Grunnleggende kontroll av sertifikatenes gyldighet inngår i screeningen",
+              "Etterlevelse av EU/EØS-regelverket",
+              "Målet vårt er å sette dere i kontakt med kandidater innen omtrent to uker",
             ].map((t) => (
               <div key={t} className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: GOLD }} aria-hidden />
@@ -119,7 +119,7 @@ export default function WeldingSpecialistsCard() {
             href="/contact"
             className="text-[14px] font-medium text-gold underline-offset-4 hover:underline lg:mt-0"
           >
-            Not sure what certification your project requires? Contact us
+            Usikre på hvilken sertifisering prosjektet krever? Kontakt oss
           </Link>
         </div>
       </div>

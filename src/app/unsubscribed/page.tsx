@@ -21,15 +21,20 @@ function UnsubscribedContent() {
       <div style={{ maxWidth: 480, width: "100%", textAlign: "center" }}>
         <div style={{ fontSize: 48, marginBottom: 24 }}>{success ? "✓" : "✕"}</div>
         <h1 style={{ color: "#ffffff", fontSize: "1.5rem", fontWeight: 700, marginBottom: 12 }}>
-          {success ? "You have been unsubscribed." : "Invalid or expired link."}
+          {success ? "Du er meldt av." : "Lenken er ugyldig eller utløpt."}
         </h1>
-        <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, marginBottom: 32 }}>
+        <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginBottom: 6 }}>
           {success
-            ? "You will no longer receive marketing emails from ArbeidMatch."
+            ? "Du får ikke flere slike e-poster fra ArbeidMatch."
+            : "Denne avmeldingslenken er ugyldig eller allerede brukt."}
+        </p>
+        <p lang="en" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, marginBottom: 32 }}>
+          {success
+            ? "You have been unsubscribed and will no longer receive these emails from ArbeidMatch."
             : "This unsubscribe link is invalid or has already been used."}
         </p>
         <Link href="/" style={{ color: "#C9A84C", fontSize: 14, textDecoration: "none" }}>
-          ← Back to ArbeidMatch
+          ← Til forsiden
         </Link>
       </div>
     </div>

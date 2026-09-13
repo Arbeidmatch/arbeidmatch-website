@@ -283,10 +283,34 @@ export async function fetchPublicJob(
     });
     if (!res.ok) return null;
     const body = (await res.json()) as { data?: PublicJobDetail };
-    return body.data && body.data.public_slug ? body.data : null;
+    return body.data && body.data.public_slug ? withOwnLocation(body.data) : null;
   } catch {
     return null;
   }
+}
+
+/**
+ * The job's own place of work, or null. Never our office.
+ *
+ * FOUND 13 September 2026: five of the seven open adverts arrived from the ATS
+ * with location "Ranheim", among them a car mechanic job in Bergen and
+ * Haugesund and an electrician job in Stavanger. Ranheim is where our office
+ * is, not where anybody is hired to work: a job saved without a place of work
+ * was given the office address, and the advert then told a mechanic to move to
+ * a Trondheim suburb. The ATS sends no other location field, so the only honest
+ * fallback is none: the page says "Norway" (the country the ATS does send) or
+ * nothing, and the job's title carries the real towns where it names them.
+ */
+export function ownJobLocation(value: string | null | undefined): string | null {
+  const trimmed = String(value ?? "").trim();
+  if (!trimmed) return null;
+  const folded = trimmed.toLowerCase();
+  if (/\branheim\b/.test(folded) || folded.includes("sverre svendsens")) return null;
+  return trimmed;
+}
+
+function withOwnLocation<T extends { location: string | null }>(job: T): T {
+  return { ...job, location: ownJobLocation(job.location) };
 }
 
 /** The picture the ATS resolved: the employer's photograph, or the card it draws. */
@@ -315,7 +339,7 @@ export async function fetchPublicJobs(revalidateSeconds?: number): Promise<Publi
       data?: PublicJob[];
       meta?: { total_open_positions?: number; industries?: IndustryCount[]; locations?: LocationCount[] };
     };
-    const jobs = (body.data ?? []).filter((j) => Boolean(j.public_slug));
+    const jobs = (body.data ?? []).filter((j) => Boolean(j.public_slug)).map(withOwnLocation);
     return {
       jobs,
       totalOpen: body.meta?.total_open_positions ?? jobs.length,
@@ -324,7 +348,10 @@ export async function fetchPublicJobs(revalidateSeconds?: number): Promise<Publi
       // change yet the page works them out from what it has, which is right for
       // an unfiltered front page and wrong for nothing it currently does.
       industries: body.meta?.industries ?? industryCountsFrom(jobs),
-      locations: body.meta?.locations ?? locationCountsFrom(jobs),
+      // Without the office, which is not a place anybody is hired to work (see ownJobLocation).
+      locations: body.meta?.locations
+        ? body.meta.locations.filter((l) => ownJobLocation(l.name) !== null)
+        : locationCountsFrom(jobs),
     };
   } catch {
     return EMPTY_RESULT;

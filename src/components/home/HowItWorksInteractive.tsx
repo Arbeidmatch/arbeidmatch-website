@@ -20,49 +20,49 @@ type CardDef = {
 const CARDS: CardDef[] = [
   {
     badge: "01",
-    title: "For Staffing Agencies",
-    subtitle: "You have the client. We source the candidates.",
-    eyebrow: "Staffing Agency Partners",
-    body: "You send us the request. We search our EU/EEA network and do the pre-screening. You conduct the interview and handle all legal hiring procedures. We support you with candidate documentation and background information.",
+    title: "For bemanningsbyråer",
+    subtitle: "Dere har kunden. Vi finner kandidatene.",
+    eyebrow: "Samarbeid med bemanningsbyråer",
+    body: "Dere sender oss forespørselen. Vi søker i nettverket vårt i EU/EØS og gjør forhåndsscreeningen. Dere gjennomfører intervjuet og håndterer alle juridiske sider ved ansettelsen. Vi støtter dere med kandidatdokumentasjon og bakgrunnsinformasjon.",
     steps: [
-      "You send us the candidate request with requirements",
-      "We source and pre-screen across EU and EEA countries",
-      "We present qualified candidates to you",
-      "You interview, select, and manage the hiring process",
+      "Dere sender oss kandidatforespørselen med kravene",
+      "Vi søker og forhåndsscreener i EU- og EØS-land",
+      "Vi presenterer kvalifiserte kandidater for dere",
+      "Dere intervjuer, velger ut og styrer ansettelsesprosessen",
     ],
-    cta: { label: "Send us a candidate request", href: "/request" },
+    cta: { label: "Send oss en kandidatforespørsel", href: "/request" },
   },
   {
     badge: "02",
-    title: "For Direct Employers",
-    subtitle: "Full service from search to onboarding.",
-    eyebrow: "End Client Staffing",
-    body: "You send us your request. We search, select, and present candidates. We consult with you on the proposal, hire the candidate on your behalf, handle all legal employment procedures, and prepare the candidate to start. After placement, we do weekly follow-up with both the client and the candidate to make sure everything is working well.",
+    title: "For arbeidsgivere",
+    subtitle: "Full service fra søk til oppstart.",
+    eyebrow: "Bemanning for sluttkunder",
+    body: "Dere sender oss forespørselen. Vi søker, velger ut og presenterer kandidater. Vi går gjennom forslaget med dere, ansetter kandidaten på deres vegne, håndterer alle juridiske sider ved ansettelsen og forbereder kandidaten til oppstart. Etter plasseringen følger vi opp både kunden og kandidaten hver uke for å sikre at alt fungerer godt.",
     steps: [
-      "You send us the request with role, location, and requirements",
-      "We search and select the best matching candidates",
-      "We present our proposal and consult with you",
-      "We hire the candidate and handle all legal and administrative steps",
-      "Candidate arrives prepared and ready to start",
-      "Weekly follow-up with client and candidate as needed",
+      "Dere sender oss forespørselen med stilling, arbeidssted og krav",
+      "Vi søker etter og velger ut kandidatene som passer best",
+      "Vi presenterer forslaget vårt og går gjennom det med dere",
+      "Vi ansetter kandidaten og tar oss av alle juridiske og administrative steg",
+      "Kandidaten kommer forberedt og klar til å begynne",
+      "Ukentlig oppfølging av kunde og kandidat ved behov",
     ],
-    cta: { label: "Request candidates", href: "/request" },
+    cta: { label: "Be om kandidater", href: "/request" },
   },
   {
     badge: "03",
-    title: "Job Advertising",
-    subtitle: "Reach EU/EEA candidates directly on our channels.",
-    eyebrow: "Direct Advertising Service",
-    body: "Any officially registered Norwegian company can advertise open positions through ArbeidMatch. We publish your vacancy across our EU/EEA online channels and networks in Europe to reach qualified candidates directly. Available as a monthly subscription or per role.",
+    title: "Stillingsannonsering",
+    subtitle: "Nå kandidater i EU/EØS direkte gjennom våre kanaler.",
+    eyebrow: "Direkte annonsering",
+    body: "Alle offisielt registrerte norske selskaper kan annonsere ledige stillinger gjennom ArbeidMatch. Vi publiserer stillingen deres i våre digitale kanaler og nettverk i EU/EØS for å nå kvalifiserte kandidater direkte. Tilgjengelig som månedlig abonnement eller per stilling.",
     steps: [
-      "You send us the job posting request",
-      "We review it for compliance with Norwegian advertising standards",
-      "We publish across our EU/EEA candidate channels in Europe",
-      "Candidates apply directly or through us based on your preference",
+      "Dere sender oss annonseforespørselen",
+      "Vi gjennomgår annonsen opp mot norske standarder for stillingsannonser",
+      "Vi publiserer i våre kandidatkanaler i EU/EØS",
+      "Kandidatene søker direkte eller via oss, etter hva dere foretrekker",
     ],
     subscriptionNote:
-      "Available as a monthly subscription or per position. Contact us for current rates.",
-    cta: { label: "Ask about advertising", href: "/contact" },
+      "Tilgjengelig som månedlig abonnement eller per stilling. Kontakt oss for gjeldende priser.",
+    cta: { label: "Spør om annonsering", href: "/contact" },
   },
 ];
 
@@ -98,8 +98,8 @@ export default function HowItWorksInteractive() {
   return (
     <section id="how-it-works" className="bg-[#0D1B2A] py-12 md:py-20">
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
-        <h2 className="heading-premium-xl text-center font-display text-4xl text-white">How we work</h2>
-        <p className="subheading-premium mt-4 text-center text-white/70">Choose the service that fits your needs.</p>
+        <h2 className="heading-premium-xl text-center font-display text-4xl text-white">Slik jobber vi</h2>
+        <p className="subheading-premium mt-4 text-center text-white/70">Velg tjenesten som passer behovet deres.</p>
 
         <div className={`mt-14 grid grid-cols-1 gap-6 ${desktopGridCols(selected, reduceMotion)} ${gridTransition}`}>
           {CARDS.map((card, i) => {
@@ -207,7 +207,7 @@ export default function HowItWorksInteractive() {
                       {card.cta.label}
                     </Link>
                     {open && !reduceMotion ? (
-                      <p className="mt-2.5 text-center text-[11px] text-white/70">Click to collapse</p>
+                      <p className="mt-2.5 text-center text-[11px] text-white/70">Klikk for å lukke</p>
                     ) : null}
                   </div>
                 </div>

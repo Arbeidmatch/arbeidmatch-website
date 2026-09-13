@@ -8,6 +8,7 @@ import { logApiError } from "@/lib/secureLogger";
 import { notifySlack } from "@/lib/slackNotifier";
 import { buildArbeidmatchLetter, letterFacts, letterHeading, letterParagraph } from "@/lib/arbeidmatchEmailShell";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
+import { realContactValue } from "@/lib/request-contact-placeholders";
 import { roleDetailsEmailSection, roleDetailsFromRequest, stripRoleDetailsBlock } from "@/lib/request-role-details-email";
 import {
   mailHeaders,
@@ -59,6 +60,14 @@ function serviceLabel(value: string): string {
   if (value === "staffing") return "Staffing (bemanning)";
   if (value === "recruitment") return "Recruitment";
   if (value === "advertising") return "Job advertising";
+  return value;
+}
+
+/** The same service, in the client's letter, which is Norwegian. */
+function serviceLabelNo(value: string): string {
+  if (value === "staffing") return "Bemanning";
+  if (value === "recruitment") return "Rekruttering";
+  if (value === "advertising") return "Stillingsannonse";
   return value;
 }
 
@@ -128,7 +137,7 @@ export async function POST(request: NextRequest) {
     };
     const text = (value?: string) => (hasValue(value) ? String(value).trim() : "");
 
-    const companyName = data.company ?? "Unknown company";
+    const companyName = realContactValue(data.company) || "Unknown company";
     const cityLabel = cityValue || "-";
     const referenceId = text(data.referenceId);
     // Job advertising only: the contact the advert will carry, in one line.
@@ -146,14 +155,26 @@ export async function POST(request: NextRequest) {
       answers: rawData.roleAnswers,
     });
 
+    // Placeholders from old request tokens ("To be completed", "Employer
+    // Request", "000000") are not answers and are never printed.
+    const companyReal = realContactValue(data.company);
+    const fullNameReal = realContactValue(data.full_name);
+    const phoneReal = realContactValue(data.phone);
+    // Only when it says something the city does not: it used to repeat the city.
+    const regionValue = text(data.localTravelOther);
+    const regionDiffers = regionValue !== "" && regionValue.toLowerCase() !== text(cityValue).toLowerCase();
+    // What the client wrote in the free-text field, and nothing else. The
+    // wizard's `notes` is a dump of every answer, already printed above it.
+    const clientNote = text(data.clientNote);
+
     // The internal copy: to post@, read by the owner and by the ATS intake.
     const internalRows: Record<(typeof INTERNAL_SECTIONS)[number], { label: string; value: string }[]> = {
       "Contact details": [
-        { label: "Company", value: text(data.company) },
+        { label: "Company", value: companyReal },
         { label: "Org.nr", value: text(data.orgNumber) },
         { label: "Email", value: text(data.email) },
-        { label: "Full name", value: text(data.full_name) },
-        { label: "Phone", value: text(data.phone) },
+        { label: "Full name", value: fullNameReal },
+        { label: "Phone", value: phoneReal },
       ],
       "Position details": [
         { label: "Category", value: text(categoryValue) },
@@ -162,7 +183,6 @@ export async function POST(request: NextRequest) {
         { label: "Qualification", value: text(data.qualification) },
         { label: "Candidates needed", value: text(numberOfPositionsValue) },
         { label: "Certifications", value: text(data.certifications) },
-        { label: "Urgency", value: text(selectedStartDate) },
       ],
       "Conditions offered": [
         { label: "Salary", value: text(data.salary) },
@@ -171,12 +191,12 @@ export async function POST(request: NextRequest) {
         { label: "Accommodation", value: text(data.accommodation) },
         { label: "Transport", value: travelLabel(text(data.internationalTravel || data.localTravel)) },
         { label: "Rotation", value: text(data.hasRotation) },
+        // One row for when to start. "Urgency" printed the same value a second time.
         { label: "Start date", value: text(selectedStartDate) },
       ],
       Location: [
         { label: "City", value: text(cityValue) },
-        { label: "Region", value: text(data.localTravelOther || cityValue) },
-        { label: "Additional notes", value: text(data.notes || data.job_summary || leadSource) },
+        { label: "Region", value: regionDiffers ? regionValue : "" },
       ],
     };
     const internalInner = [
@@ -185,6 +205,10 @@ export async function POST(request: NextRequest) {
       // labels inside the sections, and a line before them is not one of its fields.
       text(data.hiringType) ? letterParagraph(`Service: <strong>${escapeHtml(serviceLabel(text(data.hiringType)))}</strong>`) : "",
       adContactLine ? letterParagraph(`Contact on the advert: <strong>${escapeHtml(adContactLine)}</strong>`) : "",
+      // Above the sections for the same reason: "Additional notes" is not a label
+      // the intake knows, so inside a section its text ran into the city.
+      clientNote ? letterParagraph(`Client's note: ${escapeHtml(clientNote).replace(/\r?\n/g, "<br/>")}`) : "",
+      text(leadSource) ? letterParagraph(`How they found us: ${escapeHtml(text(leadSource))}`) : "",
       ...INTERNAL_SECTIONS.map((title) => {
         const facts = letterFacts(internalRows[title]);
         return facts ? `${letterHeading(title)}${facts}` : "";
@@ -198,7 +222,8 @@ export async function POST(request: NextRequest) {
       to: "post@arbeidmatch.no",
       subject: internalTitle,
       html: buildArbeidmatchLetter({
-        title: internalTitle,
+        // Not the subject again: the inbox already shows it right above.
+        title: "Request details",
         innerHtml: internalInner,
         cta: { href: "https://ats.arbeidmatch.no/command-center/intake-proposals", label: "Open in the ATS" },
         lang: "en",
@@ -207,33 +232,39 @@ export async function POST(request: NextRequest) {
       }),
     });
 
-    // The client's confirmation. The form is in English, so the letter is too.
+    // The client's confirmation, in Norwegian: the client is a Norwegian
+    // employer (the owner's rule for letters to clients). The values he chose
+    // in the wizard stay as he chose them; only our own words are translated.
     if (data.email && !(await isUnsubscribed(data.email))) {
       const unsubToken = await getOrCreateSubscription(data.email, "employer-request");
-      const safeCo = escapeHtml(data.company || "your company");
       const clientInner = [
-        letterParagraph(`Thank you, <strong>${safeCo}</strong>. We have received your request.`),
-        letterFacts([
-          { label: "Reference", value: referenceId },
-          { label: "Service", value: serviceLabel(text(data.hiringType)) },
-          { label: "Contact on the advert", value: adContactLine },
-          { label: "Position", value: text(selectedPosition) },
-          { label: "Number of candidates", value: text(numberOfPositionsValue) },
-          { label: "Location", value: text(cityValue) },
-          { label: "Preferred start", value: text(selectedStartDate) },
-        ]),
         letterParagraph(
-          "We analyse your request and send you a detailed offer by email for the service you chose, usually within 1 to 2 business days. If anything in the summary is wrong, reply to this email and we will correct it.",
+          companyReal
+            ? `Takk, <strong>${escapeHtml(companyReal)}</strong>. Vi har mottatt forespørselen deres.`
+            : "Takk. Vi har mottatt forespørselen deres.",
+        ),
+        letterFacts([
+          { label: "Referanse", value: referenceId },
+          { label: "Tjeneste", value: serviceLabelNo(text(data.hiringType)) },
+          { label: "Kontakt på annonsen", value: adContactLine },
+          { label: "Stilling", value: text(selectedPosition) },
+          { label: "Antall kandidater", value: text(numberOfPositionsValue) },
+          { label: "Sted", value: text(cityValue) },
+          { label: "Ønsket oppstart", value: text(selectedStartDate) === "Immediate" ? "Snarest" : text(selectedStartDate) },
+        ]),
+        // The one place this letter asks for a reply: the footer no longer says it too.
+        letterParagraph(
+          "Vi går gjennom forespørselen og sender dere et detaljert tilbud på e-post for tjenesten dere valgte, vanligvis innen 1 til 2 virkedager. Er noe i oppsummeringen feil, svar på denne e-posten, så retter vi det.",
         ),
       ].join("");
       await transporter.sendMail({
         ...mailHeaders(),
         to: data.email,
-        subject: referenceId ? `We received your request - ${referenceId}` : "We received your request - ArbeidMatch",
+        subject: referenceId ? `Vi har mottatt forespørselen - ${referenceId}` : "Vi har mottatt forespørselen - ArbeidMatch",
         html: buildArbeidmatchLetter({
-          title: "Request received",
+          title: "Forespørselen er mottatt",
           innerHtml: clientInner,
-          lang: "en",
+          lang: "no",
           recipient: data.email,
           unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
         }),
@@ -242,20 +273,23 @@ export async function POST(request: NextRequest) {
 
     if (data.referralEmail && !(await isUnsubscribed(data.referralEmail))) {
       const referralUnsubToken = await getOrCreateSubscription(data.referralEmail, "employer-request");
-      const safeRefCo = escapeHtml(data.company || "-");
       const referralInner = [
-        letterParagraph("Thank you for recommending ArbeidMatch."),
-        letterParagraph(`We received a request from <strong>${safeRefCo}</strong>, and they mentioned your recommendation.`),
-        letterParagraph("If we can support your own hiring in the future, we would be glad to help."),
+        letterParagraph("Takk for at dere anbefalte ArbeidMatch."),
+        letterParagraph(
+          companyReal
+            ? `Vi har mottatt en forespørsel fra <strong>${escapeHtml(companyReal)}</strong>, og de nevnte anbefalingen deres.`
+            : "Vi har mottatt en forespørsel der anbefalingen deres ble nevnt.",
+        ),
+        letterParagraph("Kan vi hjelpe dere med egne ansettelser senere, gjør vi det gjerne."),
       ].join("");
       await transporter.sendMail({
         ...mailHeaders(),
         to: data.referralEmail,
-        subject: "Thank you for the referral - ArbeidMatch",
+        subject: "Takk for anbefalingen - ArbeidMatch",
         html: buildArbeidmatchLetter({
-          title: "Thank you for the referral",
+          title: "Takk for anbefalingen",
           innerHtml: referralInner,
-          lang: "en",
+          lang: "no",
           recipient: data.referralEmail,
           unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(referralUnsubToken)}`,
         }),
@@ -276,11 +310,11 @@ export async function POST(request: NextRequest) {
     const slackFields: Record<string, string> = {};
     pushSlackField(slackFields, "Referință", referenceId);
     pushSlackField(slackFields, "Serviciu", ro(text(data.hiringType), { staffing: "Staffing (bemanning)", recruitment: "Recrutare", advertising: "Anunț de angajare" }));
-    pushSlackField(slackFields, "Firmă", data.company);
+    pushSlackField(slackFields, "Firmă", companyReal);
     pushSlackField(slackFields, "Nr. org.", data.orgNumber);
-    pushSlackField(slackFields, "Persoană de contact", data.full_name);
+    pushSlackField(slackFields, "Persoană de contact", fullNameReal);
     pushSlackField(slackFields, "Email", data.email);
-    pushSlackField(slackFields, "Telefon", data.phone);
+    pushSlackField(slackFields, "Telefon", phoneReal);
     pushSlackField(slackFields, "Contact pe anunț", adContactLine);
     pushSlackField(slackFields, "Domeniu", categoryValue);
     pushSlackField(slackFields, "Post", selectedPosition);

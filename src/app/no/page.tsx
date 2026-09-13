@@ -37,7 +37,7 @@ const DESCRIPTION =
   "Ledige stillinger i Norge for tømrere, murere, betongarbeidere, bilmekanikere, sveisere og elektrikere med DSB-registrering. EU- eller EØS-pass kreves, fagbrev eller dokumentert tilsvarende erfaring.";
 
 export const metadata: Metadata = {
-  title: TITLE,
+  title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: {
     canonical: "https://www.arbeidmatch.no/no",

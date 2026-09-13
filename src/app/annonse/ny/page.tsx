@@ -4,7 +4,7 @@ import NewAdvertClient, { type AdvertPrefill } from "@/components/job-ads/NewAdv
 import { pageShellClass } from "@/components/job-ads/ui";
 
 export const metadata: Metadata = {
-  title: "Publiser stillingsannonse | ArbeidMatch",
+  title: { absolute: "Publiser stillingsannonse | ArbeidMatch" },
   description:
     "Skriv stillingsannonsen deres, vi kontrollerer den før dere betaler, og den publiseres på arbeidmatch.no. Betal med kort eller faktura.",
   alternates: { canonical: "/annonse/ny" },

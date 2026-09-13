@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!article) return {};
   const canonical = `https://www.arbeidmatch.no/premium/article/${slug}`;
   return {
-    title: `${article.title} | ArbeidMatch Premium`,
+    title: { absolute: `${article.title} | ArbeidMatch Premium` },
     description: article.excerpt,
     alternates: { canonical },
     openGraph: {

@@ -61,14 +61,15 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ facet: string[] }> }): Promise<Metadata> {
   const { facet: segments } = await params;
   const facet = await resolveFacet(segments);
-  if (!facet) return { title: "Open jobs | ArbeidMatch" };
+  if (!facet) return { title: { absolute: "Open jobs | ArbeidMatch" } };
 
   const { jobs } = await getBoard();
   const copy = facetCopy(facet, jobsForFacet(jobs, facet).length);
   const url = `https://www.arbeidmatch.no${facetPath(facet)}`;
 
   return {
-    title: copy.title,
+    // The copy already ends in "| ArbeidMatch"; absolute stops the layout adding it again.
+    title: { absolute: copy.title },
     description: copy.description,
     alternates: { canonical: url },
     openGraph: { title: copy.title, description: copy.description, url, locale: "en_US" },

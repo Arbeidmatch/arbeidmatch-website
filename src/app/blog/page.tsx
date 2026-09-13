@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/blog" },
-  title: "Blog | ArbeidMatch",
+  title: { absolute: "Blog | ArbeidMatch" },
   description:
     "ArbeidMatch blog: articles about EU/EEA recruitment, Norwegian workforce, and industry insights. Coming soon.",
   robots: { index: true, follow: true },

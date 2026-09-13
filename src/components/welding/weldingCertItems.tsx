@@ -49,3 +49,47 @@ export const WELDING_CERT_ITEMS: WeldingCertItem[] = [
     body: "Available for temporary staffing, project-based contracts, and permanent direct hire. We adapt to your project timeline and employment structure.",
   },
 ];
+
+/** Norwegian (bokmal) copy of WELDING_CERT_ITEMS, same order and icons, for pages served under lang="nb". */
+export const WELDING_CERT_ITEMS_NB: WeldingCertItem[] = [
+  {
+    Icon: Award,
+    title: "Sveisesertifisering etter ISO 9606",
+    body: "Sertifiserte sveisere kvalifisert etter ISO 9606-1 for smeltesveising av stål. Gyldig på prosjekter i EU/EØS og ved norske industrianlegg.",
+  },
+  {
+    Icon: Layers,
+    title: "EN 287 og EN ISO-standarder",
+    body: "Spesialister sertifisert etter europeiske sveisestandarder for konstruksjonsstål, rørledninger, trykkbeholdere og offshorekomponenter.",
+  },
+  {
+    Icon: ShieldCheck,
+    title: "Offshore og maritim sveising",
+    body: "Sveisere med erfaring fra NORSOK- og DNV-sertifisering for offshorekonstruksjoner, fartøy og subseautstyr på norsk sokkel.",
+  },
+  {
+    Icon: Settings,
+    title: "Spesialiserte godkjenninger",
+    body: "Teknikere med bransjespesifikke godkjenninger: NDT-operatører, sveiseinspektører, sertifiserte sveisere for trykkutstyr (PED) og arbeidsledere for konstruksjonssveising.",
+  },
+  {
+    Icon: Zap,
+    title: "Industri- og prosessveising",
+    body: "Spesialister på MIG, MAG, TIG, FCAW og SAW for tungindustri, produksjon, kjemiske anlegg og energiinfrastruktur i hele Norge.",
+  },
+  {
+    Icon: Globe,
+    title: "Rekrutteringsnettverk i EU/EØS",
+    body: "Vi rekrutterer fra EU- og EØS-land med etablerte regionale nettverk der det finnes mange ISO-sertifiserte sveisere, og screener kandidatene etter norske arbeidsgiveres standarder.",
+  },
+  {
+    Icon: Clock,
+    title: "Kontroll av sertifikatenes gyldighet",
+    body: "Alle kandidater vi presenterer, får ISO- og EN-sertifikatene sine kontrollert for gyldighet før presentasjonen. Vi sjekker fornyelsesstatus og utløpsdatoer som en del av screeningen. Arbeidsgiveren bør gjøre sin egen kontroll før oppstart.",
+  },
+  {
+    Icon: Users,
+    title: "Bemanning og direkte ansettelse",
+    body: "Tilgjengelig for midlertidig bemanning, prosjektbaserte kontrakter og fast direkte ansettelse. Vi tilpasser oss prosjektets tidsplan og ansettelsesform.",
+  },
+];

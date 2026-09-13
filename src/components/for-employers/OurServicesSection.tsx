@@ -16,33 +16,33 @@ type ServiceItem = {
 const SERVICES: ServiceItem[] = [
   {
     Icon: Search,
-    title: "Sourcing",
-    body: "Targeted outreach across EU and EEA countries to identify candidates that match your exact requirements. We use direct networks, not just job boards.",
+    title: "Kandidatsøk",
+    body: "Målrettet søk i EU- og EØS-land for å finne kandidater som svarer til de konkrete kravene deres. Vi bruker egne nettverk, ikke bare jobbportaler.",
   },
   {
     Icon: UserCheck,
-    title: "Pre-screening",
-    body: "Structured interviews, document checks, and trade relevance validation before any candidate is presented to you. We aim to present profiles that meet agreed criteria. Final hiring decisions remain with the employer.",
+    title: "Forhåndsscreening",
+    body: "Strukturerte intervjuer, dokumentkontroll og vurdering av faglig relevans før en kandidat blir presentert for dere. Vi sikter mot å presentere profiler som oppfyller de avtalte kriteriene. Den endelige ansettelsesbeslutningen ligger hos arbeidsgiveren.",
   },
   {
     Icon: FileText,
-    title: "Staffing and Compliance",
-    body: "We act as the employer of record. We handle employment contracts, payroll, and compliance with Norwegian labor law and collective agreements on your behalf.",
+    title: "Bemanning og etterlevelse",
+    body: "Vi står som formell arbeidsgiver. Vi håndterer arbeidskontrakter, lønn og etterlevelse av norsk arbeidsrett og tariffavtaler på vegne av dere.",
   },
   {
     Icon: Users,
-    title: "Candidate Presentation",
-    body: "You receive a structured presentation of shortlisted candidates with relevant experience, certifications, and references. You make the final selection.",
+    title: "Kandidatpresentasjon",
+    body: "Dere får en strukturert presentasjon av de utvalgte kandidatene, med relevant erfaring, sertifiseringer og referanser. Dere gjør det endelige valget.",
   },
   {
     Icon: MapPin,
-    title: "Onboarding Support",
-    body: "We coordinate pre-arrival logistics, documentation, and practical onboarding. The candidate arrives prepared and ready to start on day one.",
+    title: "Hjelp med oppstart",
+    body: "Vi koordinerer logistikk før ankomst, dokumentasjon og praktisk oppstart. Kandidaten kommer forberedt og klar til å begynne fra første dag.",
   },
   {
     Icon: RefreshCw,
-    title: "Follow-up",
-    body: "Weekly follow-up with both client and candidate after placement. We follow up to identify and resolve issues early.",
+    title: "Oppfølging",
+    body: "Ukentlig oppfølging av både kunde og kandidat etter plasseringen. Vi følger opp for å oppdage og løse eventuelle problemer tidlig.",
   },
 ];
 
@@ -89,16 +89,16 @@ export default function OurServicesSection() {
   return (
     <div ref={triggerRef} className="mx-auto w-full max-w-[1100px] px-6">
       <p className="mb-3 text-center text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: GOLD }}>
-        What we do
+        Hva vi gjør
       </p>
       <h2 className="mb-2 text-center text-[36px] font-bold leading-tight" style={{ color: NAVY }}>
-        Our services
+        Våre tjenester
       </h2>
       <p
         className="mx-auto mb-14 max-w-[720px] text-center text-base leading-snug md:mb-[56px]"
         style={{ color: "rgba(255,255,255,0.5)" }}
       >
-        Everything you need to find, hire, and onboard qualified EU/EEA workers.
+        Alt dere trenger for å finne, ansette og ta imot kvalifiserte arbeidstakere fra EU/EØS.
       </p>
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -138,7 +138,7 @@ export default function OurServicesSection() {
           href="/request"
           className="inline-flex items-center justify-center rounded-[10px] bg-[#C9A84C] px-10 py-4 text-[15px] font-bold text-[#0f1923] transition-[transform,background-color] duration-[180ms] ease-out hover:scale-[1.02] hover:bg-[#b8953f]"
         >
-          Request candidates
+          Be om kandidater
         </Link>
       </div>
     </div>

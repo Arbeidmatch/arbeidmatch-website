@@ -10,7 +10,7 @@ import TalentNetworkJoinForm from "./TalentNetworkJoinForm";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/for-candidates" },
-  title: "Find work in Norway | ArbeidMatch",
+  title: { absolute: "Find work in Norway | ArbeidMatch" },
   description:
     "We connect qualified EU/EEA workers with Norwegian employers in construction, logistics, and industry. Browse open positions in Norway through our jobs portal.",
 };

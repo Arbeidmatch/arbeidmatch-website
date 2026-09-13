@@ -4,7 +4,7 @@ import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/c
 
 export const metadata: Metadata = {
   alternates: { canonical: "/employees" },
-  title: "Employee portal | ArbeidMatch",
+  title: { absolute: "Employee portal | ArbeidMatch" },
   description: "Sign in to the ArbeidMatch employee portal to manage your profile, applications, and work information.",
 };
 

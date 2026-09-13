@@ -31,7 +31,9 @@ export const BRAND = {
   legal: "#6b7c8d",
   wordmarkFont: "Georgia,'Times New Roman',serif",
   bodyFont: "ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif",
-  logoUrl: "https://ats.arbeidmatch.no/brand/arbeidmatch-emblem.png",
+  // The ATS's 192px emblem, served from this site (public/brand): the ATS host
+  // answers mail clients' image fetches with a bot challenge, which broke the logo.
+  logoUrl: "https://www.arbeidmatch.no/brand/arbeidmatch-emblem-email.png",
   logoSize: 72,
 } as const;
 
@@ -78,7 +80,7 @@ function deskContactEmail(from: string | null | undefined): string | null {
 const COMPANY_LEGAL = {
   name: "ArbeidMatch Norge AS",
   orgNr: "935 667 089",
-  address: "Sverre Svendsens veg 38, 7056 Ranheim, Trondheim",
+  address: "Sverre Svendsens veg 38, 7056 Ranheim, Norway",
   site: "arbeidmatch.no",
 } as const;
 
@@ -95,8 +97,10 @@ const WORDS = {
     confidentialTo: (to: string) =>
       `Denne meldingen er fortrolig og er adressert til ${to}. Har den kommet feil, gi oss beskjed, så fjerner vi adressen.`,
     confidentialNoTo: "Denne meldingen er fortrolig og er kun ment for mottakeren.",
-    ownSystem:
-      "E-posten er sendt fra vårt eget system, ArbeidMatch ATS. Ser noe feil ut i teksten eller i oppsettet, svar på denne e-posten, så retter vi det.",
+    // As the ATS says it since 13 September 2026: the system is RecOS beta (the
+    // owner's wording, 10 September), and no "svar på denne e-posten" here,
+    // because a letter that asks for a reply in its body then said it twice.
+    ownSystem: "Sendt fra vårt eget system, RecOS beta. Ser du feil i tekst eller oppsett, si gjerne ifra.",
   },
   en: {
     contactLead: "Any questions, write or call:",
@@ -108,8 +112,7 @@ const WORDS = {
     confidentialTo: (to: string) =>
       `This message is confidential and is addressed to ${to}. If it reached you by mistake, tell us and we will remove the address.`,
     confidentialNoTo: "This message is confidential and is meant for the addressed recipient only.",
-    ownSystem:
-      "It was sent from our own system, ArbeidMatch ATS. If anything looks wrong in the text or in the layout, reply to this email and we will correct it.",
+    ownSystem: "Sent from our own system, RecOS beta. If you notice an error in the text or layout, please let us know.",
   },
 } as const;
 
@@ -163,6 +166,45 @@ export function letterPre(text: string): string {
   return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;table-layout:fixed;margin:0 0 18px;"><tr><td style="background:${BRAND.panel};border-left:2px solid ${BRAND.rule};padding:10px 14px;font-family:ui-monospace,Consolas,'Courier New',monospace;font-size:12px;line-height:1.55;color:${BRAND.ink};white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(text)}</td></tr></table>`;
 }
 
+/**
+ * The line an inbox shows under the subject. The ATS `emailPreheaderText`.
+ *
+ * Without one, Gmail builds the preview from the first words it finds, which in
+ * this envelope are the wordmark and the heading: the brand and the subject
+ * again. So the letter carries a hidden preheader: what the caller gave, or
+ * else the first sentence of the letter that is not a greeting.
+ */
+export function emailPreheaderText(innerHtml: string, explicit?: string | null): string {
+  const given = String(explicit ?? "").trim();
+  if (given) return given.slice(0, 160);
+  const blocks = String(innerHtml ?? "")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .split(/<\/(?:p|li|h\d|div|tr)>|<br\s*\/?>/i)
+    .map((b) =>
+      b
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/\s+/g, " ")
+        .trim(),
+    )
+    .filter(Boolean);
+  const first = blocks.find((b) => !/^(hi|hei|hello|dear|kjære|hej|salut|buna)\b[^.!?]{0,60},?$/i.test(b)) ?? "";
+  const sentence = /^(.{20,}?[.!?])(\s|$)/.exec(first)?.[1] ?? first;
+  return sentence.slice(0, 160);
+}
+
+function preheaderHtml(text: string): string {
+  if (!text) return "";
+  // The run of zero-width non-joiners stops a client pulling body text in after the preheader.
+  const filler = "&#8204;&nbsp;".repeat(40);
+  return `<!--AM_PREHEADER--><div style="display:none;max-height:0;max-width:0;overflow:hidden;opacity:0;mso-hide:all;font-size:1px;line-height:1px;color:#ffffff;">${escapeHtml(text)}${filler}</div><!--/AM_PREHEADER-->`;
+}
+
 export function buildArbeidmatchLetter(args: {
   title: string;
   innerHtml: string;
@@ -181,6 +223,8 @@ export function buildArbeidmatchLetter(args: {
    * legal@. The owner's correction in the ATS, 6 September 2026.
    */
   contactEmail?: string | null;
+  /** The hidden line an inbox shows under the subject. Absent means the letter's first sentence. */
+  preheader?: string | null;
 }): string {
   const lang: EmailLang = args.lang === "en" ? "en" : "no";
   const w = WORDS[lang];
@@ -237,8 +281,11 @@ export function buildArbeidmatchLetter(args: {
       ${COMPANY_LEGAL.address}<br/>
       <a href="https://${COMPANY_LEGAL.site}" style="color:${BRAND.goldMuted};text-decoration:none;">${COMPANY_LEGAL.site}</a>`;
 
+  // No alt text: the wordmark at the top already names the company, and with
+  // images blocked a clipped "ArbeidMat" in a 72px box was all a reader saw
+  // (the ATS, 13 September 2026).
   const logoBlock = `<tr><td style="padding:14px 0 4px;">
-        <img src="${BRAND.logoUrl}" width="${BRAND.logoSize}" height="${BRAND.logoSize}" alt="ArbeidMatch" style="display:block;border:0;outline:none;width:${BRAND.logoSize}px;height:${BRAND.logoSize}px;">
+        <img src="${BRAND.logoUrl}" width="${BRAND.logoSize}" height="${BRAND.logoSize}" alt="" style="display:block;border:0;outline:none;width:${BRAND.logoSize}px;height:${BRAND.logoSize}px;">
       </td></tr>`;
 
   const to = String(args.recipient ?? "").trim();
@@ -250,6 +297,7 @@ export function buildArbeidmatchLetter(args: {
   return `<!DOCTYPE html>
 <html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"></head>
 <body style="margin:0;padding:0;background:${BRAND.ground};">
+${preheaderHtml(emailPreheaderText(args.innerHtml, args.preheader))}
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${BRAND.ground};border-collapse:collapse;">
 <tr><td align="center" style="padding:20px 12px 32px;font-family:${BRAND.bodyFont};">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;border-collapse:collapse;">

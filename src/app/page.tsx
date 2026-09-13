@@ -54,7 +54,8 @@ const OG_IMAGE = {
 } as const;
 
 export const metadata: Metadata = {
-  title: TITLE,
+  // Absolute: the layout's "%s | ArbeidMatch" would print the brand twice.
+  title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: {
     canonical: "https://www.arbeidmatch.no/",

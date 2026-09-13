@@ -47,6 +47,7 @@ import {
   type RoleAnswers,
   type RoleQuestion,
 } from "@/lib/request-role-questions";
+import { contactIsComplete, knownContactFromToken, realContactValue } from "@/lib/request-contact-placeholders";
 
 type TokenData = {
   company: string;
@@ -930,11 +931,17 @@ export default function RequestTokenPage() {
         }
         // Detecteaza partener existent sau owner ArbeidMatch
         const partnerOrOwner = row.isPartner === true || row.isOwner === true;
-        setIsPartnerOrOwner(partnerOrOwner);
+        // Only what the token really knows. Older tokens carry placeholders
+        // ("To be completed", "Employer Request", "000000"), and the contact
+        // step may only be skipped when company, name and phone are all known:
+        // otherwise the client is thanked by a placeholder.
+        const known = knownContactFromToken(row);
+        const skipContactStep = partnerOrOwner && contactIsComplete(known);
+        setIsPartnerOrOwner(skipContactStep);
 
         if (partnerOrOwner) {
-          // Pre-completeaza datele si sar direct la step 1 (care devine step 0 vizual)
-          const companyToUse = row.partnerCompanyName || row.company || "";
+          // Pre-completeaza datele; sare peste step 0 doar cand contactul e complet.
+          const companyToUse = known.companyName;
 
           // Map Faza 1 industry to Faza 2 industry
           const rawIndustry = row.industry || "";
@@ -949,15 +956,15 @@ export default function RequestTokenPage() {
             companyName: companyToUse.trim(),
             orgNumber: (row.org_number || "").trim(),
             contactEmail: (row.email || "").trim().toLowerCase(),
-            contactFirstName: (row.full_name || "").split(" ")[0] || "",
-            contactLastName: (row.full_name || "").split(" ").slice(1).join(" ") || "",
-            contactPhone: (row.phone || "").replace(/\D/g, ""),
+            contactFirstName: known.firstName,
+            contactLastName: known.lastName,
+            contactPhone: known.phoneDigits,
             howDidYouHear: "partner",
             industry: finalIndustry,
             workerType: mappedWorkerType,
           }));
           // Sar Step 0 - merg direct la step 1 (primul step real pentru parteneri)
-          setStep(1);
+          if (skipContactStep) setStep(1);
         }
         setTokenGate("ready");
       })
@@ -1376,7 +1383,7 @@ export default function RequestTokenPage() {
         typeof saveData.referenceId === "string" && saveData.referenceId.trim().length > 0
           ? saveData.referenceId.trim()
           : "";
-      setSubmitSuccessFullName(payload.full_name.trim());
+      setSubmitSuccessFullName(realContactValue(payload.full_name));
       setSubmitSuccessReference(referenceId);
 
       try {
@@ -1387,7 +1394,14 @@ export default function RequestTokenPage() {
           // The raw answers go to the letter, which builds its "Role details"
           // section from them with our own labels. The row does not need them:
           // it has them as lines in `requirements`.
-          body: JSON.stringify({ ...payload, referenceId, roleAnswers: form.roleAnswers }),
+          // clientNote is the free-text field alone: the office copy prints it as
+          // the client's note, never the full dump of answers in `notes`.
+          body: JSON.stringify({
+            ...payload,
+            referenceId,
+            roleAnswers: form.roleAnswers,
+            clientNote: form.additionalNotes.trim(),
+          }),
         });
         if (!emailRes.ok) {
           throw new Error("send-request-email");
@@ -2186,6 +2200,8 @@ export default function RequestTokenPage() {
                     {fieldErrors.contactEmail ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
                 </div>
+                {/* A partner or owner is asked here only for missing contact details, never how they found us. */}
+                {form.howDidYouHear !== "partner" ? (
                 <div className="space-y-3 border-t border-white/10 pt-5">
                   <div>
                     <p className={labelClass}>How did you hear about us</p>
@@ -2271,6 +2287,7 @@ export default function RequestTokenPage() {
                     {fieldErrors.howDidYouHear ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
                 </div>
+                ) : null}
               </div>
             )}
 

@@ -1,17 +1,18 @@
 "use client";
 
-import { WELDING_CERT_ITEMS } from "./weldingCertItems";
+import { WELDING_CERT_ITEMS, WELDING_CERT_ITEMS_NB } from "./weldingCertItems";
 
 const GOLD = "#C9A84C";
 
 type Variant = "dark" | "light";
 
-export default function WeldingCertGrid({ variant }: { variant: Variant }) {
+export default function WeldingCertGrid({ variant, lang = "en" }: { variant: Variant; lang?: "en" | "nb" }) {
   const isDark = variant === "dark";
+  const items = lang === "nb" ? WELDING_CERT_ITEMS_NB : WELDING_CERT_ITEMS;
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {WELDING_CERT_ITEMS.map(({ Icon, title, body }) => (
+      {items.map(({ Icon, title, body }) => (
         <article
           key={title}
           className={`group rounded-[14px] border p-5 transition-[border-color,transform] duration-200 ${

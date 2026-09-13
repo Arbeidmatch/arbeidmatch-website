@@ -19,6 +19,21 @@ const needsTurnstile = Boolean(TURNSTILE_SITE_KEY);
 const EMAIL_USER = "support";
 const EMAIL_DOMAIN = "arbeidmatch.no";
 
+const GENERIC_ERROR = "Noe gikk galt. Prøv igjen.";
+
+/**
+ * The contact API answers in English; the page is Norwegian, so its errors are shown by
+ * status here instead of printing the server's text.
+ */
+function errorMessageFor(status: number, serverError: string | undefined): string {
+  if (status === 429) return "For mange forespørsler. Prøv igjen litt senere.";
+  if (status === 400 && serverError === "Bot detected") {
+    return "Sikkerhetskontrollen ble ikke godkjent. Prøv igjen.";
+  }
+  if (status === 400) return "Fyll ut alle obligatoriske felt.";
+  return "Vi kunne ikke sende meldingen. Prøv igjen senere.";
+}
+
 export default function ContactPageClient() {
   const [submitted, setSubmitted] = useState(false);
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
@@ -56,8 +71,8 @@ export default function ContactPageClient() {
         body: JSON.stringify(payload),
       });
       if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        throw new Error(data.error || "Failed");
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        throw new Error(errorMessageFor(response.status, data.error));
       }
       setSubmitted(true);
       trackEvent("contact_form_submitted");
@@ -67,7 +82,8 @@ export default function ContactPageClient() {
     } catch (error) {
       setSubmitted(false);
       setStatus("error");
-      setErrorMessage(error instanceof Error ? error.message : "Something went wrong. Please try again.");
+      // A network failure throws a browser message in English; only our own messages are shown.
+      setErrorMessage(error instanceof Error && error.name === "Error" && error.message ? error.message : GENERIC_ERROR);
       setTurnstileToken(null);
       setTurnstileKey((k) => k + 1);
       return;
@@ -81,9 +97,9 @@ export default function ContactPageClient() {
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <ScrollReveal variant="fadeUp">
           <header className="max-w-3xl">
-            <h1 className="am-h1 font-display font-extrabold tracking-[-0.03em] text-white">Get in touch</h1>
+            <h1 className="am-h1 font-display font-extrabold tracking-[-0.03em] text-white">Ta kontakt</h1>
             <p className="mt-4 text-base leading-relaxed text-[rgba(255,255,255,0.65)] md:text-lg">
-              Have a question or ready to find workers for your business? We respond within 1 business day.
+              Har dere spørsmål, eller er dere klare til å finne arbeidskraft til bedriften? Vi svarer innen én virkedag.
             </p>
           </header>
         </ScrollReveal>
@@ -98,25 +114,25 @@ export default function ContactPageClient() {
                 <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
                 <div className="space-y-4">
                   <label className="block text-[13px] font-medium text-[rgba(255,255,255,0.65)]">
-                    Name <span className="text-[#C9A84C]">*</span>
-                    <input required name="name" type="text" autoComplete="name" className={`${inputClass} mt-1.5`} placeholder="Your name" />
+                    Navn <span className="text-[#C9A84C]">*</span>
+                    <input required name="name" type="text" autoComplete="name" className={`${inputClass} mt-1.5`} placeholder="Fullt navn" />
                   </label>
                   <label className="block text-[13px] font-medium text-[rgba(255,255,255,0.65)]">
-                    Company
-                    <input name="company" type="text" autoComplete="organization" className={`${inputClass} mt-1.5`} placeholder="Company name (optional)" />
+                    Firma
+                    <input name="company" type="text" autoComplete="organization" className={`${inputClass} mt-1.5`} placeholder="Firmanavn (valgfritt)" />
                   </label>
                   <label className="block text-[13px] font-medium text-[rgba(255,255,255,0.65)]">
-                    Email <span className="text-[#C9A84C]">*</span>
-                    <input required name="email" type="email" autoComplete="email" className={`${inputClass} mt-1.5`} placeholder="you@example.com" />
+                    E-post <span className="text-[#C9A84C]">*</span>
+                    <input required name="email" type="email" autoComplete="email" className={`${inputClass} mt-1.5`} placeholder="navn@firma.no" />
                   </label>
                   <label className="block text-[13px] font-medium text-[rgba(255,255,255,0.65)]">
-                    Message <span className="text-[#C9A84C]">*</span>
+                    Melding <span className="text-[#C9A84C]">*</span>
                     <textarea
                       required
                       name="message"
                       rows={5}
                       className={`${inputClass} mt-1.5 min-h-[120px] resize-y`}
-                      placeholder="How can we help?"
+                      placeholder="Hva kan vi hjelpe dere med?"
                     />
                   </label>
                 </div>
@@ -138,20 +154,20 @@ export default function ContactPageClient() {
                   disabled={status === "submitting" || (needsTurnstile && !turnstileToken)}
                   className="mt-6 w-full rounded-lg bg-[#C9A84C] py-3.5 text-[15px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f] disabled:opacity-60"
                 >
-                  {status === "submitting" ? "Sending…" : "Send message"}
+                  {status === "submitting" ? "Sender…" : "Send melding"}
                 </button>
 
                 <p className="mt-4 text-center text-[11px] leading-relaxed text-white/60">
-                  By sending this form you agree to our{" "}
+                  Ved å sende skjemaet godtar dere{" "}
                   <Link href="/privacy" className="text-[#C9A84C] underline-offset-2 hover:underline">
-                    privacy policy
-                  </Link>
-                  .
+                    personvernerklæringen
+                  </Link>{" "}
+                  vår.
                 </p>
 
                 {submitted ? (
                   <p className="mt-5 rounded-lg border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.1)] px-4 py-3 text-center text-sm text-[rgba(255,255,255,0.9)]" role="status">
-                    Thank you! We&apos;ll be in touch shortly.
+                    Takk! Vi tar kontakt med dere snart.
                   </p>
                 ) : null}
                 {status === "error" ? (
@@ -166,7 +182,7 @@ export default function ContactPageClient() {
                   <Shield className="h-4 w-4 shrink-0 text-[#C9A84C]" strokeWidth={1.75} aria-hidden />
                   <span>Org.nr: 935 667 089 MVA</span>
                 </p>
-                <p className="text-sm text-[rgba(255,255,255,0.5)]">Registered in Norway</p>
+                <p className="text-sm text-[rgba(255,255,255,0.5)]">Registrert i Norge</p>
               </div>
             </div>
           </ScrollReveal>
@@ -174,7 +190,7 @@ export default function ContactPageClient() {
           <ScrollReveal variant="fadeUp">
             <aside className="space-y-8 lg:pl-4">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">Email</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">E-post</p>
                 {emailRevealed ? (
                   <a
                     href={`mailto:${EMAIL_USER}@${EMAIL_DOMAIN}`}
@@ -190,19 +206,19 @@ export default function ContactPageClient() {
                     className="mt-2 inline-flex items-center gap-2 text-lg font-medium text-[#C9A84C] transition-colors hover:text-[#d8bc6a]"
                   >
                     <Mail className="h-5 w-5 shrink-0" strokeWidth={1.75} aria-hidden />
-                    Show email address
+                    Vis e-postadressen
                   </button>
                 )}
               </div>
               <div className="border-t border-[rgba(255,255,255,0.08)] pt-8">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">Address</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">Adresse</p>
                 <p className="mt-2 flex items-start gap-2 text-[15px] leading-relaxed text-[rgba(255,255,255,0.55)]">
                   <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#C9A84C]" strokeWidth={1.75} aria-hidden />
-                  <span>Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway</span>
+                  <span>Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norge</span>
                 </p>
               </div>
               <div className="border-t border-[rgba(255,255,255,0.08)] pt-8">
-                <p className="text-[15px] text-[rgba(255,255,255,0.55)]">Based in Trondheim, Norway</p>
+                <p className="text-[15px] text-[rgba(255,255,255,0.55)]">Vi holder til i Trondheim</p>
               </div>
             </aside>
           </ScrollReveal>

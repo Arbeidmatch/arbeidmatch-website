@@ -57,10 +57,11 @@ export async function POST(request: NextRequest) {
     const roleValue = parsed.data.role?.trim() || null;
 
     const tokenRow = {
-      full_name: "Partner Contact",
+      // Unknown until the wizard asks; never a placeholder a client could be greeted with.
+      full_name: "",
       company,
       email,
-      phone: "N/A",
+      phone: "",
       job_summary: roleValue || "Partner candidate request",
       gdpr_consent: true,
       how_did_you_hear: "partner",

@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const job = await fetchPublicJob(slug);
   const title = job ? `Apply: ${job.title} | ArbeidMatch` : "Apply | ArbeidMatch";
   return {
-    title,
+    title: { absolute: title },
     // A form is not a page anybody should arrive at from a search result; the
     // advert is. This keeps one page per job in the index rather than two.
     robots: { index: false, follow: true },

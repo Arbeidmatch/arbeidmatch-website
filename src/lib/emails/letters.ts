@@ -864,23 +864,33 @@ export function errorAlertLetter(args: {
 // /api/request-otp
 // ---------------------------------------------------------------------------
 
+/**
+ * The code a client types to continue a request. In Norwegian: the client is a
+ * Norwegian employer and the /request page asks in Norwegian.
+ *
+ * It opens with what he asked for, not with "You are receiving this because":
+ * the footer already says why the mail came, and the letter said it twice
+ * (seen by the owner on 13 September 2026).
+ */
 export function requestOtpLetter(args: { code: string; to: string; unsubscribeUrl: string; role?: string | null }): Letter {
   const role = args.role?.trim();
   return {
-    subject: "Your ArbeidMatch verification code",
+    subject: "Din bekreftelseskode fra ArbeidMatch",
     html: buildArbeidmatchLetter({
-      title: "Your verification code",
+      title: "Din bekreftelseskode",
       innerHtml: [
         letterParagraph(
           role
-            ? `You are receiving this because you requested candidates for the role of <strong>${escapeHtml(role)}</strong> on arbeidmatch.no.`
-            : "You are receiving this because you made a request on arbeidmatch.no.",
+            ? `Du ba om kandidater til stillingen som <strong>${escapeHtml(role)}</strong> på arbeidmatch.no.`
+            : "Du har sendt en forespørsel på arbeidmatch.no.",
         ),
-        letterParagraph("Use this code to continue your request:"),
+        letterParagraph("Bruk denne koden for å fortsette forespørselen:"),
         letterCode(args.code),
-        letterNote("This code expires in 10 minutes. If you did not request it, you can ignore this email."),
+        letterNote("Koden gjelder i 10 minutter. Har du ikke bedt om den, kan du se bort fra denne e-posten."),
       ].join(""),
-      lang: EN,
+      // Hidden inbox preview: the code's purpose, never the code itself.
+      preheader: "Koden gjelder i 10 minutter.",
+      lang: "no",
       recipient: args.to,
       unsubscribeUrl: args.unsubscribeUrl,
       audience: "support",

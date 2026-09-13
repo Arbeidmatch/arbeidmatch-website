@@ -85,7 +85,7 @@ function companyName(job: PublicJobDetail): string | null {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const job = await fetchPublicJob(slug);
-  if (!job) return { title: "Stilling | ArbeidMatch" };
+  if (!job) return { title: { absolute: "Stilling | ArbeidMatch" } };
 
   const where = (job.location ?? "").trim();
   // The job's own search text first, written in the ATS since 11 September

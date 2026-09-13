@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { isWelcomeOpen, WELCOME_CLOSED_EVENT, WELCOME_OPEN_EVENT, welcomeLikelyPending } from "@/lib/welcomeOverlay";
+
 const ACK_KEY = "cookie_info_acknowledged";
 const LEGACY_CONSENT_KEY = "cookie_consent";
 const LEGACY_SHOWN_KEY = "cookie_consent_shown";
@@ -40,8 +42,35 @@ export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    setVisible(!hasAcknowledged());
     setHydrated(true);
+    if (hasAcknowledged()) return;
+
+    // Never on top of the front page's "Welcome" picker: on a phone the banner
+    // covered its buttons. Wait while it is open, show once it closes, and on a
+    // first visit to the front page give it a moment to open first.
+    let timer: number | undefined;
+    const show = () => {
+      window.clearTimeout(timer);
+      if (!isWelcomeOpen() && !hasAcknowledged()) setVisible(true);
+    };
+    const hide = () => {
+      window.clearTimeout(timer);
+      setVisible(false);
+    };
+    window.addEventListener(WELCOME_OPEN_EVENT, hide);
+    window.addEventListener(WELCOME_CLOSED_EVENT, show);
+    if (isWelcomeOpen()) {
+      hide();
+    } else if (welcomeLikelyPending()) {
+      timer = window.setTimeout(show, 2500);
+    } else {
+      show();
+    }
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(WELCOME_OPEN_EVENT, hide);
+      window.removeEventListener(WELCOME_CLOSED_EVENT, show);
+    };
   }, []);
 
   const dismiss = useCallback(() => {

@@ -1,24 +1,28 @@
 import type { Metadata } from "next";
 import ContactPageClient from "@/components/ContactPageClient";
 
-const TITLE = "Contact Us | ArbeidMatch";
+const TITLE = "Kontakt oss | ArbeidMatch";
 const DESCRIPTION =
-  "Have a question or ready to find workers for your business? Contact ArbeidMatch. We respond within 1 business day.";
+  "Har dere spørsmål, eller er dere klare til å finne arbeidskraft til bedriften? Kontakt ArbeidMatch. Vi svarer innen én virkedag.";
 
 const OG_IMAGE = {
   url: "/og-image.png",
   width: 1200,
   height: 630,
-  alt: "ArbeidMatch | EU/EEA Recruitment Norway",
+  alt: "ArbeidMatch | Rekruttering fra EU/EØS til Norge",
 } as const;
 
 export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
-  title: TITLE,
+  title: { absolute: TITLE },
   description: DESCRIPTION,
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
+    locale: "nb_NO",
+    siteName: "ArbeidMatch",
+    type: "website",
+    url: "/contact",
     images: [OG_IMAGE],
   },
   twitter: {

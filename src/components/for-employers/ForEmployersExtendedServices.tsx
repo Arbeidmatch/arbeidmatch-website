@@ -33,26 +33,26 @@ function IconMegaphone({ className }: { className?: string }) {
 
 const CARDS = [
   {
-    title: "Full Recruitment",
-    text: "We manage the entire process: sourcing, screening, interviews and presentation. You make the final decision. We handle the recruitment steps.",
+    title: "Full rekruttering",
+    text: "Vi styrer hele prosessen: søk, screening, intervjuer og presentasjon. Dere tar den endelige beslutningen. Vi tar oss av rekrutteringsstegene.",
     href: "/request",
-    cta: "Request recruitment →",
+    cta: "Be om rekruttering →",
     icon: IconSearchUser,
     topBorder: true,
   },
   {
-    title: "Staffing and Temporary Hire",
-    text: "Flexible workforce when you need it. We are the employer. You focus on the project.",
+    title: "Bemanning og innleie",
+    text: "Fleksibel arbeidskraft når dere trenger det. Vi er arbeidsgiveren. Dere kan konsentrere dere om prosjektet.",
     href: "/request",
-    cta: "View staffing solutions →",
+    cta: "Se bemanningsløsninger →",
     icon: IconUsers,
     topBorder: false,
   },
   {
-    title: "Direct Advertising",
-    text: "Reach candidates where they actually are. We publish your position on our EU/EEA networks and channels. You hire directly. More effective than local job boards, at a fraction of the cost.",
+    title: "Direkte annonsering",
+    text: "Nå kandidatene der de faktisk er. Vi publiserer stillingen deres i våre nettverk og kanaler i EU/EØS. Dere ansetter direkte. Mer effektivt enn lokale jobbportaler, til en brøkdel av prisen.",
     href: "/contact",
-    cta: "Ask about advertising →",
+    cta: "Spør om annonsering →",
     icon: IconMegaphone,
     topBorder: false,
   },
@@ -63,7 +63,7 @@ export default function ForEmployersExtendedServices() {
     <section className="border-t border-[rgba(201,168,76,0.15)] bg-[#0D1B2A] py-12 md:py-16 lg:py-[100px]">
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <h2 className="am-h2 text-center font-display font-bold text-white">
-          Need candidates but want to hire directly?
+          Trenger dere kandidater, men vil ansette selv?
         </h2>
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 lg:gap-12">
           {CARDS.map((card, i) => {
@@ -89,8 +89,8 @@ export default function ForEmployersExtendedServices() {
           })}
         </div>
         <p className="mx-auto mt-10 max-w-3xl text-center text-[13px] italic leading-relaxed text-white/70">
-          All services are delivered within Norwegian labor law. ArbeidMatch takes responsibility for what is within our
-          control. We are transparent about process, expectations and limitations, and we continuously improve.
+          Alle tjenester leveres innenfor norsk arbeidsrett. ArbeidMatch tar ansvar for det som ligger innenfor vår
+          kontroll. Vi er åpne om prosess, forventninger og begrensninger, og vi forbedrer oss hele tiden.
         </p>
       </div>
     </section>

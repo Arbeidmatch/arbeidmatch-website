@@ -8,11 +8,11 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { trackEvent } from "@/lib/analytics";
 import { writeHomeUserType } from "@/lib/homeUserType";
 import { setNavigationUserType } from "@/lib/navigationUserType";
+import { setWelcomeOpen, WELCOME_SHOWN_KEY } from "@/lib/welcomeOverlay";
 
 const TRANSITION = { duration: 0.3, ease: "easeOut" as const };
 
 const WELCOME_DELAY_MS = 600;
-const WELCOME_SHOWN_KEY = "welcome_shown";
 const AUDIENCE_KEY = "am_audience";
 
 export default function HomeWelcomeUserTypeSlideup() {
@@ -39,6 +39,12 @@ export default function HomeWelcomeUserTypeSlideup() {
       /* ignore */
     }
   }, []);
+
+  // Tells the cookie banner to wait while the picker is on screen (src/lib/welcomeOverlay.ts).
+  useEffect(() => {
+    setWelcomeOpen(open);
+    return () => setWelcomeOpen(false);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;

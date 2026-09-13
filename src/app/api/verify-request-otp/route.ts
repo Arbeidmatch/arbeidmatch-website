@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const rate = getRateLimitResult(request, "verify-request-otp", 20, 10 * 60 * 1000);
     if (rate.limited) {
       return noStoreJson(
-        { success: false, error: "Too many requests. Please try again later.", code: "rate_limited" },
+        { success: false, error: "For mange forespørsler. Prøv igjen senere.", code: "rate_limited" },
         { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
       );
     }
@@ -58,13 +58,13 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdminClient();
     if (!supabase) {
-      return noStoreJson({ success: false, error: "Service unavailable." }, { status: 500 });
+      return noStoreJson({ success: false, error: "Tjenesten er ikke tilgjengelig akkurat nå." }, { status: 500 });
     }
 
     const email = normalizeRequestEmail(parsed.data.email);
     const flow = parsed.data.flow;
     if (!isValidRequestEmail(email)) {
-      return noStoreJson({ success: false, error: "Valid email is required." }, { status: 400 });
+      return noStoreJson({ success: false, error: "Skriv inn en gyldig e-postadresse." }, { status: 400 });
     }
 
     let query = supabase
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     const row = rowData as OtpRow | null;
     if (!row) {
       return noStoreJson(
-        { success: false, error: "No active verification code. Request a new one.", code: "not_found" },
+        { success: false, error: "Ingen aktiv kode. Be om en ny.", code: "not_found" },
         { status: 400 },
       );
     }
@@ -107,14 +107,14 @@ export async function POST(request: NextRequest) {
 
     if (row.consumed_at) {
       return noStoreJson(
-        { success: false, error: "This code was already used. Request a new one.", code: "consumed" },
+        { success: false, error: "Koden er allerede brukt. Be om en ny.", code: "consumed" },
         { status: 400 },
       );
     }
 
     if (new Date(row.expires_at) < new Date()) {
       return noStoreJson(
-        { success: false, error: "This code has expired. Request a new one.", code: "expired" },
+        { success: false, error: "Koden er utløpt. Be om en ny.", code: "expired" },
         { status: 400 },
       );
     }
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       return noStoreJson(
         {
           success: false,
-          error: "Too many incorrect attempts. Request a new verification code.",
+          error: "For mange feil forsøk. Be om en ny kode.",
           code: "too_many_attempts",
         },
         { status: 429 },
@@ -144,8 +144,8 @@ export async function POST(request: NextRequest) {
           success: false,
           error:
             remaining > 0
-              ? `Incorrect code. ${remaining} attempt${remaining === 1 ? "" : "s"} left.`
-              : "Too many incorrect attempts. Request a new verification code.",
+              ? `Feil kode. ${remaining} forsøk igjen.`
+              : "For mange feil forsøk. Be om en ny kode.",
           code: remaining > 0 ? "invalid_otp" : "too_many_attempts",
         },
         { status: remaining > 0 ? 400 : 429 },
@@ -184,6 +184,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logApiError("verify-request-otp", error);
     await notifyError({ route: "/api/verify-request-otp", error });
-    return noStoreJson({ success: false, error: "Could not verify code." }, { status: 500 });
+    return noStoreJson({ success: false, error: "Vi kunne ikke bekrefte koden." }, { status: 500 });
   }
 }

@@ -68,9 +68,136 @@ function readPartnerWizardTokenFromSession(): string | null {
   }
 }
 
-function candidateAvailabilityLabel(count: number): string {
-  return count === 1 ? "1 candidate available" : `${count} candidates available`;
+/** Counts below this are never shown to the public; a neutral sentence is shown instead. */
+const MIN_PUBLIC_CANDIDATE_COUNT = 10;
+
+function isPublicCandidateCount(count: number | null | undefined): count is number {
+  return typeof count === "number" && Number.isFinite(count) && count >= MIN_PUBLIC_CANDIDATE_COUNT;
 }
+
+function candidateAvailabilityLabel(count: number | null | undefined, scope: "industry" | "role"): string {
+  if (isPublicCandidateCount(count)) return `${count} tilgjengelige kandidater`;
+  return scope === "industry" ? "Vi rekrutterer i denne bransjen." : "Vi finner kvalifiserte kandidater for denne rollen.";
+}
+
+/** Display-only Norwegian labels. The English keys stay the values sent to the APIs. */
+const INDUSTRY_LABEL_NB: Record<string, string> = {
+  Building: "Bygg",
+  Infrastructure: "Anlegg",
+  Welding: "Sveising",
+  Electrical: "Elektro",
+  Production: "Produksjon",
+  Logistics: "Logistikk",
+  Cleaning: "Renhold",
+  Hospitality: "Hotell og restaurant",
+  Automotive: "Bil og verksted",
+  Offshore: "Offshore",
+  "Fish Industry": "Fiskeindustri",
+};
+
+const ROLE_LABEL_NB: Record<string, string> = {
+  "Construction worker": "Bygningsarbeider",
+  Carpenter: "Tømrer",
+  Mason: "Murer",
+  Plasterer: "Pusser",
+  Painter: "Maler",
+  Tiler: "Flislegger",
+  Insulator: "Isolatør",
+  Drywaller: "Gipsmontør",
+  Glazier: "Glassmester",
+  Roofer: "Taktekker",
+  Plumber: "Rørlegger",
+  Pipefitter: "Industrirørlegger",
+  "Excavator operator": "Gravemaskinfører",
+  "Concrete pump operator": "Betongpumpeoperatør",
+  "Civil labourer": "Anleggsarbeider",
+  "Steel fixer": "Armerer",
+  "Concrete worker": "Betongarbeider",
+  "Steel erector": "Stålmontør",
+  Scaffolder: "Stillasmontør",
+  "Welder MIG/MAG": "Sveiser MIG/MAG",
+  "Welder TIG": "Sveiser TIG",
+  "Pipe welder": "Rørsveiser",
+  Boilermaker: "Kjelesmed",
+  "Sheet metal worker": "Platearbeider",
+  "Offshore welder": "Offshoresveiser",
+  "Industrial electrician": "Industrielektriker",
+  "Building electrician": "Installasjonselektriker",
+  "Automation technician": "Automatiker",
+  "Instrumentation technician": "Instrumenttekniker",
+  "HVAC technician": "Ventilasjonstekniker",
+  "Refrigeration technician": "Kuldetekniker",
+  "Marine electrician": "Skipselektriker",
+  "Solar installer": "Solcellemontør",
+  "CNC operator": "CNC-operatør",
+  "Machine operator": "Maskinoperatør",
+  "Production worker": "Produksjonsmedarbeider",
+  "Quality control": "Kvalitetskontrollør",
+  "Maintenance technician": "Vedlikeholdstekniker",
+  "Plant operator": "Anleggsoperatør",
+  "Truck driver C/CE": "Lastebilsjåfør C/CE",
+  "Bus driver D": "Bussjåfør D",
+  "Delivery driver B": "Budsjåfør B",
+  "Forklift operator": "Truckfører",
+  "Warehouse worker": "Lagermedarbeider",
+  "Crane operator": "Kranfører",
+  Cleaner: "Renholder",
+  Janitor: "Vaktmester",
+  "Window cleaner": "Vinduspusser",
+  "Facility manager": "Driftsleder",
+  Cook: "Kokk",
+  "Kitchen assistant": "Kjøkkenassistent",
+  Waiter: "Servitør",
+  "Hotel staff": "Hotellmedarbeider",
+  Receptionist: "Resepsjonist",
+  "Car mechanic": "Bilmekaniker",
+  "Heavy equipment mechanic": "Anleggsmaskinmekaniker",
+  "HGV mechanic": "Tungbilmekaniker",
+  "Auto body technician": "Bilskadereparatør",
+  "Tire technician": "Dekkmontør",
+  "Offshore scaffolder": "Stillasmontør offshore",
+  "Offshore rigger": "Rigger offshore",
+  "Onshore process operator": "Prosessoperatør på land",
+  "ROV technician": "ROV-tekniker",
+  "Fish processing worker": "Fiskeindustriarbeider",
+  "Fish farm worker": "Havbruksmedarbeider",
+  "Aquaculture technician": "Akvakulturtekniker",
+  "Fish packer": "Fiskepakker",
+  "Slaughterhouse worker": "Slakteriarbeider",
+  "Salmon farmer": "Lakserøkter",
+};
+
+function industryLabel(industry: string): string {
+  return INDUSTRY_LABEL_NB[industry] ?? industry;
+}
+
+const ROLE_LABEL_NB_LOWER: Record<string, string> = Object.fromEntries(
+  Object.entries(ROLE_LABEL_NB).map(([key, label]) => [key.toLowerCase(), label]),
+);
+
+/** Case-insensitive, because a role can arrive from ?role= in any casing. */
+function roleLabel(role: string): string {
+  return ROLE_LABEL_NB[role] ?? ROLE_LABEL_NB_LOWER[role.toLowerCase()] ?? role;
+}
+
+/** Search matches either the Norwegian label shown on screen or the underlying English value. */
+function filterRolesByQuery(roles: string[], rawQuery: string): string[] {
+  const query = rawQuery.trim().toLowerCase();
+  if (!query) return roles;
+  const names = (role: string) => [role.toLowerCase(), roleLabel(role).toLowerCase()];
+  const startsWith = roles.filter((role) => names(role).some((n) => n.startsWith(query)));
+  const contains = roles.filter(
+    (role) => names(role).some((n) => n.includes(query)) && !names(role).some((n) => n.startsWith(query)),
+  );
+  return [...startsWith, ...contains];
+}
+
+function roleMatchesQueryExactly(role: string, rawQuery: string): boolean {
+  const query = rawQuery.trim().toLowerCase();
+  return query === role.toLowerCase() || query === roleLabel(role).toLowerCase();
+}
+
+const COMPANY_EMAIL_REQUIRED_MESSAGE = "Bruk bedriftens e-postadresse.";
 
 const INDUSTRY_ICONS: Record<string, LucideIcon> = {
   Building: HardHat,
@@ -250,13 +377,13 @@ function PremiumIndustryCard({
       <div className="relative z-10 flex h-full flex-col items-start justify-between gap-4">
         <Icon className={`h-8 w-8 ${selected ? "text-[#C9A84C] drop-shadow-[0_0_10px_rgba(201,168,76,0.5)]" : "text-[#C9A84C]"}`} />
         <div>
-          <p className={`text-base tracking-tight ${selected ? "font-semibold text-white" : "font-semibold text-white/90"}`}>{industry}</p>
+          <p className={`text-base tracking-tight ${selected ? "font-semibold text-white" : "font-semibold text-white/90"}`}>{industryLabel(industry)}</p>
           {candidateCount === null ? (
             <p className="mt-1 text-sm text-white/55">...</p>
-          ) : candidateCount === 0 ? (
-            <p className="mt-1 text-sm text-white/60">Sourced on request</p>
+          ) : isPublicCandidateCount(candidateCount) ? (
+            <p className="mt-1 text-sm font-medium text-[#C9A84C]">{candidateAvailabilityLabel(candidateCount, "industry")}</p>
           ) : (
-            <p className="mt-1 text-sm font-medium text-[#C9A84C]">{candidateAvailabilityLabel(candidateCount)}</p>
+            <p className="mt-1 text-sm text-white/60">{candidateAvailabilityLabel(candidateCount, "industry")}</p>
           )}
         </div>
       </div>
@@ -361,13 +488,7 @@ export default function RequestPage() {
     if (!selectedIndustry) return [];
     const group = CHECK_ROLE_GROUPS.find((item) => item.industry === selectedIndustry);
     if (!group) return [];
-    const query = roleQuery.trim().toLowerCase();
-    if (!query) return group.roles;
-    const startsWith = group.roles.filter((role) => role.toLowerCase().startsWith(query));
-    const contains = group.roles.filter(
-      (role) => role.toLowerCase().includes(query) && !role.toLowerCase().startsWith(query),
-    );
-    return [...startsWith, ...contains];
+    return filterRolesByQuery(group.roles, roleQuery);
   }, [roleQuery, selectedIndustry]);
 
   useEffect(() => {
@@ -449,16 +570,7 @@ export default function RequestPage() {
     if (checkState !== "idle" || pickerStep !== "roles" || !selectedIndustry) return;
     const group = CHECK_ROLE_GROUPS.find((item) => item.industry === selectedIndustry);
     if (!group) return;
-    const query = roleQuery.trim().toLowerCase();
-    let roles: string[];
-    if (!query) roles = group.roles;
-    else {
-      const startsWith = group.roles.filter((role) => role.toLowerCase().startsWith(query));
-      const contains = group.roles.filter(
-        (role) => role.toLowerCase().includes(query) && !role.toLowerCase().startsWith(query),
-      );
-      roles = [...startsWith, ...contains];
-    }
+    const roles = filterRolesByQuery(group.roles, roleQuery);
     if (!roles.length) {
       setRoleCounts({});
       return;
@@ -539,7 +651,7 @@ export default function RequestPage() {
     if (!verifyCanResend || otpBusy) return;
     const email = accessEmail.trim().toLowerCase();
     if (!email.includes("@")) {
-      toast.error("Please enter a valid company email address.");
+      toast.error("Oppgi en gyldig e-postadresse fra bedriften.");
       return;
     }
     setAccessStatus("submitting");
@@ -556,7 +668,7 @@ export default function RequestPage() {
       }
 
       if (verifyResponse.status === 400) {
-        toast.error("Please enter a valid company email address.");
+        toast.error("Oppgi en gyldig e-postadresse fra bedriften.");
         setAccessStatus("idle");
         return;
       }
@@ -570,7 +682,7 @@ export default function RequestPage() {
         return;
       }
 
-      const verifiedCompanyName = (verifyData.company.name || "your company").trim() || "your company";
+      const verifiedCompanyName = (verifyData.company.name || "bedriften deres").trim() || "bedriften deres";
       setCompanyName(verifiedCompanyName);
 
       const otpResponse = await fetch("/api/request-otp", {
@@ -583,7 +695,7 @@ export default function RequestPage() {
         | null;
 
       if (!otpResponse.ok || !otpData?.success || !otpData.verificationId) {
-        setOtpError(otpData?.error || "Could not send verification code. Please try again.");
+        setOtpError(otpData?.error || "Vi kunne ikke sende bekreftelseskoden. Prøv igjen.");
         setAccessStatus("idle");
         return;
       }
@@ -603,10 +715,10 @@ export default function RequestPage() {
       setPartnerOtpStep("otp");
       setAccessStatus("partner");
       setIsLoadingExit(false);
-      toast.success("Verification code sent. Check your email.");
+      toast.success("Bekreftelseskoden er sendt. Sjekk e-posten.");
     } catch {
-      setAccessErrorMessage("Could not check access right now. Please try again.");
-      toast.error("Could not verify partner access right now.");
+      setAccessErrorMessage("Vi kunne ikke sjekke tilgangen akkurat nå. Prøv igjen.");
+      toast.error("Vi kunne ikke bekrefte partnertilgangen akkurat nå.");
       setIsLoadingExit(true);
       await new Promise((resolve) => setTimeout(resolve, 200));
       setAccessStatus("error");
@@ -620,7 +732,7 @@ export default function RequestPage() {
     const email = accessEmail.trim().toLowerCase();
     const code = partnerOtp.replace(/\D/g, "").slice(0, 6);
     if (!email.includes("@") || code.length !== 6) {
-      setOtpError("Enter the 6-digit code from your email.");
+      setOtpError("Skriv inn den 6-sifrede koden fra e-posten.");
       return;
     }
     setOtpBusy(true);
@@ -640,13 +752,13 @@ export default function RequestPage() {
         | { success?: boolean; redirectUrl?: string; error?: string }
         | null;
       if (!response.ok || !data?.success || !data.redirectUrl) {
-        setOtpError(data?.error || "Could not verify code. Please try again.");
+        setOtpError(data?.error || "Vi kunne ikke bekrefte koden. Prøv igjen.");
         return;
       }
       allowNextNavigationRef.current = true;
       router.push(data.redirectUrl);
     } catch {
-      setOtpError("Could not verify code right now. Please try again.");
+      setOtpError("Vi kunne ikke bekrefte koden akkurat nå. Prøv igjen.");
     } finally {
       setOtpBusy(false);
     }
@@ -665,7 +777,7 @@ export default function RequestPage() {
 
   const submitFeatureWaitlist = async () => {
     if (!notifyEmail.includes("@") || !selectedOption || !waitlistCanResend) {
-      toast.error("Please provide a valid email before subscribing.");
+      toast.error("Oppgi en gyldig e-postadresse før dere melder dere på.");
       return;
     }
     setNotifyStatus("submitting");
@@ -682,14 +794,14 @@ export default function RequestPage() {
       if (response.ok) {
         setNotifyStatus("success");
         startCountdown(setWaitlistCountdown, setWaitlistCanResend);
-        toast.info("You are subscribed. We'll notify you when this opens.");
+        toast.info("Dere er påmeldt. Vi gir beskjed når dette åpner.");
       } else {
         setNotifyStatus("error");
-        toast.error("Could not save your subscription right now.");
+        toast.error("Vi kunne ikke lagre påmeldingen akkurat nå.");
       }
     } catch {
       setNotifyStatus("error");
-      toast.error("Could not save your subscription right now.");
+      toast.error("Vi kunne ikke lagre påmeldingen akkurat nå.");
     }
   };
 
@@ -721,21 +833,21 @@ export default function RequestPage() {
         : "");
 
     if (!getStartedGdpr) {
-      setGetStartedError("Please accept the privacy policy to continue.");
+      setGetStartedError("Godta personvernerklæringen for å fortsette.");
       return;
     }
     if (!selectedRole) {
-      setGetStartedError("Please choose a role first.");
+      setGetStartedError("Velg en rolle først.");
       return;
     }
     if (!industryResolved) {
-      setGetStartedError("Please select an industry so we can route your request.");
+      setGetStartedError("Velg en bransje, slik at vi kan behandle forespørselen riktig.");
       return;
     }
 
     const email = getStartedEmail.trim().toLowerCase();
     if (!email.includes("@")) {
-      setGetStartedError("Please enter a valid email.");
+      setGetStartedError("Oppgi en gyldig e-postadresse.");
       return;
     }
 
@@ -759,14 +871,14 @@ export default function RequestPage() {
         | null;
 
       if (!response.ok || !data?.success || !data.verificationId) {
-        setGetStartedError(data?.error || "Could not send verification code. Please try again.");
+        setGetStartedError(data?.error || "Vi kunne ikke sende bekreftelseskoden. Prøv igjen.");
         return;
       }
       setGetStartedVerificationId(data.verificationId);
       setGetStartedOtp("");
       setGetStartedStep("otp");
     } catch {
-      setGetStartedError("Could not send verification code. Please try again.");
+      setGetStartedError("Vi kunne ikke sende bekreftelseskoden. Prøv igjen.");
     } finally {
       setGetStartedSubmitting(false);
     }
@@ -777,7 +889,7 @@ export default function RequestPage() {
     const email = getStartedEmail.trim().toLowerCase();
     const code = getStartedOtp.replace(/\D/g, "").slice(0, 6);
     if (!email.includes("@") || code.length !== 6) {
-      setOtpError("Enter the 6-digit code from your email.");
+      setOtpError("Skriv inn den 6-sifrede koden fra e-posten.");
       return;
     }
     setOtpBusy(true);
@@ -797,13 +909,13 @@ export default function RequestPage() {
         | { success?: boolean; redirectUrl?: string; error?: string }
         | null;
       if (!response.ok || !data?.success || !data.redirectUrl) {
-        setOtpError(data?.error || "Could not verify code. Please try again.");
+        setOtpError(data?.error || "Vi kunne ikke bekrefte koden. Prøv igjen.");
         return;
       }
       allowNextNavigationRef.current = true;
       router.push(data.redirectUrl);
     } catch {
-      setOtpError("Could not verify code right now. Please try again.");
+      setOtpError("Vi kunne ikke bekrefte koden akkurat nå. Prøv igjen.");
     } finally {
       setOtpBusy(false);
     }
@@ -916,13 +1028,13 @@ export default function RequestPage() {
     const email = partnerApplicationEmail.trim().toLowerCase();
     const domain = email.split("@")[1]?.trim() || "";
     if (!email.includes("@") || !domain) {
-      toast.error("Please enter a valid company email address.");
+      toast.error("Oppgi en gyldig e-postadresse fra bedriften.");
       return;
     }
     if (FREE_EMAIL_DOMAINS.has(domain)) {
-      setPartnerApplicationError("Please use your company email address.");
+      setPartnerApplicationError(COMPANY_EMAIL_REQUIRED_MESSAGE);
       setPartnerApplicationStatus("error");
-      toast.error("Please use your company email address.");
+      toast.error(COMPANY_EMAIL_REQUIRED_MESSAGE);
       return;
     }
 
@@ -937,23 +1049,23 @@ export default function RequestPage() {
       const data = (await response.json()) as { success?: boolean; reason?: string };
       if (!response.ok || !data.success) {
         if (data.reason === "personal_email") {
-          setPartnerApplicationError("Please use your company email address.");
+          setPartnerApplicationError(COMPANY_EMAIL_REQUIRED_MESSAGE);
         } else if (data.reason === "table_missing") {
-          setPartnerApplicationError("Partner applications are temporarily unavailable. Please try again shortly.");
+          setPartnerApplicationError("Partnersøknader er midlertidig utilgjengelige. Prøv igjen om litt.");
         } else {
-          setPartnerApplicationError("Could not start partner application right now.");
+          setPartnerApplicationError("Vi kunne ikke starte partnersøknaden akkurat nå.");
         }
         setPartnerApplicationStatus("error");
-        toast.error("Could not start partner application right now.");
+        toast.error("Vi kunne ikke starte partnersøknaden akkurat nå.");
         return;
       }
       setPartnerApplicationStatus("success");
       startCountdown(setPartnerApplicationCountdown, setPartnerApplicationCanResend);
-      toast.success("Application link sent. Please check your inbox.");
+      toast.success("Lenken til søknaden er sendt. Sjekk innboksen.");
     } catch {
       setPartnerApplicationStatus("error");
-      setPartnerApplicationError("Could not start partner application right now.");
-      toast.error("Could not start partner application right now.");
+      setPartnerApplicationError("Vi kunne ikke starte partnersøknaden akkurat nå.");
+      toast.error("Vi kunne ikke starte partnersøknaden akkurat nå.");
     }
   };
 
@@ -1060,7 +1172,7 @@ export default function RequestPage() {
               className="mb-4 inline-flex items-center gap-2 rounded-[10px] border border-[#C9A84C]/25 bg-[#C9A84C]/5 px-3 py-1.5 text-sm text-[#C9A84C] transition-colors duration-200 hover:border-[#C9A84C]/55 hover:bg-[#C9A84C]/10"
             >
               <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
-              Back
+              Tilbake
             </button>
             <AnimatePresence mode="wait" custom={flowDirection}>
               <motion.div
@@ -1072,7 +1184,7 @@ export default function RequestPage() {
                 animate="center"
                 exit={reduceMotion ? undefined : "exit"}
               >
-                <h1 className="text-2xl font-bold">Are you already an ArbeidMatch partner?</h1>
+                <h1 className="text-2xl font-bold">Er dere allerede partner hos ArbeidMatch?</h1>
                 <div className="mt-8 flex flex-col gap-3 md:flex-row md:gap-4">
                   <button
                     type="button"
@@ -1090,7 +1202,7 @@ export default function RequestPage() {
                     }}
                     className="h-14 w-full rounded-xl bg-[#C9A84C] text-base font-bold text-[#0D1B2A] md:flex-1"
                   >
-                    Yes, I&apos;m a partner
+                    Ja, vi er partner
                   </button>
                   <button
                     type="button"
@@ -1106,7 +1218,7 @@ export default function RequestPage() {
                     }}
                     className="h-14 w-full rounded-xl border border-[#C9A84C]/50 py-3 text-base font-semibold text-[#C9A84C] transition-colors hover:bg-[#C9A84C]/10 md:flex-1"
                   >
-                    No, I&apos;m new
+                    Nei, vi er nye
                   </button>
                 </div>
               </motion.div>
@@ -1121,9 +1233,9 @@ export default function RequestPage() {
               className="mb-4 inline-flex items-center gap-2 rounded-[10px] border border-[#C9A84C]/25 bg-[#C9A84C]/5 px-3 py-1.5 text-sm text-[#C9A84C] transition-colors duration-200 hover:border-[#C9A84C]/55 hover:bg-[#C9A84C]/10"
             >
               <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
-              Back
+              Tilbake
             </button>
-            <h1 className="text-2xl font-bold">Choose your industry</h1>
+            <h1 className="text-2xl font-bold">Velg bransje</h1>
             <AnimatePresence mode="wait" custom={flowDirection}>
               {pickerStep === "industries" ? (
                 <motion.div
@@ -1175,13 +1287,13 @@ export default function RequestPage() {
                     className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-[#C9A84C] transition-colors hover:text-[#dfc06a]"
                   >
                     <ArrowLeft className="h-4 w-4" />
-                    Back to industries
+                    Tilbake til bransjer
                   </button>
-                  <h2 className="text-xl font-semibold text-white">Select a Role</h2>
-                  <p className="mt-1 text-sm text-white/50">Type to search or choose from the list below</p>
+                  <h2 className="text-xl font-semibold text-white">Velg rolle</h2>
+                  <p className="mt-1 text-sm text-white/50">Søk, eller velg fra listen nedenfor</p>
                   <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
                     <div className="inline-flex items-center gap-2 rounded-full border border-[#C9A84C]/40 bg-[#C9A84C]/15 px-3 py-1 text-xs font-medium text-[#C9A84C]">
-                      <span>{selectedIndustry}</span>
+                      <span>{industryLabel(selectedIndustry)}</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -1192,7 +1304,7 @@ export default function RequestPage() {
                           setRoleQuery("");
                         }}
                         className="inline-flex items-center justify-center text-[#C9A84C]"
-                        aria-label="Clear selected industry"
+                        aria-label="Fjern valgt bransje"
                       >
                         <span className="text-sm">x</span>
                       </button>
@@ -1202,7 +1314,7 @@ export default function RequestPage() {
                       <input
                         value={roleQuery}
                         onChange={(event) => setRoleQuery(event.target.value)}
-                        placeholder="Search for a role..."
+                        placeholder="Søk etter en rolle ..."
                         className="w-full rounded-xl border border-white/10 bg-[#0D1B2A] py-3 pl-11 pr-4 text-white placeholder:text-white/55 outline-none ring-0 transition-[border,box-shadow] duration-200 focus:border-[#C9A84C]/60 focus:shadow-[0_0_0_3px_rgba(201,168,76,0.14)]"
                       />
                     </div>
@@ -1231,27 +1343,27 @@ export default function RequestPage() {
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: reduceMotion ? 0 : 0.2, delay: reduceMotion ? 0 : index * 0.03 }}
                             className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition-all duration-200 ${
-                              roleQuery.trim().toLowerCase() === role.toLowerCase()
+                              roleMatchesQueryExactly(role, roleQuery)
                                 ? "border-[#C9A84C] bg-[#C9A84C]/10 font-medium text-[#C9A84C]"
                                 : "border-white/10 bg-white/5 text-white/80 hover:border-[#C9A84C]/60 hover:bg-white/10 hover:text-white"
                             }`}
                           >
-                            <span className="block font-medium">{role}</span>
+                            <span className="block font-medium">{roleLabel(role)}</span>
                             {rc === null || rc === undefined ? (
                               <span className="mt-1 block text-xs text-white/55">...</span>
-                            ) : rc === 0 ? (
-                              <span className="mt-1 block text-xs text-white/55">Sourced on request</span>
-                            ) : (
+                            ) : isPublicCandidateCount(rc) ? (
                               <span className="mt-1 block text-xs font-medium text-[#C9A84C]/90">
-                                {candidateAvailabilityLabel(rc)}
+                                {candidateAvailabilityLabel(rc, "role")}
                               </span>
+                            ) : (
+                              <span className="mt-1 block text-xs text-white/55">{candidateAvailabilityLabel(rc, "role")}</span>
                             )}
                           </motion.button>
                         );
                       })}
                     </motion.div>
                   ) : (
-                    <p className="mt-4 text-sm text-white/55">No roles found. Try a different search.</p>
+                    <p className="mt-4 text-sm text-white/55">Fant ingen roller. Prøv et annet søk.</p>
                   )}
                 </motion.div>
               )}
@@ -1291,7 +1403,7 @@ export default function RequestPage() {
             >
               <button
                 type="button"
-                aria-label="Close"
+                aria-label="Lukk"
                 onClick={() => {
                   setPickerStep("roles");
                   setSelectedRole(null);
@@ -1309,14 +1421,14 @@ export default function RequestPage() {
               </button>
               {getStartedStep === "otp" ? (
                 <div className="mt-2 space-y-5 text-left">
-                  <h3 className="pr-10 text-2xl font-bold text-white">Enter verification code</h3>
+                  <h3 className="pr-10 text-2xl font-bold text-white">Skriv inn bekreftelseskoden</h3>
                   <p className="text-sm leading-relaxed text-white/75">
-                    We sent a 6-digit code to{" "}
-                    <span className="break-all font-medium text-[#C9A84C]">{getStartedEmail}</span>. It expires in 10
-                    minutes.
+                    Vi har sendt en 6-sifret kode til{" "}
+                    <span className="break-all font-medium text-[#C9A84C]">{getStartedEmail}</span>. Koden er gyldig i 10
+                    minutter.
                   </p>
                   <label className="block text-sm font-medium text-white/90" htmlFor="get-started-otp">
-                    Verification code
+                    Bekreftelseskode
                   </label>
                   <input
                     id="get-started-otp"
@@ -1339,7 +1451,7 @@ export default function RequestPage() {
                     disabled={otpBusy || getStartedOtp.replace(/\D/g, "").length !== 6}
                     className="inline-flex min-h-[44px] w-full items-center justify-center rounded-[4px] bg-[#C9A84C] px-6 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {otpBusy ? "Verifying…" : "Continue →"}
+                    {otpBusy ? "Bekrefter …" : "Fortsett →"}
                   </button>
                   <button
                     type="button"
@@ -1350,19 +1462,19 @@ export default function RequestPage() {
                     }}
                     className="block w-full pt-1 text-left text-[13px] text-white/60 transition-colors hover:text-white/80"
                   >
-                    ← Back to email
+                    ← Tilbake til e-post
                   </button>
                 </div>
               ) : (
                 <>
-                  <h3 className="pr-10 text-left text-2xl font-bold text-white">Get started</h3>
+                  <h3 className="pr-10 text-left text-2xl font-bold text-white">Kom i gang</h3>
                   <p className="mt-2 text-left text-sm leading-relaxed text-white/70">
-                    We will send a verification code to your work email.
+                    Vi sender en bekreftelseskode til jobb-e-posten dere oppgir.
                   </p>
-                  <p className="mt-2 text-left text-[12px] text-white/60">Selected role: {selectedRole}</p>
+                  <p className="mt-2 text-left text-[12px] text-white/60">Valgt rolle: {roleLabel(selectedRole)}</p>
                   <div className="mt-6 space-y-4 text-left">
                     <label className="block text-sm font-medium text-white/90" htmlFor="get-started-email">
-                      Work email
+                      Jobb-e-post
                     </label>
                     <input
                       id="get-started-email"
@@ -1373,7 +1485,7 @@ export default function RequestPage() {
                         setGetStartedEmail(event.target.value);
                         if (getStartedError) setGetStartedError("");
                       }}
-                      placeholder="your@company.com"
+                      placeholder="navn@bedrift.no"
                       className="h-11 w-full rounded-[4px] border border-[#0D1B2A]/30 bg-[#0D1B2A] px-3 text-sm text-white outline-none transition-colors placeholder:text-white/55 focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]"
                     />
                     <label className="flex cursor-pointer items-start gap-3 text-sm text-white/85">
@@ -1384,16 +1496,16 @@ export default function RequestPage() {
                         className="mt-1 h-4 w-4 shrink-0 rounded border-white/30 text-[#C9A84C] focus:ring-[#C9A84C]"
                       />
                       <span>
-                        I confirm that I am authorized to submit this request on
-                        behalf of my company and agree to the processing of the
-                        provided contact information in accordance with the{" "}
+                        Jeg bekrefter at jeg har fullmakt til å sende denne
+                        forespørselen på vegne av bedriften min, og samtykker til at
+                        kontaktopplysningene behandles i samsvar med{" "}
                         <a
                           href="https://arbeidmatch.no/privacy"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]"
                         >
-                          Privacy Policy
+                          personvernerklæringen
                         </a>
                         .
                       </span>
@@ -1405,7 +1517,7 @@ export default function RequestPage() {
                       disabled={getStartedSubmitting || !getStartedGdpr || !getStartedEmail.includes("@")}
                       className="inline-flex rounded-[4px] bg-[#C9A84C] px-6 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {getStartedSubmitting ? "Sending…" : "Send code"}
+                      {getStartedSubmitting ? "Sender …" : "Send kode"}
                     </button>
                     <button
                       type="button"
@@ -1422,7 +1534,7 @@ export default function RequestPage() {
                       }}
                       className="block w-full pt-1 text-left text-[13px] text-white/60 transition-colors hover:text-white/80"
                     >
-                      ← Choose different role
+                      ← Velg en annen rolle
                     </button>
                   </div>
                 </>
@@ -1446,10 +1558,10 @@ export default function RequestPage() {
                   animate="center"
                   exit={reduceMotion ? undefined : "exit"}
                 >
-                  <p className="text-center text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Choose access option</p>
-                  <h2 className="mt-3 text-center text-[24px] font-bold text-white">How would you like to continue?</h2>
+                  <p className="text-center text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Velg tilgang</p>
+                  <h2 className="mt-3 text-center text-[24px] font-bold text-white">Hvordan vil dere gå videre?</h2>
                   <p className="mt-2 text-center text-[15px] text-[rgba(255,255,255,0.55)]">
-                    Select the option that fits your hiring needs.
+                    Velg alternativet som passer rekrutteringsbehovet deres.
                   </p>
                   <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
 
@@ -1457,18 +1569,18 @@ export default function RequestPage() {
                     <article className="flex min-h-[520px] flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
                       <div className="flex flex-1 flex-col">
                         <div className="w-full">
-                          <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">7 days free</span>
+                          <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">7 dager gratis</span>
                         </div>
                         <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
                           <Clock className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                         </div>
-                        <p className="mt-4 text-[18px] font-bold text-white">Coming Soon</p>
-                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">We&apos;re building this feature. Join the waitlist.</p>
+                        <p className="mt-4 text-[18px] font-bold text-white">Kommer snart</p>
+                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">Vi bygger denne funksjonen nå. Sett dere på ventelisten.</p>
                         <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />1 candidate request</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Anonymous presentation preview</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />No contact details</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />No commitment</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />1 kandidatforespørsel</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Forhåndsvisning av anonym presentasjon</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Uten kontaktopplysninger</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Ingen binding</li>
                         </ul>
                       </div>
                       <div className="mt-6">
@@ -1477,7 +1589,7 @@ export default function RequestPage() {
                           disabled
                           className="inline-flex h-12 w-full cursor-not-allowed items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/55"
                         >
-                          Coming Soon
+                          Kommer snart
                         </button>
                       </div>
                     </article>
@@ -1485,24 +1597,24 @@ export default function RequestPage() {
                     <article className="flex min-h-[520px] flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
                       <div className="flex flex-1 flex-col">
                         <div className="w-full">
-                          <span className="inline-flex rounded-full bg-[#C9A84C] px-2.5 py-1 text-[11px] font-semibold text-[#0D1B2A]">Most Popular</span>
+                          <span className="inline-flex rounded-full bg-[#C9A84C] px-2.5 py-1 text-[11px] font-semibold text-[#0D1B2A]">Mest populær</span>
                         </div>
                         <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
                           <TrendingUp className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                         </div>
-                        <p className="mt-4 text-[18px] font-bold text-white">Professional Presentations</p>
-                        <p className="mt-1 text-sm text-white/70">Matched candidate presentations tailored to your role</p>
-                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">1,499 NOK/month</p>
+                        <p className="mt-4 text-[18px] font-bold text-white">Profesjonelle presentasjoner</p>
+                        <p className="mt-1 text-sm text-white/70">Kandidatpresentasjoner tilpasset rollen dere skal fylle</p>
+                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">{"1 499 NOK/mnd"}</p>
                         <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Presentations: 5/month</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Quick Match: 3x/month</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />2 active job posts</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority-ready delivery format</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Presentasjoner: 5 per måned</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Hurtigmatch: 3 ganger per måned</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />2 aktive stillingsannonser</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Leveranse klar for prioritering</li>
                         </ul>
                       </div>
                       <div className="mt-6">
-                        <Link href="/pricing" className="inline-flex h-12 w-full items-center justify-center rounded-[10px] bg-[linear-gradient(135deg,#C9A84C,#b8953f)] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] transition-[filter,transform] duration-200 hover:scale-[1.02] hover:brightness-105">
-                          Get Started
+                        <Link href="/contact" className="inline-flex h-12 w-full items-center justify-center rounded-[10px] bg-[linear-gradient(135deg,#C9A84C,#b8953f)] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] transition-[filter,transform] duration-200 hover:scale-[1.02] hover:brightness-105">
+                          Kom i gang
                         </Link>
                       </div>
                     </article>
@@ -1510,25 +1622,25 @@ export default function RequestPage() {
                     <article className="flex min-h-[520px] flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
                       <div className="flex flex-1 flex-col">
                         <div className="w-full">
-                          <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">Scale</span>
+                          <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">Skalering</span>
                         </div>
                         <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
                           <Bolt className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                         </div>
-                        <p className="mt-4 text-[18px] font-bold text-white">Professional Presentations Unlimited</p>
-                        <p className="mt-1 text-sm text-white/70">Unlimited matched presentations with priority processing</p>
-                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">3,999 NOK/month</p>
+                        <p className="mt-4 text-[18px] font-bold text-white">Profesjonelle presentasjoner uten grense</p>
+                        <p className="mt-1 text-sm text-white/70">Ubegrenset med kandidatpresentasjoner og prioritert behandling</p>
+                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">{"3 999 NOK/mnd"}</p>
                         <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Presentations unlimited</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority Matching</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Unlimited job posts</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Priority processing</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Quick Match unlimited</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Ubegrenset med presentasjoner</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Prioritert matching</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Ubegrenset med stillingsannonser</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Prioritert behandling</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Ubegrenset med hurtigmatch</li>
                         </ul>
                       </div>
                       <div className="mt-6">
-                        <Link href="/pricing" className="inline-flex h-12 w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
-                          Get Started
+                        <Link href="/contact" className="inline-flex h-12 w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
+                          Kom i gang
                         </Link>
                       </div>
                     </article>
@@ -1536,24 +1648,24 @@ export default function RequestPage() {
                     <article className="flex min-h-[520px] flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
                       <div className="flex flex-1 flex-col">
                         <div className="w-full">
-                          <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">For Recruitment Firms</span>
+                          <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">For rekrutteringsbyråer</span>
                         </div>
                         <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
                           <Handshake className="h-5 w-5 shrink-0 text-[#C9A84C]" />
                         </div>
-                        <p className="mt-4 text-[18px] font-bold text-white">Candidate Presentation Service</p>
-                        <p className="mt-1 text-sm text-white/70">Professional presentations with white-label sourcing</p>
-                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">Custom pricing</p>
+                        <p className="mt-4 text-[18px] font-bold text-white">Kandidatpresentasjon som tjeneste</p>
+                        <p className="mt-1 text-sm text-white/70">Profesjonelle presentasjoner og kandidatsøk under deres eget merke</p>
+                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">Pris etter avtale</p>
                         <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Access to presentation database</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Automated presentation sourcing</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Branded presentations</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Dedicated ATS dashboard</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Tilgang til presentasjonsdatabasen</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Automatisert innhenting av presentasjoner</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Presentasjoner med deres profil</li>
+                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Eget ATS-dashbord</li>
                         </ul>
                       </div>
                       <div className="mt-6">
                         <Link href="/become-a-partner" className="inline-flex h-12 w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
-                          Apply for Partnership
+                          Søk om partnerskap
                         </Link>
                       </div>
                     </article>
@@ -1573,7 +1685,7 @@ export default function RequestPage() {
                       }}
                       className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-[13px] text-[15px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]"
                     >
-                      Back
+                      Tilbake
                     </button>
                   </div>
                 </motion.div>
@@ -1589,13 +1701,13 @@ export default function RequestPage() {
                 >
                   <div className="rounded-[22px] border border-[rgba(201,168,76,0.28)] border-t-2 border-t-[rgba(201,168,76,0.55)] bg-[#0f1923] px-8 py-10 md:px-10 md:py-12">
                     <p className="text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">
-                      {selectedOption === "premium" ? "Premium subscription" : "Pay per use"}
+                      {selectedOption === "premium" ? "Premium-abonnement" : "Betal per bruk"}
                     </p>
                     <h2 className="mt-4 text-center text-[22px] font-bold leading-snug tracking-tight text-white md:text-[24px]">
-                      Get notified when this option is available
+                      Få beskjed når dette alternativet blir tilgjengelig
                     </h2>
                     <p className="mx-auto mt-3 max-w-[340px] text-center text-sm leading-relaxed text-white/50">
-                      Leave your company email. We will reach out when this access model opens.
+                      Legg igjen bedriftens e-postadresse, så tar vi kontakt når denne tilgangen åpner.
                     </p>
 
                     {notifyStatus === "success" ? (
@@ -1603,24 +1715,24 @@ export default function RequestPage() {
                         <svg viewBox="0 0 24 24" className="mx-auto h-7 w-7 text-[#C9A84C]" fill="none" aria-hidden>
                           <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        <p className="mt-[14px] text-[18px] font-bold text-white">We have got you covered.</p>
+                        <p className="mt-[14px] text-[18px] font-bold text-white">Da står dere på listen.</p>
                         <p className="mt-2 text-[14px] leading-[1.7] text-[rgba(255,255,255,0.55)]">
-                          You will be among the first to know when this launches. We are building something worth waiting for.
+                          Dere blir blant de første som får vite når dette lanseres. Vi bygger noe som er verdt å vente på.
                         </p>
                         <p className="mt-4 text-[12px] text-white/55">
-                          We will reach out directly when access becomes available.
+                          Vi tar kontakt direkte når tilgangen åpner.
                         </p>
                       </div>
                     ) : (
                       <div className="mt-8 flex flex-col gap-4">
                         <label className="block text-left text-[11px] font-semibold uppercase tracking-[0.1em] text-white/55">
-                          Work email
+                          Jobb-e-post
                         </label>
                         <input
                           type="email"
                           value={notifyEmail}
                           onChange={(event) => setNotifyEmail(event.target.value)}
-                          placeholder="yourname@company.no"
+                          placeholder="navn@bedrift.no"
                           autoComplete="email"
                           className="w-full rounded-[14px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.05)] px-5 py-4 text-[15px] text-white outline-none ring-0 transition-[border-color,background-color] placeholder:text-white/55 focus:border-[#C9A84C] focus:bg-[rgba(255,255,255,0.07)]"
                         />
@@ -1632,10 +1744,10 @@ export default function RequestPage() {
                             waitlistCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/55 cursor-not-allowed"
                           }`}
                         >
-                          {notifyStatus === "submitting" ? "Sending..." : waitlistCountdown > 0 ? `Resend in ${waitlistCountdown}s` : "Resend email"}
+                          {notifyStatus === "submitting" ? "Sender ..." : waitlistCountdown > 0 ? `Send på nytt om ${waitlistCountdown} s` : "Send e-post på nytt"}
                         </button>
                         {notifyStatus === "error" ? (
-                          <p className="text-center text-[13px] text-red-300/90">Could not save your request. Please try again.</p>
+                          <p className="text-center text-[13px] text-red-300/90">Vi kunne ikke lagre forespørselen. Prøv igjen.</p>
                         ) : null}
                       </div>
                     )}
@@ -1650,7 +1762,7 @@ export default function RequestPage() {
                       }}
                       className="mt-8 w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-[13px] text-[15px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]"
                     >
-                      Back
+                      Tilbake
                     </button>
                   </div>
                 </motion.div>
@@ -1680,7 +1792,7 @@ export default function RequestPage() {
                 e.stopPropagation();
                 setShowLeaveDialog(false);
               }}
-              aria-label="Close leave dialog"
+              aria-label="Lukk dialogen"
               className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-white/55 transition-colors hover:text-[rgba(255,255,255,0.9)]"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
@@ -1691,10 +1803,10 @@ export default function RequestPage() {
               <path d="M12 3v10m0 8h.01M5.2 20h13.6a1.2 1.2 0 0 0 1.04-1.8L13.04 5.4a1.2 1.2 0 0 0-2.08 0L4.16 18.2A1.2 1.2 0 0 0 5.2 20Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <p id="request-leave-title" className="mt-4 text-center text-[20px] font-bold text-white">
-              Leave current search?
+              Vil dere avslutte søket?
             </p>
             <p className="mt-2 text-center text-sm leading-[1.6] text-[rgba(255,255,255,0.55)]">
-              You are in the middle of a candidate request. If you leave now, your progress will be lost.
+              Dere er midt i en kandidatforespørsel. Hvis dere går nå, forsvinner det dere har fylt ut.
             </p>
             <div className="mt-7 flex flex-col gap-[10px]">
               <button
@@ -1705,7 +1817,7 @@ export default function RequestPage() {
                 }}
                 className="result-cta-primary w-full rounded-[12px] px-4 py-[14px] text-[15px] font-bold text-[#0D1B2A]"
               >
-                Continue searching
+                Fortsett søket
               </button>
               <button
                 type="button"
@@ -1725,7 +1837,7 @@ export default function RequestPage() {
                 }}
                 className="w-full rounded-[12px] border border-[rgba(201,168,76,0.25)] bg-transparent px-4 py-[14px] text-[15px] text-[rgba(255,255,255,0.7)]"
               >
-                End search
+                Avslutt søket
               </button>
             </div>
           </div>
@@ -1760,7 +1872,7 @@ export default function RequestPage() {
                 setPartnerModalView("not_found");
                 setAccessErrorMessage("");
               }}
-              aria-label="Close partner verification modal"
+              aria-label="Lukk partnerverifiseringen"
               className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-white/55 transition-colors hover:text-[rgba(255,255,255,0.9)]"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
@@ -1769,13 +1881,13 @@ export default function RequestPage() {
             </button>
 
             <p id="partner-verify-title" className="mt-1 text-center text-2xl font-bold text-white">
-              Partner access
+              Partnertilgang
             </p>
             <p className="mt-2 text-center text-sm leading-relaxed text-white/60">
               {accessStatus === "idle" || accessStatus === "submitting"
                 ? partnerOtpStep === "otp"
-                  ? "Enter the 6-digit code we sent to your email."
-                  : "Enter your registered partner email to continue."
+                  ? "Skriv inn den 6-sifrede koden vi sendte på e-post."
+                  : "Skriv inn e-postadressen som er registrert som partner, for å fortsette."
                 : null}
             </p>
 
@@ -1786,13 +1898,13 @@ export default function RequestPage() {
                   <path className="shield-check" d="m24 33 6 6 11-12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <p className="mt-5 text-[17px] font-bold text-white">
-                  Checking partner access
+                  Sjekker partnertilgang
                   <span className="dot dot-1">.</span>
                   <span className="dot dot-2">.</span>
                   <span className="dot dot-3">.</span>
                 </p>
                 <p className="mt-2 text-[13px] leading-[1.6] text-white/60">
-                  We are verifying your company against our partner registry.
+                  Vi sjekker bedriften deres mot partnerregisteret vårt.
                 </p>
                 <div className="mt-6 h-[2px] w-full rounded-full bg-[rgba(255,255,255,0.08)]">
                   <div className="loading-progress-fill h-full rounded-full bg-[#C9A84C]" />
@@ -1801,7 +1913,7 @@ export default function RequestPage() {
             ) : accessStatus === "partner" && partnerOtpStep === "otp" ? (
               <div className="mt-6 space-y-4">
                 <p className="text-center text-sm text-white/70">
-                  Code sent to{" "}
+                  Koden er sendt til{" "}
                   <span className="font-medium text-[#C9A84C]">{accessEmail}</span>
                   {companyName ? (
                     <>
@@ -1831,7 +1943,7 @@ export default function RequestPage() {
                     disabled={otpBusy || partnerOtp.replace(/\D/g, "").length !== 6}
                     className="w-full rounded-[12px] bg-[#C9A84C] px-5 py-3 text-sm font-bold text-[#0D1B2A] disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {otpBusy ? "Verifying…" : "Continue →"}
+                    {otpBusy ? "Bekrefter …" : "Fortsett →"}
                   </button>
                 </form>
                 <button
@@ -1844,7 +1956,7 @@ export default function RequestPage() {
                   }}
                   className="w-full text-center text-xs text-white/50 hover:text-white/75"
                 >
-                  ← Use a different email
+                  ← Bruk en annen e-postadresse
                 </button>
               </div>
             ) : accessStatus === "error" || accessStatus === "non_partner" ? (
@@ -1853,9 +1965,9 @@ export default function RequestPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4 text-center"
               >
-                <p className="mb-1 font-semibold text-white">Hmm, we couldn&apos;t place you.</p>
+                <p className="mb-1 font-semibold text-white">Vi fant ikke denne e-postadressen.</p>
                 <p className="mb-4 text-sm text-white/50">
-                  This email wasn&apos;t recognised as a partner account. You may have a typo - or you&apos;re not yet in our network.
+                  Adressen er ikke registrert som partnerkonto. Kanskje det er en skrivefeil, eller så er dere ikke i nettverket vårt ennå.
                 </p>
                 <div className="flex flex-col gap-2">
                   <button
@@ -1863,7 +1975,7 @@ export default function RequestPage() {
                     onClick={resetEmail}
                     className="w-full rounded-xl border border-white/10 bg-white/10 py-2 text-sm text-white hover:bg-white/20"
                   >
-                    ← Try a different email
+                    ← Prøv en annen e-postadresse
                   </button>
                   <button
                     type="button"
@@ -1880,13 +1992,13 @@ export default function RequestPage() {
                     }}
                     className="w-full rounded-xl border border-[#C9A84C]/45 py-2 text-sm font-semibold text-[#C9A84C] hover:bg-[#C9A84C]/10"
                   >
-                    I&apos;m new
+                    Vi er nye
                   </button>
                   <a
                     href="/recruiter-network"
                     className="w-full rounded-xl bg-[#C9A84C] py-2 text-center text-sm font-semibold text-[#0D1B2A]"
                   >
-                    Join the Recruiter Network
+                    Bli med i rekrutterernettverket
                   </a>
                 </div>
               </motion.div>
@@ -1897,7 +2009,7 @@ export default function RequestPage() {
                     type="email"
                     value={accessEmail}
                     onChange={(event) => setAccessEmail(event.target.value)}
-                    placeholder="your@company.com"
+                    placeholder="navn@bedrift.no"
                     className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
                   />
                   {otpError && partnerOtpStep === "email" ? (
@@ -1912,11 +2024,11 @@ export default function RequestPage() {
                         : "cursor-not-allowed bg-white/10 text-white/55"
                     }`}
                   >
-                    {verifyCountdown > 0 ? `Resend in ${verifyCountdown}s` : "Send code →"}
+                    {verifyCountdown > 0 ? `Send på nytt om ${verifyCountdown} s` : "Send kode →"}
                   </button>
                 </form>
                 <p className="text-center text-xs leading-relaxed text-white/60">
-                  Not yet a partner? Apply at{" "}
+                  Ikke partner ennå? Søk på{" "}
                   <a
                     href="https://www.arbeidmatch.no/recruiter-network"
                     target="_blank"
@@ -1951,7 +2063,7 @@ export default function RequestPage() {
                 e.stopPropagation();
                 setShowPartnerApplicationModal(false);
               }}
-              aria-label="Close partner application modal"
+              aria-label="Lukk partnersøknaden"
               className="absolute right-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-white/55 transition-colors hover:text-[rgba(255,255,255,0.9)]"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
@@ -1964,36 +2076,36 @@ export default function RequestPage() {
                 <svg className="mx-auto h-7 w-7 text-[#C9A84C]" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <p className="mt-4 text-[20px] font-bold text-white">Check your inbox</p>
+                <p className="mt-4 text-[20px] font-bold text-white">Sjekk innboksen</p>
                 <p className="mt-2 text-[14px] leading-[1.6] text-[rgba(255,255,255,0.55)]">
-                  We sent a link to complete your application.
+                  Vi har sendt en lenke der dere kan fullføre søknaden.
                 </p>
                 <p className="mt-2 text-[13px] leading-[1.6] text-white/60">{partnerApplicationEmail}</p>
-                <p className="mt-4 text-[12px] text-white/55">Emails may take up to 5 minutes.</p>
+                <p className="mt-4 text-[12px] text-white/55">Det kan ta opptil 5 minutter før e-posten kommer frem.</p>
               </div>
             ) : (
               <>
                 <svg viewBox="0 0 24 24" className="mx-auto h-7 w-7 text-[#C9A84C]" fill="none" aria-hidden>
                   <path d="M3 20h18M5.5 20V8.5L12 4l6.5 4.5V20M9 20v-4h6v4M9 10h.01M15 10h.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <p className="mt-[14px] text-center text-[20px] font-bold text-white">Partner Application</p>
+                <p className="mt-[14px] text-center text-[20px] font-bold text-white">Partnersøknad</p>
                 <p className="mt-2 text-center text-[14px] leading-[1.6] text-[rgba(255,255,255,0.55)]">
-                  Enter your company email to get started. Personal email addresses will not be accepted.
+                  Oppgi bedriftens e-postadresse for å komme i gang. Private e-postadresser godtas ikke.
                 </p>
                 <form onSubmit={startPartnerApplication} className="mt-5">
                   <input
                     type="email"
                     value={partnerApplicationEmail}
                     onChange={(event) => setPartnerApplicationEmail(event.target.value)}
-                    placeholder="you@company.no"
+                    placeholder="navn@bedrift.no"
                     className="w-full rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] px-[18px] py-[14px] text-[15px] text-white placeholder:text-white/55 focus:border-[rgba(201,168,76,0.6)] focus:outline-none"
                   />
                   {partnerApplicationError ? (
                     <div className="mt-3">
                       <p className="text-[13px] text-red-300">{partnerApplicationError}</p>
-                      {partnerApplicationError === "Please use your company email address." ? (
+                      {partnerApplicationError === COMPANY_EMAIL_REQUIRED_MESSAGE ? (
                         <a href="/contact" className="text-[#C9A84C] text-xs hover:underline mt-1 inline-block">
-                          Need help? Contact us →
+                          Trenger dere hjelp? Kontakt oss →
                         </a>
                       ) : null}
                     </div>
@@ -2006,10 +2118,10 @@ export default function RequestPage() {
                     }`}
                   >
                     {partnerApplicationStatus === "submitting"
-                      ? "Sending..."
+                      ? "Sender ..."
                       : partnerApplicationCountdown > 0
-                        ? `Resend in ${partnerApplicationCountdown}s`
-                        : "Resend email"}
+                        ? `Send på nytt om ${partnerApplicationCountdown} s`
+                        : "Send e-post på nytt"}
                   </button>
                 </form>
               </>
@@ -2018,7 +2130,7 @@ export default function RequestPage() {
         </>
       )}
 
-      {/* Privacy Policy Modal */}
+      {/* Privacy notice modal */}
       <AnimatePresence>
         {showPrivacyModal && (
           <motion.div
@@ -2038,10 +2150,10 @@ export default function RequestPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-                <h3 className="text-lg font-bold text-white">Privacy Policy</h3>
+                <h3 className="text-lg font-bold text-white">Personvernerklæring</h3>
                 <button
                   type="button"
-                  aria-label="Close"
+                  aria-label="Lukk"
                   onClick={() => setShowPrivacyModal(false)}
                   className="flex h-8 w-8 items-center justify-center rounded-md text-white/50 transition-colors hover:bg-white/10 hover:text-white"
                 >
@@ -2060,22 +2172,22 @@ export default function RequestPage() {
                 ) : (
                   <div className="space-y-4 text-sm leading-relaxed text-white/80">
                     <p>
-                      <strong className="text-white">Data Controller:</strong> ArbeidMatch Norge AS, Org.nr 932 953 728
+                      <strong className="text-white">Behandlingsansvarlig:</strong> ArbeidMatch Norge AS, org.nr. 932 953 728
                     </p>
                     <p>
-                      We collect and process personal data (name, email, CV, work history) to match candidates with employers and facilitate recruitment services in Norway.
+                      Vi samler inn og behandler personopplysninger (navn, e-post, CV og arbeidserfaring) for å matche kandidater med arbeidsgivere og levere rekrutteringstjenester i Norge.
                     </p>
                     <p>
-                      <strong className="text-white">Legal Basis:</strong> Consent (GDPR Art. 6(1)(a)) and legitimate interest for recruitment matching.
+                      <strong className="text-white">Behandlingsgrunnlag:</strong> Samtykke (GDPR art. 6 nr. 1 bokstav a) og berettiget interesse for rekrutteringsmatching.
                     </p>
                     <p>
-                      <strong className="text-white">Your Rights:</strong> Access, rectification, erasure, data portability, and withdrawal of consent at any time.
+                      <strong className="text-white">Dine rettigheter:</strong> Innsyn, retting, sletting, dataportabilitet og tilbaketrekking av samtykke når som helst.
                     </p>
                     <p>
-                      <strong className="text-white">Retention:</strong> Data is retained for the duration of active recruitment and up to 2 years after last activity, unless you request deletion.
+                      <strong className="text-white">Lagring:</strong> Opplysningene lagres så lenge rekrutteringen pågår og inntil 2 år etter siste aktivitet, med mindre du ber om sletting.
                     </p>
                     <p>
-                      <strong className="text-white">Contact:</strong> post@arbeidmatch.no
+                      <strong className="text-white">Kontakt:</strong> post@arbeidmatch.no
                     </p>
                     <p className="pt-2">
                       <Link
@@ -2083,7 +2195,7 @@ export default function RequestPage() {
                         target="_blank"
                         className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]"
                       >
-                        Read full Privacy Policy →
+                        Les hele personvernerklæringen →
                       </Link>
                     </p>
                   </div>
@@ -2095,7 +2207,7 @@ export default function RequestPage() {
                   onClick={() => setShowPrivacyModal(false)}
                   className="inline-flex rounded-[4px] bg-[#C9A84C] px-6 py-2 text-sm font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95"
                 >
-                  Close
+                  Lukk
                 </button>
               </div>
             </motion.div>

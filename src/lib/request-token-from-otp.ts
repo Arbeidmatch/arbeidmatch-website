@@ -53,17 +53,25 @@ export async function findOrCreateRequestToken(
 
   const token = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-  const company =
-    input.flow === "partner"
-      ? (input.partnerCompanyName?.trim() || "Partner company")
-      : "To be completed";
+  /**
+   * Only what we actually know goes into the row; the rest stays empty.
+   *
+   * These columns used to be filled with placeholders ("To be completed",
+   * "Employer Request", "000000", "Partner Contact", "N/A") because they are
+   * NOT NULL. The wizard prefilled its answers from them and skipped the step
+   * that asks, so on 13 September 2026 a client was thanked as "To be
+   * completed" and the page said "Thank you, Employer Request!". An empty
+   * string satisfies NOT NULL and makes the wizard ask (see
+   * src/lib/request-contact-placeholders.ts).
+   */
+  const company = input.flow === "partner" ? input.partnerCompanyName?.trim() || "" : "";
 
   const row: Record<string, unknown> = {
     token,
-    full_name: input.flow === "partner" ? "Partner Contact" : "Employer Request",
+    full_name: "",
     company,
     email,
-    phone: input.flow === "partner" ? "N/A" : "000000",
+    phone: "",
     org_number: input.partnerOrgNumber?.trim() || null,
     job_summary: input.role?.trim() || "General hiring inquiry",
     gdpr_consent: input.gdprConsent,

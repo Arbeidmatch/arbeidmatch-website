@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     const rate = getRateLimitResult(request, "request-otp", 12, 10 * 60 * 1000);
     if (rate.limited) {
       return noStoreJson(
-        { success: false, error: "Too many requests. Please try again later.", code: "rate_limited" },
+        { success: false, error: "For mange forespørsler. Prøv igjen senere.", code: "rate_limited" },
         { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
       );
     }
@@ -95,12 +95,12 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdminClient();
     if (!supabase) {
-      return noStoreJson({ success: false, error: "Service unavailable." }, { status: 500 });
+      return noStoreJson({ success: false, error: "Tjenesten er ikke tilgjengelig akkurat nå." }, { status: 500 });
     }
 
     const email = normalizeRequestEmail(parsed.data.email);
     if (!isValidRequestEmail(email)) {
-      return noStoreJson({ success: false, error: "Valid email is required." }, { status: 400 });
+      return noStoreJson({ success: false, error: "Skriv inn en gyldig e-postadresse." }, { status: 400 });
     }
 
     const flow = parsed.data.flow;
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     if (flow === "new_company" && parsed.data.gdprConsent !== true) {
       return noStoreJson(
-        { success: false, error: "Privacy consent is required.", code: "gdpr_required" },
+        { success: false, error: "Du må godta personvernerklæringen.", code: "gdpr_required" },
         { status: 400 },
       );
     }
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       const partner = await fetchPartnerVerifyByEmail(email);
       if (!partner.found) {
         return noStoreJson(
-          { success: false, error: "Email not recognized as a partner.", code: "partner_not_found" },
+          { success: false, error: "E-postadressen er ikke registrert som partner.", code: "partner_not_found" },
           { status: 403 },
         );
       }
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
       return noStoreJson(
         {
           success: false,
-          error: "Too many verification codes sent. Please try again in about an hour.",
+          error: "For mange koder er sendt. Prøv igjen om omtrent en time.",
           code: "send_limit",
         },
         { status: 429 },
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
         return noStoreJson(
           {
             success: false,
-            error: `Please wait ${retryAfterSeconds}s before requesting a new code.`,
+            error: `Vent ${retryAfterSeconds} sekunder før du ber om en ny kode.`,
             code: "cooldown",
             retryAfterSeconds,
           },
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
     const otpCode = generateOtpCode();
     const otpHash = hashOtpCode(otpCode);
     if (!otpHash) {
-      return noStoreJson({ success: false, error: "Service unavailable." }, { status: 500 });
+      return noStoreJson({ success: false, error: "Tjenesten er ikke tilgjengelig akkurat nå." }, { status: 500 });
     }
 
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MS).toISOString();
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
 
     const transporter = createSmtpTransporter();
     if (!transporter) {
-      return noStoreJson({ success: false, error: "Email service unavailable." }, { status: 503 });
+      return noStoreJson({ success: false, error: "E-posttjenesten er ikke tilgjengelig akkurat nå." }, { status: 503 });
     }
 
     try {
@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
       logApiError("request-otp/mail", mailError);
       await supabase.from("request_access_otps").delete().eq("verification_id", verificationId);
       return noStoreJson(
-        { success: false, error: "Could not send verification code. Please try again." },
+        { success: false, error: "Vi kunne ikke sende koden. Prøv igjen." },
         { status: 502 },
       );
     }
@@ -231,6 +231,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logApiError("request-otp", error);
     await notifyError({ route: "/api/request-otp", error });
-    return noStoreJson({ success: false, error: "Could not send verification code." }, { status: 500 });
+    return noStoreJson({ success: false, error: "Vi kunne ikke sende koden." }, { status: 500 });
   }
 }

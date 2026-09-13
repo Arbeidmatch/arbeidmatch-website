@@ -7,7 +7,7 @@ import { isOrderToken } from "@/lib/job-ads/types";
 
 /** A client's own order: reachable only by its long token, never indexed. */
 export const metadata: Metadata = {
-  title: "Stillingsannonse | ArbeidMatch",
+  title: { absolute: "Stillingsannonse | ArbeidMatch" },
   robots: { index: false, follow: false },
 };
 

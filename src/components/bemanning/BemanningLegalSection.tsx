@@ -6,17 +6,17 @@ export default function BemanningLegalSection() {
       aria-labelledby="bemanning-innleie-heading"
     >
       <h2 id="bemanning-innleie-heading" className="text-lg font-semibold text-navy md:text-base md:font-bold md:text-white">
-        Before we place anyone with you
+        Før vi plasserer noen hos dere
       </h2>
       <p className="mt-3 text-sm leading-relaxed text-text-secondary md:text-[14px] md:leading-[1.7] md:text-[rgba(255,255,255,0.75)]">
-        Hiring in from a staffing agency is not open-ended in Norway, and what is allowed depends on your situation, your
-        trade and where the work happens. We go through that with you before anyone starts, agree the basis in writing, and
-        keep it on the assignment together with the contract, the pay terms and the registered hours. That is the file you
-        want to have ready if you are ever asked about it.
+        Innleie fra bemanningsforetak er ikke fritt i Norge, og hva som er tillatt, avhenger av situasjonen deres, faget
+        og hvor arbeidet utføres. Vi går gjennom dette med dere før noen begynner, avtaler grunnlaget skriftlig og
+        oppbevarer det på oppdraget sammen med kontrakten, lønnsvilkårene og de registrerte timene. Det er dokumentasjonen
+        dere vil ha klar hvis dere noen gang blir spurt om det.
       </p>
       <p className="mt-3 text-sm leading-relaxed text-text-secondary md:text-[13px] md:leading-[1.7] md:text-[rgba(255,255,255,0.55)]">
-        We are recruiters, not lawyers, so we do not interpret the rules for you. They are published by Arbeidstilsynet, and
-        for anything binding you should use them or your own legal adviser.
+        Vi er rekrutterere, ikke jurister, så vi tolker ikke regelverket for dere. Reglene publiseres av Arbeidstilsynet,
+        og for alt som er bindende, bør dere bruke dem eller deres egen juridiske rådgiver.
       </p>
       <p className="mt-4">
         <a
@@ -25,7 +25,7 @@ export default function BemanningLegalSection() {
           rel="noopener noreferrer"
           className="inline-flex min-h-[44px] min-w-[44px] items-center text-sm font-medium text-gold underline-offset-4 hover:underline md:text-[#C9A84C] md:underline"
         >
-          Read the regulations at Arbeidstilsynet.no
+          Les regelverket hos Arbeidstilsynet.no
         </a>
       </p>
     </section>

@@ -2,26 +2,44 @@ import Link from "next/link";
 import ScrollReveal from "@/components/ScrollReveal";
 
 type Variant = "employers" | "candidates";
+type Lang = "en" | "nb";
 
-const CONFIG: Record<
-  Variant,
-  { links: readonly { href: string; label: string; external?: boolean }[] }
-> = {
+type CrossLink = { href: string; label: string; labelNb: string; external?: boolean };
+
+const LEAD: Record<Lang, string> = {
+  en: "Looking for something else?",
+  nb: "Ser dere etter noe annet?",
+};
+
+const CONFIG: Record<Variant, { links: readonly CrossLink[] }> = {
   employers: {
     links: [
-      { href: "/for-candidates", label: "See what candidates receive" },
-      { href: "/electricians-norway", label: "Looking for electricians in Norway?" },
+      { href: "/for-candidates", label: "See what candidates receive", labelNb: "Se hva kandidatene får" },
+      {
+        href: "/electricians-norway",
+        label: "Looking for electricians in Norway?",
+        labelNb: "Ser dere etter elektrikere i Norge?",
+      },
     ],
   },
   candidates: {
     links: [
-      { href: "/for-employers", label: "See how this works for employers" },
-      { href: "https://jobs.arbeidmatch.no", label: "Browse open jobs", external: true },
+      {
+        href: "/for-employers",
+        label: "See how this works for employers",
+        labelNb: "Se hvordan dette fungerer for arbeidsgivere",
+      },
+      {
+        href: "https://jobs.arbeidmatch.no",
+        label: "Browse open jobs",
+        labelNb: "Se ledige stillinger",
+        external: true,
+      },
     ],
   },
 };
 
-export default function PreFooterCrossLinks({ variant }: { variant: Variant }) {
+export default function PreFooterCrossLinks({ variant, lang = "en" }: { variant: Variant; lang?: Lang }) {
   const { links } = CONFIG[variant];
 
   return (
@@ -29,7 +47,7 @@ export default function PreFooterCrossLinks({ variant }: { variant: Variant }) {
       <div className="mx-auto w-full max-w-content px-4 text-center md:px-6">
         <ScrollReveal variant="fadeUp">
           <p className="text-[12px] leading-relaxed text-[#888]">
-            Looking for something else?{" "}
+            {LEAD[lang]}{" "}
             {links.map((link, i) => (
               <span key={link.href}>
                 {i > 0 ? <span className="text-[#888]"> · </span> : null}
@@ -40,14 +58,14 @@ export default function PreFooterCrossLinks({ variant }: { variant: Variant }) {
                     rel="noopener noreferrer"
                     className="text-[#B8860B]/80 underline-offset-2 transition-colors duration-200 hover:text-[#B8860B] hover:underline"
                   >
-                    {link.label}
+                    {lang === "nb" ? link.labelNb : link.label}
                   </a>
                 ) : (
                   <Link
                     href={link.href}
                     className="text-[#B8860B]/80 underline-offset-2 transition-colors duration-200 hover:text-[#B8860B] hover:underline"
                   >
-                    {link.label}
+                    {lang === "nb" ? link.labelNb : link.label}
                   </Link>
                 )}
               </span>

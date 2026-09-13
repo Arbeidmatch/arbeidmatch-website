@@ -9,6 +9,8 @@ import NavigationProgressBar from "@/components/NavigationProgressBar";
 import CookieConsent from "@/components/CookieConsent";
 import { TrafficBeacon } from "@/components/TrafficBeacon";
 import HomeJsonLd from "@/components/seo/HomeJsonLd";
+import HtmlLang from "@/components/HtmlLang";
+import { pageLangInlineScript } from "@/lib/pageLang";
 
 const DeferredAppOverlays = dynamic(() => import("@/components/client/DeferredAppOverlays"), { loading: () => null });
 
@@ -90,8 +92,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nb" className={`h-full overflow-x-hidden antialiased ${fontSans.variable}`}>
+    // "en" as rendered, corrected per page before first paint: most pages are
+    // English and the employer side is Norwegian. See src/lib/pageLang.ts.
+    // suppressHydrationWarning: the head script changes `lang` before React hydrates.
+    <html lang="en" suppressHydrationWarning className={`h-full overflow-x-hidden antialiased ${fontSans.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: pageLangInlineScript() }} />
+      </head>
       <body className="flex min-h-full flex-col overflow-x-hidden bg-[#0D1B2A] font-sans text-white">
+        <HtmlLang />
         <NavigationProgressBar />
         <ScrollProgressBar />
         <Navbar />

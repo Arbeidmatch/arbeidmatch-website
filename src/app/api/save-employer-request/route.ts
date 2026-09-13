@@ -5,17 +5,21 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { getRateLimitResult, hasHoneypotValue, noStoreJson } from "@/lib/apiSecurity";
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
+import { realContactValue } from "@/lib/request-contact-placeholders";
 
 const requestSchema = z
   .object({
     token: z.string().uuid(),
-    company: z.string().trim().min(2).max(160),
+    // A real answer, never one of the placeholders old tokens carried ("To be
+    // completed", "Employer Request", "000000"): a request saved with them
+    // thanked the client by a placeholder. See request-contact-placeholders.ts.
+    company: z.string().trim().min(2).max(160).refine((v) => realContactValue(v) !== "", "company is required"),
     orgNumber: z.string().trim().max(40).optional().or(z.literal("")),
     email: z.string().trim().email().max(200),
-    full_name: z.string().trim().min(2).max(120),
+    full_name: z.string().trim().min(2).max(120).refine((v) => realContactValue(v) !== "", "full_name is required"),
     phonePrefix: z.string().trim().max(8).optional().or(z.literal("")),
     phoneNumber: z.string().trim().max(40).optional().or(z.literal("")),
-    phone: z.string().trim().min(6).max(40),
+    phone: z.string().trim().min(6).max(40).refine((v) => realContactValue(v) !== "", "phone is required"),
     job_summary: z.string().trim().max(1000).optional().or(z.literal("")),
     hiringType: z.string().trim().min(1).max(180),
     adContactName: z.string().trim().max(120).optional().or(z.literal("")),

@@ -40,7 +40,7 @@ const DESCRIPTION =
   "Every open position: carpenters, bricklayers, concrete workers, car mechanics, welders and DSB-certified electricians. EU or EEA passport required, trade certificate or documented equivalent experience.";
 
 export const metadata: Metadata = {
-  title: TITLE,
+  title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: { canonical: "https://www.arbeidmatch.no/jobs" },
   openGraph: { title: TITLE, description: DESCRIPTION, url: "https://www.arbeidmatch.no/jobs", locale: "en_US" },

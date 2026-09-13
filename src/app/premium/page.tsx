@@ -6,7 +6,7 @@ import PremiumLandingPage from "@/components/premium/PremiumLandingPage";
 const canonical = "https://www.arbeidmatch.no/premium";
 
 export const metadata: Metadata = {
-  title: "ArbeidMatch Premium | Guides for EU/EEA Workers and Employers in Norway",
+  title: { absolute: "ArbeidMatch Premium | Guides for EU/EEA Workers and Employers in Norway" },
   description:
     "ArbeidMatch Premium is coming soon. Register to be notified at launch and receive an exclusive early access offer.",
   alternates: { canonical },

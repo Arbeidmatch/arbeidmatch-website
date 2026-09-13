@@ -10,11 +10,29 @@ import ForEmployersExtendedServices from "@/components/for-employers/ForEmployer
 import OurServicesSection from "@/components/for-employers/OurServicesSection";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 
+const TITLE = "Arbeidskraft fra EU/EØS til norske bedrifter | ArbeidMatch";
+const DESCRIPTION =
+  "Forhåndskontrollerte fagfolk fra EU/EØS til bygg og anlegg, logistikk og industri i Norge. Send en bemanningsforespørsel til ArbeidMatch.";
+
 export const metadata: Metadata = {
   alternates: { canonical: "/for-employers" },
-  title: "Hire EU/EEA Workers in Norway | ArbeidMatch",
-  description:
-    "Get pre-screened EU/EEA professionals for construction, logistics, and industry in Norway. Submit your staffing request to ArbeidMatch.",
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    locale: "nb_NO",
+    siteName: "ArbeidMatch",
+    type: "website",
+    url: "/for-employers",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "ArbeidMatch | Rekruttering fra EU/EØS til Norge" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["/og-image.png"],
+  },
 };
 
 export default function ForEmployersPage() {
@@ -24,17 +42,17 @@ export default function ForEmployersPage() {
         <div className="mx-auto w-full max-w-content px-6 text-center md:px-12 lg:px-20">
           <StaggerHero className="flex flex-col items-center">
             <h1 className="heading-premium-xl font-display text-4xl text-white md:text-5xl">
-              Qualified EU/EEA workforce for Norwegian businesses
+              Kvalifisert arbeidskraft fra EU/EØS for norske bedrifter
             </h1>
             <p className="subtitle-premium mx-auto mt-5 max-w-2xl text-lg text-white/70">
-              We help employers in construction, logistics and industry secure reliable workers quickly, legally and with
-              full support.
+              Vi hjelper arbeidsgivere innen bygg og anlegg, logistikk og industri med å sikre seg pålitelige
+              arbeidstakere raskt, lovlig og med full oppfølging.
             </p>
             <Link
               href="/request"
               className="btn-gold-premium mt-8 inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md bg-gold px-8 py-3 font-medium text-[#0D1B2A] hover:bg-gold-hover sm:mx-auto sm:w-auto sm:max-w-none"
             >
-              Request candidates
+              Be om kandidater
             </Link>
             <Link
               href="/annonse/ny"
@@ -64,16 +82,16 @@ export default function ForEmployersPage() {
         <WeldingSpecialistsCard />
       </section>
 
-      <Testimonials />
+      <Testimonials lang="nb" />
 
       <section className="mesh-cta-wrap bg-navy py-12 text-center md:py-16 lg:py-[100px]">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <h2 className="am-h2 heading-premium-xl font-extrabold text-white">Need workers now?</h2>
+            <h2 className="am-h2 heading-premium-xl font-extrabold text-white">Trenger dere folk nå?</h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
             <p className="mx-auto mt-4 max-w-2xl text-white/70">
-              Send your staffing request and our team will start sourcing immediately.
+              Send oss en bemanningsforespørsel, så begynner teamet vårt å lete etter kandidater med en gang.
             </p>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
@@ -81,13 +99,13 @@ export default function ForEmployersPage() {
               href="/request"
               className="btn-gold-premium mt-8 inline-flex min-h-[48px] w-full max-w-md items-center justify-center rounded-md bg-gold px-8 py-3 font-medium text-[#0D1B2A] hover:bg-gold-hover sm:mx-auto sm:w-auto sm:max-w-none"
             >
-              Request candidates
+              Be om kandidater
             </Link>
           </ScrollReveal>
         </div>
       </section>
 
-      <PreFooterCrossLinks variant="employers" />
+      <PreFooterCrossLinks variant="employers" lang="nb" />
     </div>
   );
 }
