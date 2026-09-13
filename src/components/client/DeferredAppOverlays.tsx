@@ -12,7 +12,7 @@ const MonetizationOverlays = dynamic(() => import("@/components/monetization/Mon
 /** Below-the-fold / client-only overlays - loaded without SSR (smaller initial HTML). */
 export default function DeferredAppOverlays() {
   const pathname = usePathname() ?? "";
-  if (pathname.startsWith("/flislegger")) return null;
+  if (pathname === "/" || pathname === "/no" || pathname.startsWith("/flislegger")) return null;
 
   return (
     <>

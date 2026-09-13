@@ -25,10 +25,12 @@ export function JobSearchBar({
   locations,
   resultsCount,
   labels,
+  compact = false,
 }: {
   locations: LocationCount[];
   /** What the board currently holds, so the register row knows demand against supply. */
   resultsCount: number;
+  compact?: boolean;
   labels: {
     role: string;
     rolePlaceholder: string;
@@ -70,9 +72,9 @@ export function JobSearchBar({
   return (
     <form
       onSubmit={onSubmit}
-      className="mt-8 flex max-w-3xl flex-wrap overflow-hidden rounded border border-gold/40 shadow-lg"
+      className={`mt-4 max-w-3xl overflow-hidden rounded-lg border border-gold/40 shadow-lg md:mt-6 ${compact ? "grid grid-cols-2 md:flex" : "flex flex-wrap"}`}
     >
-      <label className="min-w-[150px] flex-[1.2] border-r border-border bg-white px-4 py-3 text-left">
+      <label className="min-w-0 flex-[1.2] border-r border-border bg-white px-4 py-3 text-left focus-within:ring-2 focus-within:ring-inset focus-within:ring-gold">
         <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-gold-ink">{labels.role}</span>
         <input
           name="role"
@@ -83,7 +85,7 @@ export function JobSearchBar({
         />
       </label>
 
-      <label className="min-w-[140px] flex-[0.8] border-r border-border bg-white px-4 py-3 text-left">
+      <label className="min-w-0 flex-1 border-r border-border bg-white px-4 py-3 text-left focus-within:ring-2 focus-within:ring-inset focus-within:ring-gold">
         <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-gold-ink">{labels.where}</span>
         <select
           name="where"
@@ -102,7 +104,7 @@ export function JobSearchBar({
         </select>
       </label>
 
-      <label className="min-w-[140px] flex-[0.9] border-r border-border bg-white px-4 py-3 text-left">
+      {!compact && <label className="min-w-[140px] flex-[0.9] border-r border-border bg-white px-4 py-3 text-left">
         <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-gold-ink">{labels.company}</span>
         <input
           name="company"
@@ -111,11 +113,11 @@ export function JobSearchBar({
           placeholder={labels.companyPlaceholder}
           className="mt-1 w-full bg-transparent text-[15px] text-navy outline-none placeholder:text-text-secondary"
         />
-      </label>
+      </label>}
 
       <button
         type="submit"
-        className="bg-gold px-8 py-3 text-sm font-bold text-navy transition hover:bg-gold-hover"
+        className="col-span-2 min-h-12 bg-gold px-8 py-3 text-sm font-bold text-navy transition hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
       >
         {labels.search}
       </button>

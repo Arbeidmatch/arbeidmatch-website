@@ -1,88 +1,32 @@
-"use client";
-
 import Link from "next/link";
-
 import { CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
 
-/**
- * The two doors, and where each one lands.
- *
- * This site keeps no accounts of its own. The candidate's account lives in the
- * ATS, and the two constants in lib/candidatePortal are the only place either
- * address is written down, so a door here cannot fall out of step with the
- * navbar, the drawer or /employees.
- *
- * Create profile opened the candidate login. Right host, wrong page: a man who
- * has no profile yet needs the place where one is made, not a password box.
- *
- * It is a client component because pressing a service is also what tells the
- * leaving panel which conversation the visitor was in - somebody reading about
- * staffing should not be offered a job alert on the way out.
- */
-
-function rememberService(service: "recruitment" | "staffing" | "job_ad") {
-  try {
-    sessionStorage.setItem("am_last_service", service);
-  } catch {
-    // Without it the leaving panel simply does not appear, which is the right
-    // failure: a generic panel is an advertisement, not help.
-  }
-}
-
-export function ForsidenDoors() {
-  return (
-    <div className="grid border-t border-border md:grid-cols-2">
-      {/* The person looking for work. One profile, and we call. */}
-      <div className="border-b border-border p-8 md:border-b-0 md:border-r">
-        <h3 className="text-2xl font-bold text-navy">Looking for work?</h3>
-        <p className="mt-2 max-w-md text-sm text-text-secondary">
-          Make one profile. We call you when something fits your trade, so you stop sending the same CV to ten companies.
-        </p>
-        <ul className="mt-4 space-y-1.5 text-sm text-text-secondary">
-          <li>Profile in five minutes, CV optional</li>
-          <li>You can see who has read it</li>
-          <li>You delete it whenever you want</li>
-        </ul>
-        <Link
-          href={CANDIDATE_PORTAL_SIGNUP_URL}
-          className="mt-6 inline-flex items-center rounded bg-gold px-6 py-3 text-sm font-bold text-navy transition hover:bg-gold-hover"
-        >
-          Create profile
-        </Link>
+export function ForsidenDoors({ lang = "en" }: { lang?: "en" | "no" }) {
+  const no = lang === "no";
+  const steps = no ? [
+    { title: "Finn en stilling", text: "Se jobber som passer faget og erfaringen din.", href: "/jobs" },
+    { title: "Opprett profil", text: "Fortell oss om erfaringen din og legg til CV-en din.", href: CANDIDATE_PORTAL_SIGNUP_URL },
+    { title: "Send søknaden", text: "Les kravene i annonsen og søk på stillingen.", href: "/jobs" },
+  ] : [
+    { title: "Find a role", text: "Explore jobs that match your trade and experience.", href: "/jobs" },
+    { title: "Create your profile", text: "Tell us about your experience and add your CV.", href: CANDIDATE_PORTAL_SIGNUP_URL },
+    { title: "Apply for the job", text: "Check the requirements in the advert and send your application.", href: "/jobs" },
+  ];
+  return <>
+    <section className="bg-navy text-white">
+      <div className="mx-auto flex max-w-content flex-col items-start justify-between gap-6 px-5 py-9 sm:px-6 md:flex-row md:items-center md:py-11">
+        <div><p className="mb-2 text-xs font-semibold uppercase tracking-widest text-gold">{no ? "For bedrifter" : "For employers"}</p>
+          <h2 className="text-2xl font-bold md:text-3xl">{no ? "Trenger du folk til teamet?" : "Need people for your team?"}</h2>
+          <p className="mt-3 text-sm text-white/75">{no ? "Rekruttering, bemanning og stillingsannonser." : "Recruitment, staffing and job advertising."}</p></div>
+        <Link href="/request" className="inline-flex min-h-12 shrink-0 items-center gap-5 rounded-lg bg-gold px-6 font-bold text-navy hover:bg-gold-hover">{no ? "Be om kandidater" : "Request candidates"} <span aria-hidden="true">→</span></Link>
       </div>
-
-      {/* The company that needs people. Three ways, and the choice decides what opens. */}
-      <div className="bg-navy/[0.03] p-8">
-        <h3 className="text-2xl font-bold text-navy">Need people?</h3>
-        <p className="mt-2 max-w-md text-sm text-text-secondary">
-          Post a job yourself, or let us find the people. Three ways, one place, and you pick by how much time you have.
-        </p>
-        <ul className="mt-4 space-y-1.5 text-sm text-text-secondary">
-          <li>
-            <button type="button" onClick={() => rememberService("job_ad")} className="text-left hover:text-gold">
-              <strong className="font-semibold text-navy">Job ad.</strong> You write it, we publish it, the applications
-              reach you
-            </button>
-          </li>
-          <li>
-            <button type="button" onClick={() => rememberService("recruitment")} className="text-left hover:text-gold">
-              <strong className="font-semibold text-navy">Recruitment.</strong> We find and present the candidates
-            </button>
-          </li>
-          <li>
-            <button type="button" onClick={() => rememberService("staffing")} className="text-left hover:text-gold">
-              <strong className="font-semibold text-navy">Staffing.</strong> We employ them, you hire them in
-            </button>
-          </li>
-        </ul>
-        <Link
-          href="/request"
-          onClick={() => rememberService("recruitment")}
-          className="mt-6 inline-flex items-center rounded border border-navy px-6 py-3 text-sm font-bold text-navy transition hover:bg-navy hover:text-white"
-        >
-          Register company
-        </Link>
-      </div>
-    </div>
-  );
+    </section>
+    <section className="mx-auto max-w-content px-5 py-10 sm:px-6 md:py-14">
+      <h2 className="text-2xl font-bold text-navy md:text-3xl">{no ? "Slik kommer du i gang" : "Your next step starts here"}</h2>
+      <ol className="mt-7 grid gap-7 md:grid-cols-3">{steps.map((step, index) => <li key={step.title} className="flex items-start gap-4">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/40 bg-gold/10 text-sm font-bold text-gold-ink">{index + 1}</span>
+        <div><Link href={step.href} className="font-bold text-navy underline-offset-4 hover:underline">{step.title}</Link><p className="mt-2 text-sm leading-relaxed text-text-secondary">{step.text}</p></div>
+      </li>)}</ol>
+    </section>
+  </>;
 }

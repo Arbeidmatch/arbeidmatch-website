@@ -38,11 +38,9 @@ function persistAcknowledged() {
 }
 
 export default function CookieConsent() {
-  const [hydrated, setHydrated] = useState(false);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    setHydrated(true);
     if (hasAcknowledged()) return;
 
     // Never on top of the front page's "Welcome" picker: on a phone the banner
@@ -59,13 +57,7 @@ export default function CookieConsent() {
     };
     window.addEventListener(WELCOME_OPEN_EVENT, hide);
     window.addEventListener(WELCOME_CLOSED_EVENT, show);
-    if (isWelcomeOpen()) {
-      hide();
-    } else if (welcomeLikelyPending()) {
-      timer = window.setTimeout(show, 2500);
-    } else {
-      show();
-    }
+    if (!isWelcomeOpen()) timer = window.setTimeout(show, welcomeLikelyPending() ? 2500 : 0);
     return () => {
       window.clearTimeout(timer);
       window.removeEventListener(WELCOME_OPEN_EVENT, hide);
@@ -78,8 +70,6 @@ export default function CookieConsent() {
     setVisible(false);
   }, []);
 
-  if (!hydrated) return null;
-
   if (!visible) return null;
 
   return (
@@ -87,18 +77,17 @@ export default function CookieConsent() {
       role="dialog"
       aria-modal="false"
       aria-label="Cookie information"
-      className="fixed inset-x-0 bottom-0 z-[100] w-full border-t border-[rgba(201,168,76,0.2)] bg-[#0D1B2A] pb-[max(1rem,env(safe-area-inset-bottom))] pt-4"
+      className="fixed inset-x-3 bottom-3 z-[100] rounded-xl border border-gold/25 bg-navy p-3 shadow-xl sm:left-auto sm:max-w-md"
     >
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-6">
-        <p className="min-w-0 flex-1 text-sm leading-relaxed text-white/90 sm:text-[15px]">
-          We use only essential cookies required for the site to function. No third-party analytics or advertising
-          cookies are used.
+      <div className="flex items-center gap-3">
+        <p className="min-w-0 flex-1 text-xs leading-relaxed text-white/90">
+          Only essential cookies. No advertising cookies. <a href="/privacy" className="text-gold underline underline-offset-2">Privacy policy</a>
         </p>
-        <div className="flex w-full shrink-0 min-[420px]:w-auto min-[420px]:justify-end">
+        <div className="shrink-0">
           <button
             type="button"
             onClick={dismiss}
-            className="min-h-11 w-full rounded-[10px] bg-gradient-to-br from-[#C9A84C] to-[#b8953f] px-6 py-2.5 text-sm font-bold text-[#0D1B2A] transition-opacity hover:opacity-95 min-[420px]:w-auto min-[420px]:min-w-[10rem]"
+            className="min-h-11 rounded-lg bg-gold px-4 py-2 text-sm font-bold text-navy hover:bg-gold-hover"
           >
             Got it
           </button>

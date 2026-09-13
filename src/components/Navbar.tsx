@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
 import MobileDrawerContent from "@/components/MobileDrawerContent";
+import { HomeNavigation } from "@/components/home/HomeNavigation";
 import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
 import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 import { NAV_CITY_LINKS, NAV_INDUSTRY_LINKS } from "@/lib/navIndustriesLocations";
@@ -94,6 +95,7 @@ export default function Navbar() {
   // Flislegger is a standalone ArbeidMatch department with its own navigation.
   // Do not mix the recruitment/staffing website menu into this microsite.
   if (pathname?.startsWith("/flislegger")) return null;
+  if (pathname === "/" || pathname === "/no") return <HomeNavigation key={pathname} lang={pathname === "/no" ? "no" : "en"} />;
 
   const navItemClass =
     "shrink-0 text-[15px] font-normal text-white/70 transition-[color,font-weight,text-decoration-color] duration-150 hover:font-medium hover:text-white";

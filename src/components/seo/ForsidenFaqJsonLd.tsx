@@ -83,14 +83,14 @@ export function ForsidenFaq() {
   return (
     <section className="border-t border-border px-6 py-12">
       <h2 className="text-2xl font-bold text-navy">Questions we are asked</h2>
-      <dl className="mt-6 grid gap-6 md:grid-cols-2">
+      <div className="mt-6 divide-y divide-border">
         {FAQ.map((entry) => (
-          <div key={entry.q}>
-            <dt className="font-semibold text-navy">{entry.q}</dt>
-            <dd className="mt-1.5 text-sm leading-relaxed text-text-secondary">{entry.a}</dd>
-          </div>
+          <details key={entry.q} className="group py-4">
+            <summary className="cursor-pointer font-semibold text-navy focus-visible:outline-gold">{entry.q}</summary>
+            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-text-secondary">{entry.a}</p>
+          </details>
         ))}
-      </dl>
+      </div>
     </section>
   );
 }

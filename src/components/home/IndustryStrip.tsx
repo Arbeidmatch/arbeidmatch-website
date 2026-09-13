@@ -28,7 +28,7 @@ function industrySlug(englishLabel: string): string {
   return englishLabel.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
-export function IndustryStrip({ industries, lang }: { industries: IndustryCount[]; lang: "en" | "no" }) {
+export function IndustryStrip({ industries, lang, compact = false }: { industries: IndustryCount[]; lang: "en" | "no"; compact?: boolean }) {
   function remember(key: string, label: string) {
     try {
       sessionStorage.setItem("am_last_industry", label);
@@ -40,16 +40,16 @@ export function IndustryStrip({ industries, lang }: { industries: IndustryCount[
   }
 
   return (
-    <div className="grid border-b border-border bg-navy/[0.03] sm:grid-cols-2 lg:grid-cols-4">
+    <div className={compact ? "mt-4 grid max-w-3xl grid-cols-2 gap-2 md:mt-6 md:grid-cols-4" : "grid border-b border-border bg-navy/[0.03] sm:grid-cols-2 lg:grid-cols-4"}>
       {industries.map((industry) => {
         const label = lang === "no" ? industry.no : industry.en;
         const inside = (
           <>
-            <span className="block text-2xl font-bold leading-none text-gold">{industry.count}</span>
-            <span className="mt-1.5 block text-xs leading-snug text-text-secondary">{label}</span>
+            <span className={compact ? "order-2 font-bold text-gold" : "block text-2xl font-bold leading-none text-gold"}>{industry.count}</span>
+            <span className={compact ? "text-xs leading-snug text-white/85" : "mt-1.5 block text-xs leading-snug text-text-secondary"}>{label}</span>
           </>
         );
-        const cell = "border-b border-r border-border px-4 py-5 text-center last:border-r-0";
+        const cell = compact ? "flex min-h-12 items-center justify-between gap-2 rounded-lg border border-white/20 bg-navy/70 px-3 py-2" : "border-b border-r border-border px-4 py-5 text-center last:border-r-0";
 
         // An industry with nothing in it is not a link. The page for it does
         // not exist, deliberately, because a page that promises car workshops

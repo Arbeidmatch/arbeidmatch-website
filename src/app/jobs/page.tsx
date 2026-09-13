@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { JobsListing } from "@/components/jobs/JobsListing";
 import { facetLabel, facetPath, getBoard, jobsForFacet, listFacets } from "@/lib/jobs-facets";
+import { filterJobSearch } from "@/lib/job-search";
+import Link from "next/link";
 
 /**
  * Every open job, and the way into the pages that answer a narrower question.
@@ -46,9 +48,14 @@ export const metadata: Metadata = {
   openGraph: { title: TITLE, description: DESCRIPTION, url: "https://www.arbeidmatch.no/jobs", locale: "en_US" },
 };
 
-export default async function JobsPage() {
+export default async function JobsPage({ searchParams }: { searchParams: Promise<{ search?: string | string[]; location?: string | string[] }> }) {
   const { jobs, totalOpen, ok } = await getBoard();
   const facets = await listFacets();
+  const params = await searchParams;
+  const search = (Array.isArray(params.search) ? params.search[0] : params.search)?.trim() ?? "";
+  const location = (Array.isArray(params.location) ? params.location[0] : params.location)?.trim() ?? "";
+  const filtered = filterJobSearch(jobs, search, location);
+  const searching = Boolean(search || location);
 
   // Only lists that have something in them. A chip leading to an empty page is
   // worse than no chip, and the facet list is computed from the live board so
@@ -64,12 +71,18 @@ export default async function JobsPage() {
     .slice(0, 16);
 
   return (
+    <>
+    {searching && <div className="bg-navy px-6 py-4 text-center text-sm text-white/80">
+      {search && <span>Trade: {search}. </span>}{location && <span>Location: {location}. </span>}
+      <Link href="/jobs" className="ml-2 inline-flex min-h-11 items-center text-gold underline">Clear filters</Link>
+    </div>}
     <JobsListing
-      jobs={jobs}
+      jobs={filtered}
       ok={ok}
-      heading={totalOpen > 0 ? `${totalOpen} open jobs in Norway` : "Open jobs in Norway"}
+      heading={searching ? (ok ? `${filtered.length} matching ${filtered.length === 1 ? "job" : "jobs"}` : "Search results") : totalOpen > 0 ? `${totalOpen} open jobs in Norway` : "Open jobs in Norway"}
       lede="Work for people with a trade. What each job runs on, and for how long, is written in the advert itself. An EU or EEA passport is required on every one of them, and we do not sponsor visas."
       related={related}
     />
+    </>
   );
 }
