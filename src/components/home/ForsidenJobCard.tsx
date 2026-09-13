@@ -5,13 +5,7 @@ export function ForsidenJobCard({ job, lang = "en" }: { job: PublicJob; featured
   const where = (job.location ?? "").trim() || (job.country ?? "").trim() || "Norway";
   const rate = rateLine(job);
   const no = lang === "no";
-  // Use approved trade photography where the source only supplies a logo.
-  // Explicit image assets continue to win over these illustrative fallbacks.
-  const needsPhoto = (!job.external_image_url || job.external_image_url.includes("/drive/logo/"))
-    && (!job.image_url || job.image_url.startsWith("/api/public/job-card-image/"));
-  const trade = `${job.title} ${job.category ?? ""}`;
-  const photo = needsPhoto && /paint|maler/i.test(trade) ? "/images/home/painter.webp"
-    : needsPhoto && /concrete|betong/i.test(trade) ? "/images/home/concrete.webp" : jobCardImage(job);
+  const photo = jobCardImage(job);
   const employs = job.engagement === "staffing" ? (no ? "Ansatt hos oss" : "Employed by ArbeidMatch")
     : job.engagement === "recruitment" ? (no ? "Ansatt hos bedriften" : "Employed by the company") : null;
   const card = (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { industryOf, jobCardImage, jobReference, type PublicJob } from "./jobs-fetch";
+import { industryOf, jobCardImage, jobImage, jobReference, type PublicJob } from "./jobs-fetch";
 
 /** A row shaped like the ones /api/public/jobs actually returns. */
 function job(overrides: Partial<PublicJob> = {}): PublicJob {
@@ -66,6 +66,12 @@ describe("industryOf", () => {
 });
 
 describe("jobCardImage", () => {
+  it("uses the same approved photo for cards, details and social previews", () => {
+    const approved = job({ image_url: "/api/public/job-card-image/approved?v=2" });
+    expect(jobImage(approved)).toBe(jobCardImage(approved));
+    expect(jobCardImage(approved)).toContain("/api/public/job-card-image/approved?v=2");
+    expect(jobImage(job())).toBe(jobCardImage(job()));
+  });
   it("uses our own address, so the mark is on the file everywhere it is re-posted", () => {
     expect(jobCardImage(job())).toMatch(/\/api\/public\/job-card-image\/bricklayer-in-trondheim/);
   });

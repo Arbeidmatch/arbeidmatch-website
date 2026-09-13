@@ -347,11 +347,7 @@ function withOwnLocation<T extends { location: string | null }>(job: T): T {
 
 /** The picture the ATS resolved: the employer's photograph, or the card it draws. */
 export function jobImage(job: PublicJob): string {
-  const external = (job.external_image_url ?? "").trim();
-  if (/^https:\/\/(cdn\.recman\.io|jobs\.arbeidmatch\.no)\//i.test(external) && /\.(png|jpe?g|webp)$/i.test(external)) {
-    return external;
-  }
-  return `${atsBaseUrl()}/api/public/job-card/${encodeURIComponent(job.id)}?lang=en`;
+  return jobCardImage(job);
 }
 
 /**
@@ -469,6 +465,6 @@ export function jobReference(job: PublicJob): string | null {
  */
 export function jobCardImage(job: PublicJob): string {
   if (job.image_url) return `${atsBaseUrl()}${job.image_url}`;
-  if (job.public_slug) return `${atsBaseUrl()}/api/public/job-card-image/${encodeURIComponent(job.public_slug)}`;
+  if (job.public_slug) return `${atsBaseUrl()}/api/public/job-card-image/${encodeURIComponent(job.public_slug)}?v=3`;
   return `${atsBaseUrl()}/api/public/job-card-image/fallback`;
 }

@@ -45,11 +45,27 @@ or certify construction quality.
 
 ## Additional issue found
 
-Six public job-card images display square glyphs instead of readable watermark
-text at the lower left. The anatomy repair does not fix this separate issue.
-The source is the ATS photo-mark renderer, which requests system fonts not
-guaranteed in its deployment. Some older job photographs also lack the newer
-clothing branding. Do not describe the full photo collection as defect-free.
+The six square-glyph watermarks were fixed by ATS commit eb35b08ef with
+font-independent outlines, then visually verified in production. Some older
+job photographs still lack the newer clothing branding; do not describe the
+full collection as defect-free.
+
+## Footer removal and consistent photographs
+
+Owner correction: no footer band in advert photographs. The replacement
+`public/images/home/carpenter-watermarked.webp` uses the built-in image editor
+to remove the original footer, then adds small corner watermarks in the image
+renderer. The older carpenter's pencil hand and square hand were inspected
+again; two arms, no additional limb, unchanged clothing logo.
+
+Eleven library photographs were edited and inspected individually: carpenter-1,
+mechanic-1/2, concrete-worker-1/2, electrician-1/2, painter-1/2, roofer-1/2.
+No obvious extra limbs or new identifiable third-party branding were observed.
+The rejected carpenter-2 remains excluded. Prompts and exact source/output paths
+are recorded in the local footerless manifest under the role-campaign artifacts.
+
+Cards, detail pages, structured data and social metadata now use the same
+image resolver. Detail pages preserve the whole image with object-contain.
 
 ## Evidence
 

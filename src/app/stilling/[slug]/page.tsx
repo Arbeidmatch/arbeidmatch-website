@@ -218,7 +218,7 @@ export default async function StillingPage({ params }: Props) {
               <img
                 src={jobCardImage(job)}
                 alt={job.title}
-                className="h-48 w-full object-cover sm:h-64 lg:h-[220px] lg:w-[360px]"
+                className="h-48 w-full object-contain sm:h-64 lg:h-[220px] lg:w-[360px]"
               />
             </div>
           </div>
