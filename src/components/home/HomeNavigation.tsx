@@ -19,6 +19,7 @@ export function HomeNavigation({ lang }: { lang: "en" | "no" }) {
       <Link href={no ? "/no" : "/"} aria-label="ArbeidMatch home" className="flex shrink-0 items-center gap-2.5">
         <Image src="/brand/arbeidmatch-emblem.png" alt="" width={38} height={38} className="object-contain" />
         <span className="text-lg font-bold tracking-tight">Arbeid<span className="text-gold">Match</span><span className="block text-[9px] font-medium uppercase tracking-[0.28em] text-white/60">Norge</span></span>
+        <span className="inline-flex items-center rounded-[4px] bg-gold px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-[0.05em] text-navy">BETA</span>
       </Link>
       <nav aria-label={no ? "Hovedmeny" : "Main navigation"} className="hidden items-center gap-7 md:flex">
         {links.map(link => <Link key={link.href} href={link.href} className="py-3 text-sm font-medium text-white/85 hover:text-gold">{link.text}</Link>)}
