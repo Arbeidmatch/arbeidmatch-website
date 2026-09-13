@@ -37,7 +37,7 @@ export async function Forsiden({ lang = "en" }: { lang?: "en" | "no" }) {
       <ForsidenFaqJsonLd />
       <section className="relative isolate overflow-hidden bg-navy">
         <div className="absolute inset-y-0 right-0 -z-20 hidden w-[60%] md:block">
-          <Image src="/images/home/tradesperson.webp" alt="" fill priority sizes="60vw" className="object-cover object-center" />
+          <Image src="/images/home/carpenter-reviewed.webp" alt="" fill priority sizes="60vw" className="object-contain object-right" />
         </div>
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-navy via-navy/95 to-navy/10" />
         <div className="mx-auto max-w-content px-5 py-6 sm:px-6 md:py-12">
