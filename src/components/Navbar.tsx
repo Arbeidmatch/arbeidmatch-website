@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BrandMark } from "@/components/BrandMark";
 import { usePathname, useRouter } from "next/navigation";
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -150,20 +151,7 @@ export default function Navbar() {
         className={`sticky top-0 transition-colors duration-200 ${headerSurface} ${isOpen ? "z-30" : "z-[210]"}`}
       >
         <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 md:h-16 md:min-h-[64px] md:px-10 xl:h-[72px] xl:min-h-[72px] xl:gap-10 xl:px-20">
-          <Link
-            href="/"
-            className="flex min-h-[44px] min-w-0 shrink-0 items-center gap-2 whitespace-nowrap text-inherit no-underline"
-          >
-            <span className="shrink-0 text-[1.25rem] font-bold leading-none text-[#C9A84C]" style={{ fontWeight: 700 }}>
-              ArbeidMatch
-            </span>
-            <span
-              className="inline-flex shrink-0 items-center justify-center rounded-[4px] bg-[#C9A84C] px-[6px] py-[2px] text-[10px] font-semibold uppercase leading-none tracking-[0.05em] text-[#0D1B2A]"
-              aria-hidden
-            >
-              BETA
-            </span>
-          </Link>
+          <BrandMark href="/" logoSize={34} />
 
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-6 xl:flex xl:gap-8 2xl:gap-10">
             {/* Lands on the employer page, which explains the service and sends them to /request.

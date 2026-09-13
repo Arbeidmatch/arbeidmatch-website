@@ -41,7 +41,7 @@ export async function Forsiden({ lang = "en" }: { lang?: "en" | "no" }) {
         </div>
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-navy via-navy/95 to-navy/10" />
         <div className="mx-auto max-w-content px-5 py-6 sm:px-6 md:py-12">
-          <p className="mb-3 hidden text-xs font-semibold uppercase tracking-[0.16em] text-gold md:block">ArbeidMatch Norge</p>
+          <p className="mb-3 hidden text-xs font-semibold uppercase tracking-[0.16em] text-gold md:block">ArbeidMatch</p>
           <h1 className="max-w-2xl text-[34px] font-bold leading-[1.12] tracking-tight sm:text-5xl md:text-6xl">
             <span className="text-white">{copy.headline}</span><br /><span className="text-gold">{copy.emphasis}</span>
           </h1>

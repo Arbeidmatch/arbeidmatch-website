@@ -3,6 +3,7 @@
 import type { MouseEvent, ReactNode } from "react";
 import { useState } from "react";
 import Link from "next/link";
+import { BrandMark } from "@/components/BrandMark";
 import { useRouter } from "next/navigation";
 import { ArrowRight, ChevronDown, X } from "lucide-react";
 
@@ -108,21 +109,7 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
   return (
     <>
       <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-6 py-5">
-        <Link
-          href="/"
-          className="flex min-h-[44px] min-w-0 items-center gap-2 text-inherit no-underline"
-          onClick={(e) => handleDrawerLinkClick(e, "/", onClose, router)}
-        >
-          <span className="shrink-0 text-xl font-bold leading-none text-[#C9A84C]" style={{ fontWeight: 700 }}>
-            ArbeidMatch
-          </span>
-          <span
-            className="inline-flex shrink-0 items-center justify-center rounded-[4px] bg-[#C9A84C] px-[6px] py-[2px] text-[10px] font-semibold uppercase leading-none tracking-[0.05em] text-[#0D1B2A]"
-            aria-hidden
-          >
-            BETA
-          </span>
-        </Link>
+        <BrandMark href="/" logoSize={36} onClick={(e) => handleDrawerLinkClick(e, "/", onClose, router)} />
         <button
           type="button"
           aria-label="Close menu"
