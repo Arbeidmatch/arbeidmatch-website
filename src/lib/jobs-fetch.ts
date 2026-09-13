@@ -290,23 +290,55 @@ export async function fetchPublicJob(
 }
 
 /**
+ * The place a job is advertised in when nothing better is known.
+ *
+ * HIS RULE, 13 September 2026: "locatia pentru joburi sa fie Trondheim ca
+ * referinta de baza, dar asta se va schimba din setari sau postare". The ATS
+ * now fills a job saved without a place of work with the workspace's default
+ * (Trondheim unless changed in its settings), and a posting's own location
+ * still wins. This is only the safety net for a row that still carries the
+ * office address.
+ */
+export const BASE_JOB_LOCATION = "Trondheim";
+
+/**
  * The job's own place of work, or null. Never our office.
  *
  * FOUND 13 September 2026: five of the seven open adverts arrived from the ATS
  * with location "Ranheim", among them a car mechanic job in Bergen and
- * Haugesund and an electrician job in Stavanger. Ranheim is where our office
- * is, not where anybody is hired to work: a job saved without a place of work
- * was given the office address, and the advert then told a mechanic to move to
- * a Trondheim suburb. The ATS sends no other location field, so the only honest
- * fallback is none: the page says "Norway" (the country the ATS does send) or
- * nothing, and the job's title carries the real towns where it names them.
+ * Haugesund. Ranheim is where our office is, not where anybody is hired to
+ * work: a job saved without a place of work was given the office address, and
+ * the advert then told a mechanic to move to a Trondheim suburb. The office
+ * reads as the base location instead, Trondheim, and the job's title carries
+ * the real towns where it names them.
  */
 export function ownJobLocation(value: string | null | undefined): string | null {
   const trimmed = String(value ?? "").trim();
   if (!trimmed) return null;
-  const folded = trimmed.toLowerCase();
-  if (/\branheim\b/.test(folded) || folded.includes("sverre svendsens")) return null;
+  if (isOfficeAddress(trimmed)) return BASE_JOB_LOCATION;
   return trimmed;
+}
+
+function isOfficeAddress(value: string): boolean {
+  const folded = value.toLowerCase();
+  return /\branheim\b/.test(folded) || folded.includes("sverre svendsens");
+}
+
+/**
+ * The ATS's town counts with the office folded into the base location, so the
+ * strip under the search agrees with the cards: a job whose card says
+ * Trondheim is counted under Trondheim, not under a town nobody sees.
+ */
+export function ownLocationCounts(counts: LocationCount[]): LocationCount[] {
+  const tally = new Map<string, number>();
+  for (const entry of counts) {
+    const name = ownJobLocation(entry.name);
+    if (!name) continue;
+    tally.set(name, (tally.get(name) ?? 0) + (Number(entry.count) || 0));
+  }
+  return [...tally.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
 function withOwnLocation<T extends { location: string | null }>(job: T): T {
@@ -348,10 +380,8 @@ export async function fetchPublicJobs(revalidateSeconds?: number): Promise<Publi
       // change yet the page works them out from what it has, which is right for
       // an unfiltered front page and wrong for nothing it currently does.
       industries: body.meta?.industries ?? industryCountsFrom(jobs),
-      // Without the office, which is not a place anybody is hired to work (see ownJobLocation).
-      locations: body.meta?.locations
-        ? body.meta.locations.filter((l) => ownJobLocation(l.name) !== null)
-        : locationCountsFrom(jobs),
+      // The office counted as the base location, the way the cards show it (see ownJobLocation).
+      locations: body.meta?.locations ? ownLocationCounts(body.meta.locations) : locationCountsFrom(jobs),
     };
   } catch {
     return EMPTY_RESULT;
