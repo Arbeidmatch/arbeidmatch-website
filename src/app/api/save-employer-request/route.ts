@@ -107,6 +107,12 @@ const toBool = (val: unknown): boolean | null => {
 const hasNonEmptyString = (val: unknown): val is string =>
   typeof val === "string" && val.trim().length > 0;
 
+/** The validated submission without the link token and the anti-spam fields. */
+function formAnswersOf(payload: z.infer<typeof requestSchema>): Record<string, unknown> {
+  const { token: _token, website: _website, company_website: _companyWebsite, honeypot: _honeypot, ...answers } = payload;
+  return answers;
+}
+
 export async function POST(request: NextRequest) {
   let companySnapshot = "unknown";
   let normalizedBooleanFields: string[] = [];
@@ -264,6 +270,14 @@ export async function POST(request: NextRequest) {
       subscribe:                     parsedSubscribe,
       notes:                         payload.notes || null,
       required_skills:               payload.required_skills?.length ? payload.required_skills : [],
+      // Every answer as the client gave it, and the two that had no column.
+      // His rule, 14 September 2026: the ATS takes a request's data from the
+      // form, not from the notification email - and a salary period or a
+      // "Candidate finds own" that stopped here never reached it. ATS migration
+      // 20260914100000_employer_requests_form_answers.sql.
+      salary_period:                 payload.salaryPeriod || null,
+      accommodation_choice:          payload.accommodation || null,
+      form_answers:                  formAnswersOf(payload),
     })
       .select("id")
       .maybeSingle();
