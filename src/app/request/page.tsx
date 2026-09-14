@@ -2172,7 +2172,7 @@ export default function RequestPage() {
                 ) : (
                   <div className="space-y-4 text-sm leading-relaxed text-white/80">
                     <p>
-                      <strong className="text-white">Behandlingsansvarlig:</strong> ArbeidMatch Norge AS, org.nr. 932 953 728
+                      <strong className="text-white">Behandlingsansvarlig:</strong> ArbeidMatch Norge AS, org.nr. 935 667 089
                     </p>
                     <p>
                       Vi samler inn og behandler personopplysninger (navn, e-post, CV og arbeidserfaring) for å matche kandidater med arbeidsgivere og levere rekrutteringstjenester i Norge.
