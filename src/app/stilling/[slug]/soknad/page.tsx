@@ -92,8 +92,7 @@ export default async function SoknadPage({ params }: Props) {
           <p className="am-eyebrow mt-8 font-semibold uppercase tracking-[0.14em] text-gold">Application</p>
           <h1 className="am-h-advert mt-3 max-w-[720px] font-extrabold text-white">{job.title}</h1>
           <p className="mt-4 max-w-prose text-white/70">
-            {(job.location ?? "").trim() ? `${job.location}. ` : ""}A recruiter reads every application. We answer by
-            email, whichever way the answer goes.
+            {(job.location ?? "").trim() ? `${job.location}. ` : ""}Our team reviews your application and agrees the shortlist with the client. If selected, we contact you to arrange an interview.
           </p>
         </div>
       </header>

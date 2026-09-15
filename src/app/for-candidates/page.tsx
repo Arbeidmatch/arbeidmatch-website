@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import { ClipboardList, FileText, ShieldCheck, UserCheck } from "lucide-react";
 
-import CandidateAccountSection from "@/components/candidates/CandidateAccountSection";
-import JobsPortalCTA from "@/components/candidates/JobsPortalCTA";
 import ScrollReveal from "@/components/ScrollReveal";
-import { JOBS_PORTAL_URL, TALENT_NETWORK_FORM_ENABLED } from "@/lib/featureFlags";
-
-import TalentNetworkJoinForm from "./TalentNetworkJoinForm";
+import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
+import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/for-candidates" },
@@ -57,18 +54,18 @@ const INDUSTRY_CHIPS = [
 
 const HOW_STEPS: { title: string; text: string; Icon: typeof FileText }[] = [
   {
-    title: "1. Submit your CV",
-    text: "Share your experience and the roles you want in Norway.",
+    title: "1. Browse open jobs",
+    text: "Find a job that matches your trade, experience and preferred location.",
     Icon: FileText,
   },
   {
-    title: "2. We match you",
-    text: "Our team reviews your profile against live employer needs.",
+    title: "2. Choose a position",
+    text: "Read the requirements, pay and working conditions in the advert.",
     Icon: UserCheck,
   },
   {
-    title: "3. Get placed",
-    text: "Interview, contract, and onboarding with employer support.",
+    title: "3. Apply for the job",
+    text: "We review your application with the client. If selected, we contact you to arrange an interview.",
     Icon: ClipboardList,
   },
 ];
@@ -157,25 +154,21 @@ export default function ForCandidatesPage() {
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
             <a
-              href={TALENT_NETWORK_FORM_ENABLED ? "#join-talent" : JOBS_PORTAL_URL}
-              target={TALENT_NETWORK_FORM_ENABLED ? undefined : "_blank"}
-              rel={TALENT_NETWORK_FORM_ENABLED ? undefined : "noopener noreferrer"}
+              href={JOBS_PORTAL_URL}
               className="btn-gold-premium mt-10 inline-flex min-h-[52px] w-full max-w-md items-center justify-center rounded-xl bg-[#C9A84C] px-8 py-3.5 text-[16px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f] sm:mx-auto sm:w-auto"
             >
-              {TALENT_NETWORK_FORM_ENABLED ? "Join our talent network →" : "See open positions →"}
+              View open jobs →
             </a>
           </ScrollReveal>
         </div>
       </section>
-
-      <CandidateAccountSection />
 
       <section className="bg-[#0D1B2A] py-14 md:py-20 lg:py-24">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp" className="text-center">
             <h2 className="am-h2 font-display font-extrabold text-white">How it works</h2>
             <p className="mx-auto mt-3 max-w-xl text-sm text-white/60 md:text-base">
-              Three clear steps from your first message to a potential contract.
+              Find a suitable position and apply in three clear steps.
             </p>
           </ScrollReveal>
 
@@ -307,31 +300,25 @@ export default function ForCandidatesPage() {
       >
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
           <ScrollReveal variant="fadeUp">
-            <h2 className="am-h2 font-display font-extrabold text-white">Ready to find your next role?</h2>
+            <h2 className="am-h2 font-display font-extrabold text-white">Find your next job in Norway</h2>
           </ScrollReveal>
           <ScrollReveal variant="fadeUp">
             <p className="mx-auto mt-3 max-w-lg text-sm text-white/65 md:text-base">
-              {TALENT_NETWORK_FORM_ENABLED
-                ? "Leave your email and we will open a conversation about roles that fit your profile."
-                : "Browse current openings across Norway and apply directly through our jobs portal."}
+              Explore open positions, check the requirements and apply for the job that fits your experience.
             </p>
           </ScrollReveal>
-          {TALENT_NETWORK_FORM_ENABLED ? <TalentNetworkJoinForm /> : <JobsPortalCTA />}
-          {TALENT_NETWORK_FORM_ENABLED ? (
-            <ScrollReveal variant="fadeUp">
-              <p className="mt-8 text-xs text-white/60">
-                Prefer browsing first?{" "}
-                <a
-                  href={JOBS_PORTAL_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-[#C9A84C] underline-offset-2 hover:underline"
-                >
-                  View open positions
-                </a>
-              </p>
-            </ScrollReveal>
-          ) : null}
+          <ScrollReveal variant="fadeUp">
+            <a href={JOBS_PORTAL_URL} className="mt-8 inline-flex min-h-[52px] items-center justify-center rounded-lg bg-[#C9A84C] px-8 py-3.5 font-semibold text-[#0D1B2A] hover:bg-[#b8953f]">
+              View open jobs →
+            </a>
+            <div className="mx-auto mt-10 max-w-lg border-t border-white/10 pt-7">
+              <p className="text-sm text-white/80">No suitable job right now?</p>
+              <a href={CANDIDATE_PORTAL_SIGNUP_URL} className="mt-2 inline-flex min-h-[44px] items-center font-semibold text-[#C9A84C] underline-offset-4 hover:underline">Create your profile →</a>
+              <p className="mt-2 text-sm leading-relaxed text-white/65">Save your experience and CV in your profile. Creating a profile does not apply you for a job. Apply separately from the position you choose.</p>
+              <p className="mt-5 text-sm text-white/65">Already have a profile? <a href={CANDIDATE_PORTAL_LOGIN_URL} className="inline-flex min-h-[44px] items-center text-[#C9A84C] hover:underline">Sign in</a></p>
+              <div className="mt-7 border-t border-white/10 pt-6"><p className="text-sm text-white/80">Prefer to hear about new jobs by email?</p><a href="/newsletter#candidates" className="mt-2 inline-flex min-h-[44px] items-center font-semibold text-[#C9A84C] hover:underline">Choose your job alerts →</a><p className="text-xs text-white/60">Optional and free. No profile needed.</p></div>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 

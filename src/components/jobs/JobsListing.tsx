@@ -61,7 +61,7 @@ export function JobsListing({
             <p className="text-text-secondary">
               Nothing open here at the moment.{" "}
               <Link
-                href="/"
+                href="/jobs"
                 className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4"
               >
                 See every open job

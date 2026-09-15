@@ -332,7 +332,7 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
           <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[13px] text-white/70">
             <span>Welcome back.</span>
             <a
-              href="https://jobs.arbeidmatch.no"
+              href="/jobs"
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline"
@@ -352,7 +352,7 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
           <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[13px] text-white/70">
             <span>Welcome back. Looking for work in Norway?</span>
             <a
-              href="https://jobs.arbeidmatch.no"
+              href="/jobs"
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline"

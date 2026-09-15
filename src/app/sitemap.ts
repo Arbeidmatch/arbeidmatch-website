@@ -20,7 +20,7 @@ const SITE = "https://www.arbeidmatch.no";
 export const dynamic = "force-dynamic";
 
 /** lastmod for homepage + primary commercial URLs (task spec: “today”) */
-const primaryLastMod = new Date("2026-04-19T12:00:00.000Z");
+const primaryLastMod = new Date("2026-09-15T07:00:00.000Z");
 const stableLastMod = new Date("2026-01-15T12:00:00.000Z");
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -92,6 +92,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...[
       "/for-employers",
       "/for-candidates",
+      "/newsletter",
       "/for-staffing-agencies",
       "/recruiter-network",
       "/partners",

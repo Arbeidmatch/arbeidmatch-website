@@ -50,7 +50,7 @@ export default function WeldingSpecialistsPage() {
               Request Welding Specialists
             </Link>
             <a
-              href="https://jobs.arbeidmatch.no"
+              href="/jobs"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex min-h-[48px] items-center justify-center rounded-[10px] border border-[#C9A84C] bg-transparent px-8 py-3.5 text-[15px] font-semibold text-[#C9A84C] transition-colors duration-200 hover:bg-[#C9A84C]/10"

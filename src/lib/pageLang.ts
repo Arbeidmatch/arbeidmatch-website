@@ -4,9 +4,8 @@
  * FOUND 13 September 2026: every page said lang="nb", English ones included,
  * so a screen reader read English copy with Norwegian pronunciation and the
  * browser offered to translate a Norwegian page from Norwegian. The site has no
- * locale routing: most pages are English (the candidate side, the job board,
- * the front page, which is declared English with /no as its twin), and the
- * employer side is Norwegian. The root layout cannot see the path without
+ * locale routing: the candidate side and job board are English, while the
+ * presentation homepage and employer side are Norwegian. The root layout cannot see the path without
  * making every page dynamic, so it renders "en" and this map corrects the
  * attribute before first paint (an inline script) and on every client
  * navigation (HtmlLang).
@@ -18,6 +17,7 @@ export type PageLang = "en" | "nb" | "ro" | "pl";
 
 /** Paths (exact) or prefixes (ending in "/" or "-") whose copy is Norwegian. */
 export const NB_PATHS: readonly string[] = [
+  "/",
   "/no",
   "/for-employers",
   "/request",

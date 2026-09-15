@@ -4,6 +4,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import ConditionalFooter from "@/components/ConditionalFooter";
+import BetaBanner from "@/components/BetaBanner";
 import ScrollProgressBar from "@/components/ScrollProgressBar";
 import NavigationProgressBar from "@/components/NavigationProgressBar";
 import CookieConsent from "@/components/CookieConsent";
@@ -32,13 +33,8 @@ export const metadata: Metadata = {
   description:
     "ArbeidMatch connects Norwegian employers with pre-screened EU/EEA blue-collar workers. Fast, compliant recruitment across construction, offshore, transport and more.",
   alternates: {
-    languages: {
-      "nb-NO": "https://www.arbeidmatch.no/",
-      en: "https://www.arbeidmatch.no/en",
-      ro: "https://www.arbeidmatch.no/ro",
-      pl: "https://www.arbeidmatch.no/pl",
-      "x-default": "https://www.arbeidmatch.no/",
-    },
+    // Page-specific language alternates belong to the pages that provide them.
+    languages: {},
   },
   keywords: [
     "recruitment norway",
@@ -105,6 +101,7 @@ export default function RootLayout({
         <ScrollProgressBar />
         <Navbar />
         <main className="flex min-w-0 flex-1 flex-col overflow-x-clip pb-[40px]">{children}</main>
+        <BetaBanner />
         <ConditionalFooter />
         <DeferredAppOverlays />
         <CookieConsent />

@@ -30,7 +30,7 @@ const CONFIG: Record<Variant, { links: readonly CrossLink[] }> = {
         labelNb: "Se hvordan dette fungerer for arbeidsgivere",
       },
       {
-        href: "https://jobs.arbeidmatch.no",
+        href: "/jobs",
         label: "Browse open jobs",
         labelNb: "Se ledige stillinger",
         external: true,

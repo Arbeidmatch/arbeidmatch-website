@@ -7,4 +7,4 @@ export const TALENT_NETWORK_FORM_ENABLED = true;
 /** BETA: recruiter network is invite-only; public signup POST /apply is off. */
 export const RECRUITER_PUBLIC_SIGNUP_ENABLED = false;
 
-export const JOBS_PORTAL_URL = "https://jobs.arbeidmatch.no";
+export const JOBS_PORTAL_URL = "/jobs";

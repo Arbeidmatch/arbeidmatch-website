@@ -1,5 +1,19 @@
 # Photograph review - 2026-09-13
 
+## Presentation homepage release - 2026-09-15
+
+The approved presentation layout now reuses `public/images/home/carpenter-watermarked.webp`
+instead of the legacy team image, to preserve the owner's workwear-logo rule.
+Source inspected at 1200 x 900: near arm holds the pencil, far arm holds the square;
+two arms with continuous sleeve/glove paths, no additional limb observed. Legs are
+partially outside the frame. No background people or additional garment logos.
+The ArbeidMatch clothing mark and both corner watermarks are legible. The hero
+uses object-contain, preserving the entire image on desktop and mobile rather
+than clipping hands, tools or watermarks. No new image generation or asset edits.
+Production render inspected at 1440 px and 390 px: the full image retains both
+hands, tool contact, clothing logo and corner marks. Local evidence:
+`artifacts/final-desktop.png` and `artifacts/final-mobile-photo.png`.
+
 Reviewer: GPT-6. Trigger: the owner identified a third arm in the homepage hero.
 The previous UI review missed the anatomical defect. Build and browser checks
 alone were insufficient.

@@ -206,10 +206,9 @@ export function ApplyForm({ token, jobTitle, questions }: Props) {
       <div className="rounded-2xl border border-border p-8">
         <h2 className="text-xl font-bold text-navy">We have your application.</h2>
         <p className="mt-3 max-w-prose text-text-secondary">
-          A recruiter reads it and comes back to you by email.{" "}
           {(jobTitle ?? "").trim()
-            ? `If it fits ${String(jobTitle).toLowerCase()}, the next step is a conversation, not another form.`
-            : "When something fits you, the next step is a conversation, not another form."}
+            ? "Our team reviews your application and agrees the shortlist with the client. If selected, we contact you to arrange an interview."
+            : "Our team reviews your profile. We contact you when a suitable opportunity is available."}
         </p>
       </div>
     );

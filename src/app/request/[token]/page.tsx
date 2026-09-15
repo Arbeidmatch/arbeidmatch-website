@@ -1365,7 +1365,7 @@ export default function RequestTokenPage() {
         form.howDidYouHear === "Referral from another company"
           ? form.referralEmail.trim().toLowerCase()
           : "",
-      subscribe: form.subscribeUpdates ? "Yes - send me candidate updates" : "",
+      subscribe: form.subscribeUpdates ? "Yes - send me candidate updates" : "No",
       notes: generatedNotes,
       required_skills: requiredSkills,
     };
@@ -2950,11 +2950,12 @@ export default function RequestTokenPage() {
                     </div>
                   </div>
                 ) : null}
-                <div className="flex items-center justify-between rounded-[10px] border border-[rgba(201,168,76,0.2)] px-4 py-3">
-                  <p className="text-sm text-white/80">Subscribe to candidate updates</p>
-                  <button type="button" className={`h-7 w-12 rounded-full p-1 ${form.subscribeUpdates ? "bg-[#C9A84C]" : "bg-white/20"}`} onClick={() => setForm((p) => ({ ...p, subscribeUpdates: !p.subscribeUpdates }))}>
-                    <span className={`block h-5 w-5 rounded-full bg-white transition ${form.subscribeUpdates ? "translate-x-5" : "translate-x-0"}`} />
-                  </button>
+                <div className="rounded-[10px] border border-[rgba(201,168,76,0.2)] px-4 py-4">
+                  <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-white/85">
+                    <input type="checkbox" checked={form.subscribeUpdates} onChange={(event) => setForm((previous) => ({ ...previous, subscribeUpdates: event.target.checked }))} className="mt-1 h-5 w-5 shrink-0 accent-[#C9A84C]" />
+                    <span>I want emails from ArbeidMatch when candidates matching this request become available.</span>
+                  </label>
+                  <p className="mt-3 text-xs leading-relaxed text-white/60">Optional. Presentations are sent when suitable candidates are available, not immediately after your request. To stop updates, contact post@arbeidmatch.no.</p>
                 </div>
               </div>
             )}

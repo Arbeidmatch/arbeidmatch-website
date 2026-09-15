@@ -95,7 +95,7 @@ export default function AboutPage() {
               Work with us
             </Link>
             <a
-              href="https://jobs.arbeidmatch.no"
+              href="/jobs"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex min-h-[48px] min-w-[200px] items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] px-8 py-3 text-sm font-semibold text-white transition-colors hover:border-[#C9A84C]"

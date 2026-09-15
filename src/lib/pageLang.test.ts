@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { langDetectSource, langForPath, pageLangInlineScript } from "@/lib/pageLang";
 
 const CASES: Array<[string, string]> = [
-  ["/", "en"],
+  ["/", "nb"],
   ["/jobs", "en"],
   ["/for-candidates", "en"],
   ["/premium", "en"],

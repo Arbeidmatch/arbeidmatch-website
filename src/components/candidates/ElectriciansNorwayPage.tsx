@@ -24,7 +24,7 @@ function InlineRegisterBlock({ onPrimaryCta }: { onPrimaryCta: () => void }) {
           Browse electrician roles
         </button>
         <a
-          href="https://jobs.arbeidmatch.no/sign-up"
+          href="/candidate-request"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex min-h-[48px] items-center justify-center rounded-[10px] border bg-transparent px-8 py-3.5 text-[15px] font-semibold transition-colors duration-200 hover:bg-[rgba(201,168,76,0.08)]"
@@ -85,7 +85,7 @@ export default function ElectriciansNorwayPage() {
             Norway has steady demand for qualified electricians. This page covers what the work looks like, what to have
             ready before you apply, and what you can expect to earn.
           </p>
-          <InlineRegisterBlock onPrimaryCta={() => { window.location.href = "https://jobs.arbeidmatch.no"; }} />
+          <InlineRegisterBlock onPrimaryCta={() => { window.location.href = "/jobs"; }} />
         </div>
       </section>
 
@@ -232,7 +232,7 @@ export default function ElectriciansNorwayPage() {
               Norwegian employers.
             </p>
             <Link
-              href="https://jobs.arbeidmatch.no"
+              href="/jobs"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 inline-flex items-center justify-center rounded-[8px] px-6 py-3 text-[14px] font-bold text-[#0f1923]"
@@ -255,7 +255,7 @@ export default function ElectriciansNorwayPage() {
           </p>
           <div style={{ marginTop: 24 }}>
             <a
-              href="https://jobs.arbeidmatch.no/sign-up"
+              href="/candidate-request"
               target="_blank"
               rel="noopener noreferrer"
               style={{

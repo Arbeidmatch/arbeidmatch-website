@@ -371,7 +371,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
           </div>
           <div className="mt-6 flex flex-col gap-2.5">
             <a
-              href="https://jobs.arbeidmatch.no"
+              href="/jobs"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full rounded-[10px] py-3.5 text-center text-[14px] font-bold text-white no-underline"
@@ -380,7 +380,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
               Browse open electrician jobs
             </a>
             <a
-              href="https://jobs.arbeidmatch.no/sign-up"
+              href="/candidate-request"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -574,7 +574,7 @@ function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
           </div>
           <div className="mt-6 flex flex-col gap-2.5">
             <a
-              href="https://jobs.arbeidmatch.no"
+              href="/jobs"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full rounded-[10px] py-3.5 text-center text-[14px] font-bold text-white no-underline"
@@ -583,7 +583,7 @@ function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
               Browse open welding jobs
             </a>
             <a
-              href="https://jobs.arbeidmatch.no/sign-up"
+              href="/candidate-request"
               target="_blank"
               rel="noopener noreferrer"
               style={{

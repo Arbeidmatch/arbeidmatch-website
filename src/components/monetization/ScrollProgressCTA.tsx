@@ -106,7 +106,7 @@ export default function ScrollProgressCTA({ pathname }: { pathname: string }) {
             </Link>
           ) : (
             <a
-              href="https://jobs.arbeidmatch.no"
+              href="/jobs"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 flex min-h-[44px] w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#b8923f] to-gold py-2.5 text-sm font-semibold text-[#0a0f14] transition-transform duration-300 ease-premium hover:scale-[1.02]"

@@ -1,32 +1,15 @@
 import type { Metadata } from "next";
-import { Forsiden } from "@/components/home/Forsiden";
+import Presentation from "@/components/home/Presentation";
 
-/**
- * Rendered per request, with the upstream call cached for five minutes.
- *
- * NOT ISR, and the reason is measured. The Vercel build cannot reach
- * ats.arbeidmatch.no: every board read during a build fails, so a statically
- * generated page bakes in "the job list could not be loaded" and serves it to
- * the first visitor after every single deploy, until a revalidation replaces
- * it. That is what the first deploy of the front page did, and it was mistaken
- * for the ATS being mid-deploy.
- *
- * Rendering per request costs nothing extra upstream, because
- * `fetchPublicJobs(300)` caches the ATS response for five minutes: many
- * requests, one call. What it buys is that a page about open jobs is never
- * served saying it has none.
- */
-export const dynamic = "force-dynamic";
-
-const TITLE = "Jobs in Norway for EU and EEA tradespeople | ArbeidMatch";
+const TITLE = "Bemanning og rekruttering i Norge | ArbeidMatch";
 const DESCRIPTION =
-  "Open positions in Norway for carpenters, bricklayers, concrete workers, car mechanics, welders and DSB-certified electricians. EU or EEA passport required, trade certificate or documented equivalent experience.";
+  "Trenger bedriften fagfolk? ArbeidMatch hjelper med bemanning og rekruttering innen bygg, bil og verksted, industri og elektro. Send en gratis forespørsel.";
 
 const OG_IMAGE = {
   url: "/og-image.png",
   width: 1200,
   height: 630,
-  alt: "ArbeidMatch | Jobs in Norway for EU and EEA tradespeople",
+  alt: "ArbeidMatch | Bemanning og rekruttering i Norge",
 } as const;
 
 export const metadata: Metadata = {
@@ -35,17 +18,13 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: {
     canonical: "https://www.arbeidmatch.no/",
-    // Two languages, both real, and each one says the other exists. English is
-    // the default because the reader looking for work comes from the EEA.
-    languages: {
-      en: "https://www.arbeidmatch.no/",
-      no: "https://www.arbeidmatch.no/no",
-    },
+    languages: { "nb-NO": "https://www.arbeidmatch.no/", "x-default": "https://www.arbeidmatch.no/" },
   },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
-    locale: "en_US",
+    locale: "nb_NO",
+    url: "https://www.arbeidmatch.no/",
     images: [OG_IMAGE],
   },
   twitter: {
@@ -57,5 +36,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <Forsiden lang="en" />;
+  return <Presentation />;
 }

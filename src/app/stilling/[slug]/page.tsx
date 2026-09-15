@@ -362,7 +362,7 @@ export default async function StillingPage({ params }: Props) {
                   Apply for this job
                 </Link>
                 <p className="text-sm text-text-secondary">
-                  A recruiter reads every application, and we answer by email either way.
+                  We review your application with the client. If selected, we contact you to arrange an interview.
                 </p>
               </div>
             </div>

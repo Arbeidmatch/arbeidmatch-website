@@ -96,7 +96,7 @@ export default function Navbar() {
   // Flislegger is a standalone ArbeidMatch department with its own navigation.
   // Do not mix the recruitment/staffing website menu into this microsite.
   if (pathname?.startsWith("/flislegger")) return null;
-  if (pathname === "/" || pathname === "/no") return <HomeNavigation key={pathname} lang={pathname === "/no" ? "no" : "en"} />;
+  if (pathname === "/" || pathname === "/no") return <HomeNavigation key={pathname} lang="no" />;
 
   const navItemClass =
     "shrink-0 text-[15px] font-normal text-white/70 transition-[color,font-weight,text-decoration-color] duration-150 hover:font-medium hover:text-white";

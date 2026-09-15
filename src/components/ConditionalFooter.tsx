@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 
 const EXACT_ALLOW = new Set([
   "/for-candidates",
+  "/newsletter",
   "/contact",
   "/about",
   "/privacy",

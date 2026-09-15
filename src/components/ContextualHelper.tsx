@@ -29,7 +29,7 @@ const HELPERS: Record<string, HelperConfig> = {
     icon: "⚡",
     title: "Ready to apply?",
     text: "Browse open positions in Norway or create your candidate profile.",
-    cta: { label: "See open positions →", href: "https://jobs.arbeidmatch.no" },
+    cta: { label: "See open positions →", href: "/jobs" },
   },
   "/for-employers": {
     icon: "🤝",
