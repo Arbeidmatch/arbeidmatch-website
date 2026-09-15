@@ -61,7 +61,7 @@ export async function Forsiden({ lang = "en" }: { lang?: "en" | "no" }) {
         {!ok || jobs.length === 0 ? (
           <div className="rounded-xl border border-border bg-surface p-6 text-text-secondary">
             <p>{!ok ? copy.error : copy.empty}</p>
-            <Link href={!ok ? "/contact" : "/candidate-request"} className="mt-3 inline-block font-semibold text-gold-ink underline">{!ok ? (lang === "en" ? "Contact us" : "Kontakt oss") : (lang === "en" ? "Create profile" : "Opprett profil")}</Link>
+            <Link href={!ok ? "/contact" : "/candidate-register"} className="mt-3 inline-block font-semibold text-gold-ink underline">{!ok ? (lang === "en" ? "Contact us" : "Kontakt oss") : (lang === "en" ? "Create profile" : "Opprett profil")}</Link>
           </div>
         ) : (
           <div className="grid auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-3">

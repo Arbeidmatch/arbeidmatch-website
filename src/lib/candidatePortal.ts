@@ -24,4 +24,4 @@
 export const CANDIDATE_PORTAL_LOGIN_URL = "https://ats.arbeidmatch.no/candidate/login" as const;
 
 /** Where a candidate with no profile yet goes. The ATS points at this same page. */
-export const CANDIDATE_PORTAL_SIGNUP_URL = "/candidate-request" as const;
+export const CANDIDATE_PORTAL_SIGNUP_URL = "/candidate-register" as const;

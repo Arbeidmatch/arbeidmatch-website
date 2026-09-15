@@ -380,7 +380,7 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
               Browse open electrician jobs
             </a>
             <a
-              href="/candidate-request"
+              href="/candidate-register"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -583,7 +583,7 @@ function WelderCard({ reducedMotion }: { reducedMotion: boolean }) {
               Browse open welding jobs
             </a>
             <a
-              href="/candidate-request"
+              href="/candidate-register"
               target="_blank"
               rel="noopener noreferrer"
               style={{

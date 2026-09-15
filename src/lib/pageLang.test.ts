@@ -7,7 +7,7 @@ const CASES: Array<[string, string]> = [
   ["/jobs", "en"],
   ["/for-candidates", "en"],
   ["/premium", "en"],
-  ["/candidate-request", "en"],
+  ["/candidate-register", "en"],
   ["/stilling/some-job", "en"],
   ["/request/1f0e9c7a-0000-4000-8000-000000000000", "en"],
   ["/no", "nb"],

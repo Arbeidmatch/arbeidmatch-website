@@ -17,6 +17,13 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      // The profile page was renamed on 15 September 2026: candidates register, they do not
+      // "request". The old address is already in Messenger replies, emails and Facebook posts.
+      { source: "/candidate-request", destination: "/candidate-register", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {
