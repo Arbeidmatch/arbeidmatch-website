@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ApplyForm } from "@/components/jobs/ApplyForm";
 import { atsBaseUrl } from "@/lib/jobs-fetch";
 
 /**
@@ -19,11 +18,12 @@ import { atsBaseUrl } from "@/lib/jobs-fetch";
  * joining. This is `arbeidmatch.no/register/elena-iacob`: our own domain, a page
  * a search engine may read, and a name at the end of it.
  *
- * WHAT IT IS NOT is a second application pipeline. The ATS resolves the name to
- * the invitation token it already had, the form is the one every advert uses,
- * and it posts to /api/apply/<token> on this domain, which hands it on from the
- * server. The browser never speaks to the ATS. Consent, the duplicate check, the
- * file gate and the retention clock all stay in one place, where they were.
+ * WHAT IT IS NOT is a form. HIS DECISION, 17 September 2026: candidates do not
+ * type their details into a form any more; they sign in and fill a profile once.
+ * The ATS resolves the name to the invitation token it already had, and the
+ * button here opens the candidate sign-in with that token, so the account and
+ * profile created there belong to the person who sent the invitation. Consent,
+ * the duplicate check, the file gate and the retention clock stay in the ATS.
  *
  * The raw token still resolves here too, so a link shared before today lands on
  * this page rather than on nothing.
@@ -103,16 +103,26 @@ export default async function RegisterPage({ params }: Props) {
             {who ? `${who} invited you to ArbeidMatch` : "Register with ArbeidMatch"}
           </h1>
           <p className="mt-4 max-w-prose text-white/70">
-            Fill this in once. {who ? `${who.split(" ")[0]} reads it` : "A recruiter reads it"} and comes back to you by
-            email, whichever way the answer goes. You are registering with us, not applying to one advert, so it counts
-            for every job we are working on.
+            Create your profile once. {who ? `${who.split(" ")[0]} reads it` : "A recruiter reads it"} and comes back to
+            you by email, whichever way the answer goes. You are registering with us, not applying to one advert, so it
+            counts for every job we are working on.
           </p>
         </div>
       </header>
 
       <div className="bg-white">
         <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20">
-          <ApplyForm token={invitation.token} />
+          <ol className="max-w-2xl list-decimal space-y-2 pl-5 text-text-secondary">
+            <li>Sign in with your email. There is no password: we send you a code, or you use Google.</li>
+            <li>Upload your CV. We fill in most of your profile from it, and you add what is missing.</li>
+            <li>Apply for any of our jobs with one press, whenever you want.</li>
+          </ol>
+          <a
+            href={`${atsBaseUrl()}/candidate/login?invite=${encodeURIComponent(invitation.token)}`}
+            className="mt-8 inline-flex min-h-[48px] items-center justify-center rounded-xl bg-navy px-6 py-3 text-base font-semibold text-white transition hover:bg-navy/90"
+          >
+            Create my profile
+          </a>
 
           <p className="mt-10 text-sm text-text-secondary">
             Looking for something specific?{" "}
