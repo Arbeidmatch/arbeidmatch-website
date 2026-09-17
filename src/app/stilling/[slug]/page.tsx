@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JobPostingJsonLd } from "@/components/seo/JobPostingJsonLd";
+import { ApplyGateButton } from "@/components/jobs/ApplyGateButton";
 import {
+  atsBaseUrl,
   fetchPublicJob,
   jobCardImage,
   jobImage,
@@ -129,7 +131,14 @@ export default async function StillingPage({ params }: Props) {
   const preferred = (job.requirements ?? []).filter((r) => !r.required);
   const certificates = (job.required_certificates ?? []).filter(Boolean);
   const skills = (job.skills_required ?? []).filter(Boolean);
-  const applyHref = `/stilling/${encodeURIComponent(slug)}/soknad`;
+  // Apply opens the sign-in or create-profile window with the consent box first (17 September 2026).
+  const portalQuery = new URLSearchParams({
+    next: `/candidate/apply/${slug}`,
+    consent: "1",
+    source: `job:${slug}`,
+  }).toString();
+  const loginHref = `${atsBaseUrl()}/candidate/login?${portalQuery}`;
+  const registerHref = `${atsBaseUrl()}/candidate/login/register?${portalQuery}`;
 
   // The bar on every posting: a diploma or documented equivalent experience,
   // never a beginner. The electricians say DSB instead, because for them the
@@ -258,12 +267,11 @@ export default async function StillingPage({ params }: Props) {
                       It used to send the person to jobs.arbeidmatch.no; RecMan
                       keeps staffing and the contracts already in it. His
                       instruction, 3 September 2026. */}
-                  <Link
-                    href={applyHref}
+                  <ApplyGateButton
+                    loginHref={loginHref}
+                    registerHref={registerHref}
                     className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-gold px-6 font-semibold text-navy transition hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-                  >
-                    Apply for this job
-                  </Link>
+                  />
                   <p className="mt-3 text-[13px] leading-relaxed text-text-secondary">
                     EU or EEA passport. No visa sponsorship, and we do not cover travel.
                   </p>
@@ -355,12 +363,11 @@ export default async function StillingPage({ params }: Props) {
               {/* The button again at the foot of the advert, for the reader who
                   got here by reading rather than by deciding at the top. */}
               <div className="mt-10 flex flex-wrap items-center gap-4 border-t border-border pt-8">
-                <Link
-                  href={applyHref}
+                <ApplyGateButton
+                  loginHref={loginHref}
+                  registerHref={registerHref}
                   className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 font-semibold text-navy transition hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-                >
-                  Apply for this job
-                </Link>
+                />
                 <p className="text-sm text-text-secondary">
                   We review your application with the client. If selected, we contact you to arrange an interview.
                 </p>
