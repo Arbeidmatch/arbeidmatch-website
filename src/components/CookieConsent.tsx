@@ -81,7 +81,8 @@ export default function CookieConsent() {
     >
       <div className="flex items-center gap-3">
         <p className="min-w-0 flex-1 text-xs leading-relaxed text-white/90">
-          Only essential cookies. No advertising cookies. <a href="/privacy" className="text-gold underline underline-offset-2">Privacy policy</a>
+          Only essential cookies. No advertising or tracking cookies.{" "}
+          <a href="/cookies" className="text-gold underline underline-offset-2">Cookie policy</a>
         </p>
         <div className="shrink-0">
           <button

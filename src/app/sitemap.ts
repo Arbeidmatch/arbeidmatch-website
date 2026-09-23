@@ -174,6 +174,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
+      url: `${SITE}/cookies`,
+      lastModified: stableLastMod,
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+    {
       url: `${SITE}/dpa`,
       lastModified: stableLastMod,
       changeFrequency: "yearly",

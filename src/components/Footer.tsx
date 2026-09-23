@@ -69,6 +69,7 @@ export default function Footer() {
             <FooterColumnTitle>{no ? "Vilkår og personvern" : "Legal"}</FooterColumnTitle>
             <FooterNavLink href="/privacy" label={no ? "Personvern" : "Privacy Policy"} />
             <FooterNavLink href="/terms" label={no ? "Vilkår" : "Terms of Service"} />
+            <FooterNavLink href="/cookies" label={no ? "Informasjonskapsler" : "Cookie Policy"} />
           </div>
         </div>
         {/* His correction, 13 September 2026: the "not an official authority" disclaimer
