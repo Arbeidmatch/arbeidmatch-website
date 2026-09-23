@@ -36,7 +36,10 @@ export const metadata: Metadata = {
 };
 
 export default async function DpaPage() {
-  const doc = await fetchAtsLegalDocument("dpa-recruiter");
+  // "dpa-recruiter" from 4 May 2026 until 23 September 2026. The row has always
+  // been called "dpa-recruiter-partner", so this page served nothing but
+  // "Document not currently available" for the whole of that time.
+  const doc = await fetchAtsLegalDocument("dpa-recruiter-partner");
   if (!doc) return <AtsLegalDocumentFallback />;
   return <AtsLegalDocumentPage doc={doc} />;
 }
