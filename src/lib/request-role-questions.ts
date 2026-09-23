@@ -360,6 +360,17 @@ export type RoleAnswers = {
   norwegianLevel: string;
   norwegianReason: string;
   englishLevel: string;
+  /**
+   * Who is already on the team, and the language they use between them.
+   *
+   * Asked as practice, never as a preference: a client writing down which
+   * nationality he would rather have is a sentence that can be quoted back at
+   * him, and at us, under likestillings- og diskrimineringsloven. The teams on
+   * site today, and the language they actually speak, tell us the same thing we
+   * need to place somebody who fits in from the first day. Both optional.
+   */
+  teamNationalities: string;
+  teamLanguage: string;
   /** Trade question id to "Yes"/"No", one option, several options, or free text. */
   trade: Record<string, string | string[]>;
   staffing: {
@@ -387,6 +398,8 @@ export const EMPTY_ROLE_ANSWERS: RoleAnswers = {
   norwegianLevel: "",
   norwegianReason: "",
   englishLevel: "",
+  teamNationalities: "",
+  teamLanguage: "",
   trade: {},
   staffing: {
     worksiteStreet: "",
@@ -498,6 +511,8 @@ export function normalizeRoleAnswers(raw: unknown): RoleAnswers {
     norwegianLevel: oneOf(r.norwegianLevel, LANGUAGE_LEVELS),
     norwegianReason: str(r.norwegianReason),
     englishLevel: oneOf(r.englishLevel, LANGUAGE_LEVELS),
+    teamNationalities: str(r.teamNationalities),
+    teamLanguage: str(r.teamLanguage),
     trade,
     staffing: {
       worksiteStreet: str(s.worksiteStreet, 120),
@@ -624,6 +639,8 @@ export function buildRoleDetails(input: RoleDetailsInput, lang: "en" | "ro" = "e
   push("Norwegian at work", "Norvegiană la lucru", word(a.norwegianLevel));
   if (norwegianNeedsReason(a.norwegianLevel)) push("Why Norwegian is needed", "De ce e nevoie de norvegiană", a.norwegianReason);
   push("English at work", "Engleză la lucru", word(a.englishLevel));
+  push("Nationalities on the team today", "Nationalitati in echipa azi", a.teamNationalities);
+  push("Language spoken within the team", "Limba vorbita in echipa", a.teamLanguage);
 
   for (const q of getTradeQuestions(input.industry, input.position)) {
     const v = a.trade[q.id];
@@ -672,6 +689,8 @@ export const ALL_ROLE_DETAIL_LABELS: readonly string[] = [
   "Norwegian at work",
   "Why Norwegian is needed",
   "English at work",
+  "Nationalities on the team today",
+  "Language spoken within the team",
   ...[...new Set(ALL_TRADE_QUESTIONS.map((q) => q.summaryLabel))],
   "Worksite address",
   "Staffing project",

@@ -1161,6 +1161,53 @@ export default function RequestTokenPage() {
   );
   const roleDetailsBlock = useMemo(() => roleDetailsRequirementsBlock(roleDetailRows), [roleDetailRows]);
 
+  /** The answers from the earlier steps, so the review shows the whole request. */
+  const reviewRows = useMemo(() => {
+    const rows: Array<{ label: string; value: string }> = [];
+    const put = (label: string, value: string) => {
+      const v = (value ?? "").trim();
+      if (v) rows.push({ label, value: v });
+    };
+    put("Company", form.companyName);
+    put("Contact", `${form.contactFirstName} ${form.contactLastName}`);
+    put(
+      "Service",
+      form.hiringType === "staffing" ? "Staffing (bemanning)" : form.hiringType === "recruitment" ? "Recruitment" : form.hiringType,
+    );
+    put("Job category", form.industry);
+    put("Position", form.workerType);
+    put("Location", form.locations.join(", "));
+    put("Number of workers", String(form.candidates));
+    put("Employment type", form.contractType);
+    put("Start", form.startDateMode === "Immediate" ? "Immediate" : form.startDate);
+    put(
+      form.salaryPeriod === "per hour" ? "Salary (NOK/hour)" : "Salary (NOK/month)",
+      [form.salaryMin.trim(), form.salaryMax.trim()].filter(Boolean).join(" - "),
+    );
+    put("Accommodation", form.accommodation ?? "");
+    put("Local travel", form.localTransport ?? "");
+    put("International travel", form.internationalTransport ?? "");
+    return rows;
+  }, [
+    form.accommodation,
+    form.candidates,
+    form.companyName,
+    form.contactFirstName,
+    form.contactLastName,
+    form.contractType,
+    form.hiringType,
+    form.industry,
+    form.internationalTransport,
+    form.localTransport,
+    form.locations,
+    form.salaryMax,
+    form.salaryMin,
+    form.salaryPeriod,
+    form.startDate,
+    form.startDateMode,
+    form.workerType,
+  ]);
+
   /**
    * Job advertising leaves this wizard for the advert flow, carrying what the
    * client already typed so he does not type it twice.
@@ -3127,6 +3174,42 @@ export default function RequestTokenPage() {
                     />
                     {fieldErrors.englishLevel ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
+                  {/*
+                    The team as it is today, never a preference. Asking a client
+                    to write down which nationality he would rather have is a
+                    sentence that can be quoted back at him, and at us, under
+                    likestillings- og diskrimineringsloven. Who is already on the
+                    crew, and the language they use between them, answers the
+                    same question we actually have: who will fit in on the first
+                    day. Both optional.
+                  */}
+                  <div data-wizard-field="teamNationalities">
+                    <p className={labelClass}>
+                      Nationalities on the team today {OPTIONAL_TAG}
+                    </p>
+                    <input
+                      className={wizardInputClass(false)}
+                      value={form.roleAnswers.teamNationalities}
+                      onChange={(e) => setRole({ teamNationalities: e.target.value })}
+                      placeholder="e.g. Norwegian, Polish, Lithuanian"
+                      maxLength={200}
+                    />
+                    <p className="mt-1 text-xs text-white/55">
+                      It helps us pick candidates who come into the crew from day one.
+                    </p>
+                  </div>
+                  <div data-wizard-field="teamLanguage">
+                    <p className={labelClass}>
+                      Language spoken within the team {OPTIONAL_TAG}
+                    </p>
+                    <input
+                      className={wizardInputClass(false)}
+                      value={form.roleAnswers.teamLanguage}
+                      onChange={(e) => setRole({ teamLanguage: e.target.value })}
+                      placeholder="e.g. Norwegian on site, English within the crew"
+                      maxLength={200}
+                    />
+                  </div>
                 </div>
                 {tradeQuestions.length > 0 ? (
                   <div className="space-y-4 border-t border-white/10 pt-5">
@@ -3253,6 +3336,23 @@ export default function RequestTokenPage() {
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Review your request</h2>
                 <p className="text-sm text-white/55">Check the summary below. You can add optional notes on the next step. {DETAILED_OFFER_NOTE}</p>
+                {/*
+                  What the client is actually confirming. Until 23 September
+                  2026 this step showed only the free-text block below, which is
+                  built from what he typed and picked in the last four steps.
+                  Everything chosen earlier - the service, the position, the
+                  place, how many, the pay, when - was saved and sent, but never
+                  shown back, so the last click before submitting confirmed less
+                  than half the request.
+                */}
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-2 rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-4 text-sm sm:grid-cols-2">
+                  {reviewRows.map((row) => (
+                    <div key={row.label} className="flex flex-col">
+                      <dt className="text-[11px] uppercase tracking-[0.08em] text-[#C9A84C]">{row.label}</dt>
+                      <dd className="text-white/85">{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
                 <div className="rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-4">
                   <pre className="whitespace-pre-wrap text-sm text-white/75">
                     {roleDetailsBlock ? `${generatedNotes}\n\n${roleDetailsBlock}` : generatedNotes}

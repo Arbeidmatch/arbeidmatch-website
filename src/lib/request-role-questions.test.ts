@@ -119,6 +119,20 @@ describe("labels the ATS reads", () => {
     }
   });
 
+  it("carry the team composition answers into the office letter", () => {
+    const rows = buildRoleDetails({
+      service: "recruitment",
+      industry: "Construction",
+      position: "Carpenter",
+      answers: { ...EMPTY_ROLE_ANSWERS, teamNationalities: "Norwegian, Polish", teamLanguage: "English within the crew" },
+    });
+    const labels = rows.map((r) => r.label);
+    expect(labels).toContain("Nationalities on the team today");
+    expect(labels).toContain("Language spoken within the team");
+    // The ATS parser only finds a line whose label it knows.
+    for (const label of labels) expect(ALL_ROLE_DETAIL_LABELS).toContain(label);
+  });
+
   it("cover every row buildRoleDetails can produce", () => {
     const labels = new Set(ALL_ROLE_DETAIL_LABELS);
     for (const [service, sample] of [

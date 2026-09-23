@@ -33,6 +33,8 @@ const requestSchema = z
     flow: z.enum(["partner", "new_company"]),
     industry: z.string().trim().max(120).optional(),
     role: z.string().trim().max(160).optional(),
+    /** The same role as the client read it on screen, for the letter only. */
+    roleDisplay: z.string().trim().max(160).optional(),
     gdprConsent: z.boolean().optional(),
     website: z.string().max(256).optional(),
     company_website: z.string().max(256).optional(),
@@ -106,6 +108,7 @@ export async function POST(request: NextRequest) {
     const flow = parsed.data.flow;
     const industry = parsed.data.industry?.trim() || null;
     const role = parsed.data.role?.trim() || null;
+    const roleDisplay = parsed.data.roleDisplay?.trim() || role;
 
     if (flow === "new_company" && parsed.data.gdprConsent !== true) {
       return noStoreJson(
@@ -206,7 +209,7 @@ export async function POST(request: NextRequest) {
         code: otpCode,
         to: email,
         unsubscribeUrl: await unsubscribeUrlFor(email, "request-otp"),
-        role,
+        role: roleDisplay,
       });
       await transporter.sendMail({
         from: '"ArbeidMatch" <no-reply@arbeidmatch.no>',

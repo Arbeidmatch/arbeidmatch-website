@@ -863,6 +863,10 @@ export default function RequestPage() {
           flow: "new_company",
           gdprConsent: true,
           role: selectedRole,
+          // The stored role stays the English key the later steps map from;
+          // the letter needs the word the client actually pressed, or a
+          // Norwegian e-mail tells him he asked for a "Carpenter".
+          roleDisplay: roleLabel(selectedRole),
           industry: industryResolved,
         }),
       });
