@@ -1186,7 +1186,16 @@ export default function RequestTokenPage() {
     );
     put("Accommodation", form.accommodation ?? "");
     put("Local travel", form.localTransport ?? "");
-    put("International travel", form.internationalTransport ?? "");
+    // The column stores company_covered / own_responsibility; a review that
+    // prints the stored word back at the client is not a review.
+    put(
+      "International travel",
+      form.internationalTransport === "company_covered"
+        ? "Covered by company"
+        : form.internationalTransport === "own_responsibility"
+          ? "Candidate's own responsibility"
+          : (form.internationalTransport ?? ""),
+    );
     return rows;
   }, [
     form.accommodation,
