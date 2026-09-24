@@ -912,7 +912,7 @@ export default function RequestPage() {
       return;
     }
     if (!requesterKind || !isServiceAllowedFor(serviceChoice, requesterKind)) {
-      setGetStartedError("Velg hvilken tjeneste dere trenger først.");
+      setGetStartedError("Velg først hvilken tjeneste dere trenger.");
       return;
     }
     if (!industryResolved) {
