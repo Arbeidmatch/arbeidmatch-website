@@ -59,6 +59,7 @@ const INTERNAL_SECTIONS = ["Contact details", "Position details", "Conditions of
 function serviceLabel(value: string): string {
   if (value === "staffing") return "Staffing (bemanning)";
   if (value === "recruitment") return "Recruitment";
+  if (value === "sourcing") return "Sourcing";
   if (value === "advertising") return "Job advertising";
   return value;
 }
@@ -67,6 +68,7 @@ function serviceLabel(value: string): string {
 function serviceLabelNo(value: string): string {
   if (value === "staffing") return "Bemanning";
   if (value === "recruitment") return "Rekruttering";
+  if (value === "sourcing") return "Sourcing";
   if (value === "advertising") return "Stillingsannonse";
   return value;
 }
@@ -204,6 +206,7 @@ export async function POST(request: NextRequest) {
       // Above the first section on purpose: the ATS intake reads fields by the
       // labels inside the sections, and a line before them is not one of its fields.
       text(data.hiringType) ? letterParagraph(`Service: <strong>${escapeHtml(serviceLabel(text(data.hiringType)))}</strong>`) : "",
+      data.requesterKind === "agency" ? letterParagraph("Requester: <strong>Staffing or recruitment agency</strong>") : "",
       adContactLine ? letterParagraph(`Contact on the advert: <strong>${escapeHtml(adContactLine)}</strong>`) : "",
       // Above the sections for the same reason: "Additional notes" is not a label
       // the intake knows, so inside a section its text ran into the city.
@@ -309,7 +312,12 @@ export async function POST(request: NextRequest) {
     const ro = (value: string, words: Record<string, string>) => words[value] ?? value;
     const slackFields: Record<string, string> = {};
     pushSlackField(slackFields, "Referință", referenceId);
-    pushSlackField(slackFields, "Serviciu", ro(text(data.hiringType), { staffing: "Staffing (bemanning)", recruitment: "Recrutare", advertising: "Anunț de angajare" }));
+    pushSlackField(slackFields, "Serviciu", ro(text(data.hiringType), { staffing: "Staffing (bemanning)", recruitment: "Recrutare", sourcing: "Sourcing", advertising: "Anunț de angajare" }));
+    pushSlackField(
+      slackFields,
+      "Tip firmă",
+      data.requesterKind === "agency" ? "Agenție de bemanning sau recrutare" : data.requesterKind === "own_operation" ? "Angajează pentru propria activitate" : "",
+    );
     pushSlackField(slackFields, "Firmă", companyReal);
     pushSlackField(slackFields, "Nr. org.", data.orgNumber);
     pushSlackField(slackFields, "Persoană de contact", fullNameReal);

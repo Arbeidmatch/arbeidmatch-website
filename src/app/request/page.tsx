@@ -8,19 +8,19 @@ import type { LucideIcon } from "lucide-react";
 import {
   Anchor,
   ArrowLeft,
-  Bolt,
   Building2,
   Car,
   Check,
-  Clock,
   Factory,
   Flame,
   Handshake,
   HardHat,
+  Megaphone,
   Search,
   Sparkles,
-  TrendingUp,
   Truck,
+  UserCheck,
+  Users,
   Utensils,
   Waves,
   Zap,
@@ -29,6 +29,16 @@ import {
 import { trackPartnerAccessRequest, trackRequestSubmit } from "@/lib/analytics/requestEvents";
 import { REQUEST_INDUSTRY_ROLE_GROUPS } from "@/lib/industry-roles";
 import { clearPartnerRequestContext, writePartnerRequestContext } from "@/lib/partnerRequestContext";
+import {
+  isServiceAllowedFor,
+  keepServiceIfAllowed,
+  REQUEST_SERVICE_CARDS_NB,
+  serviceCardsFor,
+  withServiceChoice,
+  type RequestServiceKey,
+  type RequesterKind,
+  type SelectableRequestService,
+} from "@/lib/request-service";
 import { useToast } from "@/lib/toast-context";
 
 type PartnerVerifyCompany = {
@@ -391,6 +401,77 @@ function PremiumIndustryCard({
   );
 }
 
+const SERVICE_ICONS: Record<RequestServiceKey, LucideIcon> = {
+  staffing: Users,
+  recruitment: UserCheck,
+  sourcing: Search,
+  advertising: Megaphone,
+};
+
+/**
+ * Asked before the services, because the answer decides which of them are
+ * shown: a bemannings or rekrutteringsbyrå is never offered Bemanning (the
+ * owner, 24 September 2026). Same words as the ATS's own form.
+ */
+const REQUESTER_KIND_OPTIONS_NB: ReadonlyArray<{ key: RequesterKind; label: string; blurb: string; icon: LucideIcon }> = [
+  { key: "own_operation", label: "Vi trenger folk til egen drift", blurb: "Folkene skal jobbe i våre egne prosjekter.", icon: Building2 },
+  {
+    key: "agency",
+    label: "Vi er et bemannings- eller rekrutteringsbyrå",
+    blurb: "Vi leverer folk videre til våre egne kunder.",
+    icon: Handshake,
+  },
+];
+
+function serviceLabelNb(service: string): string {
+  return REQUEST_SERVICE_CARDS_NB.find((card) => card.key === service)?.label ?? "";
+}
+
+/** One answer on the service step, in the look of the industry cards. */
+function ServiceChoiceCard({
+  label,
+  blurb,
+  Icon,
+  selected,
+  disabled = false,
+  onSelect,
+}: {
+  label: string;
+  blurb: string;
+  Icon: LucideIcon;
+  selected: boolean;
+  disabled?: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={disabled ? undefined : onSelect}
+      disabled={disabled}
+      aria-pressed={disabled ? undefined : selected}
+      aria-disabled={disabled || undefined}
+      className={`relative flex h-full w-full flex-row items-start gap-4 rounded-3xl border p-4 text-left sm:flex-col sm:p-5 transition-[border-color,box-shadow,background-color] duration-200 ${
+        disabled
+          ? "cursor-not-allowed border-white/10 bg-white/[0.02] opacity-60"
+          : selected
+            ? "border-[#C9A84C] bg-[radial-gradient(circle_at_center,rgba(201,168,76,0.08),transparent_65%)] shadow-[0_0_24px_rgba(201,168,76,0.4)]"
+            : "border-white/10 bg-gradient-to-br from-[#0f2035] to-[#0a1628] hover:border-[#C9A84C]/60"
+      }`}
+    >
+      {selected && !disabled ? (
+        <span className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#C9A84C] text-[#0D1B2A]">
+          <Check className="h-4 w-4" />
+        </span>
+      ) : null}
+      <Icon className={`h-7 w-7 shrink-0 sm:h-8 sm:w-8 ${disabled ? "text-white/40" : "text-[#C9A84C]"}`} aria-hidden />
+      <div className="pr-8">
+        <p className="text-base font-semibold tracking-tight text-white">{label}</p>
+        <p className={`mt-1 text-sm ${disabled ? "text-white/50" : "text-white/65"}`}>{blurb}</p>
+      </div>
+    </button>
+  );
+}
+
 export default function RequestPage() {
   const router = useRouter();
   const toast = useToast();
@@ -408,7 +489,10 @@ export default function RequestPage() {
   }, [router]);
 
   const [checkState, setCheckState] = useState<"partner_check" | "idle">("partner_check");
-  const [pickerStep, setPickerStep] = useState<"industries" | "roles" | "modal">("industries");
+  const [pickerStep, setPickerStep] = useState<"service" | "industries" | "roles" | "modal">("service");
+  /** The kind of firm and the service, chosen first; both reach the wizard on its address. */
+  const [requesterKind, setRequesterKind] = useState<RequesterKind | "">("");
+  const [serviceChoice, setServiceChoice] = useState<SelectableRequestService | "">("");
   const [verifiedPartnerCompany, setVerifiedPartnerCompany] = useState<string | null>(null);
   const [industryCounts, setIndustryCounts] = useState<Record<string, number | null>>({});
   const [roleCounts, setRoleCounts] = useState<Record<string, number | null>>({});
@@ -423,10 +507,7 @@ export default function RequestPage() {
   const [companyName, setCompanyName] = useState("");
   const [accessErrorMessage, setAccessErrorMessage] = useState("");
 
-  const [selectedOption, setSelectedOption] = useState<null | "premium" | "pay-per-use">(null);
-  const [notifyEmail, setNotifyEmail] = useState("");
-  const [notifyStatus, setNotifyStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [resultAction, setResultAction] = useState<"none" | "partner" | "non_partner">("none");
+  const [resultAction, setResultAction] = useState<"none" | "partner">("none");
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [pendingLeaveAction, setPendingLeaveAction] = useState<null | { type: "link"; href: string } | { type: "history" }>(null);
   const [partnerIssueStatus, setPartnerIssueStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -456,14 +537,11 @@ export default function RequestPage() {
   const [privacyLoading, setPrivacyLoading] = useState(false);
   /** Set after partner email verify; used for direct /request/[token] without simple-request email. */
   const [partnerWizardToken, setPartnerWizardToken] = useState<string | null>(null);
-  const [waitlistCountdown, setWaitlistCountdown] = useState(0);
-  const [waitlistCanResend, setWaitlistCanResend] = useState(true);
   const [verifyCountdown, setVerifyCountdown] = useState(0);
   const [verifyCanResend, setVerifyCanResend] = useState(true);
   const [partnerApplicationCountdown, setPartnerApplicationCountdown] = useState(0);
   const [partnerApplicationCanResend, setPartnerApplicationCanResend] = useState(true);
   const [flowDirection, setFlowDirection] = useState(1);
-  const [optionsDirection, setOptionsDirection] = useState(1);
   const reduceMotion = useReducedMotion();
   const hasMountedHistoryGuard = useRef(false);
   const allowNextNavigationRef = useRef(false);
@@ -542,14 +620,35 @@ export default function RequestPage() {
 
   const isPastFirstStep = useMemo(() => {
     if (checkState === "partner_check") return false;
+    if (pickerStep === "service") return Boolean(requesterKind || serviceChoice || resultAction !== "none");
     if (pickerStep !== "industries") return true;
+    if (serviceChoice) return true;
     if (selectedIndustry.trim()) return true;
     if (roleQuery.trim()) return true;
     if (selectedRole) return true;
     if (resultAction !== "none") return true;
     if (accessStatus === "non_partner") return true;
     return false;
-  }, [accessStatus, checkState, pickerStep, resultAction, roleQuery, selectedIndustry, selectedRole]);
+  }, [accessStatus, checkState, pickerStep, requesterKind, resultAction, roleQuery, selectedIndustry, selectedRole, serviceChoice]);
+
+  /** A change of kind keeps the service only while it is still offered to that kind. */
+  const handleRequesterKindSelect = useCallback((kind: RequesterKind) => {
+    setRequesterKind(kind);
+    setServiceChoice((prev) => keepServiceIfAllowed(prev, kind) as SelectableRequestService | "");
+  }, []);
+
+  /** Choosing the service moves on: to the modal when a role came on the link, else to the industries. */
+  const handleServiceSelect = useCallback(
+    (service: SelectableRequestService) => {
+      if (!isServiceAllowedFor(service, requesterKind || null)) return;
+      setServiceChoice(service);
+      setFlowDirection(1);
+      if (selectedIndustry && selectedRole) setPickerStep("modal");
+      else if (selectedIndustry) setPickerStep("roles");
+      else setPickerStep("industries");
+    },
+    [requesterKind, selectedIndustry, selectedRole],
+  );
 
   useEffect(() => {
     const industry = selectedIndustry.trim();
@@ -610,7 +709,8 @@ export default function RequestPage() {
       const parsed = JSON.parse(raw) as { industry?: string };
       if (parsed.industry) {
         setSelectedIndustry(parsed.industry);
-        setPickerStep("roles");
+        // The service is asked first; choosing it continues to this industry's roles.
+        setPickerStep("service");
         setSelectedRole(null);
         setRoleQuery("");
       }
@@ -637,12 +737,13 @@ export default function RequestPage() {
       setPartnerWizardToken(readPartnerWizardTokenFromSession());
       setSelectedIndustry(matchingIndustry);
       setSelectedRole(roleFromQuery);
-      setPickerStep("modal");
+      // The service is asked first; choosing it opens the modal for this role.
+      setPickerStep("service");
       setRoleQuery("");
       setFlowDirection(1);
     } else {
       setRoleQuery(roleFromQuery);
-      setPickerStep("roles");
+      setPickerStep("service");
     }
   }, [partnerSessionHydrated]);
 
@@ -775,36 +876,6 @@ export default function RequestPage() {
     setIsLoadingExit(false);
   };
 
-  const submitFeatureWaitlist = async () => {
-    if (!notifyEmail.includes("@") || !selectedOption || !waitlistCanResend) {
-      toast.error("Oppgi en gyldig e-postadresse før dere melder dere på.");
-      return;
-    }
-    setNotifyStatus("submitting");
-    try {
-      const response = await fetch("/api/feature-waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: notifyEmail.trim().toLowerCase(),
-          feature: `pricing-${selectedOption}`,
-          consent: true,
-        }),
-      });
-      if (response.ok) {
-        setNotifyStatus("success");
-        startCountdown(setWaitlistCountdown, setWaitlistCanResend);
-        toast.info("Dere er påmeldt. Vi gir beskjed når dette åpner.");
-      } else {
-        setNotifyStatus("error");
-        toast.error("Vi kunne ikke lagre påmeldingen akkurat nå.");
-      }
-    } catch {
-      setNotifyStatus("error");
-      toast.error("Vi kunne ikke lagre påmeldingen akkurat nå.");
-    }
-  };
-
   const openPrivacyModal = async () => {
     setShowPrivacyModal(true);
     if (privacyContent) return; // Already fetched
@@ -838,6 +909,10 @@ export default function RequestPage() {
     }
     if (!selectedRole) {
       setGetStartedError("Velg en rolle først.");
+      return;
+    }
+    if (!requesterKind || !isServiceAllowedFor(serviceChoice, requesterKind)) {
+      setGetStartedError("Velg hvilken tjeneste dere trenger først.");
       return;
     }
     if (!industryResolved) {
@@ -917,7 +992,9 @@ export default function RequestPage() {
         return;
       }
       allowNextNavigationRef.current = true;
-      router.push(data.redirectUrl);
+      // Neither the code nor the token has a column for these two answers, so
+      // they ride on the wizard's address, which keeps them per token.
+      router.push(withServiceChoice(data.redirectUrl, { service: serviceChoice, kind: requesterKind }));
     } catch {
       setOtpError("Vi kunne ikke bekrefte koden akkurat nå. Prøv igjen.");
     } finally {
@@ -950,6 +1027,11 @@ export default function RequestPage() {
       setRoleQuery("");
       return;
     }
+    if (pickerStep === "industries") {
+      setFlowDirection(-1);
+      setPickerStep("service");
+      return;
+    }
     navigateBackOrHome();
   };
 
@@ -957,7 +1039,9 @@ export default function RequestPage() {
     setShowLeaveDialog(false);
     setFlowDirection(-1);
     setCheckState(verifiedPartnerCompany ? "idle" : "partner_check");
-    setPickerStep("industries");
+    setPickerStep("service");
+    setRequesterKind("");
+    setServiceChoice("");
     setSelectedIndustry("");
     setSelectedRole(null);
     setRoleQuery("");
@@ -976,11 +1060,6 @@ export default function RequestPage() {
     setAccessStatus("idle");
     setAccessErrorMessage("");
     setCompanyName("");
-    setSelectedOption(null);
-    setNotifyEmail("");
-    setNotifyStatus("idle");
-    setWaitlistCountdown(0);
-    setWaitlistCanResend(true);
     setResultAction("none");
     setPartnerModalView("not_found");
     setPartnerIssueStatus("idle");
@@ -1000,8 +1079,6 @@ export default function RequestPage() {
     clearPartnerWizardSession();
     setPartnerWizardToken(null);
   };
-
-  const showNonPartnerOptions = resultAction === "non_partner";
 
   const reportPartnerIssue = async () => {
     if (!feedbackEmail.includes("@") || partnerIssueStatus === "submitting") return;
@@ -1089,8 +1166,7 @@ export default function RequestPage() {
       if (
         raw.closest(".leave-dialog") ||
         raw.closest(".partner-modal") ||
-        raw.closest(".partner-modal-backdrop") ||
-        raw.closest(".request-options-overlay")
+        raw.closest(".partner-modal-backdrop")
       ) {
         return;
       }
@@ -1124,18 +1200,6 @@ export default function RequestPage() {
 
   useEffect(() => {
     if (typeof document === "undefined") return;
-    if (!showNonPartnerOptions) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow || "auto";
-    };
-  }, [showNonPartnerOptions]);
-
-  useEffect(() => {
-    if (typeof document === "undefined") return;
     if (checkState !== "idle" || pickerStep !== "modal") return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -1166,7 +1230,7 @@ export default function RequestPage() {
           checkState === "idle" && pickerStep === "industries"
             ? "rounded-2xl border-0 outline-none ring-0 md:rounded-[16px]"
             : "rounded-2xl border border-white/10 md:rounded-[16px] md:border-[rgba(201,168,76,0.15)] md:border-t-2 md:border-t-[rgba(201,168,76,0.4)]"
-        } ${showNonPartnerOptions ? "pointer-events-none translate-y-2 opacity-0" : "translate-y-0 opacity-100"}`}
+        }`}
       >
         {checkState === "partner_check" && (
           <>
@@ -1214,7 +1278,9 @@ export default function RequestPage() {
                       clearPartnerWizardSession();
                       setPartnerWizardToken(null);
                       setFlowDirection(1);
-                      setPickerStep("industries");
+                      setPickerStep("service");
+                      setRequesterKind("");
+                      setServiceChoice("");
                       setSelectedIndustry("");
                       setSelectedRole(null);
                       setRoleQuery("");
@@ -1239,9 +1305,76 @@ export default function RequestPage() {
               <ArrowLeft className="h-4 w-4 text-[#C9A84C]" />
               Tilbake
             </button>
-            <h1 className="text-2xl font-bold">Velg bransje</h1>
+            <h1 className="text-2xl font-bold">{pickerStep === "service" ? "Hva kan vi hjelpe dere med?" : "Velg bransje"}</h1>
+            {pickerStep !== "service" && serviceChoice ? (
+              <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-white/60">
+                <span>
+                  Tjeneste: <span className="font-medium text-[#C9A84C]">{serviceLabelNb(serviceChoice)}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFlowDirection(-1);
+                    setPickerStep("service");
+                  }}
+                  className="text-sm font-medium text-[#C9A84C] underline underline-offset-2 transition-colors hover:text-[#dfc06a]"
+                >
+                  Endre
+                </button>
+              </p>
+            ) : null}
             <AnimatePresence mode="wait" custom={flowDirection}>
-              {pickerStep === "industries" ? (
+              {pickerStep === "service" ? (
+                <motion.div
+                  key="service-step"
+                  className="mt-5 space-y-8"
+                  custom={flowDirection}
+                  variants={slideVariants}
+                  initial={reduceMotion ? false : "enter"}
+                  animate="center"
+                  exit={reduceMotion ? undefined : "exit"}
+                >
+                  <fieldset>
+                    <legend className="text-base font-semibold text-white">Hva slags virksomhet er dere?</legend>
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                      {REQUESTER_KIND_OPTIONS_NB.map((option) => (
+                        <ServiceChoiceCard
+                          key={option.key}
+                          label={option.label}
+                          blurb={option.blurb}
+                          Icon={option.icon}
+                          selected={requesterKind === option.key}
+                          onSelect={() => handleRequesterKindSelect(option.key)}
+                        />
+                      ))}
+                    </div>
+                  </fieldset>
+                  {requesterKind ? (
+                    <fieldset>
+                      <legend className="text-base font-semibold text-white">Hvilken tjeneste trenger dere?</legend>
+                      <div
+                        className={`mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 ${
+                          requesterKind === "agency" ? "lg:grid-cols-3" : "lg:grid-cols-4"
+                        }`}
+                      >
+                        {serviceCardsFor(REQUEST_SERVICE_CARDS_NB, requesterKind).map((card) => (
+                          <ServiceChoiceCard
+                            key={card.key}
+                            label={card.label}
+                            blurb={card.blurb}
+                            Icon={SERVICE_ICONS[card.key]}
+                            selected={serviceChoice === card.key}
+                            disabled={card.comingSoon}
+                            onSelect={() => {
+                              if (card.key !== "advertising") handleServiceSelect(card.key);
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </fieldset>
+                  ) : null}
+                </motion.div>
+              ) : pickerStep === "industries" ? (
                 <motion.div
                   key="industry-grid"
                   className="mt-5"
@@ -1476,6 +1609,9 @@ export default function RequestPage() {
                     Vi sender en bekreftelseskode til jobb-e-posten dere oppgir.
                   </p>
                   <p className="mt-2 text-left text-[12px] text-white/60">Valgt rolle: {roleLabel(selectedRole)}</p>
+                  {serviceChoice ? (
+                    <p className="mt-1 text-left text-[12px] text-white/60">Tjeneste: {serviceLabelNb(serviceChoice)}</p>
+                  ) : null}
                   <div className="mt-6 space-y-4 text-left">
                     <label className="block text-sm font-medium text-white/90" htmlFor="get-started-email">
                       Jobb-e-post
@@ -1547,234 +1683,6 @@ export default function RequestPage() {
           </motion.div>
         ) : null}
       </AnimatePresence>
-
-      {showNonPartnerOptions && (
-        <div className="request-options-overlay">
-          <div className="request-options-panel flex min-h-[100dvh] w-full flex-col items-center justify-center px-5 py-12">
-            <AnimatePresence mode="wait" custom={optionsDirection}>
-              {selectedOption == null ? (
-                <motion.div
-                  key="access-options"
-                  className="w-full max-w-[1200px]"
-                  custom={optionsDirection}
-                  variants={slideVariants}
-                  initial={reduceMotion ? false : "enter"}
-                  animate="center"
-                  exit={reduceMotion ? undefined : "exit"}
-                >
-                  <p className="text-center text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">Velg tilgang</p>
-                  <h2 className="mt-3 text-center text-[24px] font-bold text-white">Hvordan vil dere gå videre?</h2>
-                  <p className="mt-2 text-center text-[15px] text-[rgba(255,255,255,0.55)]">
-                    Velg alternativet som passer rekrutteringsbehovet deres.
-                  </p>
-                  <div className="mx-auto my-7 h-px w-[60px] bg-[linear-gradient(to_right,transparent,rgba(201,168,76,0.4),transparent)]" />
-
-                  <div className="request-options-container grid grid-cols-2 gap-4 lg:grid-cols-4">
-                    <article className="flex min-h-[520px] flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
-                      <div className="flex flex-1 flex-col">
-                        <div className="w-full">
-                          <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">7 dager gratis</span>
-                        </div>
-                        <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
-                          <Clock className="h-5 w-5 shrink-0 text-[#C9A84C]" />
-                        </div>
-                        <p className="mt-4 text-[18px] font-bold text-white">Kommer snart</p>
-                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">Vi bygger denne funksjonen nå. Sett dere på ventelisten.</p>
-                        <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />1 kandidatforespørsel</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Forhåndsvisning av anonym presentasjon</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Uten kontaktopplysninger</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Ingen binding</li>
-                        </ul>
-                      </div>
-                      <div className="mt-6">
-                        <button
-                          type="button"
-                          disabled
-                          className="inline-flex h-12 w-full cursor-not-allowed items-center justify-center rounded-xl border border-white/10 bg-white/10 text-white/55"
-                        >
-                          Kommer snart
-                        </button>
-                      </div>
-                    </article>
-
-                    <article className="flex min-h-[520px] flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
-                      <div className="flex flex-1 flex-col">
-                        <div className="w-full">
-                          <span className="inline-flex rounded-full bg-[#C9A84C] px-2.5 py-1 text-[11px] font-semibold text-[#0D1B2A]">Mest populær</span>
-                        </div>
-                        <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
-                          <TrendingUp className="h-5 w-5 shrink-0 text-[#C9A84C]" />
-                        </div>
-                        <p className="mt-4 text-[18px] font-bold text-white">Profesjonelle presentasjoner</p>
-                        <p className="mt-1 text-sm text-white/70">Kandidatpresentasjoner tilpasset rollen dere skal fylle</p>
-                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">{"1 499 NOK/mnd"}</p>
-                        <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Presentasjoner: 5 per måned</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Hurtigmatch: 3 ganger per måned</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />2 aktive stillingsannonser</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Leveranse klar for prioritering</li>
-                        </ul>
-                      </div>
-                      <div className="mt-6">
-                        <Link href="/contact" className="inline-flex h-12 w-full items-center justify-center rounded-[10px] bg-[linear-gradient(135deg,#C9A84C,#b8953f)] px-4 py-3 text-[14px] font-bold text-[#0D1B2A] transition-[filter,transform] duration-200 hover:scale-[1.02] hover:brightness-105">
-                          Kom i gang
-                        </Link>
-                      </div>
-                    </article>
-
-                    <article className="flex min-h-[520px] flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
-                      <div className="flex flex-1 flex-col">
-                        <div className="w-full">
-                          <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">Skalering</span>
-                        </div>
-                        <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
-                          <Bolt className="h-5 w-5 shrink-0 text-[#C9A84C]" />
-                        </div>
-                        <p className="mt-4 text-[18px] font-bold text-white">Profesjonelle presentasjoner uten grense</p>
-                        <p className="mt-1 text-sm text-white/70">Ubegrenset med kandidatpresentasjoner og prioritert behandling</p>
-                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">{"3 999 NOK/mnd"}</p>
-                        <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Ubegrenset med presentasjoner</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Prioritert matching</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Ubegrenset med stillingsannonser</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Prioritert behandling</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Ubegrenset med hurtigmatch</li>
-                        </ul>
-                      </div>
-                      <div className="mt-6">
-                        <Link href="/contact" className="inline-flex h-12 w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
-                          Kom i gang
-                        </Link>
-                      </div>
-                    </article>
-
-                    <article className="flex min-h-[520px] flex-col justify-between rounded-2xl border border-white/10 bg-white/5 p-6 text-left">
-                      <div className="flex flex-1 flex-col">
-                        <div className="w-full">
-                          <span className="inline-flex rounded-full border border-[#C9A84C]/35 px-2.5 py-1 text-[11px] font-semibold text-[#C9A84C]">For rekrutteringsbyråer</span>
-                        </div>
-                        <div className="mb-4 mt-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A84C]/35 bg-[#C9A84C]/10 mx-auto">
-                          <Handshake className="h-5 w-5 shrink-0 text-[#C9A84C]" />
-                        </div>
-                        <p className="mt-4 text-[18px] font-bold text-white">Kandidatpresentasjon som tjeneste</p>
-                        <p className="mt-1 text-sm text-white/70">Profesjonelle presentasjoner og kandidatsøk under deres eget merke</p>
-                        <p className="mt-1 text-sm font-semibold text-[#C9A84C]">Pris etter avtale</p>
-                        <ul className="mt-4 flex flex-1 flex-col gap-2 border-t border-[rgba(255,255,255,0.08)] pt-3 text-[12px] text-[rgba(255,255,255,0.62)]">
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Tilgang til presentasjonsdatabasen</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Automatisert innhenting av presentasjoner</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Presentasjoner med deres profil</li>
-                          <li className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 text-[#C9A84C]" />Eget ATS-dashbord</li>
-                        </ul>
-                      </div>
-                      <div className="mt-6">
-                        <Link href="/become-a-partner" className="inline-flex h-12 w-full items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-3 text-[14px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]">
-                          Søk om partnerskap
-                        </Link>
-                      </div>
-                    </article>
-                  </div>
-
-                  <div className="mx-auto mt-10 w-full max-w-[320px]">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOptionsDirection(-1);
-                        setResultAction("none");
-                        setSelectedOption(null);
-                        setNotifyStatus("idle");
-                        setNotifyEmail("");
-                        setWaitlistCountdown(0);
-                        setWaitlistCanResend(true);
-                      }}
-                      className="w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-[13px] text-[15px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]"
-                    >
-                      Tilbake
-                    </button>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="waitlist-single"
-                  className="flex w-full max-w-[440px] flex-col items-stretch"
-                  custom={optionsDirection}
-                  variants={slideVariants}
-                  initial={reduceMotion ? false : "enter"}
-                  animate="center"
-                  exit={reduceMotion ? undefined : "exit"}
-                >
-                  <div className="rounded-[22px] border border-[rgba(201,168,76,0.28)] border-t-2 border-t-[rgba(201,168,76,0.55)] bg-[#0f1923] px-8 py-10 md:px-10 md:py-12">
-                    <p className="text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-[#C9A84C]">
-                      {selectedOption === "premium" ? "Premium-abonnement" : "Betal per bruk"}
-                    </p>
-                    <h2 className="mt-4 text-center text-[22px] font-bold leading-snug tracking-tight text-white md:text-[24px]">
-                      Få beskjed når dette alternativet blir tilgjengelig
-                    </h2>
-                    <p className="mx-auto mt-3 max-w-[340px] text-center text-sm leading-relaxed text-white/50">
-                      Legg igjen bedriftens e-postadresse, så tar vi kontakt når denne tilgangen åpner.
-                    </p>
-
-                    {notifyStatus === "success" ? (
-                      <div className="waitlist-success-card mt-8">
-                        <svg viewBox="0 0 24 24" className="mx-auto h-7 w-7 text-[#C9A84C]" fill="none" aria-hidden>
-                          <path d="M20 7 9 18l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <p className="mt-[14px] text-[18px] font-bold text-white">Da står dere på listen.</p>
-                        <p className="mt-2 text-[14px] leading-[1.7] text-[rgba(255,255,255,0.55)]">
-                          Dere blir blant de første som får vite når dette lanseres. Vi bygger noe som er verdt å vente på.
-                        </p>
-                        <p className="mt-4 text-[12px] text-white/55">
-                          Vi tar kontakt direkte når tilgangen åpner.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="mt-8 flex flex-col gap-4">
-                        <label className="block text-left text-[11px] font-semibold uppercase tracking-[0.1em] text-white/55">
-                          Jobb-e-post
-                        </label>
-                        <input
-                          type="email"
-                          value={notifyEmail}
-                          onChange={(event) => setNotifyEmail(event.target.value)}
-                          placeholder="navn@bedrift.no"
-                          autoComplete="email"
-                          className="w-full rounded-[14px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.05)] px-5 py-4 text-[15px] text-white outline-none ring-0 transition-[border-color,background-color] placeholder:text-white/55 focus:border-[#C9A84C] focus:bg-[rgba(255,255,255,0.07)]"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => void submitFeatureWaitlist()}
-                          disabled={!notifyEmail.includes("@") || notifyStatus === "submitting" || !waitlistCanResend}
-                          className={`min-h-[52px] w-full rounded-[12px] px-5 py-3.5 text-[15px] font-bold ${
-                            waitlistCanResend ? "bg-[#C9A84C] text-[#0D1B2A]" : "bg-white/10 text-white/55 cursor-not-allowed"
-                          }`}
-                        >
-                          {notifyStatus === "submitting" ? "Sender ..." : waitlistCountdown > 0 ? `Send på nytt om ${waitlistCountdown} s` : "Send e-post på nytt"}
-                        </button>
-                        {notifyStatus === "error" ? (
-                          <p className="text-center text-[13px] text-red-300/90">Vi kunne ikke lagre forespørselen. Prøv igjen.</p>
-                        ) : null}
-                      </div>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOptionsDirection(-1);
-                        setSelectedOption(null);
-                        setNotifyStatus("idle");
-                        setNotifyEmail("");
-                      }}
-                      className="mt-8 w-full rounded-[10px] border border-[rgba(201,168,76,0.35)] bg-[rgba(255,255,255,0.04)] px-4 py-[13px] text-[15px] font-semibold text-white transition-colors hover:border-[rgba(201,168,76,0.5)] hover:bg-[rgba(201,168,76,0.08)]"
-                    >
-                      Tilbake
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      )}
 
       {showLeaveDialog && (
         <>
@@ -2235,37 +2143,6 @@ export default function RequestPage() {
           border-color: rgba(201, 168, 76, 0.5);
           color: #ffffff;
         }
-        .request-options-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          z-index: 10101;
-          background: rgba(13, 27, 42, 0.85);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 24px 20px;
-          overflow-y: auto;
-        }
-        .request-options-panel {
-          width: 100%;
-          max-width: 1200px;
-          text-align: center;
-        }
-        .request-options-container {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          align-items: stretch;
-          gap: 16px;
-          padding: 40px 20px;
-          max-width: 1200px;
-          width: 100%;
-          margin: 0 auto;
-        }
         .request-option-card {
           display: flex;
           flex-direction: column;
@@ -2279,11 +2156,6 @@ export default function RequestPage() {
           text-align: left;
           min-height: 480px;
           transition: border-color 200ms ease, background 200ms ease, transform 200ms ease;
-        }
-        @media (min-width: 1024px) {
-          .request-options-container {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-          }
         }
         .request-option-benefits {
           list-style: none;
@@ -2508,14 +2380,6 @@ export default function RequestPage() {
           }
         }
         @media (max-width: 768px) {
-          .request-options-overlay {
-            align-items: flex-start;
-            padding-top: 48px;
-            padding-bottom: 24px;
-          }
-          .request-options-container {
-            padding: 16px 0;
-          }
           .request-option-card {
             padding: 24px;
           }

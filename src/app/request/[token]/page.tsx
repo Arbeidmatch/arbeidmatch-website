@@ -48,6 +48,16 @@ import {
   type RoleQuestion,
 } from "@/lib/request-role-questions";
 import { contactIsComplete, knownContactFromToken, realContactValue } from "@/lib/request-contact-placeholders";
+import {
+  isRequesterKind,
+  isServiceAllowedFor,
+  keepServiceIfAllowed,
+  readCarriedServiceChoice,
+  serviceCardsFor,
+  serviceChoiceStorageKey,
+  type RequestServiceKey,
+  type RequesterKind,
+} from "@/lib/request-service";
 
 type TokenData = {
   company: string;
@@ -86,6 +96,8 @@ type RequestForm = {
   candidates: number;
   contractType: string;
   hiringType: string;
+  /** Asked before the service: an agency is never offered staffing (src/lib/request-service.ts). */
+  requesterKind: RequesterKind | "";
   /**
    * Language, trade and service questions (src/lib/request-role-questions.ts).
    * Job advertising does not reach them: it leaves this wizard for /annonse/ny.
@@ -215,26 +227,48 @@ function formatDriverLicenseForPayload(selections: string[]): string {
  *
  * The values are the ATS's own service keys (ats-recruitment
  * src/lib/requests/service-type.ts), which the intake reads into service_type,
- * so the request lands in the right list without anyone filing it. The help
- * lines say the same thing as the ATS's descriptions of the three services.
+ * so the request lands in the right list without anyone filing it.
+ *
+ * THE OWNER, 24 September 2026: four services, with sourcing beside
+ * recruitment, job advertising shown as coming soon and not selectable, and no
+ * staffing for a firm that is itself an agency. The help lines are the English
+ * of the Norwegian cards on /request (REQUEST_SERVICE_CARDS_NB).
  */
-const SERVICE_OPTIONS = [
+const SERVICE_OPTIONS: ReadonlyArray<{ value: RequestServiceKey; label: string; help: string; comingSoon: boolean }> = [
   {
     value: "staffing",
     label: "Staffing (bemanning)",
-    help: "ArbeidMatch employs the workers and hires them in to you. We handle their contract, pay and paperwork; you lead the work on site.",
+    help: "We hire out skilled workers who are employed by us.",
+    comingSoon: false,
   },
   {
     value: "recruitment",
     label: "Recruitment",
-    help: "We find and screen the candidates. You choose who to hire and employ them directly in your company.",
+    help: "We run the whole process up to the hire at your company.",
+    comingSoon: false,
+  },
+  {
+    value: "sourcing",
+    label: "Sourcing",
+    help: "We find and sort the candidates, you hire them yourselves.",
+    comingSoon: false,
   },
   {
     value: "advertising",
     label: "Job advertising",
-    help: "You write the job advert, we publish it on our channels, and the applications go straight to you.",
+    help: "Coming soon",
+    comingSoon: true,
   },
-] as const;
+];
+
+const REQUESTER_KIND_OPTIONS: ReadonlyArray<{ value: RequesterKind; label: string; help: string }> = [
+  { value: "own_operation", label: "We need people for our own work", help: "The people will work on our own projects." },
+  { value: "agency", label: "We are a staffing or recruitment agency", help: "We supply people on to our own clients." },
+];
+
+function serviceLabelEn(value: string): string {
+  return SERVICE_OPTIONS.find((o) => o.value === value)?.label ?? value;
+}
 
 /** Said on the service question, the review and the thank-you screen, in the same words. */
 const DETAILED_OFFER_NOTE =
@@ -252,7 +286,7 @@ const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
     "referralCompanyName",
     "referralEmail",
   ],
-  1: ["hiringType", "advertisingHandoff", "industry", "workerType", "contractType", "locations", "startDate", "candidates"],
+  1: ["requesterKind", "hiringType", "advertisingHandoff", "industry", "workerType", "contractType", "locations", "startDate", "candidates"],
   2: [
     "salaryMin",
     "salaryMax",
@@ -286,7 +320,9 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
       if (refEmail.length > 0 && !refEmail.includes("@")) invalid.add("referralEmail");
     }
   } else if (s === 1) {
-    if (!SERVICE_OPTIONS.some((o) => o.value === f.hiringType)) invalid.add("hiringType");
+    if (!isRequesterKind(f.requesterKind)) invalid.add("requesterKind");
+    // One of the services open today, and never staffing for an agency.
+    if (!isServiceAllowedFor(f.hiringType, f.requesterKind || null)) invalid.add("hiringType");
     // Job advertising goes on at /annonse/ny, never through the rest of this wizard.
     if (f.hiringType === "advertising") {
       invalid.add("advertisingHandoff");
@@ -645,6 +681,7 @@ const initialForm: RequestForm = {
   candidates: 1,
   contractType: "",
   hiringType: "",
+  requesterKind: "",
   roleAnswers: EMPTY_ROLE_ANSWERS,
   jobSummary: "",
   salary: "",
@@ -747,6 +784,7 @@ function OptionCard({
   icon,
   className,
   labelClassName,
+  disabled = false,
 }: {
   label: string;
   sublabel?: string;
@@ -755,15 +793,20 @@ function OptionCard({
   icon?: React.ReactNode;
   className?: string;
   labelClassName?: string;
+  /** Shown, never selectable (a service that is coming soon). */
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       className={`flex min-h-[64px] w-full items-center justify-between gap-3 rounded-[12px] border px-4 py-4 text-left transition-all duration-150 focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${
-        selected
-          ? "border-[#C9A84C] bg-[rgba(201,168,76,0.10)] text-[#C9A84C]"
-          : "border-white/10 bg-white/[0.03] text-white hover:border-[rgba(201,168,76,0.4)]"
+        disabled
+          ? "cursor-not-allowed border-white/10 bg-white/[0.02] text-white/45"
+          : selected
+            ? "border-[#C9A84C] bg-[rgba(201,168,76,0.10)] text-[#C9A84C]"
+            : "border-white/10 bg-white/[0.03] text-white hover:border-[rgba(201,168,76,0.4)]"
       } ${className || ""}`}
     >
       <span className="flex items-center gap-3">
@@ -973,6 +1016,43 @@ export default function RequestTokenPage() {
       });
   }, [token]);
 
+  /**
+   * The kind of firm and the service chosen on /request, from this address or,
+   * on a reload or a reopened link in the same browser, from what this token
+   * kept. Only allowed pairs are taken; the step asks again for anything else.
+   */
+  useEffect(() => {
+    if (!token) return;
+    let carried = readCarriedServiceChoice(searchParams.get("service"), searchParams.get("kind"));
+    if (!carried.service && !carried.kind) {
+      try {
+        const raw = window.localStorage.getItem(serviceChoiceStorageKey(token));
+        const stored = raw ? (JSON.parse(raw) as { service?: unknown; kind?: unknown }) : null;
+        if (stored) carried = readCarriedServiceChoice(stored.service, stored.kind);
+      } catch {
+        /* storage blocked or unreadable: the step asks */
+      }
+    }
+    if (!carried.service && !carried.kind) return;
+    setForm((p) => ({
+      ...p,
+      requesterKind: p.requesterKind || carried.kind,
+      hiringType: p.hiringType || carried.service,
+    }));
+  }, [token, searchParams]);
+
+  useEffect(() => {
+    if (!token || (!form.hiringType && !form.requesterKind)) return;
+    try {
+      window.localStorage.setItem(
+        serviceChoiceStorageKey(token),
+        JSON.stringify({ service: form.hiringType, kind: form.requesterKind }),
+      );
+    } catch {
+      /* storage blocked: the choice still stands for this visit */
+    }
+  }, [token, form.hiringType, form.requesterKind]);
+
   useEffect(() => {
     if (startWizard) {
       setShowChoice(false);
@@ -1171,9 +1251,14 @@ export default function RequestTokenPage() {
     put("Company", form.companyName);
     put("Contact", `${form.contactFirstName} ${form.contactLastName}`);
     put(
-      "Service",
-      form.hiringType === "staffing" ? "Staffing (bemanning)" : form.hiringType === "recruitment" ? "Recruitment" : form.hiringType,
+      "Business",
+      form.requesterKind === "agency"
+        ? "Staffing or recruitment agency"
+        : form.requesterKind === "own_operation"
+          ? "Hiring for our own work"
+          : "",
     );
+    put("Service", serviceLabelEn(form.hiringType));
     put("Job category", form.industry);
     put("Position", form.workerType);
     put("Location", form.locations.join(", "));
@@ -1205,6 +1290,7 @@ export default function RequestTokenPage() {
     form.contactLastName,
     form.contractType,
     form.hiringType,
+    form.requesterKind,
     form.industry,
     form.internationalTransport,
     form.localTransport,
@@ -1343,6 +1429,7 @@ export default function RequestTokenPage() {
       })(),
       job_summary: form.jobSummary,
       hiringType: form.hiringType,
+      requesterKind: form.requesterKind,
       category: form.industry,
       position: form.workerType.trim(),
       positionOther: "",
@@ -1467,6 +1554,11 @@ export default function RequestTokenPage() {
       }
 
       await fetch(`/api/verify-token?token=${token}`, { method: "DELETE" }).catch(() => null);
+      try {
+        window.localStorage.removeItem(serviceChoiceStorageKey(token));
+      } catch {
+        /* nothing kept */
+      }
       setSubmitStatus("success");
     } catch {
       setSubmitStatus("error");
@@ -2351,15 +2443,44 @@ export default function RequestTokenPage() {
               <div className="space-y-5">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Job basics</h2>
+                <div data-wizard-field="requesterKind">
+                  <p className={labelClass}>What kind of business are you?</p>
+                  <div className={wizardGroupShell(!!fieldErrors.requesterKind, "grid grid-cols-1 gap-2 md:grid-cols-2")}>
+                    {REQUESTER_KIND_OPTIONS.map((option) => (
+                      <OptionCard
+                        key={option.value}
+                        label={option.label}
+                        sublabel={option.help}
+                        selected={form.requesterKind === option.value}
+                        onClick={() => {
+                          // An agency is never offered staffing: a staffing choice made before is cleared.
+                          setForm((p) => ({
+                            ...p,
+                            requesterKind: option.value,
+                            hiringType: keepServiceIfAllowed(p.hiringType, option.value),
+                          }));
+                          clearFieldError("requesterKind");
+                        }}
+                      />
+                    ))}
+                  </div>
+                  {fieldErrors.requesterKind ? <p className={fieldErrorTextClass}>Please tell us what kind of business you are.</p> : null}
+                </div>
+                {/* The services follow the answer above, so an agency never sees staffing. */}
+                {form.requesterKind ? (
                 <div data-wizard-field="hiringType">
                   <p className={labelClass}>Which service do you need?</p>
                   <div className={wizardGroupShell(!!fieldErrors.hiringType, "grid grid-cols-1 gap-2")}>
-                    {SERVICE_OPTIONS.map((option) => (
+                    {serviceCardsFor(
+                      SERVICE_OPTIONS.map((o) => ({ ...o, key: o.value })),
+                      form.requesterKind || null,
+                    ).map((option) => (
                       <OptionCard
                         key={option.value}
                         label={option.label}
                         sublabel={option.help}
                         selected={form.hiringType === option.value}
+                        disabled={option.comingSoon}
                         onClick={() => {
                           setForm((p) => ({ ...p, hiringType: option.value }));
                           clearFieldError("hiringType");
@@ -2367,11 +2488,12 @@ export default function RequestTokenPage() {
                       />
                     ))}
                   </div>
-                  {fieldErrors.hiringType ? <p className={fieldErrorTextClass}>Please choose one of the three services.</p> : null}
+                  {fieldErrors.hiringType ? <p className={fieldErrorTextClass}>Please choose a service.</p> : null}
                   {form.hiringType !== "advertising" ? (
                     <p className="mt-2 text-xs text-white/55">{DETAILED_OFFER_NOTE}</p>
                   ) : null}
                 </div>
+                ) : null}
                 {form.hiringType === "advertising" ? (
                   <div
                     data-wizard-field="advertisingHandoff"
@@ -2957,7 +3079,8 @@ export default function RequestTokenPage() {
                     </div>
                   </div>
                 ) : null}
-                {form.hiringType === "recruitment" ? (
+                {/* Sourcing ends with the client hiring, so it asks about their hiring process too. */}
+                {form.hiringType === "recruitment" || form.hiringType === "sourcing" ? (
                   <div className="space-y-4 border-t border-white/10 pt-5">
                     <div>
                       <p className="text-base font-bold text-white">The hiring process</p>

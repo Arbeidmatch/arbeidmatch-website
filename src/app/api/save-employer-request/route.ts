@@ -6,6 +6,7 @@ import { getRateLimitResult, hasHoneypotValue, noStoreJson } from "@/lib/apiSecu
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import { realContactValue } from "@/lib/request-contact-placeholders";
+import { isRequesterKind, isServiceAllowedFor, REQUESTER_KINDS } from "@/lib/request-service";
 
 const requestSchema = z
   .object({
@@ -21,7 +22,10 @@ const requestSchema = z
     phoneNumber: z.string().trim().max(40).optional().or(z.literal("")),
     phone: z.string().trim().min(6).max(40).refine((v) => realContactValue(v) !== "", "phone is required"),
     job_summary: z.string().trim().max(1000).optional().or(z.literal("")),
+    // One of the services open today (src/lib/request-service.ts). Checked
+    // against the requester's kind below: an agency is never given staffing.
     hiringType: z.string().trim().min(1).max(180),
+    requesterKind: z.enum(REQUESTER_KINDS).optional().or(z.literal("")),
     adContactName: z.string().trim().max(120).optional().or(z.literal("")),
     adContactEmail: z.string().trim().email().max(200).optional().or(z.literal("")),
     adContactPhone: z.string().trim().max(40).optional().or(z.literal("")),
@@ -170,6 +174,23 @@ export async function POST(request: NextRequest) {
       return noStoreJson({ success: true });
     }
 
+    // The owner, 24 September 2026: no staffing for an agency, and job
+    // advertising is not open yet. The form never offers either; a post that
+    // asks for them anyway is refused rather than stored as something else.
+    const requesterKind = isRequesterKind(parsed.data.requesterKind) ? parsed.data.requesterKind : null;
+    if (!isServiceAllowedFor(parsed.data.hiringType, requesterKind)) {
+      return noStoreJson(
+        {
+          success: false,
+          error:
+            requesterKind === "agency" && parsed.data.hiringType === "staffing"
+              ? "Staffing is not offered to staffing or recruitment agencies."
+              : "Choose one of the services we offer.",
+        },
+        { status: 400 },
+      );
+    }
+
     const supabase = getSupabaseAdminClient();
     if (!supabase) {
       return noStoreJson(
@@ -277,7 +298,14 @@ export async function POST(request: NextRequest) {
       // 20260914100000_employer_requests_form_answers.sql.
       salary_period:                 payload.salaryPeriod || null,
       accommodation_choice:          payload.accommodation || null,
-      form_answers:                  formAnswersOf(payload),
+      // service_type and requester_is_agency under the ATS's own column names:
+      // this table has neither column, and the ATS request it becomes has both.
+      // hiring_type above carries the same key, which is what the intake reads.
+      form_answers:                  {
+        ...formAnswersOf(payload),
+        service_type:                payload.hiringType,
+        requester_is_agency:         requesterKind === null ? null : requesterKind === "agency",
+      },
     })
       .select("id")
       .maybeSingle();

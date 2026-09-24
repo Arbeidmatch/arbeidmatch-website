@@ -24,8 +24,11 @@
  * required. A client who meets a wall of questions does not finish the form.
  */
 
-/** The services this wizard still runs to the end. Job advertising has its own flow at /annonse/ny. */
-export type RoleService = "staffing" | "recruitment";
+/**
+ * The services this wizard still runs to the end. Job advertising has its own flow at /annonse/ny.
+ * Sourcing (24 September 2026) ends with the client hiring, so it asks what recruitment asks.
+ */
+export type RoleService = "staffing" | "recruitment" | "sourcing";
 
 export type RoleQuestionKind = "yesno" | "single" | "multi" | "text";
 
@@ -443,7 +446,7 @@ export function tradeFieldKey(id: string): string {
 }
 
 export function isRoleService(value: string): value is RoleService {
-  return value === "staffing" || value === "recruitment";
+  return value === "staffing" || value === "recruitment" || value === "sourcing";
 }
 
 // ---------------------------------------------------------------------------
@@ -577,7 +580,7 @@ export function collectServiceInvalid(service: string, raw: RoleAnswers): Set<st
     if (s.approverName.length < 2) invalid.add("approverName");
     if (digitCount(s.approverPhone) < 6) invalid.add("approverPhone");
     if (!s.ppeProvided) invalid.add("ppeProvided");
-  } else if (service === "recruitment") {
+  } else if (service === "recruitment" || service === "sourcing") {
     if (!a.recruitment.probation) invalid.add("probation");
     if (!a.recruitment.interviewRounds) invalid.add("interviewRounds");
   }
