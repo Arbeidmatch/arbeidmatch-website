@@ -7,6 +7,7 @@ import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import { realContactValue } from "@/lib/request-contact-placeholders";
 import { isRequesterKind, isServiceAllowedFor, REQUESTER_KINDS } from "@/lib/request-service";
+import { isPresentationTicket, PRESENTATION_SOURCE, presentationTicketIsValid } from "@/lib/presentation-request-ticket";
 
 const requestSchema = z
   .object({
@@ -87,6 +88,8 @@ const requestSchema = z
     company_website: z.string().max(256).optional(),
     honeypot: z.string().max(256).optional(),
     required_skills: z.array(z.string().trim().max(200)).max(80).optional(),
+    /** The ATS presentation the request came from (?deck= on the wizard), kept only for a presentation's ticket. */
+    deck: z.string().uuid().optional(),
   })
   .strict();
 
@@ -113,7 +116,7 @@ const hasNonEmptyString = (val: unknown): val is string =>
 
 /** The validated submission without the link token and the anti-spam fields. */
 function formAnswersOf(payload: z.infer<typeof requestSchema>): Record<string, unknown> {
-  const { token: _token, website: _website, company_website: _companyWebsite, honeypot: _honeypot, ...answers } = payload;
+  const { token: _token, deck: _deck, website: _website, company_website: _companyWebsite, honeypot: _honeypot, ...answers } = payload;
   return answers;
 }
 
@@ -200,6 +203,29 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = parsed.data;
+
+    /**
+     * THE TICKET, READ BACK (the owner, 24 September 2026). A personalised
+     * presentation carries a ticket that skipped the OTP step, so this route
+     * checks it itself: a presentation's ticket past 30 days, or already
+     * used, saves nothing. Every other ticket is treated as it was before.
+     * The source is taken from the ticket, never from the body, so the ATS
+     * can trust "from presentation" (form_answers.source).
+     */
+    const { data: ticket, error: ticketError } = await supabase
+      .from("request_tokens")
+      .select("how_did_you_hear, created_at, expires_at, used")
+      .eq("token", payload.token)
+      .maybeSingle();
+    if (ticketError) throw ticketError;
+    const fromPresentation = isPresentationTicket(ticket);
+    if (fromPresentation && !presentationTicketIsValid(ticket)) {
+      return noStoreJson(
+        { success: false, error: "This request link has expired. Please start from the request form." },
+        { status: 410 },
+      );
+    }
+
     companySnapshot = payload.company?.trim() || "unknown";
     normalizedBooleanFields = [];
     const parsedHasRotation = toBool(payload.hasRotation);
@@ -281,7 +307,7 @@ export async function POST(request: NextRequest) {
       tools_other:                   payload.toolsOther || null,
       city:                          payload.city,
       start_date:                    payload.startDate === "Other" ? payload.startDateOther : payload.startDate,
-      how_did_you_hear:              payload.howDidYouHear,
+      how_did_you_hear:              fromPresentation ? PRESENTATION_SOURCE : payload.howDidYouHear,
       social_media_platform:         payload.socialMediaPlatform || null,
       social_media_other:            payload.socialMediaOther || null,
       how_did_you_hear_other:        payload.howDidYouHearOther || null,
@@ -305,6 +331,11 @@ export async function POST(request: NextRequest) {
         ...formAnswersOf(payload),
         service_type:                payload.hiringType,
         requester_is_agency:         requesterKind === null ? null : requesterKind === "agency",
+        // Where the request came from, for the ATS: a presentation it sent,
+        // and which one when the link said so.
+        ...(fromPresentation
+          ? { source: PRESENTATION_SOURCE, deck: payload.deck ?? null }
+          : {}),
       },
     })
       .select("id")

@@ -73,6 +73,10 @@ type TokenData = {
   partnerCompanyName?: string;
   industry?: string | null;
   role?: string | null;
+  /** A ticket a personalised presentation carries (src/lib/presentation-request-ticket.ts). */
+  isPresentation?: boolean;
+  /** That ticket, still live: it opens the wizard without the OTP step. */
+  presentationTicket?: boolean;
 };
 
 type RequestForm = {
@@ -968,22 +972,31 @@ export default function RequestTokenPage() {
           return;
         }
         const row = resp.data as TokenData & { isPartner?: boolean; isOwner?: boolean; partnerCompanyName?: string };
-        if (row.gdpr_consent !== true) {
+        // The owner, 24 September 2026: a personalised presentation opens this
+        // wizard directly, without the OTP step; everyone from the site keeps
+        // it. The server decides whether the presentation's ticket is still
+        // live (under 30 days, unused); an expired one is blocked like any
+        // ticket without consent.
+        const fromPresentation = row.presentationTicket === true;
+        if (row.gdpr_consent !== true && !fromPresentation) {
           setTokenGate("blocked");
           return;
         }
         // Detecteaza partener existent sau owner ArbeidMatch
         const partnerOrOwner = row.isPartner === true || row.isOwner === true;
+        const prefilled = partnerOrOwner || fromPresentation;
         // Only what the token really knows. Older tokens carry placeholders
         // ("To be completed", "Employer Request", "000000"), and the contact
         // step may only be skipped when company, name and phone are all known:
         // otherwise the client is thanked by a placeholder.
         const known = knownContactFromToken(row);
-        const skipContactStep = partnerOrOwner && contactIsComplete(known);
+        const skipContactStep = prefilled && contactIsComplete(known);
         setIsPartnerOrOwner(skipContactStep);
 
-        if (partnerOrOwner) {
+        if (prefilled) {
           // Pre-completeaza datele; sare peste step 0 doar cand contactul e complet.
+          // A presentation's ticket knows the company, its org number and the
+          // address we wrote to; the name and phone are asked on step 0.
           const companyToUse = known.companyName;
 
           // Map Faza 1 industry to Faza 2 industry
@@ -1002,7 +1015,8 @@ export default function RequestTokenPage() {
             contactFirstName: known.firstName,
             contactLastName: known.lastName,
             contactPhone: known.phoneDigits,
-            howDidYouHear: "partner",
+            // We sent them the presentation, so "how did you hear" is known and not asked.
+            howDidYouHear: fromPresentation ? "presentation" : "partner",
             industry: finalIndustry,
             workerType: mappedWorkerType,
           }));
@@ -1514,10 +1528,15 @@ export default function RequestTokenPage() {
     };
 
     try {
+      // The deck the request came from, when it came from one: the ATS reads
+      // it back as form_answers.deck. Only the save route gets it; the save
+      // route keeps it only for a presentation's ticket.
+      const deckParam = (searchParams.get("deck") || "").trim();
+      const deck = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(deckParam) ? deckParam : "";
       const saveRes = await fetch("/api/save-employer-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(deck ? { ...payload, deck } : payload),
       });
       if (!saveRes.ok) throw new Error("save-employer-request");
       const saveData = (await saveRes.json()) as { success?: boolean; referenceId?: string };
@@ -2349,7 +2368,7 @@ export default function RequestTokenPage() {
                   </div>
                 </div>
                 {/* A partner or owner is asked here only for missing contact details, never how they found us. */}
-                {form.howDidYouHear !== "partner" ? (
+                {form.howDidYouHear !== "partner" && form.howDidYouHear !== "presentation" ? (
                 <div className="space-y-3 border-t border-white/10 pt-5">
                   <div>
                     <p className={labelClass}>How did you hear about us</p>

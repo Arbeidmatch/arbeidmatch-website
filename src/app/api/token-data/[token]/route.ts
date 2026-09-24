@@ -4,6 +4,7 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { noStoreJson } from "@/lib/apiSecurity";
 import { logApiError } from "@/lib/secureLogger";
 import { notifyError } from "@/lib/errorNotifier";
+import { isPresentationTicket, presentationTicketIsValid } from "@/lib/presentation-request-ticket";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export async function GET(
   try {
     const { data, error } = await supabase
       .from("request_tokens")
-      .select("company, email, full_name, phone, job_summary, org_number, gdpr_consent, how_did_you_hear, industry, role, ats_company_id")
+      .select("company, email, full_name, phone, job_summary, org_number, gdpr_consent, how_did_you_hear, industry, role, ats_company_id, created_at, expires_at, used")
       .eq("token", token)
       .single();
 
@@ -51,6 +52,13 @@ export async function GET(
       }
     }
 
+    // A ticket a personalised presentation carries opens the wizard without
+    // the OTP step while it is live (src/lib/presentation-request-ticket.ts,
+    // the owner's decision of 24 September 2026). The wizard reads this flag;
+    // it never decides the age itself.
+    const presentation = isPresentationTicket(data);
+    const presentationTicket = presentation && presentationTicketIsValid(data);
+
     return noStoreJson({
       success: true,
       data: {
@@ -58,6 +66,8 @@ export async function GET(
         isPartner,
         isOwner,
         partnerCompanyName,
+        isPresentation: presentation,
+        presentationTicket,
       },
     });
   } catch (error) {
