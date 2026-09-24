@@ -161,3 +161,16 @@ describe("save-employer-request with a presentation's ticket", () => {
     expect(mocks.inserted).toHaveLength(0);
   });
 });
+
+describe("save-employer-request and the work location", () => {
+  it("keeps a place that is not in the wizard's list, as typed", async () => {
+    const response = await POST(request({ ...valid, city: "  Myre, Harstad " }));
+    expect(response.status).toBe(200);
+    expect(mocks.inserted[0].city).toBe("Myre, Harstad");
+  });
+
+  it("refuses a location with markup and saves nothing", async () => {
+    expect((await POST(request({ ...valid, city: "<b>Myre</b>" }))).status).toBe(400);
+    expect(mocks.inserted).toHaveLength(0);
+  });
+});

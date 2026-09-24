@@ -59,6 +59,7 @@ import {
   type RequesterKind,
 } from "@/lib/request-service";
 import { withoutConditionAnswers, wizardStepOrder } from "@/lib/request-wizard-steps";
+import { addTypedLocation, listedPlace, normalizePlaceName } from "@/lib/request-location";
 
 type TokenData = {
   company: string;
@@ -1145,6 +1146,30 @@ export default function RequestTokenPage() {
     if (!form.workerType) return [];
     return CERTIFICATIONS_BY_WORKER_TYPE[form.workerType] || ["None required"];
   }, [form.workerType]);
+
+  /** What the client typed in the location field, when it is a usable place that is not yet chosen. */
+  const typedPlace = useMemo(() => {
+    const clean = normalizePlaceName(citySearch);
+    if (!clean) return "";
+    const value = listedPlace(clean, CITY_OPTIONS) ?? clean;
+    return form.locations.some((item) => item.toLowerCase() === value.toLowerCase()) ? "" : value;
+  }, [citySearch, form.locations]);
+
+  /** Places the client chose that are not in the suggestion list: shown so he can see and remove them. */
+  const customLocations = useMemo(
+    () => form.locations.filter((item) => !listedPlace(item, CITY_OPTIONS)),
+    [form.locations],
+  );
+
+  const addTypedPlace = () => {
+    if (!typedPlace) return;
+    setForm((prev) => {
+      const nextLocations = addTypedLocation(prev.locations, citySearch, CITY_OPTIONS);
+      return { ...prev, locations: nextLocations, city: nextLocations.join(", ") };
+    });
+    setCitySearch("");
+    clearFieldError("locations");
+  };
 
   const toggleLocation = (value: string) => {
     setForm((prev) => {
@@ -2333,7 +2358,8 @@ export default function RequestTokenPage() {
                       placeholder="Your role in the company (e.g. Owner, HR manager)"
                     />
                   </div>
-                  <div data-wizard-field="contactPhone">
+                  {/* Full width on desktop: in half a row the number lost its first digit. */}
+                  <div className="md:col-span-2" data-wizard-field="contactPhone">
                     <div
                       className={wizardGroupShell(
                         !!fieldErrors.contactPhone,
@@ -2670,9 +2696,37 @@ export default function RequestTokenPage() {
                         setCitySearch(e.target.value);
                         clearFieldError("locations");
                       }}
-                      placeholder="Search city"
+                      onKeyDown={(e) => {
+                        // Enter keeps the typed place instead of sending the step.
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addTypedPlace();
+                        }
+                      }}
+                      placeholder="Search or type a place"
+                      maxLength={80}
                     />
                     <div className="mt-2 flex max-h-[150px] flex-wrap gap-2 overflow-auto">
+                      {customLocations.map((place) => (
+                        <button
+                          key={`custom-${place}`}
+                          type="button"
+                          onClick={() => toggleLocation(place)}
+                          aria-label={`Remove ${place}`}
+                          className="min-h-[40px] rounded-full border border-[#C9A84C] bg-[rgba(201,168,76,0.1)] px-3 py-1.5 text-xs text-[#C9A84C]"
+                        >
+                          {place} ×
+                        </button>
+                      ))}
+                      {typedPlace && !filteredCities.some((city) => city.toLowerCase() === typedPlace.toLowerCase()) ? (
+                        <button
+                          type="button"
+                          onClick={addTypedPlace}
+                          className="min-h-[40px] rounded-full border border-dashed border-[#C9A84C]/70 px-3 py-1.5 text-xs text-[#C9A84C]"
+                        >
+                          {`Add "${typedPlace}"`}
+                        </button>
+                      ) : null}
                       {filteredCities.slice(0, 10).map((city) => (
                         <button
                           key={city}

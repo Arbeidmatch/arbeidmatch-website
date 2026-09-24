@@ -72,7 +72,9 @@ const requestSchema = z
     equipmentOther: z.string().trim().max(160).optional().or(z.literal("")),
     tools: z.string().trim().max(160).optional().or(z.literal("")),
     toolsOther: z.string().trim().max(160).optional().or(z.literal("")),
-    city: z.string().trim().min(1).max(120),
+    // Any Norwegian place the client typed, not only the wizard's suggestions
+    // (the owner, 24 September 2026): kept as text, never as markup.
+    city: z.string().trim().min(1).max(120).refine((v) => !/[<>]/.test(v), "city must be plain text"),
     startDate: z.string().trim().max(80).optional().or(z.literal("")),
     startDateOther: z.string().trim().max(80).optional().or(z.literal("")),
     howDidYouHear: z.string().trim().max(120).optional().or(z.literal("")),
