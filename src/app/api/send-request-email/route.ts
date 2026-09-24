@@ -10,6 +10,8 @@ import { buildArbeidmatchLetter, letterFacts, letterHeading, letterParagraph } f
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 import { realContactValue } from "@/lib/request-contact-placeholders";
 import { roleDetailsEmailSection, roleDetailsFromRequest, stripRoleDetailsBlock } from "@/lib/request-role-details-email";
+import { contactRoleFrom, notesLists } from "@/lib/request-notes-sections";
+import { positionNb } from "@/lib/request-position-nb";
 import {
   mailHeaders,
 } from "@/lib/emailPremiumTemplate";
@@ -79,6 +81,20 @@ function travelLabel(value: string): string {
   if (value === "own_responsibility") return "The candidate's own responsibility";
   return value;
 }
+
+/** The D-number answer is a code too. */
+function dNumberLabel(value: string, other: string): string {
+  if (value === "has_d_number") return "Already has a D-number";
+  if (value === "we_handle") return "We can handle the procedure";
+  return other || value;
+}
+
+/**
+ * The person a client answers to after sending a request (the owner, 24
+ * September 2026: "Mirel Manoliu contact person", not "Kontoret"). The same
+ * person the ATS names on its first letters to a firm.
+ */
+const REQUEST_CONTACT_PERSON = { name: "Mirel Manoliu", phone: "+47 967 34 730", email: "mirel@arbeidmatch.no" };
 
 export async function POST(request: NextRequest) {
   try {
@@ -168,6 +184,13 @@ export async function POST(request: NextRequest) {
     // What the client wrote in the free-text field, and nothing else. The
     // wizard's `notes` is a dump of every answer, already printed above it.
     const clientNote = text(data.clientNote);
+    // The lists the wizard keeps only inside its notes, and the contact's role
+    // it keeps only inside the requirements: everything the client filled in
+    // reaches the office copy (his ask, 24 September 2026). A request becomes an
+    // advert later, so nothing the client answered may stop at the website.
+    const lists = notesLists(data.notes || data.requirements);
+    const contactRole = contactRoleFrom(data.requirements);
+    const accommodationCost = text(data.accommodationCost || data.accommodationOther);
 
     // The internal copy: to post@, read by the owner and by the ATS intake.
     const internalRows: Record<(typeof INTERNAL_SECTIONS)[number], { label: string; value: string }[]> = {
@@ -176,23 +199,40 @@ export async function POST(request: NextRequest) {
         { label: "Org.nr", value: text(data.orgNumber) },
         { label: "Email", value: text(data.email) },
         { label: "Full name", value: fullNameReal },
+        { label: "Contact's role", value: contactRole },
         { label: "Phone", value: phoneReal },
       ],
       "Position details": [
         { label: "Category", value: text(categoryValue) },
         { label: "Position", value: text(selectedPosition) },
+        { label: "Job summary", value: text(data.job_summary) },
         { label: "Contract type", value: text(contractTypeValue) },
         { label: "Qualification", value: text(data.qualification) },
         { label: "Candidates needed", value: text(numberOfPositionsValue) },
         { label: "Certifications", value: text(data.certifications) },
+        { label: "Driving licence", value: text(data.driverLicense || data.driverLicenseOther) },
+        { label: "D-number", value: dNumberLabel(text(data.dNumber), text(data.dNumberOther)) },
+        { label: "Work tasks", value: lists.workTasks.join("; ") },
+        { label: "Personal qualities", value: lists.personalQualities.join(", ") },
       ],
       "Conditions offered": [
         { label: "Salary", value: text(data.salary) },
         { label: "Salary period", value: text(data.salaryPeriod) },
         { label: "Overtime", value: text(data.overtime) },
         { label: "Accommodation", value: text(data.accommodation) },
-        { label: "Transport", value: travelLabel(text(data.internationalTravel || data.localTravel)) },
-        { label: "Rotation", value: text(data.hasRotation) },
+        { label: "Accommodation cost", value: accommodationCost },
+        // Two separate answers in the form, and two rows here (his correction,
+        // 24 September 2026): one "Transport" row printed only one of them.
+        { label: "Local travel", value: text(data.localTravel === "Other" ? data.localTravelOther : data.localTravel) },
+        { label: "International travel", value: travelLabel(text(data.internationalTravel)) },
+        {
+          label: "Rotation",
+          value:
+            text(data.hasRotation) === "Yes" && text(data.rotationWeeksOn)
+              ? `${text(data.rotationWeeksOn)} weeks on / ${text(data.rotationWeeksOff) || "?"} weeks off`
+              : text(data.hasRotation),
+        },
+        { label: "We offer", value: lists.weOffer.join(", ") },
         // One row for when to start. "Urgency" printed the same value a second time.
         { label: "Start date", value: text(selectedStartDate) },
       ],
@@ -211,7 +251,11 @@ export async function POST(request: NextRequest) {
       // Above the sections for the same reason: "Additional notes" is not a label
       // the intake knows, so inside a section its text ran into the city.
       clientNote ? letterParagraph(`Client's note: ${escapeHtml(clientNote).replace(/\r?\n/g, "<br/>")}`) : "",
-      text(leadSource) ? letterParagraph(`How they found us: ${escapeHtml(text(leadSource))}`) : "",
+      text(leadSource)
+        ? letterParagraph(
+            `How they found us: ${escapeHtml(text(leadSource) === "presentation" ? "the presentation we sent them (opened from its button)" : text(leadSource))}`,
+          )
+        : "",
       ...INTERNAL_SECTIONS.map((title) => {
         const facts = letterFacts(internalRows[title]);
         return facts ? `${letterHeading(title)}${facts}` : "";
@@ -239,7 +283,6 @@ export async function POST(request: NextRequest) {
     // employer (the owner's rule for letters to clients). The values he chose
     // in the wizard stay as he chose them; only our own words are translated.
     if (data.email && !(await isUnsubscribed(data.email))) {
-      const unsubToken = await getOrCreateSubscription(data.email, "employer-request");
       const clientInner = [
         letterParagraph(
           companyReal
@@ -250,7 +293,8 @@ export async function POST(request: NextRequest) {
           { label: "Referanse", value: referenceId },
           { label: "Tjeneste", value: serviceLabelNo(text(data.hiringType)) },
           { label: "Kontakt på annonsen", value: adContactLine },
-          { label: "Stilling", value: text(selectedPosition) },
+          // Norwegian, like the rest of the letter: it used to say "Stilling: Carpenter".
+          { label: "Stilling", value: positionNb(text(selectedPosition)) },
           { label: "Antall kandidater", value: text(numberOfPositionsValue) },
           { label: "Sted", value: text(cityValue) },
           { label: "Ønsket oppstart", value: text(selectedStartDate) === "Immediate" ? "Snarest" : text(selectedStartDate) },
@@ -269,7 +313,9 @@ export async function POST(request: NextRequest) {
           innerHtml: clientInner,
           lang: "no",
           recipient: data.email,
-          unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
+          contactPerson: REQUEST_CONTACT_PERSON,
+          // The receipt of her own request: a service letter, no unsubscribe link.
+          serviceLetter: true,
         }),
       });
     }

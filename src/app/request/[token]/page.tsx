@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 import { REQUEST_INDUSTRY_ROLE_GROUPS } from "@/lib/industry-roles";
+import { carriedIndustryAndRole } from "@/lib/request-carried-industry";
 import { ROLE_SKILLS } from "@/lib/role-skills";
 import {
   ALL_TRADE_FIELD_KEYS,
@@ -378,43 +379,6 @@ const CITY_OPTIONS = [
 
 // One list with the trade questions, so a category never goes without its questions.
 const INDUSTRY_OPTIONS: string[] = [...ROLE_QUESTION_INDUSTRIES];
-
-/**
- * Maps Faza 1 industry names (from /request page) to Faza 2 INDUSTRY_OPTIONS.
- * Used to pre-select industry when partner comes from Faza 1 with selected industry.
- */
-const FAZA1_TO_FAZA2_INDUSTRY_MAP: Record<string, string> = {
-  Building: "Construction",
-  Infrastructure: "Construction",
-  Welding: "Welding and Metal",
-  Electrical: "Electrical",
-  Production: "Industry and Production",
-  Logistics: "Logistics",
-  Cleaning: "Cleaning",
-  Hospitality: "HoReCa",
-  Automotive: "Industry and Production",
-  Offshore: "Welding and Metal",
-  "Fish Industry": "Industry and Production",
-};
-
-/**
- * Maps Faza 1 role names to Faza 2 workerType options.
- * Returns exact match if found in WORKER_TYPES_BY_INDUSTRY, otherwise returns original.
- */
-function mapFaza1RoleToFaza2(role: string | null | undefined, industry: string): string {
-  if (!role) return "";
-  const workerTypes = WORKER_TYPES_BY_INDUSTRY[industry] || [];
-  // Exact match
-  if (workerTypes.includes(role)) return role;
-  // Case-insensitive match
-  const lowerRole = role.toLowerCase();
-  const found = workerTypes.find((wt) => wt.toLowerCase() === lowerRole);
-  if (found) return found;
-  // Partial match (e.g., "Carpenter" matches "Carpenter")
-  const partial = workerTypes.find((wt) => wt.toLowerCase().includes(lowerRole) || lowerRole.includes(wt.toLowerCase()));
-  if (partial) return partial;
-  return "";
-}
 
 const WORKER_TYPES_BY_INDUSTRY: Record<string, string[]> = {
   Electrical: [
@@ -1006,19 +970,22 @@ export default function RequestTokenPage() {
         setIsPartnerOrOwner(skipContactStep);
         setIsPresentation(fromPresentation);
 
+        // The industry and role chosen on /request reach every visitor's
+        // wizard, not only a partner's (src/lib/request-carried-industry.ts).
+        const carried = carriedIndustryAndRole(row.industry, row.role, INDUSTRY_OPTIONS, WORKER_TYPES_BY_INDUSTRY);
+        if (carried.industry) {
+          setForm((p) => ({
+            ...p,
+            industry: p.industry || carried.industry,
+            workerType: p.industry ? p.workerType : carried.workerType,
+          }));
+        }
+
         if (prefilled) {
           // Pre-completeaza datele; sare peste step 0 doar cand contactul e complet.
           // A presentation's ticket knows the company, its org number and the
           // address we wrote to; the name and phone are asked on step 0.
           const companyToUse = known.companyName;
-
-          // Map Faza 1 industry to Faza 2 industry
-          const rawIndustry = row.industry || "";
-          const mappedIndustry = FAZA1_TO_FAZA2_INDUSTRY_MAP[rawIndustry] || rawIndustry;
-          const finalIndustry = INDUSTRY_OPTIONS.includes(mappedIndustry) ? mappedIndustry : "";
-
-          // Map Faza 1 role to Faza 2 workerType
-          const mappedWorkerType = mapFaza1RoleToFaza2(row.role, finalIndustry);
 
           setForm((p) => ({
             ...p,
@@ -1030,8 +997,6 @@ export default function RequestTokenPage() {
             contactPhone: known.phoneDigits,
             // We sent them the presentation, so "how did you hear" is known and not asked.
             howDidYouHear: fromPresentation ? "presentation" : "partner",
-            industry: finalIndustry,
-            workerType: mappedWorkerType,
           }));
           // Sar Step 0 - merg direct la step 1 (primul step real pentru parteneri)
           if (skipContactStep) setStep(1);

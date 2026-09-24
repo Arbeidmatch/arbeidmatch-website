@@ -225,13 +225,26 @@ export function buildArbeidmatchLetter(args: {
   contactEmail?: string | null;
   /** The hidden line an inbox shows under the subject. Absent means the letter's first sentence. */
   preheader?: string | null;
+  /**
+   * A person to answer to instead of "Kontoret", as on the ATS's first letters to
+   * a firm (the owner, 24 September 2026: "Mirel Manoliu contact person").
+   */
+  contactPerson?: { name: string; phone: string; email: string } | null;
+  /**
+   * A letter about something the reader asked for, such as the receipt of a
+   * request: it says why it came and carries no unsubscribe link. His decision of
+   * 16 September 2026, no unsubscribe on service letters.
+   */
+  serviceLetter?: boolean;
 }): string {
   const lang: EmailLang = args.lang === "en" ? "en" : "no";
   const w = WORDS[lang];
   const unsub = args.unsubscribeUrl?.trim() || "#";
   const audience: EmailAudience = args.audience ?? "client";
   const brandContact = BRAND_CONTACT[audience];
-  const contact = { ...brandContact, email: deskContactEmail(args.contactEmail) ?? brandContact.email };
+  const contact = args.contactPerson
+    ? { ...args.contactPerson }
+    : { ...brandContact, email: deskContactEmail(args.contactEmail) ?? brandContact.email };
 
   const ctaBlock = args.cta
     ? `<tr><td style="padding:4px 26px 0;">
@@ -292,6 +305,8 @@ export function buildArbeidmatchLetter(args: {
   const confidential = escapeHtml(`${to ? w.confidentialTo(to) : w.confidentialNoTo} ${w.ownSystem}`);
   const footerTail = args.internal
     ? w.internal
+    : args.serviceLetter
+    ? w.why
     : `${w.why} <a href="${escapeHtml(unsub)}" style="color:${BRAND.goldMuted};">${w.unsubscribe}</a>`;
 
   return `<!DOCTYPE html>
