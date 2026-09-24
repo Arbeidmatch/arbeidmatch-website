@@ -58,6 +58,7 @@ import {
   type RequestServiceKey,
   type RequesterKind,
 } from "@/lib/request-service";
+import { withoutConditionAnswers, wizardStepOrder } from "@/lib/request-wizard-steps";
 
 type TokenData = {
   company: string;
@@ -362,9 +363,9 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
 }
 
 // Step 0 = Company & Contact (sarit pentru parteneri/owner)
-// TOTAL_STEPS_FULL = 9 pentru non-parteneri, 8 pentru parteneri/owner
-const TOTAL_STEPS_FULL = 9;
-const TOTAL_STEPS_PARTNER = 8;
+// Which steps a client sees, and in what order: wizardStepOrder in
+// src/lib/request-wizard-steps.ts (9 for the site, 8 for partners/owner, and
+// the short wizard for a presentation's ticket).
 
 const CITY_OPTIONS = [
   "Oslo", "Bergen", "Trondheim", "Stavanger", "Kristiansand", "Drammen", "Tromso", "Fredrikstad",
@@ -902,11 +903,21 @@ export default function RequestTokenPage() {
   const [tokenGate, setTokenGate] = useState<"loading" | "ready" | "blocked" | "error">("loading");
   // Partenerii existenti si owner-ul ArbeidMatch sar Step 0
   const [isPartnerOrOwner, setIsPartnerOrOwner] = useState(false);
-  const TOTAL_STEPS = isPartnerOrOwner ? TOTAL_STEPS_PARTNER : TOTAL_STEPS_FULL;
-  // Max internal step index (always 8 regardless of partner status)
-  const MAX_STEP_INDEX = TOTAL_STEPS_FULL - 1;
-  // Display step adjusted for partners (they start at internal step 1, but show as Step 1)
-  const displayStep = isPartnerOrOwner ? step : step + 1;
+  /**
+   * Opened from a personalised presentation's ticket. Such a client gets the
+   * short wizard (owner, 24 September 2026): no pay and conditions step, which
+   * the ATS asks per position afterwards, and the optional steps folded into
+   * the review.
+   */
+  const [isPresentation, setIsPresentation] = useState(false);
+  const stepOrder = useMemo(
+    () => wizardStepOrder({ shortWizard: isPresentation, skipContact: isPartnerOrOwner }),
+    [isPresentation, isPartnerOrOwner],
+  );
+  const TOTAL_STEPS = stepOrder.length;
+  const LAST_STEP = stepOrder[stepOrder.length - 1];
+  const stepPosition = stepOrder.indexOf(step);
+  const displayStep = stepPosition >= 0 ? stepPosition + 1 : 1;
   const [reducedMotion, setReducedMotion] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
@@ -992,6 +1003,7 @@ export default function RequestTokenPage() {
         const known = knownContactFromToken(row);
         const skipContactStep = prefilled && contactIsComplete(known);
         setIsPartnerOrOwner(skipContactStep);
+        setIsPresentation(fromPresentation);
 
         if (prefilled) {
           // Pre-completeaza datele; sare peste step 0 doar cand contactul e complet.
@@ -1075,8 +1087,7 @@ export default function RequestTokenPage() {
   }, [startWizard]);
 
   const goTo = (next: number) => {
-    const minStep = isPartnerOrOwner ? 1 : 0;
-    if (next < minStep || next > MAX_STEP_INDEX || animating) return;
+    if (!stepOrder.includes(next) || animating) return;
     if (next > step) {
       trackEvent("wizard_step_complete", { step: step + 1 });
     }
@@ -1279,15 +1290,16 @@ export default function RequestTokenPage() {
     put("Number of workers", String(form.candidates));
     put("Employment type", form.contractType);
     put("Start", form.startDateMode === "Immediate" ? "Immediate" : form.startDate);
-    put(
+    // Rows a presentation's client was never asked are not shown back to him.
+    if (!isPresentation) put(
       form.salaryPeriod === "per hour" ? "Salary (NOK/hour)" : "Salary (NOK/month)",
       [form.salaryMin.trim(), form.salaryMax.trim()].filter(Boolean).join(" - "),
     );
-    put("Accommodation", form.accommodation ?? "");
-    put("Local travel", form.localTransport ?? "");
+    if (!isPresentation) put("Accommodation", form.accommodation ?? "");
+    if (!isPresentation) put("Local travel", form.localTransport ?? "");
     // The column stores company_covered / own_responsibility; a review that
     // prints the stored word back at the client is not a review.
-    put(
+    if (!isPresentation) put(
       "International travel",
       form.internationalTransport === "company_covered"
         ? "Covered by company"
@@ -1297,6 +1309,7 @@ export default function RequestTokenPage() {
     );
     return rows;
   }, [
+    isPresentation,
     form.accommodation,
     form.candidates,
     form.companyName,
@@ -1405,7 +1418,7 @@ export default function RequestTokenPage() {
     // Job advertising continues at /annonse/ny through the card's own button.
     if (step === 1 && form.hiringType === "advertising") return;
     if (!runStepValidation(step)) return;
-    if (step < MAX_STEP_INDEX) {
+    if (step !== LAST_STEP) {
       handleNext();
       return;
     }
@@ -1413,7 +1426,8 @@ export default function RequestTokenPage() {
   };
 
   const handleNext = () => {
-    if (step < MAX_STEP_INDEX) goTo(step + 1);
+    const next = stepOrder[stepOrder.indexOf(step) + 1];
+    if (next !== undefined) goTo(next);
   };
 
   const performEmployerSubmit = async () => {
@@ -1429,7 +1443,10 @@ export default function RequestTokenPage() {
     const ppe = form.roleAnswers.staffing.ppeProvided;
     const ownTools = form.industry === "Construction" ? form.roleAnswers.trade.own_tools : undefined;
 
-    const payload = {
+    // A presentation's client is never asked pay and conditions (the ATS asks
+    // them per position afterwards); the form's defaults are not his answers.
+    const askedConditions = !isPresentation;
+    const fullPayload = {
       token,
       company: form.companyName.trim(),
       orgNumber: form.orgNumber.trim(),
@@ -1467,7 +1484,7 @@ export default function RequestTokenPage() {
         "",
         roleDetailsBlock || null,
         roleDetailsBlock ? "" : null,
-        `Rotation schedule: ${form.rotationSchedule}`,
+        askedConditions ? `Rotation schedule: ${form.rotationSchedule}` : null,
         form.roleInCompany.trim() ? `Contact person's role: ${form.roleInCompany.trim()}` : "",
       ]
         .filter((line) => line !== null)
@@ -1526,6 +1543,7 @@ export default function RequestTokenPage() {
       notes: generatedNotes,
       required_skills: requiredSkills,
     };
+    const payload = askedConditions ? fullPayload : withoutConditionAnswers(fullPayload);
 
     try {
       // The deck the request came from, when it came from one: the ATS reads
@@ -3486,7 +3504,11 @@ export default function RequestTokenPage() {
               <div className="space-y-4">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Review your request</h2>
-                <p className="text-sm text-white/55">Check the summary below. You can add optional notes on the next step. {DETAILED_OFFER_NOTE}</p>
+                <p className="text-sm text-white/55">
+                  {isPresentation
+                    ? `Check the summary below and send it. We ask about pay and working conditions for each position afterwards, in a separate email. ${DETAILED_OFFER_NOTE}`
+                    : `Check the summary below. You can add optional notes on the next step. ${DETAILED_OFFER_NOTE}`}
+                </p>
                 {/*
                   What the client is actually confirming. Until 23 September
                   2026 this step showed only the free-text block below, which is
@@ -3509,6 +3531,69 @@ export default function RequestTokenPage() {
                     {roleDetailsBlock ? `${generatedNotes}\n\n${roleDetailsBlock}` : generatedNotes}
                   </pre>
                 </div>
+                {isPresentation ? (
+                  /*
+                    The three steps where nothing is required, folded in here
+                    for a presentation's client and closed by default, so the
+                    last screen stays short (owner's decision, 24 September 2026).
+                  */
+                  <details className="rounded-[12px] border border-white/10 bg-white/[0.02] p-4">
+                    <summary className="cursor-pointer text-sm font-semibold text-[#C9A84C]">
+                      Add more details {OPTIONAL_TAG}
+                    </summary>
+                    <div className="mt-4 space-y-5">
+                      <div>
+                        <p className={labelClass}>Personal qualities</p>
+                        <div className="flex flex-wrap gap-2">
+                          {PERSONAL_QUALITY_OPTIONS.map((item) => (
+                            <button
+                              key={item}
+                              type="button"
+                              onClick={() => toggleItem("personalQualities", item)}
+                              className={`min-h-[40px] rounded-full border px-4 py-2 text-sm ${form.personalQualities.includes(item) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}
+                            >
+                              {item}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className={labelClass}>We offer</p>
+                        <div className="flex flex-wrap gap-2">
+                          {OFFER_OPTIONS.map((item) => (
+                            <button
+                              key={item}
+                              type="button"
+                              onClick={() => toggleItem("offerItems", item)}
+                              className={`min-h-[40px] rounded-full border px-4 py-2 text-sm ${form.offerItems.includes(item) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}
+                            >
+                              {item}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className={labelClass}>Additional notes</p>
+                        <textarea
+                          rows={3}
+                          className={`${wizardInputClass(false)} resize-none`}
+                          value={form.additionalNotes}
+                          onChange={(e) => setForm((p) => ({ ...p, additionalNotes: e.target.value }))}
+                          placeholder="(optional)"
+                        />
+                      </div>
+                      <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-white/85">
+                        <input
+                          type="checkbox"
+                          checked={form.subscribeUpdates}
+                          onChange={(event) => setForm((previous) => ({ ...previous, subscribeUpdates: event.target.checked }))}
+                          className="mt-1 h-5 w-5 shrink-0 accent-[#C9A84C]"
+                        />
+                        <span>I want emails from ArbeidMatch when candidates matching this request become available.</span>
+                      </label>
+                    </div>
+                  </details>
+                ) : null}
               </div>
             )}
 
@@ -3531,7 +3616,7 @@ export default function RequestTokenPage() {
 
             {/* The privacy policy where the details are sent, his instruction of 24 September 2026:
                 "cand trimite datele din formular atunci sa fie linkul catre politica de confidentialitate". */}
-            {step === MAX_STEP_INDEX ? (
+            {step === LAST_STEP ? (
               <p className="mt-6 text-xs leading-relaxed text-white/55">
                 We use your contact details to answer this request and to prepare an offer.{" "}
                 <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#C9A84C] underline underline-offset-2 hover:opacity-80">
@@ -3542,10 +3627,10 @@ export default function RequestTokenPage() {
             ) : null}
 
             <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/10">
-              {(isPartnerOrOwner ? step > 1 : step > 0) ? (
+              {stepPosition > 0 ? (
                 <button
                   type="button"
-                  onClick={() => goTo(step - 1)}
+                  onClick={() => goTo(stepOrder[stepPosition - 1])}
                   disabled={animating || isSubmitting}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-white/20 text-sm font-medium text-white/70 w-fit transition-colors duration-150 hover:border-[rgba(201,168,76,0.4)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
@@ -3566,7 +3651,7 @@ export default function RequestTokenPage() {
                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#0f1923]/40 border-t-[#0f1923]" />
                     Submitting...
                   </>
-                ) : step === MAX_STEP_INDEX ? (
+                ) : step === LAST_STEP ? (
                   "Submit"
                 ) : (
                   "Continue →"
