@@ -3510,6 +3510,18 @@ export default function RequestTokenPage() {
               </div>
             )}
 
+            {/* The privacy policy where the details are sent, his instruction of 24 September 2026:
+                "cand trimite datele din formular atunci sa fie linkul catre politica de confidentialitate". */}
+            {step === MAX_STEP_INDEX ? (
+              <p className="mt-6 text-xs leading-relaxed text-white/55">
+                We use your contact details to answer this request and to prepare an offer.{" "}
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#C9A84C] underline underline-offset-2 hover:opacity-80">
+                  Read our privacy policy
+                </a>
+                .
+              </p>
+            ) : null}
+
             <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/10">
               {(isPartnerOrOwner ? step > 1 : step > 0) ? (
                 <button
