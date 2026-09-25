@@ -49,8 +49,8 @@ export function LegalDocumentUnavailable() {
       <div className="mx-auto w-full max-w-[720px] px-6 py-12 md:px-12">
         <p className="text-base leading-relaxed text-[#0D1B2A]/85">
           Document not currently available. For inquiries please contact{" "}
-          <a className="font-medium text-[#C9A84C] hover:underline" href="mailto:legal@arbeidmatch.no">
-            legal@arbeidmatch.no
+          <a className="font-medium text-[#C9A84C] hover:underline" href="mailto:post@arbeidmatch.no">
+            post@arbeidmatch.no
           </a>
           .
         </p>

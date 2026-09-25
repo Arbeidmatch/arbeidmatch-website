@@ -36,7 +36,7 @@ export default function LegalRequestForm() {
     e.preventDefault();
     setError(null);
     if (!confirmed || message.trim().length < 20) {
-      setError("Something went wrong. Please try again or email legal@arbeidmatch.no directly.");
+      setError("Something went wrong. Please try again or email post@arbeidmatch.no directly.");
       return;
     }
     setSubmitting(true);
@@ -54,12 +54,12 @@ export default function LegalRequestForm() {
       });
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean };
       if (!res.ok || !data.ok) {
-        setError("Something went wrong. Please try again or email legal@arbeidmatch.no directly.");
+        setError("Something went wrong. Please try again or email post@arbeidmatch.no directly.");
         return;
       }
       setDone(true);
     } catch {
-      setError("Something went wrong. Please try again or email legal@arbeidmatch.no directly.");
+      setError("Something went wrong. Please try again or email post@arbeidmatch.no directly.");
     } finally {
       setSubmitting(false);
     }

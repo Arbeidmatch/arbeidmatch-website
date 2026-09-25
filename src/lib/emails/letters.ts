@@ -401,7 +401,10 @@ export function legalRequestNoticeLetter(args: {
   };
 }
 
-/** Written from legal@, so the box sends the reader back to legal@ rather than to the office inbox. */
+/**
+ * Sent from legal@ (the mailbox the route uses). The contact box points the reader to
+ * post@, the one address for privacy and terms matters (legal review, 25 September 2026).
+ */
 export function legalRequestReceiptLetter(args: {
   fullName: string;
   requestType: string;
@@ -430,7 +433,7 @@ export function legalRequestReceiptLetter(args: {
         ),
       ].join(""),
       lang: EN,
-      contactEmail: "legal@arbeidmatch.no",
+      contactEmail: "post@arbeidmatch.no",
       recipient: args.to,
       unsubscribeUrl: args.unsubscribeUrl,
     }),
