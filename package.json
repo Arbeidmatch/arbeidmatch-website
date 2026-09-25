@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.5.0",
-    "@next/third-parties": "^16.2.3",
     "@react-pdf/renderer": "^4.5.1",
     "@supabase/supabase-js": "^2.103.0",
     "framer-motion": "^12.38.0",
