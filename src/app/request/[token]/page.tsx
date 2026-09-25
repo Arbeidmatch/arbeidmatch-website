@@ -50,6 +50,7 @@ import {
 } from "@/lib/request-role-questions";
 import { contactIsComplete, knownContactFromToken, realContactValue } from "@/lib/request-contact-placeholders";
 import {
+  contractTypeForService,
   isRequesterKind,
   isServiceAllowedFor,
   keepServiceIfAllowed,
@@ -338,7 +339,8 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     if (!f.industry) invalid.add("industry");
     if (!f.workerType.trim()) invalid.add("workerType");
     if (f.candidates < 1) invalid.add("candidates");
-    if (!f.contractType) invalid.add("contractType");
+    // Staffing has no contract type to choose (the owner, 24 September 2026).
+    if (f.hiringType !== "staffing" && !f.contractType) invalid.add("contractType");
     if (f.locations.length === 0) invalid.add("locations");
     if (f.startDateMode === "Specific start date" && !f.startDate.trim()) invalid.add("startDate");
   } else if (s === 2) {
@@ -1281,7 +1283,8 @@ export default function RequestTokenPage() {
     put("Position", form.workerType);
     put("Location", form.locations.join(", "));
     put("Number of workers", String(form.candidates));
-    put("Employment type", form.contractType);
+    // A staffing client was never asked the contract type; the service row says it.
+    if (form.hiringType !== "staffing") put("Employment type", form.contractType);
     put("Start", form.startDateMode === "Immediate" ? "Immediate" : form.startDate);
     // Rows a client was never asked are not shown back to him: pay and conditions
     // are asked for recruitment and sourcing only (24 September 2026).
@@ -1484,7 +1487,7 @@ export default function RequestTokenPage() {
         .filter((line) => line !== null)
         .join("\n")
         .trim(),
-      contractType: form.contractType,
+      contractType: contractTypeForService(form.hiringType, form.contractType),
       salaryPeriod: form.salaryPeriod === "per hour" ? "Per hour" : "Per month",
       salaryMode: form.salaryMode,
       salary: `${form.salaryMin.trim()}-${form.salaryMax.trim()}`,
@@ -2738,6 +2741,8 @@ export default function RequestTokenPage() {
                     </div>
                     {fieldErrors.candidates ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
+                  {/* Staffing: no contract type to choose; our people are hired out for the assignment. */}
+                  {form.hiringType !== "staffing" ? (
                   <div data-wizard-field="contractType">
                     <p className={labelClass}>Contract type</p>
                     <div className={wizardGroupShell(!!fieldErrors.contractType, "space-y-2")}>
@@ -2755,6 +2760,7 @@ export default function RequestTokenPage() {
                     </div>
                     {fieldErrors.contractType ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
+                  ) : null}
                 </div>
                 <div>
                   <p className={labelClass}>Start date</p>

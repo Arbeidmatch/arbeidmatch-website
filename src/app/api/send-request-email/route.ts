@@ -16,6 +16,7 @@ import { clientReceiptSections, REQUEST_RECEIPT_FROM, REQUEST_RECEIPT_REPLY_TO }
 import {
   mailHeaders,
 } from "@/lib/emailPremiumTemplate";
+import { contractTypeForService } from "@/lib/request-service";
 
 const requestSchema = z
   .object({
@@ -120,7 +121,8 @@ export async function POST(request: NextRequest) {
 
     const categoryValue = data.category || data.industry || "";
     const numberOfPositionsValue = data.numberOfPositions || data.candidates || "";
-    const contractTypeValue = data.contractType || data.contract_type || "";
+    // A staffing request's contract type comes from the service, as in the save route.
+    const contractTypeValue = contractTypeForService(String(data.hiringType ?? "").trim(), data.contractType || data.contract_type || "");
     const cityValue = data.city || data.location || "";
     const selectedPosition =
       data.position === "Other" ? data.positionOther || "Other" : data.position || data.workerType || "";

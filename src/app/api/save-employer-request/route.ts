@@ -6,7 +6,8 @@ import { getRateLimitResult, hasHoneypotValue, noStoreJson } from "@/lib/apiSecu
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import { realContactValue } from "@/lib/request-contact-placeholders";
-import { isRequesterKind, isServiceAllowedFor, REQUESTER_KINDS } from "@/lib/request-service";
+import { conditionsAskedFor, withoutConditionAnswers } from "@/lib/request-wizard-steps";
+import { contractTypeForService, isRequesterKind, isServiceAllowedFor, REQUESTER_KINDS } from "@/lib/request-service";
 import { isPresentationTicket, PRESENTATION_SOURCE, presentationTicketIsValid } from "@/lib/presentation-request-ticket";
 
 const requestSchema = z
@@ -204,7 +205,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const payload = parsed.data;
+    // A staffing client is never asked pay or conditions (the owner, 24 September
+    // 2026): whatever a browser sends for them is dropped here, as the wizard does.
+    const payload = conditionsAskedFor(parsed.data.hiringType) ? parsed.data : withoutConditionAnswers(parsed.data);
 
     /**
      * THE TICKET, READ BACK (the owner, 24 September 2026). A personalised
@@ -284,7 +287,8 @@ export async function POST(request: NextRequest) {
       d_number:                      payload.dNumber,
       d_number_other:                payload.dNumberOther || null,
       requirements:                  payload.requirements || null,
-      contract_type:                 payload.contractType,
+      // Set from the service for staffing, whatever the browser sent (the owner, 24 September 2026).
+      contract_type:                 contractTypeForService(payload.hiringType, payload.contractType),
       // Legacy fields retained as nullable to avoid breaking existing downstream consumers.
       paslag_percent:                null,
       salary:                        payload.salary,
@@ -331,6 +335,7 @@ export async function POST(request: NextRequest) {
       // hiring_type above carries the same key, which is what the intake reads.
       form_answers:                  {
         ...formAnswersOf(payload),
+        contractType:                contractTypeForService(payload.hiringType, payload.contractType),
         service_type:                payload.hiringType,
         requester_is_agency:         requesterKind === null ? null : requesterKind === "agency",
         // Where the request came from, for the ATS: a presentation it sent,

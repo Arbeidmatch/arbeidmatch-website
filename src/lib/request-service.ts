@@ -104,3 +104,19 @@ export function withServiceChoice(redirectUrl: string, choice: CarriedServiceCho
 export function serviceChoiceStorageKey(token: string): string {
   return `am_request_service:${token}`;
 }
+
+/**
+ * THE CONTRACT TYPE OF A STAFFING REQUEST (the owner, 24 September 2026).
+ *
+ * A staffing client does not choose one: our people are hired out to him for
+ * the assignment, which is what the form's existing "Temporary hire" says.
+ * The save route and the request letters set it from the service, never from
+ * what the browser sent, so a staffing request always reaches the ATS with
+ * the same words. Every other service keeps the client's own answer.
+ */
+export const STAFFING_CONTRACT_TYPE = "Temporary hire";
+
+export function contractTypeForService(service: string | null | undefined, given: string | null | undefined): string {
+  if (service === "staffing") return STAFFING_CONTRACT_TYPE;
+  return String(given ?? "").trim();
+}

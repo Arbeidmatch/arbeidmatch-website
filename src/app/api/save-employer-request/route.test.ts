@@ -174,3 +174,27 @@ describe("save-employer-request and the work location", () => {
     expect(mocks.inserted).toHaveLength(0);
   });
 });
+
+describe("save-employer-request and a staffing request's contract type", () => {
+  it("sets it from the service, never from the browser", async () => {
+    const response = await POST(request({ ...valid, hiringType: "staffing", contractType: "Permanent employment" }));
+    expect(response.status).toBe(200);
+    const row = mocks.inserted[0];
+    expect(row.contract_type).toBe("Temporary hire");
+    expect((row.form_answers as Record<string, unknown>).contractType).toBe("Temporary hire");
+  });
+
+  it("drops any pay or conditions a browser sends with a staffing request", async () => {
+    await POST(request({ ...valid, hiringType: "staffing", salary: "300-350", salaryFrom: "300", accommodation: "Candidate finds own" }));
+    const row = mocks.inserted[0];
+    expect(row.salary).toBe("");
+    const answers = row.form_answers as Record<string, unknown>;
+    expect(answers.salaryFrom ?? "").toBe("");
+    expect(answers.accommodation ?? "").toBe("");
+  });
+
+  it("keeps the client's answer for recruitment", async () => {
+    await POST(request({ ...valid, contractType: "Permanent employment" }));
+    expect(mocks.inserted[0].contract_type).toBe("Permanent employment");
+  });
+});

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  contractTypeForService,
+  STAFFING_CONTRACT_TYPE,
   isServiceAllowedFor,
   keepServiceIfAllowed,
   readCarriedServiceChoice,
@@ -67,5 +69,17 @@ describe("carrying the choice into the wizard", () => {
     expect(readCarriedServiceChoice("advertising", "own_operation")).toEqual({ service: "", kind: "own_operation" });
     expect(readCarriedServiceChoice("staffing", "nonsense")).toEqual({ service: "staffing", kind: "" });
     expect(readCarriedServiceChoice(null, null)).toEqual({ service: "", kind: "" });
+  });
+});
+
+describe("staffing: no contract type to choose", () => {
+  it("gives a staffing request the staffing contract type, whatever was sent", () => {
+    expect(contractTypeForService("staffing", "Permanent employment")).toBe(STAFFING_CONTRACT_TYPE);
+    expect(contractTypeForService("staffing", "")).toBe("Temporary hire");
+  });
+
+  it("keeps the client's answer for the other services", () => {
+    expect(contractTypeForService("recruitment", " Permanent employment ")).toBe("Permanent employment");
+    expect(contractTypeForService("sourcing", undefined)).toBe("");
   });
 });
