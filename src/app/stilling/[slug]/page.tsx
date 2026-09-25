@@ -273,7 +273,7 @@ export default async function StillingPage({ params }: Props) {
                     className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-gold px-6 font-semibold text-navy transition hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                   />
                   <p className="mt-3 text-[13px] leading-relaxed text-text-secondary">
-                    EU or EEA passport. No visa sponsorship, and we do not cover travel.
+                    EU/EEA citizenship required (passport or national ID card). No visa sponsorship, and we do not cover travel.
                   </p>
                 </div>
 

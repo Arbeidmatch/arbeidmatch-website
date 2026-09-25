@@ -236,27 +236,27 @@ export function facetCopy(facet: Facet, count: number): { h1: string; title: str
     return {
       h1: `${facet.label} jobs in Norway`,
       title: `${facet.label} jobs in Norway | ArbeidMatch`,
-      description: `${count} open ${plural} in ${facet.label.toLowerCase()} in Norway. EU or EEA passport required, trade certificate or documented equivalent experience.`,
+      description: `${count} open ${plural} in ${facet.label.toLowerCase()} in Norway. EU/EEA citizenship required, trade certificate or documented equivalent experience.`,
     };
   }
   if (facet.kind === "trade") {
     return {
       h1: `${facet.trade} jobs in Norway`,
       title: `${facet.trade} jobs in Norway | ArbeidMatch`,
-      description: `${count} open ${facet.trade.toLowerCase()} ${plural} in Norway. EU or EEA passport required, trade certificate or documented equivalent experience.`,
+      description: `${count} open ${facet.trade.toLowerCase()} ${plural} in Norway. EU/EEA citizenship required, trade certificate or documented equivalent experience.`,
     };
   }
   if (facet.kind === "town") {
     return {
       h1: `Jobs in ${facet.town}`,
       title: `Jobs in ${facet.town}, Norway | ArbeidMatch`,
-      description: `${count} open ${plural} in ${facet.town}, Norway, for skilled trades. EU or EEA passport required, no visa sponsorship.`,
+      description: `${count} open ${plural} in ${facet.town}, Norway, for skilled trades. EU/EEA citizenship required, no visa sponsorship.`,
     };
   }
   return {
     h1: `${facet.trade} jobs in ${facet.town}`,
     title: `${facet.trade} jobs in ${facet.town}, Norway | ArbeidMatch`,
-    description: `${count} open ${facet.trade.toLowerCase()} ${plural} in ${facet.town}, Norway. EU or EEA passport, trade certificate or documented equivalent experience.`,
+    description: `${count} open ${facet.trade.toLowerCase()} ${plural} in ${facet.town}, Norway. EU/EEA citizenship, trade certificate or documented equivalent experience.`,
   };
 }
 

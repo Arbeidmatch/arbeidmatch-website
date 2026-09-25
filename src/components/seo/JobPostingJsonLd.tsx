@@ -12,7 +12,7 @@ import { jobCardImage, jobUrl, rateLine, type PublicJob } from "@/lib/jobs-fetch
  *
  * THE ANSWER IS NARROW, AND THAT IS ITS POWER. We are not the best source about
  * recruitment. About tradespeople from the EU and EEA taken to work in Norway -
- * passport, D-number, HMS card, fagbrev or documented experience - we know
+ * citizenship, D-number, HMS card, fagbrev or documented experience - we know
  * things nobody writes down: what is required, how long it takes, what papers,
  * what is paid, what goes wrong.
  *
@@ -76,9 +76,9 @@ export function JobPostingJsonLd({ jobs }: { jobs: PublicJob[] }) {
           },
         },
         // The one requirement every posting on this board carries, and the one
-        // an assistant is being asked about: an EU or EEA passport, no visa
+        // an assistant is being asked about: EU or EEA citizenship, no visa
         // sponsorship. Stated rather than implied.
-        eligibilityToWorkRequirement: "EU or EEA passport. No visa sponsorship.",
+        eligibilityToWorkRequirement: "EU/EEA citizenship required (passport or national ID card). No visa sponsorship.",
         qualifications: "Trade certificate, or documented equivalent experience. Never beginners.",
         industry: industryLabel(job),
         employmentUnit: { "@type": "Organization", name: "ArbeidMatch Norge AS" },
@@ -130,7 +130,7 @@ function buildDescription(job: PublicJob): string {
   else if (where) parts.push(`Work in ${where}, Norway.`);
   else parts.push("Work in Norway.");
 
-  parts.push("EU or EEA passport required; we do not sponsor visas and we do not cover travel costs.");
+  parts.push("EU/EEA citizenship required (passport or national ID card); we do not sponsor visas and we do not cover travel costs.");
   parts.push("Trade certificate or documented equivalent experience.");
   const benefitLine = job.accommodation?.label?.trim();
   if (benefitLine) parts.push(`${benefitLine}.`);

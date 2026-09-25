@@ -127,7 +127,7 @@ export const NORWEGIAN_SPECIFICS = [
   },
   {
     title: "How to present your work permit",
-    body: "If you hold an EU or EEA passport, say so plainly. It answers the first question an employer has. We recruit EU and EEA passport holders only and do not sponsor visas.",
+    body: "If you are an EU or EEA citizen, say so plainly. It answers the first question an employer has. We recruit EU and EEA citizens only (passport or national ID card) and do not sponsor visas.",
   },
   {
     title: "Give a Norwegian mobile number if you have one",

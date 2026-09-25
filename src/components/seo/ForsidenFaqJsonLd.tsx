@@ -25,11 +25,11 @@
 const FAQ = [
   {
     q: "Can I work in Norway as an EU or EEA citizen?",
-    a: "Yes, and that is who we work with. An EU or EEA passport is what lets somebody take work in Norway without a visa, and it is the requirement on every position we advertise. We do not sponsor visas and we do not recruit from outside the EU and EEA, so a passport from elsewhere is not something we can help with, whatever the trade.",
+    a: "Yes, and that is who we work with. EU or EEA citizenship, shown by a passport or a national ID card, is what lets somebody take work in Norway without a visa, and it is the requirement on every position we advertise. We do not sponsor visas and we do not recruit from outside the EU and EEA, so citizenship of another country is not something we can help with, whatever the trade.",
   },
   {
     q: "What do I need to start work in Norway as a tradesman?",
-    a: "A passport from the EU or EEA, a trade certificate or documented equivalent experience in your trade, and once you are here a D-number and a tax card. Construction sites also require an HMS card. We work with people who already have the trade behind them; we do not place beginners.",
+    a: "EU or EEA citizenship (passport or national ID card), a trade certificate or documented equivalent experience in your trade, and once you are here a D-number and a tax card. Construction sites also require an HMS card. We work with people who already have the trade behind them; we do not place beginners.",
   },
   {
     q: "Do you take beginners, or people learning a trade?",

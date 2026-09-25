@@ -296,7 +296,7 @@ function EmployerPanel({ context, onClose }: { context: Extract<BeforeYouGoConte
       <HiddenChecks />
       <h2 className="text-xl font-bold text-navy">Do you need people from the EU and EEA?</h2>
       <p className="mt-2 text-sm text-text-secondary">
-        We bring in tradespeople with EU or EEA passports and their papers already in order. Tell us what your business
+        We bring in tradespeople who are EU or EEA citizens, with their papers already in order. Tell us what your business
         needs and an offer comes back, not a sales call.
       </p>
 

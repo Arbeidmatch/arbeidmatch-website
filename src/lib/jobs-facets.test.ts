@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalFacetPath, slugify } from "./jobs-facets";
+import { canonicalFacetPath, facetCopy, slugify, type Facet } from "./jobs-facets";
 
 describe("slugify", () => {
   it("keeps the Norwegian letters readable", () => {
@@ -78,5 +78,25 @@ describe("canonicalFacetPath", () => {
     expect(() => canonicalFacetPath(["abc%"])).not.toThrow();
     expect(() => canonicalFacetPath(["%%%"])).not.toThrow();
     expect(canonicalFacetPath(["%%%"])).toBeNull();
+  });
+});
+
+describe("facetCopy", () => {
+  // Legal review, 25 September 2026: the requirement is EU/EEA citizenship,
+  // which a national ID card shows as well as a passport. No facet page may
+  // ask for a passport.
+  const facets: Facet[] = [
+    { kind: "trade", slug: "carpenter", trade: "Carpenter" },
+    { kind: "town", slug: "bergen", town: "Bergen" },
+    { kind: "trade-town", slug: "carpenter/bergen", trade: "Carpenter", town: "Bergen" },
+    { kind: "industry", slug: "construction", industry: "construction", label: "Construction" },
+  ];
+
+  it("states citizenship, never a passport, on every kind of facet", () => {
+    for (const facet of facets) {
+      const { description } = facetCopy(facet, 3);
+      expect(description).toContain("EU/EEA citizenship");
+      expect(description.toLowerCase()).not.toContain("passport");
+    }
   });
 });
