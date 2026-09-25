@@ -10,6 +10,7 @@ import { collectStaffingSiteInvalid } from "@/lib/request-role-questions";
 import { conditionsAskedFor, withoutConditionAnswers } from "@/lib/request-wizard-steps";
 import { contractTypeForService, isRequesterKind, isServiceAllowedFor, REQUESTER_KINDS } from "@/lib/request-service";
 import { isPresentationTicket, PRESENTATION_SOURCE, presentationTicketIsValid } from "@/lib/presentation-request-ticket";
+import { tellAtsAboutRequest } from "@/lib/ats-request-notify";
 
 const requestSchema = z
   .object({
@@ -388,6 +389,12 @@ export async function POST(request: NextRequest) {
         referenceId = compact ? `AM-ER-2026-${compact}` : undefined;
       }
     }
+
+    // The ATS makes its proposal from this row at once (the owner, 25 September
+    // 2026: why wait fifteen minutes for the inbox?). Only the id is sent; the
+    // ATS reads the row itself. A failure here costs nothing: the office mail
+    // still reaches the inbox, which the ATS reads as before.
+    if (typeof rawId === "string" && rawId) await tellAtsAboutRequest(rawId);
 
     return noStoreJson({ success: true, ...(referenceId ? { referenceId } : {}) });
   } catch (error) {
