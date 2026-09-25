@@ -47,7 +47,8 @@ export default async function PrivacyPage() {
           content_html: "",
           content_md: SEED_PRIVACY_MD,
           version: "local-fallback",
-          updated_at: "2026-05-04T00:00:00.000Z",
+          // No date here: the page shows the one written in the fallback text itself.
+          updated_at: "",
         }}
       />
     );

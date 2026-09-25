@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 import type { AtsLegalDocumentJson } from "@/lib/atsLegalDocument";
-import { sanitizeLegalHtml, stripLeadingH1 } from "@/lib/sanitize-legal-html";
+import { dedupeLegalHtmlLead, dedupeLegalMarkdownLead } from "@/lib/legalDocumentLead";
+import { sanitizeLegalHtml } from "@/lib/sanitize-legal-html";
 import { SimpleLegalMarkdown } from "@/components/legal/SimpleLegalMarkdown";
 
 function formatIsoDate(iso: string): string {
@@ -27,14 +28,19 @@ export function AtsLegalDocumentFallback() {
 }
 
 export function AtsLegalDocumentPage({ doc }: { doc: AtsLegalDocumentJson }) {
-  const lastLine = doc.updated_at ? `Last updated: ${formatIsoDate(doc.updated_at)}` : null;
-
   // Prefer content_html (the authoritative, editor-published field).
   // Fall back to content_md only when HTML is absent.
   const useHtml = typeof doc.content_html === "string" && doc.content_html.trim().length > 0;
-  const safeHtml = useHtml
-    ? sanitizeLegalHtml(stripLeadingH1(doc.content_html))
-    : null;
+  // One title and one date (the owner, 25 September 2026): a heading repeating
+  // the page title and a leading "Last updated" line are dropped from the body.
+  const lead = useHtml
+    ? dedupeLegalHtmlLead(doc.content_html, doc.name)
+    : dedupeLegalMarkdownLead(doc.content_md ?? "", doc.name);
+  const safeHtml = useHtml ? sanitizeLegalHtml(lead.body) : null;
+  // The date is the document's own: updated_at from the ATS, or, for a local
+  // fallback text, the date written in that text. Never a date typed into a page.
+  const shownDate = doc.updated_at ? formatIsoDate(doc.updated_at) : lead.lastUpdatedFromContent;
+  const lastLine = shownDate ? `Last updated: ${shownDate}` : null;
 
   return (
     <section className="min-h-[60vh] bg-white text-[#0D1B2A]">
@@ -69,7 +75,7 @@ export function AtsLegalDocumentPage({ doc }: { doc: AtsLegalDocumentJson }) {
               dangerouslySetInnerHTML={{ __html: safeHtml }}
             />
           ) : (
-            <SimpleLegalMarkdown source={doc.content_md} />
+            <SimpleLegalMarkdown source={lead.body} />
           )}
           <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
             <Link
