@@ -212,7 +212,7 @@ export default function Navbar() {
                     onClick={() => navigateAfterCloseCandidates(goToCandidateSignup)}
                     className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
                   >
-                    <span>Create your profile</span>
+                    <span>Sign Up</span>
                     <UserPlus className="h-4 w-4 shrink-0" aria-hidden />
                   </button>
                   <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
@@ -303,12 +303,14 @@ export default function Navbar() {
             )}
           </nav>
 
+          {/* HIS CHANGE, 25 September 2026: the gold button signs a candidate up.
+              The jobs stay one step away, as "Browse open jobs" under For Candidates. */}
           <div className="hidden shrink-0 xl:block">
             <a
-              href={JOBS_PORTAL_URL}
+              href={CANDIDATE_PORTAL_SIGNUP_URL}
               className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[6px] bg-[#C9A84C] px-4 py-2 text-[14px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
             >
-              Find jobs
+              Sign Up
             </a>
           </div>
 

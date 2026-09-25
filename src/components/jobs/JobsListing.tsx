@@ -1,7 +1,34 @@
 import Link from "next/link";
 import { ForsidenJobCard } from "@/components/home/ForsidenJobCard";
 import { JobPostingJsonLd } from "@/components/seo/JobPostingJsonLd";
+import { CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
 import type { PublicJob } from "@/lib/jobs-fetch";
+import { signupPlacement } from "@/lib/jobs-signup-placement";
+
+/** The way in for somebody whose job is not on the board yet. */
+function SignupSection({ className = "" }: { className?: string }) {
+  return (
+    <section
+      aria-labelledby="jobs-signup-heading"
+      className={`flex flex-col gap-4 rounded-xl border border-border bg-surface p-6 sm:flex-row sm:items-center sm:justify-between md:p-8 ${className}`}
+    >
+      <div>
+        <h2 id="jobs-signup-heading" className="text-xl font-bold text-navy">
+          Sign up for the next job
+        </h2>
+        <p className="mt-2 max-w-2xl leading-relaxed text-text-secondary">
+          Tell us about your trade once, and we contact you when a job that fits you opens.
+        </p>
+      </div>
+      <a
+        href={CANDIDATE_PORTAL_SIGNUP_URL}
+        className="inline-flex min-h-[44px] shrink-0 items-center justify-center self-start rounded-[6px] bg-gold px-5 py-2 text-[14px] font-semibold text-navy transition-colors hover:bg-gold-hover sm:self-center"
+      >
+        Sign Up
+      </a>
+    </section>
+  );
+}
 
 /**
  * One list of adverts, drawn the same way wherever it appears.
@@ -31,6 +58,7 @@ export function JobsListing({
   heading,
   lede,
   related,
+  signup = false,
 }: {
   jobs: PublicJob[];
   ok: boolean;
@@ -38,7 +66,10 @@ export function JobsListing({
   lede: string;
   /** Neighbouring pages that also have adverts on them. Never a dead link. */
   related?: Array<{ href: string; label: string; count: number }>;
+  /** Show the Sign Up section, above or after the list by `signupPlacement`. */
+  signup?: boolean;
 }) {
+  const placement = signup ? signupPlacement(jobs.length) : null;
   return (
     <main>
       <JobPostingJsonLd jobs={jobs} />
@@ -53,6 +84,7 @@ export function JobsListing({
 
       <div className="bg-white">
         <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20">
+          {placement === "above" ? <SignupSection className="mb-10" /> : null}
           {/* An empty board and an unreachable ATS look identical to a visitor,
               and they are not the same thing to whoever has to fix it. */}
           {!ok ? (
@@ -75,6 +107,8 @@ export function JobsListing({
               ))}
             </div>
           )}
+
+          {placement === "below" ? <SignupSection className="mt-12" /> : null}
 
           {related && related.length > 0 ? (
             <nav className="mt-12 border-t border-border pt-6" aria-label="Other open lists">
