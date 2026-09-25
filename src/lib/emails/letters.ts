@@ -184,7 +184,7 @@ export function verifiedProfileNoticeLetter(args: { email: string; timestamp: st
       title: "Verified profile request",
       innerHtml: letterFacts([
         { label: "Candidate email", value: args.email },
-        { label: "EU/EEA passport confirmed", value: "yes" },
+        { label: "EU/EEA citizenship confirmed (passport or national ID card)", value: "yes" },
         { label: "GDPR consent confirmed", value: "yes" },
         { label: "Timestamp", value: args.timestamp },
       ]),

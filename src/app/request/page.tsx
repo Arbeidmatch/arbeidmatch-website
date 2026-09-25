@@ -906,7 +906,7 @@ export default function RequestPage() {
         : "");
 
     if (!getStartedGdpr) {
-      setGetStartedError("Godta personvernerklæringen for å fortsette.");
+      setGetStartedError("Bekreft at du har lest personvernerklæringen for å fortsette.");
       return;
     }
     if (!getStartedTerms) {
@@ -1642,9 +1642,11 @@ export default function RequestPage() {
                         className="mt-1 h-4 w-4 shrink-0 rounded border-white/30 text-[#C9A84C] focus:ring-[#C9A84C]"
                       />
                       <span>
+                        {/* An acknowledgement, not an acceptance: the privacy notice
+                            informs, it is not agreed to (legal review, 25 September 2026).
+                            The request still records gdprConsent as before. */}
                         Jeg bekrefter at jeg har fullmakt til å sende denne
-                        forespørselen på vegne av bedriften min, og samtykker til at
-                        kontaktopplysningene behandles i samsvar med{" "}
+                        forespørselen på vegne av bedriften min, og at jeg har lest{" "}
                         <a
                           href="https://arbeidmatch.no/privacy"
                           target="_blank"

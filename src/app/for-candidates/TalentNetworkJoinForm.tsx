@@ -92,18 +92,22 @@ export default function TalentNetworkJoinForm() {
           >
             terms of service
           </Link>{" "}
-          and{" "}
-          <Link
-            href="/privacy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-[#C9A84C] underline-offset-2 hover:underline"
-          >
-            privacy policy
-          </Link>
-          . By submitting, I consent to ArbeidMatch processing my data for recruitment purposes.
+          and consent to ArbeidMatch processing my data for recruitment purposes.
         </span>
       </label>
+      {/* The privacy notice is information, not something to accept (legal review, 25 September 2026). */}
+      <p className="text-sm leading-relaxed text-white/70">
+        Read how we handle your data in our{" "}
+        <Link
+          href="/privacy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-[#C9A84C] underline-offset-2 hover:underline"
+        >
+          privacy notice
+        </Link>
+        .
+      </p>
 
       <button
         type="submit"

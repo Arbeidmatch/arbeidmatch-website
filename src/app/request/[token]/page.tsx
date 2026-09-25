@@ -2430,14 +2430,16 @@ export default function RequestTokenPage() {
                           className="mt-1 h-4 w-4 shrink-0 rounded border-white/30 text-[#C9A84C] focus:ring-[#C9A84C]"
                         />
                         <span>
-                          I confirm that I am authorised to send this request on behalf of my company, and I accept that the contact details are processed as described in the{" "}
+                          {/* An acknowledgement, not an acceptance (legal review, 25 September 2026);
+                              the field and what is stored (privacyAccepted) stay as they were. */}
+                          I confirm that I am authorised to send this request on behalf of my company, and that I have read the{" "}
                           <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]">
-                            privacy policy
+                            privacy notice
                           </a>
                           .
                         </span>
                       </label>
-                      {fieldErrors.acceptPrivacy ? <p className={fieldErrorTextClass}>Please accept the privacy policy to continue</p> : null}
+                      {fieldErrors.acceptPrivacy ? <p className={fieldErrorTextClass}>Please confirm that you have read the privacy notice to continue</p> : null}
                     </div>
                     <div data-wizard-field="acceptTerms">
                       <label className="flex cursor-pointer items-start gap-3 text-sm text-white/85">

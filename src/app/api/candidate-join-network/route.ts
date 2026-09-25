@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
 import { TALENT_NETWORK_FORM_ENABLED } from "@/lib/featureFlags";
@@ -7,14 +6,9 @@ import { isRateLimited } from "@/lib/requestProtection";
 import { formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
 import { profileRequestLetter, verifiedProfileNoticeLetter } from "@/lib/emails/letters";
 import { unsubscribeUrlFor } from "@/lib/emailSubscription";
+import { candidateJoinBodySchema } from "@/lib/candidateJoinConsent";
 
 export const dynamic = "force-dynamic";
-
-const bodySchema = z.object({
-  email: z.string().trim().toLowerCase().email(),
-  gdpr_consent: z.literal(true),
-  eu_eea_passport_confirmed: z.literal(true),
-});
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     const json = (await request.json()) as unknown;
-    const parsed = bodySchema.safeParse(json);
+    const parsed = candidateJoinBodySchema.safeParse(json);
     if (!parsed.success) {
       return NextResponse.json({ error: "Invalid request. Please check your email and consent." }, { status: 400 });
     }
@@ -44,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     const ts = formatEmailTimestampCet();
-    const internalText = `Verified profile request\n\nCandidate email: ${email}\nEU/EEA passport confirmed: yes\nGDPR consent confirmed: yes\nTimestamp: ${ts}`;
+    const internalText = `Verified profile request\n\nCandidate email: ${email}\nEU/EEA citizenship confirmed (passport or national ID card): yes\nGDPR consent confirmed: yes\nTimestamp: ${ts}`;
 
     const notice = verifiedProfileNoticeLetter({ email, timestamp: ts });
     await transporter.sendMail({
