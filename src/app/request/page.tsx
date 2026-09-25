@@ -31,6 +31,7 @@ import { REQUEST_INDUSTRY_ROLE_GROUPS } from "@/lib/industry-roles";
 import { clearPartnerRequestContext, writePartnerRequestContext } from "@/lib/partnerRequestContext";
 import {
   isServiceAllowedFor,
+  presentationRequesterKind,
   keepServiceIfAllowed,
   REQUEST_SERVICE_CARDS_NB,
   serviceCardsFor,
@@ -493,6 +494,7 @@ export default function RequestPage() {
   const [pickerStep, setPickerStep] = useState<"service" | "industries" | "roles" | "modal">("service");
   /** The kind of firm and the service, chosen first; both reach the wizard on its address. */
   const [requesterKind, setRequesterKind] = useState<RequesterKind | "">("");
+  const [presentationKind, setPresentationKind] = useState<RequesterKind | "">("");
   const [serviceChoice, setServiceChoice] = useState<SelectableRequestService | "">("");
   const [verifiedPartnerCompany, setVerifiedPartnerCompany] = useState<string | null>(null);
   const [industryCounts, setIndustryCounts] = useState<Record<string, number | null>>({});
@@ -580,6 +582,12 @@ export default function RequestPage() {
       /* ignore */
     }
     setPartnerSessionHydrated(true);
+    const kind = presentationRequesterKind(new URLSearchParams(window.location.search));
+    if (kind) {
+      setPresentationKind(kind);
+      setRequesterKind(kind);
+      setCheckState("idle");
+    }
   }, []);
 
   useEffect(() => {
@@ -1000,7 +1008,7 @@ export default function RequestPage() {
       allowNextNavigationRef.current = true;
       // Neither the code nor the token has a column for these two answers, so
       // they ride on the wizard's address, which keeps them per token.
-      router.push(withServiceChoice(data.redirectUrl, { service: serviceChoice, kind: requesterKind }));
+      router.push(withServiceChoice(data.redirectUrl, { service: serviceChoice, kind: requesterKind, fromPresentation: Boolean(presentationKind) }));
     } catch {
       setOtpError("Vi kunne ikke bekrefte koden akkurat nå. Prøv igjen.");
     } finally {
@@ -1044,9 +1052,9 @@ export default function RequestPage() {
   const resetToFirstStep = () => {
     setShowLeaveDialog(false);
     setFlowDirection(-1);
-    setCheckState(verifiedPartnerCompany ? "idle" : "partner_check");
+    setCheckState(verifiedPartnerCompany || presentationKind ? "idle" : "partner_check");
     setPickerStep("service");
-    setRequesterKind("");
+    setRequesterKind(presentationKind);
     setServiceChoice("");
     setSelectedIndustry("");
     setSelectedRole(null);
@@ -1285,7 +1293,7 @@ export default function RequestPage() {
                       setPartnerWizardToken(null);
                       setFlowDirection(1);
                       setPickerStep("service");
-                      setRequesterKind("");
+                      setRequesterKind(presentationKind);
                       setServiceChoice("");
                       setSelectedIndustry("");
                       setSelectedRole(null);
@@ -1340,7 +1348,7 @@ export default function RequestPage() {
                   animate="center"
                   exit={reduceMotion ? undefined : "exit"}
                 >
-                  <fieldset>
+                  {!presentationKind && <fieldset>
                     <legend className="text-base font-semibold text-white">Hva slags virksomhet er dere?</legend>
                     <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                       {REQUESTER_KIND_OPTIONS_NB.map((option) => (
@@ -1354,7 +1362,7 @@ export default function RequestPage() {
                         />
                       ))}
                     </div>
-                  </fieldset>
+                  </fieldset>}
                   {requesterKind ? (
                     <fieldset>
                       <legend className="text-base font-semibold text-white">Hvilken tjeneste trenger dere?</legend>

@@ -9,7 +9,7 @@ const contentSecurityPolicy = [
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   "frame-src https://challenges.cloudflare.com",
-  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://challenges.cloudflare.com`,
   // The pageview beacon is same-origin now (/api/track). ats.arbeidmatch.no stays listed only
   // because src/components/home/BeforeYouGo.tsx still posts there from the browser.
   "connect-src 'self' https://data.brreg.no https://challenges.cloudflare.com https://ats.arbeidmatch.no",

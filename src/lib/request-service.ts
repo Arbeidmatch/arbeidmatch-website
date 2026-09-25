@@ -83,7 +83,13 @@ export function serviceCardsFor<T extends { key: RequestServiceKey }>(cards: rea
  * browser opens on the same answer. The wizard asks both questions again on its
  * first step, prefilled, so a link opened anywhere else is asked, never guessed.
  */
-export type CarriedServiceChoice = { service: SelectableRequestService | ""; kind: RequesterKind | "" };
+export type CarriedServiceChoice = { service: SelectableRequestService | ""; kind: RequesterKind | ""; fromPresentation?: boolean };
+
+/** Presentation context controls the questions only; it never grants access or bypasses OTP. */
+export function presentationRequesterKind(query: Pick<URLSearchParams, "get">, presentationTicket = false): RequesterKind | "" {
+  const kind = query.get("kind");
+  return (presentationTicket || query.get("source") === "presentation") && isRequesterKind(kind) ? kind : "";
+}
 
 export function readCarriedServiceChoice(serviceRaw: unknown, kindRaw: unknown): CarriedServiceChoice {
   const kind = isRequesterKind(kindRaw) ? kindRaw : "";
@@ -96,6 +102,7 @@ export function withServiceChoice(redirectUrl: string, choice: CarriedServiceCho
   const params = new URLSearchParams();
   if (choice.service) params.set("service", choice.service);
   if (choice.kind) params.set("kind", choice.kind);
+  if (choice.fromPresentation && choice.kind) params.set("source", "presentation");
   const query = params.toString();
   if (!query) return redirectUrl;
   return `${redirectUrl}${redirectUrl.includes("?") ? "&" : "?"}${query}`;

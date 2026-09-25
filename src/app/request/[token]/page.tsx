@@ -58,6 +58,7 @@ import {
   isServiceAllowedFor,
   keepServiceIfAllowed,
   readCarriedServiceChoice,
+  presentationRequesterKind,
   serviceCardsFor,
   serviceChoiceStorageKey,
   type RequestServiceKey,
@@ -1046,6 +1047,7 @@ export default function RequestTokenPage() {
   useEffect(() => {
     if (!token) return;
     let carried = readCarriedServiceChoice(searchParams.get("service"), searchParams.get("kind"));
+    const presentationKind = presentationRequesterKind(searchParams, isPresentation);
     if (!carried.service && !carried.kind) {
       try {
         const raw = window.localStorage.getItem(serviceChoiceStorageKey(token));
@@ -1058,10 +1060,10 @@ export default function RequestTokenPage() {
     if (!carried.service && !carried.kind) return;
     setForm((p) => ({
       ...p,
-      requesterKind: p.requesterKind || carried.kind,
-      hiringType: p.hiringType || carried.service,
+      requesterKind: presentationKind || p.requesterKind || carried.kind,
+      hiringType: keepServiceIfAllowed(p.hiringType || carried.service, presentationKind || p.requesterKind || carried.kind || null),
     }));
-  }, [token, searchParams]);
+  }, [token, searchParams, isPresentation]);
 
   useEffect(() => {
     if (!token || (!form.hiringType && !form.requesterKind)) return;
@@ -2559,7 +2561,7 @@ export default function RequestTokenPage() {
               <div className="space-y-5">
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Job basics</h2>
-                <div data-wizard-field="requesterKind">
+                {!presentationRequesterKind(searchParams, isPresentation) && <div data-wizard-field="requesterKind">
                   <p className={labelClass}>What kind of business are you?</p>
                   <div className={wizardGroupShell(!!fieldErrors.requesterKind, "grid grid-cols-1 gap-2 md:grid-cols-2")}>
                     {REQUESTER_KIND_OPTIONS.map((option) => (
@@ -2581,8 +2583,8 @@ export default function RequestTokenPage() {
                     ))}
                   </div>
                   {fieldErrors.requesterKind ? <p className={fieldErrorTextClass}>Please tell us what kind of business you are.</p> : null}
-                </div>
-                {/* The services follow the answer above, so an agency never sees staffing. */}
+                </div>}
+                {/* The services follow the known or chosen company type. */}
                 {form.requesterKind ? (
                 <div data-wizard-field="hiringType">
                   <p className={labelClass}>Which service do you need?</p>

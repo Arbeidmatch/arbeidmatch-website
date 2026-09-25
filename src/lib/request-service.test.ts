@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   contractTypeForService,
+  presentationRequesterKind,
   STAFFING_CONTRACT_TYPE,
   isServiceAllowedFor,
   keepServiceIfAllowed,
@@ -10,6 +11,25 @@ import {
   serviceCardsFor,
   withServiceChoice,
 } from "./request-service";
+
+describe("known company type from a presentation", () => {
+  it("skips reclassification for either presentation audience, including older tickets", () => {
+    for (const kind of ["agency", "own_operation"] as const) {
+      expect(presentationRequesterKind(new URLSearchParams({ kind, source: "presentation" }))).toBe(kind);
+      expect(presentationRequesterKind(new URLSearchParams({ kind }), true)).toBe(kind);
+    }
+  });
+  it("leaves ordinary visitors and invalid context unanswered", () => {
+    for (const query of ["", "kind=agency", "source=presentation", "source=presentation&kind=unknown"]) {
+      expect(presentationRequesterKind(new URLSearchParams(query))).toBe("");
+    }
+  });
+  it("carries the known kind through the normal verified-email redirect", () => {
+    const url = withServiceChoice("/request/test", { service: "sourcing", kind: "agency", fromPresentation: true });
+    expect(presentationRequesterKind(new URL(url, "https://example.com").searchParams)).toBe("agency");
+    expect(serviceCardsFor(REQUEST_SERVICE_CARDS_NB, "agency").map(card => card.key)).not.toContain("staffing");
+  });
+});
 
 describe("which services a firm may ask for", () => {
   it("offers staffing, recruitment and sourcing to a firm hiring for its own work", () => {
