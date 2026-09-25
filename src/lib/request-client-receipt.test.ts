@@ -127,9 +127,9 @@ describe("the receipt a client gets for a request", () => {
     expect(requesterKindNb("")).toBe("");
   });
 
-  it("leaves from the office address, which takes a reply, and not from no-reply", () => {
-    expect(REQUEST_RECEIPT_FROM).toContain("post@arbeidmatch.no");
-    expect(REQUEST_RECEIPT_FROM).not.toMatch(/no-?reply/i);
+  it("leaves from the mailbox the server lets the site send as, and every reply goes to the office", () => {
+    // post@ as the from was refused by the server (550 5.7.1, 25 September 2026).
+    expect(REQUEST_RECEIPT_FROM).toBe('"ArbeidMatch Norge AS" <no-reply@arbeidmatch.no>');
     expect(REQUEST_RECEIPT_REPLY_TO).toBe("post@arbeidmatch.no");
   });
 });

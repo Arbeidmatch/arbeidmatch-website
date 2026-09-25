@@ -17,11 +17,22 @@
  *
  * AND WHO IT COMES FROM. The same correction: "si primeste confirmarea de la
  * comanda de la no reply". A receipt that asks the client to reply if
- * something is wrong cannot come from an address that takes no reply. It leaves
- * from the office address, and a reply lands where the order itself is read.
+ * something is wrong cannot come from an address that takes no reply. Its
+ * reply-to is the office address, so a reply lands where the order itself is
+ * read; the from is what the mail server allows, see below.
  */
 
-export const REQUEST_RECEIPT_FROM = '"ArbeidMatch Norge AS" <post@arbeidmatch.no>';
+/**
+ * WHY THE FROM IS STILL THE NO-REPLY MAILBOX. Sending as post@ was tried on
+ * 25 September 2026 and the mail server refused it: "550 5.7.1 User
+ * no-reply@arbeidmatch.no not authorized to send on behalf of
+ * post@arbeidmatch.no". The website's SMTP account is the no-reply mailbox,
+ * and the provider only lets a mailbox send as itself. Until the site gets
+ * SMTP credentials for post@ (or post@ is authorised as a sender alias for
+ * no-reply@ at the provider), the letter leaves from the authorised mailbox
+ * and the reply-to sends every answer to post@, where the order is read.
+ */
+export const REQUEST_RECEIPT_FROM = '"ArbeidMatch Norge AS" <no-reply@arbeidmatch.no>';
 export const REQUEST_RECEIPT_REPLY_TO = "post@arbeidmatch.no";
 
 export type ReceiptRow = { label: string; value: string };
