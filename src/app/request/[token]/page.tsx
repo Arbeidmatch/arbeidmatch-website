@@ -1283,16 +1283,17 @@ export default function RequestTokenPage() {
     put("Number of workers", String(form.candidates));
     put("Employment type", form.contractType);
     put("Start", form.startDateMode === "Immediate" ? "Immediate" : form.startDate);
-    // Rows a presentation's client was never asked are not shown back to him.
-    if (!isPresentation) put(
+    // Rows a client was never asked are not shown back to him: pay and conditions
+    // are asked for recruitment and sourcing only (24 September 2026).
+    if (askConditions) put(
       form.salaryPeriod === "per hour" ? "Salary (NOK/hour)" : "Salary (NOK/month)",
       [form.salaryMin.trim(), form.salaryMax.trim()].filter(Boolean).join(" - "),
     );
-    if (!isPresentation) put("Accommodation", form.accommodation ?? "");
-    if (!isPresentation) put("Local travel", form.localTransport ?? "");
+    if (askConditions) put("Accommodation", form.accommodation ?? "");
+    if (askConditions) put("Local travel", form.localTransport ?? "");
     // The column stores company_covered / own_responsibility; a review that
     // prints the stored word back at the client is not a review.
-    if (!isPresentation) put(
+    if (askConditions) put(
       "International travel",
       form.internationalTransport === "company_covered"
         ? "Covered by company"
@@ -1302,7 +1303,7 @@ export default function RequestTokenPage() {
     );
     return rows;
   }, [
-    isPresentation,
+    askConditions,
     form.accommodation,
     form.candidates,
     form.companyName,
