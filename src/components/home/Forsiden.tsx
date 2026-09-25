@@ -14,7 +14,7 @@ const COPY = {
     search: { role: "Your trade", rolePlaceholder: "e.g. carpenter, mechanic", where: "Location", everywhere: "All of Norway", company: "Company, optional", companyPlaceholder: "any", search: "Find jobs" },
     open: "Open positions", all: "View all jobs", results: "open positions",
     error: "The job list could not be loaded. Please try again shortly, or contact us.",
-    empty: "No positions are open right now. You can create a profile to tell us about your trade.",
+    empty: "No positions are open right now. You can sign up and tell us about your trade.",
     requirement: "For qualified tradespeople from the EU and EEA",
   },
   no: {
@@ -22,7 +22,7 @@ const COPY = {
     search: { role: "Ditt fag", rolePlaceholder: "f.eks. tømrer, mekaniker", where: "Sted", everywhere: "Hele Norge", company: "Bedrift, valgfritt", companyPlaceholder: "alle", search: "Finn jobber" },
     open: "Ledige stillinger", all: "Se alle jobber", results: "ledige stillinger",
     error: "Stillingslisten kunne ikke lastes. Prøv igjen snart, eller kontakt oss.",
-    empty: "Ingen stillinger er ledige akkurat nå. Opprett en profil og fortell oss om faget ditt.",
+    empty: "Ingen stillinger er ledige akkurat nå. Trykk på Sign Up og fortell oss om faget ditt.",
     requirement: "For kvalifiserte fagfolk fra EU og EØS",
   },
 } as const;
@@ -61,7 +61,7 @@ export async function Forsiden({ lang = "en" }: { lang?: "en" | "no" }) {
         {!ok || jobs.length === 0 ? (
           <div className="rounded-xl border border-border bg-surface p-6 text-text-secondary">
             <p>{!ok ? copy.error : copy.empty}</p>
-            <Link href={!ok ? "/contact" : "/candidate-register"} className="mt-3 inline-block font-semibold text-gold-ink underline">{!ok ? (lang === "en" ? "Contact us" : "Kontakt oss") : (lang === "en" ? "Create profile" : "Opprett profil")}</Link>
+            <Link href={!ok ? "/contact" : "/candidate-register"} className="mt-3 inline-block font-semibold text-gold-ink underline">{!ok ? (lang === "en" ? "Contact us" : "Kontakt oss") : "Sign Up"}</Link>
           </div>
         ) : (
           <div className="grid auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-3">

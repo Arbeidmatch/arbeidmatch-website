@@ -103,7 +103,7 @@ export default async function RegisterPage({ params }: Props) {
             {who ? `${who} invited you to ArbeidMatch` : "Register with ArbeidMatch"}
           </h1>
           <p className="mt-4 max-w-prose text-white/70">
-            Create your profile once. {who ? `${who.split(" ")[0]} reads it` : "A recruiter reads it"} and comes back to
+            Sign up once. {who ? `${who.split(" ")[0]} reads it` : "A recruiter reads it"} and comes back to
             you by email, whichever way the answer goes. You are registering with us, not applying to one advert, so it
             counts for every job we are working on.
           </p>

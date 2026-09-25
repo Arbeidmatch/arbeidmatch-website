@@ -5,11 +5,11 @@ export function ForsidenDoors({ lang = "en" }: { lang?: "en" | "no" }) {
   const no = lang === "no";
   const steps = no ? [
     { title: "Finn en stilling", text: "Se jobber som passer faget og erfaringen din.", href: "/jobs" },
-    { title: "Opprett profil", text: "Fortell oss om erfaringen din og legg til CV-en din.", href: CANDIDATE_PORTAL_SIGNUP_URL },
+    { title: "Sign Up", text: "Fortell oss om erfaringen din og legg til CV-en din.", href: CANDIDATE_PORTAL_SIGNUP_URL },
     { title: "Send søknaden", text: "Les kravene i annonsen og søk på stillingen.", href: "/jobs" },
   ] : [
     { title: "Find a role", text: "Explore jobs that match your trade and experience.", href: "/jobs" },
-    { title: "Create your profile", text: "Tell us about your experience and add your CV.", href: CANDIDATE_PORTAL_SIGNUP_URL },
+    { title: "Sign Up", text: "Tell us about your experience and add your CV.", href: CANDIDATE_PORTAL_SIGNUP_URL },
     { title: "Apply for the job", text: "Check the requirements in the advert and send your application.", href: "/jobs" },
   ];
   return <>

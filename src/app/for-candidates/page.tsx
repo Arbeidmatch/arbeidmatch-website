@@ -313,7 +313,7 @@ export default function ForCandidatesPage() {
             </a>
             <div className="mx-auto mt-10 max-w-lg border-t border-white/10 pt-7">
               <p className="text-sm text-white/80">No suitable job right now?</p>
-              <a href={CANDIDATE_PORTAL_SIGNUP_URL} className="mt-2 inline-flex min-h-[44px] items-center font-semibold text-[#C9A84C] underline-offset-4 hover:underline">Create your profile →</a>
+              <a href={CANDIDATE_PORTAL_SIGNUP_URL} className="mt-2 inline-flex min-h-[44px] items-center font-semibold text-[#C9A84C] underline-offset-4 hover:underline">Sign Up →</a>
               <p className="mt-2 text-sm leading-relaxed text-white/65">Save your experience and CV in your profile. Creating a profile does not apply you for a job. Apply separately from the position you choose.</p>
               <p className="mt-5 text-sm text-white/65">Already have a profile? <a href={CANDIDATE_PORTAL_LOGIN_URL} className="inline-flex min-h-[44px] items-center text-[#C9A84C] hover:underline">Sign in</a></p>
               <div className="mt-7 border-t border-white/10 pt-6"><p className="text-sm text-white/80">Prefer to hear about new jobs by email?</p><a href="/newsletter#candidates" className="mt-2 inline-flex min-h-[44px] items-center font-semibold text-[#C9A84C] hover:underline">Choose your job alerts →</a><p className="text-xs text-white/60">Optional and free. No profile needed.</p></div>

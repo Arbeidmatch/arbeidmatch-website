@@ -16,7 +16,7 @@ export default function CandidateAccountSection() {
               New here? Join our candidate network
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-white/70 md:text-base">
-              Create your profile on our jobs portal to get matched with roles across Norway.
+              Sign up on our jobs portal to get matched with roles across Norway.
             </p>
             <div className="mt-6">
               <a

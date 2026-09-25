@@ -125,7 +125,7 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
         {...fade(0.36)}
       >
         <a href={JOBS_PORTAL_URL} className={heroPrimaryCtaClass}>Find jobs in Norway</a>
-        <Link href="/candidate-register" className={heroSecondaryLinkClass}>Create your profile</Link>
+        <Link href="/candidate-register" className={heroSecondaryLinkClass}>Sign Up</Link>
         <Link href="/request" className="text-center text-sm font-semibold text-white/70 transition-colors hover:text-white md:text-left">I&apos;m hiring</Link>
       </motion.div>
     </div>
@@ -140,7 +140,7 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
       <p className="mt-4 max-w-[600px] text-base leading-normal text-white/80 sm:mt-5 md:text-lg lg:text-xl">{HERO_SUB}</p>
       <div className="mt-8 flex min-w-0 flex-col items-stretch gap-4 md:mt-10 md:flex-row md:flex-wrap md:items-center md:gap-6">
         <a href={JOBS_PORTAL_URL} className={heroPrimaryCtaClass}>Find jobs in Norway</a>
-        <Link href="/candidate-register" className={heroSecondaryLinkClass}>Create your profile</Link>
+        <Link href="/candidate-register" className={heroSecondaryLinkClass}>Sign Up</Link>
         <Link href="/request" className="text-center text-sm font-semibold text-white/70 transition-colors hover:text-white md:text-left">I&apos;m hiring</Link>
       </div>
     </div>
@@ -203,16 +203,16 @@ export default function HomePageClient({ testimonialsSlot }: Props) {
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#C9A84C]">For candidates</p>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight text-white md:text-3xl">Find a job, create your profile, then apply.</h2>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-white md:text-3xl">Find a job, sign up, then apply.</h2>
               <p className="mt-2 max-w-2xl text-white/70">Applications are processed only after you apply to a published role. Your profile helps us match you with relevant opportunities.</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <a href={JOBS_PORTAL_URL} className="rounded-lg bg-[#C9A84C] px-5 py-3 text-sm font-semibold text-[#0D1B2A]">Browse open jobs</a>
-              <Link href="/candidate-register" className="rounded-lg border border-[#C9A84C]/50 px-5 py-3 text-sm font-semibold text-[#C9A84C]">Create your profile</Link>
+              <Link href="/candidate-register" className="rounded-lg border border-[#C9A84C]/50 px-5 py-3 text-sm font-semibold text-[#C9A84C]">Sign Up</Link>
             </div>
           </div>
           <div className="mt-7 grid gap-3 md:grid-cols-3">
-            {["1. Browse open jobs", "2. Create your profile", "3. Apply for the role"].map((step) => <p key={step} className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white/85">{step}</p>)}
+            {["1. Browse open jobs", "2. Sign up", "3. Apply for the role"].map((step) => <p key={step} className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white/85">{step}</p>)}
           </div>
         </div>
       </section>
