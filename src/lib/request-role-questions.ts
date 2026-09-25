@@ -587,6 +587,30 @@ export function collectServiceInvalid(service: string, raw: RoleAnswers): Set<st
   return invalid;
 }
 
+/**
+ * THE WORKSITE OF A STAFFING REQUEST, on job basics (the owner, 25 September
+ * 2026). The address is optional. Once any part of it is given, the assignment
+ * period is required: a from and a to date, the to not before the from. With
+ * no address nothing here is required. The other assignment questions (hours,
+ * shifts, who approves the hours, protective equipment) are not asked.
+ * The same rule runs in the wizard and in /api/save-employer-request.
+ */
+export const STAFFING_SITE_FIELD_KEYS = ["worksiteStreet", "worksitePostcode", "worksiteCity", "periodFrom", "periodTo"] as const;
+
+export function staffingAddressGiven(s: Pick<RoleAnswers["staffing"], "worksiteStreet" | "worksitePostcode" | "worksiteCity">): boolean {
+  return [s.worksiteStreet, s.worksitePostcode, s.worksiteCity].some((v) => String(v ?? "").trim() !== "");
+}
+
+export function collectStaffingSiteInvalid(raw: unknown): Set<string> {
+  const invalid = new Set<string>();
+  const s = normalizeRoleAnswers(raw).staffing;
+  if (!staffingAddressGiven(s)) return invalid;
+  if (s.worksitePostcode && !/^\d{4}$/.test(s.worksitePostcode)) invalid.add("worksitePostcode");
+  if (!s.periodFrom) invalid.add("periodFrom");
+  if (!s.periodTo || (s.periodFrom && s.periodTo < s.periodFrom)) invalid.add("periodTo");
+  return invalid;
+}
+
 // ---------------------------------------------------------------------------
 // The "Label: value" lines.
 // ---------------------------------------------------------------------------

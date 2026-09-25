@@ -30,6 +30,9 @@ import {
   buildRoleDetails,
   collectLanguageTradeInvalid,
   collectServiceInvalid,
+  collectStaffingSiteInvalid,
+  staffingAddressGiven,
+  STAFFING_SITE_FIELD_KEYS,
   EMPTY_ROLE_ANSWERS,
   getTradeQuestions,
   INTERVIEW_ROUND_OPTIONS,
@@ -294,7 +297,18 @@ const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
     "referralCompanyName",
     "referralEmail",
   ],
-  1: ["requesterKind", "hiringType", "advertisingHandoff", "industry", "workerType", "contractType", "locations", "startDate", "candidates"],
+  1: [
+    "requesterKind",
+    "hiringType",
+    "advertisingHandoff",
+    "industry",
+    "workerType",
+    "contractType",
+    "locations",
+    "startDate",
+    "candidates",
+    ...STAFFING_SITE_FIELD_KEYS,
+  ],
   2: [
     "salaryMin",
     "salaryMax",
@@ -343,6 +357,7 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     if (f.hiringType !== "staffing" && !f.contractType) invalid.add("contractType");
     if (f.locations.length === 0) invalid.add("locations");
     if (f.startDateMode === "Specific start date" && !f.startDate.trim()) invalid.add("startDate");
+    if (f.hiringType === "staffing") for (const k of collectStaffingSiteInvalid(f.roleAnswers)) invalid.add(k);
   } else if (s === 2) {
     if (!f.salaryMin.trim()) invalid.add("salaryMin");
     if (!f.salaryMax.trim()) invalid.add("salaryMax");
@@ -1539,6 +1554,8 @@ export default function RequestTokenPage() {
       subscribe: form.subscribeUpdates ? "Yes - send me candidate updates" : "No",
       notes: generatedNotes,
       required_skills: requiredSkills,
+      // The save route checks a staffing worksite's period from these (25 September 2026).
+      roleAnswers: form.roleAnswers,
     };
     const payload = askedConditions ? fullPayload : withoutConditionAnswers(fullPayload);
 
@@ -2794,6 +2811,97 @@ export default function RequestTokenPage() {
                     </div>
                   ) : null}
                 </div>
+                {/*
+                  Staffing: the worksite address, optional, and the assignment
+                  period, required once any part of the address is given (the
+                  owner, 25 September 2026). Same fields and names as before,
+                  so the letters and the ATS read them as they did. The period
+                  shows only once an address is typed, to keep the step short.
+                */}
+                {form.hiringType === "staffing" ? (
+                  <div className="space-y-4">
+                    <div>
+                      <p className={labelClass}>Worksite address {OPTIONAL_TAG}</p>
+                      <div className="space-y-3">
+                        <div data-wizard-field="worksiteStreet">
+                          <input
+                            className={wizardInputClass(!!fieldErrors.worksiteStreet)}
+                            value={form.roleAnswers.staffing.worksiteStreet}
+                            onChange={(e) => setStaffing({ worksiteStreet: e.target.value })}
+                            placeholder="Street and number"
+                            aria-label="Worksite street and number"
+                            autoComplete="street-address"
+                            maxLength={120}
+                          />
+                        </div>
+                        <div className="grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)] gap-3">
+                          <div data-wizard-field="worksitePostcode">
+                            <input
+                              className={wizardInputClass(!!fieldErrors.worksitePostcode)}
+                              value={form.roleAnswers.staffing.worksitePostcode}
+                              onChange={(e) => {
+                                setStaffing({ worksitePostcode: e.target.value.replace(/\D/g, "").slice(0, 4) });
+                                clearFieldError("worksitePostcode");
+                              }}
+                              placeholder="Postcode"
+                              aria-label="Worksite postcode"
+                              inputMode="numeric"
+                              autoComplete="postal-code"
+                            />
+                            {fieldErrors.worksitePostcode ? <p className={fieldErrorTextClass}>4 digits</p> : null}
+                          </div>
+                          <div data-wizard-field="worksiteCity">
+                            <input
+                              className={wizardInputClass(!!fieldErrors.worksiteCity)}
+                              value={form.roleAnswers.staffing.worksiteCity}
+                              onChange={(e) => setStaffing({ worksiteCity: e.target.value })}
+                              placeholder={form.locations[0] ? `e.g. ${form.locations[0]}` : "City"}
+                              aria-label="Worksite city"
+                              autoComplete="address-level2"
+                              maxLength={80}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {staffingAddressGiven(form.roleAnswers.staffing) ? (
+                      <div>
+                        <p className={labelClass}>Assignment period</p>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          <div data-wizard-field="periodFrom">
+                            <p className="mb-1 text-xs text-white/55">From</p>
+                            <input
+                              type="date"
+                              aria-label="Assignment from"
+                              className={wizardInputClass(!!fieldErrors.periodFrom)}
+                              value={form.roleAnswers.staffing.periodFrom}
+                              onChange={(e) => {
+                                setStaffing({ periodFrom: e.target.value, periodOpenEnded: false });
+                                clearFieldError("periodFrom");
+                              }}
+                            />
+                            {fieldErrors.periodFrom ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
+                          </div>
+                          <div data-wizard-field="periodTo">
+                            <p className="mb-1 text-xs text-white/55">To</p>
+                            <input
+                              type="date"
+                              aria-label="Assignment to"
+                              className={wizardInputClass(!!fieldErrors.periodTo)}
+                              value={form.roleAnswers.staffing.periodTo}
+                              min={form.roleAnswers.staffing.periodFrom || undefined}
+                              onChange={(e) => {
+                                setStaffing({ periodTo: e.target.value, periodOpenEnded: false });
+                                clearFieldError("periodTo");
+                              }}
+                            />
+                            {fieldErrors.periodTo ? <p className={fieldErrorTextClass}>Choose an end date on or after the start.</p> : null}
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
                 </>
                 )}
               </div>
@@ -3005,84 +3113,6 @@ export default function RequestTokenPage() {
                     <div>
                       <p className="text-base font-bold text-white">The assignment</p>
                       <p className="mt-1 text-xs text-white/55">Where and when our workers will be with you, and who leads them on site.</p>
-                    </div>
-                    <div>
-                      <p className={labelClass}>Worksite address</p>
-                      <div className="space-y-3">
-                        <div data-wizard-field="worksiteStreet">
-                          <input
-                            className={wizardInputClass(!!fieldErrors.worksiteStreet)}
-                            value={form.roleAnswers.staffing.worksiteStreet}
-                            onChange={(e) => setStaffing({ worksiteStreet: e.target.value })}
-                            placeholder="Street and number"
-                            autoComplete="street-address"
-                            maxLength={120}
-                          />
-                          {fieldErrors.worksiteStreet ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
-                        </div>
-                        <div className="grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)] gap-3">
-                          <div data-wizard-field="worksitePostcode">
-                            <input
-                              className={wizardInputClass(!!fieldErrors.worksitePostcode)}
-                              value={form.roleAnswers.staffing.worksitePostcode}
-                              onChange={(e) => setStaffing({ worksitePostcode: e.target.value.replace(/\D/g, "").slice(0, 4) })}
-                              placeholder="Postcode"
-                              inputMode="numeric"
-                              autoComplete="postal-code"
-                            />
-                            {fieldErrors.worksitePostcode ? <p className={fieldErrorTextClass}>4 digits</p> : null}
-                          </div>
-                          <div data-wizard-field="worksiteCity">
-                            <input
-                              className={wizardInputClass(!!fieldErrors.worksiteCity)}
-                              value={form.roleAnswers.staffing.worksiteCity}
-                              onChange={(e) => setStaffing({ worksiteCity: e.target.value })}
-                              placeholder={form.locations[0] ? `e.g. ${form.locations[0]}` : "City"}
-                              autoComplete="address-level2"
-                              maxLength={80}
-                            />
-                            {fieldErrors.worksiteCity ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <p className={labelClass}>Period</p>
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <div data-wizard-field="periodFrom">
-                          <p className="mb-1 text-xs text-white/55">From</p>
-                          <input
-                            type="date"
-                            className={wizardInputClass(!!fieldErrors.periodFrom)}
-                            value={form.roleAnswers.staffing.periodFrom}
-                            onChange={(e) => setStaffing({ periodFrom: e.target.value })}
-                          />
-                          {fieldErrors.periodFrom ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
-                        </div>
-                        <div data-wizard-field="periodTo">
-                          <p className="mb-1 text-xs text-white/55">To</p>
-                          <input
-                            type="date"
-                            className={wizardInputClass(!!fieldErrors.periodTo)}
-                            value={form.roleAnswers.staffing.periodOpenEnded ? "" : form.roleAnswers.staffing.periodTo}
-                            min={form.roleAnswers.staffing.periodFrom || undefined}
-                            disabled={form.roleAnswers.staffing.periodOpenEnded}
-                            onChange={(e) => setStaffing({ periodTo: e.target.value })}
-                          />
-                          <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-white/80">
-                            <input
-                              type="checkbox"
-                              checked={form.roleAnswers.staffing.periodOpenEnded}
-                              onChange={(e) => setStaffing({ periodOpenEnded: e.target.checked, periodTo: e.target.checked ? "" : form.roleAnswers.staffing.periodTo })}
-                              className="h-4 w-4 accent-[#C9A84C]"
-                            />
-                            Open-ended
-                          </label>
-                          {fieldErrors.periodTo ? (
-                            <p className={fieldErrorTextClass}>Choose an end date after the start, or tick open-ended.</p>
-                          ) : null}
-                        </div>
-                      </div>
                     </div>
                     <div data-wizard-field="hoursPerWeek">
                       <p className={labelClass}>Hours per week</p>

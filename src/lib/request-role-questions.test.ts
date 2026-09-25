@@ -5,6 +5,8 @@ import {
   buildRoleDetails,
   collectLanguageTradeInvalid,
   collectServiceInvalid,
+  collectStaffingSiteInvalid,
+  staffingAddressGiven,
   EMPTY_ROLE_ANSWERS,
   getTradeQuestions,
   normalizeRoleAnswers,
@@ -293,5 +295,37 @@ describe("the Role details lines", () => {
   it("names the staffing project from street and city", () => {
     expect(staffingProjectName("Storgata 12", "Oslo")).toBe("Storgata 12 - Oslo - Bemanning");
     expect(staffingProjectName("", "Oslo")).toBe("");
+  });
+});
+
+describe("a staffing worksite on job basics (25 September 2026)", () => {
+  const site = (staffing: Record<string, unknown>) => ({ staffing });
+
+  it("asks nothing when no part of the address is given", () => {
+    expect([...collectStaffingSiteInvalid(site({}))]).toEqual([]);
+    expect([...collectStaffingSiteInvalid(undefined)]).toEqual([]);
+    expect(staffingAddressGiven({ worksiteStreet: " ", worksitePostcode: "", worksiteCity: "" })).toBe(false);
+  });
+
+  it("needs a from and a to date once any part of the address is given", () => {
+    for (const part of [{ worksiteStreet: "Testveien 1" }, { worksitePostcode: "7010" }, { worksiteCity: "Trondheim" }]) {
+      expect([...collectStaffingSiteInvalid(site(part))].sort()).toEqual(["periodFrom", "periodTo"]);
+    }
+  });
+
+  it("refuses an end date before the start, and takes the same day", () => {
+    const base = { worksiteCity: "Trondheim", periodFrom: "2026-10-10" };
+    expect([...collectStaffingSiteInvalid(site({ ...base, periodTo: "2026-10-09" }))]).toEqual(["periodTo"]);
+    expect([...collectStaffingSiteInvalid(site({ ...base, periodTo: "2026-10-10" }))]).toEqual([]);
+  });
+
+  it("needs a to date even when the old open-ended flag is sent", () => {
+    expect([...collectStaffingSiteInvalid(site({ worksiteCity: "Trondheim", periodFrom: "2026-10-10", periodOpenEnded: true }))]).toEqual(["periodTo"]);
+  });
+
+  it("checks a given postcode is four digits", () => {
+    const ok = { periodFrom: "2026-10-10", periodTo: "2026-10-11" };
+    expect([...collectStaffingSiteInvalid(site({ ...ok, worksitePostcode: "701" }))]).toEqual(["worksitePostcode"]);
+    expect([...collectStaffingSiteInvalid(site({ ...ok, worksitePostcode: "7010" }))]).toEqual([]);
   });
 });

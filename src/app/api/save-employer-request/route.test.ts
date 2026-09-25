@@ -198,3 +198,35 @@ describe("save-employer-request and a staffing request's contract type", () => {
     expect(mocks.inserted[0].contract_type).toBe("Permanent employment");
   });
 });
+
+describe("save-employer-request and a staffing worksite", () => {
+  const site = (staffing: Record<string, unknown>) => ({ ...valid, hiringType: "staffing", roleAnswers: { staffing } });
+
+  it("takes a staffing request with no address and no period", async () => {
+    expect((await POST(request(site({})))).status).toBe(200);
+    expect((await POST(request({ ...valid, hiringType: "staffing" }))).status).toBe(200);
+    expect(mocks.inserted).toHaveLength(2);
+  });
+
+  it("refuses an address without a period, and saves nothing", async () => {
+    const response = await POST(request(site({ worksiteStreet: "Testveien 1" })));
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as { fields?: string[] };
+    expect(body.fields).toEqual(expect.arrayContaining(["periodFrom", "periodTo"]));
+    expect(mocks.inserted).toHaveLength(0);
+  });
+
+  it("refuses an end date before the start", async () => {
+    const response = await POST(request(site({ worksiteCity: "Trondheim", periodFrom: "2026-11-01", periodTo: "2026-10-01" })));
+    expect(response.status).toBe(400);
+    expect(mocks.inserted).toHaveLength(0);
+  });
+
+  it("takes an address with a full period, and keeps the raw answers out of form_answers", async () => {
+    const response = await POST(
+      request(site({ worksiteStreet: "Testveien 1", worksitePostcode: "7010", worksiteCity: "Trondheim", periodFrom: "2026-10-01", periodTo: "2026-10-01" })),
+    );
+    expect(response.status).toBe(200);
+    expect((mocks.inserted[0].form_answers as Record<string, unknown>).roleAnswers).toBeUndefined();
+  });
+});

@@ -6,6 +6,7 @@ import { getRateLimitResult, hasHoneypotValue, noStoreJson } from "@/lib/apiSecu
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import { realContactValue } from "@/lib/request-contact-placeholders";
+import { collectStaffingSiteInvalid } from "@/lib/request-role-questions";
 import { conditionsAskedFor, withoutConditionAnswers } from "@/lib/request-wizard-steps";
 import { contractTypeForService, isRequesterKind, isServiceAllowedFor, REQUESTER_KINDS } from "@/lib/request-service";
 import { isPresentationTicket, PRESENTATION_SOURCE, presentationTicketIsValid } from "@/lib/presentation-request-ticket";
@@ -93,6 +94,12 @@ const requestSchema = z
     required_skills: z.array(z.string().trim().max(200)).max(80).optional(),
     /** The ATS presentation the request came from (?deck= on the wizard), kept only for a presentation's ticket. */
     deck: z.string().uuid().optional(),
+    /**
+     * The wizard's raw role answers. Read here only for a staffing request's
+     * worksite and assignment period (collectStaffingSiteInvalid); the row
+     * keeps them as the "Role details" lines in `requirements`, as before.
+     */
+    roleAnswers: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
 
@@ -119,7 +126,7 @@ const hasNonEmptyString = (val: unknown): val is string =>
 
 /** The validated submission without the link token and the anti-spam fields. */
 function formAnswersOf(payload: z.infer<typeof requestSchema>): Record<string, unknown> {
-  const { token: _token, deck: _deck, website: _website, company_website: _companyWebsite, honeypot: _honeypot, ...answers } = payload;
+  const { token: _token, deck: _deck, website: _website, company_website: _companyWebsite, honeypot: _honeypot, roleAnswers: _roleAnswers, ...answers } = payload;
   return answers;
 }
 
@@ -195,6 +202,22 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 },
       );
+    }
+
+    // A staffing worksite, when given, needs its assignment period: a from and
+    // a to date, the to not before the from (the owner, 25 September 2026).
+    if (parsed.data.hiringType === "staffing") {
+      const siteInvalid = collectStaffingSiteInvalid(parsed.data.roleAnswers);
+      if (siteInvalid.size > 0) {
+        return noStoreJson(
+          {
+            success: false,
+            error: "With a worksite address, give the assignment period: a start date and an end date on or after it.",
+            fields: [...siteInvalid],
+          },
+          { status: 400 },
+        );
+      }
     }
 
     const supabase = getSupabaseAdminClient();
