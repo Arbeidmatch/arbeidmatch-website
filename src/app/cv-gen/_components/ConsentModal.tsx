@@ -7,7 +7,7 @@ import {
   PRIVACY_CONSENT_TEXT,
   REQUIRED_CONSENT_TEXTS,
   WORK_PROFILE_CONSENT_TEXT,
-} from "@/lib/cv/consent";
+} from "@/lib/cv/consent-copy";
 import { hashConsentTextClient, sessionId } from "@/lib/cv/draft";
 import type { CvDocument } from "@/lib/cv/schema";
 
