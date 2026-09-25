@@ -87,6 +87,13 @@ export default function Footer() {
             loadingLabel=""
           />{" "}
           · arbeidmatch.no
+          {/* Company information (ehandelsloven section 8), the owner, 25 September 2026.
+              Plain text, no link: see the note above about authority links. */}
+          <p className="mt-1">
+            {no
+              ? "Godkjent bemanningsforetak, registrert hos Arbeidstilsynet."
+              : "Approved staffing company (godkjent bemanningsforetak), registered with Arbeidstilsynet."}
+          </p>
         </div>
       </div>
     </footer>
