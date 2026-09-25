@@ -7,16 +7,29 @@
  *
  * A client who opens the wizard from a personalised presentation (a
  * presentation's request ticket, src/lib/presentation-request-ticket.ts) gets
- * a short wizard, the owner's decision of 24 September 2026: pay and working
- * conditions are not asked here, because the ATS asks them per position
- * afterwards in a letter of its own, and the three steps where nothing is
- * required are folded into the review, which becomes the last step. Everyone
- * else keeps the wizard exactly as before.
+ * a short wizard, the owner's decision of 24 September 2026: the three steps
+ * where nothing is required are folded into the review, which becomes the last
+ * step. Everyone else keeps all the steps. Whether pay and working conditions
+ * are asked is decided by the service, below.
  */
-export function wizardStepOrder(opts: { shortWizard: boolean; skipContact: boolean }): number[] {
-  if (opts.shortWizard) return opts.skipContact ? [1, 3, 4, 7] : [0, 1, 3, 4, 7];
-  if (opts.skipContact) return [1, 2, 3, 4, 5, 6, 7, 8];
-  return [0, 1, 2, 3, 4, 5, 6, 7, 8];
+/**
+ * WHETHER PAY AND CONDITIONS ARE ASKED DEPENDS ON THE SERVICE, not on where the
+ * client came from. His rule of 24 September 2026, the evening after the short
+ * wizard: "pentru recrutare si sourcing sunt necesare, pentru clientii care vor
+ * sa inchirieze de la noi nu sunt necesare ca astea le aranjam separat cu
+ * clientul". Recruitment and sourcing ask them, on every path; staffing
+ * (bemanning) never does, on any path, because we arrange them with the client.
+ * Before a service is chosen the step is counted, so the step count only
+ * shrinks once staffing is picked.
+ */
+export function conditionsAskedFor(service: string): boolean {
+  return service !== "staffing";
+}
+
+export function wizardStepOrder(opts: { shortWizard: boolean; skipContact: boolean; askConditions?: boolean }): number[] {
+  const conditions = opts.askConditions === false ? [] : [2];
+  const steps = opts.shortWizard ? [1, ...conditions, 3, 4, 7] : [1, ...conditions, 3, 4, 5, 6, 7, 8];
+  return opts.skipContact ? steps : [0, ...steps];
 }
 
 /** The salary and conditions answers of a submission to /api/save-employer-request. */

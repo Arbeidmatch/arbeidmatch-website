@@ -59,7 +59,7 @@ import {
   type RequestServiceKey,
   type RequesterKind,
 } from "@/lib/request-service";
-import { withoutConditionAnswers, wizardStepOrder } from "@/lib/request-wizard-steps";
+import { conditionsAskedFor, withoutConditionAnswers, wizardStepOrder } from "@/lib/request-wizard-steps";
 import { addTypedLocation, listedPlace, normalizePlaceName } from "@/lib/request-location";
 
 type TokenData = {
@@ -875,9 +875,12 @@ export default function RequestTokenPage() {
    * the review.
    */
   const [isPresentation, setIsPresentation] = useState(false);
+  // Pay and conditions: asked for recruitment and sourcing, never for staffing,
+  // which we arrange with the client (his rule, 24 September 2026).
+  const askConditions = conditionsAskedFor(form.hiringType);
   const stepOrder = useMemo(
-    () => wizardStepOrder({ shortWizard: isPresentation, skipContact: isPartnerOrOwner }),
-    [isPresentation, isPartnerOrOwner],
+    () => wizardStepOrder({ shortWizard: isPresentation, skipContact: isPartnerOrOwner, askConditions }),
+    [isPresentation, isPartnerOrOwner, askConditions],
   );
   const TOTAL_STEPS = stepOrder.length;
   const LAST_STEP = stepOrder[stepOrder.length - 1];
@@ -1435,7 +1438,7 @@ export default function RequestTokenPage() {
 
     // A presentation's client is never asked pay and conditions (the ATS asks
     // them per position afterwards); the form's defaults are not his answers.
-    const askedConditions = !isPresentation;
+    const askedConditions = askConditions;
     const fullPayload = {
       token,
       company: form.companyName.trim(),
@@ -3524,9 +3527,14 @@ export default function RequestTokenPage() {
                 <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
                 <h2 className="text-2xl font-extrabold">Review your request</h2>
                 <p className="text-sm text-white/55">
-                  {isPresentation
-                    ? `Check the summary below and send it. We ask about pay and working conditions for each position afterwards, in a separate email. ${DETAILED_OFFER_NOTE}`
-                    : `Check the summary below. You can add optional notes on the next step. ${DETAILED_OFFER_NOTE}`}
+                  {[
+                    isPresentation ? "Check the summary below and send it." : "Check the summary below. You can add optional notes on the next step.",
+                    // Staffing: pay and conditions are agreed with the client separately (24 September 2026).
+                    askConditions ? "" : "We agree pay and working conditions with you separately.",
+                    DETAILED_OFFER_NOTE,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                 </p>
                 {/*
                   What the client is actually confirming. Until 23 September
