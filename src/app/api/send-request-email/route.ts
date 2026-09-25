@@ -12,6 +12,7 @@ import { realContactValue } from "@/lib/request-contact-placeholders";
 import { roleDetailsEmailSection, roleDetailsFromRequest, stripRoleDetailsBlock } from "@/lib/request-role-details-email";
 import { contactRoleFrom, notesLists } from "@/lib/request-notes-sections";
 import { positionNb } from "@/lib/request-position-nb";
+import { clientReceiptSections, REQUEST_RECEIPT_FROM, REQUEST_RECEIPT_REPLY_TO } from "@/lib/request-client-receipt";
 import {
   mailHeaders,
 } from "@/lib/emailPremiumTemplate";
@@ -63,15 +64,6 @@ function serviceLabel(value: string): string {
   if (value === "recruitment") return "Recruitment";
   if (value === "sourcing") return "Sourcing";
   if (value === "advertising") return "Job advertising";
-  return value;
-}
-
-/** The same service, in the client's letter, which is Norwegian. */
-function serviceLabelNo(value: string): string {
-  if (value === "staffing") return "Bemanning";
-  if (value === "recruitment") return "Rekruttering";
-  if (value === "sourcing") return "Sourcing";
-  if (value === "advertising") return "Stillingsannonse";
   return value;
 }
 
@@ -283,29 +275,71 @@ export async function POST(request: NextRequest) {
     // employer (the owner's rule for letters to clients). The values he chose
     // in the wizard stay as he chose them; only our own words are translated.
     if (data.email && !(await isUnsubscribed(data.email))) {
+      // The whole order, under the office copy's own headings, in Norwegian
+      // (his correction, 25 September 2026: "comanda toata nu doar partiala").
+      // Every value here is the one the office copy prints, so the two letters
+      // cannot disagree about what was ordered.
+      const receipt = clientReceiptSections({
+        referenceId,
+        service: text(data.hiringType),
+        requesterKind: text(data.requesterKind),
+        adContactLine,
+        company: companyReal,
+        orgNumber: text(data.orgNumber),
+        email: text(data.email),
+        fullName: fullNameReal,
+        contactRole,
+        phone: phoneReal,
+        category: text(categoryValue),
+        // Norwegian, like the rest of the letter: it used to say "Stilling: Carpenter".
+        position: positionNb(text(selectedPosition)),
+        jobSummary: text(data.job_summary),
+        contractType: text(contractTypeValue),
+        qualification: text(data.qualification),
+        candidatesNeeded: text(numberOfPositionsValue),
+        certifications: text(data.certifications),
+        drivingLicence: text(data.driverLicense || data.driverLicenseOther),
+        dNumber: text(data.dNumber) || text(data.dNumberOther),
+        workTasks: lists.workTasks,
+        personalQualities: lists.personalQualities,
+        salary: text(data.salary),
+        salaryPeriod: text(data.salaryPeriod),
+        overtime: text(data.overtime),
+        accommodation: text(data.accommodation),
+        accommodationCost,
+        localTravel: text(data.localTravel === "Other" ? data.localTravelOther : data.localTravel),
+        internationalTravel: text(data.internationalTravel),
+        rotation:
+          text(data.hasRotation) === "Yes" && text(data.rotationWeeksOn)
+            ? `${text(data.rotationWeeksOn)} weeks on / ${text(data.rotationWeeksOff) || "?"} weeks off`
+            : text(data.hasRotation),
+        weOffer: lists.weOffer,
+        startDate: text(selectedStartDate),
+        city: text(cityValue),
+        region: regionDiffers ? regionValue : "",
+        roleDetails: roleDetails.en,
+        clientNote,
+      });
       const clientInner = [
         letterParagraph(
           companyReal
-            ? `Takk, <strong>${escapeHtml(companyReal)}</strong>. Vi har mottatt forespørselen deres.`
-            : "Takk. Vi har mottatt forespørselen deres.",
+            ? `Takk, <strong>${escapeHtml(companyReal)}</strong>. Vi har mottatt forespørselen deres. Her er alt dere sendte oss.`
+            : "Takk. Vi har mottatt forespørselen deres. Her er alt dere sendte oss.",
         ),
-        letterFacts([
-          { label: "Referanse", value: referenceId },
-          { label: "Tjeneste", value: serviceLabelNo(text(data.hiringType)) },
-          { label: "Kontakt på annonsen", value: adContactLine },
-          // Norwegian, like the rest of the letter: it used to say "Stilling: Carpenter".
-          { label: "Stilling", value: positionNb(text(selectedPosition)) },
-          { label: "Antall kandidater", value: text(numberOfPositionsValue) },
-          { label: "Sted", value: text(cityValue) },
-          { label: "Ønsket oppstart", value: text(selectedStartDate) === "Immediate" ? "Snarest" : text(selectedStartDate) },
-        ]),
+        ...receipt.map((section) => {
+          const facts = letterFacts(section.rows);
+          return facts ? `${letterHeading(section.heading)}${facts}` : "";
+        }),
         // The one place this letter asks for a reply: the footer no longer says it too.
         letterParagraph(
           "Vi går gjennom forespørselen og sender dere et detaljert tilbud på e-post for tjenesten dere valgte, vanligvis innen 1 til 2 virkedager. Er noe i oppsummeringen feil, svar på denne e-posten, så retter vi det.",
         ),
       ].join("");
       await transporter.sendMail({
-        ...mailHeaders(),
+        // From the office, not from no-reply: the letter asks for a reply, and
+        // the reply must land where the order is read (25 September 2026).
+        from: REQUEST_RECEIPT_FROM,
+        replyTo: REQUEST_RECEIPT_REPLY_TO,
         to: data.email,
         subject: referenceId ? `Vi har mottatt forespørselen - ${referenceId}` : "Vi har mottatt forespørselen - ArbeidMatch",
         html: buildArbeidmatchLetter({
