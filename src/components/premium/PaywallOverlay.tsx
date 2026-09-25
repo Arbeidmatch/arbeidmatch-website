@@ -1,19 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+
+import { PREMIUM_PURCHASE_ENABLED } from "@/lib/featureFlags";
 
 type Plan = "monthly" | "annual";
 
 function IconLockShake() {
   return (
-    <svg
-      width={32}
-      height={32}
-      viewBox="0 0 24 24"
-      fill="none"
-      className="text-[#C9A84C] pm-lock-shake"
-      aria-hidden
-    >
+    <svg width={32} height={32} viewBox="0 0 24 24" fill="none" className="text-[#C9A84C] pm-lock-shake" aria-hidden>
       <rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" strokeWidth={1.5} />
       <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth={1.5} />
     </svg>
@@ -31,13 +27,7 @@ function StripeMark() {
   );
 }
 
-export default function PaywallOverlay({
-  email,
-  onReauth,
-}: {
-  email: string;
-  onReauth: (email: string) => void;
-}) {
+export default function PaywallOverlay({ email, onReauth }: { email: string; onReauth: (email: string) => void }) {
   const [plan, setPlan] = useState<Plan>("monthly");
   const [showEmail, setShowEmail] = useState(false);
   const [reEmail, setReEmail] = useState(email);
@@ -63,6 +53,8 @@ export default function PaywallOverlay({
   const priceLabel = "Pricing available at launch.";
 
   const subscribe = useCallback(async () => {
+    // Premium is not for sale until it has its own consumer terms.
+    if (!PREMIUM_PURCHASE_ENABLED) return;
     const checkoutEmail = workEmail.trim().toLowerCase();
     if (!checkoutEmail || !checkoutEmail.includes("@")) {
       setErr("Enter a valid email to continue.");
@@ -133,64 +125,83 @@ export default function PaywallOverlay({
         aria-modal="true"
         aria-labelledby="paywall-title"
       >
-        <div
-          className="pm-modal-in w-full max-w-[480px] rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[#0f1923] px-7 py-10 md:px-12 md:py-12"
-        >
+        <div className="pm-modal-in w-full max-w-[480px] rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[#0f1923] px-7 py-10 md:px-12 md:py-12">
           <div className="flex justify-center">
             <IconLockShake />
           </div>
           <h2 id="paywall-title" className="mt-6 text-center text-2xl font-extrabold text-white">
-            Your free trial has ended.
+            {PREMIUM_PURCHASE_ENABLED ? "Your free trial has ended." : "Premium is coming soon."}
           </h2>
           <p className="mt-3 text-center text-[15px] leading-[1.7] text-white/65">
-            You are reading a Premium article. Subscribe to continue accessing all guides and future content.
+            {PREMIUM_PURCHASE_ENABLED
+              ? "You are reading a Premium article. Subscribe to continue accessing all guides and future content."
+              : "You are reading a Premium article. Premium subscriptions are not on sale yet. Existing subscribers can sign in below."}
           </p>
 
-          <label className="mt-6 block text-left text-[12px] font-medium text-white/50">
-            Work email
-            <input
-              type="email"
-              value={workEmail}
-              onChange={(e) => setWorkEmail(e.target.value)}
-              className="mt-1 w-full rounded-[10px] border border-white/12 bg-white/[0.06] px-4 py-3 text-[14px] text-white placeholder:text-white/55"
-              placeholder="you@company.com"
-            />
-          </label>
+          {PREMIUM_PURCHASE_ENABLED ? (
+            <>
+              <label className="mt-6 block text-left text-[12px] font-medium text-white/50">
+                Work email
+                <input
+                  type="email"
+                  value={workEmail}
+                  onChange={(e) => setWorkEmail(e.target.value)}
+                  className="mt-1 w-full rounded-[10px] border border-white/12 bg-white/[0.06] px-4 py-3 text-[14px] text-white placeholder:text-white/55"
+                  placeholder="you@company.com"
+                />
+              </label>
 
-          <div className="mt-8 flex rounded-full border border-white/10 p-1">
-            <button
-              type="button"
-              onClick={() => setPlan("monthly")}
-              className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition-colors ${
-                plan === "monthly" ? "bg-[#C9A84C] text-[#0f1923]" : "text-white/60"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              type="button"
-              onClick={() => setPlan("annual")}
-              className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition-colors ${
-                plan === "annual" ? "bg-[#C9A84C] text-[#0f1923]" : "text-white/60"
-              }`}
-            >
-              Annual
-            </button>
-          </div>
-          <div className="mt-4 text-center">
-            <p className="text-lg font-semibold text-white/90 transition-all duration-300">{priceLabel}</p>
-          </div>
+              <div className="mt-8 flex rounded-full border border-white/10 p-1">
+                <button
+                  type="button"
+                  onClick={() => setPlan("monthly")}
+                  className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition-colors ${
+                    plan === "monthly" ? "bg-[#C9A84C] text-[#0f1923]" : "text-white/60"
+                  }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPlan("annual")}
+                  className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition-colors ${
+                    plan === "annual" ? "bg-[#C9A84C] text-[#0f1923]" : "text-white/60"
+                  }`}
+                >
+                  Annual
+                </button>
+              </div>
+              <div className="mt-4 text-center">
+                <p className="text-lg font-semibold text-white/90 transition-all duration-300">{priceLabel}</p>
+              </div>
 
-          {err ? <p className="mt-3 text-center text-sm text-red-400">{err}</p> : null}
+              {err ? <p className="mt-3 text-center text-sm text-red-400">{err}</p> : null}
 
-          <button
-            type="button"
-            onClick={() => void subscribe()}
-            disabled={loading}
-            className="mt-8 w-full rounded-[10px] bg-[#C9A84C] py-4 text-[15px] font-bold text-[#0f1923] transition-opacity disabled:opacity-60"
-          >
-            {loading ? "Redirecting…" : "Subscribe Now. Start Reading Immediately."}
-          </button>
+              <button
+                type="button"
+                onClick={() => void subscribe()}
+                disabled={loading}
+                className="mt-8 w-full rounded-[10px] bg-[#C9A84C] py-4 text-[15px] font-bold text-[#0f1923] transition-opacity disabled:opacity-60"
+              >
+                {loading ? "Redirecting…" : "Subscribe Now. Start Reading Immediately."}
+              </button>
+            </>
+          ) : (
+            <>
+              <p
+                className="mt-8 w-full cursor-default rounded-[10px] border border-[rgba(201,168,76,0.4)] py-4 text-center text-[15px] font-bold text-[#C9A84C]"
+                aria-disabled="true"
+              >
+                Coming soon
+              </p>
+              <Link
+                href="/premium#notify-form"
+                className="mt-4 block text-center text-[13px] font-medium text-[#C9A84C] underline underline-offset-2"
+              >
+                Notify me at launch
+              </Link>
+            </>
+          )}
 
           {!showEmail ? (
             <button
@@ -218,13 +229,17 @@ export default function PaywallOverlay({
             </div>
           )}
 
-          <p className="mt-6 text-center text-xs text-white/55">
-            Secure payment via Stripe. Cancel anytime from your account.
-          </p>
-          <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-white/55">
-            <StripeMark />
-            <span>Powered by Stripe</span>
-          </div>
+          {PREMIUM_PURCHASE_ENABLED ? (
+            <>
+              <p className="mt-6 text-center text-xs text-white/55">
+                Secure payment via Stripe. Cancel anytime from your account.
+              </p>
+              <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-white/55">
+                <StripeMark />
+                <span>Powered by Stripe</span>
+              </div>
+            </>
+          ) : null}
         </div>
       </div>
     </>

@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { getPublicBaseUrl } from "@/lib/premium/stripeEnv";
 import { isRateLimited } from "@/lib/requestProtection";
 import { notifyError } from "@/lib/errorNotifier";
+import { PREMIUM_PURCHASE_ENABLED, PREMIUM_NOT_AVAILABLE_MESSAGE } from "@/lib/featureFlags";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,14 @@ interface Body {
 }
 
 export async function POST(request: NextRequest) {
+  // Not for sale until Premium has its own consumer terms: answer before reading
+  // the body and before anything reaches the payment provider.
+  if (!PREMIUM_PURCHASE_ENABLED) {
+    return NextResponse.json(
+      { error: PREMIUM_NOT_AVAILABLE_MESSAGE, code: "premium_not_available" },
+      { status: 503, headers: { "Retry-After": "86400" } },
+    );
+  }
   try {
     if (isRateLimited(request, "premium-checkout", 15, 10 * 60 * 1000)) {
       return NextResponse.json({ error: "Too many requests." }, { status: 429 });
