@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
-import { AtsLegalDocumentFallback, AtsLegalDocumentPage } from "@/components/legal/AtsLegalDocumentPage";
+import { AtsLegalDocumentPage } from "@/components/legal/AtsLegalDocumentPage";
 import { fetchAtsLegalDocument } from "@/lib/atsLegalDocument";
+import { resolveLegalDocument } from "@/lib/legalDocumentFallback";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
 export const revalidate = 300;
@@ -39,7 +40,7 @@ export default async function DpaPage() {
   // "dpa-recruiter" from 4 May 2026 until 23 September 2026. The row has always
   // been called "dpa-recruiter-partner", so this page served nothing but
   // "Document not currently available" for the whole of that time.
-  const doc = await fetchAtsLegalDocument("dpa-recruiter-partner");
-  if (!doc) return <AtsLegalDocumentFallback />;
+  // Never an old local text: see resolveLegalDocument (legal review, 25 September 2026).
+  const doc = resolveLegalDocument(await fetchAtsLegalDocument("dpa-recruiter-partner"), "dpa-recruiter-partner", "Data Processing Agreement");
   return <AtsLegalDocumentPage doc={doc} />;
 }

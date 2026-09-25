@@ -15,18 +15,6 @@ function formatIsoDate(iso: string): string {
   }
 }
 
-export function AtsLegalDocumentFallback() {
-  return (
-    <section className="min-h-[50vh] bg-white text-[#0D1B2A]">
-      <div className="mx-auto w-full max-w-[720px] px-6 py-12 md:px-12">
-        <p className="text-base leading-relaxed text-[#0D1B2A]/85">
-          Document not currently available. Contact legal@arbeidmatch.no
-        </p>
-      </div>
-    </section>
-  );
-}
-
 export function AtsLegalDocumentPage({ doc }: { doc: AtsLegalDocumentJson }) {
   // Prefer content_html (the authoritative, editor-published field).
   // Fall back to content_md only when HTML is absent.

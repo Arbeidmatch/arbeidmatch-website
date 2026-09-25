@@ -12,18 +12,14 @@ describe("legal document lead", () => {
     expect(isSameLegalTitle("1. Who we are", "Privacy Notice")).toBe(false);
   });
 
-  it("drops the fallback privacy text's own title and date, and hands the date to the page", () => {
-    const lead = dedupeLegalMarkdownLead(SEED_PRIVACY_MD, "Privacy Policy");
-    expect(lead.lastUpdatedFromContent).toBe("4 May 2026");
-    expect(lead.body.startsWith("## 1. Data Controller")).toBe(true);
-    expect(lead.body).not.toMatch(/^# Privacy Policy/m);
-    expect(lead.body).not.toMatch(/Last updated:/);
-  });
-
-  it("reads the date of the terms fallback from its own text", () => {
-    const lead = dedupeLegalMarkdownLead(SEED_TERMS_MD, "Terms of Service");
-    expect(lead.lastUpdatedFromContent).toBe("2 May 2026");
-    expect(lead.body.startsWith("## 1.")).toBe(true);
+  it("drops the stand-in's own title, and the stand-in carries no date", () => {
+    const lead = dedupeLegalMarkdownLead(SEED_PRIVACY_MD, "Privacy Notice");
+    expect(lead.lastUpdatedFromContent).toBeNull();
+    expect(lead.body.startsWith("ArbeidMatch Norge AS")).toBe(true);
+    expect(lead.body).not.toMatch(/^# Privacy Notice/m);
+    const terms = dedupeLegalMarkdownLead(SEED_TERMS_MD, "Terms of Service");
+    expect(terms.lastUpdatedFromContent).toBeNull();
+    expect(terms.body).toMatch(/temporarily unavailable/);
   });
 
   it("keeps a first heading that is not the title", () => {

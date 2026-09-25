@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { AtsLegalDocumentPage } from "@/components/legal/AtsLegalDocumentPage";
 import { fetchAtsLegalDocument } from "@/lib/atsLegalDocument";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
-import { SEED_PRIVACY_MD } from "@/lib/legal-seed-documents-data";
+import { resolveLegalDocument } from "@/lib/legalDocumentFallback";
 
 export const revalidate = 60;
 
@@ -38,20 +38,7 @@ export const metadata: Metadata = {
 };
 
 export default async function PrivacyPage() {
-  const doc = await fetchAtsLegalDocument("privacy-notice");
-  if (!doc) {
-    return (
-      <AtsLegalDocumentPage
-        doc={{
-          name: "Privacy Policy",
-          content_html: "",
-          content_md: SEED_PRIVACY_MD,
-          version: "local-fallback",
-          // No date here: the page shows the one written in the fallback text itself.
-          updated_at: "",
-        }}
-      />
-    );
-  }
+  // Never an old local text: see resolveLegalDocument (legal review, 25 September 2026).
+  const doc = resolveLegalDocument(await fetchAtsLegalDocument("privacy-notice"), "privacy-notice", "Privacy Notice");
   return <AtsLegalDocumentPage doc={doc} />;
 }

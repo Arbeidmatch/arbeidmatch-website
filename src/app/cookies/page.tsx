@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
-import { AtsLegalDocumentFallback, AtsLegalDocumentPage } from "@/components/legal/AtsLegalDocumentPage";
+import { AtsLegalDocumentPage } from "@/components/legal/AtsLegalDocumentPage";
 import { fetchAtsLegalDocument } from "@/lib/atsLegalDocument";
+import { resolveLegalDocument } from "@/lib/legalDocumentFallback";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
 export const revalidate = 300;
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
  * is only one text.
  */
 export default async function CookiePolicyPage() {
-  const doc = await fetchAtsLegalDocument("cookie-policy");
-  if (!doc) return <AtsLegalDocumentFallback />;
+  // Never an old local text: see resolveLegalDocument (legal review, 25 September 2026).
+  const doc = resolveLegalDocument(await fetchAtsLegalDocument("cookie-policy"), "cookie-policy", "Cookie Policy");
   return <AtsLegalDocumentPage doc={doc} />;
 }
