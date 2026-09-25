@@ -14,7 +14,6 @@ const EXACT_ALLOW = new Set([
   "/dpa",
   "/legal-request",
   "/for-staffing-agencies",
-  "/outside-eu-eea",
 ]);
 
 function pathnameShowsFooter(pathname: string): boolean {

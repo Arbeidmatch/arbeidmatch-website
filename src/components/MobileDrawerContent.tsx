@@ -36,7 +36,6 @@ const primaryMenuLinks = [
 const moreMenuLinks = [
   { href: "/about", label: "About" },
   { href: "/premium", label: "Premium Guides" },
-  { href: "/outside-eu-eea", label: "Non-EU Workers" },
   { href: "/blog", label: "Blog" },
   { href: "/bemanning-bygg-anlegg", label: "Construction" },
   { href: "/bemanning-industri", label: "Industry" },

@@ -22,6 +22,10 @@ const nextConfig: NextConfig = {
       // The profile page was renamed on 15 September 2026: candidates register, they do not
       // "request". The old address is already in Messenger replies, emails and Facebook posts.
       { source: "/candidate-request", destination: "/candidate-register", permanent: true },
+      // Legal review, 25 September 2026: we recruit EU/EEA citizens only, so the page for
+      // workers from outside the EU/EEA and its waitlist are gone. Old links land on the
+      // candidate page, which states the rule. Stored rows were kept.
+      { source: "/outside-eu-eea", destination: "/for-candidates", permanent: true },
     ];
   },
   async headers() {

@@ -10,8 +10,8 @@ import {
 import { escapeHtml } from "@/lib/htmlSanitizer";
 
 /**
- * Every letter the website sends, apart from the request form (send-request-email)
- * and the non-EU guide (nonEuLeadEmail.ts), in the ArbeidMatch letter.
+ * Every letter the website sends, apart from the request form (send-request-email),
+ * in the ArbeidMatch letter.
  *
  * WHY THEY ARE HERE AND NOT IN THE ROUTES. The owner said on 10 September 2026
  * that the site's mail does not line up with our emails, and it did not: it went
@@ -433,26 +433,6 @@ export function legalRequestReceiptLetter(args: {
       contactEmail: "legal@arbeidmatch.no",
       recipient: args.to,
       unsubscribeUrl: args.unsubscribeUrl,
-    }),
-  };
-}
-
-// ---------------------------------------------------------------------------
-// /api/non-eu-lead (the lead's own letter is nonEuLeadEmail.ts)
-// ---------------------------------------------------------------------------
-
-export function nonEuLeadNoticeLetter(args: { firstName: string; email: string }): Letter {
-  return {
-    subject: `New Non-EU Lead: ${args.firstName} ${args.email}`,
-    html: buildArbeidmatchLetter({
-      title: "New Non-EU lead",
-      innerHtml: letterFacts([
-        { label: "Name", value: args.firstName },
-        { label: "Email", value: args.email },
-      ]),
-      lang: EN,
-      internal: true,
-      recipient: "post@arbeidmatch.no",
     }),
   };
 }

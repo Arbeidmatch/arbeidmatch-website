@@ -107,7 +107,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.9,
     })),
-    ...["/about", "/contact", "/outside-eu-eea"].map((path) => ({
+    ...["/about", "/contact"].map((path) => ({
       url: `${SITE}${path}`,
       lastModified: primaryLastMod,
       changeFrequency: "monthly" as const,
