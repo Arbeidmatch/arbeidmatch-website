@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { letterFacts } from "./arbeidmatchEmailShell";
 import {
   clientReceiptSections,
   receiptValues,
@@ -59,7 +60,7 @@ describe("the receipt a client gets for a request", () => {
     for (const given of [
       ORDER.referenceId,
       ORDER.company,
-      ORDER.orgNumber,
+      "912 345 678",
       ORDER.email,
       ORDER.fullName,
       ORDER.contactRole,
@@ -105,6 +106,15 @@ describe("the receipt a client gets for a request", () => {
     expect(flat).toContain("Kontraktstype: Permanent employment");
     expect(flat).toContain("Trade certificate (fagbrev) required?: Yes");
     expect(JSON.stringify(flat)).not.toMatch(/company_covered|has_d_number|we_handle/);
+  });
+
+  it("prints the org number as an org number, spaced and not as a link a mail client would dial", () => {
+    const org = sections.flatMap((s) => s.rows).find((r) => r.label === "Org.nr");
+    expect(org?.value).toBe("912 345 678");
+    expect(org?.noLink).toBe(true);
+    const html = letterFacts([org!]);
+    expect(html).toContain('<a href="#" style="color:');
+    expect(html).toContain("912 345 678</a>");
   });
 
   it("keeps the order the office copy has, with the role and their note at the end", () => {

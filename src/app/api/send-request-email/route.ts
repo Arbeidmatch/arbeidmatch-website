@@ -6,7 +6,7 @@ import { getRateLimitResult, hasHoneypotValue, noStoreJson, parseJsonBodyWithSch
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
 import { notifySlack } from "@/lib/slackNotifier";
-import { buildArbeidmatchLetter, letterFacts, letterHeading, letterParagraph } from "@/lib/arbeidmatchEmailShell";
+import { buildArbeidmatchLetter, letterFacts, letterHeading, letterParagraph, type LetterFactRow } from "@/lib/arbeidmatchEmailShell";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 import { realContactValue } from "@/lib/request-contact-placeholders";
 import { roleDetailsEmailSection, roleDetailsFromRequest, stripRoleDetailsBlock } from "@/lib/request-role-details-email";
@@ -187,10 +187,11 @@ export async function POST(request: NextRequest) {
     const accommodationCost = text(data.accommodationCost || data.accommodationOther);
 
     // The internal copy: to post@, read by the owner and by the ATS intake.
-    const internalRows: Record<(typeof INTERNAL_SECTIONS)[number], { label: string; value: string }[]> = {
+    const internalRows: Record<(typeof INTERNAL_SECTIONS)[number], LetterFactRow[]> = {
       "Contact details": [
         { label: "Company", value: companyReal },
-        { label: "Org.nr", value: text(data.orgNumber) },
+        // The digits as the ATS intake reads them, and no "call" link on them.
+        { label: "Org.nr", value: text(data.orgNumber), noLink: true },
         { label: "Email", value: text(data.email) },
         { label: "Full name", value: fullNameReal },
         { label: "Contact's role", value: contactRole },

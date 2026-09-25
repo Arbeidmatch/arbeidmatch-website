@@ -35,7 +35,13 @@
 export const REQUEST_RECEIPT_FROM = '"ArbeidMatch Norge AS" <no-reply@arbeidmatch.no>';
 export const REQUEST_RECEIPT_REPLY_TO = "post@arbeidmatch.no";
 
-export type ReceiptRow = { label: string; value: string };
+export type ReceiptRow = { label: string; value: string; noLink?: boolean };
+
+/** "931 123 939": nine digits read as an org number, not as a telephone number a mail client links. */
+export function orgNumberNb(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  return digits.length === 9 ? `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}` : value;
+}
 export type ReceiptSection = { heading: string; rows: ReceiptRow[] };
 
 /** Every answer the office copy prints, as plain strings; empty means not answered. */
@@ -165,7 +171,7 @@ export function clientReceiptSections(r: ClientReceiptInput): ReceiptSection[] {
       heading: "Kontaktopplysninger",
       rows: [
         { label: "Firma", value: r.company },
-        { label: "Org.nr", value: r.orgNumber },
+        { label: "Org.nr", value: orgNumberNb(r.orgNumber), noLink: true },
         { label: "E-post", value: r.email },
         { label: "Navn", value: r.fullName },
         { label: "Rolle i firmaet", value: r.contactRole },

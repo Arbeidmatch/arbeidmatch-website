@@ -129,14 +129,30 @@ export function letterParagraph(html: string): string {
  * finds a field by its label at the start of a line. A cell ends a line when the
  * mail is flattened; two values sharing one would read as one answer.
  */
-export function letterFacts(rows: { label: string; value: string }[]): string {
+export type LetterFactRow = {
+  label: string;
+  value: string;
+  /**
+   * A number that is not a telephone number, such as an org number: mail
+   * clients turn nine digits into a "call" link on their own (seen on the
+   * receipt, 25 September 2026). An anchor of our own, inert and in the text's
+   * colour, is the one thing they leave alone.
+   */
+  noLink?: boolean;
+};
+
+export function letterFacts(rows: LetterFactRow[]): string {
   const visible = rows.filter((r) => r.value.trim() !== "");
   if (visible.length === 0) return "";
+  const cell = (r: LetterFactRow) => {
+    const text = escapeHtml(r.value).replace(/\r?\n/g, "<br/>");
+    return r.noLink ? `<a href="#" style="color:${BRAND.ink};text-decoration:none;pointer-events:none;cursor:text;">${text}</a>` : text;
+  };
   const body = visible
     .map(
       (r) => `<tr>
         <td width="38%" style="width:38%;padding:6px 12px 6px 0;vertical-align:top;font-size:13px;line-height:1.5;color:${BRAND.bodySoft};">${escapeHtml(r.label)}</td>
-        <td style="padding:6px 0;vertical-align:top;font-size:14px;line-height:1.5;color:${BRAND.ink};word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(r.value).replace(/\r?\n/g, "<br/>")}</td>
+        <td style="padding:6px 0;vertical-align:top;font-size:14px;line-height:1.5;color:${BRAND.ink};word-break:break-word;overflow-wrap:anywhere;">${cell(r)}</td>
       </tr>`,
     )
     .join("");
