@@ -197,18 +197,8 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
                     rel="noopener noreferrer"
                     className="font-semibold underline"
                   >
-                    Privacy Policy
+                    Open the privacy notice
                   </a>
-                  {" and "}
-                  <a
-                    href="/terms"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold underline"
-                  >
-                    Terms of Use
-                  </a>
-                  .
                 </span>
               </label>
 

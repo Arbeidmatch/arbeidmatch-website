@@ -280,7 +280,7 @@ export default function BecomePartnerClient({ initialEmail, token }: Props) {
               className="mt-0.5 h-4 w-4 accent-[#C9A84C]"
             />
             <span>
-              I consent to ArbeidMatch processing this company data according to the <a href="/privacy" className="text-[#C9A84C] underline">privacy policy</a>.
+              I have read the <a href="/privacy" className="text-[#C9A84C] underline">privacy notice</a>, which explains how ArbeidMatch processes this company data.
             </span>
           </label>
 

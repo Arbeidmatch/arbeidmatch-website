@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     if (flow === "new_company" && parsed.data.gdprConsent !== true) {
       return noStoreJson(
-        { success: false, error: "Du må godta personvernerklæringen.", code: "gdpr_required" },
+        { success: false, error: "Du må bekrefte at du har lest personvernerklæringen.", code: "gdpr_required" },
         { status: 400 },
       );
     }

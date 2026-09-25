@@ -44,6 +44,9 @@ function InlineSignup({
 }) {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
+  // Legal review, 25 September 2026: consent and the privacy notice are two
+  // boxes. The notice is acknowledged, never accepted.
+  const [readNotice, setReadNotice] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [clientError, setClientError] = useState<string | null>(null);
 
@@ -51,6 +54,7 @@ function InlineSignup({
     if (!open) {
       setEmail("");
       setConsent(false);
+      setReadNotice(false);
       setStatus("idle");
       setClientError(null);
     }
@@ -64,7 +68,7 @@ function InlineSignup({
       setClientError("email");
       return;
     }
-    if (!consent) {
+    if (!consent || !readNotice) {
       setClientError("consent");
       return;
     }
@@ -132,18 +136,33 @@ function InlineSignup({
                   style={{ accentColor: GOLD }}
                 />
                 <span className="text-[11px] leading-[1.5] text-white/[0.6]">
-                  I agree to receive job-related emails from ArbeidMatch. I have read and accept the{" "}
+                  I agree to receive job-related emails from ArbeidMatch. Unsubscribe anytime.
+                </span>
+              </label>
+              <label className="mt-2 flex cursor-pointer items-start gap-2">
+                <input
+                  type="checkbox"
+                  checked={readNotice}
+                  onChange={(e) => {
+                    setReadNotice(e.target.checked);
+                    setClientError(null);
+                  }}
+                  className="mt-0.5 h-4 min-h-[16px] w-4 min-w-[16px] shrink-0 rounded border-white/20 bg-transparent"
+                  style={{ accentColor: GOLD }}
+                />
+                <span className="text-[11px] leading-[1.5] text-white/[0.6]">
+                  I have read the{" "}
                   <Link href="/privacy" className="text-[#C9A84C] underline">
-                    Privacy Policy
+                    privacy notice
                   </Link>
-                  . Unsubscribe anytime.
+                  .
                 </span>
               </label>
               {clientError === "email" ? (
                 <p className="mt-2 text-[13px] text-[#E24B4A]">Please enter a valid email address.</p>
               ) : null}
               {clientError === "consent" ? (
-                <p className="mt-2 text-[13px] text-[#E24B4A]">Please accept to continue.</p>
+                <p className="mt-2 text-[13px] text-[#E24B4A]">Please tick both boxes to continue.</p>
               ) : null}
               <button
                 type="submit"
@@ -450,22 +469,12 @@ function ElectricianCard({ reducedMotion }: { reducedMotion: boolean }) {
                 <path d="M9 6L15 12L9 18" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
-            <button
-              type="button"
-              onClick={() => router.push("/outside-eu-eea")}
-              className="flex w-full items-center justify-between rounded-[10px] border px-5 py-4 text-left transition-all duration-200 ease-out hover:bg-[rgba(201,168,76,0.12)] hover:border-[rgba(201,168,76,0.4)]"
-              style={{ background: "rgba(201,168,76,0.06)", borderColor: "rgba(201,168,76,0.15)" }}
-            >
-              <span className="flex flex-col items-start gap-[2px]">
-                <span style={{ color: GOLD, fontSize: 14, fontWeight: 600 }}>I am from outside EU / EEA</span>
-                <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>
-                  Many countries outside the EU/EEA: rules depend on nationality and role
-                </span>
-              </span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M9 6L15 12L9 18" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
+            {/* Legal review, 25 September 2026: we recruit EU/EEA citizens only, so there is
+                no second door for citizens of other countries. */}
+            <p className="px-1 text-[12px] leading-[1.6] text-white/[0.6]">
+              We work only with EU and EEA citizens (passport or national ID card), and we do not sponsor visas or
+              work permits.
+            </p>
           </div>
           <p className="mt-4 text-center text-[11px] italic text-white/[0.55]">
             Not sure? Check if your country is in the EU/EEA on{" "}

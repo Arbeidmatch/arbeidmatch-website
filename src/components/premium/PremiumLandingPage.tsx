@@ -107,6 +107,9 @@ export default function PremiumLandingPage() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
+  // Legal review, 25 September 2026: consent and the privacy notice are two
+  // boxes. The notice is acknowledged, never accepted.
+  const [readNotice, setReadNotice] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -130,8 +133,8 @@ export default function PremiumLandingPage() {
       setError("Please enter a valid email address.");
       return;
     }
-    if (!consent) {
-      setError("Please accept to continue.");
+    if (!consent || !readNotice) {
+      setError("Please tick both boxes to continue.");
       return;
     }
     setLoading(true);
@@ -296,11 +299,22 @@ export default function PremiumLandingPage() {
                 style={{ marginTop: 2, accentColor: "#C9A84C", minWidth: 16, height: 16 }}
               />
               <span style={{ fontSize: 12, color: "rgba(255,255,255,0.62)", lineHeight: 1.5 }}>
-                I agree to receive updates from ArbeidMatch. I have read and accept the{" "}
+                I agree to receive updates from ArbeidMatch. Unsubscribe anytime.
+              </span>
+            </label>
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 8, marginTop: 8, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={readNotice}
+                onChange={(e) => setReadNotice(e.target.checked)}
+                style={{ marginTop: 2, accentColor: "#C9A84C", minWidth: 16, height: 16 }}
+              />
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.62)", lineHeight: 1.5 }}>
+                I have read the{" "}
                 <Link href="/privacy" className="text-[#C9A84C] underline">
-                  Privacy Policy
+                  privacy notice
                 </Link>
-                . Unsubscribe anytime.
+                .
               </span>
             </label>
 
@@ -484,13 +498,9 @@ export default function PremiumLandingPage() {
             Notify me at launch
           </button>
           <p className="mt-4 text-[12px] text-white/55">
-            By requesting launch notifications you agree to our{" "}
-            <Link href="/terms" className="text-[#C9A84C] underline">
-              Terms of Service
-            </Link>{" "}
-            and{" "}
+            Read how we handle your data in our{" "}
             <Link href="/privacy" className="text-[#C9A84C] underline">
-              Privacy Policy
+              privacy notice
             </Link>
             .
           </p>

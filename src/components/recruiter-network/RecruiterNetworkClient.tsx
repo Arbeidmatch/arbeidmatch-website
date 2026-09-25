@@ -879,9 +879,9 @@ export default function RecruiterNetworkClient() {
                 <label className="flex cursor-pointer items-start gap-3 text-sm leading-snug text-white/80">
                   <input name="gdpr_consent" type="checkbox" required className="mt-1 accent-[#B8860B]" />
                   <span>
-                    I agree that ArbeidMatch Norge AS may store and process my information to evaluate my partnership
-                    application, in accordance with the{" "}
-                    <a href="/privacy" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-[#C9A84C] underline underline-offset-2 hover:opacity-80">privacy policy</a>. *
+                    I have read the{" "}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-[#C9A84C] underline underline-offset-2 hover:opacity-80">privacy notice</a>, which explains how ArbeidMatch Norge AS stores and uses my information to evaluate my
+                    partnership application. *
                   </span>
                 </label>
 

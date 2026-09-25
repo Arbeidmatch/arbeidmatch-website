@@ -662,10 +662,8 @@ export function EligibilityAssistanceClient() {
                 </span>
               </label>
               <p className="text-xs leading-relaxed text-navy/60">
-                By submitting, you agree to our{" "}
-                <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-gold underline underline-offset-2 hover:opacity-80">privacy policy</a>{" "}
-                and{" "}
-                <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-gold underline underline-offset-2 hover:opacity-80">terms of service</a>.
+                Read how we handle your data in our{" "}
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-gold underline underline-offset-2 hover:opacity-80">privacy notice</a>.
               </p>
 
               {needsTurnstile ? (

@@ -6,10 +6,15 @@ import { useEffect, useId, useRef, useState } from "react";
  * The Apply button on an advert (17 September 2026).
  *
  * His instruction: pressing Apply opens a window that says a profile is needed
- * to apply, with the consent box first - GDPR, the Privacy Policy and the Terms -
- * and then the choice between signing in and creating a profile. Both doors are
- * in the candidate portal; the tick travels with them and is saved on the
- * profile when the person signs in.
+ * to apply, with the consent box first and then the choice between signing in
+ * and creating a profile. Both doors are in the candidate portal; the tick
+ * travels with them (consent=1) and is saved on the profile when the person
+ * signs in.
+ *
+ * Legal review, 25 September 2026: the consent is only the consent to process
+ * the person's data for recruitment. Reading the privacy notice is a separate
+ * acknowledgement, never an acceptance, and an applicant is not asked to accept
+ * our Terms: a job applicant is not a party to them.
  */
 export function ApplyGateButton(props: {
   className: string;
@@ -19,7 +24,9 @@ export function ApplyGateButton(props: {
 }) {
   const { className, loginHref, registerHref, label = "Apply for this job" } = props;
   const [open, setOpen] = useState(false);
-  const [accepted, setAccepted] = useState(false);
+  const [consent, setConsent] = useState(false);
+  const [readNotice, setReadNotice] = useState(false);
+  const accepted = consent && readNotice;
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -82,18 +89,23 @@ export function ApplyGateButton(props: {
             <label className="mt-5 flex items-start gap-3 rounded-xl border border-border p-4 text-sm leading-relaxed text-navy">
               <input
                 type="checkbox"
-                checked={accepted}
-                onChange={(e) => setAccepted(e.target.checked)}
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+                className="mt-0.5 h-5 w-5 shrink-0 accent-[#C9A84C]"
+              />
+              <span>I consent to ArbeidMatch processing my personal data to handle my application and find work for me.</span>
+            </label>
+            <label className="mt-3 flex items-start gap-3 rounded-xl border border-border p-4 text-sm leading-relaxed text-navy">
+              <input
+                type="checkbox"
+                checked={readNotice}
+                onChange={(e) => setReadNotice(e.target.checked)}
                 className="mt-0.5 h-5 w-5 shrink-0 accent-[#C9A84C]"
               />
               <span>
-                I consent to ArbeidMatch processing my personal data for recruitment, and I accept the{" "}
+                I have read the{" "}
                 <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold underline decoration-gold decoration-2 underline-offset-4">
-                  Privacy Policy
-                </a>{" "}
-                and the{" "}
-                <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold underline decoration-gold decoration-2 underline-offset-4">
-                  Terms of Service
+                  privacy notice
                 </a>
                 .
               </span>
@@ -118,7 +130,7 @@ export function ApplyGateButton(props: {
               </a>
             </div>
             {!accepted ? (
-              <p className="mt-3 text-center text-[13px] text-text-secondary">Tick the box to continue.</p>
+              <p className="mt-3 text-center text-[13px] text-text-secondary">Tick both boxes to continue.</p>
             ) : null}
           </div>
         </div>

@@ -158,7 +158,7 @@ export default function ContactPageClient() {
                 </button>
 
                 <p className="mt-4 text-center text-[11px] leading-relaxed text-white/60">
-                  Ved å sende skjemaet godtar dere{" "}
+                  Les hvordan vi behandler opplysningene deres i{" "}
                   <Link href="/privacy" className="text-[#C9A84C] underline-offset-2 hover:underline">
                     personvernerklæringen
                   </Link>{" "}

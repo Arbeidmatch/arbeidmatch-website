@@ -142,13 +142,9 @@ export default function HomeWelcomeUserTypeSlideup() {
               Just browsing
             </button>
             <p className="mt-6 text-center text-xs leading-relaxed text-white/55">
-              By continuing you agree to our{" "}
+              Read how we handle your data in our{" "}
               <Link href="/privacy" className="text-white/50 underline-offset-2 hover:text-white/75 hover:underline">
-                Privacy Policy
-              </Link>{" "}
-              and{" "}
-              <Link href="/terms" className="text-white/50 underline-offset-2 hover:text-white/75 hover:underline">
-                Terms of Service
+                privacy notice
               </Link>
               .
             </p>

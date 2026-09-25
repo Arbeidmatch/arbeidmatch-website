@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Please answer the company question." }, { status: 400 });
     }
     if (!gdpr) {
-      return NextResponse.json({ success: false, error: "You must accept the privacy statement to apply." }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Please confirm that you have read the privacy notice to apply." }, { status: 400 });
     }
 
     const supabase = getSupabaseServiceClient();

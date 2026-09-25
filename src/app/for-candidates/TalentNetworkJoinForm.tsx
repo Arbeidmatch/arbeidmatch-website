@@ -83,16 +83,7 @@ export default function TalentNetworkJoinForm() {
           className="mt-1 h-4 w-4 shrink-0 rounded border-[rgba(201,168,76,0.35)] text-[#C9A84C] focus:ring-[#C9A84C]"
         />
         <span>
-          I agree to the{" "}
-          <Link
-            href="/terms"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-[#C9A84C] underline-offset-2 hover:underline"
-          >
-            terms of service
-          </Link>{" "}
-          and consent to ArbeidMatch processing my data for recruitment purposes.
+          I consent to ArbeidMatch processing my data for recruitment purposes.
         </span>
       </label>
       {/* The privacy notice is information, not something to accept (legal review, 25 September 2026). */}

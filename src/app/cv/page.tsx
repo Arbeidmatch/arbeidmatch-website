@@ -229,8 +229,8 @@ export default function CvGuidePage() {
               nothing is saved on our side, and no analytics event carries what you typed.
             </p>
             <p>
-              When you press download, we ask for two confirmations: that you accept the privacy
-              policy, and that you agree we create a work profile for you so we can match you with
+              When you press download, we ask for two confirmations: that you have read the privacy
+              notice, and that you agree we create a work profile for you so we can match you with
               jobs. Then we send a six digit code to your email and you type it back. That code is
               the moment your data first reaches us, and the record of your consent.
             </p>

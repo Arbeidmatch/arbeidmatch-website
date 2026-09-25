@@ -341,7 +341,7 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     if (!f.contactEmail.includes("@")) invalid.add("contactEmail");
     if (f.contactPhone.replace(/\D/g, "").length < 6) invalid.add("contactPhone");
     if (!f.howDidYouHear.trim()) invalid.add("howDidYouHear");
-    // Everyone accepts the privacy policy and the terms where they type their details.
+    // Everyone confirms having read the privacy notice, and accepts the terms, where they type their details.
     if (!f.acceptPrivacy) invalid.add("acceptPrivacy");
     if (!f.acceptTerms) invalid.add("acceptTerms");
     if (f.howDidYouHear === "Referral from another company") {
@@ -2413,7 +2413,7 @@ export default function RequestTokenPage() {
                     {fieldErrors.contactEmail ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
                 </div>
-                {/* Everyone accepts the privacy policy and the terms where they type their
+                {/* Everyone confirms having read the privacy notice, and accepts the terms, where they type their
                     personal details, and cannot continue without both (the owner,
                     25 September 2026). */}
                 {(

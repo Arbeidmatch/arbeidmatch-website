@@ -15,6 +15,9 @@ export interface ComingSoonCaptureProps {
 export default function ComingSoonCapture({ featureName, isOpen, onClose }: ComingSoonCaptureProps) {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
+  // Legal review, 25 September 2026: consent and the privacy notice are two
+  // boxes. The notice is acknowledged, never accepted.
+  const [readNotice, setReadNotice] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -57,7 +60,7 @@ export default function ComingSoonCapture({ featureName, isOpen, onClose }: Comi
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!consent) return;
+    if (!consent || !readNotice) return;
     setStatus("loading");
     try {
       const res = await fetch("/api/feature-waitlist", {
@@ -141,10 +144,19 @@ export default function ComingSoonCapture({ featureName, isOpen, onClose }: Comi
                 onChange={(e) => setConsent(e.target.checked)}
                 className="mt-0.5 shrink-0"
               />
+              <span>I agree to receive updates from ArbeidMatch by email. I can unsubscribe at any time.</span>
+            </label>
+            <label className="mt-2 flex cursor-pointer items-start gap-2 text-[12px] text-white/[0.6]">
+              <input
+                type="checkbox"
+                checked={readNotice}
+                onChange={(e) => setReadNotice(e.target.checked)}
+                className="mt-0.5 shrink-0"
+              />
               <span>
-                I agree to receive updates from ArbeidMatch. I have read and accept the{" "}
+                I have read the{" "}
                 <Link href="/privacy" className="text-[#C9A84C] underline">
-                  privacy policy
+                  privacy notice
                 </Link>
                 .
               </span>

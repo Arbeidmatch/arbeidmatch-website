@@ -8,6 +8,9 @@ const GOLD = "#C9A84C";
 export default function BlogComingSoonCapture() {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
+  // Legal review, 25 September 2026: the consent to updates and reading the
+  // privacy notice are two boxes. The notice is acknowledged, never accepted.
+  const [readNotice, setReadNotice] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -19,8 +22,8 @@ export default function BlogComingSoonCapture() {
       setError("Please enter a valid email address.");
       return;
     }
-    if (!consent) {
-      setError("Please accept to continue.");
+    if (!consent || !readNotice) {
+      setError("Please tick both boxes to continue.");
       return;
     }
     setLoading(true);
@@ -78,10 +81,20 @@ export default function BlogComingSoonCapture() {
             className="mt-0.5 h-4 w-4 shrink-0 rounded border-black/20"
             style={{ accentColor: GOLD }}
           />
+          <span>I agree to receive updates from ArbeidMatch by email. I can unsubscribe at any time.</span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-2 text-[12px]" style={{ color: "#6b7280" }}>
+          <input
+            type="checkbox"
+            checked={readNotice}
+            onChange={(e) => setReadNotice(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-black/20"
+            style={{ accentColor: GOLD }}
+          />
           <span>
-            I agree to receive updates from ArbeidMatch. I have read and accept the{" "}
+            I have read the{" "}
             <Link href="/privacy" className="underline" style={{ color: GOLD }}>
-              privacy policy
+              privacy notice
             </Link>
             .
           </span>

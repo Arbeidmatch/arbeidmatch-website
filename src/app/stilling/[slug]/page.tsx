@@ -132,6 +132,8 @@ export default async function StillingPage({ params }: Props) {
   const certificates = (job.required_certificates ?? []).filter(Boolean);
   const skills = (job.skills_required ?? []).filter(Boolean);
   // Apply opens the sign-in or create-profile window with the consent box first (17 September 2026).
+  // consent=1 carries only the processing consent; the privacy notice is acknowledged, never accepted,
+  // and no Terms are accepted by an applicant (legal review, 25 September 2026).
   const portalQuery = new URLSearchParams({
     next: `/candidate/apply/${slug}`,
     consent: "1",
