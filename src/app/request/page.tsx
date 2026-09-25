@@ -523,6 +523,7 @@ export default function RequestPage() {
   const [partnerApplicationError, setPartnerApplicationError] = useState("");
   const [getStartedEmail, setGetStartedEmail] = useState("");
   const [getStartedGdpr, setGetStartedGdpr] = useState(false);
+  const [getStartedTerms, setGetStartedTerms] = useState(false);
   const [getStartedError, setGetStartedError] = useState("");
   const [getStartedSubmitting, setGetStartedSubmitting] = useState(false);
   const [getStartedStep, setGetStartedStep] = useState<"form" | "otp">("form");
@@ -906,6 +907,10 @@ export default function RequestPage() {
 
     if (!getStartedGdpr) {
       setGetStartedError("Godta personvernerklæringen for å fortsette.");
+      return;
+    }
+    if (!getStartedTerms) {
+      setGetStartedError("Godta vilkårene for å fortsette.");
       return;
     }
     if (!selectedRole) {
@@ -1651,11 +1656,32 @@ export default function RequestPage() {
                         .
                       </span>
                     </label>
+                    {/* The terms too, wherever personal details are typed (the owner, 25 September 2026). */}
+                    <label className="flex cursor-pointer items-start gap-3 text-sm text-white/85">
+                      <input
+                        type="checkbox"
+                        checked={getStartedTerms}
+                        onChange={(e) => setGetStartedTerms(e.target.checked)}
+                        className="mt-1 h-4 w-4 shrink-0 rounded border-white/30 text-[#C9A84C] focus:ring-[#C9A84C]"
+                      />
+                      <span>
+                        Jeg godtar{" "}
+                        <a
+                          href="https://arbeidmatch.no/terms"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]"
+                        >
+                          vilkårene
+                        </a>
+                        .
+                      </span>
+                    </label>
                     {getStartedError ? <p className="text-sm text-red-400">{getStartedError}</p> : null}
                     <button
                       type="button"
                       onClick={() => void submitGetStartedOtpRequest()}
-                      disabled={getStartedSubmitting || !getStartedGdpr || !getStartedEmail.includes("@")}
+                      disabled={getStartedSubmitting || !getStartedGdpr || !getStartedTerms || !getStartedEmail.includes("@")}
                       className="inline-flex rounded-[4px] bg-[#C9A84C] px-6 py-3 text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {getStartedSubmitting ? "Sender …" : "Send kode"}

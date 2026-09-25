@@ -87,6 +87,9 @@ const requestSchema = z
     referralOrgNumber: z.string().trim().max(40).optional().or(z.literal("")),
     referralEmail: z.string().trim().email().max(200).optional().or(z.literal("")),
     subscribe: z.string().trim().max(80).optional().or(z.literal("")),
+    /** The privacy policy and the terms, accepted on the contact step (25 September 2026); kept in form_answers. */
+    privacyAccepted: z.string().trim().max(8).optional().or(z.literal("")),
+    termsAccepted: z.string().trim().max(8).optional().or(z.literal("")),
     notes: z.string().trim().max(5000).optional().or(z.literal("")),
     website: z.string().max(256).optional(),
     company_website: z.string().max(256).optional(),

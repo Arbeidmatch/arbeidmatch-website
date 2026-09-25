@@ -89,6 +89,9 @@ type TokenData = {
 type RequestForm = {
   companyName: string;
   orgNumber: string;
+  /** Ticked on step 0 by a presentation's client, who skipped the OTP step where everyone else consents. */
+  acceptPrivacy: boolean;
+  acceptTerms: boolean;
   contactFirstName: string;
   contactLastName: string;
   roleInCompany: string;
@@ -296,6 +299,8 @@ const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
     "howDidYouHear",
     "referralCompanyName",
     "referralEmail",
+    "acceptPrivacy",
+    "acceptTerms",
   ],
   1: [
     "requesterKind",
@@ -336,6 +341,9 @@ function collectWizardStepInvalid(s: number, f: RequestForm): Set<string> {
     if (!f.contactEmail.includes("@")) invalid.add("contactEmail");
     if (f.contactPhone.replace(/\D/g, "").length < 6) invalid.add("contactPhone");
     if (!f.howDidYouHear.trim()) invalid.add("howDidYouHear");
+    // Everyone accepts the privacy policy and the terms where they type their details.
+    if (!f.acceptPrivacy) invalid.add("acceptPrivacy");
+    if (!f.acceptTerms) invalid.add("acceptTerms");
     if (f.howDidYouHear === "Referral from another company") {
       if (f.referralCompanyName.trim().length < 2) invalid.add("referralCompanyName");
       const refEmail = f.referralEmail.trim();
@@ -654,6 +662,8 @@ const initialForm: RequestForm = {
   orgNumber: "",
   contactFirstName: "",
   contactLastName: "",
+  acceptPrivacy: false,
+  acceptTerms: false,
   roleInCompany: "",
   contactEmail: "",
   contactPhonePrefix: "+47",
@@ -1541,6 +1551,9 @@ export default function RequestTokenPage() {
       startDate: form.startDateMode === "Immediate" ? "Immediate" : form.startDate,
       startDateOther: "",
       howDidYouHear: form.howDidYouHear.trim(),
+      // Their consent, kept with the answers in the row (form_answers), so it can be shown later.
+      privacyAccepted: form.acceptPrivacy ? "Yes" : "",
+      termsAccepted: form.acceptTerms ? "Yes" : "",
       socialMediaPlatform: form.howDidYouHear === "Social media" ? form.socialMediaPlatform : "",
       socialMediaOther: "",
       howDidYouHearOther: form.howDidYouHear === "Other" ? form.howDidYouHearOther : "",
@@ -2400,6 +2413,55 @@ export default function RequestTokenPage() {
                     {fieldErrors.contactEmail ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
                 </div>
+                {/* Everyone accepts the privacy policy and the terms where they type their
+                    personal details, and cannot continue without both (the owner,
+                    25 September 2026). */}
+                {(
+                  <div className="space-y-3 border-t border-white/10 pt-5">
+                    <div data-wizard-field="acceptPrivacy">
+                      <label className="flex cursor-pointer items-start gap-3 text-sm text-white/85">
+                        <input
+                          type="checkbox"
+                          checked={form.acceptPrivacy}
+                          onChange={(e) => {
+                            setForm((p) => ({ ...p, acceptPrivacy: e.target.checked }));
+                            clearFieldError("acceptPrivacy");
+                          }}
+                          className="mt-1 h-4 w-4 shrink-0 rounded border-white/30 text-[#C9A84C] focus:ring-[#C9A84C]"
+                        />
+                        <span>
+                          I confirm that I am authorised to send this request on behalf of my company, and I accept that the contact details are processed as described in the{" "}
+                          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]">
+                            privacy policy
+                          </a>
+                          .
+                        </span>
+                      </label>
+                      {fieldErrors.acceptPrivacy ? <p className={fieldErrorTextClass}>Please accept the privacy policy to continue</p> : null}
+                    </div>
+                    <div data-wizard-field="acceptTerms">
+                      <label className="flex cursor-pointer items-start gap-3 text-sm text-white/85">
+                        <input
+                          type="checkbox"
+                          checked={form.acceptTerms}
+                          onChange={(e) => {
+                            setForm((p) => ({ ...p, acceptTerms: e.target.checked }));
+                            clearFieldError("acceptTerms");
+                          }}
+                          className="mt-1 h-4 w-4 shrink-0 rounded border-white/30 text-[#C9A84C] focus:ring-[#C9A84C]"
+                        />
+                        <span>
+                          I accept the{" "}
+                          <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]">
+                            terms and conditions
+                          </a>
+                          .
+                        </span>
+                      </label>
+                      {fieldErrors.acceptTerms ? <p className={fieldErrorTextClass}>Please accept the terms and conditions to continue</p> : null}
+                    </div>
+                  </div>
+                )}
                 {/* A partner or owner is asked here only for missing contact details, never how they found us. */}
                 {form.howDidYouHear !== "partner" && form.howDidYouHear !== "presentation" ? (
                 <div className="space-y-3 border-t border-white/10 pt-5">
