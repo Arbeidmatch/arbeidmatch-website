@@ -87,7 +87,8 @@ function isPublicCandidateCount(count: number | null | undefined): count is numb
 
 function candidateAvailabilityLabel(count: number | null | undefined, scope: "industry" | "role"): string {
   if (isPublicCandidateCount(count)) return `${count} tilgjengelige kandidater`;
-  return scope === "industry" ? "Vi rekrutterer i denne bransjen." : "Vi finner kvalifiserte kandidater for denne rollen.";
+  // The industry cards show no line below a count too small to publish (the owner, 25 September 2026).
+  return scope === "industry" ? "" : "Vi finner kvalifiserte kandidater for denne rollen.";
 }
 
 /** Display-only Norwegian labels. The English keys stay the values sent to the APIs. */
@@ -339,7 +340,7 @@ function PremiumIndustryCard({
             }
       }
       whileTap={reduceMotion ? undefined : { scale: 0.97, transition: { duration: 0.1 } }}
-      className={`group relative w-full overflow-hidden rounded-3xl border p-5 text-left ${
+      className={`group relative flex min-h-[132px] w-full items-center justify-center overflow-hidden rounded-3xl border p-5 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C] ${
         selected
           ? "border-[#C9A84C] bg-[radial-gradient(circle_at_center,rgba(201,168,76,0.08),transparent_65%)] shadow-[0_0_24px_rgba(201,168,76,0.4)]"
           : "border-white/10 bg-gradient-to-br from-[#0f2035] to-[#0a1628]"
@@ -384,18 +385,18 @@ function PremiumIndustryCard({
         </motion.span>
       ) : null}
 
-      <div className="relative z-10 flex h-full flex-col items-start justify-between gap-4">
+      {/*
+        Icon and name only, centred both ways (the owner, 25 September 2026):
+        the line "Vi rekrutterer i denne bransjen." under every name is gone.
+        A public candidate count (MIN_PUBLIC_CANDIDATE_COUNT or more) still
+        shows under the name; the fixed min-height keeps every card the same.
+      */}
+      <div className="relative z-10 flex flex-col items-center justify-center gap-3">
         <Icon className={`h-8 w-8 ${selected ? "text-[#C9A84C] drop-shadow-[0_0_10px_rgba(201,168,76,0.5)]" : "text-[#C9A84C]"}`} />
-        <div>
-          <p className={`text-base tracking-tight ${selected ? "font-semibold text-white" : "font-semibold text-white/90"}`}>{industryLabel(industry)}</p>
-          {candidateCount === null ? (
-            <p className="mt-1 text-sm text-white/55">...</p>
-          ) : isPublicCandidateCount(candidateCount) ? (
-            <p className="mt-1 text-sm font-medium text-[#C9A84C]">{candidateAvailabilityLabel(candidateCount, "industry")}</p>
-          ) : (
-            <p className="mt-1 text-sm text-white/60">{candidateAvailabilityLabel(candidateCount, "industry")}</p>
-          )}
-        </div>
+        <p className={`text-base tracking-tight ${selected ? "font-semibold text-white" : "font-semibold text-white/90"}`}>{industryLabel(industry)}</p>
+        {isPublicCandidateCount(candidateCount) ? (
+          <p className="-mt-2 text-sm font-medium text-[#C9A84C]">{candidateAvailabilityLabel(candidateCount, "industry")}</p>
+        ) : null}
       </div>
     </motion.button>
   );
