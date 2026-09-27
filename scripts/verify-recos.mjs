@@ -67,6 +67,7 @@ try {
    await page.locator(`.chapter-rail [data-go="${chapter}"]`).click();
    await page.waitForFunction(i => Number(document.querySelector('canvas').dataset.progress) === i, chapter);
    ok(width + ' chapter ' + chapter + ': screen uses the expected side', await page.locator('canvas').getAttribute('data-side') === (width < 901 || chapter === 0 || chapter === 4 ? 'center' : chapter % 2 ? 'left' : 'right'));
+   ok(`${width} chapter ${chapter}: no duplicate windows`, JSON.parse(await page.locator('canvas').getAttribute('data-screen-bounds')).length === (chapter === 4 ? 0 : 1));
    const copy = await page.locator('.chapter.active .chapter-copy').boundingBox(), controls = await page.locator('.product-controls').boundingBox(), rail = await page.locator('.chapter-rail').boundingBox();
    const header = await page.locator('body > header').boundingBox();
    ok(`${width}x${height} chapter ${chapter}: copy clears header`, copy.y >= header.y + header.height + 4);

@@ -17,8 +17,8 @@ required. The form waits for server success; errors retain the email for retry.
 The seat selector is a demonstration, not a reservation. The final chapter
 summarizes the product and has one action: "Request a beta slot".
 
-The five scenes use different compositions: a product panorama, a client workspace,
-a team constellation, a presentation cascade and a centered final invitation.
+Each product scene shows one selected interface, without secondary windows or
+duplicate detail screens. The final scene shows a centered signup invitation.
 Scroll drives camera travel; larger screens alternate the copy and product sides.
 The product tour covers candidates, clients, presentations, pipeline, team seats
 and a dedicated AI assistant. AI assistance and human support are described as

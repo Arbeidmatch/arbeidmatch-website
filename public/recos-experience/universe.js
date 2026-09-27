@@ -42,26 +42,17 @@ export async function createUniverse(host) {
   return { g, face, border, outgoing };
  }
  const depths = [0, -24, -55, -79, -117];
- const layouts = ['panorama', 'focus', 'constellation', 'cascade', 'invitation'];
+ const layouts = ['arrival', 'workspace', 'team', 'connections', 'invitation'];
  const sideOf = index => index % 2 === 0 ? 1 : -1;
  const defaultViews = ['overview', 'clients', 'team', 'presentations', 'overview'];
- const selectedViews = [...defaultViews], stations = [], cards = [], echoes = [], seats = [], labels = [];
+ const selectedViews = [...defaultViews], stations = [], cards = [], seats = [], labels = [];
  let seatCount = 1, activeStation = 0, activeView = 'overview', transitionStart = -10000;
  function textureFor(view) { return textures[view === 'team' ? 'team-' + seatCount : view]; }
  for (let i = 0; i < 5; i++) {
   const group = new THREE.Group(); group.position.set(sideOf(i) * 4.05, .2, depths[i]); scene.add(group); stations.push(group);
   const aura = glow(group, 16, .36); aura.position.set(0, 0, -2.5);
-  const secondary = [];
-  for (let j = 0; j < 2; j++) {
-   const echoView = i === 0 || i === 3 ? (j ? 'assistant' : 'clients') : j ? 'pipeline' : 'candidates';
-   const echo = screen(group, textures[echoView], 5.8); echo.g.userData.view = echoView;
-   echo.g.position.set(j ? 1.0 : -.8, j ? -.30 : .40, -1.2 - j * .95);
-   echo.g.rotation.set(j ? -.04 : .03, j ? .23 : -.22, j ? -.045 : .04); secondary.push(echo);
-  }
-  echoes.push(secondary);
   const card = screen(group, textureFor(defaultViews[i])); card.g.rotation.y = -.16; cards.push(card);
   card.g.userData.preview = true;
-  secondary.forEach(echo => { echo.g.userData.preview = true; });
   labels.push(label(group, ['YOUR FIRST RECRUITER SEAT', 'A WORKSPACE OF YOUR OWN', 'GROW YOUR TEAM', 'CONNECTED RECRUITMENT', 'YOUR NEXT CHAPTER'][i], 0, 3.2, -.1, 5.8));
   // A restrained plinth and a dim reflection keep the product screens in space.
   const plinth = mesh(group, new THREE.CylinderGeometry(4.9, 5.1, .06, 80), metal, 0, -3.25, -.6); plinth.scale.z = .40; plinth.visible = false;
@@ -91,8 +82,6 @@ export async function createUniverse(host) {
  }
  const orbit = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 100 }, (_, i) => new THREE.Vector3(Math.cos(i / 100 * Math.PI * 2) * 5.4, Math.sin(i / 100 * Math.PI * 2) * 3.5, -1))), new THREE.LineBasicMaterial({ color: mint, transparent: true, opacity: .22 }));
  stations[2].add(orbit);
- const detail = textures.clients.clone(); detail.repeat.set(.65, .65); detail.offset.set(.06, .13); detail.needsUpdate = true;
- echoes[1][1].face.material.map = detail;
  const floor = mesh(scene, new THREE.PlaneGeometry(90, 190), new THREE.MeshBasicMaterial({ color: 0x061014 }), 0, -4, -53); floor.rotation.x = -Math.PI / 2;
  const grid = new THREE.GridHelper(180, 90, 0x286454, 0x12332c); grid.position.set(0, -3.98, -55); grid.material.transparent = true; grid.material.opacity = .055; scene.add(grid);
  for (const x of [-4.6, 4.6]) box(scene, .018, .018, 135, edgeMat, x, -3.95, -48);
@@ -136,7 +125,7 @@ export async function createUniverse(host) {
   stations.forEach((station, i) => {
    const side = sideOf(i);
    station.position.x = mobile ? 3.5 : side * 4.05; station.position.y = mobile ? (innerHeight < 740 ? 1.15 : 1.65) : .45;
-   station.scale.setScalar(mobile ? (innerHeight < 740 ? .70 : .80) : 1); station.visible = i !== 4 && Math.abs(progress - i) < .88; labels[i].visible = false;
+   station.scale.setScalar(mobile ? (innerHeight < 740 ? .70 : .80) : 1); station.visible = i !== 4 && i === activeStation; labels[i].visible = false;
    if (!mobile) {
     const span = 2 * 13 * Math.tan(THREE.MathUtils.degToRad(47 / 2));
     const controlsTop = controlRect?.height ? controlRect.top : innerHeight - 225;
@@ -144,8 +133,6 @@ export async function createUniverse(host) {
     let pixelWidth = Math.min(innerWidth * .43, Math.max(180, controlsTop - 180) * 1.6);
     let centerX = side * .2, pixelY = controlsTop - 32 - pixelWidth / 3.2;
     if (i === 0) { pixelWidth = Math.min(innerWidth * .40, Math.max(130, controlsTop - heroBottom - 55) * 1.6); centerX = 0; pixelY = controlsTop - 22 - pixelWidth / 3.2; }
-    if (i === 2) { pixelWidth *= .83; pixelY -= 4; }
-    if (i === 3) { pixelWidth *= .78; pixelY -= 5; }
     station.position.x = centerX * innerWidth * span / innerHeight;
     station.position.y = .1 + (.5 - pixelY / innerHeight) * span;
     station.scale.setScalar(pixelWidth * span / innerHeight / 8);
@@ -167,26 +154,12 @@ export async function createUniverse(host) {
     station.scale.setScalar(width * 2 * depth * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / innerHeight / 8);
     cards[i].g.quaternion.copy(camera.quaternion); cards[i].g.position.y = 0;
    }
-   echoes[i].forEach((card, j) => {
-    card.g.visible = !mobile && i !== 4;
-    const poses = [
-     [[-6.5, -.3, -1.6, .35, .78], [6.5, .2, -2, -.35, .78]],
-     [[-2.8, 1.5, -2, .15, .82], [3.2, -.9, .6, -.16, .55]],
-     [[-3.8, 1.45, -1, .18, .62], [3.7, -1.25, .7, -.18, .60]],
-     [[-3.0, 1.8, -1.8, .12, .65], [3.0, -1.45, .7, -.13, .65]],
-     [[0,0,0,0,1], [0,0,0,0,1]],
-    ][i][j];
-    card.g.position.set(poses[0], poses[1] + Math.sin(time * .45 + j) * .07, poses[2]);
-    card.g.rotation.set(0, poses[3], i === 3 ? -.04 : j ? -.025 : .025); card.g.scale.setScalar(poses[4]);
-    card.face.material.opacity = Math.max(.05, 1 - Math.abs(progress - i) * 1.8);
-   });
-
   });
   travelFrames.forEach((f, i) => { f.visible = travel > .12; f.rotation.y = Math.sin(time * .18 + i) * .045; f.material.opacity = .045 + travel * .38; });
   finale.visible = progress > 3.1; floor.material.color.set(progress > 2.8 ? 0x0a1719 : 0x061814);
   stars.rotation.z = Math.sin(time * .045) * .005;
   renderer.render(scene, camera);
-  const screenBounds = activeStation === 4 ? [] : [cards[activeStation], ...echoes[activeStation]].filter(card => card.g.visible).map(card => {
+  const screenBounds = cards.filter((card, i) => card.g.visible && stations[i].visible).map(card => {
    const { width, height } = card.face.geometry.parameters;
    const points = [[-1,-1],[-1,1],[1,-1],[1,1]].map(([x,y]) => new THREE.Vector3(x * width / 2, y * height / 2, 0).applyMatrix4(card.face.matrixWorld).project(camera));
    return { left: Math.min(...points.map(p => (p.x + 1) * innerWidth / 2)), right: Math.max(...points.map(p => (p.x + 1) * innerWidth / 2)), top: Math.min(...points.map(p => (1 - p.y) * innerHeight / 2)), bottom: Math.max(...points.map(p => (1 - p.y) * innerHeight / 2)) };
