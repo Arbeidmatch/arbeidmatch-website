@@ -3,8 +3,8 @@ const $$ = selector => [...document.querySelectorAll(selector)];
 const chapters = $$('.chapter');
 const names = ['THE GATEWAY', 'YOUR WORKSPACE', 'YOUR TEAM', 'THE CONNECTIONS', 'YOUR NEXT CHAPTER'];
 const hashes = ['arrival', 'workspace', 'team', 'connections', 'future'];
-const productViews = ['overview', 'candidates', 'pipeline', 'messages', 'team'];
-const chapterViews = ['overview', 'candidates', 'team', 'candidates', 'overview'];
+const productViews = ['overview', 'candidates', 'clients', 'presentations', 'pipeline', 'messages', 'assistant', 'team'];
+const chapterViews = ['overview', 'clients', 'team', 'presentations', 'overview'];
 let selectedProduct = 'overview';
 function selectProduct(view, animate = true) {
  if (!productViews.includes(view)) return;
@@ -12,10 +12,17 @@ function selectProduct(view, animate = true) {
  $$('[data-product]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.product === view)));
  $('#product-view-label').textContent = view[0].toUpperCase() + view.slice(1);
  if (current === 3) {
-  const prior = Number($('[data-step][aria-pressed="true"]')?.dataset.step);
-  const index = view === 'candidates' ? 0 : view === 'messages' ? 2 : view === 'pipeline' ? (prior === 3 ? 3 : 1) : -1;
+  const index = ['clients', 'presentations', 'assistant', 'pipeline'].indexOf(view);
+  const copy = {
+   clients: ['Know your clients.<br><em>Build the relationship.</em>', 'Keep client contacts, requests and next steps together, so every conversation starts with context.'],
+   presentations: ['Present talent.<br><em>Move decisions.</em>', 'Turn candidate profiles into clear presentations. Keep the client conversation and the next step connected to the same opportunity.'],
+   assistant: ['Your AI assistant.<br><em>By your side.</em>', 'Find candidate context, prepare client follow-ups and work on presentations. Get AI assistance and human support, 24/7.'],
+   pipeline: ['Clear stages.<br><em>Know the next step.</em>', 'See where each application stands, so you can focus on the follow-up that moves it forward.'],
+  }[view];
+  if (copy) { $('#connections-title').innerHTML = copy[0]; $('#connections-title').nextElementSibling.textContent = copy[1]; }
   $$('[data-step]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.step) === index)));
-  $('#journey-text').textContent = index >= 0 ? descriptions[index] : 'Explore how your individual work connects with your workspace and team.';
+  $('#journey-text').textContent = index >= 0 ? descriptions[index] : 'Keep client relationships, candidate profiles and the next step connected.';
+
  }
  world?.setView(view, Math.max(0, current), !animate || paused);
 }
@@ -112,7 +119,8 @@ function paintChapters() {
     chapter.inert = !active || opacity < .2;
     chapter.setAttribute('aria-hidden', String(!active));
     chapter.style.opacity = active ? String(opacity) : '0';
-    chapter.style.transform = paused ? 'none' : 'translateY(' + ((i - progress) * 100) + 'px) scale(' + (1 + (i - progress) * .07) + ')';
+    const lateral = [0, -1, 1, -1, 0][i];
+    chapter.style.transform = paused ? 'none' : 'translate3d(' + ((i - progress) * lateral * 110) + 'px,' + ((i - progress) * (i === 2 ? 160 : 65)) + 'px,0) scale(' + (1 + (i - progress) * .05) + ')';
     chapter.style.filter = !paused && active ? 'blur(' + Math.max(0, distance * 6 - .4) + 'px)' : 'none';
   });
   $('#progress-fill').style.width = ((progress + 1) / 5 * 100) + '%';
@@ -122,6 +130,8 @@ function paintChapters() {
   $('#travel-destination').textContent = names[Math.min(4, Math.max(0, targetProgress > progress ? Math.ceil(progress) : Math.floor(progress)))];
   if (distance < .008 && !navigating && location.hash !== '#' + hashes[nearest]) history.replaceState(null, '', '#' + hashes[nearest]);
   document.body.dataset.chapter = String(nearest);
+  $('.product-controls').hidden = nearest === 4;
+  $('.product-controls').inert = nearest === 4;
   document.body.dataset.travel = distance > .08 ? 'moving' : 'arrived';
   if (nearest !== current) {
     const focused = document.activeElement;
@@ -147,18 +157,18 @@ $('#remove-seat').addEventListener('click', () => { seats = Math.max(1, seats - 
 $$('[data-role]').forEach(button => button.addEventListener('click', () => {
   $$('[data-role]').forEach(el => el.setAttribute('aria-pressed', String(el === button)));
   $('#role-copy').textContent = button.dataset.role === 'owner'
-    ? 'Your business, your team and your way of working. One shared home for the work ahead.'
-    : 'Your own place within a workspace. Bring your relationships and connect with the team around you.';
+    ? 'Your team\'s work stays in one place, with the context behind each relationship.'
+    : 'Pick up your next follow-up without rebuilding the story from scattered notes.';
 }));
 const descriptions = [
-  'Relationships are the starting point. Give the people behind your recruitment activity a connected home.',
-  'Connect client relationships with opportunities. See the possibilities behind the next conversation.',
-  'Keep conversations, interviews and next steps in the same story, so your team can move forward together.',
-  'Bring documents and progress into the picture. Keep sight of the work behind each placement.'
+ 'Keep client contacts, their requirements and the next conversation in view.',
+ 'Prepare candidate shortlists and company presentations, so clients can review a clear story.',
+ 'Your dedicated AI assistant helps with context, follow-ups and presentations. AI assistance and human support are available 24/7.',
+ 'See where each application stands and which next step needs attention.'
 ];
 $$('[data-step]').forEach(button => button.addEventListener('click', () => {
   $$('[data-step]').forEach(el => el.setAttribute('aria-pressed', String(el === button)));
-  const index = Number(button.dataset.step); $('#journey-text').textContent = descriptions[index]; world?.setActivity(index); selectProduct(['candidates', 'pipeline', 'messages', 'pipeline'][index]);
+  const index = Number(button.dataset.step); $('#journey-text').textContent = descriptions[index]; world?.setActivity(index); selectProduct(['clients', 'presentations', 'assistant', 'pipeline'][index]);
 }));
 function openDialog(dialog) { stopTravel(); dialog.showModal(); document.body.classList.add('modal-open'); }
 $$('[data-interest]').forEach(button => button.addEventListener('click', () => {

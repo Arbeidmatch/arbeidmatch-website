@@ -18,9 +18,9 @@ try {
  await page.goto(base + '/recos#arrival');
  await page.waitForFunction(() => document.body.dataset.scene === 'ready');
  ok('Starts with one recruiter seat', await page.locator('#seat-output').textContent() === '1');
- ok('Twelve fictional screenshots are ready in the 3D scene', await page.locator('canvas').getAttribute('data-screens') === '12');
+ ok('Fifteen fictional screenshots are ready in the 3D scene', await page.locator('canvas').getAttribute('data-screens') === '15');
  const before = await page.locator('canvas').screenshot();
- for (const view of ['overview', 'candidates', 'pipeline', 'messages', 'team']) {
+ for (const view of ['overview', 'candidates', 'clients', 'presentations', 'pipeline', 'assistant', 'team']) {
   await choose(view);
   ok('Product tab selects ' + view, await page.locator(`[data-product="${view}"]`).getAttribute('aria-pressed') === 'true');
  }
@@ -43,7 +43,7 @@ try {
  ok('Pipeline moves an example application', (await demo.locator('#demo-feedback').innerText()).includes('Candidate 01 moved to Screening'));
  ok('Parent screen follows preview navigation', await page.locator('[data-product="pipeline"]').getAttribute('aria-pressed') === 'true');
  await shot('desktop-interactive-pipeline');
- await demo.locator('nav [data-view="messages"]').click(); await demo.locator('[data-thread="1"]').click();
+ await demo.locator('[data-view="messages"]').first().click(); await demo.locator('[data-thread="1"]').click();
  ok('Message options switch the displayed conversation', await demo.locator('.conversation h2').innerText() === 'Example client');
  await demo.locator('nav [data-view="team"]').click(); await demo.locator('#add-demo-seat').click();
  await page.waitForFunction(() => document.querySelector('#seat-output').textContent === '2');
@@ -66,16 +66,20 @@ try {
   for (let chapter = 0; chapter < 5; chapter++) {
    await page.locator(`.chapter-rail [data-go="${chapter}"]`).click();
    await page.waitForFunction(i => Number(document.querySelector('canvas').dataset.progress) === i, chapter);
-   ok(width + ' chapter ' + chapter + ': screen uses the expected side', await page.locator('canvas').getAttribute('data-side') === (width < 901 ? 'center' : chapter % 2 ? 'left' : 'right'));
+   ok(width + ' chapter ' + chapter + ': screen uses the expected side', await page.locator('canvas').getAttribute('data-side') === (width < 901 || chapter === 0 || chapter === 4 ? 'center' : chapter % 2 ? 'left' : 'right'));
    const copy = await page.locator('.chapter.active .chapter-copy').boundingBox(), controls = await page.locator('.product-controls').boundingBox(), rail = await page.locator('.chapter-rail').boundingBox();
-   ok(`${width}x${height} chapter ${chapter}: options fit`, controls.x >= 0 && controls.x + controls.width <= width + 1 && controls.y + controls.height < rail.y && (width > 900 || copy.y + copy.height < controls.y));
+   const header = await page.locator('body > header').boundingBox();
+   ok(`${width}x${height} chapter ${chapter}: copy clears header`, copy.y >= header.y + header.height + 4);
+   if (chapter === 4) ok(`${width}x${height}: final invitation is clear`, !controls && copy.y + copy.height < rail.y);
+   else ok(`${width}x${height} chapter ${chapter}: options fit`, controls.x >= 0 && controls.x + controls.width <= width + 1 && controls.y + controls.height < rail.y && (width > 900 || copy.y + copy.height < controls.y));
    ok(`${width}x${height} chapter ${chapter}: no horizontal overflow`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
    await shot(`${width}x${height}-${chapter}`);
   }
  }
+ await page.locator('.chapter-rail [data-go="3"]').click();
  await page.locator('#open-product').click(); await demo.locator('body[data-view]').waitFor();
  await demo.locator('nav [data-view="candidates"]').click();
- ok('Phone preview keeps all product navigation accessible', await demo.locator('nav button').count() === 5);
+ ok('Phone preview keeps all product navigation accessible', await demo.locator('nav button').count() === 7);
  await demo.getByLabel('Search demo candidates').fill('carpenter'); await demo.locator('[data-profile="1"]').first().click();
  ok('Phone candidate profile is usable', await demo.locator('#candidate-detail').isVisible());
  await shot('phone-candidate-profile'); await demo.getByRole('button', { name: 'Close candidate preview' }).click();
@@ -94,6 +98,19 @@ try {
  ok('Landing remains protected against external framing', response.headers()['x-frame-options'] === 'DENY');
  const preview = await context.request.get(base + '/recos-experience/product-preview.html');
  ok('Only the fictional demo permits same-origin framing', preview.headers()['x-frame-options'] === 'SAMEORIGIN' && preview.headers()['content-security-policy'].includes("frame-ancestors 'self'"));
+ await page.locator('.chapter-rail [data-go="3"]').click();
+ await choose('clients'); await page.locator('#open-product').click();
+ await demo.locator('[data-client="0"]').click();
+ ok('Client relationship explains the next step', (await demo.locator('#profile-content').innerText()).includes('Discuss requirements'));
+ await demo.locator('#close-profile').click(); await demo.locator('nav [data-view="presentations"]').click();
+ await demo.locator('[data-presentation]').first().click();
+ ok('Client presentation opens a fictional shortlist', (await demo.locator('#profile-content').innerText()).includes('A focused shortlist'));
+ await demo.locator('#close-profile').click(); await demo.locator('nav [data-view="assistant"]').click();
+ await demo.locator('[data-assist="followup"]').click();
+ ok('Assistant demonstrates a reviewable draft', (await demo.locator('#assistant-answer').innerText()).includes('You review the wording'));
+ await demo.locator('[data-support]').click();
+ ok('AI and human support availability is explicit', (await demo.locator('#assistant-answer').innerText()).includes('24/7'));
+ await page.getByRole('button', { name: 'Close product preview' }).click();
  await page.locator('.chapter-rail [data-go="4"]').click();
  ok('Final chapter has one clear signup action', await page.locator('.chapter.active [data-interest]').count() === 1);
  ok('Final action explicitly requests a beta slot', (await page.locator('.chapter.active [data-interest]').innerText()).includes('Request a beta slot'));

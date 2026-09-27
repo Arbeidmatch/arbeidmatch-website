@@ -17,6 +17,14 @@ required. The form waits for server success; errors retain the email for retry.
 The seat selector is a demonstration, not a reservation. The final chapter
 summarizes the product and has one action: "Request a beta slot".
 
+The five scenes use different compositions: a product panorama, a client workspace,
+a team constellation, a presentation cascade and a centered final invitation.
+Scroll drives camera travel; larger screens alternate the copy and product sides.
+The product tour covers candidates, clients, presentations, pipeline, team seats
+and a dedicated AI assistant. AI assistance and human support are described as
+available 24/7, as explicitly confirmed by the owner. Assistant examples are
+fixed fictional demonstrations; they make no AI calls and create no support tickets.
+
 All product data is fictional. Only the explicit waitlist form sends data.
 The demo iframe never connects to the ATS. Its CSP permits framing by this
 origin only; other website routes keep their existing framing restrictions.

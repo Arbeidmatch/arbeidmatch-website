@@ -24,6 +24,7 @@ try {
  await page.mouse.wheel(0, 550);
  await page.waitForFunction(() => Number(document.querySelector('canvas').dataset.progress) > 1.99 && Number(document.querySelector('canvas').dataset.progress) < 2.01);
  assert.equal(await page.locator('canvas').getAttribute('data-side'), 'right');
+ await page.waitForURL('**/recos#team');
  assert.ok(page.url().endsWith('#team'), 'Native scrolling keeps the public URL in sync');
  await page.keyboard.press('End');
  await page.waitForFunction(() => Number(document.querySelector('canvas').dataset.progress) > 3.99);
