@@ -226,9 +226,13 @@ function tick(now) {
   }
   frame = requestAnimationFrame(tick);
 }
-let resizeTimer;
+let resizeTimer, viewportWidth = innerWidth;
 addEventListener('resize', () => {
   world?.resize();
+  // Mobile browser controls and keyboards change height during normal use.
+  // Keep native scrolling in charge unless the layout width changes.
+  if (innerWidth === viewportWidth) return;
+  viewportWidth = innerWidth;
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => goTo(current < 0 ? 0 : current, { instant: true, history: false }), 100);
 });
@@ -237,6 +241,8 @@ const initial = hashes.indexOf(location.hash.slice(1));
 if (initial >= 0) goTo(initial, { instant: true, history: false });
 else { scrollTo(0, 0); targetProgress = progress = 0; }
 paintChapters();
+// Navigation must work while the optional scene assets are still downloading.
+frame = requestAnimationFrame(tick);
 try {
   const { createUniverse } = await import('/recos-experience/universe.js'); world = await createUniverse($('#universe')); world.setSeats(seats); selectProduct(selectedProduct, false);
   document.body.dataset.scene = 'ready'; setMotion();
@@ -244,4 +250,3 @@ try {
   fallback(); document.body.dataset.scene = 'fallback';
   console.warn('Immersive view unavailable; using accessible chapter navigation.', error);
 }
-frame = requestAnimationFrame(tick);
