@@ -47,3 +47,8 @@ build-output.txt
 
 # Supabase CLI local cache
 supabase/.temp/
+
+# Local RecOS visual verification
+/.recos-verification/
+/.recos-verification-dev.log
+/.recos-verification-dev-error.log

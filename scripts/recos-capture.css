@@ -1,0 +1,21 @@
+/* Presentation framing only. The interactive demo retains its complete layout. */
+body{overflow:hidden}
+.demo-banner{font-size:12px;height:34px}
+.demo-banner span{font-size:12px}
+.app-shell{grid-template-columns:84px 1fr;min-height:716px}
+aside{padding:22px 10px}.logo{font-size:0;padding:0 10px}.logo>span{font-size:32px}
+.workspace,.sidebar-bottom,main>header{display:none}
+nav{margin-top:38px}nav button{font-size:0;padding:18px;justify-content:center}nav button span{font-size:24px}
+#view-content{padding:24px 26px}
+.page-title{margin-bottom:24px}.page-title h1{font-size:36px}.page-title p{font-size:17px}
+.kicker{font-size:12px}.primary{font-size:15px;padding:14px}
+.metrics{gap:14px;margin-bottom:24px}.metric{padding:22px}.metric>span{font-size:17px;color:#bbcad8}.metric strong{font-size:44px}.metric small{font-size:13px}
+.columns{gap:18px;grid-template-columns:1.25fr 1fr}.panel-head{padding:18px}.panel-head h2{font-size:20px}
+.list-row{padding:20px 18px}.list-row strong{font-size:17px}.list-row small{font-size:13px}.list-row button{font-size:14px}
+.chip{font-size:13px}.mini-chart{height:175px}.chart-labels{font-size:14px}
+body[data-view="overview"] #view-content>section.panel{display:none}
+.toolbar input{font-size:18px;width:380px}.toolbar button,.toolbar .result{font-size:16px}
+th{font-size:15px;padding:19px 14px;color:#bccddd}td{font-size:18px;padding:22px 14px}td button{font-size:14px}td small{font-size:12px}td .avatar{width:38px;height:38px;font-size:14px}tbody tr:nth-child(n+5){display:none}.table-footer{font-size:13px}
+.board{gap:13px}.lane{padding:15px;min-height:485px}.lane h2{font-size:20px}.lane h2 span{font-size:16px}.pipeline-card{padding:16px}.pipeline-card strong{font-size:17px}.pipeline-card p{font-size:15px}.pipeline-card footer{font-size:12px;gap:6px}.pipeline-card button{font-size:12px}.pipeline-card .avatar{display:none}
+.messages{grid-template-columns:270px 1fr;min-height:480px}.thread strong{font-size:18px}.thread p{font-size:16px}.conversation h2{font-size:24px}.bubble{font-size:18px}.conversation .reply{font-size:15px}
+.members{grid-template-columns:repeat(4,1fr);gap:14px}.member{padding:18px}.member h2{font-size:20px}.member p{font-size:15px}.member .chip{font-size:12px}.team-summary{font-size:20px;padding:18px}.team-summary span{font-size:15px}

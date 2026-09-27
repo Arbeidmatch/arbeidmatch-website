@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright';
+import { mkdir } from 'node:fs/promises';
+const base = process.env.RECOS_BASE_URL || 'http://127.0.0.1:4175';
+await mkdir('.recos-verification', { recursive: true });
+const browser = await chromium.launch({ args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+try {
+ const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'no-preference', recordVideo: { dir: '.recos-verification/video', size: { width: 1440, height: 900 } } });
+ const page = await context.newPage();
+ const errors = [];
+ page.on('pageerror', error => errors.push(error.message));
+ await page.goto(base + '/recos#arrival');
+ await page.waitForFunction(() => document.body.dataset.scene === 'ready');
+ await page.waitForFunction(() => Number(document.querySelector('canvas').dataset.time) > 2.5);
+ const first = await page.locator('canvas').getAttribute('data-camera');
+ await page.locator('.primary-entry').click();
+ await page.waitForFunction(() => Number(document.querySelector('canvas').dataset.progress) > .25);
+ const during = await page.locator('canvas').getAttribute('data-camera');
+ assert.notEqual(first, during, 'Camera travels in 3D');
+ await page.waitForFunction(() => Number(document.querySelector('canvas').dataset.progress) > .995);
+ assert.equal(await page.locator('canvas').getAttribute('data-side'), 'left');
+ await page.screenshot({ path: '.recos-verification/animated-workspace.png' });
+ await page.mouse.move(760, 420);
+ await page.mouse.wheel(0, 550);
+ await page.waitForFunction(() => Number(document.querySelector('canvas').dataset.progress) > 1.99 && Number(document.querySelector('canvas').dataset.progress) < 2.01);
+ assert.equal(await page.locator('canvas').getAttribute('data-side'), 'right');
+ assert.ok(page.url().endsWith('#team'), 'Native scrolling keeps the public URL in sync');
+ await page.keyboard.press('End');
+ await page.waitForFunction(() => Number(document.querySelector('canvas').dataset.progress) > 3.99);
+ await page.locator('#motion-button').click();
+ const paused = await page.locator('canvas').getAttribute('data-time');
+ await page.screenshot({ path: '.recos-verification/animated-future.png' });
+ assert.equal(await page.locator('canvas').getAttribute('data-time'), paused);
+ assert.equal(errors.length, 0);
+ await context.close();
+ console.log('PASS: curved camera travel, alternating sides, mouse scroll, deep-link sync, keyboard journey, motion pause, no runtime errors. Video captured.');
+} finally { await browser.close(); }

@@ -75,6 +75,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...advertPages,
+    { url: `${SITE}/recos`, lastModified: new Date("2026-09-27"), changeFrequency: "monthly", priority: 0.8 },
     {
       url: `${SITE}/jobs`,
       lastModified: new Date(),

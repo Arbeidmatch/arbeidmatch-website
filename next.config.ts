@@ -17,6 +17,10 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Keep the immersive document independent of the agency navigation and page scroll.
+  async rewrites() {
+    return [{ source: "/recos", destination: "/recos-experience/index.html" }];
+  },
   async redirects() {
     return [
       // The profile page was renamed on 15 September 2026: candidates register, they do not
@@ -41,6 +45,22 @@ const nextConfig: NextConfig = {
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "Cross-Origin-Resource-Policy", value: "same-site" },
           { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
+        ],
+      },
+      {
+        source: "/recos",
+        headers: [{ key: "Content-Security-Policy", value: contentSecurityPolicy.replace("frame-src https:", "frame-src 'self' https:") }],
+      },
+      {
+        source: "/recos-experience/index.html",
+        headers: [{ key: "Content-Security-Policy", value: contentSecurityPolicy.replace("frame-src https:", "frame-src 'self' https:") }],
+      },
+      {
+        source: "/recos-experience/product-preview.html",
+        headers: [
+          { key: "Content-Security-Policy", value: contentSecurityPolicy.replace("frame-ancestors 'none'", "frame-ancestors 'self'") },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "X-Robots-Tag", value: "noindex" },
         ],
       },
     ];
