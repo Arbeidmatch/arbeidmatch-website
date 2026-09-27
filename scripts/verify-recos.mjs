@@ -61,14 +61,14 @@ try {
  ok('Eight seats are reflected in the actual preview', await demo.locator('.member').count() === 8);
  await page.keyboard.press('Escape');
  await page.locator('#product-dialog').waitFor({ state: 'hidden' });
- for (const [width, height] of [[1440, 900], [390, 844], [390, 667]]) {
+ for (const [width, height] of [[1440, 900], [1024, 768], [768, 1024], [390, 844], [390, 667], [320, 568]]) {
   await page.setViewportSize({ width, height });
   for (let chapter = 0; chapter < 5; chapter++) {
    await page.locator(`.chapter-rail [data-go="${chapter}"]`).click();
    await page.waitForFunction(i => Number(document.querySelector('canvas').dataset.progress) === i, chapter);
-   ok(width + ' chapter ' + chapter + ': screen uses the expected side', await page.locator('canvas').getAttribute('data-side') === (width < 761 ? 'center' : chapter % 2 ? 'left' : 'right'));
+   ok(width + ' chapter ' + chapter + ': screen uses the expected side', await page.locator('canvas').getAttribute('data-side') === (width < 901 ? 'center' : chapter % 2 ? 'left' : 'right'));
    const copy = await page.locator('.chapter.active .chapter-copy').boundingBox(), controls = await page.locator('.product-controls').boundingBox(), rail = await page.locator('.chapter-rail').boundingBox();
-   ok(`${width}x${height} chapter ${chapter}: options fit`, controls.x >= 0 && controls.x + controls.width <= width + 1 && controls.y + controls.height < rail.y && (width > 760 || copy.y + copy.height < controls.y));
+   ok(`${width}x${height} chapter ${chapter}: options fit`, controls.x >= 0 && controls.x + controls.width <= width + 1 && controls.y + controls.height < rail.y && (width > 900 || copy.y + copy.height < controls.y));
    ok(`${width}x${height} chapter ${chapter}: no horizontal overflow`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
    await shot(`${width}x${height}-${chapter}`);
   }
@@ -94,6 +94,12 @@ try {
  ok('Landing remains protected against external framing', response.headers()['x-frame-options'] === 'DENY');
  const preview = await context.request.get(base + '/recos-experience/product-preview.html');
  ok('Only the fictional demo permits same-origin framing', preview.headers()['x-frame-options'] === 'SAMEORIGIN' && preview.headers()['content-security-policy'].includes("frame-ancestors 'self'"));
+ await page.locator('.chapter-rail [data-go="4"]').click();
+ ok('Final chapter has one clear signup action', await page.locator('.chapter.active [data-interest]').count() === 1);
+ ok('Final action explicitly requests a beta slot', (await page.locator('.chapter.active [data-interest]').innerText()).includes('Request a beta slot'));
+ await page.locator('.chapter.active [data-interest]').click();
+ ok('Final action opens the waitlist signup', await page.locator('#interest-dialog').isVisible());
+ await page.getByRole('button', { name: 'Close beta signup' }).click();
  let payload, mode = 'error';
  await page.route('**/api/feature-waitlist', async route => {
   payload = route.request().postDataJSON();

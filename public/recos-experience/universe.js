@@ -3,7 +3,7 @@ import * as THREE from '/recos-experience/three.module.min.js';
 // Real browser captures of an isolated, fictional RecOS interface demonstration.
 export async function createUniverse(host) {
  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
- renderer.setPixelRatio(Math.min(2, Math.max(devicePixelRatio, innerWidth < 761 ? 1.5 : 1.75)));
+ renderer.setPixelRatio(Math.min(2, Math.max(devicePixelRatio, innerWidth < 901 ? 1.5 : 1.75)));
  renderer.setSize(innerWidth, innerHeight); renderer.outputColorSpace = THREE.SRGBColorSpace;
  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
  host.append(renderer.domElement); renderer.domElement.id = 'world-canvas';
@@ -103,7 +103,7 @@ export async function createUniverse(host) {
  function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
  function render(progress, time, moving, pointerX, pointerY) {
   if (disposed || lost) return;
-  const mobile = innerWidth < 761, fraction = progress % 1, travel = Math.sin(fraction * Math.PI);
+  const mobile = innerWidth < 901, fraction = progress % 1, travel = Math.sin(fraction * Math.PI);
   activeStation = Math.round(progress); activeView = selectedViews[activeStation];
   pointer.lerp(new THREE.Vector2(pointerX, pointerY), .04);
   const entrance = moving ? Math.pow(Math.max(0, 1 - time / 2.4), 3) * 6 : 0;
@@ -113,12 +113,21 @@ export async function createUniverse(host) {
   camera.fov = (mobile ? 68 : 47) + (moving ? travel * 8 : 0); camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
   const copyRect = mobile ? document.querySelector('.chapter.active .chapter-copy')?.getBoundingClientRect() : null;
-  const controlRect = mobile ? document.querySelector('.product-controls')?.getBoundingClientRect() : null;
+  const controlRect = document.querySelector('.product-controls')?.getBoundingClientRect();
   const swap = moving ? Math.max(0, 1 - (performance.now() - transitionStart) / 600) : 0;
   stations.forEach((station, i) => {
    const side = sideOf(i);
    station.position.x = mobile ? 3.5 : side * 4.05; station.position.y = mobile ? (innerHeight < 740 ? 1.15 : 1.65) : .45;
    station.scale.setScalar(mobile ? (innerHeight < 740 ? .70 : .80) : 1); station.visible = Math.abs(progress - i) < (mobile ? .8 : 1.4); labels[i].visible = !mobile && Math.abs(progress - i) < .55;
+   if (!mobile && controlRect) {
+    // Fit each station at its resting depth; the camera remains free to travel between them.
+    const span = 2 * 13 * Math.tan(THREE.MathUtils.degToRad(47 / 2));
+    const pixelWidth = Math.min(innerWidth * .46, Math.max(180, controlRect.top - 165) * 1.6);
+    const pixelY = controlRect.top - 22 - pixelWidth / 3.2;
+    station.position.x = side * .2 * innerWidth * span / innerHeight;
+    station.position.y = .1 + (.5 - pixelY / innerHeight) * span;
+    station.scale.setScalar(pixelWidth * span / innerHeight / 8);
+   }
    station.rotation.y = dragRotation;
    cards[i].g.rotation.y = (mobile ? -.035 : -side * .07 + (i - progress) * .28) + Math.sin(time * .22 + i) * .028 + (i === activeStation ? Math.sin(swap * Math.PI) * .15 : 0);
    cards[i].g.position.y = Math.sin(time * .55 + i) * .055;

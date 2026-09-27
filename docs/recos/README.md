@@ -14,7 +14,8 @@ The consent-gated form uses the existing `/api/feature-waitlist` endpoint with
 `feature: "RecOS Beta"`. The existing `wants_assistance` field stores the selected
 interest, illustrative seat count and consent. No schema or backend change is
 required. The form waits for server success; errors retain the email for retry.
-The seat selector is a demonstration, not a reservation.
+The seat selector is a demonstration, not a reservation. The final chapter
+summarizes the product and has one action: "Request a beta slot".
 
 All product data is fictional. Only the explicit waitlist form sends data.
 The demo iframe never connects to the ATS. Its CSP permits framing by this
@@ -25,7 +26,7 @@ No third-party scripts, analytics, cookies or remote fonts are introduced.
 
 - `npm test`: 350 tests across 47 files passed.
 - `npm run build`: local production build.
-- `node scripts/verify-recos.mjs`: desktop and two phone sizes, all five
+- `node scripts/verify-recos.mjs`: six desktop, tablet and phone sizes, all five
   chapters, alternating placement, UI interactions, reduced motion, fallback,
   scoped CSP, and mocked signup success/failure/consent checks.
 - `node scripts/verify-recos-motion.mjs`: animated camera travel, actual mouse
