@@ -157,7 +157,7 @@ $('#remove-seat').addEventListener('click', () => { seats = Math.max(1, seats - 
 $$('[data-role]').forEach(button => button.addEventListener('click', () => {
   $$('[data-role]').forEach(el => el.setAttribute('aria-pressed', String(el === button)));
   $('#role-copy').textContent = button.dataset.role === 'owner'
-    ? 'Your team\'s work stays in one place, with the context behind each relationship.'
+    ? 'Keep your team\'s candidate and client context together.'
     : 'Pick up your next follow-up without rebuilding the story from scattered notes.';
 }));
 const descriptions = [
