@@ -66,6 +66,17 @@ import {
 } from "@/lib/request-service";
 import { conditionsAskedFor, withoutConditionAnswers, wizardStepOrder } from "@/lib/request-wizard-steps";
 import { addTypedLocation, listedPlace, normalizePlaceName } from "@/lib/request-location";
+import {
+  fill,
+  optionLabel,
+  positionLabel,
+  REQUEST_WORDS,
+  requestLangFrom,
+  roleDetailRowLabel,
+  skillLabel,
+  tradeQuestionText,
+  type WordKey,
+} from "./request-words";
 
 type TokenData = {
   company: string;
@@ -249,45 +260,23 @@ function formatDriverLicenseForPayload(selections: string[]): string {
  * staffing for a firm that is itself an agency. The help lines are the English
  * of the Norwegian cards on /request (REQUEST_SERVICE_CARDS_NB).
  */
-const SERVICE_OPTIONS: ReadonlyArray<{ value: RequestServiceKey; label: string; help: string; comingSoon: boolean }> = [
-  {
-    value: "staffing",
-    label: "Staffing (bemanning)",
-    help: "We hire out skilled workers who are employed by us.",
-    comingSoon: false,
-  },
-  {
-    value: "recruitment",
-    label: "Recruitment",
-    help: "We run the whole process up to the hire at your company.",
-    comingSoon: false,
-  },
-  {
-    value: "sourcing",
-    label: "Sourcing",
-    help: "We find and sort the candidates, you hire them yourselves.",
-    comingSoon: false,
-  },
-  {
-    value: "advertising",
-    label: "Job advertising",
-    help: "Coming soon",
-    comingSoon: true,
-  },
+// The labels and help lines are in request-words.ts (English and Norwegian); the values are what is stored.
+const SERVICE_OPTIONS: ReadonlyArray<{ value: RequestServiceKey; labelKey: WordKey; helpKey: WordKey; comingSoon: boolean }> = [
+  { value: "staffing", labelKey: "serviceStaffingLabel", helpKey: "serviceStaffingHelp", comingSoon: false },
+  { value: "recruitment", labelKey: "serviceRecruitmentLabel", helpKey: "serviceRecruitmentHelp", comingSoon: false },
+  { value: "sourcing", labelKey: "serviceSourcingLabel", helpKey: "serviceSourcingHelp", comingSoon: false },
+  { value: "advertising", labelKey: "serviceAdvertisingLabel", helpKey: "serviceAdvertisingHelp", comingSoon: true },
 ];
 
-const REQUESTER_KIND_OPTIONS: ReadonlyArray<{ value: RequesterKind; label: string; help: string }> = [
-  { value: "own_operation", label: "We need people for our own work", help: "The people will work on our own projects." },
-  { value: "agency", label: "We are a staffing or recruitment agency", help: "We supply people on to our own clients." },
+const REQUESTER_KIND_OPTIONS: ReadonlyArray<{ value: RequesterKind; labelKey: WordKey; helpKey: WordKey }> = [
+  { value: "own_operation", labelKey: "kindOwnLabel", helpKey: "kindOwnHelp" },
+  { value: "agency", labelKey: "kindAgencyLabel", helpKey: "kindAgencyHelp" },
 ];
 
-function serviceLabelEn(value: string): string {
-  return SERVICE_OPTIONS.find((o) => o.value === value)?.label ?? value;
+function serviceLabel(t: Record<WordKey, string>, value: string): string {
+  const option = SERVICE_OPTIONS.find((o) => o.value === value);
+  return option ? t[option.labelKey] : value;
 }
-
-/** Said on the service question, the review and the thank-you screen, in the same words. */
-const DETAILED_OFFER_NOTE =
-  "After we have analysed your request, you will receive a detailed offer by email for the service you chose.";
 
 const WIZARD_STEP_FIELD_KEYS: Record<number, readonly string[]> = {
   0: [
@@ -733,7 +722,6 @@ const OFFER_OPTIONS = [
 ] as const;
 
 const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]";
-const FIELD_ERROR_MSG = "This field is required";
 const fieldErrorTextClass = "mt-1 text-[12px] text-[#ef4444]";
 
 function wizardInputClass(invalid: boolean, extraClass = "") {
@@ -836,12 +824,15 @@ function ChoiceChips({
   onPick,
   invalid,
   ariaLabel,
+  labelFor = (value: string) => value,
 }: {
   options: readonly string[];
   selected: readonly string[];
   onPick: (value: string) => void;
   invalid?: boolean;
   ariaLabel?: string;
+  /** What the client reads for an option; the value picked stays the option itself. */
+  labelFor?: (value: string) => string;
 }) {
   return (
     <div role="group" aria-label={ariaLabel} className={wizardGroupShell(!!invalid, "flex flex-wrap gap-2")}>
@@ -857,15 +848,13 @@ function ChoiceChips({
               on ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"
             }`}
           >
-            {opt}
+            {labelFor(opt)}
           </button>
         );
       })}
     </div>
   );
 }
-
-const OPTIONAL_TAG = <span className="font-normal normal-case tracking-normal text-white/55">(optional)</span>;
 
 export default function RequestTokenPage() {
   const { token } = useParams<{ token: string }>();
@@ -903,6 +892,25 @@ export default function RequestTokenPage() {
    * the review.
    */
   const [isPresentation, setIsPresentation] = useState(false);
+  /**
+   * The owner, 28 September 2026: a client who comes from a presentation we
+   * sent reads this wizard in Norwegian; everyone from the site keeps English.
+   * Only the words change (request-words.ts); every stored value stays English.
+   */
+  const lang = requestLangFrom({
+    presentationTicket: isPresentation,
+    source: searchParams.get("source"),
+    deck: searchParams.get("deck"),
+  });
+  const t = REQUEST_WORDS[lang];
+  const langAttr = lang === "no" ? "nb" : undefined;
+  const opt = (value: string) => optionLabel(lang, value);
+  /** A title inside a Norwegian sentence starts small ("en tømrer"); "CNC-operatør" keeps its capitals. English is left as written. */
+  const roleInSentence = (role: string) =>
+    lang === "no" && /^\p{Lu}\p{Ll}/u.test(role) ? role.charAt(0).toLowerCase() + role.slice(1) : role;
+  const FIELD_ERROR_MSG = t.fieldRequired;
+  const DETAILED_OFFER_NOTE = t.detailedOfferNote;
+  const OPTIONAL_TAG = <span className="font-normal normal-case tracking-normal text-white/55">{t.optional}</span>;
   // Pay and conditions: asked for recruitment and sourcing, never for staffing,
   // which we arrange with the client (his rule, 24 September 2026).
   const askConditions = conditionsAskedFor(form.hiringType);
@@ -1288,6 +1296,69 @@ export default function RequestTokenPage() {
   );
   const roleDetailsBlock = useMemo(() => roleDetailsRequirementsBlock(roleDetailRows), [roleDetailRows]);
 
+  /**
+   * The summary block on the review. In English it is exactly the text that is
+   * sent; in Norwegian it is the same answers read back in Norwegian, while the
+   * text sent to the ATS (generatedNotes, roleDetailsBlock) stays English.
+   */
+  const reviewSummaryText = useMemo(() => {
+    if (lang === "en") return roleDetailsBlock ? `${generatedNotes}\n\n${roleDetailsBlock}` : generatedNotes;
+    const w = REQUEST_WORDS.no;
+    const o = (v: string) => optionLabel("no", v);
+    const sections: string[] = [];
+    if (form.jobSummary.trim()) sections.push(w.notesAboutPosition, o(form.jobSummary.trim()), "");
+    const tasks = form.workTasks
+      .split(/\r?\n/)
+      .map((line) => line.replace(/^\s*[-*•]\s*/, "").trim())
+      .filter(Boolean);
+    sections.push(w.notesWorkTasks, ...tasks.map((item) => `- ${item}`), "");
+    sections.push(
+      w.notesRequirements,
+      `- ${w.notesQualification}: ${o(form.qualification)}`,
+      `- ${w.notesDriverLicense}: ${
+        form.driverLicenseSelections.length === 0
+          ? w.notesNotSpecified
+          : form.driverLicenseSelections.map(o).join(", ")
+      }`,
+    );
+    if (form.tradeCertificatePreferred === "Yes") sections.push(`- ${w.notesTradeCertPreferred}`);
+    if (form.customerCommunicationRequired === "Yes") sections.push(`- ${w.notesCustomerComm}`);
+    if (form.personalQualities.length > 0) {
+      sections.push("", w.notesPersonalQualities, ...form.personalQualities.map((item) => `- ${o(item)}`));
+    }
+    if (form.offerItems.length > 0) {
+      sections.push("", w.notesWeOffer, ...form.offerItems.map((item) => `- ${o(item)}`));
+    }
+    if (form.additionalNotes.trim()) {
+      sections.push("", w.notesAdditional, form.additionalNotes.trim());
+    }
+    if (roleDetailRows.length > 0) {
+      sections.push(
+        "",
+        w.notesRoleDetails,
+        ...roleDetailRows.map((row) => {
+          const shown = roleDetailRowLabel("no", row);
+          return `${shown.label}: ${shown.value}`;
+        }),
+      );
+    }
+    return sections.join("\n");
+  }, [
+    lang,
+    generatedNotes,
+    roleDetailsBlock,
+    roleDetailRows,
+    form.additionalNotes,
+    form.driverLicenseSelections,
+    form.offerItems,
+    form.personalQualities,
+    form.qualification,
+    form.tradeCertificatePreferred,
+    form.workTasks,
+    form.customerCommunicationRequired,
+    form.jobSummary,
+  ]);
+
   /** The answers from the earlier steps, so the review shows the whole request. */
   const reviewRows = useMemo(() => {
     const rows: Array<{ label: string; value: string }> = [];
@@ -1295,44 +1366,47 @@ export default function RequestTokenPage() {
       const v = (value ?? "").trim();
       if (v) rows.push({ label, value: v });
     };
-    put("Company", form.companyName);
-    put("Contact", `${form.contactFirstName} ${form.contactLastName}`);
+    const w = REQUEST_WORDS[lang];
+    const o = (v: string) => optionLabel(lang, v);
+    put(w.rowCompany, form.companyName);
+    put(w.rowContact, `${form.contactFirstName} ${form.contactLastName}`);
     put(
-      "Business",
+      w.rowBusiness,
       form.requesterKind === "agency"
-        ? "Staffing or recruitment agency"
+        ? w.businessAgency
         : form.requesterKind === "own_operation"
-          ? "Hiring for our own work"
+          ? w.businessOwn
           : "",
     );
-    put("Service", serviceLabelEn(form.hiringType));
-    put("Job category", form.industry);
-    put("Position", form.workerType);
-    put("Location", form.locations.join(", "));
-    put("Number of workers", String(form.candidates));
+    put(w.rowService, serviceLabel(w, form.hiringType));
+    put(w.rowJobCategory, o(form.industry));
+    put(w.rowPosition, positionLabel(lang, form.workerType));
+    put(w.rowLocation, form.locations.join(", "));
+    put(w.rowWorkers, String(form.candidates));
     // A staffing client was never asked the contract type; the service row says it.
-    if (form.hiringType !== "staffing") put("Employment type", form.contractType);
-    put("Start", form.startDateMode === "Immediate" ? "Immediate" : form.startDate);
+    if (form.hiringType !== "staffing") put(w.rowEmploymentType, o(form.contractType));
+    put(w.rowStart, form.startDateMode === "Immediate" ? o("Immediate") : form.startDate);
     // Rows a client was never asked are not shown back to him: pay and conditions
     // are asked for recruitment and sourcing only (24 September 2026).
     if (askConditions) put(
-      form.salaryPeriod === "per hour" ? "Salary (NOK/hour)" : "Salary (NOK/month)",
+      form.salaryPeriod === "per hour" ? w.rowSalaryHour : w.rowSalaryMonth,
       [form.salaryMin.trim(), form.salaryMax.trim()].filter(Boolean).join(" - "),
     );
-    if (askConditions) put("Accommodation", form.accommodation ?? "");
-    if (askConditions) put("Local travel", form.localTransport ?? "");
+    if (askConditions) put(w.rowAccommodation, o(form.accommodation ?? ""));
+    if (askConditions) put(w.rowLocalTravel, o(form.localTransport ?? ""));
     // The column stores company_covered / own_responsibility; a review that
     // prints the stored word back at the client is not a review.
     if (askConditions) put(
-      "International travel",
+      w.rowInternationalTravel,
       form.internationalTransport === "company_covered"
-        ? "Covered by company"
+        ? w.intlCovered
         : form.internationalTransport === "own_responsibility"
-          ? "Candidate's own responsibility"
+          ? w.intlOwn
           : (form.internationalTransport ?? ""),
     );
     return rows;
   }, [
+    lang,
     askConditions,
     form.accommodation,
     form.candidates,
@@ -1616,7 +1690,7 @@ export default function RequestTokenPage() {
           throw new Error("send-request-email");
         }
       } catch {
-        setSubmitNotice("Request saved, but we could not send the confirmation email right now.");
+        setSubmitNotice(t.submitNoticeEmail);
       }
 
       await fetch(`/api/verify-token?token=${token}`, { method: "DELETE" }).catch(() => null);
@@ -1628,7 +1702,7 @@ export default function RequestTokenPage() {
       setSubmitStatus("success");
     } catch {
       setSubmitStatus("error");
-      setSubmitError("Could not submit request. Please try again.");
+      setSubmitError(t.submitError);
     } finally {
       setIsSubmitting(false);
     }
@@ -1768,19 +1842,19 @@ export default function RequestTokenPage() {
       : ({ animation: "successFadeIn 0.4s ease forwards", opacity: 0 } as const);
 
     return (
-      <section className="min-h-screen bg-[#0D1B2A] px-4 py-10">
+      <section lang={langAttr} className="min-h-screen bg-[#0D1B2A] px-4 py-10">
         <div className="mx-auto flex min-h-[80vh] w-full max-w-lg flex-col items-center justify-center text-center">
           <div className="w-full space-y-4" style={successAnimationStyle}>
             <div className="mx-auto h-[2px] w-[48px] bg-[#C9A84C]" />
             <h1 className="text-[1.75rem] font-bold tracking-[-0.02em] text-white sm:text-[2rem]">
-              {displayName ? `Thank you, ${displayName}!` : "Thank you!"}
+              {displayName ? fill(t.thankYouNamed, { name: displayName }) : t.thankYou}
             </h1>
             <p className="text-base text-[rgba(255,255,255,0.82)]">{DETAILED_OFFER_NOTE}</p>
             {submitSuccessReference ? (
-              <p className="text-sm font-medium text-[#C9A84C]">Your reference: {submitSuccessReference}</p>
+              <p className="text-sm font-medium text-[#C9A84C]">{fill(t.yourReference, { ref: submitSuccessReference })}</p>
             ) : null}
             <p className="text-sm text-[rgba(255,255,255,0.7)]">
-              We typically respond within 1-2 business days.
+              {t.respondTime}
             </p>
             {submitNotice ? <p className="text-xs text-amber-300">{submitNotice}</p> : null}
             <div className="pt-2">
@@ -1788,7 +1862,7 @@ export default function RequestTokenPage() {
                 href="/"
                 className="inline-flex min-h-[40px] items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] px-5 py-2 text-sm font-semibold text-[#C9A84C] transition-colors hover:border-[#C9A84C] hover:bg-[rgba(201,168,76,0.08)]"
               >
-                Back to homepage
+                {t.backHome}
               </Link>
             </div>
           </div>
@@ -1825,23 +1899,23 @@ export default function RequestTokenPage() {
 
   if (!showChoice && tokenGate === "loading") {
     return (
-      <section className="min-h-dvh bg-[#0D1B2A] px-4 py-20 text-center text-white">
-        <p className="text-[rgba(255,255,255,0.65)]">Loading…</p>
+      <section lang={langAttr} className="min-h-dvh bg-[#0D1B2A] px-4 py-20 text-center text-white">
+        <p className="text-[rgba(255,255,255,0.65)]">{t.loading}</p>
       </section>
     );
   }
 
   if (!showChoice && tokenGate === "blocked") {
     return (
-      <section className="min-h-dvh bg-[#0D1B2A] px-4 py-16 text-white">
+      <section lang={langAttr} className="min-h-dvh bg-[#0D1B2A] px-4 py-16 text-white">
         <div className="mx-auto max-w-lg rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-8 py-10 text-center">
           <div className="mx-auto h-[2px] w-10 bg-[#C9A84C]" aria-hidden />
-          <p className="mt-6 text-lg font-medium text-white">Please complete the initial request form first.</p>
+          <p className="mt-6 text-lg font-medium text-white">{t.blockedMessage}</p>
           <Link
             href="/request"
             className="mt-8 inline-flex min-h-[44px] items-center justify-center rounded-[10px] bg-[#C9A84C] px-8 py-3 text-sm font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
           >
-            Go to request form
+            {t.blockedLink}
           </Link>
         </div>
       </section>
@@ -1850,14 +1924,14 @@ export default function RequestTokenPage() {
 
   if (!showChoice && tokenGate === "error") {
     return (
-      <section className="min-h-dvh bg-[#0D1B2A] px-4 py-16 text-white">
+      <section lang={langAttr} className="min-h-dvh bg-[#0D1B2A] px-4 py-16 text-white">
         <div className="mx-auto max-w-lg rounded-2xl border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.03)] px-8 py-10 text-center">
-          <p className="text-lg text-[rgba(255,255,255,0.85)]">We could not load this request link.</p>
+          <p className="text-lg text-[rgba(255,255,255,0.85)]">{t.errorMessage}</p>
           <Link
             href="/request"
             className="mt-8 inline-flex min-h-[44px] items-center justify-center rounded-[10px] border border-[rgba(201,168,76,0.35)] px-8 py-3 text-sm font-semibold text-white transition-colors hover:border-[#C9A84C]"
           >
-            Start from the request form
+            {t.errorLink}
           </Link>
         </div>
       </section>
@@ -2270,7 +2344,7 @@ export default function RequestTokenPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-[#0a0f18] text-white">
+    <div lang={langAttr} className="min-h-dvh bg-[#0a0f18] text-white">
       <header className="fixed inset-x-0 top-0 z-30 flex flex-col bg-[rgba(10,15,24,0.95)] backdrop-blur-[12px]">
         <div className="flex h-14 items-center justify-between border-b border-white/10 px-4 md:h-16 md:px-6">
           <p className="text-base font-bold">
@@ -2303,8 +2377,8 @@ export default function RequestTokenPage() {
             {/* Step 0 - Company and contact: skip pentru parteneri/owner */}
             {step === 0 && !isPartnerOrOwner && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
-                <h2 className="text-2xl font-extrabold">Company and contact</h2>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{fill(t.stepOf, { n: displayStep, total: TOTAL_STEPS })}</p>
+                <h2 className="text-2xl font-extrabold">{t.step0Title}</h2>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div data-wizard-field="companyName">
                     <input
@@ -2314,7 +2388,7 @@ export default function RequestTokenPage() {
                         setForm((p) => ({ ...p, companyName: e.target.value }));
                         clearFieldError("companyName");
                       }}
-                      placeholder="Your company name"
+                      placeholder={t.phCompanyName}
                     />
                     {fieldErrors.companyName ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
@@ -2326,7 +2400,7 @@ export default function RequestTokenPage() {
                         setForm((p) => ({ ...p, orgNumber: e.target.value }));
                         clearFieldError("orgNumber");
                       }}
-                      placeholder="Norwegian org. number"
+                      placeholder={t.phOrgNumber}
                     />
                     {fieldErrors.orgNumber ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
@@ -2338,7 +2412,7 @@ export default function RequestTokenPage() {
                         setForm((p) => ({ ...p, contactFirstName: e.target.value }));
                         clearFieldError("contactFirstName");
                       }}
-                      placeholder="First name"
+                      placeholder={t.phFirstName}
                     />
                     {fieldErrors.contactFirstName ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
@@ -2350,7 +2424,7 @@ export default function RequestTokenPage() {
                         setForm((p) => ({ ...p, contactLastName: e.target.value }));
                         clearFieldError("contactLastName");
                       }}
-                      placeholder="Last name"
+                      placeholder={t.phLastName}
                     />
                     {fieldErrors.contactLastName ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
@@ -2359,7 +2433,7 @@ export default function RequestTokenPage() {
                       className={wizardInputClass(false)}
                       value={form.roleInCompany}
                       onChange={(e) => setForm((p) => ({ ...p, roleInCompany: e.target.value }))}
-                      placeholder="Your role in the company (e.g. Owner, HR manager)"
+                      placeholder={t.phRoleInCompany}
                     />
                   </div>
                   {/* Full width on desktop: in half a row the number lost its first digit. */}
@@ -2371,7 +2445,7 @@ export default function RequestTokenPage() {
                       )}
                     >
                       <select
-                        aria-label="Phone country code"
+                        aria-label={t.ariaPhoneCountryCode}
                         value={form.contactPhonePrefix}
                         onChange={(e) => {
                           setForm((p) => ({ ...p, contactPhonePrefix: e.target.value }));
@@ -2396,7 +2470,7 @@ export default function RequestTokenPage() {
                           setForm((p) => ({ ...p, contactPhone: digits }));
                           clearFieldError("contactPhone");
                         }}
-                        placeholder="+47 000 00 000"
+                        placeholder={t.phPhone}
                       />
                     </div>
                     {fieldErrors.contactPhone ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
@@ -2410,7 +2484,7 @@ export default function RequestTokenPage() {
                         setForm((p) => ({ ...p, contactEmail: e.target.value }));
                         clearFieldError("contactEmail");
                       }}
-                      placeholder="work@yourcompany.no"
+                      placeholder={t.phEmail}
                     />
                     {fieldErrors.contactEmail ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
@@ -2434,14 +2508,14 @@ export default function RequestTokenPage() {
                         <span>
                           {/* An acknowledgement, not an acceptance (legal review, 25 September 2026);
                               the field and what is stored (privacyAccepted) stay as they were. */}
-                          I confirm that I am authorised to send this request on behalf of my company, and that I have read the{" "}
+                          {t.privacyConfirmBefore}{" "}
                           <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]">
-                            privacy notice
+                            {t.privacyNoticeLink}
                           </a>
                           .
                         </span>
                       </label>
-                      {fieldErrors.acceptPrivacy ? <p className={fieldErrorTextClass}>Please confirm that you have read the privacy notice to continue</p> : null}
+                      {fieldErrors.acceptPrivacy ? <p className={fieldErrorTextClass}>{t.privacyError}</p> : null}
                     </div>
                     <div data-wizard-field="acceptTerms">
                       <label className="flex cursor-pointer items-start gap-3 text-sm text-white/85">
@@ -2455,14 +2529,14 @@ export default function RequestTokenPage() {
                           className="mt-1 h-4 w-4 shrink-0 rounded border-white/30 text-[#C9A84C] focus:ring-[#C9A84C]"
                         />
                         <span>
-                          I accept the{" "}
+                          {t.termsBefore}{" "}
                           <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-[#C9A84C] underline underline-offset-2 hover:text-[#dfc06a]">
-                            terms and conditions
+                            {t.termsLink}
                           </a>
                           .
                         </span>
                       </label>
-                      {fieldErrors.acceptTerms ? <p className={fieldErrorTextClass}>Please accept the terms and conditions to continue</p> : null}
+                      {fieldErrors.acceptTerms ? <p className={fieldErrorTextClass}>{t.termsError}</p> : null}
                     </div>
                   </div>
                 )}
@@ -2470,7 +2544,7 @@ export default function RequestTokenPage() {
                 {form.howDidYouHear !== "partner" && form.howDidYouHear !== "presentation" ? (
                 <div className="space-y-3 border-t border-white/10 pt-5">
                   <div>
-                    <p className={labelClass}>How did you hear about us</p>
+                    <p className={labelClass}>{t.howDidYouHear}</p>
                     <div
                       data-wizard-field="howDidYouHear"
                       className={wizardGroupShell(!!fieldErrors.howDidYouHear, "mt-2 flex flex-col gap-2")}
@@ -2478,7 +2552,7 @@ export default function RequestTokenPage() {
                       {HOW_DID_YOU_HEAR_OPTIONS.map((option) => (
                         <div key={option} className="flex flex-col gap-2">
                           <OptionCard
-                            label={option}
+                            label={opt(option)}
                             selected={form.howDidYouHear === option}
                             onClick={() => {
                               setForm((p) => ({
@@ -2521,7 +2595,7 @@ export default function RequestTokenPage() {
                                       setForm((p) => ({ ...p, referralCompanyName: e.target.value }));
                                       clearFieldError("referralCompanyName");
                                     }}
-                                    placeholder="Company name"
+                                    placeholder={t.phReferralCompany}
                                     autoComplete="organization"
                                   />
                                   {fieldErrors.referralCompanyName ? (
@@ -2537,11 +2611,11 @@ export default function RequestTokenPage() {
                                       setForm((p) => ({ ...p, referralEmail: e.target.value }));
                                       clearFieldError("referralEmail");
                                     }}
-                                    placeholder="Company email (optional)"
+                                    placeholder={t.phReferralEmail}
                                     autoComplete="email"
                                   />
                                   {fieldErrors.referralEmail ? (
-                                    <p className={fieldErrorTextClass}>Enter a valid email or leave blank</p>
+                                    <p className={fieldErrorTextClass}>{t.referralEmailError}</p>
                                   ) : null}
                                 </div>
                               </div>
@@ -2559,16 +2633,16 @@ export default function RequestTokenPage() {
 
             {step === 1 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
-                <h2 className="text-2xl font-extrabold">Job basics</h2>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{fill(t.stepOf, { n: displayStep, total: TOTAL_STEPS })}</p>
+                <h2 className="text-2xl font-extrabold">{t.step1Title}</h2>
                 {!presentationRequesterKind(searchParams, isPresentation) && <div data-wizard-field="requesterKind">
-                  <p className={labelClass}>What kind of business are you?</p>
+                  <p className={labelClass}>{t.requesterKindQuestion}</p>
                   <div className={wizardGroupShell(!!fieldErrors.requesterKind, "grid grid-cols-1 gap-2 md:grid-cols-2")}>
                     {REQUESTER_KIND_OPTIONS.map((option) => (
                       <OptionCard
                         key={option.value}
-                        label={option.label}
-                        sublabel={option.help}
+                        label={t[option.labelKey]}
+                        sublabel={t[option.helpKey]}
                         selected={form.requesterKind === option.value}
                         onClick={() => {
                           // An agency is never offered staffing: a staffing choice made before is cleared.
@@ -2582,12 +2656,12 @@ export default function RequestTokenPage() {
                       />
                     ))}
                   </div>
-                  {fieldErrors.requesterKind ? <p className={fieldErrorTextClass}>Please tell us what kind of business you are.</p> : null}
+                  {fieldErrors.requesterKind ? <p className={fieldErrorTextClass}>{t.requesterKindError}</p> : null}
                 </div>}
                 {/* The services follow the known or chosen company type. */}
                 {form.requesterKind ? (
                 <div data-wizard-field="hiringType">
-                  <p className={labelClass}>Which service do you need?</p>
+                  <p className={labelClass}>{t.serviceQuestion}</p>
                   <div className={wizardGroupShell(!!fieldErrors.hiringType, "grid grid-cols-1 gap-2")}>
                     {serviceCardsFor(
                       SERVICE_OPTIONS.map((o) => ({ ...o, key: o.value })),
@@ -2595,8 +2669,8 @@ export default function RequestTokenPage() {
                     ).map((option) => (
                       <OptionCard
                         key={option.value}
-                        label={option.label}
-                        sublabel={option.help}
+                        label={t[option.labelKey]}
+                        sublabel={t[option.helpKey]}
                         selected={form.hiringType === option.value}
                         disabled={option.comingSoon}
                         onClick={() => {
@@ -2606,7 +2680,7 @@ export default function RequestTokenPage() {
                       />
                     ))}
                   </div>
-                  {fieldErrors.hiringType ? <p className={fieldErrorTextClass}>Please choose a service.</p> : null}
+                  {fieldErrors.hiringType ? <p className={fieldErrorTextClass}>{t.serviceError}</p> : null}
                   {form.hiringType !== "advertising" ? (
                     <p className="mt-2 text-xs text-white/55">{DETAILED_OFFER_NOTE}</p>
                   ) : null}
@@ -2617,10 +2691,11 @@ export default function RequestTokenPage() {
                     data-wizard-field="advertisingHandoff"
                     className="space-y-3 rounded-[12px] border border-[rgba(201,168,76,0.35)] bg-[rgba(201,168,76,0.06)] p-5"
                   >
-                    <p className="text-base font-bold text-white">Job adverts have their own form</p>
+                    <p className="text-base font-bold text-white">{t.advertTitle}</p>
                     <p className="text-sm text-white/75">
-                      There you write the full advert, we check it before it is published, and you choose the package that suits you.
-                      The details you have already given us come along, so you do not type them twice.
+                      {t.advertBody1}
+                      {" "}
+                      {t.advertBody2}
                     </p>
                     <Link
                       href={advertHref}
@@ -2628,14 +2703,14 @@ export default function RequestTokenPage() {
                       onClick={() => trackEvent("request_advert_handoff", { industry: form.industry || "unknown" })}
                       className="inline-flex min-h-[44px] items-center justify-center rounded-[10px] bg-[#C9A84C] px-6 py-3 text-sm font-bold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
                     >
-                      Write your job advert
+                      {t.advertLink}
                     </Link>
-                    <p className="text-xs text-white/55">Looking for staffing or recruitment instead? Choose it above.</p>
+                    <p className="text-xs text-white/55">{t.advertAlt}</p>
                   </div>
                 ) : (
                 <>
                 <div>
-                  <p className={labelClass}>Job category</p>
+                  <p className={labelClass}>{t.jobCategory}</p>
                   <div
                     data-wizard-field="industry"
                     className={wizardGroupShell(!!fieldErrors.industry, "grid grid-cols-1 gap-3 md:grid-cols-2")}
@@ -2643,7 +2718,7 @@ export default function RequestTokenPage() {
                     {INDUSTRY_OPTIONS.map((option) => (
                       <OptionCard
                         key={option}
-                        label={option}
+                        label={opt(option)}
                         selected={form.industry === option}
                         onClick={() => {
                           setForm((p) => ({ ...p, industry: option }));
@@ -2656,17 +2731,17 @@ export default function RequestTokenPage() {
                 </div>
                 <div>
                   <p className={labelClass}>
-                    Job summary{" "}
-                    <span className="font-normal normal-case tracking-normal text-white/55">(optional)</span>
+                    {t.jobSummary}{" "}
+                    <span className="font-normal normal-case tracking-normal text-white/55">{t.optional}</span>
                   </p>
                   <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                     {["General hiring inquiry", "Urgent replacement need", "Planned team expansion", "Project-specific hiring"].map((option) => (
-                      <OptionCard key={option} label={option} selected={form.jobSummary === option} onClick={() => setForm((p) => ({ ...p, jobSummary: option }))} />
+                      <OptionCard key={option} label={opt(option)} selected={form.jobSummary === option} onClick={() => setForm((p) => ({ ...p, jobSummary: option }))} />
                     ))}
                   </div>
                 </div>
                 <div data-wizard-field="workerType">
-                  <p className={labelClass}>Trade or position</p>
+                  <p className={labelClass}>{t.tradeOrPosition}</p>
                   {workerTypeOptions.length > 0 ? (
                     <div className={wizardGroupShell(!!fieldErrors.workerType)}>
                       <div className="flex flex-wrap gap-2">
@@ -2684,7 +2759,7 @@ export default function RequestTokenPage() {
                                 : "border-white/20 text-white/70 hover:border-[rgba(201,168,76,0.4)]"
                             }`}
                           >
-                            {role}
+                            {positionLabel(lang, role)}
                           </button>
                         ))}
                       </div>
@@ -2696,7 +2771,7 @@ export default function RequestTokenPage() {
                             setForm((p) => ({ ...p, workerType: e.target.value }));
                             clearFieldError("workerType");
                           }}
-                          placeholder="Enter custom position..."
+                          placeholder={t.phCustomPosition}
                         />
                       )}
                     </div>
@@ -2708,7 +2783,7 @@ export default function RequestTokenPage() {
                         setForm((p) => ({ ...p, workerType: e.target.value }));
                         clearFieldError("workerType");
                       }}
-                      placeholder="Select industry first or enter position"
+                      placeholder={t.phPositionNoIndustry}
                     />
                   )}
                   {fieldErrors.workerType ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
@@ -2719,9 +2794,9 @@ export default function RequestTokenPage() {
                   return (
                     <div className="mt-6">
                       <label className="mb-3 block text-xs font-semibold uppercase tracking-[0.12em] text-white/55">
-                        Required skills (optional)
+                        {t.requiredSkills}
                       </label>
-                      <p className="mb-4 text-sm text-white/50">Select the skills most important for this position.</p>
+                      <p className="mb-4 text-sm text-white/50">{t.requiredSkillsHelp}</p>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         {roleSkills.map((skill) => (
                           <label
@@ -2734,7 +2809,7 @@ export default function RequestTokenPage() {
                               onChange={() => toggleSkill(skill)}
                               className="h-4 w-4 accent-[#C9A84C]"
                             />
-                            <span className="text-sm text-white/80">{skill}</span>
+                            <span className="text-sm text-white/80">{skillLabel(lang, skill)}</span>
                           </label>
                         ))}
                       </div>
@@ -2742,7 +2817,7 @@ export default function RequestTokenPage() {
                   );
                 })()}
                 <div data-wizard-field="locations">
-                  <p className={labelClass}>Location</p>
+                  <p className={labelClass}>{t.location}</p>
                   <div className={wizardGroupShell(!!fieldErrors.locations)}>
                     <input
                       className={wizardInputClass(false)}
@@ -2758,7 +2833,7 @@ export default function RequestTokenPage() {
                           addTypedPlace();
                         }
                       }}
-                      placeholder="Search or type a place"
+                      placeholder={t.phLocation}
                       maxLength={80}
                     />
                     <div className="mt-2 flex max-h-[150px] flex-wrap gap-2 overflow-auto">
@@ -2767,7 +2842,7 @@ export default function RequestTokenPage() {
                           key={`custom-${place}`}
                           type="button"
                           onClick={() => toggleLocation(place)}
-                          aria-label={`Remove ${place}`}
+                          aria-label={fill(t.removePlace, { place })}
                           className="min-h-[40px] rounded-full border border-[#C9A84C] bg-[rgba(201,168,76,0.1)] px-3 py-1.5 text-xs text-[#C9A84C]"
                         >
                           {place} ×
@@ -2779,7 +2854,7 @@ export default function RequestTokenPage() {
                           onClick={addTypedPlace}
                           className="min-h-[40px] rounded-full border border-dashed border-[#C9A84C]/70 px-3 py-1.5 text-xs text-[#C9A84C]"
                         >
-                          {`Add "${typedPlace}"`}
+                          {fill(t.addPlace, { place: typedPlace })}
                         </button>
                       ) : null}
                       {filteredCities.slice(0, 10).map((city) => (
@@ -2798,7 +2873,7 @@ export default function RequestTokenPage() {
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div data-wizard-field="candidates">
-                    <p className={labelClass}>Number of workers</p>
+                    <p className={labelClass}>{t.numberOfWorkers}</p>
                     <div className={wizardGroupShell(!!fieldErrors.candidates, "flex items-center gap-3")}>
                       <button
                         type="button"
@@ -2827,12 +2902,12 @@ export default function RequestTokenPage() {
                   {/* Staffing: no contract type to choose; our people are hired out for the assignment. */}
                   {form.hiringType !== "staffing" ? (
                   <div data-wizard-field="contractType">
-                    <p className={labelClass}>Contract type</p>
+                    <p className={labelClass}>{t.contractType}</p>
                     <div className={wizardGroupShell(!!fieldErrors.contractType, "space-y-2")}>
                       {["Permanent employment", "Temporary hire", "Project-based"].map((option) => (
                         <OptionCard
                           key={option}
-                          label={option}
+                          label={opt(option)}
                           selected={form.contractType === option}
                           onClick={() => {
                             setForm((p) => ({ ...p, contractType: option }));
@@ -2846,7 +2921,7 @@ export default function RequestTokenPage() {
                   ) : null}
                 </div>
                 <div>
-                  <p className={labelClass}>Start date</p>
+                  <p className={labelClass}>{t.startDate}</p>
                   <div className="mb-3 flex flex-wrap gap-2">
                     {(["Immediate", "Specific start date"] as const).map((mode) => (
                       <button
@@ -2858,7 +2933,7 @@ export default function RequestTokenPage() {
                           clearFieldError("startDate");
                         }}
                       >
-                        {mode}
+                        {opt(mode)}
                       </button>
                     ))}
                   </div>
@@ -2887,15 +2962,15 @@ export default function RequestTokenPage() {
                 {form.hiringType === "staffing" ? (
                   <div className="space-y-4">
                     <div>
-                      <p className={labelClass}>Worksite address {OPTIONAL_TAG}</p>
+                      <p className={labelClass}>{t.worksiteAddress} {OPTIONAL_TAG}</p>
                       <div className="space-y-3">
                         <div data-wizard-field="worksiteStreet">
                           <input
                             className={wizardInputClass(!!fieldErrors.worksiteStreet)}
                             value={form.roleAnswers.staffing.worksiteStreet}
                             onChange={(e) => setStaffing({ worksiteStreet: e.target.value })}
-                            placeholder="Street and number"
-                            aria-label="Worksite street and number"
+                            placeholder={t.phStreet}
+                            aria-label={t.ariaStreet}
                             autoComplete="street-address"
                             maxLength={120}
                           />
@@ -2909,20 +2984,20 @@ export default function RequestTokenPage() {
                                 setStaffing({ worksitePostcode: e.target.value.replace(/\D/g, "").slice(0, 4) });
                                 clearFieldError("worksitePostcode");
                               }}
-                              placeholder="Postcode"
-                              aria-label="Worksite postcode"
+                              placeholder={t.phPostcode}
+                              aria-label={t.ariaPostcode}
                               inputMode="numeric"
                               autoComplete="postal-code"
                             />
-                            {fieldErrors.worksitePostcode ? <p className={fieldErrorTextClass}>4 digits</p> : null}
+                            {fieldErrors.worksitePostcode ? <p className={fieldErrorTextClass}>{t.postcodeError}</p> : null}
                           </div>
                           <div data-wizard-field="worksiteCity">
                             <input
                               className={wizardInputClass(!!fieldErrors.worksiteCity)}
                               value={form.roleAnswers.staffing.worksiteCity}
                               onChange={(e) => setStaffing({ worksiteCity: e.target.value })}
-                              placeholder={form.locations[0] ? `e.g. ${form.locations[0]}` : "City"}
-                              aria-label="Worksite city"
+                              placeholder={form.locations[0] ? fill(t.phCityExample, { city: form.locations[0] }) : t.phCity}
+                              aria-label={t.ariaCity}
                               autoComplete="address-level2"
                               maxLength={80}
                             />
@@ -2932,13 +3007,13 @@ export default function RequestTokenPage() {
                     </div>
                     {staffingAddressGiven(form.roleAnswers.staffing) ? (
                       <div>
-                        <p className={labelClass}>Assignment period</p>
+                        <p className={labelClass}>{t.assignmentPeriod}</p>
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                           <div data-wizard-field="periodFrom">
-                            <p className="mb-1 text-xs text-white/55">From</p>
+                            <p className="mb-1 text-xs text-white/55">{t.from}</p>
                             <input
                               type="date"
-                              aria-label="Assignment from"
+                              aria-label={t.ariaFrom}
                               className={wizardInputClass(!!fieldErrors.periodFrom)}
                               value={form.roleAnswers.staffing.periodFrom}
                               onChange={(e) => {
@@ -2949,10 +3024,10 @@ export default function RequestTokenPage() {
                             {fieldErrors.periodFrom ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                           </div>
                           <div data-wizard-field="periodTo">
-                            <p className="mb-1 text-xs text-white/55">To</p>
+                            <p className="mb-1 text-xs text-white/55">{t.to}</p>
                             <input
                               type="date"
-                              aria-label="Assignment to"
+                              aria-label={t.ariaTo}
                               className={wizardInputClass(!!fieldErrors.periodTo)}
                               value={form.roleAnswers.staffing.periodTo}
                               min={form.roleAnswers.staffing.periodFrom || undefined}
@@ -2961,7 +3036,7 @@ export default function RequestTokenPage() {
                                 clearFieldError("periodTo");
                               }}
                             />
-                            {fieldErrors.periodTo ? <p className={fieldErrorTextClass}>Choose an end date on or after the start.</p> : null}
+                            {fieldErrors.periodTo ? <p className={fieldErrorTextClass}>{t.periodToError}</p> : null}
                           </div>
                         </div>
                       </div>
@@ -2975,11 +3050,11 @@ export default function RequestTokenPage() {
 
             {step === 2 && (
               <div className="space-y-5">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
-                <h2 className="text-2xl font-extrabold">Salary and conditions</h2>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{fill(t.stepOf, { n: displayStep, total: TOTAL_STEPS })}</p>
+                <h2 className="text-2xl font-extrabold">{t.step2Title}</h2>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div>
-                    <p className={labelClass}>Salary mode</p>
+                    <p className={labelClass}>{t.salaryMode}</p>
                     <div className="flex gap-2">
                       {(["Range", "Fixed"] as const).map((mode) => (
                         <button
@@ -2988,13 +3063,13 @@ export default function RequestTokenPage() {
                           className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${form.salaryMode === mode ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`}
                           onClick={() => setForm((p) => ({ ...p, salaryMode: mode }))}
                         >
-                          {mode}
+                          {opt(mode)}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <p className={labelClass}>Salary period</p>
+                    <p className={labelClass}>{t.salaryPeriod}</p>
                     <div className="flex gap-2">
                       {(["per hour", "per month"] as const).map((period) => (
                         <button
@@ -3003,7 +3078,7 @@ export default function RequestTokenPage() {
                           className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm focus:outline-none focus-visible:border-2 focus-visible:border-[#C9A84C] ${form.salaryPeriod === period ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/60"}`}
                           onClick={() => setForm((p) => ({ ...p, salaryPeriod: period }))}
                         >
-                          {period === "per hour" ? "Per hour" : "Per month"}
+                          {period === "per hour" ? t.perHour : t.perMonth}
                         </button>
                       ))}
                     </div>
@@ -3012,7 +3087,7 @@ export default function RequestTokenPage() {
                 <div className="space-y-2">
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
                     <p className="block text-xs font-semibold uppercase tracking-[0.08em] text-[#C9A84C]">
-                      Salary (per hour, NOK)
+                      {t.salaryPerHourNok}
                     </p>
                     <a
                       href="https://www.arbeidstilsynet.no/arbeidsforhold/lonn/minstelonn/"
@@ -3020,7 +3095,7 @@ export default function RequestTokenPage() {
                       rel="noopener noreferrer"
                       className="shrink-0 text-[11px] font-medium text-[#C9A84C] underline decoration-[#C9A84C]/40 underline-offset-2 hover:text-[#b8953f]"
                     >
-                      View minimum wages →
+                      {t.minWagesLink}
                     </a>
                   </div>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -3036,7 +3111,7 @@ export default function RequestTokenPage() {
                           setForm((p) => ({ ...p, salaryMin: e.target.value }));
                           clearFieldError("salaryMin");
                         }}
-                        placeholder="e.g. 220 NOK/hour"
+                        placeholder={t.phSalaryMin}
                       />
                       {fieldErrors.salaryMin ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                     </div>
@@ -3052,22 +3127,22 @@ export default function RequestTokenPage() {
                           setForm((p) => ({ ...p, salaryMax: e.target.value }));
                           clearFieldError("salaryMax");
                         }}
-                        placeholder="To (NOK/hour)"
+                        placeholder={t.phSalaryMax}
                       />
                       {fieldErrors.salaryMax ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                     </div>
                   </div>
                   <p className="text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.62)" }}>
-                    Must meet Arbeidstilsynet minimum wage requirements
+                    {t.minWageNote}
                   </p>
                 </div>
                 <div data-wizard-field="accommodation">
-                  <p className={labelClass}>Accommodation</p>
+                  <p className={labelClass}>{t.accommodation}</p>
                   <div className={wizardGroupShell(!!fieldErrors.accommodation, "grid grid-cols-1 gap-2 md:grid-cols-2")}>
                     {[ACCOMMODATION_WE_HELP, ACCOMMODATION_CANDIDATE_OWN].map((option) => (
                       <OptionCard
                         key={option}
-                        label={option}
+                        label={opt(option)}
                         selected={form.accommodation === option}
                         onClick={() => {
                           setForm((p) => ({
@@ -3091,7 +3166,7 @@ export default function RequestTokenPage() {
                   }`}
                 >
                   <div className="pb-1 pt-2">
-                    <p className={labelClass}>Accommodation cost</p>
+                    <p className={labelClass}>{t.accommodationCost}</p>
                     <input
                       className={wizardInputClass(false)}
                       value={form.accommodation === ACCOMMODATION_WE_HELP ? form.accommodationCost : ""}
@@ -3099,14 +3174,14 @@ export default function RequestTokenPage() {
                         if (form.accommodation !== ACCOMMODATION_WE_HELP) return;
                         setForm((p) => ({ ...p, accommodationCost: e.target.value }));
                       }}
-                      placeholder="e.g. 5000 NOK or describe"
+                      placeholder={t.phAccommodationCost}
                       tabIndex={form.accommodation === ACCOMMODATION_WE_HELP ? 0 : -1}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div data-wizard-field="localTransport">
-                    <p className={labelClass}>Local travel</p>
+                    <p className={labelClass}>{t.localTravel}</p>
                     <div className={wizardGroupShell(!!fieldErrors.localTransport, "flex flex-wrap gap-2")}>
                       {["Covered", "Not covered"].map((opt) => (
                         <button
@@ -3118,19 +3193,19 @@ export default function RequestTokenPage() {
                             clearFieldError("localTransport");
                           }}
                         >
-                          {opt}
+                          {optionLabel(lang, opt)}
                         </button>
                       ))}
                     </div>
                     {fieldErrors.localTransport ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                   </div>
                   <div data-wizard-field="internationalTransport">
-                    <p className={`${labelClass} normal-case`}>International travel costs</p>
+                    <p className={`${labelClass} normal-case`}>{t.internationalTravelCosts}</p>
                     <div className={wizardGroupShell(!!fieldErrors.internationalTransport, "flex flex-col gap-3")}>
                       {(
                         [
-                          { value: "company_covered" as const, label: "Covered by company" },
-                          { value: "own_responsibility" as const, label: "Candidate's own responsibility" },
+                          { value: "company_covered" as const, label: t.intlCovered },
+                          { value: "own_responsibility" as const, label: t.intlOwn },
                         ] as const
                       ).map((opt) => (
                         <label
@@ -3160,16 +3235,16 @@ export default function RequestTokenPage() {
                   </div>
                 </div>
                 <div className="self-start">
-                  <p className={labelClass}>Rotation</p>
+                  <p className={labelClass}>{t.rotation}</p>
                   <select
-                    aria-label="Rotation or work schedule"
+                    aria-label={t.ariaRotation}
                     value={form.rotationSchedule}
                     onChange={(e) => setForm((p) => ({ ...p, rotationSchedule: e.target.value }))}
                     className="block w-[min(288px,92vw)] max-w-[288px] min-h-[44px] rounded-[12px] border border-white/10 bg-white/[0.05] px-3 py-3 text-sm text-white focus:outline-none focus:border-2 focus:border-[#C9A84C]"
                   >
                     {ROTATION_SCHEDULE_OPTIONS.map((opt) => (
                       <option key={opt} value={opt} className="bg-[#0D1B2A] text-white">
-                        {opt}
+                        {optionLabel(lang, opt)}
                       </option>
                     ))}
                   </select>
@@ -3177,24 +3252,25 @@ export default function RequestTokenPage() {
                 {form.hiringType === "staffing" ? (
                   <div className="space-y-4 border-t border-white/10 pt-5">
                     <div>
-                      <p className="text-base font-bold text-white">The assignment</p>
-                      <p className="mt-1 text-xs text-white/55">Where and when our workers will be with you, and who leads them on site.</p>
+                      <p className="text-base font-bold text-white">{t.assignmentTitle}</p>
+                      <p className="mt-1 text-xs text-white/55">{t.assignmentHelp}</p>
                     </div>
                     <div data-wizard-field="hoursPerWeek">
-                      <p className={labelClass}>Hours per week</p>
+                      <p className={labelClass}>{t.hoursPerWeek}</p>
                       <input
                         className={wizardInputClass(!!fieldErrors.hoursPerWeek, "max-w-[10rem]")}
                         value={form.roleAnswers.staffing.hoursPerWeek}
                         onChange={(e) => setStaffing({ hoursPerWeek: e.target.value.replace(/[^\d.,]/g, "").slice(0, 5) })}
-                        placeholder="e.g. 37.5"
+                        placeholder={t.phHours}
                         inputMode="decimal"
                       />
-                      {fieldErrors.hoursPerWeek ? <p className={fieldErrorTextClass}>Enter the hours per week (1 to 80).</p> : null}
+                      {fieldErrors.hoursPerWeek ? <p className={fieldErrorTextClass}>{t.hoursError}</p> : null}
                     </div>
                     <div>
-                      <p className={labelClass}>Shift pattern {OPTIONAL_TAG}</p>
+                      <p className={labelClass}>{t.shiftPattern} {OPTIONAL_TAG}</p>
                       <ChoiceChips
-                        ariaLabel="Shift pattern"
+                        ariaLabel={t.shiftPattern}
+                        labelFor={opt}
                         options={SHIFT_PATTERNS}
                         selected={form.roleAnswers.staffing.shiftPattern}
                         onPick={(v) => {
@@ -3204,14 +3280,14 @@ export default function RequestTokenPage() {
                       />
                     </div>
                     <div>
-                      <p className={labelClass}>Who approves the hours on site</p>
+                      <p className={labelClass}>{t.approverQuestion}</p>
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         <div data-wizard-field="approverName">
                           <input
                             className={wizardInputClass(!!fieldErrors.approverName)}
                             value={form.roleAnswers.staffing.approverName}
                             onChange={(e) => setStaffing({ approverName: e.target.value })}
-                            placeholder="Name"
+                            placeholder={t.phName}
                             maxLength={120}
                           />
                           {fieldErrors.approverName ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
@@ -3221,17 +3297,18 @@ export default function RequestTokenPage() {
                             className={wizardInputClass(!!fieldErrors.approverPhone)}
                             value={form.roleAnswers.staffing.approverPhone}
                             onChange={(e) => setStaffing({ approverPhone: e.target.value.replace(/[^\d+\s]/g, "").slice(0, 20) })}
-                            placeholder="Phone"
+                            placeholder={t.phPhoneShort}
                             inputMode="tel"
                           />
-                          {fieldErrors.approverPhone ? <p className={fieldErrorTextClass}>Enter a phone number.</p> : null}
+                          {fieldErrors.approverPhone ? <p className={fieldErrorTextClass}>{t.approverPhoneError}</p> : null}
                         </div>
                       </div>
                     </div>
                     <div data-wizard-field="ppeProvided">
-                      <p className={labelClass}>Do you provide the protective equipment?</p>
+                      <p className={labelClass}>{t.ppeQuestion}</p>
                       <ChoiceChips
-                        ariaLabel="Protective equipment provided by you"
+                        ariaLabel={t.ariaPpe}
+                        labelFor={opt}
                         options={YES_NO}
                         selected={[form.roleAnswers.staffing.ppeProvided]}
                         invalid={!!fieldErrors.ppeProvided}
@@ -3245,13 +3322,14 @@ export default function RequestTokenPage() {
                 {form.hiringType === "recruitment" || form.hiringType === "sourcing" ? (
                   <div className="space-y-4 border-t border-white/10 pt-5">
                     <div>
-                      <p className="text-base font-bold text-white">The hiring process</p>
-                      <p className="mt-1 text-xs text-white/55">How you will choose the candidate and when you need them.</p>
+                      <p className="text-base font-bold text-white">{t.hiringProcessTitle}</p>
+                      <p className="mt-1 text-xs text-white/55">{t.hiringProcessHelp}</p>
                     </div>
                     <div data-wizard-field="probation">
-                      <p className={labelClass}>Probation period</p>
+                      <p className={labelClass}>{t.probation}</p>
                       <ChoiceChips
-                        ariaLabel="Probation period"
+                        ariaLabel={t.probation}
+                        labelFor={opt}
                         options={PROBATION_OPTIONS}
                         selected={[form.roleAnswers.recruitment.probation]}
                         invalid={!!fieldErrors.probation}
@@ -3260,9 +3338,9 @@ export default function RequestTokenPage() {
                       {fieldErrors.probation ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                     </div>
                     <div data-wizard-field="interviewRounds">
-                      <p className={labelClass}>Interview rounds</p>
+                      <p className={labelClass}>{t.interviewRounds}</p>
                       <ChoiceChips
-                        ariaLabel="Interview rounds"
+                        ariaLabel={t.interviewRounds}
                         options={INTERVIEW_ROUND_OPTIONS}
                         selected={[form.roleAnswers.recruitment.interviewRounds]}
                         invalid={!!fieldErrors.interviewRounds}
@@ -3271,17 +3349,17 @@ export default function RequestTokenPage() {
                       {fieldErrors.interviewRounds ? <p className={fieldErrorTextClass}>{FIELD_ERROR_MSG}</p> : null}
                     </div>
                     <div>
-                      <p className={labelClass}>Who interviews the candidate {OPTIONAL_TAG}</p>
+                      <p className={labelClass}>{t.interviewer} {OPTIONAL_TAG}</p>
                       <input
                         className={wizardInputClass(false)}
                         value={form.roleAnswers.recruitment.interviewer}
                         onChange={(e) => setRecruitment({ interviewer: e.target.value })}
-                        placeholder="e.g. the site manager and HR"
+                        placeholder={t.phInterviewer}
                         maxLength={200}
                       />
                     </div>
                     <div>
-                      <p className={labelClass}>Hire needed by {OPTIONAL_TAG}</p>
+                      <p className={labelClass}>{t.hireBy} {OPTIONAL_TAG}</p>
                       <input
                         type="date"
                         className={wizardInputClass(false, "max-w-[14rem]")}
@@ -3294,24 +3372,24 @@ export default function RequestTokenPage() {
                 <div className="rounded-[10px] border border-[rgba(201,168,76,0.2)] px-4 py-4">
                   <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-white/85">
                     <input type="checkbox" checked={form.subscribeUpdates} onChange={(event) => setForm((previous) => ({ ...previous, subscribeUpdates: event.target.checked }))} className="mt-1 h-5 w-5 shrink-0 accent-[#C9A84C]" />
-                    <span>I want emails from ArbeidMatch when candidates matching this request become available.</span>
+                    <span>{t.subscribeLabel}</span>
                   </label>
-                  <p className="mt-3 text-xs leading-relaxed text-white/60">Optional. Presentations are sent when suitable candidates are available, not immediately after your request. To stop updates, contact post@arbeidmatch.no.</p>
+                  <p className="mt-3 text-xs leading-relaxed text-white/60">{t.subscribeHelp}</p>
                 </div>
               </div>
             )}
 
             {step === 3 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
-                <h2 className="text-2xl font-extrabold">Requirements</h2>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{fill(t.stepOf, { n: displayStep, total: TOTAL_STEPS })}</p>
+                <h2 className="text-2xl font-extrabold">{t.step3Title}</h2>
                 <div data-wizard-field="qualification">
-                  <p className={labelClass}>Qualification</p>
+                  <p className={labelClass}>{t.qualification}</p>
                   <div className={wizardGroupShell(!!fieldErrors.qualification, "grid grid-cols-1 gap-2 md:grid-cols-2")}>
                     {["No minimum", "1 to 2 years", "3 to 5 years", "5+ years"].map((opt) => (
                       <OptionCard
                         key={opt}
-                        label={opt}
+                        label={optionLabel(lang, opt)}
                         selected={form.qualification === opt}
                         onClick={() => {
                           setForm((p) => ({ ...p, qualification: opt }));
@@ -3326,8 +3404,8 @@ export default function RequestTokenPage() {
                   <div className={wizardGroupShell(!!fieldErrors.dNumberChoice, "flex flex-col gap-3")}>
                     {(
                       [
-                        { value: "has_d_number" as const, label: "Already has a D-number" },
-                        { value: "we_handle" as const, label: "We can handle the procedure" },
+                        { value: "has_d_number" as const, label: t.dNumberHas },
+                        { value: "we_handle" as const, label: t.dNumberWeHandle },
                       ] as const
                     ).map((opt) => (
                       <label
@@ -3357,8 +3435,8 @@ export default function RequestTokenPage() {
                 </div>
                 <div>
                   <p className={labelClass}>
-                    Driving license{" "}
-                    <span className="font-normal normal-case tracking-normal text-white/55">(optional)</span>
+                    {t.drivingLicense}{" "}
+                    <span className="font-normal normal-case tracking-normal text-white/55">{t.optional}</span>
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {NORWEGIAN_DRIVING_LICENSE_CLASSES.map((cls) => {
@@ -3387,14 +3465,14 @@ export default function RequestTokenPage() {
                           : "border-[rgba(255,255,255,0.2)] bg-transparent text-white/90"
                       }`}
                     >
-                      {NO_DRIVING_LICENSE_REQUIRED}
+                      {opt(NO_DRIVING_LICENSE_REQUIRED)}
                     </button>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {[
-                    { label: "Trade certificate preferred", key: "tradeCertificatePreferred" as const },
-                    { label: "Customer communication required", key: "customerCommunicationRequired" as const },
+                    { label: t.tradeCertPreferred, key: "tradeCertificatePreferred" as const },
+                    { label: t.customerCommRequired, key: "customerCommunicationRequired" as const },
                   ]
                     // A trade that asks "fagbrev required?" below does not also ask "preferred?".
                     .filter(({ key }) => key !== "tradeCertificatePreferred" || !tradeQuestions.some((q) => q.id === "fagbrev"))
@@ -3402,7 +3480,7 @@ export default function RequestTokenPage() {
                     <div key={key}>
                       <p className={labelClass}>
                         {label}{" "}
-                        <span className="font-normal normal-case tracking-normal text-white/55">(optional)</span>
+                        <span className="font-normal normal-case tracking-normal text-white/55">{t.optional}</span>
                       </p>
                       <div className="flex gap-2">
                         {(["Yes", "No"] as const).map((value) => (
@@ -3416,7 +3494,7 @@ export default function RequestTokenPage() {
                             }`}
                             onClick={() => setForm((p) => ({ ...p, [key]: value }))}
                           >
-                            {value}
+                            {opt(value)}
                           </button>
                         ))}
                       </div>
@@ -3424,11 +3502,12 @@ export default function RequestTokenPage() {
                   ))}
                 </div>
                 <div className="space-y-4 border-t border-white/10 pt-5">
-                  <p className="text-base font-bold text-white">Language at work</p>
+                  <p className="text-base font-bold text-white">{t.languageAtWork}</p>
                   <div data-wizard-field="norwegianLevel">
-                    <p className={labelClass}>Norwegian needed at work</p>
+                    <p className={labelClass}>{t.norwegianNeeded}</p>
                     <ChoiceChips
-                      ariaLabel="Norwegian needed at work"
+                      ariaLabel={t.norwegianNeeded}
+                      labelFor={opt}
                       options={LANGUAGE_LEVELS}
                       selected={[form.roleAnswers.norwegianLevel]}
                       invalid={!!fieldErrors.norwegianLevel}
@@ -3441,26 +3520,27 @@ export default function RequestTokenPage() {
                   </div>
                   {norwegianNeedsReason(form.roleAnswers.norwegianLevel) ? (
                     <div data-wizard-field="norwegianReason">
-                      <p className={labelClass}>Why does the work need Norwegian?</p>
+                      <p className={labelClass}>{t.whyNorwegian}</p>
                       <input
                         className={wizardInputClass(!!fieldErrors.norwegianReason)}
                         value={form.roleAnswers.norwegianReason}
                         onChange={(e) => setRole({ norwegianReason: e.target.value })}
-                        placeholder="e.g. daily contact with customers, safety briefings in Norwegian"
+                        placeholder={t.phWhyNorwegian}
                         maxLength={300}
                       />
                       <p className="mt-1 text-xs text-white/55">
-                        Candidates who speak Norwegian well are fewer, so it helps us to know what the language is used for.
+                        {t.whyNorwegianHelp}
                       </p>
                       {fieldErrors.norwegianReason ? (
-                        <p className={fieldErrorTextClass}>Tell us in a few words what the language is needed for.</p>
+                        <p className={fieldErrorTextClass}>{t.whyNorwegianError}</p>
                       ) : null}
                     </div>
                   ) : null}
                   <div data-wizard-field="englishLevel">
-                    <p className={labelClass}>English needed at work</p>
+                    <p className={labelClass}>{t.englishNeeded}</p>
                     <ChoiceChips
-                      ariaLabel="English needed at work"
+                      ariaLabel={t.englishNeeded}
+                      labelFor={opt}
                       options={LANGUAGE_LEVELS}
                       selected={[form.roleAnswers.englishLevel]}
                       invalid={!!fieldErrors.englishLevel}
@@ -3479,46 +3559,51 @@ export default function RequestTokenPage() {
                   */}
                   <div data-wizard-field="teamNationalities">
                     <p className={labelClass}>
-                      Nationalities on the team today {OPTIONAL_TAG}
+                      {t.teamNationalities} {OPTIONAL_TAG}
                     </p>
                     <input
                       className={wizardInputClass(false)}
                       value={form.roleAnswers.teamNationalities}
                       onChange={(e) => setRole({ teamNationalities: e.target.value })}
-                      placeholder="e.g. Norwegian, Polish, Lithuanian"
+                      placeholder={t.phTeamNationalities}
                       maxLength={200}
                     />
                     <p className="mt-1 text-xs text-white/55">
-                      It helps us pick candidates who come into the crew from day one.
+                      {t.teamNationalitiesHelp}
                     </p>
                   </div>
                   <div data-wizard-field="teamLanguage">
                     <p className={labelClass}>
-                      Language spoken within the team {OPTIONAL_TAG}
+                      {t.teamLanguage} {OPTIONAL_TAG}
                     </p>
                     <input
                       className={wizardInputClass(false)}
                       value={form.roleAnswers.teamLanguage}
                       onChange={(e) => setRole({ teamLanguage: e.target.value })}
-                      placeholder="e.g. Norwegian on site, English within the crew"
+                      placeholder={t.phTeamLanguage}
                       maxLength={200}
                     />
                   </div>
                 </div>
                 {tradeQuestions.length > 0 ? (
                   <div className="space-y-4 border-t border-white/10 pt-5">
-                    <p className="text-base font-bold text-white">{`About the ${form.workerType.trim() || form.industry} role`}</p>
+                    <p className="text-base font-bold text-white">
+                      {fill(t.aboutRole, {
+                        role: form.workerType.trim() ? roleInSentence(positionLabel(lang, form.workerType.trim())) : roleInSentence(opt(form.industry)),
+                      })}
+                    </p>
                     {tradeQuestions.map((q) => {
                       const key = tradeFieldKey(q.id);
                       const answer = form.roleAnswers.trade[q.id];
                       const selected = Array.isArray(answer) ? answer : answer ? [answer] : [];
+                      const text = tradeQuestionText(lang, q);
                       return (
                         <div key={q.id} data-wizard-field={key}>
                           <p className={labelClass}>
-                            {q.label}
+                            {text.label}
                             {q.required ? null : <> {OPTIONAL_TAG}</>}
                           </p>
-                          {q.help ? <p className="mb-2 text-xs text-white/55">{q.help}</p> : null}
+                          {text.help ? <p className="mb-2 text-xs text-white/55">{text.help}</p> : null}
                           {q.kind === "text" ? (
                             <input
                               className={wizardInputClass(!!fieldErrors[key])}
@@ -3531,12 +3616,13 @@ export default function RequestTokenPage() {
                                 }));
                                 clearFieldError(key);
                               }}
-                              placeholder={q.placeholder}
+                              placeholder={text.placeholder}
                               maxLength={300}
                             />
                           ) : (
                             <ChoiceChips
-                              ariaLabel={q.label}
+                              ariaLabel={text.label}
+                              labelFor={opt}
                               options={q.kind === "yesno" ? YES_NO : (q.options ?? [])}
                               selected={selected}
                               invalid={!!fieldErrors[key]}
@@ -3554,14 +3640,18 @@ export default function RequestTokenPage() {
 
             {step === 4 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
-                <h2 className="text-2xl font-extrabold">Work tasks</h2>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{fill(t.stepOf, { n: displayStep, total: TOTAL_STEPS })}</p>
+                <h2 className="text-2xl font-extrabold">{t.step4Title}</h2>
                 <p className="text-sm text-white/55">
-                  {`What will the ${form.workerType.trim() || "worker"} do day to day? One task per line.`}
+                  {fill(t.workTasksIntro, {
+                    worker: form.workerType.trim()
+                      ? fill(t.workerWithRole, { role: roleInSentence(positionLabel(lang, form.workerType.trim())) })
+                      : t.workerFallback,
+                  })}
                 </p>
                 <div data-wizard-field="workTasks">
                   <textarea
-                    aria-label="Work tasks"
+                    aria-label={t.ariaWorkTasks}
                     rows={6}
                     maxLength={1500}
                     className={wizardInputClass(!!fieldErrors.workTasks, "resize-y")}
@@ -3572,7 +3662,7 @@ export default function RequestTokenPage() {
                     }}
                   />
                   {fieldErrors.workTasks ? (
-                    <p className={fieldErrorTextClass}>Please describe the work tasks (at least a few words).</p>
+                    <p className={fieldErrorTextClass}>{t.workTasksError}</p>
                   ) : null}
                 </div>
               </div>
@@ -3580,8 +3670,8 @@ export default function RequestTokenPage() {
 
             {step === 5 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
-                <h2 className="text-2xl font-extrabold">Personal qualities</h2>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{fill(t.stepOf, { n: displayStep, total: TOTAL_STEPS })}</p>
+                <h2 className="text-2xl font-extrabold">{t.step5Title}</h2>
                 <div data-wizard-field="personalQualities">
                   <div className={wizardGroupShell(!!fieldErrors.personalQualities, "flex flex-wrap gap-2")}>
                     {PERSONAL_QUALITY_OPTIONS.map((item) => (
@@ -3591,7 +3681,7 @@ export default function RequestTokenPage() {
                         onClick={() => toggleItem("personalQualities", item)}
                         className={`min-h-[40px] rounded-full border px-4 py-2 text-sm ${form.personalQualities.includes(item) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}
                       >
-                        {item}
+                        {opt(item)}
                       </button>
                     ))}
                   </div>
@@ -3602,10 +3692,10 @@ export default function RequestTokenPage() {
 
             {step === 6 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{fill(t.stepOf, { n: displayStep, total: TOTAL_STEPS })}</p>
                 <h2 className="text-2xl font-extrabold">
-                  We offer{" "}
-                  <span className="text-base font-normal text-white/55">(optional)</span>
+                  {t.step6Title}{" "}
+                  <span className="text-base font-normal text-white/55">{t.optional}</span>
                 </h2>
                 <div data-wizard-field="offerItems">
                   <div className={wizardGroupShell(!!fieldErrors.offerItems, "flex flex-wrap gap-2")}>
@@ -3616,7 +3706,7 @@ export default function RequestTokenPage() {
                         onClick={() => toggleItem("offerItems", item)}
                         className={`min-h-[40px] rounded-full border px-4 py-2 text-sm ${form.offerItems.includes(item) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}
                       >
-                        {item}
+                        {opt(item)}
                       </button>
                     ))}
                   </div>
@@ -3627,13 +3717,13 @@ export default function RequestTokenPage() {
 
             {step === 7 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
-                <h2 className="text-2xl font-extrabold">Review your request</h2>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{fill(t.stepOf, { n: displayStep, total: TOTAL_STEPS })}</p>
+                <h2 className="text-2xl font-extrabold">{t.step7Title}</h2>
                 <p className="text-sm text-white/55">
                   {[
-                    isPresentation ? "Check the summary below and send it." : "Check the summary below. You can add optional notes on the next step.",
+                    isPresentation ? t.reviewIntroPresentation : t.reviewIntro,
                     // Staffing: pay and conditions are agreed with the client separately (24 September 2026).
-                    askConditions ? "" : "We agree pay and working conditions with you separately.",
+                    askConditions ? "" : t.reviewConditionsSeparate,
                     DETAILED_OFFER_NOTE,
                   ]
                     .filter(Boolean)
@@ -3658,7 +3748,7 @@ export default function RequestTokenPage() {
                 </dl>
                 <div className="rounded-[12px] border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.04)] p-4">
                   <pre className="whitespace-pre-wrap text-sm text-white/75">
-                    {roleDetailsBlock ? `${generatedNotes}\n\n${roleDetailsBlock}` : generatedNotes}
+                    {reviewSummaryText}
                   </pre>
                 </div>
                 {isPresentation ? (
@@ -3669,11 +3759,11 @@ export default function RequestTokenPage() {
                   */
                   <details className="rounded-[12px] border border-white/10 bg-white/[0.02] p-4">
                     <summary className="cursor-pointer text-sm font-semibold text-[#C9A84C]">
-                      Add more details {OPTIONAL_TAG}
+                      {t.addMoreDetails} {OPTIONAL_TAG}
                     </summary>
                     <div className="mt-4 space-y-5">
                       <div>
-                        <p className={labelClass}>Personal qualities</p>
+                        <p className={labelClass}>{t.step5Title}</p>
                         <div className="flex flex-wrap gap-2">
                           {PERSONAL_QUALITY_OPTIONS.map((item) => (
                             <button
@@ -3682,13 +3772,13 @@ export default function RequestTokenPage() {
                               onClick={() => toggleItem("personalQualities", item)}
                               className={`min-h-[40px] rounded-full border px-4 py-2 text-sm ${form.personalQualities.includes(item) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}
                             >
-                              {item}
+                              {opt(item)}
                             </button>
                           ))}
                         </div>
                       </div>
                       <div>
-                        <p className={labelClass}>We offer</p>
+                        <p className={labelClass}>{t.step6Title}</p>
                         <div className="flex flex-wrap gap-2">
                           {OFFER_OPTIONS.map((item) => (
                             <button
@@ -3697,19 +3787,19 @@ export default function RequestTokenPage() {
                               onClick={() => toggleItem("offerItems", item)}
                               className={`min-h-[40px] rounded-full border px-4 py-2 text-sm ${form.offerItems.includes(item) ? "border-[#C9A84C] bg-[rgba(201,168,76,0.1)] text-[#C9A84C]" : "border-white/20 text-white/70"}`}
                             >
-                              {item}
+                              {opt(item)}
                             </button>
                           ))}
                         </div>
                       </div>
                       <div>
-                        <p className={labelClass}>Additional notes</p>
+                        <p className={labelClass}>{t.additionalNotes}</p>
                         <textarea
                           rows={3}
                           className={`${wizardInputClass(false)} resize-none`}
                           value={form.additionalNotes}
                           onChange={(e) => setForm((p) => ({ ...p, additionalNotes: e.target.value }))}
-                          placeholder="(optional)"
+                          placeholder={t.optional}
                         />
                       </div>
                       <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-white/85">
@@ -3719,7 +3809,7 @@ export default function RequestTokenPage() {
                           onChange={(event) => setForm((previous) => ({ ...previous, subscribeUpdates: event.target.checked }))}
                           className="mt-1 h-5 w-5 shrink-0 accent-[#C9A84C]"
                         />
-                        <span>I want emails from ArbeidMatch when candidates matching this request become available.</span>
+                        <span>{t.subscribeLabel}</span>
                       </label>
                     </div>
                   </details>
@@ -3729,16 +3819,16 @@ export default function RequestTokenPage() {
 
             {step === 8 && (
               <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{`Step ${displayStep} of ${TOTAL_STEPS}`}</p>
-                <h2 className="text-2xl font-extrabold">Additional notes</h2>
+                <p className="text-[11px] uppercase tracking-[0.1em] text-[#C9A84C]">{fill(t.stepOf, { n: displayStep, total: TOTAL_STEPS })}</p>
+                <h2 className="text-2xl font-extrabold">{t.additionalNotes}</h2>
                 <div>
-                  <p className={labelClass}>Additional notes (optional)</p>
+                  <p className={labelClass}>{t.additionalNotesOptional}</p>
                   <textarea
                     rows={4}
                     className={`${wizardInputClass(false)} resize-none`}
                     value={form.additionalNotes}
                     onChange={(e) => setForm((p) => ({ ...p, additionalNotes: e.target.value }))}
-                    placeholder="(optional)"
+                    placeholder={t.optional}
                   />
                 </div>
               </div>
@@ -3748,9 +3838,9 @@ export default function RequestTokenPage() {
                 "cand trimite datele din formular atunci sa fie linkul catre politica de confidentialitate". */}
             {step === LAST_STEP ? (
               <p className="mt-6 text-xs leading-relaxed text-white/55">
-                We use your contact details to answer this request and to prepare an offer.{" "}
+                {t.privacyFooter}{" "}
                 <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#C9A84C] underline underline-offset-2 hover:opacity-80">
-                  Read our privacy policy
+                  {t.privacyFooterLink}
                 </a>
                 .
               </p>
@@ -3764,7 +3854,7 @@ export default function RequestTokenPage() {
                   disabled={animating || isSubmitting}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-white/20 text-sm font-medium text-white/70 w-fit transition-colors duration-150 hover:border-[rgba(201,168,76,0.4)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  ← Back
+                  {t.back}
                 </button>
               ) : (
                 <div />
@@ -3779,12 +3869,12 @@ export default function RequestTokenPage() {
                 {isSubmitting ? (
                   <>
                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#0f1923]/40 border-t-[#0f1923]" />
-                    Submitting...
+                    {t.submitting}
                   </>
                 ) : step === LAST_STEP ? (
-                  "Submit"
+                  t.submit
                 ) : (
-                  "Continue →"
+                  t.continue
                 )}
               </button>
               )}
