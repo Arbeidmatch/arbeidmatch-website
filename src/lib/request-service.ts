@@ -42,9 +42,18 @@ export function isSelectableRequestService(value: unknown): value is SelectableR
  * from a wizard opened before the question existed) is judged on the service
  * alone.
  */
+/**
+ * WHICH TWO, HIS RULE OF 28 SEPTEMBER 2026: "clientii intra si aleg daca vor
+ * bemanning sau recrutare, iar agentiile aleg daca vor recrutare sau sourcing".
+ */
+export const SERVICES_FOR_KIND: Record<RequesterKind, readonly SelectableRequestService[]> = {
+  own_operation: ["staffing", "recruitment"],
+  agency: ["recruitment", "sourcing"],
+};
+
 export function isServiceAllowedFor(service: unknown, kind: RequesterKind | null | undefined): boolean {
   if (!isSelectableRequestService(service)) return false;
-  if (kind === "agency" && service === "staffing") return false;
+  if (kind && !SERVICES_FOR_KIND[kind].includes(service)) return false;
   return true;
 }
 
@@ -69,9 +78,10 @@ export const REQUEST_SERVICE_CARDS_NB: readonly ServiceCard[] = [
   { key: "advertising", label: "Stillingsannonser", blurb: "Kommer snart", comingSoon: true },
 ];
 
-/** The cards this kind of firm sees: an agency never sees Bemanning. */
+/** The cards this kind of firm sees: a client Bemanning and Rekruttering, an agency Rekruttering and Sourcing. */
 export function serviceCardsFor<T extends { key: RequestServiceKey }>(cards: readonly T[], kind: RequesterKind | null | undefined): T[] {
-  return cards.filter((card) => !(kind === "agency" && card.key === "staffing"));
+  if (!kind) return cards.filter((card) => card.key !== "advertising");
+  return cards.filter((card) => isServiceAllowedFor(card.key, kind));
 }
 
 /**

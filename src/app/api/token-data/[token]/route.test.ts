@@ -61,11 +61,11 @@ describe("token-data for a presentation's ticket", () => {
     expect(data.gdpr_consent).toBe(false);
   });
 
-  it("does not flag one past 30 days", async () => {
-    mocks.row = { ...mocks.row, created_at: new Date(Date.now() - 30 * DAY).toISOString() };
+  it("still flags one past 30 days, or already used: a presentation always opens the form", async () => {
+    mocks.row = { ...mocks.row, created_at: new Date(Date.now() - 30 * DAY).toISOString(), used: true };
     const { data } = await read();
     expect(data.isPresentation).toBe(true);
-    expect(data.presentationTicket).toBe(false);
+    expect(data.presentationTicket).toBe(true);
   });
 
   it("never flags a website ticket", async () => {

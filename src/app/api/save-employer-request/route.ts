@@ -9,7 +9,7 @@ import { realContactValue } from "@/lib/request-contact-placeholders";
 import { collectStaffingSiteInvalid } from "@/lib/request-role-questions";
 import { conditionsAskedFor, withoutConditionAnswers } from "@/lib/request-wizard-steps";
 import { contractTypeForService, isRequesterKind, isServiceAllowedFor, REQUESTER_KINDS } from "@/lib/request-service";
-import { isPresentationTicket, PRESENTATION_SOURCE, presentationTicketIsValid } from "@/lib/presentation-request-ticket";
+import { isPresentationTicket, PRESENTATION_SOURCE } from "@/lib/presentation-request-ticket";
 import { tellAtsAboutRequest } from "@/lib/ats-request-notify";
 
 const requestSchema = z
@@ -239,8 +239,7 @@ export async function POST(request: NextRequest) {
     /**
      * THE TICKET, READ BACK (the owner, 24 September 2026). A personalised
      * presentation carries a ticket that skipped the OTP step, so this route
-     * checks it itself: a presentation's ticket past 30 days, or already
-     * used, saves nothing. Every other ticket is treated as it was before.
+     * reads it itself. Every other ticket is treated as it was before.
      * The source is taken from the ticket, never from the body, so the ATS
      * can trust "from presentation" (form_answers.source).
      */
@@ -250,13 +249,8 @@ export async function POST(request: NextRequest) {
       .eq("token", payload.token)
       .maybeSingle();
     if (ticketError) throw ticketError;
+    // A presentation's ticket always saves (28 September 2026): every request it sends is its own row.
     const fromPresentation = isPresentationTicket(ticket);
-    if (fromPresentation && !presentationTicketIsValid(ticket)) {
-      return noStoreJson(
-        { success: false, error: "This request link has expired. Please start from the request form." },
-        { status: 410 },
-      );
-    }
 
     companySnapshot = payload.company?.trim() || "unknown";
     normalizedBooleanFields = [];

@@ -32,8 +32,10 @@ describe("known company type from a presentation", () => {
 });
 
 describe("which services a firm may ask for", () => {
-  it("offers staffing, recruitment and sourcing to a firm hiring for its own work", () => {
-    for (const s of ["staffing", "recruitment", "sourcing"]) expect(isServiceAllowedFor(s, "own_operation")).toBe(true);
+  // His rule, 28 September 2026: a client chooses staffing or recruitment, an agency recruitment or sourcing.
+  it("offers a firm hiring for its own work staffing or recruitment, never sourcing", () => {
+    for (const s of ["staffing", "recruitment"]) expect(isServiceAllowedFor(s, "own_operation")).toBe(true);
+    expect(isServiceAllowedFor("sourcing", "own_operation")).toBe(false);
   });
 
   it("never offers staffing to an agency", () => {
@@ -58,15 +60,14 @@ describe("which services a firm may ask for", () => {
 });
 
 describe("the cards", () => {
-  it("shows four to a firm hiring for its own work, advertising not selectable", () => {
+  it("shows a firm hiring for its own work Bemanning and Rekruttering", () => {
     const cards = serviceCardsFor(REQUEST_SERVICE_CARDS_NB, "own_operation");
-    expect(cards.map((c) => c.key)).toEqual(["staffing", "recruitment", "sourcing", "advertising"]);
-    expect(cards.find((c) => c.key === "advertising")?.comingSoon).toBe(true);
+    expect(cards.map((c) => c.label)).toEqual(["Bemanning", "Rekruttering"]);
   });
 
-  it("shows no Bemanning to an agency", () => {
+  it("shows an agency Rekruttering and Sourcing", () => {
     const cards = serviceCardsFor(REQUEST_SERVICE_CARDS_NB, "agency");
-    expect(cards.map((c) => c.label)).toEqual(["Rekruttering", "Sourcing", "Stillingsannonser"]);
+    expect(cards.map((c) => c.label)).toEqual(["Rekruttering", "Sourcing"]);
   });
 
   it("carries no en or em dash and no exclamation mark", () => {

@@ -116,20 +116,15 @@ describe("save-employer-request with a presentation's ticket", () => {
     expect(answers.deck).toBeNull();
   });
 
-  it("refuses an expired presentation ticket and saves nothing", async () => {
+  // His rule, 28 September 2026: a presentation's ticket always opens the form, so it always saves.
+  it("saves from a presentation ticket after 30 days and after an earlier request", async () => {
     mocks.ticket = {
-      data: { ...mocks.ticket.data, created_at: new Date(Date.now() - 31 * DAY).toISOString() },
+      data: { ...mocks.ticket.data, created_at: new Date(Date.now() - 31 * DAY).toISOString(), used: true },
       error: null,
     };
     const response = await POST(request({ ...valid, deck: DECK }));
-    expect(response.status).toBe(410);
-    expect(mocks.inserted).toHaveLength(0);
-  });
-
-  it("refuses a presentation ticket that was already used", async () => {
-    mocks.ticket = { data: { ...mocks.ticket.data, used: true }, error: null };
-    expect((await POST(request(valid))).status).toBe(410);
-    expect(mocks.inserted).toHaveLength(0);
+    expect(response.status).toBe(200);
+    expect(mocks.inserted).toHaveLength(1);
   });
 
   it("keeps a website ticket as it was: no source, the deck dropped, its own answer kept", async () => {
