@@ -257,3 +257,12 @@ label{font-size:14px}
   .scene-tools button,#mobile-questions{white-space:nowrap}
   .scene-tools{gap:8px}
 }
+
+/* The taller sentence pushed the button down onto the preview behind it.
+   The bigger type stays; the space it took comes back out of the gaps, so the
+   button ends where it used to and the mock keeps its clearance. */
+@media(min-width:901px){
+  .chapter[data-chapter="0"] .chapter-copy{top:112px}
+  .chapter[data-chapter="0"] h1{margin:8px 0 8px}
+  .chapter[data-chapter="0"] p{margin:0 auto 8px}
+}
