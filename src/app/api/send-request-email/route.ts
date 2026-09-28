@@ -82,12 +82,6 @@ function dNumberLabel(value: string, other: string): string {
   return other || value;
 }
 
-/**
- * The person a client answers to after sending a request (the owner, 24
- * September 2026: "Mirel Manoliu contact person", not "Kontoret"). The same
- * person the ATS names on its first letters to a firm.
- */
-const REQUEST_CONTACT_PERSON = { name: "Mirel Manoliu", phone: "+47 967 34 730", email: "mirel@arbeidmatch.no" };
 
 export async function POST(request: NextRequest) {
   try {
@@ -350,7 +344,10 @@ export async function POST(request: NextRequest) {
           innerHtml: clientInner,
           lang: "no",
           recipient: data.email,
-          contactPerson: REQUEST_CONTACT_PERSON,
+          // The receipt names the office and post@, not a person (his correction of
+          // 28 September 2026, reversing 24 September): the offer and everything
+          // after it leave from the person who holds the client, from the ATS.
+          audience: "client",
           // The receipt of her own request: a service letter, no unsubscribe link.
           serviceLetter: true,
         }),
