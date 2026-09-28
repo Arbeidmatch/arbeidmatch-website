@@ -31,7 +31,6 @@ import {
   collectLanguageTradeInvalid,
   collectServiceInvalid,
   collectStaffingSiteInvalid,
-  staffingAddressGiven,
   STAFFING_SITE_FIELD_KEYS,
   EMPTY_ROLE_ANSWERS,
   getTradeQuestions,
@@ -3005,7 +3004,8 @@ export default function RequestTokenPage() {
                         </div>
                       </div>
                     </div>
-                    {staffingAddressGiven(form.roleAnswers.staffing) ? (
+                    {/* How long they need the people, asked on every staffing request (the owner, 28 September 2026). */}
+                    {(
                       <div>
                         <p className={labelClass}>{t.assignmentPeriod}</p>
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -3040,7 +3040,7 @@ export default function RequestTokenPage() {
                           </div>
                         </div>
                       </div>
-                    ) : null}
+                    )}
                   </div>
                 ) : null}
                 </>

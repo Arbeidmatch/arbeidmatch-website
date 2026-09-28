@@ -86,10 +86,13 @@ function isPublicCandidateCount(count: number | null | undefined): count is numb
   return typeof count === "number" && Number.isFinite(count) && count >= MIN_PUBLIC_CANDIDATE_COUNT;
 }
 
-function candidateAvailabilityLabel(count: number | null | undefined, scope: "industry" | "role"): string {
+function candidateAvailabilityLabel(count: number | null | undefined, scope: "industry" | "role", service = ""): string {
   if (isPublicCandidateCount(count)) return `${count} tilgjengelige kandidater`;
   // The industry cards show no line below a count too small to publish (the owner, 25 September 2026).
-  return scope === "industry" ? "" : "Vi finner kvalifiserte kandidater for denne rollen.";
+  if (scope === "industry") return "";
+  // In staffing we hire out our own people; finding candidates is recruitment's
+  // promise only (the owner, 28 September 2026).
+  return service === "staffing" ? "Vi leier ut fagfolk i denne rollen." : "Vi finner kvalifiserte kandidater for denne rollen.";
 }
 
 /** Display-only Norwegian labels. The English keys stay the values sent to the APIs. */
@@ -1465,7 +1468,7 @@ export default function RequestPage() {
                       <input
                         value={roleQuery}
                         onChange={(event) => setRoleQuery(event.target.value)}
-                        placeholder="Søk etter en rolle ..."
+                        placeholder="Søk etter en rolle, eller skriv inn din egen ..."
                         className="w-full rounded-xl border border-white/10 bg-[#0D1B2A] py-3 pl-11 pr-4 text-white placeholder:text-white/55 outline-none ring-0 transition-[border,box-shadow] duration-200 focus:border-[#C9A84C]/60 focus:shadow-[0_0_0_3px_rgba(201,168,76,0.14)]"
                       />
                     </div>
@@ -1504,18 +1507,43 @@ export default function RequestPage() {
                               <span className="mt-1 block text-xs text-white/55">...</span>
                             ) : isPublicCandidateCount(rc) ? (
                               <span className="mt-1 block text-xs font-medium text-[#C9A84C]/90">
-                                {candidateAvailabilityLabel(rc, "role")}
+                                {candidateAvailabilityLabel(rc, "role", serviceChoice)}
                               </span>
                             ) : (
-                              <span className="mt-1 block text-xs text-white/55">{candidateAvailabilityLabel(rc, "role")}</span>
+                              <span className="mt-1 block text-xs text-white/55">{candidateAvailabilityLabel(rc, "role", serviceChoice)}</span>
                             )}
                           </motion.button>
                         );
                       })}
                     </motion.div>
                   ) : (
-                    <p className="mt-4 text-sm text-white/55">Fant ingen roller. Prøv et annet søk.</p>
+                    <p className="mt-4 text-sm text-white/55">Fant ingen roller i listen.</p>
                   )}
+                  {/*
+                    A role that is not in the list can be typed and used as it is
+                    (the owner, 28 September 2026): the search text becomes the role.
+                  */}
+                  {roleQuery.trim().length >= 2 && !filteredRoles.some((r) => roleMatchesQueryExactly(r, roleQuery)) ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPartnerWizardToken(readPartnerWizardTokenFromSession());
+                        setSelectedRole(roleQuery.trim().slice(0, 80));
+                        setPickerStep("modal");
+                        setGetStartedEmail("");
+                        setGetStartedGdpr(false);
+                        setGetStartedError("");
+                        setGetStartedStep("form");
+                        setGetStartedOtp("");
+                        setGetStartedVerificationId(null);
+                        setOtpError("");
+                      }}
+                      className="mt-3 w-full rounded-xl border border-dashed border-[#C9A84C]/60 bg-white/5 px-4 py-3 text-left text-sm text-white/85 transition-all duration-200 hover:border-[#C9A84C] hover:bg-white/10"
+                    >
+                      <span className="block font-medium text-[#C9A84C]">Bruk «{roleQuery.trim()}» som rolle</span>
+                      <span className="mt-1 block text-xs text-white/55">Finner du ikke rollen i listen, skriv den inn selv.</span>
+                    </button>
+                  ) : null}
                 </motion.div>
               )}
             </AnimatePresence>

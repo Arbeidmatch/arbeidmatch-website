@@ -329,7 +329,7 @@ export async function POST(request: NextRequest) {
         }),
         // The one place this letter asks for a reply: the footer no longer says it too.
         letterParagraph(
-          "Vi går gjennom forespørselen og sender dere et detaljert tilbud på e-post for tjenesten dere valgte, vanligvis innen 1 til 2 virkedager. Er noe i oppsummeringen feil, svar på denne e-posten, så retter vi det.",
+          "Takk for forespørselen. Vi går gjennom den og bekrefter så snart som mulig om vi kan ta oss av den. Er noe i oppsummeringen feil, svar på denne e-posten, så retter vi det.",
         ),
       ].join("");
       await transporter.sendMail({
