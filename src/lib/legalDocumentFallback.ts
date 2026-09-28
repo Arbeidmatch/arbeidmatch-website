@@ -3,41 +3,29 @@ import { legalSeedMarkdown } from "@/lib/legal-seed-documents-data";
 
 /**
  * When the platform does not hand over a legal document (legal review,
- * 25 September 2026, approved by the owner).
+ * 25 September 2026, approved by the owner): never an old local policy.
  *
- * At request or revalidation time the page throws. The legal pages are static
- * with a revalidate window, and Next.js keeps serving the last successfully
- * generated page when a revalidation throws, so a platform hiccup can never
- * replace the published text with anything else.
+ * The legal pages render per request (dynamic = "force-dynamic"). They used to
+ * be static with a revalidate window, and the Vercel build cannot reach
+ * ats.arbeidmatch.no, so every deploy baked the stand-in below into the page
+ * and the site showed "temporarily unavailable" until a visitor happened to
+ * trigger the first revalidation. Seen by him on 28 September 2026 as a
+ * privacy page that "changes by itself".
  *
- * Only while the site is being built, when there is no earlier page to keep,
- * does the page fall back, and then only to the neutral stand-in in
- * legal-seed-documents-data.ts: who we are, that the document is temporarily
- * unavailable, and where to write. Never an old policy. The dev server may use
- * it too, so a local page without the platform still opens.
+ * The last good text is now kept by fetchAtsLegalDocument's own data cache:
+ * Next.js stores only 200 answers and keeps serving the stale one when a
+ * background refresh fails, so a platform hiccup does not replace the
+ * published text. Only when the platform is down and nothing was ever cached
+ * does the page show the neutral stand-in in legal-seed-documents-data.ts:
+ * who we are, that the document is temporarily unavailable, and where to write.
  */
-
-export class LegalDocumentUnavailableError extends Error {
-  constructor(slug: string) {
-    super(`Legal document "${slug}" could not be fetched; keeping the last published page.`);
-    this.name = "LegalDocumentUnavailableError";
-  }
-}
-
-type Env = { NEXT_PHASE?: string; NODE_ENV?: string };
-
-export function legalFallbackAllowed(env: Env = process.env): boolean {
-  return env.NEXT_PHASE === "phase-production-build" || env.NODE_ENV !== "production";
-}
-
 export function resolveLegalDocument(
   fetched: AtsLegalDocumentJson | null,
   slug: string,
   title: string,
-  env: Env = process.env,
 ): AtsLegalDocumentJson {
   if (fetched) return fetched;
-  if (!legalFallbackAllowed(env)) throw new LegalDocumentUnavailableError(slug);
+  console.error(`[legal] "${slug}" could not be fetched from the platform; showing the stand-in.`);
   return {
     name: title,
     content_html: "",

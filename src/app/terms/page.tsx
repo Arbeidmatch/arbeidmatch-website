@@ -5,7 +5,8 @@ import { fetchAtsLegalDocument } from "@/lib/atsLegalDocument";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 import { resolveLegalDocument } from "@/lib/legalDocumentFallback";
 
-export const revalidate = 60;
+// Rendered per request: the Vercel build cannot reach the platform (see resolveLegalDocument).
+export const dynamic = "force-dynamic";
 
 const TITLE = "Terms of Service | ArbeidMatch";
 const DESCRIPTION = "Terms of service for ArbeidMatch Norge AS, governing use of arbeidmatch.no.";

@@ -5,7 +5,8 @@ import { fetchAtsLegalDocument } from "@/lib/atsLegalDocument";
 import { resolveLegalDocument } from "@/lib/legalDocumentFallback";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
 
-export const revalidate = 300;
+// Rendered per request: the Vercel build cannot reach the platform (see resolveLegalDocument).
+export const dynamic = "force-dynamic";
 
 const TITLE = "Cookie Policy | ArbeidMatch";
 const DESCRIPTION = "What arbeidmatch.no stores on your device: essential only, no advertising, no profiling.";
