@@ -95,9 +95,16 @@ export async function createUniverse(host) {
  renderer.domElement.addEventListener('pointerdown', event => { if (event.pointerType !== 'mouse') return; dragStart = { x: event.clientX, y: event.clientY }; currentDrag = dragRotation; renderer.domElement.setPointerCapture(event.pointerId); });
  renderer.domElement.addEventListener('pointermove', event => { if (dragStart) dragRotation = THREE.MathUtils.clamp(currentDrag + (event.clientX - dragStart.x) * .004, -.6, .6); });
  renderer.domElement.addEventListener('pointerup', event => {
-  const wasDrag = dragStart && Math.hypot(event.clientX - dragStart.x, event.clientY - dragStart.y) > 5; dragStart = null;
+  // A FINGER OPENS THE SCREEN TOO (28 September 2026, the owner: "pe mobil nu se
+  // deschide printul mai mare"). This used to leave after `pointerType !== 'mouse'`,
+  // so on a telephone tapping the product screen did nothing at all, and the only
+  // way in was the small "Open interactive preview" line under the tabs. The drag
+  // test already tells a tap from a turn of the scene; a finger is simply allowed
+  // to wander further than a mouse before it counts as a drag.
+  const slop = event.pointerType === 'mouse' ? 5 : 12;
+  const wasDrag = dragStart && Math.hypot(event.clientX - dragStart.x, event.clientY - dragStart.y) > slop; dragStart = null;
   if (renderer.domElement.hasPointerCapture(event.pointerId)) renderer.domElement.releasePointerCapture(event.pointerId);
-  if (wasDrag || event.pointerType !== 'mouse') return;
+  if (wasDrag) return;
   raycaster.setFromCamera(new THREE.Vector2(event.clientX / innerWidth * 2 - 1, 1 - event.clientY / innerHeight * 2), camera);
   const hits = raycaster.intersectObjects(stations[activeStation].children, true);
   let object = hits.find(hit => { for (let p = hit.object; p; p = p.parent) if (!p.visible) return false; return hit.object.isMesh && !hit.object.isSprite; })?.object;
@@ -132,14 +139,7 @@ export async function createUniverse(host) {
     const heroBottom = document.querySelector('.chapter[data-chapter="0"] .chapter-copy').getBoundingClientRect().bottom;
     let pixelWidth = Math.min(innerWidth * .43, Math.max(180, controlsTop - 180) * 1.6);
     let centerX = side * .2, pixelY = controlsTop - 32 - pixelWidth / 3.2;
-    // THE PRODUCT SCREEN IS THE POINT OF THE ARRIVAL CHAPTER (28 September 2026,
-    // the owner: "fa printul ala mai mare in ecran in prim plan"). It used to be
-    // held to 40% of the window and to whatever vertical room was left over
-    // after a 55px margin, which on a wide short window came out around 300px -
-    // small enough that none of the interface inside it could be read. It now
-    // takes the room it is given: more of the width, and the gap above and below
-    // cut to what keeps it clear of the button and the tabs.
-    if (i === 0) { pixelWidth = Math.min(innerWidth * .58, Math.max(130, controlsTop - heroBottom - 26) * 1.6); centerX = 0; pixelY = controlsTop - 13 - pixelWidth / 3.2; }
+    if (i === 0) { pixelWidth = Math.min(innerWidth * .62, Math.max(130, controlsTop - heroBottom - 16) * 1.6); centerX = 0; pixelY = controlsTop - 8 - pixelWidth / 3.2; }
     station.position.x = centerX * innerWidth * span / innerHeight;
     station.position.y = .1 + (.5 - pixelY / innerHeight) * span;
     station.scale.setScalar(pixelWidth * span / innerHeight / 8);
@@ -150,8 +150,11 @@ export async function createUniverse(host) {
    cards[i].g.position.z = (i === activeStation ? -Math.sin(swap * Math.PI) * .65 : 0);
    cards[i].face.material.opacity = Math.max(.06, 1 - Math.abs(progress - i) * 1.8); cards[i].outgoing.material.opacity = i === activeStation ? swap : 0;
    if (mobile && copyRect && controlRect?.height && i !== 4) {
-    const top = copyRect.bottom + 20, bottom = controlRect.top - 14;
-    const width = Math.min(innerWidth - 48, Math.max(85, bottom - top) * 1.6);
+    // The telephone gets the same treatment: the screen was leaving 20 and 14
+    // pixels of air it did not need, and a 48px side inset, on the surface
+    // where it is smallest to begin with.
+    const top = copyRect.bottom + 10, bottom = controlRect.top - 8;
+    const width = Math.min(innerWidth - 20, Math.max(85, bottom - top) * 1.6);
     const pixelY = (top + bottom) / 2;
     const direction = new THREE.Vector3(0, 1 - pixelY / innerHeight * 2, .5).unproject(camera).sub(camera.position).normalize();
     const distance = (station.position.z - camera.position.z) / direction.z;

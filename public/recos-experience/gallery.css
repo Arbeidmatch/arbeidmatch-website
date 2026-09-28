@@ -291,10 +291,48 @@ label{font-size:14px}
 /* Room for the product screen on the arrival chapter: the tabs and the scene
    tools move down, and what they give up the screen takes. */
 @media(min-width:901px){
-  body[data-chapter="0"] .product-controls{bottom:126px}
-  body[data-chapter="0"] .scene-tools{bottom:92px}
+  body[data-chapter="0"] .product-controls{bottom:132px}
+  body[data-chapter="0"] .scene-tools{bottom:108px}
 }
 @media(min-width:901px) and (max-height:800px){
-  body[data-chapter="0"] .product-controls{bottom:112px}
-  body[data-chapter="0"] .scene-tools{bottom:84px}
+  body[data-chapter="0"] .product-controls{bottom:116px}
+  body[data-chapter="0"] .scene-tools{bottom:92px}
+}
+/* The telephone, where the screen is smallest: the tabs sit lower so it can be
+   taller, and the chapter copy above it gives up a little air. */
+@media(max-width:900px){
+  body[data-chapter="0"] .product-controls{bottom:140px}
+}
+
+/* THE TELEPHONE HAS NO SPARE HEIGHT, so the product screen only grows if
+   something gives it room. On the arrival chapter the tabs drop towards the
+   scene tools and the copy above tightens; the headline and the sentence stay
+   readable, they simply stop leaving air they were not using. */
+@media(max-width:900px){
+  body[data-chapter="0"] .product-controls{bottom:152px}
+  .chapter[data-chapter="0"] .chapter-copy{top:128px}
+  .chapter[data-chapter="0"] h1{margin-bottom:12px}
+  .chapter[data-chapter="0"] p{margin-bottom:12px;line-height:1.55}
+  .chapter[data-chapter="0"] .caption{display:none}
+}
+@media(max-width:900px) and (max-height:740px){
+  body[data-chapter="0"] .product-controls{bottom:152px}
+  .chapter[data-chapter="0"] .chapter-copy{top:108px}
+  .chapter[data-chapter="0"] p{font-size:13px;margin-bottom:10px;max-width:300px}
+  .chapter[data-chapter="0"] h1{margin-bottom:10px}
+  .chapter[data-chapter="0"] .eyebrow{margin-bottom:8px}
+}
+
+/* Pushing the tabs down on a telephone put them on top of the scene tools. The
+   block's own heading is what gives way: on arrival it says "INSIDE RECOS" and
+   repeats the view name that is already in the row below it. */
+@media(max-width:900px){
+  body[data-chapter="0"] .product-controls-heading{display:none}
+}
+
+/* The block's own heading repeats what the tabs and the row beneath already
+   say, and on the arrival chapter its twenty pixels are worth more to the
+   product screen above it. */
+@media(min-width:901px){
+  body[data-chapter="0"] .product-controls-heading{display:none}
 }
