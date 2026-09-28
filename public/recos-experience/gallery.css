@@ -88,11 +88,11 @@ body[data-chapter="4"] .chapter .final-note{margin:15px auto 0}
 .saving-example{padding:18px;border:1px solid var(--line);border-radius:8px;background:#b6f7d805;min-width:0}
 .saving-heading{display:flex;flex-direction:column;gap:9px}
 .saving-heading h4{font-size:14px;font-weight:600;margin:0;line-height:1.5}
-.saving-heading>strong{font-size:18px;font-weight:500;color:var(--mint)}
+
 #questions-dialog .saving-example p{font-size:12px;line-height:1.7}
-#questions-dialog .saving-assumptions{color:var(--ink);padding-top:12px;border-top:1px solid var(--line)}
-#questions-dialog .saving-calculation{color:var(--mint);margin-bottom:0}
-.saving-total{margin:20px 0 0}.saving-total strong{color:var(--ink);font-weight:500}
+
+
+
 .questions-subtitle{font-size:20px;font-weight:500;margin:26px 0 8px}
 @media(max-width:600px){.saving-examples{grid-template-columns:1fr}.time-example h3>strong{font-size:54px}#questions-dialog>h2{font-size:28px;line-height:1.15}#questions-dialog .eyebrow{font-size:8px;letter-spacing:1px}.saving-example{padding:16px}}
 @media(max-width:900px) and (max-height:620px){.chapter[data-chapter="1"] .role-copy{min-height:0}}

@@ -200,7 +200,7 @@ $('#interest-form').addEventListener('submit', async event => {
   const result = await response.json();
   if (!response.ok || result.success !== true) throw new Error(response.status === 429 ? 'rate-limit' : 'signup-failed');
   form.hidden = true;
-  $('#form-result').textContent = "You're on the list. Current beta slots are full. We will email you when a place can be offered. Once invited, you can help shape RecOS with your feedback.";
+  $('#form-result').textContent = "You're on the list. Current beta slots are full. Places are offered from the list as they open. Once invited, you can help shape RecOS with your feedback.";
   form.reset();
  } catch (error) {
   $('#form-result').textContent = error.message === 'rate-limit' ? 'Too many attempts. Please wait a few minutes and try again.' : 'We could not confirm your signup. Please try again, or contact us through the website.';
