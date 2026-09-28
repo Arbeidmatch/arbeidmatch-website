@@ -16,7 +16,7 @@ function selectProduct(view, animate = true) {
   const copy = {
    clients: ['Know your clients.<br><em>Build the relationship.</em>', 'Keep client contacts, requests and next steps together, so every conversation starts with context.'],
    presentations: ['Present talent.<br><em>Move decisions.</em>', 'Turn candidate profiles into clear presentations. Keep the client conversation and the next step connected to the same opportunity.'],
-   assistant: ['Your AI assistant.<br><em>By your side.</em>', 'Find candidate context, prepare client follow-ups and work on presentations. Get AI assistance and human support, 24/7.'],
+   assistant: ['Your AI assistant.<br><em>By your side.</em>', 'Find candidate context, prepare client follow-ups and work on presentations, with your AI assistant alongside.'],
    pipeline: ['Clear stages.<br><em>Know the next step.</em>', 'See where each application stands, so you can focus on the follow-up that moves it forward.'],
   }[view];
   if (copy) { $('#connections-title').innerHTML = copy[0]; $('#connections-title').nextElementSibling.textContent = copy[1]; }
@@ -163,7 +163,7 @@ $$('[data-role]').forEach(button => button.addEventListener('click', () => {
 const descriptions = [
  'Keep client contacts, their requirements and the next conversation in view.',
  'Prepare candidate shortlists and company presentations, so clients can review a clear story.',
- 'Your dedicated AI assistant helps with context, follow-ups and presentations. AI assistance and human support are available 24/7.',
+ 'Your dedicated AI assistant helps with context, follow-ups and presentations.',
  'See where each application stands and which next step needs attention.'
 ];
 $$('[data-step]').forEach(button => button.addEventListener('click', () => {

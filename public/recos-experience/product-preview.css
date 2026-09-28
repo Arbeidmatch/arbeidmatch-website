@@ -13,6 +13,6 @@
 .assistant-prompts{display:grid;gap:10px;margin:24px 0}
 .assistant-prompts button{text-align:left;padding:14px 16px;font-size:15px;background:#c9a84c08;border-color:#c9a84c33;color:#e8d79b}
 .assistant-answer{padding:18px;background:#081826;border-left:2px solid #c9a84c;font-size:14px;line-height:1.75;color:#bdccda;min-height:100px}
-.support-hours{font-size:72px;font-weight:500;color:#c9a84c;letter-spacing:-4px;display:block;margin-top:20px;line-height:1}
+
 .support-panel{background:radial-gradient(circle at top right,#c9a84c18,transparent 70%),#13263b}
-@media(max-width:900px){.presentation-layout,.assistant-layout{grid-template-columns:1fr}.presentation-intro,.presentation-side,.assistant-panel,.support-panel{padding:22px}.support-hours{font-size:54px}.assistant-prompts button{font-size:13px}}
+@media(max-width:900px){.presentation-layout,.assistant-layout{grid-template-columns:1fr}.presentation-intro,.presentation-side,.assistant-panel,.support-panel{padding:22px}.assistant-prompts button{font-size:13px}}
