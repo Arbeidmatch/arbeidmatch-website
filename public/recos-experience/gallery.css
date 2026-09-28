@@ -96,3 +96,164 @@ body[data-chapter="4"] .chapter .final-note{margin:15px auto 0}
 .questions-subtitle{font-size:20px;font-weight:500;margin:26px 0 8px}
 @media(max-width:600px){.saving-examples{grid-template-columns:1fr}.time-example h3>strong{font-size:54px}#questions-dialog>h2{font-size:28px;line-height:1.15}#questions-dialog .eyebrow{font-size:8px;letter-spacing:1px}.saving-example{padding:16px}}
 @media(max-width:900px) and (max-height:620px){.chapter[data-chapter="1"] .role-copy{min-height:0}}
+
+/* ============================================================================
+   READABLE AT ARM'S LENGTH (28 September 2026).
+   He opened /recos#arrival and could not read it: "printul este prea mic si nu
+   se vede bine". The page was built around a headline of up to 89px sitting on
+   body text of 14px, with labels at 7 and 8px and, on a short phone, body text
+   at 10px. The proportions were the problem, not the design: next to a headline
+   that size the sentence under it reads as a footnote.
+
+   This block raises the reading sizes and leaves the headlines, the layout and
+   the colours exactly as they were. It is appended rather than edited into the
+   rules above so that each change is visible as a change, and so that taking it
+   out again restores the old page exactly.
+   ========================================================================= */
+
+/* Body copy: the sentence under each headline, and the role description. */
+.chapter p{font-size:17px;line-height:1.75;max-width:430px}
+.chapter .role-copy{font-size:15px;line-height:1.65;max-width:400px}
+
+/* The small print that had fallen below readable: section number, scroll hint,
+   live status, scene notes, and the controls' own labels. */
+.eyebrow{font-size:11px;letter-spacing:1.6px}
+.caption{font-size:10px;letter-spacing:1.2px}
+.world-status{font-size:10px;letter-spacing:1.4px}
+.scene-caption,.scene-caption small{font-size:12px}
+.scene-hotspot{font-size:10px;letter-spacing:.9px}
+.control-label{font-size:10px;letter-spacing:1.1px}
+.seat-control small{font-size:11px}
+.closing-config{font-size:10px;letter-spacing:.7px}
+.travel-label span{font-size:10px}
+
+/* Anything that is pressed says what it is at a readable size. */
+.button{font-size:13px}
+.header-cta{font-size:12px}
+header nav button{font-size:13px}
+.text-button{font-size:13px}
+.role-toggle button{font-size:12px}
+.connection-tabs button{font-size:12px}
+.scene-tools{font-size:10px}
+.scene-tools button{font-size:11px}
+.chapter-count{font-size:12px}
+.chapter-rail nav button{font-size:12px}
+.chapter-rail nav button span{font-size:9px}
+.brand-by{font-size:9px}
+.brand-by b{font-size:12px}
+#fallback-notice{font-size:12px}
+
+/* The windows that carry the actual explanations. */
+dialog p{font-size:14px;line-height:1.75}
+summary{font-size:15px}
+details p{font-size:14px}
+label{font-size:14px}
+.dialog-foot{font-size:11px!important}
+
+/* The product panel's own captions. */
+.product-controls-heading{font-size:10px;letter-spacing:1.2px}
+.product-controls-heading>span:last-child{font-size:11px}
+.product-tabs button{font-size:12px}
+.product-controls-footer{font-size:10px}
+#open-product{font-size:12px}
+.product-dialog-heading .eyebrow{font-size:10px}
+
+@media(min-width:1700px){
+  .chapter p{font-size:19px;max-width:470px}
+}
+
+/* A wide screen that is not tall: still raised, just less, because the room
+   here is vertical and the headline already takes most of it. */
+@media(max-height:800px) and (min-width:901px){
+  .chapter p{font-size:15px}
+  .chapter .role-copy{font-size:13px}
+}
+
+@media(max-height:520px) and (min-width:901px){
+  .chapter p{font-size:13px;max-width:430px}
+  .chapter .role-copy{font-size:12px}
+}
+
+@media(max-width:1000px){
+  .chapter p{font-size:16px;max-width:none}
+}
+
+/* The telephone, where it was worst: body text at 11 and 12px, labels at 5, 6
+   and 7px. Nothing here is below 9px any more. */
+@media(max-width:900px){
+  .chapter p{font-size:15px;line-height:1.65;max-width:340px}
+  .chapter .role-copy{font-size:13px;max-width:320px}
+  .chapter .eyebrow{font-size:10px;letter-spacing:1.2px}
+  .chapter .caption{font-size:9px}
+  .world-status{font-size:9px;letter-spacing:1.2px}
+  .scene-caption{font-size:10px}
+  .scene-caption small{font-size:11px}
+  .chapter-copy>.button{font-size:12px}
+  .header-cta{font-size:11px}
+  .brand-by{font-size:8px}
+  .brand-by b{font-size:10px}
+  .role-toggle button{font-size:11px}
+  .connection-tabs button{font-size:11px}
+  .text-button{font-size:12px}
+  .closing-config{font-size:9px;letter-spacing:.4px}
+  .control-label{font-size:9px}
+  .seat-control small{font-size:10px}
+  .scene-tools{font-size:9px}
+  .scene-tools button{font-size:10px}
+  .scene-tools #scene-state{font-size:9px;letter-spacing:.3px}
+  .chapter-rail nav button{font-size:11px}
+  .chapter-rail nav button span{font-size:9px}
+  #fallback-notice{font-size:11px}
+  .travel-label span{font-size:9px}
+  .product-controls-heading{font-size:9px}
+  .product-controls-heading>span:last-child{font-size:10px}
+  .product-tabs button{font-size:11px}
+  .product-controls-footer{font-size:9px}
+  #open-product{font-size:11px}
+}
+
+/* A short phone: the smallest the page is allowed to get. */
+@media(max-width:900px) and (max-height:740px){
+  .chapter p{font-size:14px;max-width:320px}
+  .chapter .role-copy{font-size:12px}
+}
+
+/* The chapter-specific sizes, which are the ones that actually win.
+   `.chapter[data-chapter="0"] p` outranks `.chapter p`, so the arrival screen -
+   the one he was reading - kept its 13px however the general rule was raised.
+   These match that specificity, breakpoint for breakpoint. */
+@media(min-width:901px){
+  .chapter[data-chapter="0"] p{font-size:17px;max-width:760px;margin:0 auto 16px}
+  .chapter[data-chapter="0"] .eyebrow{font-size:11px;letter-spacing:1.6px}
+  .chapter[data-chapter="0"] .button{font-size:13px}
+  body[data-chapter="4"] .chapter p{font-size:16px;line-height:1.75}
+  body[data-chapter="4"] .chapter .final-note{font-size:12px}
+  body[data-chapter="4"] .closing-config{font-size:10px;letter-spacing:.7px}
+}
+@media(min-width:901px) and (max-height:800px){
+  .chapter[data-chapter="0"] p{font-size:15px}
+  body[data-chapter="4"] .chapter p{font-size:14px}
+}
+@media(max-width:900px){
+  .chapter[data-chapter="0"] p{font-size:15px;margin-bottom:14px}
+  .chapter[data-chapter="0"] .eyebrow{font-size:10px}
+  .chapter[data-chapter="0"] .button{font-size:12px;padding:12px 18px}
+  body[data-chapter="4"] .chapter p{font-size:14px;line-height:1.7}
+  body[data-chapter="4"] .chapter .button{font-size:13px}
+  body[data-chapter="4"] .chapter .final-note{font-size:11px}
+  body[data-chapter="4"] .closing-config{font-size:9px;letter-spacing:.5px}
+}
+@media(max-width:900px) and (max-height:740px){
+  .chapter[data-chapter="0"] p{font-size:14px;margin-bottom:11px}
+  body[data-chapter="4"] .chapter p{font-size:13px}
+}
+@media(max-width:600px){
+  #questions-dialog .eyebrow{font-size:10px;letter-spacing:1.2px}
+}
+
+/* At the new size these two labels broke across lines and left the pause glyph
+   stranded on its own row. They are short; they stay on one line. */
+@media(max-width:900px){
+  .scene-tools button,#mobile-questions{white-space:nowrap}
+  .scene-tools{gap:8px}
+}
