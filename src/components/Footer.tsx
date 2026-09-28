@@ -62,7 +62,7 @@ export default function Footer() {
             <FooterNavLink href={JOBS_PORTAL_URL} label={no ? "Se jobber og søk" : "Browse jobs and apply"} />
             <FooterNavLink href="/for-candidates" label={no ? "For kandidater" : "For candidates"} />
             <FooterNavLink href="/newsletter#candidates" label={no ? "Nye jobbvarsler på e-post" : "New job alerts by email"} />
-            <FooterNavLink href="/contact" label={no ? "Kontakt" : "Contact"} />
+            <FooterNavLink href="/contact?for=candidate" label={no ? "Kontakt" : "Contact"} />
           </div>
 
           <div>

@@ -7,6 +7,9 @@ import { notifySlack } from "@/lib/slackNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { contactNoticeLetter, contactReceiptLetter } from "@/lib/emails/letters";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
+import { lookupBrregCompany } from "@/lib/brreg";
+import { CANDIDATE_NEED, EMPLOYER_NEED } from "@/lib/contactNeeds";
+import { formatOrgNumber, isValidOrgNumber, normalizeOrgNumber } from "@/lib/orgNumber";
 
 type ContactPayload = {
   name?: string;
@@ -14,6 +17,7 @@ type ContactPayload = {
   email?: string;
   need?: string;
   message?: string;
+  orgNumber?: string;
 };
 
 /** Server-side Turnstile siteverify disabled (Vercel Hobby outbound); widget still gates submit on client. Re-enable when on Pro. */
@@ -55,11 +59,32 @@ export async function POST(request: NextRequest) {
     const companyRaw = typed("company");
     const company = companyRaw || "Not provided";
     const email = typed("email");
-    const need = typed("need") || "Website contact";
+    // Anything but a candidate's message or a support request is a client's, and
+    // needs the organisation number below, whatever the request says it is.
+    const typedNeed = typed("need");
+    const need = typedNeed === CANDIDATE_NEED || typedNeed === "Support" ? typedNeed : EMPLOYER_NEED;
     const message = typed("message");
 
     if (!name || !email || !email.includes("@") || !message) {
       return NextResponse.json({ success: false, error: "Please fill in all required fields." }, { status: 400 });
+    }
+
+    // His rule, 28 September 2026: a client writes with the company's
+    // organisation number, found in Brreg. The ATS intake reads the notice by
+    // its labels, so the number travels inside the Company value, not as a new label.
+    let companyLine = company;
+    if (need === EMPLOYER_NEED) {
+      const orgNumber = normalizeOrgNumber(typed("orgNumber"));
+      if (!isValidOrgNumber(orgNumber)) {
+        return NextResponse.json({ success: false, error: "Organisation number required." }, { status: 400 });
+      }
+      const registered = await lookupBrregCompany(orgNumber);
+      if (registered.status === "missing") {
+        return NextResponse.json({ success: false, error: "Organisation number not found." }, { status: 400 });
+      }
+      // When Brreg cannot be reached, a number with a valid check digit is enough.
+      const registeredName = registered.status === "found" ? registered.company.name : companyRaw;
+      companyLine = `${registeredName || "Not provided"} (org.nr ${formatOrgNumber(orgNumber)})`;
     }
 
     const smtp = getSmtpConfig();
@@ -82,7 +107,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Read back by the ATS intake: see contactNoticeLetter before changing a label.
-    const notice = contactNoticeLetter({ name, company, email, need, message, isSupport: isSupportRequest, to: recipient });
+    const notice = contactNoticeLetter({ name, company: companyLine, email, need, message, isSupport: isSupportRequest, to: recipient });
     await transporter.sendMail({
       ...mailHeaders(),
       to: recipient,
