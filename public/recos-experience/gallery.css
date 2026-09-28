@@ -287,3 +287,14 @@ label{font-size:14px}
   .chapter[data-chapter="0"] p{font-size:13px;margin:0 auto 6px}
   .chapter[data-chapter="0"] h1{margin:6px 0}
 }
+
+/* Room for the product screen on the arrival chapter: the tabs and the scene
+   tools move down, and what they give up the screen takes. */
+@media(min-width:901px){
+  body[data-chapter="0"] .product-controls{bottom:126px}
+  body[data-chapter="0"] .scene-tools{bottom:92px}
+}
+@media(min-width:901px) and (max-height:800px){
+  body[data-chapter="0"] .product-controls{bottom:112px}
+  body[data-chapter="0"] .scene-tools{bottom:84px}
+}

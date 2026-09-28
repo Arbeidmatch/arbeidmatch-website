@@ -132,7 +132,14 @@ export async function createUniverse(host) {
     const heroBottom = document.querySelector('.chapter[data-chapter="0"] .chapter-copy').getBoundingClientRect().bottom;
     let pixelWidth = Math.min(innerWidth * .43, Math.max(180, controlsTop - 180) * 1.6);
     let centerX = side * .2, pixelY = controlsTop - 32 - pixelWidth / 3.2;
-    if (i === 0) { pixelWidth = Math.min(innerWidth * .40, Math.max(130, controlsTop - heroBottom - 55) * 1.6); centerX = 0; pixelY = controlsTop - 22 - pixelWidth / 3.2; }
+    // THE PRODUCT SCREEN IS THE POINT OF THE ARRIVAL CHAPTER (28 September 2026,
+    // the owner: "fa printul ala mai mare in ecran in prim plan"). It used to be
+    // held to 40% of the window and to whatever vertical room was left over
+    // after a 55px margin, which on a wide short window came out around 300px -
+    // small enough that none of the interface inside it could be read. It now
+    // takes the room it is given: more of the width, and the gap above and below
+    // cut to what keeps it clear of the button and the tabs.
+    if (i === 0) { pixelWidth = Math.min(innerWidth * .58, Math.max(130, controlsTop - heroBottom - 26) * 1.6); centerX = 0; pixelY = controlsTop - 13 - pixelWidth / 3.2; }
     station.position.x = centerX * innerWidth * span / innerHeight;
     station.position.y = .1 + (.5 - pixelY / innerHeight) * span;
     station.scale.setScalar(pixelWidth * span / innerHeight / 8);
