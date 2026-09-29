@@ -9,15 +9,30 @@ export const fieldErrorTextClass = "mt-1 text-[12px] text-[#ef4444]";
 export const fieldNoteTextClass = "mt-1 text-[12px] text-amber-300";
 export const hintTextClass = "mt-1 text-[12px] text-white/50";
 
-export function inputClass(invalid: boolean, extraClass = ""): string {
+function fieldClass(background: string, invalid: boolean, extraClass: string): string {
   return [
-    "w-full min-h-[44px] rounded-[12px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/40",
+    `w-full min-h-[44px] rounded-[12px] ${background} px-4 py-3 text-sm text-white placeholder:text-white/40 [color-scheme:dark]`,
     "focus:outline-none focus:border-2 focus:border-[#C9A84C]",
     invalid ? "border-2 border-[#ef4444]" : "border border-white/10",
     extraClass,
   ]
     .filter(Boolean)
     .join(" ");
+}
+
+export function inputClass(invalid: boolean, extraClass = ""): string {
+  return fieldClass("bg-white/[0.05]", invalid, extraClass);
+}
+
+/**
+ * A native select, solid navy rather than the translucent input ground: the
+ * open list takes its colours from the select, and white text on a translucent
+ * ground left every option white on the browser's white list, so only the
+ * highlighted row could be read. The options are coloured as well, for the
+ * browsers that paint the list from them.
+ */
+export function selectClass(invalid: boolean, extraClass = ""): string {
+  return fieldClass("bg-[#0D1B2A] [&_option]:bg-[#0D1B2A] [&_option]:text-white", invalid, extraClass);
 }
 
 export function choiceClass(selected: boolean, extraClass = ""): string {
@@ -51,4 +66,4 @@ export const spinnerClass =
 export const bigSpinnerClass =
   "inline-block h-12 w-12 animate-spin rounded-full border-[3px] border-[rgba(201,168,76,0.2)] border-t-[#C9A84C]";
 
-export const pageShellClass = "min-h-dvh bg-[#0a0f18] px-4 py-10 text-white md:px-6 md:py-14";
+export const pageShellClass = "min-h-dvh bg-[#0a0f18] px-4 py-10 text-white [color-scheme:dark] md:px-6 md:py-14";

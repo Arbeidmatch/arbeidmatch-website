@@ -27,6 +27,7 @@ import {
   labelClass,
   primaryButtonClass,
   secondaryButtonClass,
+  selectClass,
   spinnerClass,
 } from "./ui";
 
@@ -478,7 +479,7 @@ export default function AdvertForm({
                 id="f-industry"
                 value={ad.industry}
                 onChange={(e) => set("industry", e.target.value)}
-                className={inputClass(!!err("industry"), "bg-[#0D1B2A]")}
+                className={selectClass(!!err("industry"))}
               >
                 <option value="">Velg bransje</option>
                 {INDUSTRIES.map((i) => (
@@ -518,7 +519,7 @@ export default function AdvertForm({
                   id="f-employmentType"
                   value={ad.employmentType}
                   onChange={(e) => set("employmentType", e.target.value as EmploymentType)}
-                  className={inputClass(!!err("employmentType"), "bg-[#0D1B2A]")}
+                  className={selectClass(!!err("employmentType"))}
                 >
                   {EMPLOYMENT_TYPES.map((t) => (
                     <option key={t} value={t}>
@@ -671,7 +672,7 @@ export default function AdvertForm({
                   max={maxDeadline}
                   value={ad.deadline}
                   onChange={(e) => set("deadline", e.target.value)}
-                  className={inputClass(!!err("deadline"), "[color-scheme:dark]")}
+                  className={inputClass(!!err("deadline"))}
                 />
               </Field>
               <Field name="startDate" label="Oppstart" optional>

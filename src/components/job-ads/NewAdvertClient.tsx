@@ -136,7 +136,7 @@ export default function NewAdvertClient({ prefill }: { prefill: AdvertPrefill })
 
       {orders.length > 0 ? (
         <div className="mb-6 rounded-[12px] border border-white/10 bg-white/[0.02] px-4 py-3 text-sm">
-          <p className="font-semibold text-white">Dine bestillinger</p>
+          <p className="font-semibold text-white">Deres bestillinger</p>
           <ul className="mt-2 space-y-1">
             {orders.map((o) => (
               <li key={o.token}>

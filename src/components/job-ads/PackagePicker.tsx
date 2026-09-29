@@ -246,7 +246,7 @@ export default function PackagePicker({ token, order, onOrder }: Props) {
             </div>
             <div>
               <label htmlFor="inv-email" className={labelClass}>
-                Fakturaadresse e-post <span className="ml-1 font-normal normal-case tracking-normal text-white/45">(valgfritt)</span>
+                E-post for faktura <span className="ml-1 font-normal normal-case tracking-normal text-white/45">(valgfritt)</span>
               </label>
               <input
                 id="inv-email"
