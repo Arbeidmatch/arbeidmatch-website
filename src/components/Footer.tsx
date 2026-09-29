@@ -51,6 +51,7 @@ export default function Footer() {
           <div>
             <FooterColumnTitle>{no ? "For bedrifter" : "For Employers"}</FooterColumnTitle>
             <FooterNavLink href="/request" label={no ? "Send en gratis forespørsel" : "Request Candidates"} />
+            <FooterNavLink href="/prosjekter" label={no ? "Prosjekter i hele Norge" : "Construction projects in Norway"} />
             <FooterNavLink href="/#how-it-works" label={no ? "Slik jobber vi" : "How it works"} />
             <FooterNavLink href="/for-staffing-agencies" label={no ? "Bli partnerbyrå" : "Become a partner agency"} />
             <FooterNavLink href="/contact" label={no ? "Kontakt" : "Contact"} />

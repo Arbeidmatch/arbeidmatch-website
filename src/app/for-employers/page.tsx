@@ -8,6 +8,7 @@ import PreFooterCrossLinks from "@/components/PreFooterCrossLinks";
 import BemanningLegalSection from "@/components/bemanning/BemanningLegalSection";
 import ForEmployersExtendedServices from "@/components/for-employers/ForEmployersExtendedServices";
 import OurServicesSection from "@/components/for-employers/OurServicesSection";
+import { ProjectsTeaser } from "@/components/prosjekter/ProjectsTeaser";
 import WeldingSpecialistsCard from "@/components/welding/WeldingSpecialistsCard";
 
 const TITLE = "Arbeidskraft fra EU/EØS til norske bedrifter | ArbeidMatch";
@@ -65,6 +66,9 @@ export default function ForEmployersPage() {
       </section>
 
       <HowItWorksInteractive />
+
+      {/* The project portal, for the firms this page is written to (29 September 2026). */}
+      <ProjectsTeaser />
 
       <section className="bg-[#0D1B2A] py-10 md:py-12 lg:py-14">
         <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
