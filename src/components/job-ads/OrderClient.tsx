@@ -78,6 +78,8 @@ export default function OrderClient({ token, sessionId }: { token: string; sessi
   const [loadError, setLoadError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(Boolean(sessionId));
+  /** Back from a checkout that may have been paid, and the order still says it waits: no second payment button meanwhile. */
+  const [awaitingCheckout, setAwaitingCheckout] = useState(false);
   const [polls, setPolls] = useState(0);
   const [editing, setEditing] = useState(false);
   const [ruleTitles, setRuleTitles] = useState<Record<string, string>>({});
@@ -114,12 +116,15 @@ export default function OrderClient({ token, sessionId }: { token: string; sessi
             body: JSON.stringify({ sessionId }),
           });
           const json = (await res.json().catch(() => null)) as OrderResponse | null;
+          const current = json?.order ?? (await refresh());
           if (json?.order) setOrder(json.order);
-          else await refresh();
-          if (!res.ok || !json?.ok) setNotice(json?.error || "Vi fikk ikke bekreftet betalingen ennå.");
+          // 402: Stripe says the checkout was not paid, so choosing again is safe.
+          if (res.status !== 402 && current?.status === "awaiting_payment") setAwaitingCheckout(true);
+          else if (!res.ok || !json?.ok) setNotice(json?.error || "Vi fikk ikke bekreftet betalingen ennå.");
         } catch {
-          await refresh();
-          setNotice("Vi fikk ikke bekreftet betalingen ennå. Last inn siden på nytt om litt.");
+          const current = await refresh();
+          if (current?.status === "awaiting_payment") setAwaitingCheckout(true);
+          else setNotice("Vi fikk ikke bekreftet betalingen ennå. Last inn siden på nytt om litt.");
         } finally {
           setConfirming(false);
           router.replace(`/annonse/${token}`, { scroll: false });
@@ -137,13 +142,14 @@ export default function OrderClient({ token, sessionId }: { token: string; sessi
 
   // Poll while something is happening on our side.
   useEffect(() => {
-    if (!order || editing || !POLLING.includes(order.status) || polls >= MAX_POLLS) return;
+    const watching = POLLING.includes(order?.status as OrderStatus) || (awaitingCheckout && order?.status === "awaiting_payment");
+    if (!order || editing || !watching || polls >= MAX_POLLS) return;
     const t = window.setTimeout(async () => {
       await refresh();
       setPolls((p) => p + 1);
     }, POLL_MS);
     return () => window.clearTimeout(t);
-  }, [order, editing, polls, refresh]);
+  }, [order, editing, polls, refresh, awaitingCheckout]);
 
   // Rule titles for the reviewer's findings.
   useEffect(() => {
@@ -257,7 +263,8 @@ export default function OrderClient({ token, sessionId }: { token: string; sessi
   }
 
   const status = order.status;
-  const pollingDone = POLLING.includes(status) && polls >= MAX_POLLS;
+  const pollingDone = polls >= MAX_POLLS;
+  const checkoutPending = awaitingCheckout && status === "awaiting_payment";
 
   return (
     <div className="mx-auto w-full max-w-[960px]">
@@ -348,7 +355,48 @@ export default function OrderClient({ token, sessionId }: { token: string; sessi
         </div>
       ) : null}
 
-      {status === "approved" || status === "awaiting_payment" ? (
+      {checkoutPending ? (
+        <div className={cardClass}>
+          <div className={cardHairline} />
+          <div className="py-6 text-center">
+            {pollingDone ? (
+              <>
+                <p className="text-xl font-bold">Vi har ikke fått bekreftet betalingen ennå</p>
+                <p className="mx-auto mt-2 max-w-md text-sm text-white/65">
+                  Er beløpet trukket, skal dere ikke betale på nytt. Skriv til{" "}
+                  <a href="mailto:post@arbeidmatch.no" className="text-[#C9A84C] underline underline-offset-2">
+                    post@arbeidmatch.no
+                  </a>
+                  , så ordner vi det.
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPolls(0);
+                      void refresh();
+                    }}
+                    className={secondaryButtonClass}
+                  >
+                    Sjekk igjen
+                  </button>
+                  <button type="button" onClick={() => setAwaitingCheckout(false)} className={secondaryButtonClass}>
+                    Betalingen ble ikke gjennomført
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className={bigSpinnerClass} />
+                <p className="mt-6 text-xl font-bold">Vi venter på bekreftelse av betalingen...</p>
+                <p className="mx-auto mt-2 max-w-md text-sm text-white/65">Ikke betal på nytt. Siden oppdaterer seg selv.</p>
+              </>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {!checkoutPending && (status === "approved" || status === "awaiting_payment") ? (
         <div className="space-y-6">
           <div className="rounded-[14px] border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
             Annonsen er kontrollert og godkjent. Velg pakke og betaling, så publiserer vi den.

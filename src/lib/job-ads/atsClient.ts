@@ -123,7 +123,7 @@ export async function choosePayment(
  */
 export async function markOrderPaid(
   token: string,
-  paid: { sessionId: string; amountTotal: number; currency: string },
+  paid: { sessionId: string; amountTotal: number; currency: string; selection?: { package: string; addons: string[] } },
 ): Promise<AtsResult<PublicOrderView>> {
   const path = orderPath(token, "/payment");
   if (!path) return badToken;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { jobAdCheckoutParams, jobAdPaidFromSession } from "@/lib/job-ads/stripe";
+import { expireOpenJobAdSessions, jobAdCheckoutParams, jobAdPaidFromSession } from "@/lib/job-ads/stripe";
 import { emptyAdvert, validateAdvert, type PublicOrderView } from "@/lib/job-ads/types";
 
 const TOKEN = "0123456789abcdef".repeat(4);
@@ -21,6 +21,15 @@ describe("the webhook forwards paid job advert checkouts and nothing else", () =
     expect(jobAdPaidFromSession(session())).toEqual({
       token: TOKEN,
       paid: { sessionId: "cs_test_abc", amountTotal: 931250, currency: "nok" },
+    });
+  });
+
+  it("carries the package and add-ons the checkout was opened for", () => {
+    const paid = jobAdPaidFromSession(session({ metadata: { kind: "job_ad", order_token: TOKEN, package: "maks", addons: "boost,social" } }));
+    expect(paid?.paid.selection).toEqual({ package: "maks", addons: ["boost", "social"] });
+    expect(jobAdPaidFromSession(session({ metadata: { kind: "job_ad", order_token: TOKEN, package: "basis", addons: "" } }))?.paid.selection).toEqual({
+      package: "basis",
+      addons: [],
     });
   });
 
@@ -69,8 +78,11 @@ describe("the checkout charges exactly the frozen total", () => {
     expect(line.price_data?.unit_amount).toBe(931250);
     expect(line.price_data?.product_data?.name).toBe("Stillingsannonse: Tømrer, pakke Synlig");
     expect(line.price_data?.product_data?.description).toBe("inkl. 25 % mva");
-    expect(p.metadata).toEqual({ kind: "job_ad", order_token: TOKEN });
-    expect(p.payment_intent_data?.metadata).toEqual({ kind: "job_ad", order_token: TOKEN });
+    expect(p.metadata).toEqual({ kind: "job_ad", order_token: TOKEN, package: "synlig", addons: "" });
+    expect(p.payment_intent_data?.metadata).toEqual({ kind: "job_ad", order_token: TOKEN, package: "synlig", addons: "" });
+    const ttl = Number(p.expires_at) - Math.floor(Date.now() / 1000);
+    expect(ttl).toBeGreaterThanOrEqual(29 * 60);
+    expect(ttl).toBeLessThanOrEqual(30 * 60);
     expect(p.customer_email).toBe("kari@firma.no");
     expect(p.success_url).toBe(`https://www.arbeidmatch.no/annonse/${TOKEN}?session_id={CHECKOUT_SESSION_ID}`);
     expect(p.cancel_url).toBe(`https://www.arbeidmatch.no/annonse/${TOKEN}`);
@@ -87,5 +99,45 @@ describe("the form's own checks", () => {
     for (const field of ["employer.name", "employer.orgNumber", "contact.name", "contact", "title", "description", "industry", "location.city", "salary.min", "deadline", "advertFor"]) {
       expect(problems[field], field).toBeTruthy();
     }
+  });
+});
+
+describe("only one checkout is open for an order", () => {
+  function fakeStripe(sessions: Array<{ id: string; metadata: Record<string, string> }>, failOn: string[] = []) {
+    const expired: string[] = [];
+    const stripe = {
+      checkout: {
+        sessions: {
+          list: () => ({
+            async *[Symbol.asyncIterator]() {
+              for (const s of sessions) yield s;
+            },
+          }),
+          expire: async (id: string) => {
+            if (failOn.includes(id)) throw new Error("already complete");
+            expired.push(id);
+            return {};
+          },
+        },
+      },
+    } as unknown as Parameters<typeof expireOpenJobAdSessions>[0];
+    return { stripe, expired };
+  }
+
+  it("closes this order's open checkouts and leaves every other session alone", async () => {
+    const other = "f".repeat(64);
+    const { stripe, expired } = fakeStripe([
+      { id: "cs_a", metadata: { kind: "job_ad", order_token: TOKEN } },
+      { id: "cs_b", metadata: { kind: "job_ad", order_token: other } },
+      { id: "cs_c", metadata: { premium_email: "x@y.no" } },
+      { id: "cs_d", metadata: { kind: "job_ad", order_token: TOKEN } },
+    ]);
+    expect(await expireOpenJobAdSessions(stripe, TOKEN)).toEqual({ expired: 2, failed: 0 });
+    expect(expired).toEqual(["cs_a", "cs_d"]);
+  });
+
+  it("counts a checkout that could not be closed, so the caller stops", async () => {
+    const { stripe } = fakeStripe([{ id: "cs_a", metadata: { kind: "job_ad", order_token: TOKEN } }], ["cs_a"]);
+    expect(await expireOpenJobAdSessions(stripe, TOKEN)).toEqual({ expired: 0, failed: 1 });
   });
 });

@@ -87,6 +87,7 @@ export default function NewAdvertClient({ prefill }: { prefill: AdvertPrefill })
           rulesVersion: input.rulesVersion,
           rulesAccepted: true,
           startedAt: input.startedAt,
+          elapsedMs: Date.now() - input.startedAt,
           company_website: input.honeypot,
         }),
       });

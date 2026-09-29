@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
     rulesVersion?: string;
     rulesAccepted?: boolean;
     startedAt?: number;
+    elapsedMs?: number;
     company_website?: string;
     website?: string;
     honeypot?: string;
@@ -50,10 +51,13 @@ export async function POST(request: NextRequest) {
     return noStoreJson({ ok: false, error: norwegianError(400) }, { status: 400 });
   }
 
-  const startedAt = Number(body.startedAt);
-  const age = Date.now() - startedAt;
+  // How long the form was open, measured on the browser's own clock: a client
+  // clock a few seconds ahead of ours turned the age negative and refused real
+  // people. A page from before elapsedMs existed still sends only startedAt.
+  const elapsed = Number(body.elapsedMs);
+  const age = Number.isFinite(elapsed) ? elapsed : Date.now() - Number(body.startedAt);
   // A stored draft can be weeks old; a start time from before that is not a person's.
-  const tooFast = !Number.isFinite(startedAt) || age < MIN_FILL_MS || age > MAX_DRAFT_AGE_MS;
+  const tooFast = !Number.isFinite(age) || age < MIN_FILL_MS || age > MAX_DRAFT_AGE_MS;
   if (hasHoneypotValue(body as Record<string, unknown>) || tooFast) {
     return noStoreJson({ ok: false, error: "Vi kunne ikke ta imot annonsen. Prøv igjen om litt." }, { status: 400 });
   }

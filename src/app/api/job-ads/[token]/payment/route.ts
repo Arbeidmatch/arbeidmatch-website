@@ -5,7 +5,7 @@ import { getRateLimitResult, noStoreJson } from "@/lib/apiSecurity";
 import { notifyError } from "@/lib/errorNotifier";
 import { choosePayment } from "@/lib/job-ads/atsClient";
 import { norwegianError } from "@/lib/job-ads/errors";
-import { jobAdCheckoutParams } from "@/lib/job-ads/stripe";
+import { expireOpenJobAdSessions, jobAdCheckoutParams } from "@/lib/job-ads/stripe";
 import { isAdAddon, isAdPackage, isOrderToken, type AdPackage, type PaymentMethod } from "@/lib/job-ads/types";
 import { getPublicBaseUrl } from "@/lib/premium/stripeEnv";
 
@@ -74,6 +74,25 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     );
   }
 
+  // One way to pay at a time: any checkout still open for this order is closed
+  // before another is opened or the order is invoiced.
+  const secret = process.env.STRIPE_SECRET_KEY;
+  const stripe = secret ? new Stripe(secret) : null;
+  if (stripe) {
+    try {
+      const closed = await expireOpenJobAdSessions(stripe, token);
+      if (closed.failed > 0) {
+        return noStoreJson(
+          { ok: false, error: "En kortbetaling for denne annonsen er i gang. Vent et øyeblikk og last inn siden på nytt.", order },
+          { status: 409 },
+        );
+      }
+    } catch (error) {
+      await notifyError({ route: "/api/job-ads/[token]/payment", error });
+      return noStoreJson({ ok: false, error: "Vi fikk ikke kontakt med betalingen. Prøv igjen om litt.", order }, { status: 502 });
+    }
+  }
+
   if (method === "invoice") {
     const reference = String(body.invoiceReference ?? "").trim().slice(0, 100) || null;
     const invoiceEmail = String(body.invoiceEmail ?? "").trim().slice(0, 200) || null;
@@ -87,8 +106,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     return noStoreJson({ ok: true, order: invoiced.data });
   }
 
-  const secret = process.env.STRIPE_SECRET_KEY;
-  if (!secret) {
+  if (!stripe) {
     return noStoreJson(
       { ok: false, error: "Kortbetaling er ikke tilgjengelig akkurat nå. Velg faktura, eller prøv igjen senere.", order },
       { status: 503 },
@@ -98,7 +116,6 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   if (!params) return noStoreJson({ ok: false, error: norwegianError(409), order }, { status: 409 });
 
   try {
-    const stripe = new Stripe(secret);
     const session = await stripe.checkout.sessions.create(params);
     if (!session.url) throw new Error("Stripe returned a session without a URL");
     return noStoreJson({ ok: true, order, checkoutUrl: session.url });
