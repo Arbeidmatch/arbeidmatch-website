@@ -31,6 +31,14 @@ function formatDate(iso: string | null | undefined): string | null {
   return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("nb-NO", { day: "numeric", month: "long", year: "numeric" });
 }
 
+/** The application deadline was an earlier day in Oslo: paying now would publish an advert already closed. */
+function deadlineGone(deadline: string | null | undefined): boolean {
+  const d = String(deadline ?? "").slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return false;
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Oslo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  return d < today;
+}
+
 function groupFindings(findings: ReviewFinding[]): Array<{ rule: string; items: ReviewFinding[] }> {
   const map = new Map<string, ReviewFinding[]>();
   for (const f of findings) {
@@ -397,15 +405,36 @@ export default function OrderClient({ token, sessionId }: { token: string; sessi
       ) : null}
 
       {!checkoutPending && (status === "approved" || status === "awaiting_payment") ? (
-        <div className="space-y-6">
-          <div className="rounded-[14px] border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
-            Annonsen er kontrollert og godkjent. Velg pakke og betaling, så publiserer vi den.
-          </div>
+        deadlineGone(order.advert?.deadline) ? (
           <div className={cardClass}>
             <div className={cardHairline} />
-            <PackagePicker token={token} order={order} onOrder={onOrder} />
+            <h2 className="text-2xl font-extrabold">Søknadsfristen har gått ut</h2>
+            <p className="mt-2 text-sm text-white/65">
+              Fristen i annonsen er passert, så den kan ikke publiseres slik den er. Sett en ny frist, så kontrollerer vi annonsen på nytt før
+              dere betaler.
+            </p>
+            <button type="button" onClick={() => setEditing(true)} className={`${primaryButtonClass} mt-6`}>
+              Endre annonsen
+            </button>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="rounded-[14px] border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+              Annonsen er kontrollert og godkjent. Velg pakke og betaling, så publiserer vi den.
+            </div>
+            <div className={cardClass}>
+              <div className={cardHairline} />
+              <PackagePicker token={token} order={order} onOrder={onOrder} />
+            </div>
+            <p className="text-center text-[13px] text-white/50">
+              Må dere endre noe i annonsen?{" "}
+              <button type="button" onClick={() => setEditing(true)} className="font-semibold text-[#C9A84C] underline underline-offset-2">
+                Endre den
+              </button>
+              . Den kontrolleres da på nytt før dere betaler.
+            </p>
+          </div>
+        )
       ) : null}
 
       {status === "paid" || status === "invoiced" || status === "published" ? (

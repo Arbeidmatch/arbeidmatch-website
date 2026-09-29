@@ -14,6 +14,8 @@ const KNOWN: { match: RegExp; message: string }[] = [
   { match: /too many adverts from this organisation/i, message: "Det er sendt mange annonser fra dette firmaet i dag. Prøv igjen i morgen, eller kontakt oss på post@arbeidmatch.no." },
   { match: /too many rounds/i, message: "Annonsen har vært til kontroll mange ganger. Kontakt oss på post@arbeidmatch.no, så hjelper vi dere." },
   { match: /cannot be changed now/i, message: "Annonsen kan ikke endres nå." },
+  { match: /application deadline has passed/i, message: "Søknadsfristen har gått ut. Endre fristen i annonsen før dere betaler." },
+  { match: /payment is no longer open/i, message: "Bestillingen er endret i mellomtiden. Last inn siden på nytt." },
   { match: /payment is not open/i, message: "Betaling er ikke åpen for denne bestillingen nå. Last inn siden på nytt." },
   { match: /amount does not match/i, message: "Beløpet stemmer ikke med bestillingen. Vi ser på saken og tar kontakt." },
   { match: /not waiting for a card payment/i, message: "Bestillingen venter ikke på kortbetaling. Last inn siden på nytt." },

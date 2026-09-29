@@ -1,8 +1,12 @@
 import { NextRequest } from "next/server";
+import Stripe from "stripe";
 
 import { getRateLimitResult, noStoreJson } from "@/lib/apiSecurity";
+import { notifyError } from "@/lib/errorNotifier";
 import { getOrder, reviseOrder } from "@/lib/job-ads/atsClient";
 import { norwegianError } from "@/lib/job-ads/errors";
+import { expireOpenJobAdSessions } from "@/lib/job-ads/stripe";
+import { vouchingHeaders } from "@/lib/prosjekter/ats";
 import { isOrderToken, normaliseAdvert, validateAdvert, type AdvertDraft } from "@/lib/job-ads/types";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +52,24 @@ export async function PUT(request: NextRequest, ctx: Ctx) {
     return noStoreJson({ ok: false, error: Object.values(problems)[0], fields: problems }, { status: 400 });
   }
 
-  const r = await reviseOrder(token, advert);
+  // An edit from the payment step: no checkout may stay open for a price the edit clears.
+  const secret = process.env.STRIPE_SECRET_KEY;
+  if (secret) {
+    try {
+      const closed = await expireOpenJobAdSessions(new Stripe(secret), token);
+      if (closed.failed > 0) {
+        return noStoreJson(
+          { ok: false, error: "En kortbetaling for denne annonsen er i gang. Vent et øyeblikk og last inn siden på nytt." },
+          { status: 409 },
+        );
+      }
+    } catch (error) {
+      await notifyError({ route: "/api/job-ads/[token]", error });
+      return noStoreJson({ ok: false, error: "Vi fikk ikke kontakt med betalingen. Prøv igjen om litt." }, { status: 502 });
+    }
+  }
+
+  const r = await reviseOrder(token, advert, vouchingHeaders(request.headers));
   if (!r.ok) return noStoreJson({ ok: false, error: norwegianError(r.status, r.error) }, { status: r.status });
   return noStoreJson({ ok: true, order: r.data });
 }

@@ -4,6 +4,7 @@ import { getRateLimitResult, hasHoneypotValue, noStoreJson } from "@/lib/apiSecu
 import { createOrder, getPostingRules } from "@/lib/job-ads/atsClient";
 import { norwegianError, SLOW_REVIEW_MESSAGE } from "@/lib/job-ads/errors";
 import { normaliseAdvert, validateAdvert, type AdvertDraft } from "@/lib/job-ads/types";
+import { vouchingHeaders } from "@/lib/prosjekter/ats";
 
 export const dynamic = "force-dynamic";
 /** The review runs while the client waits; the ATS gives it up to 90 s. */
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
     return noStoreJson({ ok: false, error: Object.values(problems)[0], fields: problems }, { status: 400 });
   }
 
-  const r = await createOrder({ advert, rulesVersion: String(body.rulesVersion) });
+  const r = await createOrder({ advert, rulesVersion: String(body.rulesVersion), visitor: vouchingHeaders(request.headers) });
   if (!r.ok) {
     const error = r.error === "ats_timeout" ? SLOW_REVIEW_MESSAGE : norwegianError(r.status, r.error);
     return noStoreJson({ ok: false, error }, { status: r.status });

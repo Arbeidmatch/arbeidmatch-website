@@ -32,7 +32,7 @@ export function atsJobAdsBase(): string | null {
 
 async function call<T>(
   path: string,
-  init: { method: "GET" | "POST" | "PUT"; body?: unknown; timeoutMs?: number },
+  init: { method: "GET" | "POST" | "PUT"; body?: unknown; timeoutMs?: number; headers?: Record<string, string> },
 ): Promise<AtsResult<T>> {
   const base = atsJobAdsBase();
   const secret = process.env.ATS_EMAIL_SECRET?.trim();
@@ -43,6 +43,7 @@ async function call<T>(
       method: init.method,
       headers: {
         "x-website-email-secret": secret,
+        ...(init.headers ?? {}),
         ...(init.body !== undefined ? { "Content-Type": "application/json" } : {}),
       },
       body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
@@ -81,12 +82,18 @@ export async function getPostingRules(): Promise<AtsResult<PostingRules>> {
 }
 
 /** A new advert. The ATS reviews it synchronously, so this can take up to a minute. */
-export async function createOrder(input: { advert: AdvertDraft; rulesVersion: string }): Promise<AtsResult<PublicOrderView>> {
+export async function createOrder(input: {
+  advert: AdvertDraft;
+  rulesVersion: string;
+  /** vouchingHeaders(request.headers): the ATS counts adverts per visitor, not per website. */
+  visitor?: Record<string, string>;
+}): Promise<AtsResult<PublicOrderView>> {
   return unwrap(
     await call<OrderEnvelope>("", {
       method: "POST",
       body: { advert: input.advert, rulesVersion: input.rulesVersion, rulesAccepted: true },
       timeoutMs: REVIEW_TIMEOUT_MS,
+      headers: input.visitor,
     }),
   );
 }
@@ -98,10 +105,10 @@ export async function getOrder(token: string): Promise<AtsResult<PublicOrderView
 }
 
 /** The corrected advert, read again by the reviewer. */
-export async function reviseOrder(token: string, advert: AdvertDraft): Promise<AtsResult<PublicOrderView>> {
+export async function reviseOrder(token: string, advert: AdvertDraft, visitor?: Record<string, string>): Promise<AtsResult<PublicOrderView>> {
   const path = orderPath(token);
   if (!path) return badToken;
-  return unwrap(await call<OrderEnvelope>(path, { method: "PUT", body: { advert }, timeoutMs: REVIEW_TIMEOUT_MS }));
+  return unwrap(await call<OrderEnvelope>(path, { method: "PUT", body: { advert }, timeoutMs: REVIEW_TIMEOUT_MS, headers: visitor }));
 }
 
 /**
