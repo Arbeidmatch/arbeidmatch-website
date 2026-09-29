@@ -300,10 +300,11 @@ function EmployerPanel({ context, onClose }: { context: Extract<BeforeYouGoConte
         needs and an offer comes back, not a sales call.
       </p>
 
-      {/* Three things, and the first is a word rather than a form. Without the
-          choice we would not know what offer to write. */}
+      {/* The services, and the first is a word rather than a form. Without the
+          choice we would not know what offer to write. Job adverts are not open
+          to the public yet (the owner, 29 September 2026), so they are no choice here. */}
       <div className="mt-4 flex flex-wrap gap-2">
-        {(["recruitment", "staffing", "job_ad"] as const).map((option) => (
+        {(["recruitment", "staffing"] as const).map((option) => (
           <button
             key={option}
             type="button"
@@ -312,7 +313,7 @@ function EmployerPanel({ context, onClose }: { context: Extract<BeforeYouGoConte
               service === option ? "border-gold bg-gold text-navy" : "border-border text-text-secondary hover:border-gold"
             }`}
           >
-            {option === "recruitment" ? "Recruitment" : option === "staffing" ? "Staffing" : "Job ad"}
+            {option === "recruitment" ? "Recruitment" : "Staffing"}
           </button>
         ))}
       </div>

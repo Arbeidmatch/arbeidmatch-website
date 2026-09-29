@@ -50,9 +50,10 @@ const CARDS = [
   },
   {
     title: "Direkte annonsering",
-    text: "Nå kandidatene der de faktisk er. Vi publiserer stillingen deres i våre nettverk og kanaler i EU/EØS. Dere ansetter direkte. Mer effektivt enn lokale jobbportaler, til en brøkdel av prisen.",
-    href: "/contact",
-    cta: "Spør om annonsering →",
+    // Not open to the public yet (the owner, 29 September 2026).
+    text: "Snart kan dere publisere stillingen i våre nettverk og kanaler i EU/EØS og ansette direkte. Tjenesten er ikke åpnet ennå.",
+    href: null,
+    cta: "Kommer snart",
     icon: IconMegaphone,
     topBorder: false,
   },
@@ -78,12 +79,16 @@ export default function ForEmployersExtendedServices() {
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-white">{card.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-white/70">{card.text}</p>
-                <Link
-                  href={card.href}
-                  className="mt-5 inline-flex min-h-[44px] items-center text-sm font-semibold text-gold hover:underline"
-                >
-                  {card.cta}
-                </Link>
+                {card.href ? (
+                  <Link
+                    href={card.href}
+                    className="mt-5 inline-flex min-h-[44px] items-center text-sm font-semibold text-gold hover:underline"
+                  >
+                    {card.cta}
+                  </Link>
+                ) : (
+                  <p className="mt-5 inline-flex min-h-[44px] items-center text-sm font-semibold text-white/60">{card.cta}</p>
+                )}
               </article>
             );
           })}

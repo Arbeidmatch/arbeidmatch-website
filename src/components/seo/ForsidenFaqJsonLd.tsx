@@ -37,7 +37,7 @@ const FAQ = [
   },
   {
     q: "How do I hire workers from the EU and EEA in Norway?",
-    a: "Three ways, and which one fits depends on how much of it you want to carry. A job ad: you write it, it goes on our board, and applications reach you directly. Recruitment: we find and present candidates, and you employ them yourself. Staffing (bemanning): we employ them and hire them in to you, so the employment, the payroll and the papers stay with us.",
+    a: "Two ways, and which one fits depends on how much of it you want to carry. Recruitment: we find and present candidates, and you employ them yourself. Staffing (bemanning): we employ them and hire them in to you, so the employment, the payroll and the papers stay with us. Job adverts on our board are coming soon.",
   },
   {
     q: "What is the difference between recruitment and bemanning?",
@@ -45,7 +45,7 @@ const FAQ = [
   },
   {
     q: "Which trades do you work with?",
-    a: "Building and civil works, car workshops, industry and manufacturing, and electrical installation. Within those: carpenters, bricklayers, concrete workers, painters, car mechanics, welders, factory workers, and electricians with DSB registration.",
+    a: "Building and civil works, car workshops, industry and manufacturing, and electrical installation. Within those: carpenters, bricklayers, concrete workers, painters, car mechanics, welders, factory workers, and industrial electricians who hold DSB authorisation or are waiting to receive it.",
   },
   {
     q: "Can I work with you as a recruiter?",

@@ -17,7 +17,7 @@ export function ForsidenDoors({ lang = "en" }: { lang?: "en" | "no" }) {
       <div className="mx-auto flex max-w-content flex-col items-start justify-between gap-6 px-5 py-9 sm:px-6 md:flex-row md:items-center md:py-11">
         <div><p className="mb-2 text-xs font-semibold uppercase tracking-widest text-gold">{no ? "For bedrifter" : "For employers"}</p>
           <h2 className="text-2xl font-bold md:text-3xl">{no ? "Trenger du folk til teamet?" : "Need people for your team?"}</h2>
-          <p className="mt-3 text-sm text-white/75">{no ? "Rekruttering, bemanning og stillingsannonser." : "Recruitment, staffing and job advertising."}</p></div>
+          <p className="mt-3 text-sm text-white/75">{no ? "Rekruttering, sourcing og bemanning." : "Recruitment, sourcing and staffing."}</p></div>
         <Link href="/request" className="inline-flex min-h-12 shrink-0 items-center gap-5 rounded-lg bg-gold px-6 font-bold text-navy hover:bg-gold-hover">{no ? "Be om kandidater" : "Request candidates"} <span aria-hidden="true">→</span></Link>
       </div>
     </section>

@@ -13,7 +13,8 @@ type CardDef = {
   eyebrow: string;
   body: string;
   steps: string[];
-  cta: { label: string; href: string };
+  /** Absent on a service that is not open yet: the card says "Kommer snart" instead of a button. */
+  cta?: { label: string; href: string };
   subscriptionNote?: string;
 };
 
@@ -51,18 +52,12 @@ const CARDS: CardDef[] = [
   {
     badge: "03",
     title: "Stillingsannonsering",
-    subtitle: "Nå kandidater i EU/EØS direkte gjennom våre kanaler.",
+    subtitle: "Kommer snart.",
     eyebrow: "Direkte annonsering",
-    body: "Alle offisielt registrerte norske selskaper kan annonsere ledige stillinger gjennom ArbeidMatch. Vi publiserer stillingen deres i våre digitale kanaler og nettverk i EU/EØS for å nå kvalifiserte kandidater direkte. Tilgjengelig som månedlig abonnement eller per stilling.",
-    steps: [
-      "Dere sender oss annonseforespørselen",
-      "Vi gjennomgår annonsen opp mot norske standarder for stillingsannonser",
-      "Vi publiserer i våre kandidatkanaler i EU/EØS",
-      "Kandidatene søker direkte eller via oss, etter hva dere foretrekker",
-    ],
-    subscriptionNote:
-      "Tilgjengelig som månedlig abonnement eller per stilling. Kontakt oss for gjeldende priser.",
-    cta: { label: "Spør om annonsering", href: "/contact" },
+    // Not open to the public yet (the owner, 24 and 29 September 2026): the
+    // request wizard shows it as coming soon, and so does every page that names it.
+    body: "Snart kan norske selskaper annonsere ledige stillinger gjennom ArbeidMatch, i våre kanaler og nettverk i EU/EØS. Tjenesten er ikke åpnet ennå.",
+    steps: [],
   },
 ];
 
@@ -179,14 +174,16 @@ export default function HowItWorksInteractive() {
                       {card.eyebrow}
                     </p>
                     <p className="mt-3 text-sm leading-[1.75] text-white/70">{card.body}</p>
-                    <ul className="mt-4 flex flex-col gap-2.5">
-                      {card.steps.map((s) => (
-                        <li key={s} className="flex items-start gap-2.5 text-[13px] leading-snug text-white/70">
-                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: GOLD }} />
-                          <span>{s}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    {card.steps.length ? (
+                      <ul className="mt-4 flex flex-col gap-2.5">
+                        {card.steps.map((s) => (
+                          <li key={s} className="flex items-start gap-2.5 text-[13px] leading-snug text-white/70">
+                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: GOLD }} />
+                            <span>{s}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                     {card.subscriptionNote ? (
                       <div
                         className="mt-4 rounded-lg border-l-[3px] px-4 py-3 text-[13px] leading-relaxed text-white/70"
@@ -198,14 +195,23 @@ export default function HowItWorksInteractive() {
                         {card.subscriptionNote}
                       </div>
                     ) : null}
-                    <Link
-                      href={card.cta.href}
-                      className="mt-5 flex w-full items-center justify-center rounded-lg text-center text-sm font-bold text-[#0D1B2A] transition-opacity hover:opacity-95"
-                      style={{ background: GOLD, padding: "12px 20px" }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {card.cta.label}
-                    </Link>
+                    {card.cta ? (
+                      <Link
+                        href={card.cta.href}
+                        className="mt-5 flex w-full items-center justify-center rounded-lg text-center text-sm font-bold text-[#0D1B2A] transition-opacity hover:opacity-95"
+                        style={{ background: GOLD, padding: "12px 20px" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {card.cta.label}
+                      </Link>
+                    ) : (
+                      <p
+                        className="mt-5 flex w-full items-center justify-center rounded-lg border text-center text-sm font-semibold text-white/70"
+                        style={{ borderColor: "rgba(201,168,76,0.35)", padding: "12px 20px" }}
+                      >
+                        Kommer snart
+                      </p>
+                    )}
                     {open && !reduceMotion ? (
                       <p className="mt-2.5 text-center text-[11px] text-white/70">Klikk for å lukke</p>
                     ) : null}
