@@ -81,7 +81,8 @@ const GRATICULE = graticule();
 const LOCK_TEXT = "Byggherre, entreprenør, frister og konkurransegrunnlag: for kunder";
 const nf = new Intl.NumberFormat("nb-NO");
 
-export function LockLine() {
+/** The line under a project saying what clients see; with an action (the way to ask for access) at its end. */
+export function LockLine({ action }: { action?: React.ReactNode } = {}) {
   return (
     <span className={styles.lockline}>
       <svg width="12" height="13" viewBox="0 0 12 13" aria-hidden="true">
@@ -89,6 +90,7 @@ export function LockLine() {
         <path d="M3.5 5.5V4a2.5 2.5 0 015 0v1.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
       </svg>
       <span>{LOCK_TEXT}</span>
+      {action}
     </span>
   );
 }
@@ -171,9 +173,11 @@ type Props = {
   onHover: (no: number | null) => void;
   /** A single project's dot was clicked. */
   onSelect: (no: number) => void;
+  /** A group of projects was clicked: the list shows those (the owner, 29 September 2026). */
+  onCluster?: (nos: number[]) => void;
 };
 
-export default function PortalMap({ ref, visible, counts, county, onPickCounty, hover, onHover, onSelect }: Props) {
+export default function PortalMap({ ref, visible, counts, county, onPickCounty, hover, onHover, onSelect, onCluster }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
@@ -536,6 +540,7 @@ export default function PortalMap({ ref, visible, counts, county, onPickCounty, 
 
   const onClusterClick = (c: Cluster) => {
     if (c.members.length > 1) {
+      onCluster?.(c.members.map((p) => p.no));
       userMoved();
       const xs = c.members.map((p) => p.x);
       const ys = c.members.map((p) => p.y);
@@ -545,6 +550,7 @@ export default function PortalMap({ ref, visible, counts, county, onPickCounty, 
     const p = c.members[0];
     setTipNo(p.no);
     onHover(p.no);
+    onCluster?.([p.no]);
     onSelect(p.no);
   };
 
@@ -928,7 +934,7 @@ function TipBody({ c }: { c: Cluster }) {
         ))}
       </ul>
       <div className={styles.meta} style={{ marginTop: 6 }}>
-        {c.members.length > 4 ? `+ ${c.members.length - 4} til. Klikk for å zoome inn.` : "Klikk for å zoome inn."}
+        {c.members.length > 4 ? `+ ${c.members.length - 4} til. Klikk for å se dem i listen.` : "Klikk for å se dem i listen."}
       </div>
     </>
   );

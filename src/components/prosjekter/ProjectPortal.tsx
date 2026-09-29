@@ -114,11 +114,11 @@ function Row({
 }) {
   const value = mnok(p.v);
   return (
-    <li>
+    <li className={`${styles.row} ${hl ? styles.rowHl : ""}`}>
       <button
         type="button"
         id={`pp-${p.no}`}
-        className={`${styles.item} ${hl ? styles.itemHl : ""}`}
+        className={styles.item}
         onMouseEnter={() => onHover(p.no)}
         onFocus={() => onHover(p.no)}
         onClick={() => onPick(p.no)}
@@ -148,8 +148,16 @@ function Row({
             </span>
           ) : null}
         </span>
-        <LockLine />
       </button>
+      <span className={styles.rowFoot}>
+        <LockLine
+          action={
+            <a href="#tilgang" aria-haspopup="dialog" className={styles.rowCta}>
+              Få tilgang
+            </a>
+          }
+        />
+      </span>
     </li>
   );
 }
@@ -201,7 +209,17 @@ export default function ProjectPortal({
   const domainLabel = useMemo(() => new Map(domainOptions.map((d) => [d.key, d.label])), [domainOptions]);
 
   const visible = useMemo(() => filterProjects(projects, { stages, domain, county }), [projects, stages, domain, county]);
-  const listed = useMemo(() => sortProjects(visible, sort), [visible, sort]);
+  // A group clicked on the map: the list shows only those, until "Vis alle" or another filter.
+  const [picked, setPicked] = useState<number[] | null>(null);
+  const listed = useMemo(() => {
+    const sorted = sortProjects(visible, sort);
+    if (!picked) return sorted;
+    const keep = new Set(picked);
+    return sorted.filter((p) => keep.has(p.no));
+  }, [visible, sort, picked]);
+  useEffect(() => {
+    setPicked(null);
+  }, [stages, domain, county]);
   const stageCounts = useMemo(() => {
     const out: Record<MapStage, number> = { planned: 0, tender: 0, closed: 0, awarded: 0 };
     for (const p of filterProjects(projects, { stages: new Set(STAGES), domain, county })) out[p.st]++;
@@ -244,6 +262,13 @@ export default function ProjectPortal({
     // After the map is shown again, so it has its size.
     requestAnimationFrame(() => mapRef.current?.focusProject(no));
   };
+
+  const listRef = useRef<HTMLUListElement>(null);
+  const onCluster = useCallback((nos: number[]) => {
+    setPicked(nos);
+    setLimit(PAGE);
+    requestAnimationFrame(() => listRef.current?.scrollTo({ top: 0 }));
+  }, []);
 
   const onSelectDot = useCallback(
     (no: number) => {
@@ -354,12 +379,26 @@ export default function ProjectPortal({
               hover={hover}
               onHover={setHover}
               onSelect={onSelectDot}
+              onCluster={onCluster}
             />
+            {picked && view === "map" ? (
+              <button type="button" className={styles.pickedBar} onClick={() => setView("list")}>
+                {picked.length === 1 ? "Vis prosjektet i listen" : `Vis ${picked.length} prosjekter i listen`}
+              </button>
+            ) : null}
 
             <div className={styles.listcard}>
               <div className={styles.listHead}>
                 <div className={styles.listCount} aria-live="polite">
-                  {hasMap ? (
+                  {hasMap && picked ? (
+                    <>
+                      <strong className={styles.num}>{nf.format(listed.length)}</strong>{" "}
+                      {listed.length === 1 ? "prosjekt" : "prosjekter"} valgt på kartet{" "}
+                      <button type="button" className={styles.showAll} onClick={() => setPicked(null)}>
+                        Vis alle
+                      </button>
+                    </>
+                  ) : hasMap ? (
                     <>
                       <strong className={styles.num}>{nf.format(listed.length)}</strong>{" "}
                       {listed.length === 1 ? "prosjekt" : "prosjekter"}
@@ -388,7 +427,7 @@ export default function ProjectPortal({
                   </>
                 ) : null}
               </div>
-              <ul className={styles.list} onMouseLeave={() => setHover(null)}>
+              <ul ref={listRef} className={styles.list} onMouseLeave={() => setHover(null)}>
                 {!data ? (
                   <li className={styles.empty}>
                     {failed ? "Prosjektoversikten er ikke tilgjengelig akkurat nå. Prøv igjen om litt." : "Henter prosjekter ..."}
@@ -430,7 +469,13 @@ export default function ProjectPortal({
                           </span>
                         ) : null}
                       </span>
-                      <LockLine />
+                      <LockLine
+                        action={
+                          <a href="#tilgang" aria-haspopup="dialog" className={styles.rowCta}>
+                          Få tilgang
+                        </a>
+                        }
+                      />
                     </li>
                   ))
                 )}
