@@ -34,7 +34,8 @@ function StageMarker({ p }: { p: OverviewProject }) {
 }
 
 function ProjectRow({ p }: { p: OverviewProject }) {
-  const owner = [p.buyer_name, p.place].filter(Boolean).join(" · ");
+  // The place only: the buyer and the contractor are for clients (his rule, 29 September 2026).
+  const owner = p.place;
   return (
     <li className="grid grid-cols-1 gap-3 border-b border-white/10 py-5 last:border-b-0 sm:grid-cols-[64px_minmax(0,1fr)_200px] sm:gap-5">
       <span className="font-mono text-[13px] tabular-nums text-white/45">
@@ -43,12 +44,6 @@ function ProjectRow({ p }: { p: OverviewProject }) {
       <div className="min-w-0">
         <h3 className="text-[16px] font-semibold leading-snug text-white">{p.title}</h3>
         {owner ? <p className={`mt-1 text-[14px] leading-snug ${MUTED}`}>{owner}</p> : null}
-        {p.winners.length ? (
-          <p className="mt-1 text-[14px] leading-snug text-white/85">
-            <span className="text-white/55">Entreprenør: </span>
-            {p.winners.join(", ")}
-          </p>
-        ) : null}
         {p.domains.length ? (
           <p className="mt-2 flex flex-wrap gap-1.5">
             {p.domains.slice(0, 3).map((d) => (
@@ -59,7 +54,7 @@ function ProjectRow({ p }: { p: OverviewProject }) {
           </p>
         ) : null}
         <p className="mt-2 text-[12px] text-white/40">
-          {p.stage === "tender" ? "Detaljer og tilbudsfrist for kunder" : "Detaljer for kunder"}
+          {p.stage === "tender" ? "Byggherre, frister og konkurransegrunnlag for kunder" : "Byggherre, entreprenør og detaljer for kunder"}
         </p>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 sm:flex-col sm:items-end sm:justify-start sm:text-right">

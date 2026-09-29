@@ -6,13 +6,12 @@ export type OverviewProject = {
   project_no: number | null;
   stage: OverviewStage;
   stage_label: string;
+  /** What is built, with the buyer taken out: the open page names no buyer and no contractor (his rule, 29 September 2026). */
   title: string;
-  buyer_name: string | null;
   place: string;
   value_label: string | null;
   date_label: string | null;
   domains: string[];
-  winners: string[];
 };
 
 export type Overview = {

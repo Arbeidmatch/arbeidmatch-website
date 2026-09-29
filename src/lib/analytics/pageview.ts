@@ -42,7 +42,10 @@ export function isOurHost(host: string | null): boolean {
 /** The path as the sink accepts it: starts with "/", at most 512 characters. Null otherwise. */
 export function cleanPath(value: unknown): string | null {
   const path = typeof value === "string" ? value.trim().slice(0, 512) : "";
-  return path && path.startsWith("/") ? path : null;
+  if (!path || !path.startsWith("/")) return null;
+  // A link that is somebody's key is never stored: /prosjekter/<token>,
+  // /prosjekt/<token> and /request/<token> are counted under one name each.
+  return path.replace(/^\/(prosjekter|prosjekt|request)\/[^/?#]+/, "/$1/:token");
 }
 
 /** First address of x-forwarded-for, then x-real-ip, then 0.0.0.0, as the ATS sink reads it. */
