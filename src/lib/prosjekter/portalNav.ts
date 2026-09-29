@@ -16,7 +16,8 @@ export type PortalHeader = { quiet: PortalLink; gold: PortalLink };
 
 export function isPortalPath(pathname: string | null | undefined): boolean {
   const p = String(pathname ?? "");
-  return p === "/prosjekter" || p.startsWith("/prosjekter/");
+  // A one-project presentation (/prosjekt/<token>) is part of the portal too.
+  return p === "/prosjekter" || p.startsWith("/prosjekter/") || p.startsWith("/prosjekt/");
 }
 
 export function portalHeader(pathname: string | null | undefined): PortalHeader | null {

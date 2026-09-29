@@ -211,15 +211,20 @@ export default function Navbar() {
                   </a>
                   <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
                   <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
-                  <button
-                    type="button"
-                    onClick={() => navigateAfterCloseCandidates(goToCandidateSignup)}
-                    className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
-                  >
-                    <span>Sign Up</span>
-                    <UserPlus className="h-4 w-4 shrink-0" aria-hidden />
-                  </button>
-                  <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
+                  {/* Not on the project portal: the owner's decision of 29 September 2026. */}
+                  {portal ? null : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => navigateAfterCloseCandidates(goToCandidateSignup)}
+                        className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"
+                      >
+                        <span>Sign Up</span>
+                        <UserPlus className="h-4 w-4 shrink-0" aria-hidden />
+                      </button>
+                      <div className="mx-2 my-2 border-t border-white/10" role="separator" aria-hidden />
+                    </>
+                  )}
                   <a
                     href={CANDIDATE_PORTAL_LOGIN_URL}
                     className="flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold text-[#C9A84C] transition-colors hover:bg-[rgba(201,168,76,0.08)]"

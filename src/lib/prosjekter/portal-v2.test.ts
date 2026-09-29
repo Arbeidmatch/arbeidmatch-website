@@ -271,13 +271,14 @@ describe("the header on the portal", () => {
   it("is the site's own everywhere else", () => {
     expect(portalHeader("/")).toBeNull();
     expect(portalHeader("/for-employers")).toBeNull();
-    expect(portalHeader("/prosjekt/" + token)).toBeNull();
     expect(portalHeader("/prosjekterx")).toBeNull();
+    expect(portalHeader("/prosjektx")).toBeNull();
     expect(isPortalPath(null)).toBe(false);
   });
 
   it("offers login and access on the map and its pages", () => {
-    for (const p of ["/prosjekter", "/prosjekter/logg-inn", `/prosjekter/inn/${"a".repeat(32)}`]) {
+    // A presentation of one project is part of the portal too (29 September 2026).
+    for (const p of ["/prosjekter", "/prosjekter/logg-inn", `/prosjekter/inn/${"a".repeat(32)}`, `/prosjekt/${token}`]) {
       expect(portalHeader(p)).toEqual({
         quiet: { label: "Logg inn", href: "/prosjekter/logg-inn" },
         gold: { label: "Få tilgang", href: "/prosjekter#tilgang" },
