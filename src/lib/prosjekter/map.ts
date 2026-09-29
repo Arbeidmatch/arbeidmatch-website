@@ -384,3 +384,17 @@ export function graticule(): {
   const [px, py] = project(4.2, 66.5628);
   return { lat, lon, polar: { d: line(pp), lx: round1(px), ly: round1(py - 5) } };
 }
+
+/**
+ * Whether zooming to a group's own view would still show it as one group.
+ * HIS ASK, 29 September 2026 ("pe mobil ... cand se da ultimul click pe
+ * proiecte ... sa deschida direct"): on the last tap, where a zoom no longer
+ * splits the group, the phone opens its list at once, without the "Vis N
+ * prosjekter i listen" bar in between. The threshold is the one the map
+ * clusters by (20 screen pixels in drawing units).
+ */
+export function staysOneGroup(members: PlacedProject[], target: View, cw: number, ch: number): boolean {
+  if (members.length < 2) return true;
+  const { k } = viewGeometry(clampView(target), cw, ch);
+  return clusterProjects(members, 20 * k).length === 1;
+}

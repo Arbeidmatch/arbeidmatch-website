@@ -270,6 +270,12 @@ export default function ProjectPortal({
     requestAnimationFrame(() => listRef.current?.scrollTo({ top: 0 }));
   }, []);
 
+  // The last tap on a group, where the map cannot split it further: the phone opens the list at once.
+  const onLastGroup = useCallback((nos: number[]) => {
+    onCluster(nos);
+    if (isPhone()) setView("list");
+  }, [onCluster]);
+
   const onSelectDot = useCallback(
     (no: number) => {
       const i = listed.findIndex((p) => p.no === no);
@@ -380,6 +386,7 @@ export default function ProjectPortal({
               onHover={setHover}
               onSelect={onSelectDot}
               onCluster={onCluster}
+              onLastGroup={onLastGroup}
             />
             {picked && view === "map" ? (
               <button type="button" className={styles.pickedBar} onClick={() => setView("list")}>

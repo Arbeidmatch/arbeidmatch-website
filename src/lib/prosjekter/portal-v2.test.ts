@@ -18,6 +18,8 @@ import {
   placeProjects,
   project,
   screenToMap,
+  staysOneGroup,
+  viewAround,
   sortProjects,
   STAGES,
   wheelFactor,
@@ -83,6 +85,15 @@ describe("clusters", () => {
     const a = clusterProjects(pts, 20).map((c) => c.members.map((p) => p.no).sort());
     const b = clusterProjects([...pts].reverse(), 20).map((c) => c.members.map((p) => p.no).sort());
     expect(b.sort()).toEqual(a.sort());
+  });
+});
+
+describe("the last tap on a group opens its list (29 September 2026)", () => {
+  it("knows when zooming in would no longer split a group", () => {
+    const samePlace = [placed(1, 200, 200, 1e6), placed(2, 200.2, 200.1, 2e6)];
+    expect(staysOneGroup(samePlace, viewAround(200, 200, 200.2, 200.1, 70), 390, 500)).toBe(true);
+    const apart = [placed(1, 100, 100, 1e6), placed(2, 160, 100, 2e6)];
+    expect(staysOneGroup(apart, viewAround(100, 100, 160, 100, 70), 390, 500)).toBe(false);
   });
 });
 

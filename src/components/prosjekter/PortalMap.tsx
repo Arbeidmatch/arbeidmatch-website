@@ -32,6 +32,7 @@ import {
   screenToMap,
   southView,
   STAGE_HEX,
+  staysOneGroup,
   STAGE_LABEL,
   STAGES,
   viewAround,
@@ -175,9 +176,11 @@ type Props = {
   onSelect: (no: number) => void;
   /** A group of projects was clicked: the list shows those (the owner, 29 September 2026). */
   onCluster?: (nos: number[]) => void;
+  /** The last tap on a group: zooming would not split it any further, so its list can open. */
+  onLastGroup?: (nos: number[]) => void;
 };
 
-export default function PortalMap({ ref, visible, counts, county, onPickCounty, hover, onHover, onSelect, onCluster }: Props) {
+export default function PortalMap({ ref, visible, counts, county, onPickCounty, hover, onHover, onSelect, onCluster, onLastGroup }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
@@ -544,7 +547,9 @@ export default function PortalMap({ ref, visible, counts, county, onPickCounty, 
       userMoved();
       const xs = c.members.map((p) => p.x);
       const ys = c.members.map((p) => p.y);
-      animateTo(viewAround(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys), 70));
+      const target = viewAround(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys), 70);
+      animateTo(target);
+      if (staysOneGroup(c.members, target, sizeRef.current.w, sizeRef.current.h)) onLastGroup?.(c.members.map((p) => p.no));
       return;
     }
     const p = c.members[0];
