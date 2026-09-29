@@ -557,6 +557,8 @@ export default function PortalMap({ ref, visible, counts, county, onPickCounty, 
     onHover(p.no);
     onCluster?.([p.no]);
     onSelect(p.no);
+    // One project is always the last tap: nothing left to zoom into.
+    onLastGroup?.([p.no]);
   };
 
   useImperativeHandle(
