@@ -28,6 +28,9 @@ export async function POST(request: NextRequest) {
       body = null;
     }
 
+    if (!body || typeof body !== "object" || (body as { consentVersion?: unknown }).consentVersion !== 2) {
+      return new NextResponse(null, { status: 204 });
+    }
     const row = buildPageviewRow({
       headers: {
         origin: request.headers.get("origin"),
@@ -46,7 +49,7 @@ export async function POST(request: NextRequest) {
       if (supabase) {
         await supabase
           .from("ats_web_pageviews")
-          .insert(row)
+          .insert({ ...row, path: row.path.split(/[?#]/)[0].split("/").slice(0, 2).join("/") })
           .then(
             () => undefined,
             () => undefined,
