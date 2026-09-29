@@ -92,7 +92,7 @@ export async function callAts(
   } catch (error) {
     const timedOut = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
     logApiError("prosjekter/ats", error, {
-      path: path.replace(/[0-9a-f-]{36}/i, ":token").split("?")[0] ?? "",
+      path: path.replace(/[0-9a-f-]{36}/i, ":token").replace(/(project-login\/)[^/?]+/, "$1:token").split("?")[0] ?? "",
       timedOut,
     });
     return { status: timedOut ? 504 : 503, body: { error: UNREACHABLE } };

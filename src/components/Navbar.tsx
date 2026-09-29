@@ -12,6 +12,7 @@ import { HomeNavigation } from "@/components/home/HomeNavigation";
 import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
 import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 import { NAV_CITY_LINKS, NAV_INDUSTRY_LINKS } from "@/lib/navIndustriesLocations";
+import { portalHeader } from "@/lib/prosjekter/portalNav";
 import { ArrowRight, ChevronDown, UserPlus } from "lucide-react";
 
 const desktopNavTail = [
@@ -107,6 +108,9 @@ export default function Navbar() {
 
   const closeMenu = () => setIsOpen(false);
 
+  // The project portal is for firms: its own two actions instead of the job seekers' Sign Up.
+  const portal = portalHeader(pathname);
+
   const mobilePortal =
     mounted &&
     createPortal(
@@ -137,7 +141,7 @@ export default function Navbar() {
               className="fixed bottom-0 right-0 top-0 flex w-[min(100vw,320px)] flex-col overflow-y-auto bg-[#0a0f19] xl:hidden"
               style={{ zIndex: 50 }}
             >
-              <MobileDrawerContent pathname={pathname} onClose={closeMenu} />
+              <MobileDrawerContent pathname={pathname} onClose={closeMenu} portal={portal} />
             </motion.aside>
           </>
         ) : null}
@@ -305,14 +309,31 @@ export default function Navbar() {
 
           {/* HIS CHANGE, 25 September 2026: the gold button signs a candidate up.
               The jobs stay one step away, as "Browse open jobs" under For Candidates. */}
-          <div className="hidden shrink-0 xl:block">
-            <a
-              href={CANDIDATE_PORTAL_SIGNUP_URL}
-              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[6px] bg-[#C9A84C] px-4 py-2 text-[14px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
-            >
-              Sign Up
-            </a>
-          </div>
+          {portal ? (
+            <div className="ml-auto flex shrink-0 items-center gap-2 xl:ml-0">
+              <Link
+                href={portal.quiet.href}
+                className="hidden min-h-[44px] items-center justify-center rounded-[6px] border border-white/20 px-4 py-2 text-[14px] font-semibold text-white/80 transition-colors hover:border-white/50 hover:text-white sm:inline-flex"
+              >
+                {portal.quiet.label}
+              </Link>
+              <Link
+                href={portal.gold.href}
+                className="inline-flex min-h-[44px] items-center justify-center whitespace-nowrap rounded-[6px] bg-[#C9A84C] px-3 py-2 text-[14px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f] sm:px-4"
+              >
+                {portal.gold.label}
+              </Link>
+            </div>
+          ) : (
+            <div className="hidden shrink-0 xl:block">
+              <a
+                href={CANDIDATE_PORTAL_SIGNUP_URL}
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[6px] bg-[#C9A84C] px-4 py-2 text-[14px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f]"
+              >
+                Sign Up
+              </a>
+            </div>
+          )}
 
           <button
             type="button"

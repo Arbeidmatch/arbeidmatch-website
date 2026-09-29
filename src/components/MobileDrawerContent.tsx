@@ -9,6 +9,7 @@ import { ArrowRight, ChevronDown, X } from "lucide-react";
 
 import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
 import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
+import type { PortalHeader } from "@/lib/prosjekter/portalNav";
 
 function navigateAfterClose(onClose: () => void, navigate: () => void) {
   onClose();
@@ -101,7 +102,16 @@ function DrawerMoreLink({ href, children, pathname, onClose }: { href: string; c
   );
 }
 
-export default function MobileDrawerContent({ pathname, onClose }: { pathname: string; onClose: () => void }) {
+export default function MobileDrawerContent({
+  pathname,
+  onClose,
+  portal = null,
+}: {
+  pathname: string;
+  onClose: () => void;
+  /** On the project portal, its own two actions replace the job seekers' Sign Up. */
+  portal?: PortalHeader | null;
+}) {
   const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -136,6 +146,24 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
           <span>Browse open jobs</span>
           <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
         </a>
+        {portal ? (
+          <div className="flex flex-col gap-2 border-b border-white/[0.04] border-t border-white/[0.08] px-6 py-4">
+            <Link
+              href={portal.gold.href}
+              onClick={onClose}
+              className="flex min-h-[44px] items-center justify-center rounded-[6px] bg-[#C9A84C] px-4 text-[15px] font-semibold text-[#0D1B2A]"
+            >
+              {portal.gold.label}
+            </Link>
+            <Link
+              href={portal.quiet.href}
+              onClick={onClose}
+              className="flex min-h-[44px] items-center justify-center rounded-[6px] border border-white/20 px-4 text-[15px] font-semibold text-white/85"
+            >
+              {portal.quiet.label}
+            </Link>
+          </div>
+        ) : (
         <div className="border-b border-white/[0.04] border-t border-white/[0.08] px-6 py-3">
           <button
             type="button"
@@ -146,6 +174,7 @@ export default function MobileDrawerContent({ pathname, onClose }: { pathname: s
             <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
           </button>
         </div>
+        )}
         <a
           href={CANDIDATE_PORTAL_LOGIN_URL}
           className="flex min-h-[44px] items-center justify-between border-b border-white/[0.04] px-6 py-3.5 text-[15px] font-semibold text-[#C9A84C]"

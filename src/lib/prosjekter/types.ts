@@ -22,6 +22,14 @@ export type Overview = {
   regions: { code: string; label: string }[];
   domains: { key: string; label: string }[];
   projects: OverviewProject[];
+  /**
+   * Every live project that has coordinates, for the map (see map.ts for the
+   * shape). Independent of the filters and the page. Absent from an ATS that
+   * does not send it yet; the page then shows the plain list.
+   */
+  map?: unknown[];
+  /** Per county code: [planned, open tender, awarded]. */
+  county_counts?: Record<string, number[]>;
 };
 
 export type OverviewFilters = {

@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import Link from "next/link";
+
 import { CARD, EYEBROW, MUTED, PRIMARY, SECONDARY, STAGE_COLOR, tint } from "@/components/prosjekter/ui";
+import { isSentProjectPath } from "@/lib/prosjekter/access";
 import { domainsOf } from "@/lib/prosjekter/domains";
 import {
   cleanDescription,
@@ -42,6 +45,27 @@ type Sub = {
   free_days: number;
   free_until: string | null;
 };
+
+type SentProject = { title: string; url: string | null; sent_at: string | null };
+
+/** The projects we have sent this client one by one, newest first; a link only to a path on this site. */
+function sentFrom(raw: unknown): SentProject[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((r) => r as { title?: unknown; url?: unknown; sent_at?: unknown } | null)
+    .filter((r): r is { title: string; url?: unknown; sent_at?: unknown } => Boolean(r && typeof r.title === "string" && r.title.trim()))
+    .map((r) => ({
+      title: r.title.trim(),
+      url: isSentProjectPath(r.url) ? r.url : null,
+      sent_at: typeof r.sent_at === "string" ? r.sent_at : null,
+    }))
+    .slice(0, 50);
+}
+
+/** Whole days left of the free period, or null when the ATS sent none. */
+function daysLeftFrom(raw: unknown): number | null {
+  return typeof raw === "number" && Number.isFinite(raw) && raw >= 0 ? Math.floor(raw) : null;
+}
 
 type SortKey = "new" | "value" | "deadline";
 type StageKey = "all" | "planned" | "tender" | "awarded";
@@ -211,6 +235,8 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
   const [stage, setStage] = useState<StageKey>("all");
   const [domain, setDomain] = useState<string>("all");
   const [sort, setSort] = useState<SortKey>("new");
+  const [daysLeft, setDaysLeft] = useState<number | null>(null);
+  const [sent, setSent] = useState<SentProject[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -220,6 +246,8 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
         subscription?: Sub;
         projects?: AlertProject[];
         error?: string;
+        days_left?: unknown;
+        sent_projects?: unknown;
       };
       if (!res.ok || !payload.subscription) {
         setError(payload.error ?? "Lenken er ikke gyldig lenger.");
@@ -228,6 +256,8 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
       setError(null);
       setSub(payload.subscription);
       setProjects(payload.projects ?? []);
+      setDaysLeft(daysLeftFrom(payload.days_left));
+      setSent(sentFrom(payload.sent_projects));
       setFrequency(payload.subscription.frequency ?? "weekly");
       setDomains(payload.subscription.domains ?? []);
       setRegions(payload.subscription.regions ?? []);
@@ -300,6 +330,11 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
         <header className="flex flex-col gap-3">
           <p className={EYEBROW}>ArbeidMatch Norge AS</p>
           <h1 className="am-h2 font-display font-semibold text-white">Prosjekter i Norge</h1>
+          {sub && sub.status === "active" && daysLeft !== null ? (
+            <p className="w-fit rounded-full bg-[#4FC98A]/10 px-3 py-1 text-sm font-semibold text-[#4FC98A] ring-1 ring-[#4FC98A]/40">
+              {daysLeft === 0 ? "Gratis ut i dag" : `Gratis i ${daysLeft} ${daysLeft === 1 ? "dag" : "dager"} til`}
+            </p>
+          ) : null}
           {sub ? (
             <p className={`text-sm ${MUTED}`}>
               For {sub.company_name}
@@ -429,6 +464,28 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
                 ))}
               </section>
             )}
+
+            {sent.length ? (
+              <section className={`${CARD} p-5 sm:p-6`} aria-labelledby="sent-h">
+                <h2 id="sent-h" className="text-lg font-semibold text-white">
+                  Prosjekter vi har sendt dere
+                </h2>
+                <ul className="mt-3 divide-y divide-white/10">
+                  {sent.map((p, i) => (
+                    <li key={`${p.url ?? p.title}-${i}`} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3">
+                      {p.url ? (
+                        <Link href={p.url} className="min-h-[44px] py-2 text-[15px] font-medium text-white underline-offset-4 hover:text-gold hover:underline">
+                          {p.title}
+                        </Link>
+                      ) : (
+                        <span className="py-2 text-[15px] font-medium text-white">{p.title}</span>
+                      )}
+                      {formatDateNo(p.sent_at) ? <span className={`text-[13px] ${MUTED}`}>Sendt {formatDateNo(p.sent_at)}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
 
             <section className={`${CARD} p-5`} aria-label="Innstillinger">
               <button

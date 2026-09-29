@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 
-import ProjectsRegister from "@/components/prosjekter/ProjectsRegister";
+import AccessForm from "@/components/prosjekter/AccessForm";
+import PortalSteps from "@/components/prosjekter/PortalSteps";
+import ProjectPortal from "@/components/prosjekter/ProjectPortal";
+import styles from "@/components/prosjekter/portal.module.css";
 import { callAts } from "@/lib/prosjekter/ats";
+import { placeProjects } from "@/lib/prosjekter/map";
 import { filtersFrom, filtersQuery, isOverview, type Overview } from "@/lib/prosjekter/types";
 
 export const dynamic = "force-dynamic";
@@ -33,14 +37,18 @@ export const metadata: Metadata = {
 };
 
 /**
- * THE OPEN PROJECT REGISTER, arbeidmatch.no/prosjekter.
+ * THE OPEN PROJECT PORTAL, arbeidmatch.no/prosjekter (version 2, 29 September 2026).
  *
- * Anybody may see the counts and the list: title, owner, place, stage, value,
- * the date that matters and the contractor. The details and the way into a
- * tender are for clients, who have a link of their own (/prosjekter/<token>,
- * /prosjekt/<token>). Rendered on the server with the first page, so the list
- * is readable without JavaScript and by a search engine; filters and pages
- * then go through /api/prosjekter/overview.
+ * Anybody may see the counts, the map and the list: a title with the buyer
+ * taken out, the town and county, the stage, the value and the month that
+ * matters. The buyer, the contractor, exact deadlines and the way into a
+ * tender are for clients, who have a page of their own (/prosjekter/<token>,
+ * reached by a login link from /prosjekter/logg-inn). Below the map: how it
+ * works, and the form that asks for access.
+ *
+ * Rendered on the server with the ATS's answer, so the list is readable
+ * without JavaScript and by a search engine; the map, filters and sort then
+ * work in the browser on the same answer.
  */
 export default async function ProsjekterPage({
   searchParams,
@@ -54,5 +62,11 @@ export default async function ProsjekterPage({
   });
   const initial: Overview | null = answer.status === 200 && isOverview(answer.body) ? answer.body : null;
 
-  return <ProjectsRegister initial={initial} initialFilters={filters} />;
+  return (
+    <div className={styles.portal}>
+      <ProjectPortal initial={initial} initialFilters={filters} />
+      <PortalSteps projects={placeProjects(initial?.map)} />
+      <AccessForm />
+    </div>
+  );
 }
