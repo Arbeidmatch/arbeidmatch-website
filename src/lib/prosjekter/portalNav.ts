@@ -23,7 +23,7 @@ export function isPortalPath(pathname: string | null | undefined): boolean {
 export function portalHeader(pathname: string | null | undefined): PortalHeader | null {
   if (!isPortalPath(pathname)) return null;
   const segments = String(pathname).split("/").filter(Boolean);
-  const own = segments.length === 2 && isProjectToken(segments[1]);
+  const own = segments.length === 2 && segments[0] === "prosjekter" && isProjectToken(segments[1]);
   if (own) {
     return {
       quiet: { label: "Min side", href: `/prosjekter/${segments[1]}` },
