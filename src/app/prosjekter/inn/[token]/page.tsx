@@ -48,7 +48,7 @@ export default async function ProsjekterInnPage({ params }: { params: Promise<{ 
             : "En innloggingslenke virker én gang og i 30 minutter. Be om en ny, så sender vi den til e-posten din."}
         </p>
         <p style={{ marginTop: 28, display: "flex", flexWrap: "wrap", gap: 12 }}>
-          <Link href="/prosjekter/logg-inn" className={`${styles.btn} ${styles.btnGold}`}>
+          <Link href="#logg-inn" className={`${styles.btn} ${styles.btnGold}`} aria-haspopup="dialog">
             Send meg en ny lenke
           </Link>
           <Link href="/prosjekter" className={`${styles.btn} ${styles.btnGhost}`}>

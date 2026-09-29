@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 
 import styles from "@/components/prosjekter/portal.module.css";
@@ -9,6 +8,10 @@ import { checkLoginEmail } from "@/lib/prosjekter/access";
 /**
  * Login without a password: one address, and a link by e-mail if it has
  * access. The answer is the same whether it has or not.
+ *
+ * The body of the login dialog (see PortalDialogs), opened by any link to
+ * #logg-inn; /prosjekter/logg-inn sends old links there. "Be om tilgang"
+ * swaps it for the access dialog in place.
  */
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -47,7 +50,7 @@ export default function LoginForm() {
 
   if (sent) {
     return (
-      <div className={styles.card} style={{ marginTop: 28 }}>
+      <div className={styles.modalForm}>
         <div className={styles.done} role="status">
           <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
             <circle cx="11" cy="11" r="10" fill="none" stroke="#3fa87b" strokeWidth="1.5" />
@@ -60,22 +63,26 @@ export default function LoginForm() {
         </div>
         <p className={styles.small}>
           Har dere ikke tilgang ennå?{" "}
-          <Link href="/prosjekter#tilgang" className={styles.linkGold}>
+          <a href="#tilgang" className={styles.linkGold} aria-haspopup="dialog">
             Be om tilgang
-          </Link>
+          </a>
         </p>
       </div>
     );
   }
 
   return (
-    <form className={styles.card} style={{ marginTop: 28 }} onSubmit={submit} noValidate>
+    <form className={styles.modalForm} onSubmit={submit} noValidate>
+      <p className={styles.modalLede} style={{ margin: 0 }}>
+        Skriv e-postadressen dere fikk tilgang med, så sender vi en lenke som logger deg rett inn. Du trenger ikke passord.
+      </p>
       <div className={styles.field}>
         <label className={styles.lab} htmlFor="pl-email">
           E-post
         </label>
         <input
           id="pl-email"
+          data-autofocus
           className={styles.input}
           type="email"
           autoComplete="email"
@@ -101,9 +108,9 @@ export default function LoginForm() {
       </button>
       <p className={styles.small}>
         Har dere ikke tilgang ennå?{" "}
-        <Link href="/prosjekter#tilgang" className={styles.linkGold}>
+        <a href="#tilgang" className={styles.linkGold} aria-haspopup="dialog">
           Be om tilgang
-        </Link>
+        </a>
       </p>
     </form>
   );

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import { CARD, EYEBROW, MUTED, PRIMARY, SECONDARY, STAGE_COLOR, tint } from "@/components/prosjekter/ui";
@@ -31,6 +32,10 @@ import {
  * contractor; a short description that opens; and "Gå til konkurransen" while
  * a tender is open. On a first visit it is the thank-you and the yes: how
  * often, which domains, which counties. The source is never named.
+ *
+ * The choices open in a dialog, never on the page (the owner's decision of
+ * 29 September 2026): "Velg og bekreft" for an invited client, opened by
+ * itself on the first visit; "Endre valg" for an active one.
  *
  * Every control is at least 44px tall.
  */
@@ -65,6 +70,25 @@ function sentFrom(raw: unknown): SentProject[] {
 /** Whole days left of the free period, or null when the ATS sent none. */
 function daysLeftFrom(raw: unknown): number | null {
   return typeof raw === "number" && Number.isFinite(raw) && raw >= 0 ? Math.floor(raw) : null;
+}
+
+const PortalModal = dynamic(() => import("@/components/prosjekter/PortalModal"), { ssr: false });
+
+/** Whether this browser has already been shown the choices for this link (so they open by themselves once). */
+const SEEN_KEY = (token: string) => `am-prosjekter-choices:${token.slice(0, 12)}`;
+function choicesSeen(token: string): boolean {
+  try {
+    return window.localStorage.getItem(SEEN_KEY(token)) === "1";
+  } catch {
+    return false;
+  }
+}
+function markChoicesSeen(token: string) {
+  try {
+    window.localStorage.setItem(SEEN_KEY(token), "1");
+  } catch {
+    // Private mode or blocked storage: the dialog may open again next time, which is harmless.
+  }
 }
 
 type SortKey = "new" | "value" | "deadline";
@@ -231,7 +255,8 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
   const [frequency, setFrequency] = useState<Frequency | null>(null);
   const [domains, setDomains] = useState<string[]>([]);
   const [regions, setRegions] = useState<string[]>([]);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [choicesOpen, setChoicesOpen] = useState(false);
+  const [confirmUnsub, setConfirmUnsub] = useState(false);
   const [stage, setStage] = useState<StageKey>("all");
   const [domain, setDomain] = useState<string>("all");
   const [sort, setSort] = useState<SortKey>("new");
@@ -261,6 +286,10 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
       setFrequency(payload.subscription.frequency ?? "weekly");
       setDomains(payload.subscription.domains ?? []);
       setRegions(payload.subscription.regions ?? []);
+      if (payload.subscription.status === "invited" && !choicesSeen(token)) {
+        markChoicesSeen(token);
+        setChoicesOpen(true);
+      }
     } catch {
       setError("Siden kunne ikke lastes. Prøv igjen om litt.");
     } finally {
@@ -287,7 +316,8 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
         return;
       }
       setNotice(action === "unsubscribe" ? "Dere er meldt av." : action === "update" ? "Valgene er lagret." : null);
-      setSettingsOpen(false);
+      setChoicesOpen(false);
+      setConfirmUnsub(false);
       await load();
     } catch {
       setNotice("Noe gikk galt. Prøv igjen.");
@@ -323,6 +353,22 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
   }, [projects, stage, domain, sort]);
 
   const freeMonths = sub ? Math.max(1, Math.round(sub.free_days / 30.44)) : 1;
+
+  const openChoices = () => {
+    setNotice(null);
+    setConfirmUnsub(false);
+    setChoicesOpen(true);
+  };
+  // Closed without saving: the choices go back to what is saved.
+  const closeChoices = () => {
+    setChoicesOpen(false);
+    setConfirmUnsub(false);
+    if (sub) {
+      setFrequency(sub.frequency ?? "weekly");
+      setDomains(sub.domains ?? []);
+      setRegions(sub.regions ?? []);
+    }
+  };
 
   return (
     <div className="bg-[#0D1B2A] text-white">
@@ -363,17 +409,9 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
                 passer.
               </p>
             </div>
-            <Choices
-              frequency={frequency}
-              setFrequency={setFrequency}
-              domains={domains}
-              setDomains={setDomains}
-              regions={regions}
-              setRegions={setRegions}
-            />
             <div>
-              <button type="button" className={PRIMARY} disabled={busy || !frequency} onClick={() => void act("confirm")}>
-                Ja takk, send meg prosjektvarsler
+              <button type="button" className={PRIMARY} aria-haspopup="dialog" onClick={openChoices}>
+                Velg og bekreft
               </button>
             </div>
           </section>
@@ -487,40 +525,66 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
               </section>
             ) : null}
 
-            <section className={`${CARD} p-5`} aria-label="Innstillinger">
-              <button
-                type="button"
-                className="min-h-[44px] text-left text-sm font-semibold text-white hover:text-gold"
-                onClick={() => setSettingsOpen((o) => !o)}
-                aria-expanded={settingsOpen}
-              >
+            <section className={`${CARD} flex flex-wrap items-center justify-between gap-3 p-5`} aria-label="Innstillinger">
+              <p className="text-sm font-semibold text-white">
                 Innstillinger: {sub.frequency ? FREQUENCY_NO[sub.frequency].toLowerCase() : ""}
                 {sub.domains.length ? `, ${sub.domains.length} fagområder` : ", alle fagområder"}
+              </p>
+              <button type="button" className={SECONDARY} aria-haspopup="dialog" onClick={openChoices}>
+                Endre valg
               </button>
-              {settingsOpen ? (
-                <div className="mt-4 flex flex-col gap-5">
-                  <Choices
-                    frequency={frequency}
-                    setFrequency={setFrequency}
-                    domains={domains}
-                    setDomains={setDomains}
-                    regions={regions}
-                    setRegions={setRegions}
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    <button type="button" className={PRIMARY} disabled={busy || !frequency} onClick={() => void act("update")}>
-                      Lagre
-                    </button>
-                    <button type="button" className={SECONDARY} disabled={busy} onClick={() => void act("unsubscribe")}>
-                      Meld av
-                    </button>
-                  </div>
-                </div>
-              ) : null}
             </section>
           </>
         ) : null}
       </div>
+
+      {choicesOpen && sub && (sub.status === "invited" || sub.status === "active") ? (
+        <PortalModal title={sub.status === "invited" ? "Velg prosjektvarsler" : "Endre valg"} onClose={closeChoices}>
+          <div className="flex flex-col gap-6">
+            <Choices
+              frequency={frequency}
+              setFrequency={setFrequency}
+              domains={domains}
+              setDomains={setDomains}
+              regions={regions}
+              setRegions={setRegions}
+            />
+            {notice ? (
+              <div className={`${CARD} border-gold/40 p-4 text-sm`} role="alert">
+                {notice}
+              </div>
+            ) : null}
+            {sub.status === "invited" ? (
+              <div>
+                <button type="button" className={PRIMARY} disabled={busy || !frequency} onClick={() => void act("confirm")}>
+                  Ja takk, send meg prosjektvarsler
+                </button>
+              </div>
+            ) : confirmUnsub ? (
+              <div className={`${CARD} flex flex-col gap-3 border-[#f08a7a]/40 p-4`} role="group" aria-label="Meld av">
+                <p className="text-sm text-white">Vil dere slutte å få prosjektvarsler?</p>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" className={PRIMARY} disabled={busy} onClick={() => void act("unsubscribe")} autoFocus>
+                    Ja, meld av
+                  </button>
+                  <button type="button" className={SECONDARY} disabled={busy} onClick={() => setConfirmUnsub(false)}>
+                    Avbryt
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className={PRIMARY} disabled={busy || !frequency} onClick={() => void act("update")}>
+                  Lagre
+                </button>
+                <button type="button" className={SECONDARY} disabled={busy} onClick={() => setConfirmUnsub(true)}>
+                  Meld av
+                </button>
+              </div>
+            )}
+          </div>
+        </PortalModal>
+      ) : null}
     </div>
   );
 }

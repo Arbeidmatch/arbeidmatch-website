@@ -10,7 +10,7 @@ const TOO_MANY = "For mange forsøk. Prøv igjen litt senere.";
 const UNAVAILABLE = "Innloggingen er ikke tilgjengelig akkurat nå. Prøv igjen om litt.";
 
 /**
- * "Send meg en innloggingslenke" on /prosjekter/logg-inn. The ATS mails a link
+ * "Send meg en innloggingslenke" in the login dialog (#logg-inn). The ATS mails a link
  * to an address that has access and answers { ok: true } either way, so the
  * answer here never tells a visitor whether an address is a client. Only a
  * malformed address, too many tries or an unreachable ATS say anything else.

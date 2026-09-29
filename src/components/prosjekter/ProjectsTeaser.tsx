@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
 import { atsBase } from "@/lib/prosjekter/ats";
+import { STAFFING_AREA_NO } from "@/lib/prosjekter/staffingArea";
 
 /**
  * The way into the project portal from the rest of the site (29 September
@@ -11,7 +12,8 @@ import { atsBase } from "@/lib/prosjekter/ats";
  *
  * The three counts are read from the ATS at most every ten minutes and shared
  * by every visitor; when they cannot be read the block still shows, without
- * numbers.
+ * numbers. "Få tilgang" opens the access dialog right here (#tilgang, see
+ * PortalDialogs), without leaving the page.
  */
 
 type Counts = { planned: number; tender: number; awarded: number };
@@ -60,6 +62,7 @@ export async function ProjectsTeaser({ tone = "dark" }: { tone?: "dark" | "light
               Planlagte prosjekter, åpne konkurranser og tildelte kontrakter i hele landet, på ett kart. Kartet er åpent for alle; kundene våre
               får byggherre, entreprenør, frister og varsler om nye prosjekter i sitt område.
             </p>
+            <p className="mt-2 max-w-xl text-[14px] leading-relaxed text-white/60">{STAFFING_AREA_NO}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/prosjekter"
@@ -67,12 +70,13 @@ export async function ProjectsTeaser({ tone = "dark" }: { tone?: "dark" | "light
               >
                 Se prosjektkartet <ArrowUpRight size={18} aria-hidden />
               </Link>
-              <Link
-                href="/prosjekter#tilgang"
+              <a
+                href="#tilgang"
+                aria-haspopup="dialog"
                 className="inline-flex min-h-[48px] items-center rounded-md border border-white/20 px-5 font-semibold text-white/85 hover:border-white/40"
               >
                 Få tilgang
-              </Link>
+              </a>
             </div>
           </div>
           <dl className="grid grid-cols-3 gap-3">

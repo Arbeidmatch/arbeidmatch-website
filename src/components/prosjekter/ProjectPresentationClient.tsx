@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CARD, EYEBROW, MUTED, PRIMARY, SECONDARY, STAGE_COLOR, tint } from "@/components/prosjekter/ui";
 import { domainLabel, domainsOf } from "@/lib/prosjekter/domains";
 import { formatDateNo, keyDateNo, placeNo, readableText, stageNo, valueNo, type AlertProject } from "@/lib/prosjekter/format";
+import { STAFFING_AREA_NO } from "@/lib/prosjekter/staffingArea";
 
 /**
  * One project presented to one client, ported from the ATS page of the same
@@ -325,8 +326,8 @@ export default function ProjectPresentationClient({ token }: { token: string }) 
       <section className="flex flex-col gap-3 rounded-xl border border-gold/35 bg-gold/[0.06] p-6 sm:p-8">
         <h2 className="text-lg font-semibold text-white">Trenger dere folk til prosjektet?</h2>
         <p className={`text-sm leading-relaxed ${MUTED}`}>
-          Vi skaffer fagarbeidere og hjelpearbeidere til bygg og anlegg i hele Norge. Si fra hvor mange dere trenger og
-          når, så finner vi dem.
+          Vi skaffer fagarbeidere og hjelpearbeidere til bygg og anlegg. {STAFFING_AREA_NO} Si fra hvor mange dere trenger
+          og når, så finner vi dem.
         </p>
         <div>
           {data.sender.email ? (

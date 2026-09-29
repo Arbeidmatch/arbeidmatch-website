@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 
 import styles from "@/components/prosjekter/portal.module.css";
-import { AccessPerks } from "@/components/prosjekter/PortalSteps";
 import { checkAccessRequest, type AccessField } from "@/lib/prosjekter/access";
 import { domainChoices, regionChoices } from "@/lib/prosjekter/format";
 
@@ -14,11 +13,14 @@ import { domainChoices, regionChoices } from "@/lib/prosjekter/format";
  * trades. The website checks the fields, Turnstile when it is configured and
  * a hidden honeypot, and passes the request to the ATS, where the owner
  * approves it; the personal link follows by e-mail after that.
+ *
+ * The body of the access dialog (see PortalDialogs): it opens over any page
+ * from a link to #tilgang, and says thank you inside the dialog.
  */
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
-export default function AccessForm() {
+export default function AccessForm({ onClose }: { onClose: () => void }) {
   const [company, setCompany] = useState("");
   const [orgnr, setOrgnr] = useState("");
   const [email, setEmail] = useState("");
@@ -89,219 +91,210 @@ export default function AccessForm() {
   });
 
   return (
-    <section className={styles.band} id="tilgang" aria-labelledby="tilgang-h" style={{ scrollMarginTop: 80 }}>
-      <div className={`${styles.wrap} ${styles.access}`}>
-        <div className={styles.accessSide}>
-          <p className={styles.eyebrow}>Be om tilgang</p>
-          <h2 id="tilgang-h">Få hele bildet for ditt område</h2>
-          <p>
-            Fortell oss hvem dere er og hva dere følger med på. Vi går gjennom forespørselen og sender dere en personlig
-            lenke.
-          </p>
-          <AccessPerks />
-          <p className={styles.small} style={{ marginTop: 22 }}>
-            Har dere tilgang allerede?{" "}
-            <Link href="/prosjekter/logg-inn" className={styles.linkGold}>
-              Logg inn
-            </Link>
-          </p>
-        </div>
-
-        {done ? (
-          <div className={styles.card}>
-            <div className={styles.done} ref={doneRef} tabIndex={-1} role="status">
-              <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
-                <circle cx="11" cy="11" r="10" fill="none" stroke="#3fa87b" strokeWidth="1.5" />
-                <path d="M6.5 11.5l3 3 6-6.5" fill="none" stroke="#3fa87b" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
-              <div>
-                <h3>Takk, {done.company}.</h3>
-                <p>
-                  Vi har fått forespørselen
-                  {done.regions ? ` for ${done.regions} ${done.regions === 1 ? "fylke" : "fylker"}` : ""}. Du får en
-                  personlig lenke på {done.email} når tilgangen er klar.
-                </p>
-              </div>
+    <>
+      {done ? (
+        <div className={styles.modalForm}>
+          <div className={styles.done} ref={doneRef} tabIndex={-1} role="status">
+            <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+              <circle cx="11" cy="11" r="10" fill="none" stroke="#3fa87b" strokeWidth="1.5" />
+              <path d="M6.5 11.5l3 3 6-6.5" fill="none" stroke="#3fa87b" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+            <div>
+              <h3>Takk, {done.company}.</h3>
+              <p>
+                Vi har fått forespørselen
+                {done.regions ? ` for ${done.regions} ${done.regions === 1 ? "fylke" : "fylker"}` : ""}. Du får en
+                personlig lenke på {done.email} når tilgangen er klar.
+              </p>
             </div>
           </div>
-        ) : (
-          <form className={styles.card} onSubmit={submit} noValidate aria-describedby={formError ? "pa-form-error" : undefined}>
-            <div className={styles.row2}>
-              <div className={styles.field}>
-                <label className={styles.lab} htmlFor="pa-company">
-                  Firma
-                </label>
-                <input
-                  ref={refs.company}
-                  id="pa-company"
-                  className={styles.input}
-                  type="text"
-                  autoComplete="organization"
-                  maxLength={160}
-                  value={company}
-                  onChange={(e) => {
-                    setCompany(e.target.value);
-                    if (errors.company) setErrors((o) => ({ ...o, company: undefined }));
-                  }}
-                  required
-                  {...fieldProps("company")}
-                />
-                {errors.company ? (
-                  <span className={styles.err} id="pa-e-company">
-                    {errors.company}
-                  </span>
-                ) : null}
-              </div>
-              <div className={styles.field}>
-                <label className={styles.lab} htmlFor="pa-orgnr">
-                  Org.nr.
-                </label>
-                <input
-                  ref={refs.orgnr}
-                  id="pa-orgnr"
-                  className={styles.input}
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="9 siffer"
-                  maxLength={14}
-                  value={orgnr}
-                  onChange={(e) => {
-                    setOrgnr(e.target.value);
-                    if (errors.orgnr) setErrors((o) => ({ ...o, orgnr: undefined }));
-                  }}
-                  required
-                  {...fieldProps("orgnr")}
-                />
-                {errors.orgnr ? (
-                  <span className={styles.err} id="pa-e-orgnr">
-                    {errors.orgnr}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-            <div className={styles.row2}>
-              <div className={styles.field}>
-                <label className={styles.lab} htmlFor="pa-email">
-                  E-post
-                </label>
-                <input
-                  ref={refs.email}
-                  id="pa-email"
-                  className={styles.input}
-                  type="email"
-                  autoComplete="email"
-                  maxLength={254}
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (errors.email) setErrors((o) => ({ ...o, email: undefined }));
-                  }}
-                  required
-                  {...fieldProps("email")}
-                />
-                {errors.email ? (
-                  <span className={styles.err} id="pa-e-email">
-                    {errors.email}
-                  </span>
-                ) : null}
-              </div>
-              <div className={styles.field}>
-                <label className={styles.lab} htmlFor="pa-phone">
-                  Telefon <span className={styles.optional}>(valgfritt)</span>
-                </label>
-                <input
-                  ref={refs.phone}
-                  id="pa-phone"
-                  className={styles.input}
-                  type="tel"
-                  autoComplete="tel"
-                  maxLength={24}
-                  value={phone}
-                  onChange={(e) => {
-                    setPhone(e.target.value);
-                    if (errors.phone) setErrors((o) => ({ ...o, phone: undefined }));
-                  }}
-                  {...fieldProps("phone")}
-                />
-                {errors.phone ? (
-                  <span className={styles.err} id="pa-e-phone">
-                    {errors.phone}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-            <fieldset className={styles.field}>
-              <legend className={styles.lab}>Fylker dere vil følge</legend>
-              <div className={styles.opts} style={{ marginTop: 6 }}>
-                {regionChoices().map((r) => (
-                  <label key={r.code} className={styles.opt}>
-                    <input
-                      type="checkbox"
-                      checked={regions.includes(r.code)}
-                      onChange={() => setRegions((old) => toggle(old, r.code))}
-                    />
-                    <span>{r.label}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <fieldset className={styles.field}>
-              <legend className={styles.lab}>Fag</legend>
-              <div className={styles.opts} style={{ marginTop: 6 }}>
-                {domainChoices().map((d) => (
-                  <label key={d.key} className={styles.opt}>
-                    <input
-                      type="checkbox"
-                      checked={domains.includes(d.key)}
-                      onChange={() => setDomains((old) => toggle(old, d.key))}
-                    />
-                    <span>{d.label}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <label className={styles.check}>
-              <input type="checkbox" checked={existing} onChange={(e) => setExisting(e.target.checked)} />
-              <span>Vi er allerede kunde hos ArbeidMatch</span>
-            </label>
-            <div className={styles.honey} aria-hidden="true">
-              <label htmlFor="pa-website">Nettsted</label>
+          <div>
+            <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={onClose}>
+              Lukk
+            </button>
+          </div>
+        </div>
+      ) : (
+        <form className={styles.modalForm} onSubmit={submit} noValidate aria-describedby={formError ? "pa-form-error" : undefined}>
+          <p className={styles.modalLede} style={{ margin: 0 }}>
+            Fortell oss hvem dere er og hva dere følger med på. Vi går gjennom forespørselen og sender dere en personlig lenke.
+          </p>
+          <div className={styles.row2}>
+            <div className={styles.field}>
+              <label className={styles.lab} htmlFor="pa-company">
+                Firma
+              </label>
               <input
-                id="pa-website"
+                ref={refs.company}
+                data-autofocus
+                id="pa-company"
+                className={styles.input}
                 type="text"
-                tabIndex={-1}
-                autoComplete="off"
-                value={honey}
-                onChange={(e) => setHoney(e.target.value)}
+                autoComplete="organization"
+                maxLength={160}
+                value={company}
+                onChange={(e) => {
+                  setCompany(e.target.value);
+                  if (errors.company) setErrors((o) => ({ ...o, company: undefined }));
+                }}
+                required
+                {...fieldProps("company")}
               />
+              {errors.company ? (
+                <span className={styles.err} id="pa-e-company">
+                  {errors.company}
+                </span>
+              ) : null}
             </div>
-            {TURNSTILE_SITE_KEY ? (
-              <Turnstile
-                key={turnstileKey}
-                siteKey={TURNSTILE_SITE_KEY}
-                onSuccess={setToken}
-                onExpire={() => setToken(null)}
-                onError={() => setToken(null)}
-                options={{ theme: "dark", language: "nb" }}
+            <div className={styles.field}>
+              <label className={styles.lab} htmlFor="pa-orgnr">
+                Org.nr.
+              </label>
+              <input
+                ref={refs.orgnr}
+                id="pa-orgnr"
+                className={styles.input}
+                type="text"
+                inputMode="numeric"
+                placeholder="9 siffer"
+                maxLength={14}
+                value={orgnr}
+                onChange={(e) => {
+                  setOrgnr(e.target.value);
+                  if (errors.orgnr) setErrors((o) => ({ ...o, orgnr: undefined }));
+                }}
+                required
+                {...fieldProps("orgnr")}
               />
-            ) : null}
-            {formError ? (
-              <p className={styles.formError} id="pa-form-error" role="alert">
-                {formError}
-              </p>
-            ) : null}
-            <div className={styles.formFoot}>
-              <span className={styles.small}>
-                Vi bruker opplysningene bare til å gi dere tilgang og sende varslene dere velger.{" "}
-                <Link href="/privacy">Personvern</Link>
-              </span>
-              <button className={`${styles.btn} ${styles.btnGold}`} type="submit" disabled={busy}>
-                {busy ? "Sender ..." : "Be om tilgang"}
-              </button>
+              {errors.orgnr ? (
+                <span className={styles.err} id="pa-e-orgnr">
+                  {errors.orgnr}
+                </span>
+              ) : null}
             </div>
-          </form>
-        )}
-      </div>
-    </section>
+          </div>
+          <div className={styles.row2}>
+            <div className={styles.field}>
+              <label className={styles.lab} htmlFor="pa-email">
+                E-post
+              </label>
+              <input
+                ref={refs.email}
+                id="pa-email"
+                className={styles.input}
+                type="email"
+                autoComplete="email"
+                maxLength={254}
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) setErrors((o) => ({ ...o, email: undefined }));
+                }}
+                required
+                {...fieldProps("email")}
+              />
+              {errors.email ? (
+                <span className={styles.err} id="pa-e-email">
+                  {errors.email}
+                </span>
+              ) : null}
+            </div>
+            <div className={styles.field}>
+              <label className={styles.lab} htmlFor="pa-phone">
+                Telefon <span className={styles.optional}>(valgfritt)</span>
+              </label>
+              <input
+                ref={refs.phone}
+                id="pa-phone"
+                className={styles.input}
+                type="tel"
+                autoComplete="tel"
+                maxLength={24}
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  if (errors.phone) setErrors((o) => ({ ...o, phone: undefined }));
+                }}
+                {...fieldProps("phone")}
+              />
+              {errors.phone ? (
+                <span className={styles.err} id="pa-e-phone">
+                  {errors.phone}
+                </span>
+              ) : null}
+            </div>
+          </div>
+          <fieldset className={styles.field}>
+            <legend className={styles.lab}>Fylker dere vil følge</legend>
+            <div className={styles.opts} style={{ marginTop: 6 }}>
+              {regionChoices().map((r) => (
+                <label key={r.code} className={styles.opt}>
+                  <input
+                    type="checkbox"
+                    checked={regions.includes(r.code)}
+                    onChange={() => setRegions((old) => toggle(old, r.code))}
+                  />
+                  <span>{r.label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className={styles.field}>
+            <legend className={styles.lab}>Fag</legend>
+            <div className={styles.opts} style={{ marginTop: 6 }}>
+              {domainChoices().map((d) => (
+                <label key={d.key} className={styles.opt}>
+                  <input
+                    type="checkbox"
+                    checked={domains.includes(d.key)}
+                    onChange={() => setDomains((old) => toggle(old, d.key))}
+                  />
+                  <span>{d.label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <label className={styles.check}>
+            <input type="checkbox" checked={existing} onChange={(e) => setExisting(e.target.checked)} />
+            <span>Vi er allerede kunde hos ArbeidMatch</span>
+          </label>
+          <div className={styles.honey} aria-hidden="true">
+            <label htmlFor="pa-website">Nettsted</label>
+            <input
+              id="pa-website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              value={honey}
+              onChange={(e) => setHoney(e.target.value)}
+            />
+          </div>
+          {TURNSTILE_SITE_KEY ? (
+            <Turnstile
+              key={turnstileKey}
+              siteKey={TURNSTILE_SITE_KEY}
+              onSuccess={setToken}
+              onExpire={() => setToken(null)}
+              onError={() => setToken(null)}
+              options={{ theme: "dark", language: "nb" }}
+            />
+          ) : null}
+          {formError ? (
+            <p className={styles.formError} id="pa-form-error" role="alert">
+              {formError}
+            </p>
+          ) : null}
+          <div className={styles.formFoot}>
+            <span className={styles.small}>
+              Vi bruker opplysningene bare til å gi dere tilgang og sende varslene dere velger.{" "}
+              <Link href="/privacy">Personvern</Link>
+            </span>
+            <button className={`${styles.btn} ${styles.btnGold}`} type="submit" disabled={busy}>
+              {busy ? "Sender ..." : "Be om tilgang"}
+            </button>
+          </div>
+        </form>
+      )}
+    </>
   );
 }

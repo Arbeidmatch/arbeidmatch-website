@@ -11,6 +11,7 @@ import CookieConsent from "@/components/CookieConsent";
 import { TrafficBeacon } from "@/components/TrafficBeacon";
 import HomeJsonLd from "@/components/seo/HomeJsonLd";
 import HtmlLang from "@/components/HtmlLang";
+import PortalDialogs from "@/components/prosjekter/PortalDialogs";
 import { pageLangInlineScript } from "@/lib/pageLang";
 
 const DeferredAppOverlays = dynamic(() => import("@/components/client/DeferredAppOverlays"), { loading: () => null });
@@ -104,6 +105,8 @@ export default function RootLayout({
         <BetaBanner />
         <ConditionalFooter />
         <DeferredAppOverlays />
+        {/* #tilgang and #logg-inn open the project portal's forms over any page. */}
+        <PortalDialogs />
         <CookieConsent />
         <TrafficBeacon />
         <HomeJsonLd />

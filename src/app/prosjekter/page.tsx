@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 
-import AccessForm from "@/components/prosjekter/AccessForm";
+import AccessBand from "@/components/prosjekter/AccessBand";
 import PortalSteps from "@/components/prosjekter/PortalSteps";
 import ProjectPortal from "@/components/prosjekter/ProjectPortal";
 import styles from "@/components/prosjekter/portal.module.css";
@@ -43,8 +43,9 @@ export const metadata: Metadata = {
  * taken out, the town and county, the stage, the value and the month that
  * matters. The buyer, the contractor, exact deadlines and the way into a
  * tender are for clients, who have a page of their own (/prosjekter/<token>,
- * reached by a login link from /prosjekter/logg-inn). Below the map: how it
- * works, and the form that asks for access.
+ * reached by a login link sent from the "Logg inn" dialog). Below the map:
+ * how it works, and a band whose buttons open the access and login dialogs
+ * (#tilgang, #logg-inn; see PortalDialogs).
  *
  * Rendered on the server with the ATS's answer, so the list is readable
  * without JavaScript and by a search engine; the map, filters and sort then
@@ -66,7 +67,7 @@ export default async function ProsjekterPage({
     <div className={styles.portal}>
       <ProjectPortal initial={initial} initialFilters={filters} />
       <PortalSteps projects={placeProjects(initial?.map)} />
-      <AccessForm />
+      <AccessBand />
     </div>
   );
 }

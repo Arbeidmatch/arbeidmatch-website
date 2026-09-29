@@ -276,12 +276,12 @@ describe("the header on the portal", () => {
     expect(isPortalPath(null)).toBe(false);
   });
 
-  it("offers login and access on the map and its pages", () => {
+  it("offers login and access on the map and its pages, as dialogs over the page", () => {
     // A presentation of one project is part of the portal too (29 September 2026).
     for (const p of ["/prosjekter", "/prosjekter/logg-inn", `/prosjekter/inn/${"a".repeat(32)}`, `/prosjekt/${token}`]) {
       expect(portalHeader(p)).toEqual({
-        quiet: { label: "Logg inn", href: "/prosjekter/logg-inn" },
-        gold: { label: "Få tilgang", href: "/prosjekter#tilgang" },
+        quiet: { label: "Logg inn", href: "#logg-inn" },
+        gold: { label: "Få tilgang", href: "#tilgang" },
       });
     }
   });
