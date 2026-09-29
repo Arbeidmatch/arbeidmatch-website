@@ -221,7 +221,9 @@ describe("the access form", () => {
     phone: "",
     regions: ["NO060", "NO071"],
     domains: ["electrical"],
-    existing_client: true,
+    contact_name: "Ola Nordmann",
+    contact_role: "Daglig leder",
+    website_confirmed: true,
   };
 
   it("accepts a complete request and tidies it", () => {
@@ -230,14 +232,17 @@ describe("the access form", () => {
     if (c.ok) {
       expect(c.value.orgnr).toBe("935667089");
       expect(c.value.email).toBe("post@example.no");
-      expect(c.value.existing_client).toBe(true);
+      expect(c.value.contact_role).toBe("Daglig leder");
     }
   });
 
   it("names the field that is wrong", () => {
     expect(checkAccessRequest({ ...good, company: " " })).toMatchObject({ ok: false, field: "company" });
-    expect(checkAccessRequest({ ...good, orgnr: "12345" })).toMatchObject({ ok: false, field: "orgnr", error: "Org.nr. har 9 siffer." });
-    expect(checkAccessRequest({ ...good, orgnr: "935667080" })).toMatchObject({ ok: false, field: "orgnr" });
+    expect(checkAccessRequest({ ...good, orgnr: "12345" })).toMatchObject({ ok: false, field: "company" });
+    expect(checkAccessRequest({ ...good, orgnr: "935667080" })).toMatchObject({ ok: false, field: "company" });
+    expect(checkAccessRequest({ ...good, contact_name: "" })).toMatchObject({ ok: false, field: "contact_name" });
+    expect(checkAccessRequest({ ...good, contact_role: " " })).toMatchObject({ ok: false, field: "contact_role" });
+    expect(checkAccessRequest({ ...good, website_confirmed: false })).toMatchObject({ ok: false, field: "website_confirmed" });
     expect(checkAccessRequest({ ...good, email: "post@example" })).toMatchObject({ ok: false, field: "email" });
     expect(checkAccessRequest({ ...good, phone: "call me" })).toMatchObject({ ok: false, field: "phone" });
   });

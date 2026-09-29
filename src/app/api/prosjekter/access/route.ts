@@ -2,10 +2,11 @@ import { NextRequest } from "next/server";
 
 import { getRateLimitResult, hasHoneypotValue, noStoreJson } from "@/lib/apiSecurity";
 import { verifyCaptcha } from "@/lib/cv/captcha";
-import { checkAccessRequest } from "@/lib/prosjekter/access";
+import { checkAccessRequest, isAccessRequestId } from "@/lib/prosjekter/access";
 import { callAts, visitorIp } from "@/lib/prosjekter/ats";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 const TOO_MANY = "For mange forespørsler. Prøv igjen litt senere.";
 const BAD_REQUEST = "Ugyldig forespørsel.";
@@ -50,13 +51,22 @@ export async function POST(request: NextRequest) {
   const answer = await callAts("/api/public/project-access", {
     method: "POST",
     visitorHeaders: request.headers,
+    // The ATS reads the register and sends the code before it answers.
+    timeoutMs: 25_000,
     body: checked.value,
   });
-  if (answer.status >= 200 && answer.status < 300 && answer.body.ok === true) return noStoreJson({ ok: true });
+  if (answer.status >= 200 && answer.status < 300 && answer.body.ok === true) {
+    // An address the ATS does not already hold gets a code; the dialog asks for it next.
+    if (answer.body.needsCode === true && isAccessRequestId(answer.body.requestId)) {
+      return noStoreJson({ ok: true, needsCode: true, requestId: answer.body.requestId });
+    }
+    return noStoreJson({ ok: true, needsCode: false });
+  }
   if (answer.status === 429) return noStoreJson({ error: TOO_MANY }, { status: 429 });
   const atsError = typeof answer.body.error === "string" ? answer.body.error.slice(0, 300) : null;
   if (atsError && answer.status >= 400 && answer.status < 500 && answer.status !== 404) {
-    return noStoreJson({ error: atsError }, { status: answer.status });
+    const field = typeof answer.body.field === "string" ? answer.body.field : undefined;
+    return noStoreJson({ error: atsError, field }, { status: answer.status });
   }
   return noStoreJson({ error: UNAVAILABLE }, { status: 503 });
 }

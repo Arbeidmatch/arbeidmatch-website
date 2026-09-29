@@ -1369,6 +1369,110 @@
   font-size: 14px;
 }
 
+/* The access form's company picker (29 September 2026): hits from the register, then the chosen one. */
+.hits {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--ink);
+  display: grid;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.hit {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.hit span {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hit:hover,
+.hit:focus-visible {
+  background: rgba(201, 168, 76, 0.12);
+  outline: none;
+}
+
+.picked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--gold);
+  background: rgba(201, 168, 76, 0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-height: 46px;
+}
+
+.pickedText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pickedText strong {
+  font-size: 15px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.pickedText span {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.linkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.linkBtn {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  min-height: 44px;
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.linkBtn:disabled {
+  opacity: 0.5;
+}
+
+.codeInput {
+  max-width: 220px;
+  font-size: 22px;
+  letter-spacing: 0.3em;
+  font-variant-numeric: tabular-nums;
+}
+
 .formError {
   border: 1px solid rgba(240, 138, 122, 0.5);
   background: rgba(240, 138, 122, 0.08);

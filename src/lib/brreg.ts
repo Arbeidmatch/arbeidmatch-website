@@ -4,12 +4,14 @@ import { normalizeOrgNumber } from "@/lib/orgNumber";
 
 const ENHETER = "https://data.brreg.no/enhetsregisteret/api/enheter";
 
-export type BrregCompany = { name: string; orgNumber: string };
+/** city: the town of the business address, so two firms with the same name can be told apart in a list. */
+export type BrregCompany = { name: string; orgNumber: string; city?: string };
 
-type BrregEnhet = { navn?: string; organisasjonsnummer?: string };
+type BrregEnhet = { navn?: string; organisasjonsnummer?: string; forretningsadresse?: { poststed?: string } };
 
 function toCompany(item: BrregEnhet): BrregCompany {
-  return { name: item.navn || "", orgNumber: item.organisasjonsnummer || "" };
+  const city = item.forretningsadresse?.poststed?.trim();
+  return { name: item.navn || "", orgNumber: item.organisasjonsnummer || "", ...(city ? { city } : {}) };
 }
 
 /**

@@ -6,6 +6,12 @@ import { isValidOrgNumber, normalizeOrgNumber } from "@/lib/orgNumber";
  * The "Be om tilgang" form and the login form, checked the same way in the
  * browser and in the website's routes before anything goes to the ATS.
  * Messages are Norwegian and name the field, so the form can show them there.
+ *
+ * The owner's rules for the access form, 29 September 2026: the company is
+ * picked from the register (so it always has its organisation number), the
+ * person gives their name and their role in the company, and confirms that
+ * their contact details are on the company's own website, which we check. An
+ * address we do not already hold confirms itself with a code (checkAccessCode).
  */
 
 export type AccessRequest = {
@@ -15,10 +21,20 @@ export type AccessRequest = {
   phone: string;
   regions: string[];
   domains: string[];
-  existing_client: boolean;
+  contact_name: string;
+  contact_role: string;
+  website_confirmed: true;
 };
 
-export type AccessField = "company" | "orgnr" | "email" | "phone" | "regions" | "domains";
+export type AccessField =
+  | "company"
+  | "contact_name"
+  | "contact_role"
+  | "email"
+  | "phone"
+  | "regions"
+  | "domains"
+  | "website_confirmed";
 
 export type Checked<T> = { ok: true; value: T } | { ok: false; field: AccessField; error: string };
 
@@ -49,11 +65,15 @@ function knownList(v: unknown, known: readonly string[]): string[] | null {
 export function checkAccessRequest(raw: unknown): Checked<AccessRequest> {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const company = text(r.company, 160);
-  if (company.length < 2) return { ok: false, field: "company", error: "Skriv inn firmanavnet." };
-
   const orgnr = normalizeOrgNumber(text(r.orgnr, 20));
-  if (!orgnr) return { ok: false, field: "orgnr", error: "Org.nr. har 9 siffer." };
-  if (!isValidOrgNumber(orgnr)) return { ok: false, field: "orgnr", error: "Sjekk org.nr., det stemmer ikke." };
+  if (company.length < 2 || !orgnr || !isValidOrgNumber(orgnr)) {
+    return { ok: false, field: "company", error: "Søk opp firmaet og velg det fra listen." };
+  }
+
+  const contact_name = text(r.contact_name, 120);
+  if (contact_name.length < 2) return { ok: false, field: "contact_name", error: "Skriv inn navnet ditt." };
+  const contact_role = text(r.contact_role, 80);
+  if (contact_role.length < 2) return { ok: false, field: "contact_role", error: "Skriv inn rollen din i firmaet." };
 
   const email = text(r.email, 254).toLowerCase();
   if (!isEmailShape(email)) return { ok: false, field: "email", error: "Skriv inn en gyldig e-postadresse." };
@@ -66,10 +86,27 @@ export function checkAccessRequest(raw: unknown): Checked<AccessRequest> {
   const domains = knownList(r.domains, ACCESS_DOMAIN_KEYS);
   if (!domains) return { ok: false, field: "domains", error: "Velg fag fra listen." };
 
+  if (r.website_confirmed !== true) {
+    return { ok: false, field: "website_confirmed", error: "Bekreft at kontaktinformasjonen din står på firmaets nettside." };
+  }
+
   return {
     ok: true,
-    value: { company, orgnr, email, phone, regions, domains, existing_client: r.existing_client === true },
+    value: { company, orgnr, email, phone, regions, domains, contact_name, contact_role, website_confirmed: true },
   };
+}
+
+const REQUEST_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The request the code belongs to, as the ATS handed it out. */
+export function isAccessRequestId(value: unknown): value is string {
+  return typeof value === "string" && REQUEST_ID.test(value);
+}
+
+/** The six digits from the e-mail, spaces allowed while typing. */
+export function checkAccessCode(raw: unknown): { ok: true; code: string } | { ok: false; error: string } {
+  const code = typeof raw === "string" ? raw.replace(/\s+/g, "") : "";
+  return /^\d{6}$/.test(code) ? { ok: true, code } : { ok: false, error: "Koden har 6 siffer." };
 }
 
 export function checkLoginEmail(raw: unknown): { ok: true; email: string } | { ok: false; error: string } {
