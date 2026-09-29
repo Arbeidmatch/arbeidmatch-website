@@ -108,6 +108,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.9,
     })),
+    // The project register changes every day; the token pages under it are noindex.
+    {
+      url: `${SITE}/prosjekter`,
+      lastModified: new Date(),
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+    },
     ...["/about", "/contact"].map((path) => ({
       url: `${SITE}${path}`,
       lastModified: primaryLastMod,

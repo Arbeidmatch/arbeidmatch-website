@@ -29,6 +29,8 @@ export const NB_PATHS: readonly string[] = [
   "/bemanningsbyr",
   "/flislegger",
   "/annonse",
+  "/prosjekter",
+  "/prosjekt",
 ];
 
 export function langForPath(rawPath: string | null | undefined): PageLang {
