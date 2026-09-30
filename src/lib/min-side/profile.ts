@@ -43,6 +43,16 @@ export type Alerts = { plan: Plan | null; free_until: string | null; projects_ur
 export type Offer = { number: string; title: string; state: string; open: boolean; sent_at: string | null; url: string | null };
 export type SignedDocument = { title: string; signed_at: string | null; pdf_url: string | null };
 
+/** A weekly timeliste: one that waits for this person's signature, with the way to it, or one they signed. */
+export type WaitingTimesheet = { title: string; sent_at: string | null; url: string | null };
+export type Timesheets = { waiting: WaitingTimesheet[]; signed: SignedDocument[] };
+
+export type Invoice = { id: number; number: string; date: string | null; due: string | null; amount: number; outstanding: number; state: string; state_key: "paid" | "open" | "overdue" | "credit" };
+/** The firm's invoices, for the person at its invoice address; `allowed` false for anybody else. */
+export type Invoices = { allowed: boolean; rows: Invoice[] };
+
+export type CandidatePresentation = { title: string; sent_at: string | null; state: string; url: string | null };
+
 export type Profile = {
   me: { email: string; contact_id: string | null };
   company: Company;
@@ -50,6 +60,9 @@ export type Profile = {
   alerts: Alerts | null;
   offers: Offer[];
   documents: SignedDocument[];
+  timesheets: Timesheets;
+  invoices: Invoices;
+  candidates: CandidatePresentation[];
 };
 
 const TOKEN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -104,6 +117,14 @@ export function profileFrom(raw: unknown): Profile | null {
   if (!r || !c || !me || typeof c.name !== "string") return null;
   const list = (v: unknown) => (Array.isArray(v) ? (v.filter((x) => x && typeof x === "object") as Record<string, unknown>[]) : []);
   const a = (r.alerts && typeof r.alerts === "object" ? r.alerts : null) as Record<string, unknown> | null;
+  // An older ATS sends none of the three below; the page then shows them empty rather than failing.
+  const t = (r.timesheets && typeof r.timesheets === "object" ? r.timesheets : null) as Record<string, unknown> | null;
+  const inv = (r.invoices && typeof r.invoices === "object" ? r.invoices : null) as Record<string, unknown> | null;
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+  const signedList = (v: unknown): SignedDocument[] =>
+    list(v)
+      .map((d) => ({ title: str(d.title, 200), signed_at: typeof d.signed_at === "string" ? d.signed_at : null, pdf_url: ownLink(d.pdf_url) }))
+      .slice(0, 100);
   return {
     me: { email: str(me.email, 254), contact_id: typeof me.contact_id === "string" ? me.contact_id : null },
     company: {
@@ -130,8 +151,31 @@ export function profileFrom(raw: unknown): Profile | null {
     offers: list(r.offers)
       .map((o) => ({ number: str(o.number, 40), title: str(o.title, 120), state: str(o.state, 40), open: o.open === true, sent_at: typeof o.sent_at === "string" ? o.sent_at : null, url: ownLink(o.url) }))
       .slice(0, 50),
-    documents: list(r.documents)
-      .map((d) => ({ title: str(d.title, 200), signed_at: typeof d.signed_at === "string" ? d.signed_at : null, pdf_url: ownLink(d.pdf_url) }))
+    documents: signedList(r.documents),
+    timesheets: {
+      waiting: list(t?.waiting)
+        .map((w) => ({ title: str(w.title, 200), sent_at: typeof w.sent_at === "string" ? w.sent_at : null, url: ownLink(w.url) }))
+        .slice(0, 50),
+      signed: signedList(t?.signed),
+    },
+    invoices: {
+      allowed: inv?.allowed === true,
+      rows: list(inv?.rows)
+        .filter((i) => typeof i.id === "number" && Number.isFinite(i.id))
+        .map((i) => ({
+          id: i.id as number,
+          number: str(i.number, 20),
+          date: day(i.date),
+          due: day(i.due),
+          amount: num(i.amount),
+          outstanding: num(i.outstanding),
+          state: str(i.state, 40),
+          state_key: (i.state_key === "paid" || i.state_key === "overdue" || i.state_key === "credit" ? i.state_key : "open") as Invoice["state_key"],
+        }))
+        .slice(0, 200),
+    },
+    candidates: list(r.candidates)
+      .map((k) => ({ title: str(k.title, 200), sent_at: typeof k.sent_at === "string" ? k.sent_at : null, state: str(k.state, 60), url: ownLink(k.url) }))
       .slice(0, 50),
   };
 }
@@ -180,31 +224,51 @@ export function addressLine(street: string, postcode: string, town: string): str
 /**
  * The owner's word on the first version, 30 September 2026: everything on one
  * sheet was mixed together; it has to be well divided so it does not confuse.
- * So the page is these six sections, each with a name, one line that says what
- * it is, and nothing of another section in it.
+ * So the page is sections, each with a name, one line that says what it is,
+ * and nothing of another section in it.
+ *
+ * The same day the timesheets, the invoices and the candidates came onto the
+ * page ("da fa le acum"), each as a section of its own. With nine of them the
+ * list is in two groups: what the firm is, and what passes between us.
+ * "Fakturaopplysninger" is where invoices are sent; "Fakturaer" is the
+ * invoices themselves. They are two sections because they are two questions.
  */
-export type SectionKey = "firma" | "faktura" | "kontakter" | "varsler" | "tilbud" | "dokumenter";
+export type SectionKey = "firma" | "fakturaopplysninger" | "kontakter" | "kandidater" | "tilbud" | "timelister" | "fakturaer" | "dokumenter" | "varsler";
 
-export const SECTIONS: { key: SectionKey; label: string; about: string }[] = [
-  { key: "firma", label: "Firma", about: "Opplysningene vi har om firmaet deres." },
-  { key: "faktura", label: "Faktura", about: "Hvor og hvordan fakturaene fra oss sendes." },
-  { key: "kontakter", label: "Kontaktpersoner", about: "Personene vi kan kontakte hos dere." },
-  { key: "varsler", label: "Prosjektvarsler", about: "Varslene om bygg- og anleggsprosjekter, og abonnementet." },
-  { key: "tilbud", label: "Tilbud", about: "Tilbud fra oss til deg: de som venter på svar, og de som er besvart." },
-  { key: "dokumenter", label: "Signerte dokumenter", about: "Det du har signert hos oss, som PDF." },
+export type SectionGroup = "firmaet" | "samarbeidet";
+export const SECTION_GROUPS: { key: SectionGroup; label: string }[] = [
+  { key: "firmaet", label: "Firmaet" },
+  { key: "samarbeidet", label: "Samarbeidet med oss" },
 ];
 
-/** The section an address asks for (#faktura), or null for anything else, a dialog's hash included. */
+export const SECTIONS: { key: SectionKey; group: SectionGroup; label: string; about: string }[] = [
+  { key: "firma", group: "firmaet", label: "Firma", about: "Opplysningene vi har om firmaet deres." },
+  { key: "fakturaopplysninger", group: "firmaet", label: "Faktura­opplysninger", about: "Hvor og hvordan fakturaene fra oss sendes." },
+  { key: "kontakter", group: "firmaet", label: "Kontaktpersoner", about: "Personene vi kan kontakte hos dere." },
+  { key: "kandidater", group: "samarbeidet", label: "Kandidater", about: "Kandidatene vi har presentert for deg." },
+  { key: "tilbud", group: "samarbeidet", label: "Tilbud", about: "Tilbud fra oss til deg: de som venter på svar, og de som er besvart." },
+  { key: "timelister", group: "samarbeidet", label: "Timelister", about: "Timelistene du skal signere, og de du har signert." },
+  { key: "fakturaer", group: "samarbeidet", label: "Fakturaer", about: "Fakturaene fra oss til firmaet, med status." },
+  { key: "dokumenter", group: "samarbeidet", label: "Signerte dokumenter", about: "Avtaler og tilbud du har signert hos oss, som PDF." },
+  { key: "varsler", group: "samarbeidet", label: "Prosjektvarsler", about: "Varslene om bygg- og anleggsprosjekter, og abonnementet." },
+];
+
+/** The section an address asks for (#fakturaer), or null for anything else, a dialog's hash included. */
 export function sectionFromHash(hash: string): SectionKey | null {
   const key = hash.replace(/^#/, "");
+  // A link made before the invoice details got their longer name.
+  if (key === "faktura") return "fakturaopplysninger";
   return SECTIONS.some((s) => s.key === key) ? (key as SectionKey) : null;
 }
+
+const count = (n: number, one: string, many: string, none: string) => (n === 0 ? none : n === 1 ? `1 ${one}` : `${n} ${many}`);
 
 /** A few words under a section's name in the list, so the list already says where things stand. */
 export function sectionHint(key: SectionKey, p: Profile): string {
   if (key === "firma") return p.company.city || "Adresse og kontakt";
-  if (key === "faktura") return p.company.invoice_ehf ? "EHF" : p.company.invoice_email ? "På e-post" : "Ikke oppgitt";
-  if (key === "kontakter") return p.contacts.length === 0 ? "Ingen registrert" : p.contacts.length === 1 ? "1 person" : `${p.contacts.length} personer`;
+  if (key === "fakturaopplysninger") return p.company.invoice_ehf ? "EHF" : p.company.invoice_email ? "På e-post" : "Ikke oppgitt";
+  if (key === "kontakter") return count(p.contacts.length, "person", "personer", "Ingen registrert");
+  if (key === "kandidater") return count(p.candidates.length, "presentasjon", "presentasjoner", "Ingen ennå");
   if (key === "varsler") {
     const plan = p.alerts?.plan ?? null;
     if (!p.alerts) return "Ikke aktivt";
@@ -217,5 +281,19 @@ export function sectionHint(key: SectionKey, p: Profile): string {
     const open = p.offers.filter((o) => o.open).length;
     return open === 0 ? (p.offers.length ? "Ingen venter på svar" : "Ingen tilbud") : open === 1 ? "1 venter på svar" : `${open} venter på svar`;
   }
-  return p.documents.length === 0 ? "Ingen ennå" : p.documents.length === 1 ? "1 dokument" : `${p.documents.length} dokumenter`;
+  if (key === "timelister") {
+    const waiting = p.timesheets.waiting.length;
+    return waiting ? count(waiting, "venter på signatur", "venter på signatur", "") : count(p.timesheets.signed.length, "signert", "signerte", "Ingen ennå");
+  }
+  if (key === "fakturaer") {
+    if (!p.invoices.allowed) return "For fakturaadressen";
+    const unpaid = p.invoices.rows.filter((i) => i.state_key === "open" || i.state_key === "overdue").length;
+    return unpaid ? count(unpaid, "ubetalt", "ubetalte", "") : p.invoices.rows.length ? "Alle betalt" : "Ingen ennå";
+  }
+  return count(p.documents.length, "dokument", "dokumenter", "Ingen ennå");
+}
+
+/** An amount as an invoice prints it: kr 12 500,00. */
+export function kronerNo(amount: number): string {
+  return `kr ${new Intl.NumberFormat("nb-NO", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount).replace(/[\u00a0\u202f]/g, " ")}`;
 }

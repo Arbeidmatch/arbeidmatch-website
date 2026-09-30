@@ -8,9 +8,11 @@ import Link from "next/link";
 import { CARD, EYEBROW, FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import {
   SECTIONS,
+  SECTION_GROUPS,
   addressLine,
   alertsWords,
   dayNo,
+  kronerNo,
   orgNumberNo,
   profileFrom,
   sectionFromHash,
@@ -27,12 +29,18 @@ import {
  *
  * ONE THING AT A TIME. His word the same day, on the first version that showed
  * everything as cards on one sheet: "sa nu fie amestecate toate ... sa fie bine
- * impartite ca sa nu creeze confuzie". So the page is six sections with a list
- * of them at the side (above, on a phone), and only the chosen one is on
- * screen: the firm, the invoice details, the contact persons, the project
- * alerts, the offers, the signed documents. Each says in one line what it is,
- * and has one thing to do. The firm and its invoice details are two sections
- * with two forms, because they are two questions.
+ * impartite ca sa nu creeze confuzie". So the page is sections with a list of
+ * them at the side (above, on a phone), and only the chosen one is on screen.
+ * Each says in one line what it is, and has one thing to do. The firm and its
+ * invoice details are two sections with two forms, because they are two
+ * questions.
+ *
+ * Nine sections since the same evening, in two groups: what the firm is (the
+ * firm, where invoices are sent, the contact persons) and what passes between
+ * us (candidates, offers, timesheets, invoices, signed documents, project
+ * alerts). The three that came last show what the ATS sends for this person:
+ * the timelister they sign, the firm's invoices for its invoice address, the
+ * candidate presentations addressed to them.
  *
  * The firm's name and number are the register's and are not changed here; a
  * person changes their own entry among the contacts and asks us about a
@@ -200,29 +208,35 @@ export default function MinSideClient({ token }: { token: string }) {
         {profile && c ? (
           <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
             <nav aria-label="Deler av Min side">
-              <ul role="tablist" aria-orientation="vertical" className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-                {SECTIONS.map((s) => {
-                  const on = s.key === section;
-                  return (
-                    <li key={s.key} role="presentation">
-                      <button
-                        type="button"
-                        role="tab"
-                        id={`ms-tab-${s.key}`}
-                        aria-selected={on}
-                        aria-controls={`ms-panel-${s.key}`}
-                        onClick={() => choose(s.key)}
-                        className={`flex min-h-[52px] w-full flex-col items-start justify-center rounded-lg border px-4 py-2 text-left transition-colors ${
-                          on ? "border-gold bg-gold/10 text-white" : "border-white/10 text-white/80 hover:border-gold/50 hover:text-white"
-                        }`}
-                      >
-                        <span className={`text-[15px] font-semibold ${on ? "text-gold" : ""}`}>{s.label}</span>
-                        <span className="text-xs text-white/65">{sectionHint(s.key, profile)}</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+              <div role="tablist" aria-orientation="vertical" className="flex flex-col gap-5">
+                {SECTION_GROUPS.map((g) => (
+                  <div key={g.key} className="flex flex-col gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/55">{g.label}</p>
+                    <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                      {SECTIONS.filter((x) => x.group === g.key).map((x) => {
+                        const on = x.key === section;
+                        return (
+                          <button
+                            key={x.key}
+                            type="button"
+                            role="tab"
+                            id={`ms-tab-${x.key}`}
+                            aria-selected={on}
+                            aria-controls={`ms-panel-${x.key}`}
+                            onClick={() => choose(x.key)}
+                            className={`flex min-h-[52px] w-full min-w-0 flex-col items-start justify-center rounded-lg border px-4 py-2 text-left transition-colors ${
+                              on ? "border-gold bg-gold/10 text-white" : "border-white/10 text-white/80 hover:border-gold/50 hover:text-white"
+                            }`}
+                          >
+                            <span className={`max-w-full break-words text-[15px] font-semibold leading-tight ${on ? "text-gold" : ""}`}>{x.label}</span>
+                            <span className="text-xs text-white/65">{sectionHint(x.key, profile)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </nav>
 
             <div className="flex min-w-0 flex-col gap-4">
@@ -247,8 +261,8 @@ export default function MinSideClient({ token }: { token: string }) {
                 </Panel>
               ) : null}
 
-              {section === "faktura" ? (
-                <Panel section="faktura" action={editButton(() => setEditInvoice(true))}>
+              {section === "fakturaopplysninger" ? (
+                <Panel section="fakturaopplysninger" action={editButton(() => setEditInvoice(true))}>
                   <dl className="flex flex-col gap-3">
                     <Row label="Faktura-e-post">{c.invoice_email || "Ikke oppgitt"}</Row>
                     <Row label="EHF">{c.invoice_ehf ? "Ja, vi tar imot EHF" : "Nei"}</Row>
@@ -341,6 +355,109 @@ export default function MinSideClient({ token }: { token: string }) {
                       </li>
                     ))}
                   </ul>
+                </Panel>
+              ) : null}
+
+              {section === "kandidater" ? (
+                <Panel section="kandidater">
+                  {profile.candidates.length === 0 ? <p className={`text-sm ${MUTED}`}>Ingen kandidater er presentert for deg ennå.</p> : null}
+                  <ul className="flex flex-col divide-y divide-white/10">
+                    {profile.candidates.map((k, i) => (
+                      <li key={`${k.title}-${i}`} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                        <div className="min-w-0">
+                          <p className="break-words text-[15px] font-semibold text-white">{k.title}</p>
+                          <p className={`text-sm ${MUTED}`}>
+                            {k.state}
+                            {k.sent_at ? ` · sendt ${dayNo(k.sent_at)}` : ""}
+                          </p>
+                        </div>
+                        {k.url ? (
+                          <a href={k.url} className={LINK}>
+                            Se kandidatene
+                          </a>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </Panel>
+              ) : null}
+
+              {section === "timelister" ? (
+                <Panel section="timelister">
+                  <div className="flex flex-col gap-3">
+                    <h3 className="text-base font-semibold text-white">Venter på din signatur</h3>
+                    {profile.timesheets.waiting.length === 0 ? <p className={`text-sm ${MUTED}`}>Ingen timelister venter på deg.</p> : null}
+                    <ul className="flex flex-col divide-y divide-white/10">
+                      {profile.timesheets.waiting.map((t, i) => (
+                        <li key={`${t.title}-${i}`} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                          <div className="min-w-0">
+                            <p className="break-words text-[15px] font-semibold text-white">{t.title}</p>
+                            <p className="text-sm font-semibold text-gold">
+                              Venter på signatur{t.sent_at ? <span className={`font-normal ${MUTED}`}> · sendt {dayNo(t.sent_at)}</span> : null}
+                            </p>
+                          </div>
+                          {t.url ? (
+                            <a href={t.url} className={LINK}>
+                              Åpne og signer
+                            </a>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="flex flex-col gap-3 border-t border-white/10 pt-5">
+                    <h3 className="text-base font-semibold text-white">Signert</h3>
+                    {profile.timesheets.signed.length === 0 ? <p className={`text-sm ${MUTED}`}>Du har ikke signert noen timelister ennå.</p> : null}
+                    <ul className="flex flex-col divide-y divide-white/10">
+                      {profile.timesheets.signed.map((d, i) => (
+                        <li key={`${d.title}-${i}`} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                          <div className="min-w-0">
+                            <p className="break-words text-[15px] font-semibold text-white">{d.title}</p>
+                            <p className={`text-sm ${MUTED}`}>{d.signed_at ? `Signert ${dayNo(d.signed_at)}` : "Signert"}</p>
+                          </div>
+                          {d.pdf_url ? (
+                            <a href={d.pdf_url} className={LINK}>
+                              Last ned PDF
+                            </a>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </Panel>
+              ) : null}
+
+              {section === "fakturaer" ? (
+                <Panel section="fakturaer">
+                  {!profile.invoices.allowed ? (
+                    <p className={`text-sm leading-relaxed ${MUTED}`}>
+                      Fakturaene vises for den som logger inn med firmaets faktura-e-post eller firmaets egen e-postadresse. Adressene står under
+                      Fakturaopplysninger og Firma.
+                    </p>
+                  ) : profile.invoices.rows.length === 0 ? (
+                    <p className={`text-sm ${MUTED}`}>Vi har ikke sendt dere noen fakturaer ennå.</p>
+                  ) : (
+                    <ul className="flex flex-col divide-y divide-white/10">
+                      {profile.invoices.rows.map((inv) => (
+                        <li key={inv.id} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                          <div className="min-w-0">
+                            <p className="text-[15px] font-semibold text-white">
+                              Faktura <span className="tabular-nums">{inv.number || inv.id}</span> · <span className="tabular-nums">{kronerNo(inv.amount)}</span>
+                            </p>
+                            <p className={`text-sm ${MUTED}`}>
+                              <span className={inv.state_key === "overdue" ? "font-semibold text-[#FF9B9B]" : inv.state_key === "open" ? "font-semibold text-gold" : ""}>{inv.state}</span>
+                              {inv.date ? ` · datert ${dayNo(inv.date)}` : ""}
+                              {inv.due && (inv.state_key === "open" || inv.state_key === "overdue") ? ` · forfall ${dayNo(inv.due)}` : ""}
+                            </p>
+                          </div>
+                          <a href={`/api/min-side/${encodeURIComponent(token)}/invoice/${inv.id}`} className={LINK}>
+                            Last ned PDF
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {profile.invoices.allowed ? <p className={`text-sm ${MUTED}`}>Beløpene er med merverdiavgift.</p> : null}
                 </Panel>
               ) : null}
 

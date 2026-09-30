@@ -70,18 +70,23 @@ describe("Min side: the words on the page", () => {
 });
 
 describe("Min side: one section at a time", () => {
-  it("has six sections, each with a name and a line that says what it is", async () => {
-    const { SECTIONS } = await import("./profile");
-    expect(SECTIONS.map((s) => s.key)).toEqual(["firma", "faktura", "kontakter", "varsler", "tilbud", "dokumenter"]);
+  it("has nine sections in two groups, each with a name and a line that says what it is", async () => {
+    const { SECTIONS, SECTION_GROUPS } = await import("./profile");
+    expect(SECTIONS.map((s) => s.key)).toEqual(["firma", "fakturaopplysninger", "kontakter", "kandidater", "tilbud", "timelister", "fakturaer", "dokumenter", "varsler"]);
+    expect(SECTION_GROUPS.map((g) => g.key)).toEqual(["firmaet", "samarbeidet"]);
     for (const s of SECTIONS) {
       expect(s.label.length).toBeGreaterThan(2);
       expect(s.about.endsWith(".")).toBe(true);
+      expect(SECTION_GROUPS.some((g) => g.key === s.group)).toBe(true);
     }
+    // Where invoices are sent and the invoices themselves are two different names.
+    expect(new Set(SECTIONS.map((s) => s.label)).size).toBe(SECTIONS.length);
   });
 
   it("opens the section the address asks for, and leaves a dialog's hash alone", async () => {
     const { sectionFromHash } = await import("./profile");
-    expect(sectionFromHash("#faktura")).toBe("faktura");
+    expect(sectionFromHash("#fakturaer")).toBe("fakturaer");
+    expect(sectionFromHash("#faktura")).toBe("fakturaopplysninger");
     expect(sectionFromHash("#logg-inn")).toBeNull();
     expect(sectionFromHash("")).toBeNull();
   });
@@ -90,10 +95,30 @@ describe("Min side: one section at a time", () => {
     const { sectionHint } = await import("./profile");
     const p = profileFrom(answer)!;
     expect(sectionHint("firma", p)).toBe("Trondheim");
-    expect(sectionHint("faktura", p)).toBe("Ikke oppgitt");
+    expect(sectionHint("fakturaopplysninger", p)).toBe("Ikke oppgitt");
     expect(sectionHint("kontakter", p)).toBe("1 person");
     expect(sectionHint("varsler", p)).toBe("Gratis");
     expect(sectionHint("tilbud", p)).toBe("Ingen venter på svar");
     expect(sectionHint("dokumenter", p)).toBe("1 dokument");
+    // An ATS that sends none of the three newer things gives empty sections, not a broken page.
+    expect(sectionHint("timelister", p)).toBe("Ingen ennå");
+    expect(sectionHint("kandidater", p)).toBe("Ingen ennå");
+    expect(sectionHint("fakturaer", p)).toBe("For fakturaadressen");
+  });
+
+  it("reads timesheets, invoices and candidates, and counts what waits", async () => {
+    const { sectionHint, kronerNo } = await import("./profile");
+    const p = profileFrom({
+      ...answer,
+      timesheets: { waiting: [{ title: "Timeliste uke 40", sent_at: "2026-09-29T08:00:00Z", url: "https://ats.arbeidmatch.no/timeliste/abc" }], signed: [] },
+      invoices: { allowed: true, rows: [{ id: 101, number: "1042", date: "2026-09-01", due: "2026-09-15", amount: 12500, outstanding: 12500, state: "Forfalt", state_key: "overdue" }, { id: "x" }] },
+      candidates: [{ title: "Tømrere til Eksempelprosjektet", sent_at: "2026-09-20T08:00:00Z", state: "Venter på svar", url: "https://evil.example/x" }],
+    })!;
+    expect(sectionHint("timelister", p)).toBe("1 venter på signatur");
+    expect(p.invoices.rows.length).toBe(1);
+    expect(sectionHint("fakturaer", p)).toBe("1 ubetalt");
+    expect(sectionHint("kandidater", p)).toBe("1 presentasjon");
+    expect(p.candidates[0].url).toBeNull();
+    expect(kronerNo(12500)).toBe("kr 12 500,00");
   });
 });
