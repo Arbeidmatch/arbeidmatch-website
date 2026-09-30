@@ -7,6 +7,7 @@ import styles from "@/components/prosjekter/portal.module.css";
 import { isLoginToken } from "@/lib/prosjekter/access";
 import { callAts } from "@/lib/prosjekter/ats";
 import { isProjectToken } from "@/lib/prosjekter/format";
+import { isProfileToken } from "@/lib/min-side/profile";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +19,12 @@ export const metadata: Metadata = {
 
 /**
  * Where a login link from the e-mail lands. The ATS trades the one-time login
- * token for the client's own subscription token, and the visitor goes on to
- * /prosjekter/<that token>. A used, expired or unknown link, or an ATS that
- * cannot be reached, ends on a plain page with the way back to the form.
+ * token for the key to the client's own page and the visitor goes on to
+ * /min-side/<that key> (the owner's decision of 30 September 2026: a client has
+ * their own page). An address that only gets project alerts and has no page
+ * goes to /prosjekter/<subscription token>, as before. A used, expired or
+ * unknown link, or an ATS that cannot be reached, ends on a plain page with the
+ * way back to the form.
  */
 export default async function ProsjekterInnPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -31,11 +35,12 @@ export default async function ProsjekterInnPage({ params }: { params: Promise<{ 
       method: "GET",
       visitorHeaders: await headers(),
     });
-    if (answer.status === 200 && isProjectToken(answer.body.token)) target = answer.body.token;
+    if (answer.status === 200 && isProfileToken(answer.body.profile)) target = `/min-side/${answer.body.profile}`;
+    else if (answer.status === 200 && isProjectToken(answer.body.token)) target = `/prosjekter/${answer.body.token}`;
     else if (answer.status >= 500) unreachable = true;
   }
   // Outside any try: redirect() works by throwing.
-  if (target) redirect(`/prosjekter/${target}`);
+  if (target) redirect(target);
 
   return (
     <div className={styles.portal} style={{ minHeight: "70vh" }}>
