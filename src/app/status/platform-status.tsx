@@ -233,10 +233,6 @@ export function PlatformStatus() {
           </div>
         </section>
       </div>
-      <p className="mt-8 text-xs text-slate-400">
-        This page is available without signing in. Private reports and
-        conversations are never shown here.
-      </p>
     </main>
   );
 }
