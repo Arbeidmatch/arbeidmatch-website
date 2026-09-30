@@ -243,6 +243,7 @@ export const SECTION_GROUPS: { key: SectionGroup; label: string }[] = [
 
 export const SECTIONS: { key: SectionKey; group: SectionGroup; label: string; about: string }[] = [
   { key: "firma", group: "firmaet", label: "Firma", about: "Opplysningene vi har om firmaet deres." },
+  // The label carries a soft hyphen (written as its escape so it can be seen): on a phone the long word breaks at its joint.
   { key: "fakturaopplysninger", group: "firmaet", label: "Faktura­opplysninger", about: "Hvor og hvordan fakturaene fra oss sendes." },
   { key: "kontakter", group: "firmaet", label: "Kontaktpersoner", about: "Personene vi kan kontakte hos dere." },
   { key: "kandidater", group: "samarbeidet", label: "Kandidater", about: "Kandidatene vi har presentert for deg." },
