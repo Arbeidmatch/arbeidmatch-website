@@ -68,3 +68,32 @@ describe("Min side: the words on the page", () => {
     expect(addressLine("", "", "")).toBe("");
   });
 });
+
+describe("Min side: one section at a time", () => {
+  it("has six sections, each with a name and a line that says what it is", async () => {
+    const { SECTIONS } = await import("./profile");
+    expect(SECTIONS.map((s) => s.key)).toEqual(["firma", "faktura", "kontakter", "varsler", "tilbud", "dokumenter"]);
+    for (const s of SECTIONS) {
+      expect(s.label.length).toBeGreaterThan(2);
+      expect(s.about.endsWith(".")).toBe(true);
+    }
+  });
+
+  it("opens the section the address asks for, and leaves a dialog's hash alone", async () => {
+    const { sectionFromHash } = await import("./profile");
+    expect(sectionFromHash("#faktura")).toBe("faktura");
+    expect(sectionFromHash("#logg-inn")).toBeNull();
+    expect(sectionFromHash("")).toBeNull();
+  });
+
+  it("says where each section stands in a few words", async () => {
+    const { sectionHint } = await import("./profile");
+    const p = profileFrom(answer)!;
+    expect(sectionHint("firma", p)).toBe("Trondheim");
+    expect(sectionHint("faktura", p)).toBe("Ikke oppgitt");
+    expect(sectionHint("kontakter", p)).toBe("1 person");
+    expect(sectionHint("varsler", p)).toBe("Gratis");
+    expect(sectionHint("tilbud", p)).toBe("Ingen venter på svar");
+    expect(sectionHint("dokumenter", p)).toBe("1 dokument");
+  });
+});

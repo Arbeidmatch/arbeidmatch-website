@@ -172,3 +172,50 @@ export function alertsWords(alerts: Alerts | null): { title: string; text: strin
 export function addressLine(street: string, postcode: string, town: string): string {
   return [street.trim(), [postcode.trim(), town.trim()].filter(Boolean).join(" ")].filter(Boolean).join(", ");
 }
+
+// ---------------------------------------------------------------------------
+// The page in sections, one on screen at a time.
+// ---------------------------------------------------------------------------
+
+/**
+ * The owner's word on the first version, 30 September 2026: everything on one
+ * sheet was mixed together; it has to be well divided so it does not confuse.
+ * So the page is these six sections, each with a name, one line that says what
+ * it is, and nothing of another section in it.
+ */
+export type SectionKey = "firma" | "faktura" | "kontakter" | "varsler" | "tilbud" | "dokumenter";
+
+export const SECTIONS: { key: SectionKey; label: string; about: string }[] = [
+  { key: "firma", label: "Firma", about: "Opplysningene vi har om firmaet deres." },
+  { key: "faktura", label: "Faktura", about: "Hvor og hvordan fakturaene fra oss sendes." },
+  { key: "kontakter", label: "Kontaktpersoner", about: "Personene vi kan kontakte hos dere." },
+  { key: "varsler", label: "Prosjektvarsler", about: "Varslene om bygg- og anleggsprosjekter, og abonnementet." },
+  { key: "tilbud", label: "Tilbud", about: "Tilbud fra oss til deg: de som venter på svar, og de som er besvart." },
+  { key: "dokumenter", label: "Signerte dokumenter", about: "Det du har signert hos oss, som PDF." },
+];
+
+/** The section an address asks for (#faktura), or null for anything else, a dialog's hash included. */
+export function sectionFromHash(hash: string): SectionKey | null {
+  const key = hash.replace(/^#/, "");
+  return SECTIONS.some((s) => s.key === key) ? (key as SectionKey) : null;
+}
+
+/** A few words under a section's name in the list, so the list already says where things stand. */
+export function sectionHint(key: SectionKey, p: Profile): string {
+  if (key === "firma") return p.company.city || "Adresse og kontakt";
+  if (key === "faktura") return p.company.invoice_ehf ? "EHF" : p.company.invoice_email ? "På e-post" : "Ikke oppgitt";
+  if (key === "kontakter") return p.contacts.length === 0 ? "Ingen registrert" : p.contacts.length === 1 ? "1 person" : `${p.contacts.length} personer`;
+  if (key === "varsler") {
+    const plan = p.alerts?.plan ?? null;
+    if (!p.alerts) return "Ikke aktivt";
+    if (!plan) return "Gratis";
+    if (plan.status === "ended") return "Avsluttet";
+    if (plan.cancelled || plan.freeOnly) return "Avsluttes";
+    return plan.status === "paid" ? "Betalt" : "Gratis";
+  }
+  if (key === "tilbud") {
+    const open = p.offers.filter((o) => o.open).length;
+    return open === 0 ? (p.offers.length ? "Ingen venter på svar" : "Ingen tilbud") : open === 1 ? "1 venter på svar" : `${open} venter på svar`;
+  }
+  return p.documents.length === 0 ? "Ingen ennå" : p.documents.length === 1 ? "1 dokument" : `${p.documents.length} dokumenter`;
+}

@@ -6,14 +6,34 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import { CARD, EYEBROW, FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
-import { addressLine, alertsWords, dayNo, orgNumberNo, profileFrom, type Company, type Contact, type Profile } from "@/lib/min-side/profile";
+import {
+  SECTIONS,
+  addressLine,
+  alertsWords,
+  dayNo,
+  orgNumberNo,
+  profileFrom,
+  sectionFromHash,
+  sectionHint,
+  type Company,
+  type Contact,
+  type Profile,
+  type SectionKey,
+} from "@/lib/min-side/profile";
 
 /**
  * "Min side": a client's own page (the owner's decision of 30 September 2026,
  * a client has a profile like a candidate, with the details we hold).
  *
- * Five cards: the firm and its invoice details, the contact persons, the
- * project alerts, the offers that wait for an answer, the signed documents.
+ * ONE THING AT A TIME. His word the same day, on the first version that showed
+ * everything as cards on one sheet: "sa nu fie amestecate toate ... sa fie bine
+ * impartite ca sa nu creeze confuzie". So the page is six sections with a list
+ * of them at the side (above, on a phone), and only the chosen one is on
+ * screen: the firm, the invoice details, the contact persons, the project
+ * alerts, the offers, the signed documents. Each says in one line what it is,
+ * and has one thing to do. The firm and its invoice details are two sections
+ * with two forms, because they are two questions.
+ *
  * The firm's name and number are the register's and are not changed here; a
  * person changes their own entry among the contacts and asks us about a
  * colleague's. What is saved is saved with us at once.
@@ -52,14 +72,43 @@ function Field({ id, label, children, error }: { id: string; label: string; chil
   );
 }
 
+/** One section on screen: its name, the line that says what it is, its one action, and what it holds. */
+function Panel({ section, action, children }: { section: SectionKey; action?: ReactNode; children: ReactNode }) {
+  const meta = SECTIONS.find((s) => s.key === section)!;
+  return (
+    <section id={`ms-panel-${section}`} role="tabpanel" aria-labelledby={`ms-tab-${section}`} className={`${CARD} flex min-w-0 flex-col gap-5 p-6 sm:p-8`}>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold text-white">{meta.label}</h2>
+          <p className={`mt-1 text-sm ${MUTED}`}>{meta.about}</p>
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
 type Saved = { ok: true } | { ok: false; message: string; field: string | null };
+type Details = Record<string, string | boolean>;
+
+/** Everything about the firm that can be saved, as it stands now: a form sends its own part over this. */
+function detailsOf(c: Company): Details {
+  const all: Details = { ...c };
+  // The name and the number are the register's: they are shown and never sent.
+  delete all.name;
+  delete all.org_number;
+  return all;
+}
 
 export default function MinSideClient({ token }: { token: string }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
-  const [editCompany, setEditCompany] = useState(false);
+  const [section, setSection] = useState<SectionKey>("firma");
+  const [editFirm, setEditFirm] = useState(false);
+  const [editInvoice, setEditInvoice] = useState(false);
   const [editContact, setEditContact] = useState<Contact | "new" | null>(null);
   const [askRemove, setAskRemove] = useState<Contact | null>(null);
 
@@ -89,6 +138,18 @@ export default function MinSideClient({ token }: { token: string }) {
     void load();
   }, [load]);
 
+  // The address remembers the section, so a reload or a link from us opens the same one.
+  useEffect(() => {
+    const fromHash = sectionFromHash(window.location.hash);
+    if (fromHash) setSection(fromHash);
+  }, []);
+  const choose = (key: SectionKey) => {
+    setSection(key);
+    setNotice(null);
+    const { pathname, search } = window.location;
+    window.history.replaceState(window.history.state, "", `${pathname}${search}#${key}`);
+  };
+
   const send = async (body: Record<string, unknown>): Promise<Saved> => {
     try {
       const res = await fetch(`/api/min-side/${encodeURIComponent(token)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -105,6 +166,11 @@ export default function MinSideClient({ token }: { token: string }) {
   const words = alertsWords(profile?.alerts ?? null);
   const plan = profile?.alerts?.plan ?? null;
   const invoiceAddress = c ? (c.billing_same_as_address || !c.billing_address ? "Samme som firmaets adresse" : addressLine(c.billing_address, c.billing_postal_code, c.billing_city)) : "";
+  const editButton = (onClick: () => void) => (
+    <button type="button" className={SECONDARY} aria-haspopup="dialog" onClick={onClick}>
+      Endre
+    </button>
+  );
 
   return (
     <div className="bg-[#0D1B2A] text-white">
@@ -130,164 +196,206 @@ export default function MinSideClient({ token }: { token: string }) {
             </p>
           </div>
         ) : null}
-        {notice ? (
-          <div className={`${CARD} border-gold/40 p-4 text-sm`} role="status">
-            {notice}
-          </div>
-        ) : null}
 
         {profile && c ? (
-          <div className="grid gap-6 lg:grid-cols-2">
-            <section className={`${CARD} flex flex-col gap-5 p-6`} aria-labelledby="ms-firma">
-              <div className="flex items-start justify-between gap-4">
-                <h2 id="ms-firma" className="text-xl font-semibold text-white">
-                  Firma
-                </h2>
-                <button type="button" className={SECONDARY} aria-haspopup="dialog" onClick={() => setEditCompany(true)}>
-                  Endre
-                </button>
-              </div>
-              <dl className="flex flex-col gap-3">
-                <Row label="Navn">{c.name}</Row>
-                <Row label="Org.nr.">
-                  <span className="tabular-nums">{orgNumberNo(c.org_number) || "Ikke registrert"}</span>
-                </Row>
-                <Row label="Adresse">{addressLine(c.address, c.postal_code, c.city) || "Ikke oppgitt"}</Row>
-                <Row label="Telefon">{c.phone || "Ikke oppgitt"}</Row>
-                <Row label="E-post">{c.email || "Ikke oppgitt"}</Row>
-              </dl>
-              <h3 className="border-t border-white/10 pt-4 text-base font-semibold text-white">Faktura</h3>
-              <dl className="flex flex-col gap-3">
-                <Row label="Faktura-e-post">{c.invoice_email || "Ikke oppgitt"}</Row>
-                <Row label="EHF">{c.invoice_ehf ? "Ja, vi tar imot EHF" : "Nei"}</Row>
-                <Row label="Fakturaadresse">{invoiceAddress}</Row>
-                <Row label="Deres referanse">{c.invoice_reference || "Ikke oppgitt"}</Row>
-              </dl>
-              <p className={`text-sm ${MUTED}`}>Navn og org.nr. følger Brønnøysundregistrene og endres ikke her.</p>
-            </section>
-
-            <section className={`${CARD} flex flex-col gap-5 p-6`} aria-labelledby="ms-kontakt">
-              <div className="flex items-start justify-between gap-4">
-                <h2 id="ms-kontakt" className="text-xl font-semibold text-white">
-                  Kontaktpersoner
-                </h2>
-                <button type="button" className={SECONDARY} aria-haspopup="dialog" onClick={() => setEditContact("new")}>
-                  Legg til
-                </button>
-              </div>
-              {profile.contacts.length === 0 ? <p className={`text-sm ${MUTED}`}>Vi har ingen kontaktpersoner registrert.</p> : null}
-              <ul className="flex flex-col divide-y divide-white/10">
-                {profile.contacts.map((k) => (
-                  <li key={k.id} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="text-[15px] font-semibold text-white">
-                        {k.full_name}
-                        {k.mine ? <span className="ml-2 rounded-full bg-gold/15 px-2 py-0.5 text-xs font-semibold text-gold">Deg</span> : null}
-                      </p>
-                      <p className={`break-words text-sm ${MUTED}`}>{[k.role, k.email, k.phone].filter(Boolean).join(" · ")}</p>
-                    </div>
-                    {k.mine ? (
-                      <button type="button" className={LINK} aria-haspopup="dialog" onClick={() => setEditContact(k)}>
-                        Endre
+          <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
+            <nav aria-label="Deler av Min side">
+              <ul role="tablist" aria-orientation="vertical" className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                {SECTIONS.map((s) => {
+                  const on = s.key === section;
+                  return (
+                    <li key={s.key} role="presentation">
+                      <button
+                        type="button"
+                        role="tab"
+                        id={`ms-tab-${s.key}`}
+                        aria-selected={on}
+                        aria-controls={`ms-panel-${s.key}`}
+                        onClick={() => choose(s.key)}
+                        className={`flex min-h-[52px] w-full flex-col items-start justify-center rounded-lg border px-4 py-2 text-left transition-colors ${
+                          on ? "border-gold bg-gold/10 text-white" : "border-white/10 text-white/80 hover:border-gold/50 hover:text-white"
+                        }`}
+                      >
+                        <span className={`text-[15px] font-semibold ${on ? "text-gold" : ""}`}>{s.label}</span>
+                        <span className="text-xs text-white/65">{sectionHint(s.key, profile)}</span>
                       </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+
+            <div className="flex min-w-0 flex-col gap-4">
+              {notice ? (
+                <div className={`${CARD} border-gold/40 p-4 text-sm`} role="status">
+                  {notice}
+                </div>
+              ) : null}
+
+              {section === "firma" ? (
+                <Panel section="firma" action={editButton(() => setEditFirm(true))}>
+                  <dl className="flex flex-col gap-3">
+                    <Row label="Navn">{c.name}</Row>
+                    <Row label="Org.nr.">
+                      <span className="tabular-nums">{orgNumberNo(c.org_number) || "Ikke registrert"}</span>
+                    </Row>
+                    <Row label="Adresse">{addressLine(c.address, c.postal_code, c.city) || "Ikke oppgitt"}</Row>
+                    <Row label="Telefon">{c.phone || "Ikke oppgitt"}</Row>
+                    <Row label="E-post">{c.email || "Ikke oppgitt"}</Row>
+                  </dl>
+                  <p className={`text-sm ${MUTED}`}>Navn og org.nr. følger Brønnøysundregistrene og endres ikke her.</p>
+                </Panel>
+              ) : null}
+
+              {section === "faktura" ? (
+                <Panel section="faktura" action={editButton(() => setEditInvoice(true))}>
+                  <dl className="flex flex-col gap-3">
+                    <Row label="Faktura-e-post">{c.invoice_email || "Ikke oppgitt"}</Row>
+                    <Row label="EHF">{c.invoice_ehf ? "Ja, vi tar imot EHF" : "Nei"}</Row>
+                    <Row label="Fakturaadresse">{invoiceAddress}</Row>
+                    <Row label="Deres referanse">{c.invoice_reference || "Ikke oppgitt"}</Row>
+                  </dl>
+                </Panel>
+              ) : null}
+
+              {section === "kontakter" ? (
+                <Panel
+                  section="kontakter"
+                  action={
+                    <button type="button" className={SECONDARY} aria-haspopup="dialog" onClick={() => setEditContact("new")}>
+                      Legg til
+                    </button>
+                  }
+                >
+                  {profile.contacts.length === 0 ? <p className={`text-sm ${MUTED}`}>Vi har ingen kontaktpersoner registrert.</p> : null}
+                  <ul className="flex flex-col divide-y divide-white/10">
+                    {profile.contacts.map((k) => (
+                      <li key={k.id} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="text-[15px] font-semibold text-white">
+                            {k.full_name}
+                            {k.mine ? <span className="ml-2 rounded-full bg-gold/15 px-2 py-0.5 text-xs font-semibold text-gold">Deg</span> : null}
+                          </p>
+                          <p className={`break-words text-sm ${MUTED}`}>{[k.role, k.email, k.phone].filter(Boolean).join(" · ")}</p>
+                        </div>
+                        {k.mine ? (
+                          <button type="button" className={LINK} aria-haspopup="dialog" onClick={() => setEditContact(k)}>
+                            Endre
+                          </button>
+                        ) : (
+                          <button type="button" className={LINK} aria-haspopup="dialog" onClick={() => setAskRemove(k)}>
+                            Be om fjerning
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </Panel>
+              ) : null}
+
+              {section === "varsler" ? (
+                <Panel section="varsler">
+                  <div>
+                    <p className="text-[15px] font-semibold text-white">{words.title}</p>
+                    <p className={`mt-1 text-sm leading-relaxed ${MUTED}`}>{words.text}</p>
+                  </div>
+                  <p className="flex flex-wrap gap-3">
+                    {profile.alerts?.projects_url ? (
+                      <a href={profile.alerts.projects_url} className={PRIMARY}>
+                        Se prosjektene
+                      </a>
                     ) : (
-                      <button type="button" className={LINK} aria-haspopup="dialog" onClick={() => setAskRemove(k)}>
-                        Be om fjerning
-                      </button>
+                      <Link href="/prosjekter" className={SECONDARY}>
+                        Se prosjektkartet
+                      </Link>
                     )}
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <section className={`${CARD} flex flex-col gap-4 p-6`} aria-labelledby="ms-varsler">
-              <h2 id="ms-varsler" className="text-xl font-semibold text-white">
-                Prosjektvarsler
-              </h2>
-              <div>
-                <p className="text-[15px] font-semibold text-white">{words.title}</p>
-                <p className={`mt-1 text-sm leading-relaxed ${MUTED}`}>{words.text}</p>
-              </div>
-              <p className="flex flex-wrap gap-3">
-                {profile.alerts?.projects_url ? (
-                  <a href={profile.alerts.projects_url} className={PRIMARY}>
-                    Se prosjektene
-                  </a>
-                ) : (
-                  <Link href="/prosjekter" className={SECONDARY}>
-                    Se prosjektkartet
-                  </Link>
-                )}
-                {plan?.offer_url ? (
-                  <a href={plan.offer_url} className={SECONDARY}>
-                    {plan.status === "ended" || plan.freeOnly ? "Se avtalen" : plan.cancelled ? "Angre oppsigelsen" : "Se eller si opp abonnementet"}
-                  </a>
-                ) : null}
-              </p>
-            </section>
-
-            <section className={`${CARD} flex flex-col gap-4 p-6`} aria-labelledby="ms-tilbud">
-              <h2 id="ms-tilbud" className="text-xl font-semibold text-white">
-                Tilbud
-              </h2>
-              {profile.offers.length === 0 ? <p className={`text-sm ${MUTED}`}>Dere har ingen tilbud fra oss.</p> : null}
-              <ul className="flex flex-col divide-y divide-white/10">
-                {profile.offers.map((o) => (
-                  <li key={o.number} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                    <div className="min-w-0">
-                      <p className="text-[15px] font-semibold text-white">
-                        {o.title} <span className="tabular-nums">{o.number}</span>
-                      </p>
-                      <p className={`text-sm ${MUTED}`}>
-                        {o.state}
-                        {o.sent_at ? ` · sendt ${dayNo(o.sent_at)}` : ""}
-                      </p>
-                    </div>
-                    {o.url ? (
-                      <a href={o.url} className={LINK}>
-                        {o.open ? "Åpne og svar" : "Åpne"}
+                    {plan?.offer_url ? (
+                      <a href={plan.offer_url} className={SECONDARY}>
+                        {plan.status === "ended" || plan.freeOnly ? "Se avtalen" : plan.cancelled ? "Angre oppsigelsen" : "Se eller si opp abonnementet"}
                       </a>
                     ) : null}
-                  </li>
-                ))}
-              </ul>
-            </section>
+                  </p>
+                </Panel>
+              ) : null}
 
-            <section className={`${CARD} flex flex-col gap-4 p-6 lg:col-span-2`} aria-labelledby="ms-dok">
-              <h2 id="ms-dok" className="text-xl font-semibold text-white">
-                Signerte dokumenter
-              </h2>
-              {profile.documents.length === 0 ? <p className={`text-sm ${MUTED}`}>Dere har ingen signerte dokumenter hos oss ennå.</p> : null}
-              <ul className="flex flex-col divide-y divide-white/10">
-                {profile.documents.map((d, i) => (
-                  <li key={`${d.title}-${i}`} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                    <div className="min-w-0">
-                      <p className="break-words text-[15px] font-semibold text-white">{d.title}</p>
-                      <p className={`text-sm ${MUTED}`}>{d.signed_at ? `Signert ${dayNo(d.signed_at)}` : "Signert"}</p>
-                    </div>
-                    {d.pdf_url ? (
-                      <a href={d.pdf_url} className={LINK}>
-                        Last ned PDF
-                      </a>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </section>
+              {section === "tilbud" ? (
+                <Panel section="tilbud">
+                  {profile.offers.length === 0 ? <p className={`text-sm ${MUTED}`}>Dere har ingen tilbud fra oss.</p> : null}
+                  <ul className="flex flex-col divide-y divide-white/10">
+                    {profile.offers.map((o) => (
+                      <li key={o.number} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                        <div className="min-w-0">
+                          <p className="text-[15px] font-semibold text-white">
+                            {o.title} <span className="tabular-nums">{o.number}</span>
+                          </p>
+                          <p className={`text-sm ${o.open ? "font-semibold text-gold" : MUTED}`}>
+                            {o.state}
+                            {o.sent_at ? <span className={`font-normal ${MUTED}`}> · sendt {dayNo(o.sent_at)}</span> : null}
+                          </p>
+                        </div>
+                        {o.url ? (
+                          <a href={o.url} className={LINK}>
+                            {o.open ? "Åpne og svar" : "Åpne"}
+                          </a>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </Panel>
+              ) : null}
+
+              {section === "dokumenter" ? (
+                <Panel section="dokumenter">
+                  {profile.documents.length === 0 ? <p className={`text-sm ${MUTED}`}>Dere har ingen signerte dokumenter hos oss ennå.</p> : null}
+                  <ul className="flex flex-col divide-y divide-white/10">
+                    {profile.documents.map((d, i) => (
+                      <li key={`${d.title}-${i}`} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                        <div className="min-w-0">
+                          <p className="break-words text-[15px] font-semibold text-white">{d.title}</p>
+                          <p className={`text-sm ${MUTED}`}>{d.signed_at ? `Signert ${dayNo(d.signed_at)}` : "Signert"}</p>
+                        </div>
+                        {d.pdf_url ? (
+                          <a href={d.pdf_url} className={LINK}>
+                            Last ned PDF
+                          </a>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </Panel>
+              ) : null}
+            </div>
           </div>
         ) : null}
       </div>
 
-      {editCompany && c ? (
-        <PortalModal title="Endre firmaets opplysninger" onClose={() => setEditCompany(false)}>
-          <CompanyForm
+      {editFirm && c ? (
+        <PortalModal title="Endre firmaets opplysninger" onClose={() => setEditFirm(false)}>
+          <FirmForm
             company={c}
-            onCancel={() => setEditCompany(false)}
-            onSave={async (details) => {
-              const r = await send({ action: "company", details });
+            onCancel={() => setEditFirm(false)}
+            onSave={async (part) => {
+              const r = await send({ action: "company", details: { ...detailsOf(c), ...part } });
               if (r.ok) {
-                setEditCompany(false);
-                setNotice("Opplysningene er lagret.");
+                setEditFirm(false);
+                setNotice("Firmaets opplysninger er lagret.");
+              }
+              return r;
+            }}
+          />
+        </PortalModal>
+      ) : null}
+
+      {editInvoice && c ? (
+        <PortalModal title="Endre fakturaopplysninger" onClose={() => setEditInvoice(false)}>
+          <InvoiceForm
+            company={c}
+            onCancel={() => setEditInvoice(false)}
+            onSave={async (part) => {
+              const r = await send({ action: "company", details: { ...detailsOf(c), ...part } });
+              if (r.ok) {
+                setEditInvoice(false);
+                setNotice("Fakturaopplysningene er lagret.");
               }
               return r;
             }}
@@ -345,22 +453,28 @@ function Buttons({ busy, label, onCancel }: { busy: boolean; label: string; onCa
   );
 }
 
-function CompanyForm({ company, onSave, onCancel }: { company: Company; onSave: (details: Record<string, string | boolean>) => Promise<Saved>; onCancel: () => void }) {
-  const [v, setV] = useState({ ...company });
+type Failed = { message: string; field: string | null } | null;
+
+function FormError({ failed }: { failed: Failed }) {
+  return failed && !failed.field ? (
+    <p role="alert" className="text-sm text-[#FF9B9B]">
+      {failed.message}
+    </p>
+  ) : null;
+}
+
+/** The firm itself: where it is and how it is reached. */
+function FirmForm({ company, onSave, onCancel }: { company: Company; onSave: (part: Details) => Promise<Saved>; onCancel: () => void }) {
+  const [v, setV] = useState({ address: company.address, postal_code: company.postal_code, city: company.city, phone: company.phone, email: company.email });
   const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState<{ message: string; field: string | null } | null>(null);
-  const set = (k: keyof Company, value: string | boolean) => setV((prev) => ({ ...prev, [k]: value }));
+  const [failed, setFailed] = useState<Failed>(null);
   const errorFor = (field: string) => (failed?.field === field ? failed.message : null);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setFailed(null);
-    // The name and the number are the register's: they are shown and never sent.
-    const details: Record<string, string | boolean> = { ...v };
-    delete details.name;
-    delete details.org_number;
-    const r = await onSave(details);
+    const r = await onSave(v);
     if (!r.ok) setFailed({ message: r.message, field: r.field });
     setBusy(false);
   };
@@ -368,63 +482,88 @@ function CompanyForm({ company, onSave, onCancel }: { company: Company; onSave: 
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <Field id="ms-address" label="Adresse">
-        <input id="ms-address" data-autofocus className={FIELD} value={v.address} maxLength={200} autoComplete="street-address" onChange={(e) => set("address", e.target.value)} />
+        <input id="ms-address" data-autofocus className={FIELD} value={v.address} maxLength={200} autoComplete="street-address" onChange={(e) => setV({ ...v, address: e.target.value })} />
       </Field>
       <div className="grid gap-4 sm:grid-cols-[140px_minmax(0,1fr)]">
         <Field id="ms-postal" label="Postnummer" error={errorFor("postal_code")}>
-          <input id="ms-postal" className={FIELD} value={v.postal_code} maxLength={12} inputMode="numeric" autoComplete="postal-code" onChange={(e) => set("postal_code", e.target.value)} />
+          <input id="ms-postal" className={FIELD} value={v.postal_code} maxLength={12} inputMode="numeric" autoComplete="postal-code" onChange={(e) => setV({ ...v, postal_code: e.target.value })} />
         </Field>
         <Field id="ms-city" label="Sted">
-          <input id="ms-city" className={FIELD} value={v.city} maxLength={80} autoComplete="address-level2" onChange={(e) => set("city", e.target.value)} />
+          <input id="ms-city" className={FIELD} value={v.city} maxLength={80} autoComplete="address-level2" onChange={(e) => setV({ ...v, city: e.target.value })} />
         </Field>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="ms-phone" label="Telefon" error={errorFor("phone")}>
-          <input id="ms-phone" className={FIELD} type="tel" value={v.phone} maxLength={24} autoComplete="tel" onChange={(e) => set("phone", e.target.value)} />
+          <input id="ms-phone" className={FIELD} type="tel" value={v.phone} maxLength={24} autoComplete="tel" onChange={(e) => setV({ ...v, phone: e.target.value })} />
         </Field>
         <Field id="ms-email" label="Firmaets e-post" error={errorFor("email")}>
-          <input id="ms-email" className={FIELD} type="email" value={v.email} maxLength={254} onChange={(e) => set("email", e.target.value)} />
+          <input id="ms-email" className={FIELD} type="email" value={v.email} maxLength={254} onChange={(e) => setV({ ...v, email: e.target.value })} />
         </Field>
       </div>
+      <FormError failed={failed} />
+      <Buttons busy={busy} label="Lagre" onCancel={onCancel} />
+    </form>
+  );
+}
 
-      <h3 className="border-t border-white/10 pt-4 text-base font-semibold text-white">Faktura</h3>
+/** Where and how the invoices go. */
+function InvoiceForm({ company, onSave, onCancel }: { company: Company; onSave: (part: Details) => Promise<Saved>; onCancel: () => void }) {
+  const [v, setV] = useState({
+    invoice_email: company.invoice_email,
+    invoice_reference: company.invoice_reference,
+    invoice_ehf: company.invoice_ehf,
+    billing_same_as_address: company.billing_same_as_address,
+    billing_address: company.billing_address,
+    billing_postal_code: company.billing_postal_code,
+    billing_city: company.billing_city,
+  });
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState<Failed>(null);
+  const errorFor = (field: string) => (failed?.field === field ? failed.message : null);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setFailed(null);
+    const r = await onSave(v);
+    if (!r.ok) setFailed({ message: r.message, field: r.field });
+    setBusy(false);
+  };
+
+  return (
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="ms-inv-email" label="Faktura-e-post" error={errorFor("invoice_email")}>
-          <input id="ms-inv-email" className={FIELD} type="email" value={v.invoice_email} maxLength={254} onChange={(e) => set("invoice_email", e.target.value)} />
+          <input id="ms-inv-email" data-autofocus className={FIELD} type="email" value={v.invoice_email} maxLength={254} onChange={(e) => setV({ ...v, invoice_email: e.target.value })} />
         </Field>
         <Field id="ms-ref" label="Deres referanse">
-          <input id="ms-ref" className={FIELD} value={v.invoice_reference} maxLength={120} onChange={(e) => set("invoice_reference", e.target.value)} />
+          <input id="ms-ref" className={FIELD} value={v.invoice_reference} maxLength={120} onChange={(e) => setV({ ...v, invoice_reference: e.target.value })} />
         </Field>
       </div>
       <label htmlFor="ms-ehf" className="flex min-h-[44px] items-center gap-3 text-[15px] text-white">
-        <input id="ms-ehf" type="checkbox" className="h-5 w-5 accent-[#C9A84C]" checked={v.invoice_ehf} onChange={(e) => set("invoice_ehf", e.target.checked)} />
+        <input id="ms-ehf" type="checkbox" className="h-5 w-5 accent-[#C9A84C]" checked={v.invoice_ehf} onChange={(e) => setV({ ...v, invoice_ehf: e.target.checked })} />
         Vi tar imot EHF
       </label>
       <label htmlFor="ms-same" className="flex min-h-[44px] items-center gap-3 text-[15px] text-white">
-        <input id="ms-same" type="checkbox" className="h-5 w-5 accent-[#C9A84C]" checked={v.billing_same_as_address} onChange={(e) => set("billing_same_as_address", e.target.checked)} />
+        <input id="ms-same" type="checkbox" className="h-5 w-5 accent-[#C9A84C]" checked={v.billing_same_as_address} onChange={(e) => setV({ ...v, billing_same_as_address: e.target.checked })} />
         Fakturaadressen er den samme som firmaets adresse
       </label>
       {!v.billing_same_as_address ? (
         <>
           <Field id="ms-b-address" label="Fakturaadresse">
-            <input id="ms-b-address" className={FIELD} value={v.billing_address} maxLength={200} onChange={(e) => set("billing_address", e.target.value)} />
+            <input id="ms-b-address" className={FIELD} value={v.billing_address} maxLength={200} onChange={(e) => setV({ ...v, billing_address: e.target.value })} />
           </Field>
           <div className="grid gap-4 sm:grid-cols-[140px_minmax(0,1fr)]">
             <Field id="ms-b-postal" label="Postnummer" error={errorFor("billing_postal_code")}>
-              <input id="ms-b-postal" className={FIELD} value={v.billing_postal_code} maxLength={12} inputMode="numeric" onChange={(e) => set("billing_postal_code", e.target.value)} />
+              <input id="ms-b-postal" className={FIELD} value={v.billing_postal_code} maxLength={12} inputMode="numeric" onChange={(e) => setV({ ...v, billing_postal_code: e.target.value })} />
             </Field>
             <Field id="ms-b-city" label="Sted">
-              <input id="ms-b-city" className={FIELD} value={v.billing_city} maxLength={80} onChange={(e) => set("billing_city", e.target.value)} />
+              <input id="ms-b-city" className={FIELD} value={v.billing_city} maxLength={80} onChange={(e) => setV({ ...v, billing_city: e.target.value })} />
             </Field>
           </div>
         </>
       ) : null}
-
-      {failed && !failed.field ? (
-        <p role="alert" className="text-sm text-[#FF9B9B]">
-          {failed.message}
-        </p>
-      ) : null}
+      <FormError failed={failed} />
       <Buttons busy={busy} label="Lagre" onCancel={onCancel} />
     </form>
   );
@@ -433,7 +572,7 @@ function CompanyForm({ company, onSave, onCancel }: { company: Company; onSave: 
 function ContactForm({ contact, onSave, onCancel }: { contact: Contact | null; onSave: (details: Record<string, string>) => Promise<Saved>; onCancel: () => void }) {
   const [v, setV] = useState({ full_name: contact?.full_name ?? "", role: contact?.role ?? "", phone: contact?.phone ?? "", email: "" });
   const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState<{ message: string; field: string | null } | null>(null);
+  const [failed, setFailed] = useState<Failed>(null);
   const errorFor = (field: string) => (failed?.field === field ? failed.message : null);
 
   const submit = async (e: FormEvent) => {
@@ -463,11 +602,7 @@ function ContactForm({ contact, onSave, onCancel }: { contact: Contact | null; o
       <Field id="ms-k-phone" label="Telefon" error={errorFor("phone")}>
         <input id="ms-k-phone" className={FIELD} type="tel" value={v.phone} maxLength={24} autoComplete="tel" onChange={(e) => setV({ ...v, phone: e.target.value })} />
       </Field>
-      {failed && !failed.field ? (
-        <p role="alert" className="text-sm text-[#FF9B9B]">
-          {failed.message}
-        </p>
-      ) : null}
+      <FormError failed={failed} />
       <Buttons busy={busy} label={contact ? "Lagre" : "Legg til"} onCancel={onCancel} />
     </form>
   );
