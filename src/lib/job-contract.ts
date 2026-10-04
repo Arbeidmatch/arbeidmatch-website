@@ -3,7 +3,11 @@ export type HiringModel = "staffing" | "recruitment" | null;
 export function contractLabel(value: unknown): string | null {
   const raw = typeof value === "string" ? value.trim().toLowerCase() : "";
   if (!raw) return null;
-  if (raw === "permanent" || raw.startsWith("permanent ") || raw === "fast" || raw.startsWith("fast ")) return "Fast";
+  // REPAIR R46, 4 October 2026. This answered "Fast", a Norwegian word, in the
+  // English facts panel and in "The terms", on a page whose every other word is
+  // English. The Norwegian wording belongs in the Norsk block, which is built
+  // from the job's fields in the ATS.
+  if (raw === "permanent" || raw.startsWith("permanent ") || raw === "fast" || raw.startsWith("fast ")) return "Permanent";
   if (raw === "temporary" || raw.startsWith("temporary ") || raw === "contract" || raw.startsWith("contract ") || raw === "midlertidig") return "Temporary";
   if (raw === "substitute" || raw.startsWith("substitute ") || raw === "vikariat") return "Vikariat";
   if (raw === "seasonal" || raw.startsWith("seasonal ") || raw === "sesong" || raw === "sesongarbeid") return "Seasonal";

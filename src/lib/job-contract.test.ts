@@ -3,8 +3,11 @@ import { applyNextStep, contractLabel, hiringModelLabel } from "./job-contract";
 
 describe("job contract copy", () => {
   it.each([
-    ["permanent", "Fast"],
-    ["permanent · full-time", "Fast"],
+    // REPAIR R46, 4 October 2026: this answered the Norwegian word "Fast" in
+    // the English facts panel. The Norwegian wording belongs in the Norsk block.
+    ["permanent", "Permanent"],
+    ["permanent · full-time", "Permanent"],
+    ["fast", "Permanent"],
     ["temporary", "Temporary"],
     ["contract · full-time", "Temporary"],
     ["substitute", "Vikariat"],

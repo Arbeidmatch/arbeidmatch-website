@@ -20,6 +20,9 @@
 
 export type AdvertLanguages = { no: string; en: string };
 
+/** What each half is called, on the page and in the marker it is found by. */
+export const LANGUAGE_LABELS = { no: "Norsk versjon", en: "English version" } as const;
+
 /**
  * A block element whose entire text is the heading word, in any tag the
  * sanitiser allows. The word has to stand alone: an advert that opens
@@ -42,8 +45,11 @@ export function splitJobAdvertLanguages(html: string | null | undefined): Advert
   const text = String(html ?? "");
   if (!text.trim()) return null;
 
-  const norsk = markerPattern("Norsk").exec(text);
-  const english = markerPattern("English").exec(text);
+  // The exact words the ATS writes, and the words the reader sees (R46
+  // addendum, 4 October 2026): "sa fie delimitare bine intre limbi si
+  // specificat ca English version".
+  const norsk = markerPattern(LANGUAGE_LABELS.no).exec(text);
+  const english = markerPattern(LANGUAGE_LABELS.en).exec(text);
   if (!norsk || !english) return null;
   // Norwegian first, as he asked. Anything else is not the shape we wrote.
   if (norsk.index > english.index) return null;

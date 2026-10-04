@@ -14,7 +14,7 @@ import {
   type PublicJobDetail,
 } from "@/lib/jobs-fetch";
 import { applyNextStep, contractLabel, hiringModelLabel, type HiringModel } from "@/lib/job-contract";
-import { splitJobAdvertLanguages } from "@/lib/job-advert-languages";
+import { LANGUAGE_LABELS, splitJobAdvertLanguages } from "@/lib/job-advert-languages";
 import { roleWithoutCity } from "@/lib/job-title";
 
 /**
@@ -374,21 +374,40 @@ export default async function StillingPage({ params }: Props) {
                 wrong. What it is not is styled: that is `.am-prose`.
               */}
               {halves ? (
-                <div className="mt-10 max-w-[68ch] space-y-8">
+                <div className="mt-10 max-w-[68ch] space-y-10">
+                  {/* HIS WORDS, 4 October 2026: "sa fie delimitare bine intre
+                      limbi si specificat ca English version". Two links, never
+                      a toggle: both halves stay on the page, and these only
+                      carry the reader to one of them. */}
+                  <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary">
+                    {([
+                      ["no", LANGUAGE_LABELS.no],
+                      ["en", LANGUAGE_LABELS.en],
+                    ] as const).map(([code, label], index) => (
+                      <span key={code} className="inline-flex items-center gap-3">
+                        {index > 0 ? <span aria-hidden>&middot;</span> : null}
+                        <a
+                          href={`#advert-${code}`}
+                          className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4"
+                        >
+                          {label}
+                        </a>
+                      </span>
+                    ))}
+                  </p>
                   {([
-                    ["Norsk", halves.no],
-                    ["English", halves.en],
-                  ] as const).map(([label, body], index) => (
+                    ["no", LANGUAGE_LABELS.no, halves.no],
+                    ["en", LANGUAGE_LABELS.en, halves.en],
+                  ] as const).map(([code, label, body], index) => (
                     <section
-                      key={label}
-                      lang={label === "Norsk" ? "nb" : "en"}
-                      className={
-                        index === 0
-                          ? "rounded-2xl border border-border bg-surface p-6 sm:p-7"
-                          : "rounded-2xl border border-border p-6 sm:p-7"
-                      }
+                      key={code}
+                      id={`advert-${code}`}
+                      lang={code === "no" ? "nb" : "en"}
+                      className={`scroll-mt-24 rounded-2xl border border-border p-6 sm:p-7 ${index === 0 ? "bg-surface" : ""}`}
                     >
-                      <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">{label}</h2>
+                      <span className="inline-flex items-center rounded-full border border-border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
+                        {label}
+                      </span>
                       <div className="am-prose mt-4" dangerouslySetInnerHTML={{ __html: body }} />
                     </section>
                   ))}
