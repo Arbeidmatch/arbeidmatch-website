@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contractLabel, hiringModelLabel } from "./job-contract";
+import { applyNextStep, contractLabel, hiringModelLabel } from "./job-contract";
 
 describe("job contract copy", () => {
   it.each([
@@ -14,5 +14,27 @@ describe("job contract copy", () => {
   it("keeps contract type separate from who employs", () => {
     expect(hiringModelLabel("staffing")).toBe("ArbeidMatch employs you directly (Bemanning)");
     expect(hiringModelLabel("recruitment")).toBe("The client employs you; ArbeidMatch recruits (Recruitment)");
+  });
+});
+
+describe("what happens after Apply", () => {
+  it("tells a bemanning applicant that ArbeidMatch is the employer", () => {
+    const said = applyNextStep("staffing");
+    expect(said).toContain("ArbeidMatch is your employer");
+    // The recruitment promise must not reach a bemanning advert: no client picks here.
+    expect(said).not.toContain("If selected");
+  });
+
+  it("keeps the client's decision in the sentence for a recruitment advert", () => {
+    expect(applyNextStep("recruitment")).toBe(
+      "We review your application with the client. If selected, we contact you to arrange an interview.",
+    );
+  });
+
+  it("promises neither when the ATS has not said which it is", () => {
+    const said = applyNextStep(null);
+    expect(said).not.toContain("client");
+    expect(said).not.toContain("employer");
+    expect(said).toContain("next step");
   });
 });

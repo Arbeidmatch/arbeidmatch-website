@@ -15,3 +15,28 @@ export function hiringModelLabel(model: HiringModel): string | null {
   if (model === "recruitment") return "The client employs you; ArbeidMatch recruits (Recruitment)";
   return null;
 }
+
+/**
+ * What happens after the person presses Apply, which is not the same sentence
+ * for the two arrangements.
+ *
+ * REPAIR R21, 4 October 2026. The advert told every reader "we review your
+ * application with the client, and if selected we contact you", which is the
+ * recruitment process. Under bemanning ArbeidMatch is the employer: we
+ * interview, we take the person on, and the client signs a timesheet. Telling a
+ * bemanning applicant that a client picks them describes a decision nobody
+ * makes, and the two sentences also set different expectations about who they
+ * will be talking to.
+ *
+ * When the ATS has not resolved the model, the sentence says only what is true
+ * either way rather than guessing one of them.
+ */
+export function applyNextStep(model: HiringModel): string {
+  if (model === "staffing") {
+    return "We review your application and contact you for an interview. If we take you on, ArbeidMatch is your employer and places you with the client.";
+  }
+  if (model === "recruitment") {
+    return "We review your application with the client. If selected, we contact you to arrange an interview.";
+  }
+  return "We review your application and contact you about the next step.";
+}

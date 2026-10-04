@@ -12,7 +12,7 @@ import {
   rateLine,
   type PublicJobDetail,
 } from "@/lib/jobs-fetch";
-import { contractLabel, hiringModelLabel, type HiringModel } from "@/lib/job-contract";
+import { applyNextStep, contractLabel, hiringModelLabel, type HiringModel } from "@/lib/job-contract";
 
 /**
  * The advert itself, on our own site.
@@ -121,7 +121,10 @@ export default async function StillingPage({ params }: Props) {
   if (!job) notFound();
 
   const contract = contractLabel(job.employment_type);
-  const employer = hiringModelLabel(hiringModel(job));
+  const model = hiringModel(job);
+  const employer = hiringModelLabel(model);
+  // Who decides next depends on who the employer is (applyNextStep).
+  const nextStep = applyNextStep(model);
   const company = job.public_show_company ? companyName(job) : null;
   const rate = rateLine(job);
   const where = (job.location ?? "").trim() || (job.country ?? "").trim() || "Norway";
@@ -370,9 +373,7 @@ export default async function StillingPage({ params }: Props) {
                   registerHref={registerHref}
                   className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 font-semibold text-navy transition hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                 />
-                <p className="text-sm text-text-secondary">
-                  We review your application with the client. If selected, we contact you to arrange an interview.
-                </p>
+                <p className="text-sm text-text-secondary">{nextStep}</p>
               </div>
             </div>
           </div>
