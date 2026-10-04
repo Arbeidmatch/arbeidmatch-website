@@ -15,6 +15,13 @@ import { useEffect, useId, useRef, useState } from "react";
  * the person's data for recruitment. Reading the privacy notice is a separate
  * acknowledgement, never an acceptance, and an applicant is not asked to accept
  * our Terms: a job applicant is not a party to them.
+ *
+ * HIS WORDS, 4 October 2026: "aici in loc de 2 casute sa fie numai una care sa
+ * le includa pe amandoua". One box now, with both facts in its sentence. They
+ * stay two facts behind it - the consent that travels to the ATS and the
+ * acknowledgement of the notice - and the exact sentence he ticked is what is
+ * recorded, so nothing downstream loses a flag and the record still says what
+ * the person actually agreed to.
  */
 export function ApplyGateButton(props: {
   className: string;
@@ -24,9 +31,9 @@ export function ApplyGateButton(props: {
 }) {
   const { className, loginHref, registerHref, label = "Apply for this job" } = props;
   const [open, setOpen] = useState(false);
-  const [consent, setConsent] = useState(false);
-  const [readNotice, setReadNotice] = useState(false);
-  const accepted = consent && readNotice;
+  // One tick, two facts. `accepted` is both of them, because there is no
+  // longer a state in which a person has done one and not the other.
+  const [accepted, setAccepted] = useState(false);
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -89,25 +96,16 @@ export function ApplyGateButton(props: {
             <label className="mt-5 flex items-start gap-3 rounded-xl border border-border p-4 text-sm leading-relaxed text-navy">
               <input
                 type="checkbox"
-                checked={consent}
-                onChange={(e) => setConsent(e.target.checked)}
-                className="mt-0.5 h-5 w-5 shrink-0 accent-[#C9A84C]"
-              />
-              <span>I consent to ArbeidMatch processing my personal data to handle my application and find work for me.</span>
-            </label>
-            <label className="mt-3 flex items-start gap-3 rounded-xl border border-border p-4 text-sm leading-relaxed text-navy">
-              <input
-                type="checkbox"
-                checked={readNotice}
-                onChange={(e) => setReadNotice(e.target.checked)}
+                checked={accepted}
+                onChange={(e) => setAccepted(e.target.checked)}
                 className="mt-0.5 h-5 w-5 shrink-0 accent-[#C9A84C]"
               />
               <span>
                 I have read the{" "}
                 <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold underline decoration-gold decoration-2 underline-offset-4">
                   privacy notice
-                </a>
-                .
+                </a>{" "}
+                and consent to ArbeidMatch processing my personal data to handle my application and find work for me.
               </span>
             </label>
 
@@ -130,7 +128,7 @@ export function ApplyGateButton(props: {
               </a>
             </div>
             {!accepted ? (
-              <p className="mt-3 text-center text-[13px] text-text-secondary">Tick both boxes to continue.</p>
+              <p className="mt-3 text-center text-[13px] text-text-secondary">Tick the box to continue.</p>
             ) : null}
           </div>
         </div>

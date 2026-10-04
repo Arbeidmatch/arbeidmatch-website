@@ -66,10 +66,23 @@ describe("the privacy notice is acknowledged, never accepted", () => {
     expect(hits).toEqual([]);
   });
 
-  it("the Apply window asks for no Terms and keeps consent apart from the notice", () => {
+  /**
+   * ONE BOX SINCE 4 OCTOBER 2026, and the legal rule is unchanged.
+   *
+   * HIS WORDS: "aici in loc de 2 casute sa fie numai una care sa le includa pe
+   * amandoua". This used to require the two sentences in two boxes, which was
+   * the shape the 25 September review happened to arrive in, not the rule it
+   * set. The rule is that the notice is READ and never accepted, that the
+   * consent to process is given in so many words, and that an applicant is
+   * asked for no Terms. All three still hold in the single sentence, and the
+   * FORBIDDEN sweep above still catches any wording that would accept it.
+   */
+  it("the Apply window asks for no Terms, reads the notice and gives the consent", () => {
     const text = asRead(readFileSync(join(ROOT, "components/jobs/ApplyGateButton.tsx"), "utf8"));
     expect(text).not.toMatch(/Terms of Service/);
     expect(text).toMatch(/I have read the privacy notice/);
-    expect(text).toMatch(/I consent to ArbeidMatch processing my personal data/);
+    expect(text).toMatch(/consent to ArbeidMatch processing my personal data/);
+    // Read, never accepted - the thing the review was actually about.
+    expect(text).not.toMatch(/accept (the )?privacy/i);
   });
 });

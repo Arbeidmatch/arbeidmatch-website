@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BadgeCheck } from "lucide-react";
 import { JobPostingJsonLd } from "@/components/seo/JobPostingJsonLd";
 import { ApplyGateButton } from "@/components/jobs/ApplyGateButton";
 import {
@@ -13,6 +14,8 @@ import {
   type PublicJobDetail,
 } from "@/lib/jobs-fetch";
 import { applyNextStep, contractLabel, hiringModelLabel, type HiringModel } from "@/lib/job-contract";
+import { splitJobAdvertLanguages } from "@/lib/job-advert-languages";
+import { roleWithoutCity } from "@/lib/job-title";
 
 /**
  * The advert itself, on our own site.
@@ -94,7 +97,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // 2026; what this page built before is the fallback.
   const ownTitle = (job.seo_title ?? "").trim();
   const ownDescription = (job.seo_description ?? "").trim();
-  const title = ownTitle || (where ? `${job.title} in ${where} | ArbeidMatch` : `${job.title} | ArbeidMatch`);
+  /**
+   * THE CITY ONCE (REPAIR R27 addendum, 4 October 2026). A quick job's title
+   * is already "Flislegger - Trondheim", and this appended " in Trondheim",
+   * so the tab, the search result and the Facebook link preview all read
+   * "Flislegger - Trondheim in Trondheim | ArbeidMatch".
+   */
+  const role = roleWithoutCity(job.title, where);
+  const title = ownTitle || (where ? `${role} in ${where} | ArbeidMatch` : `${role} | ArbeidMatch`);
   const description =
     ownDescription ||
     [job.title, where, rateLine(job)].filter(Boolean).join(", ") ||
@@ -133,6 +143,8 @@ export default async function StillingPage({ params }: Props) {
   const required = (job.requirements ?? []).filter((r) => r.required);
   const preferred = (job.requirements ?? []).filter((r) => !r.required);
   const certificates = (job.required_certificates ?? []).filter(Boolean);
+  // Norwegian and English, when the advert was written with both (R29).
+  const halves = splitJobAdvertLanguages(job.description_html);
   const skills = (job.skills_required ?? []).filter(Boolean);
   // Apply opens the sign-in or create-profile window with the consent box first (17 September 2026).
   // consent=1 carries only the processing consent; the privacy notice is acknowledged, never accepted,
@@ -196,7 +208,7 @@ export default async function StillingPage({ params }: Props) {
               <h1 className="am-h-advert mt-3 max-w-[720px] font-extrabold text-white">{job.title}</h1>
 
               <div className="mt-5 flex flex-wrap items-center gap-2">
-                {[reference, certificate, "EU/EEA"].filter(Boolean).map((badge) => (
+                {[reference, certificate].filter(Boolean).map((badge) => (
                   <span
                     key={badge as string}
                     className="rounded-full border border-white/20 px-3 py-1 text-xs font-medium text-white/80"
@@ -204,6 +216,18 @@ export default async function StillingPage({ params }: Props) {
                     {badge}
                   </span>
                 ))}
+                {/* HIS WORDS, 4 October 2026: "sa fie o icoana ca EuEEA
+                    aplicants". A bare "EU/EEA" told a reader who already knew
+                    nothing; this says who may apply, and the hover says what
+                    it costs them to find out. The no-icons rule is about
+                    Facebook posts, not this page. */}
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-3 py-1 text-xs font-medium text-white/80"
+                  title="EU/EEA citizenship required, no visa sponsorship"
+                >
+                  <BadgeCheck aria-hidden className="h-3.5 w-3.5 text-gold" />
+                  EU/EEA applicants
+                </span>
               </div>
 
               {/* The three a tradesman decides on, above the fold on a phone,
@@ -336,15 +360,41 @@ export default async function StillingPage({ params }: Props) {
                 </section>
               ) : null}
 
-              {job.description_html ? (
-                <div
-                  className="am-prose mt-10 max-w-[68ch]"
-                  // Sanitised once, in the ATS, by the same functions its own job
-                  // page uses. Doing it a second time here would mean two
-                  // allowlists, and the day they drift is the day one of them is
-                  // wrong. What it is not is styled - that is `.am-prose`.
-                  dangerouslySetInnerHTML={{ __html: job.description_html }}
-                />
+              {/*
+                HIS DECISION, 4 October 2026: "vreau sa fie distinctie in anunt
+                intre limba norvegiana si engleza ca pe finn, fara comutator".
+                Both halves are always on the page, Norwegian first, with
+                nothing to press. An advert that does not carry both - every
+                imported posting, and every job written before this - renders
+                as it always did.
+
+                The HTML is sanitised once, in the ATS, by the same functions
+                its own job page uses. Doing it again here would mean two
+                allowlists, and the day they drift is the day one of them is
+                wrong. What it is not is styled: that is `.am-prose`.
+              */}
+              {halves ? (
+                <div className="mt-10 max-w-[68ch] space-y-8">
+                  {([
+                    ["Norsk", halves.no],
+                    ["English", halves.en],
+                  ] as const).map(([label, body], index) => (
+                    <section
+                      key={label}
+                      lang={label === "Norsk" ? "nb" : "en"}
+                      className={
+                        index === 0
+                          ? "rounded-2xl border border-border bg-surface p-6 sm:p-7"
+                          : "rounded-2xl border border-border p-6 sm:p-7"
+                      }
+                    >
+                      <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">{label}</h2>
+                      <div className="am-prose mt-4" dangerouslySetInnerHTML={{ __html: body }} />
+                    </section>
+                  ))}
+                </div>
+              ) : job.description_html ? (
+                <div className="am-prose mt-10 max-w-[68ch]" dangerouslySetInnerHTML={{ __html: job.description_html }} />
               ) : null}
 
               {certificates.length > 0 || skills.length > 0 ? (
