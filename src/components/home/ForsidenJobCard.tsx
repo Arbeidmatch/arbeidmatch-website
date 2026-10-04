@@ -6,8 +6,11 @@ export function ForsidenJobCard({ job, lang = "en" }: { job: PublicJob; featured
   const rate = rateLine(job);
   const no = lang === "no";
   const photo = jobCardImage(job);
+  // HIS WORDS, 4 October 2026: "In loc de employed by the company sa fie Network
+  // partner". The card never names the client, so "the company" named a company
+  // the reader cannot see; this says what they can know.
   const employs = job.engagement === "staffing" ? (no ? "Ansatt hos oss" : "Employed by ArbeidMatch")
-    : job.engagement === "recruitment" ? (no ? "Ansatt hos bedriften" : "Employed by the company") : null;
+    : job.engagement === "recruitment" ? (no ? "Nettverkspartner" : "Network partner") : null;
   const card = (
     <article className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-white transition hover:border-gold hover:shadow-lg">
       <div className="h-36 overflow-hidden bg-navy sm:aspect-[16/9] sm:h-auto">

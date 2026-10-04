@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyNextStep, contractLabel, hiringModelLabel } from "./job-contract";
+import { applyNextStep, contractLabel, hiringModelLabel, hiringModelLabelNo } from "./job-contract";
 
 describe("job contract copy", () => {
   it.each([
@@ -14,9 +14,22 @@ describe("job contract copy", () => {
     ["seasonal", "Seasonal"],
   ])("formats %s", (value, expected) => expect(contractLabel(value)).toBe(expected));
 
+  /**
+   * HIS WORDS, 4 October 2026: "In loc de employed by the company sa fie
+   * Network partner". The page never names the client, so the old wording
+   * named a company the reader cannot see.
+   */
   it("keeps contract type separate from who employs", () => {
     expect(hiringModelLabel("staffing")).toBe("ArbeidMatch employs you directly (Bemanning)");
-    expect(hiringModelLabel("recruitment")).toBe("The client employs you; ArbeidMatch recruits (Recruitment)");
+    expect(hiringModelLabel("recruitment")).toBe("Network partner");
+    expect(hiringModelLabelNo("staffing")).toBe("Ansatt hos ArbeidMatch (Bemanning)");
+    expect(hiringModelLabelNo("recruitment")).toBe("Nettverkspartner");
+  });
+
+  it("never names the client, in either language", () => {
+    for (const label of [hiringModelLabel("recruitment"), hiringModelLabelNo("recruitment")]) {
+      expect(label).not.toMatch(/client|bedriften|the company/i);
+    }
   });
 });
 

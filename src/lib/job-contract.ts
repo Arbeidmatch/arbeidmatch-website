@@ -14,9 +14,28 @@ export function contractLabel(value: unknown): string | null {
   return value instanceof String || typeof value === "string" ? String(value).trim() || null : null;
 }
 
+/**
+ * Who employs the person, in his words.
+ *
+ * HIS WORDS, 4 October 2026: "In loc de employed by the company sa fie Network
+ * partner". A recruitment job is one where somebody else employs and we found
+ * them, and the reader is never told which company that is, so "employed by the
+ * company" named a company the page deliberately hides. "Network partner" says
+ * what the reader can actually know: the job is with a firm in our network.
+ *
+ * Staffing is unchanged: there ArbeidMatch IS the employer, which is a fact
+ * about us and not a hidden one.
+ */
 export function hiringModelLabel(model: HiringModel): string | null {
   if (model === "staffing") return "ArbeidMatch employs you directly (Bemanning)";
-  if (model === "recruitment") return "The client employs you; ArbeidMatch recruits (Recruitment)";
+  if (model === "recruitment") return "Network partner";
+  return null;
+}
+
+/** The same, in the Norwegian block. */
+export function hiringModelLabelNo(model: HiringModel): string | null {
+  if (model === "staffing") return "Ansatt hos ArbeidMatch (Bemanning)";
+  if (model === "recruitment") return "Nettverkspartner";
   return null;
 }
 
