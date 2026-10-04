@@ -28,7 +28,8 @@ const ROMANIAN_WORDS = [
   "cand",
   "poti",
   "incepe",
-  "diploma",
+  // "diploma" is deliberately absent: it is an English word too, and a false
+  // positive here refuses a page that is perfectly correct.
   "calificare",
   "angajam",
   "cazare",

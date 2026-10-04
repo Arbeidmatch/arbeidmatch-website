@@ -12,6 +12,8 @@ describe("Romanian on a page that must not have it", () => {
     expect(romanianIn("Esti cetatean UE/SEE?")?.kind).toBe("word");
     expect(hasRomanian("Cand poti incepe?")).toBe(true);
     expect(hasRomanian("Ai diploma de calificare ca pusser?")).toBe(true);
+    // Caught by "calificare", not by "diploma": that word is English too.
+    expect(hasRomanian("A diploma in engineering is an advantage.")).toBe(false);
   });
 
   it("catches properly written Romanian by its letters", () => {
