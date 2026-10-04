@@ -88,6 +88,15 @@ export type PublicJob = {
   public_show_company: boolean | null;
   project?: { name?: string | null; company?: { name?: string } | { name?: string }[] | null } | null;
   external_image_url: string | null;
+  /**
+   * The address the advert was imported from, when it was imported at all.
+   *
+   * Read for one thing only, since REPAIR R20 of 4 October 2026: the posting
+   * number at the end of it is what every comment we have ever published
+   * carries, and `/j/<number>` resolves it to this job's own advert here. It is
+   * never shown to anybody and never linked.
+   */
+  external_url?: string | null;
   published_at: string | null;
   created_at: string | null;
 

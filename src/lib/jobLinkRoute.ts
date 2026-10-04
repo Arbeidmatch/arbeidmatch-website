@@ -1,6 +1,7 @@
 import { after, NextRequest, NextResponse } from "next/server";
 
-import { boardDestination, clickRecordUrl } from "./boardJobLink";
+import { advertDestination, boardPostingId, clickRecordUrl, OUR_JOB_LIST, postingIdOfExternalUrl } from "./boardJobLink";
+import { fetchPublicJobs } from "./jobs-fetch";
 import {
   FALLBACK_PREVIEW,
   isLinkPreviewCrawler,
@@ -31,6 +32,16 @@ import {
  * answers, because links carrying it are already published under adverts.
  */
 const PREVIEW_TIMEOUT_MS = 3000;
+
+/** Whether a destination is a page of ours, which draws its own card. */
+function isOurOwnPage(destination: string): boolean {
+  try {
+    const host = new URL(destination).hostname.toLowerCase();
+    return host === "arbeidmatch.no" || host === "www.arbeidmatch.no";
+  } catch {
+    return false;
+  }
+}
 
 /** The surfaces we count, and nothing else gets through to the recorder. */
 const KNOWN_SOURCES = new Set(["comment", "post", "message", "ad", "page"]);
@@ -65,17 +76,50 @@ async function previewFor(destination: string): Promise<PostingPreview> {
 }
 
 /**
+ * The advert this posting number belongs to, on our own site.
+ *
+ * REPAIR R20, 4 October 2026. `/j/<number>` used to redirect to the old board,
+ * and his rule is that nothing of ours points there: a person who applies on it
+ * lands in another system and never reaches the job or the project. The number
+ * is the one thing every published comment carries, so it is resolved here
+ * against the open adverts the ATS serves, and the visitor is sent to the
+ * advert's own page.
+ *
+ * The list is the same cached call the front page makes, so this costs nothing
+ * most of the time. A number nobody has an open advert for lands on our list of
+ * open positions rather than on an error: a stale reference in an old comment
+ * should show somebody what is open now.
+ */
+async function advertFor(id: string): Promise<string> {
+  const posting = boardPostingId(id);
+  if (!posting) return OUR_JOB_LIST;
+  try {
+    const { jobs } = await fetchPublicJobs();
+    const match = jobs.find((job) => postingIdOfExternalUrl(job.external_url) === posting);
+    if (match?.public_slug) return advertDestination(match.public_slug);
+  } catch {
+    // A list is a worse answer than the advert and a far better one than a dead
+    // link, so a failed lookup costs the visitor nothing but precision.
+  }
+  return OUR_JOB_LIST;
+}
+
+/**
  * A crawler gets a page, a person gets the redirect.
  *
  * Nothing is recorded on the crawler branch: a preview fetch is not somebody
  * deciding to apply, and counting it would put a tap on every advert the moment
  * it is posted.
+ *
+ * A destination on our own site needs no drawn card: its own page carries the
+ * title, the photograph and the description a scraper came for, and it is read
+ * one redirect away. The card below is for a destination that is not ours.
  */
 export async function handleJobLink(request: NextRequest, id: string, src: string | null): Promise<NextResponse> {
-  const destination = boardDestination(id);
+  const destination = await advertFor(id);
   const record = clickRecordUrl(id, src ?? request.nextUrl.searchParams.get("src"));
 
-  if (isLinkPreviewCrawler(request.headers.get("user-agent"))) {
+  if (isLinkPreviewCrawler(request.headers.get("user-agent")) && !isOurOwnPage(destination)) {
     const preview = await previewFor(destination);
     return new NextResponse(previewHtml(preview, request.nextUrl.href, destination), {
       status: 200,

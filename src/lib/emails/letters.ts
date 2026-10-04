@@ -7,6 +7,7 @@ import {
   letterParagraph,
   letterPre,
 } from "@/lib/arbeidmatchEmailShell";
+import { CANDIDATE_PORTAL_REGISTER_URL } from "@/lib/candidatePortal";
 import { escapeHtml } from "@/lib/htmlSanitizer";
 
 /**
@@ -195,6 +196,20 @@ export function verifiedProfileNoticeLetter(args: { email: string; timestamp: st
   };
 }
 
+/**
+ * Where somebody who asked for a profile actually makes one.
+ *
+ * REPAIR R20, 4 October 2026. The button pointed at a sign-up page on the old
+ * board, which is another system: everything that person then typed about
+ * themselves went in over there, and the profile we had just invited them to
+ * create did not exist here at all. It is our own registration now.
+ *
+ * Exported so the route that sends this letter writes the same address in its
+ * plain-text part, and so a test can hold the two to each other. The host
+ * itself is written in one place only, lib/candidatePortal.ts.
+ */
+export const CANDIDATE_REGISTER_URL: string = CANDIDATE_PORTAL_REGISTER_URL;
+
 /** The link that was in the text is the button now: one way to the platform, not a link in a sentence. */
 export function profileRequestLetter(args: { to: string; unsubscribeUrl: string }): Letter {
   return {
@@ -210,7 +225,7 @@ export function profileRequestLetter(args: { to: string; unsubscribeUrl: string 
           "This confirmation step helps us reduce false accounts and make sure we handle personal data in accordance with GDPR. If you did not make this request, you can safely ignore this email.",
         ),
       ].join(""),
-      cta: { href: "https://jobs.arbeidmatch.no/sign-up", label: "Create your profile" },
+      cta: { href: CANDIDATE_REGISTER_URL, label: "Create your profile" },
       lang: EN,
       audience: "candidate",
       recipient: args.to,

@@ -25,3 +25,14 @@ export const CANDIDATE_PORTAL_LOGIN_URL = "https://ats.arbeidmatch.no/candidate/
 
 /** Where a candidate with no profile yet goes. The ATS points at this same page. */
 export const CANDIDATE_PORTAL_SIGNUP_URL = "/candidate-register" as const;
+
+/**
+ * Where a letter sends somebody who asked us for a profile.
+ *
+ * REPAIR R20, 4 October 2026. The register letter's button pointed at a sign-up
+ * page on the old board, so everything that person typed about themselves went
+ * into another system and the profile we had invited them to make did not exist
+ * here at all. It is the registration tab of our own candidate door, built from
+ * the constant above so there is still exactly one place naming the host.
+ */
+export const CANDIDATE_PORTAL_REGISTER_URL = `${CANDIDATE_PORTAL_LOGIN_URL}/register` as const;

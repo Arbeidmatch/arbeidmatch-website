@@ -4,7 +4,7 @@ import { notifyError } from "@/lib/errorNotifier";
 import { TALENT_NETWORK_FORM_ENABLED } from "@/lib/featureFlags";
 import { isRateLimited } from "@/lib/requestProtection";
 import { formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
-import { profileRequestLetter, verifiedProfileNoticeLetter } from "@/lib/emails/letters";
+import { CANDIDATE_REGISTER_URL, profileRequestLetter, verifiedProfileNoticeLetter } from "@/lib/emails/letters";
 import { unsubscribeUrlFor } from "@/lib/emailSubscription";
 import { candidateJoinBodySchema } from "@/lib/candidateJoinConsent";
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "endpoint_disabled",
-          message: "Talent network registration is currently routed through https://jobs.arbeidmatch.no",
+          message: `Talent network registration is currently routed through ${CANDIDATE_REGISTER_URL}`,
         },
         { status: 410 },
       );
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       ...mailHeaders(),
       to: email,
       subject: letter.subject,
-      text: `You are receiving this email because you, or someone who entered your email address, requested to create a candidate profile with ArbeidMatch.\n\nIf this was you, continue by creating your profile here: https://jobs.arbeidmatch.no/sign-up\n\nThis confirmation step helps us reduce false accounts and make sure we handle personal data in accordance with GDPR. If you did not make this request, you can safely ignore this email.`,
+      text: `You are receiving this email because you, or someone who entered your email address, requested to create a candidate profile with ArbeidMatch.\n\nIf this was you, continue by creating your profile here: ${CANDIDATE_REGISTER_URL}\n\nThis confirmation step helps us reduce false accounts and make sure we handle personal data in accordance with GDPR. If you did not make this request, you can safely ignore this email.`,
       html: letter.html,
     });
 
