@@ -30,7 +30,7 @@ export function createSmtpTransporter() {
 export function authenticatedFrom(from: string, smtpUser = process.env.SMTP_USER): string {
   const user = String(smtpUser ?? "").trim();
   if (!user.includes("@")) return from;
-  const m = /^(.*)<([^>]+)>s*$/.exec(from);
+  const m = /^(.*)<([^>]+)>\s*$/.exec(from);
   const address = (m ? m[2] : from).trim().toLowerCase();
   if (address === user.toLowerCase()) return from;
   const name = m ? m[1].trim() : "";
