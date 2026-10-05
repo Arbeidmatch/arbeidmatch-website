@@ -28,10 +28,10 @@ import { roleWithoutCity } from "@/lib/job-title";
  * what the job asks of them, the marked photograph, the structured data - lived
  * on a page that is now closed to search engines.
  *
- * The chain is now: this site's front page, this page, then the board to apply.
- * Applications still go through jobs.arbeidmatch.no exactly as before, on his
- * decision; nothing about where an application lands has changed. What changed
- * is that there is now a page of ours between the list and the hand-off, which
+ * The chain is now: this site's front page, this page, then the application in
+ * RecOS (/candidate/apply). Nothing goes to jobs.arbeidmatch.no any more (ORDER 47,
+ * 5 October 2026: "lucram numai prin recos"). There is a page of ours between
+ * the list and the application, which
  * is where we can say who will pay the person and what the job requires before
  * they spend twenty minutes on a form.
  *
