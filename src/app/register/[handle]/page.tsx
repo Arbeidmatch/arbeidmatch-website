@@ -62,10 +62,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // The root layout appends " | ArbeidMatch" to every title, so this must not
   // carry its own or the tab reads it twice - which it did, live, the minute
   // the page went up.
-  const title = who ? `Register with ${who}` : "Register";
+  // HIS WORDS, 5 October 2026: "in loc de register cu Mirel Manoliu sa fie
+  // register in ArbeidMatch si mai mic invitatie trimisa de ...". The title is
+  // the company's, whoever sent the link; the sender is named in the line under it.
+  const title = "Register in ArbeidMatch";
   const description = who
-    ? `${who} at ArbeidMatch invites you to register. One form, a real person reading it, and work in Norway that matches what you have done.`
-    : "Register with ArbeidMatch. One form, a real person reading it, and work in Norway that matches what you have done.";
+    ? `Invitation from ${who}. Sign in with your email, upload your CV, and a real person reads your profile for work in Norway.`
+    : "Register in ArbeidMatch. Sign in with your email, upload your CV, and a real person reads your profile for work in Norway.";
   return {
     title,
     description,
@@ -89,6 +92,19 @@ export default async function RegisterPage({ params }: Props) {
   if (!invitation) notFound();
 
   const who = invitation.recruiter_name;
+  const initials = who
+    ? who
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((part) => part[0]?.toUpperCase() ?? "")
+        .filter((_, i, all) => i === 0 || i === all.length - 1)
+        .join("")
+    : "";
+  const steps = [
+    { title: "Sign in with your email", text: "No password: we send you a code, or you use Google." },
+    { title: "Upload your CV", text: "We fill in most of your profile from it, and you add what is missing." },
+    { title: "Apply with one press", text: "To any of our jobs, whenever you want." },
+  ];
 
   return (
     /* The band and the sheet, as on the advert and its form. This page had the
@@ -97,40 +113,64 @@ export default async function RegisterPage({ params }: Props) {
        on read as a blank screen with a form in the middle of it. */
     <main>
       <header className="bg-navy">
-        <div className="mx-auto w-full max-w-content px-6 py-10 md:px-12 md:py-12 lg:px-20">
+        <div className="mx-auto w-full max-w-content px-5 py-8 md:px-12 md:py-14 lg:px-20">
           <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Registration</p>
-          <h1 className="am-h-advert mt-3 max-w-[820px] font-extrabold text-white">
-            {who ? `${who} invited you to ArbeidMatch` : "Register with ArbeidMatch"}
-          </h1>
+          <h1 className="am-h-advert mt-3 max-w-[820px] font-extrabold text-white">Register in ArbeidMatch</h1>
+          {/* The sender, smaller than the title: every user's link shows their own name, and no name shows no line. */}
+          {who ? (
+            <p className="mt-3 flex items-center gap-2.5 text-[15px] text-white/85 md:text-base">
+              <span
+                aria-hidden
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px] font-bold text-gold md:h-8 md:w-8 md:text-xs"
+              >
+                {initials}
+              </span>
+              <span>
+                Invitation from <span className="font-bold text-white">{who}</span>
+              </span>
+            </p>
+          ) : null}
           <p className="mt-4 max-w-prose text-white/70">
-            Sign up once. {who ? `${who.split(" ")[0]} reads it` : "A recruiter reads it"} and comes back to
-            you by email, whichever way the answer goes. You are registering with us, not applying to one advert, so it
-            counts for every job we are working on.
+            Sign up once. {who ? `${who.split(" ")[0]} reads your profile` : "A recruiter reads your profile"} and comes back to
+            you by email, whichever way the answer goes.
+            <span className="hidden md:inline">
+              {" "}
+              You are registering with us, not applying to one advert, so it counts for every job we are working on.
+            </span>
           </p>
         </div>
       </header>
 
       <div className="bg-white">
-        <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20">
-          <ol className="max-w-2xl list-decimal space-y-2 pl-5 text-text-secondary">
-            <li>Sign in with your email. There is no password: we send you a code, or you use Google.</li>
-            <li>Upload your CV. We fill in most of your profile from it, and you add what is missing.</li>
-            <li>Apply for any of our jobs with one press, whenever you want.</li>
+        <div className="mx-auto w-full max-w-content px-5 py-8 md:px-12 md:py-14 lg:px-20">
+          {/* Three cards side by side on a wide screen, a numbered list on a phone. */}
+          <ol className="flex max-w-[980px] flex-col gap-3 md:grid md:grid-cols-3 md:gap-5">
+            {steps.map((step, i) => (
+              <li key={step.title} className="flex items-start gap-3 md:flex-col md:gap-2 md:rounded-2xl md:border md:border-border md:p-5">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold/15 text-[13px] font-extrabold text-[#9C7A2E] md:h-auto md:w-auto md:bg-transparent">
+                  {i + 1}
+                </span>
+                <span className="text-[15px] leading-relaxed text-navy">
+                  <span className="font-bold md:block md:text-base">{step.title}.</span>{" "}
+                  <span className="text-text-secondary md:mt-1 md:block md:text-sm">{step.text}</span>
+                </span>
+              </li>
+            ))}
           </ol>
-          <a
-            href={`${atsBaseUrl()}/candidate/login?invite=${encodeURIComponent(invitation.token)}`}
-            className="mt-8 inline-flex min-h-[48px] items-center justify-center rounded-xl bg-navy px-6 py-3 text-base font-semibold text-white transition hover:bg-navy/90"
-          >
-            Create my profile
-          </a>
-
-          <p className="mt-10 text-sm text-text-secondary">
-            Looking for something specific?{" "}
-            <Link href="/" className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">
-              See every open job
-            </Link>
-            .
-          </p>
+          <div className="mt-8 flex flex-col items-stretch gap-3 md:flex-row md:items-center md:gap-6">
+            <a
+              href={`${atsBaseUrl()}/candidate/login?invite=${encodeURIComponent(invitation.token)}`}
+              className="inline-flex min-h-[52px] items-center justify-center rounded-xl bg-navy px-7 py-3 text-base font-semibold text-white transition hover:bg-navy/90"
+            >
+              Create my profile
+            </a>
+            <p className="text-center text-sm text-text-secondary md:text-left">
+              <span className="hidden md:inline">Looking for something specific? </span>
+              <Link href="/" className="inline-flex min-h-[44px] items-center font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">
+                See every open job
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </main>
