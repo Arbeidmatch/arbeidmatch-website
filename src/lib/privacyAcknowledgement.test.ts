@@ -80,7 +80,10 @@ describe("the privacy notice is acknowledged, never accepted", () => {
   it("the Apply window asks for no Terms, reads the notice and gives the consent", () => {
     const text = asRead(readFileSync(join(ROOT, "components/jobs/ApplyGateButton.tsx"), "utf8"));
     expect(text).not.toMatch(/Terms of Service/);
-    expect(text).toMatch(/I have read the privacy notice/);
+    // Composed from its words since the window speaks Norwegian too (ORDER 41, point 6):
+    // "I have read the" + the linked "privacy notice", in that order.
+    expect(text).toMatch(/readThe: "I have read the",\s*notice: "privacy notice"/);
+    expect(text).toMatch(/readThe: "Jeg har lest",\s*notice: "personvernerklæringen"/);
     expect(text).toMatch(/consent to ArbeidMatch processing my personal data/);
     // Read, never accepted - the thing the review was actually about.
     expect(text).not.toMatch(/accept (the )?privacy/i);

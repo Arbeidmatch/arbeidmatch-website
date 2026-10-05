@@ -299,6 +299,7 @@ export default async function StillingPage({ params }: Props) {
                   <ApplyGateButton
                     loginHref={loginHref}
                     registerHref={registerHref}
+                    slug={slug}
                     className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-gold px-6 font-semibold text-navy transition hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                   />
                   <p className="mt-3 text-[13px] leading-relaxed text-text-secondary">
@@ -440,6 +441,7 @@ export default async function StillingPage({ params }: Props) {
                 <ApplyGateButton
                   loginHref={loginHref}
                   registerHref={registerHref}
+                  slug={slug}
                   className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 font-semibold text-navy transition hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                 />
                 <p className="text-sm text-text-secondary">{nextStep}</p>
