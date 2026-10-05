@@ -51,7 +51,8 @@ export function JobEngagement({
   layout?: "card" | "inline";
 }) {
   const base = atsBaseUrl.replace(/\/$/, "");
-  const api = `${base}/api/public/jobs/${encodeURIComponent(jobId)}`;
+  // Same origin: the ATS refuses a browser on its public API (see /api/public/job-engagement).
+  const api = `/api/public/job-engagement/${encodeURIComponent(jobId)}`;
   const likedKey = `am_liked_job_${jobId}`;
   const [counts, setCounts] = useState<Counts>({
     views: Number(initial.views) || 0,
@@ -77,9 +78,9 @@ export function JobEngagement({
       setSaved(new URLSearchParams(window.location.search).get("saved") === "1");
       if (countView) {
         store(viewKey, today);
-        await fetch(`${api}/engagement`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "view" }) }).catch(() => null);
+        await fetch(api, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "view" }) }).catch(() => null);
       }
-      const res = await fetch(`${api}/engagement`, { cache: "no-store" }).catch(() => null);
+      const res = await fetch(api, { cache: "no-store" }).catch(() => null);
       const body = res?.ok ? ((await res.json().catch(() => null)) as { data?: Counts } | null) : null;
       if (body?.data) setCounts(body.data);
     })();
@@ -90,7 +91,7 @@ export function JobEngagement({
     setLiked(next);
     setCounts((c) => ({ ...c, likes: Math.max(0, c.likes + (next ? 1 : -1)) }));
     store(likedKey, next ? "1" : "");
-    const res = await fetch(`${api}/like`, { method: next ? "POST" : "DELETE" }).catch(() => null);
+    const res = await fetch(api, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: next ? "like" : "unlike" }) }).catch(() => null);
     if (!res?.ok) {
       setLiked(!next);
       setCounts((c) => ({ ...c, likes: Math.max(0, c.likes + (next ? -1 : 1)) }));
@@ -106,7 +107,7 @@ export function JobEngagement({
 
   async function countShare() {
     setCounts((c) => ({ ...c, shares: c.shares + 1 }));
-    await fetch(`${api}/engagement`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "share" }) }).catch(() => null);
+    await fetch(api, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "share" }) }).catch(() => null);
   }
 
   async function share() {

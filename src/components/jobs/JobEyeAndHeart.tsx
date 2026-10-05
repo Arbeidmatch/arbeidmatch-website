@@ -52,8 +52,12 @@ export function JobEyeAndHeart({
       /* nothing to do */
     }
     try {
-      const res = await fetch(`${atsBaseUrl.replace(/\/$/, "")}/api/public/jobs/${encodeURIComponent(jobId)}/like`, {
+      // Same origin since ORDER 57: the ATS refuses a browser on its public API.
+      void atsBaseUrl;
+      const res = await fetch(`/api/public/job-engagement/${encodeURIComponent(jobId)}`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "like" }),
       });
       if (!res.ok) throw new Error(String(res.status));
       const body = (await res.json().catch(() => null)) as { likes?: number } | null;
