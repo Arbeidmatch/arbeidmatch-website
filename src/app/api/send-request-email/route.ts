@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { escapeHtml } from "@/lib/htmlSanitizer";
-import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { authenticatedFrom, createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { getRateLimitResult, hasHoneypotValue, noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
 import { notifyError } from "@/lib/errorNotifier";
 import { logApiError } from "@/lib/secureLogger";
@@ -131,7 +131,11 @@ export async function POST(request: NextRequest) {
             ? data.howDidYouHearOther || "Other"
             : data.howDidYouHear;
 
-    const transporter = createSmtpTransporter();
+    const smtp = createSmtpTransporter();
+    // D3: every letter here leaves from the account that signs in (authenticatedFrom).
+    const transporter = smtp
+      ? { sendMail: (opts: Parameters<typeof smtp.sendMail>[0]) => smtp.sendMail({ ...opts, from: authenticatedFrom(String(opts.from ?? "")) }) }
+      : null;
     if (!transporter) {
       return noStoreJson({ success: false, error: "SMTP is not configured." }, { status: 500 });
     }
