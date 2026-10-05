@@ -274,7 +274,10 @@ export default async function StillingPage({ params }: Props) {
                 stay in view the whole way down the advert. */}
             <aside className="order-first lg:order-last">
               <div className="lg:sticky lg:top-24">
-                <div className="rounded-2xl border border-border bg-surface p-6">
+                {/* Same radius, border and padding as the advert's blocks, and its top on the
+                    same line as the first of them (his words, 5 October 2026: "the terms nu
+                    este aliniata cu celalalt tabel"). */}
+                <div className="rounded-2xl border border-border bg-surface p-6 sm:p-7">
                   <h2 className="text-sm font-bold text-navy">The terms</h2>
 
                   {/* The band above shouts three of these; this is the whole
@@ -375,27 +378,11 @@ export default async function StillingPage({ params }: Props) {
                 wrong. What it is not is styled: that is `.am-prose`.
               */}
               {halves ? (
-                <div className="mt-10 max-w-[68ch] space-y-10">
+                <div className={`${required.length > 0 || preferred.length > 0 ? "mt-10" : ""} max-w-[68ch] space-y-10`}>
                   {/* HIS WORDS, 4 October 2026: "sa fie delimitare bine intre
                       limbi si specificat ca English version". Two links, never
                       a toggle: both halves stay on the page, and these only
                       carry the reader to one of them. */}
-                  <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary">
-                    {([
-                      ["no", LANGUAGE_LABELS.no],
-                      ["en", LANGUAGE_LABELS.en],
-                    ] as const).map(([code, label], index) => (
-                      <span key={code} className="inline-flex items-center gap-3">
-                        {index > 0 ? <span aria-hidden>&middot;</span> : null}
-                        <a
-                          href={`#advert-${code}`}
-                          className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4"
-                        >
-                          {label}
-                        </a>
-                      </span>
-                    ))}
-                  </p>
                   {([
                     ["no", LANGUAGE_LABELS.no, halves.no],
                     ["en", LANGUAGE_LABELS.en, halves.en],
@@ -406,9 +393,28 @@ export default async function StillingPage({ params }: Props) {
                       lang={code === "no" ? "nb" : "en"}
                       className={`scroll-mt-24 rounded-2xl border border-border p-6 sm:p-7 ${index === 0 ? "bg-surface" : ""}`}
                     >
-                      <span className="inline-flex items-center rounded-full border border-border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
-                        {label}
-                      </span>
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <span className="inline-flex items-center rounded-full border border-border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
+                          {label}
+                        </span>
+                        {/* The two links sit in the first block's header, so the advert's
+                            first block starts where the terms card does. */}
+                        {index === 0 ? (
+                          <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary">
+                            {([
+                              ["no", LANGUAGE_LABELS.no],
+                              ["en", LANGUAGE_LABELS.en],
+                            ] as const).map(([linkCode, linkLabel], linkIndex) => (
+                              <span key={linkCode} className="inline-flex items-center gap-3">
+                                {linkIndex > 0 ? <span aria-hidden>&middot;</span> : null}
+                                <a href={`#advert-${linkCode}`} className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">
+                                  {linkLabel}
+                                </a>
+                              </span>
+                            ))}
+                          </span>
+                        ) : null}
+                      </div>
                       <div className="am-prose mt-4" dangerouslySetInnerHTML={{ __html: body }} />
                     </section>
                   ))}
