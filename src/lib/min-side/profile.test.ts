@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { addressLine, alertsWords, isProfileToken, orgNumberNo, ownLink, profileFrom } from "./profile";
+import { addressLine, alertsWords, freeAlertsFrom, isProfileToken, orgNumberNo, ownLink, profileFrom } from "./profile";
 
 const answer = {
   me: { email: "kari@eksempelbygg.example", contact_id: "00000000-0000-4000-8000-0000000000d1" },
@@ -53,6 +53,15 @@ describe("Min side: the words on the page", () => {
     expect(free.text).toContain("første faktura 1. mai 2027");
     const cancelled = alertsWords({ plan: { ...profileFrom(answer)!.alerts!.plan!, status: "paid", until: "2028-04-30", cancelled: true }, free_until: null, projects_url: null });
     expect(cancelled.title).toBe("Abonnementet avsluttes 30. april 2028");
+  });
+
+  it("offers free alerts to a firm we worked with, and only whole months between 1 and 36 (ORDER 50)", () => {
+    expect(alertsWords(null, 7).title).toBe("Gratis prosjektvarsler i 7 måneder");
+    expect(alertsWords(null, 1).title).toBe("Gratis prosjektvarsler i 1 måned");
+    expect(freeAlertsFrom({ months: 7 })).toEqual({ months: 7 });
+    expect(freeAlertsFrom({ months: 0 })).toBeNull();
+    expect(freeAlertsFrom({ months: 40 })).toBeNull();
+    expect(freeAlertsFrom(null)).toBeNull();
   });
 
   it("never names where the projects come from", () => {

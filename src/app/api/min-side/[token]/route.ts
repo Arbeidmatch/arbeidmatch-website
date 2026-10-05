@@ -39,7 +39,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
   }
   const action = raw?.action;
-  if (action !== "company" && action !== "contact" && action !== "remove_contact") return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+  if (action !== "company" && action !== "contact" && action !== "remove_contact" && action !== "start_free_alerts") return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
 
   const plain = (value: unknown): Record<string, string | boolean> => {
     const out: Record<string, string | boolean> = {};
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     return out;
   };
   const id = typeof raw.id === "string" && isProfileToken(raw.id) ? raw.id : undefined;
-  const body = action === "remove_contact" ? { action, id } : action === "contact" ? { action, id, details: plain(raw.details) } : { action, details: plain(raw.details) };
+  const body = action === "start_free_alerts" ? { action } : action === "remove_contact" ? { action, id } : action === "contact" ? { action, id, details: plain(raw.details) } : { action, details: plain(raw.details) };
 
   const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
   return noStoreJson(answer.body, { status: answer.status });

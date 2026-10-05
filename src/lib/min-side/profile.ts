@@ -58,6 +58,8 @@ export type Profile = {
   company: Company;
   contacts: Contact[];
   alerts: Alerts | null;
+  /** ORDER 50: free months this person may switch on themselves; null when none. */
+  free_alerts: { months: number } | null;
   offers: Offer[];
   documents: SignedDocument[];
   timesheets: Timesheets;
@@ -148,6 +150,7 @@ export function profileFrom(raw: unknown): Profile | null {
       .map((k) => ({ id: String(k.id), full_name: str(k.full_name, 120), role: str(k.role, 80), email: str(k.email, 254), phone: str(k.phone, 24), mine: k.mine === true }))
       .slice(0, 100),
     alerts: a ? { plan: planFrom(a.plan), free_until: day(a.free_until), projects_url: ownLink(a.projects_url) } : null,
+    free_alerts: freeAlertsFrom(r.free_alerts),
     offers: list(r.offers)
       .map((o) => ({ number: str(o.number, 40), title: str(o.title, 120), state: str(o.state, 40), open: o.open === true, sent_at: typeof o.sent_at === "string" ? o.sent_at : null, url: ownLink(o.url) }))
       .slice(0, 50),
@@ -195,8 +198,16 @@ export function dayNo(iso: string | null): string {
 }
 
 /** Where the project alerts stand, in two sentences: a heading and what follows. */
-export function alertsWords(alerts: Alerts | null): { title: string; text: string } {
+/** The free months offered to a firm we worked with (ORDER 50), whole and between 1 and 36, or null. */
+export function freeAlertsFrom(v: unknown): { months: number } | null {
+  const months = Number((v as { months?: unknown } | null)?.months);
+  return Number.isInteger(months) && months >= 1 && months <= 36 ? { months } : null;
+}
+
+export function alertsWords(alerts: Alerts | null, freeMonths: number | null = null): { title: string; text: string } {
   const plan = alerts?.plan ?? null;
+  if (!alerts && freeMonths)
+    return { title: `Gratis prosjektvarsler i ${freeMonths === 1 ? "1 måned" : `${freeMonths} måneder`}`, text: "Som takk for samarbeidet. Varslene stopper av seg selv når perioden er over, uten faktura." };
   if (!alerts) return { title: "Ingen prosjektvarsler ennå", text: "Dere kan følge bygg- og anleggsprosjekter der dere jobber. Se prosjektkartet, eller ta kontakt med oss." };
   if (!plan) {
     return alerts.free_until

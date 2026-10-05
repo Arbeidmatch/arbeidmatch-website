@@ -171,7 +171,14 @@ export default function MinSideClient({ token }: { token: string }) {
   };
 
   const c = profile?.company ?? null;
-  const words = alertsWords(profile?.alerts ?? null);
+  const words = alertsWords(profile?.alerts ?? null, profile?.free_alerts?.months ?? null);
+  const [startingAlerts, setStartingAlerts] = useState(false);
+  const startFreeAlerts = async () => {
+    setStartingAlerts(true);
+    const done = await send({ action: "start_free_alerts" });
+    setStartingAlerts(false);
+    if (!done.ok) setNotice(done.message);
+  };
   const plan = profile?.alerts?.plan ?? null;
   const invoiceAddress = c ? (c.billing_same_as_address || !c.billing_address ? "Samme som firmaets adresse" : addressLine(c.billing_address, c.billing_postal_code, c.billing_city)) : "";
   const editButton = (onClick: () => void) => (
@@ -314,6 +321,11 @@ export default function MinSideClient({ token }: { token: string }) {
                     <p className={`mt-1 text-sm leading-relaxed ${MUTED}`}>{words.text}</p>
                   </div>
                   <p className="flex flex-wrap gap-3">
+                    {!profile.alerts && profile.free_alerts ? (
+                      <button type="button" className={PRIMARY} disabled={startingAlerts} onClick={startFreeAlerts}>
+                        {startingAlerts ? "Slår på ..." : "Slå på gratis varsler"}
+                      </button>
+                    ) : null}
                     {profile.alerts?.projects_url ? (
                       <a href={profile.alerts.projects_url} className={PRIMARY}>
                         Se prosjektene
