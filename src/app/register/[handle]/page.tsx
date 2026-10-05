@@ -147,7 +147,7 @@ export default async function RegisterPage({ params }: Props) {
           <ol className="flex max-w-[980px] flex-col gap-3 md:grid md:grid-cols-3 md:gap-5">
             {steps.map((step, i) => (
               <li key={step.title} className="flex items-start gap-3 md:flex-col md:gap-2 md:rounded-2xl md:border md:border-border md:p-5">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold/15 text-[13px] font-extrabold text-[#9C7A2E] md:h-auto md:w-auto md:bg-transparent">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold/15 text-[13px] font-extrabold text-gold-ink md:h-auto md:w-auto md:bg-transparent">
                   {i + 1}
                 </span>
                 <span className="text-[15px] leading-relaxed text-navy">
@@ -173,6 +173,55 @@ export default async function RegisterPage({ params }: Props) {
           </div>
         </div>
       </div>
+
+      {/* What a person wants to know before signing up, as he approved it (R66, 5 October 2026).
+          Two by two on a wide screen, stacked on a phone. The 12 months are the retention the
+          ATS sets on a self-registration (dataRetentionUntilSelfRegistration, 365 days). */}
+      <section className="bg-surface">
+        <div className="mx-auto grid w-full max-w-content gap-6 px-5 py-8 md:grid-cols-2 md:gap-x-14 md:gap-y-10 md:px-12 md:py-14 lg:px-20">
+          <div className="space-y-2">
+            <h2 className="text-lg font-extrabold text-navy md:text-[22px]">What is ArbeidMatch?</h2>
+            <p className="leading-relaxed text-text-secondary">
+              A recruitment and staffing company in Norway. We find skilled workers from the EU/EEA for employers in
+              construction and industry: tile layers, bricklayers, carpenters, mechanics and more. Registering is free for
+              you.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-lg font-extrabold text-navy md:text-[22px]">What happens after you register</h2>
+            <p className="leading-relaxed text-text-secondary">
+              A recruiter reads your profile and writes to you by email. When an employer wants someone like you, we ask you
+              first. Nobody outside ArbeidMatch sees your profile until you say yes.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-lg font-extrabold text-navy md:text-[22px]">Your data</h2>
+            <p className="leading-relaxed text-text-secondary">
+              We keep your profile for 12 months from the day you agree. You can see it, change it or delete it yourself at
+              any time from your profile. Read more in our{" "}
+              <Link href="/privacy" className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">
+                privacy notice
+              </Link>
+              .
+            </p>
+          </div>
+          <div className="space-y-2 rounded-2xl border border-border bg-white p-5 md:p-6">
+            <h2 className="text-lg font-extrabold text-navy md:text-[22px]">Coming back later?</h2>
+            <p className="leading-relaxed text-text-secondary">
+              Sign in with the same email. If your profile is still with us, it opens as you left it: check it and update
+              what changed in a few minutes. After 12 months without your consent being renewed it is deleted, and you
+              simply register again.
+            </p>
+            {/* No invitation token: a returning person signs in to the profile they already have. */}
+            <a
+              href={`${atsBaseUrl()}/candidate/login`}
+              className="mt-1 flex min-h-[48px] items-center justify-center rounded-xl border-2 border-navy px-5 text-[15px] font-bold text-navy transition hover:bg-surface md:inline-flex md:min-h-[44px] md:border-0 md:px-0 md:underline md:decoration-gold md:decoration-2 md:underline-offset-4"
+            >
+              I already have a profile: sign in
+            </a>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
