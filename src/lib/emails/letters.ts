@@ -85,6 +85,14 @@ export function contactReceiptLetter(args: { name: string; need: string; to: str
       innerHtml: [
         letterParagraph(`Hi ${escapeHtml(args.name)},`),
         letterParagraph("Thank you for contacting us. We received your message and will respond shortly."),
+        // ORDER 44: a job seeker is told the way in here, so the ATS needs no card to answer them.
+        ...(args.need === "Candidate inquiry"
+          ? [
+              letterParagraph(
+                `To be considered for our open positions, please register your profile at ${escapeHtml(CANDIDATE_PORTAL_REGISTER_URL)} and upload your CV and documents there. When your profile is ready, you can apply for the positions that fit you at https://arbeidmatch.no/jobs.`,
+              ),
+            ]
+          : []),
         letterFacts([{ label: "Request type", value: args.need }]),
       ].join(""),
       lang: EN,
