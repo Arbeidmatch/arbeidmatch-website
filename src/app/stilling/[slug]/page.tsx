@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BadgeCheck } from "lucide-react";
 import { JobPostingJsonLd } from "@/components/seo/JobPostingJsonLd";
 import { ApplyGateButton } from "@/components/jobs/ApplyGateButton";
+import { JobEngagement } from "@/components/jobs/JobEngagement";
 import {
   atsBaseUrl,
   fetchPublicJob,
@@ -180,88 +181,81 @@ export default async function StillingPage({ params }: Props) {
   const travelValue = job.travel?.label?.trim();
   if (travelValue) terms.push({ label: "Travel", value: travelValue });
 
+  // The strip under the photograph (ORDER 57): the four a tradesman decides on, in both languages.
+  const facts: Array<{ label: string; value: string; gold?: boolean }> = [
+    { label: "Lønn · Pay", value: rate ?? "Agreed at interview", gold: true },
+    { label: "Sted · Where", value: where },
+    { label: "Timer · Hours", value: job.hours_per_week ? `${job.hours_per_week} / uke` : "Not stated" },
+    { label: "Oppstart · Start", value: job.start_date_text?.trim() || "Not stated" },
+  ];
+  // The four numbers as the board last saw them; the component reads them live.
+  const counters = {
+    views: job.public_views ?? 0,
+    likes: job.public_likes ?? 0,
+    shares: job.public_shares ?? 0,
+    saves: job.public_saves ?? 0,
+  };
+
   return (
     <article>
       <JobPostingJsonLd jobs={[job]} />
 
-      {/* The band carries on from the navbar, which is this navy and sticky, so
-          the page starts as one surface instead of a seam under it. Gold reads
-          at 7.6:1 here and at 2.1:1 on the sheet below, which is the whole
-          reason it carries text up here and only a rule down there. */}
-      <header className="bg-navy">
-        <div className="mx-auto w-full max-w-content px-6 py-10 md:px-12 md:py-14 lg:px-20">
-          <nav aria-label="Breadcrumb" className="text-sm text-white/60">
-            <Link href="/" className="transition hover:text-gold">
-              Open jobs
-            </Link>
-            <span aria-hidden className="mx-2 text-white/55">
-              /
-            </span>
-            <span className="text-white/85">{job.title}</span>
-          </nav>
-
-          <div className="mt-8 grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-12">
-            <div className="min-w-0">
-              <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">
-                {[company, trade].filter(Boolean).join(" · ") || "Open position"}
-              </p>
-              <h1 className="am-h-advert mt-3 max-w-[720px] font-extrabold text-white">{job.title}</h1>
-
-              <div className="mt-5 flex flex-wrap items-center gap-2">
-                {[reference, certificate].filter(Boolean).map((badge) => (
-                  <span
-                    key={badge as string}
-                    className="rounded-full border border-white/20 px-3 py-1 text-xs font-medium text-white/80"
-                  >
-                    {badge}
+      {/* ORDER 57, his approved design (5 October 2026, "asa imi place foarte
+          tare"): the job's own photograph full width, the title and the chips
+          on a dark band over its foot, then a strip of the four facts a
+          tradesman decides on, bilingual. */}
+      <header className="relative bg-navy">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={jobCardImage(job)} alt="" className="h-[240px] w-full object-cover sm:h-[340px] lg:h-[420px]" />
+        <div className="bg-navy lg:absolute lg:inset-x-0 lg:bottom-0 lg:bg-navy/90">
+          <div className="mx-auto w-full max-w-content px-4 py-5 md:px-12 lg:px-20 lg:py-7">
+            <nav aria-label="Breadcrumb" className="text-sm text-white/70">
+              <Link href="/" className="transition hover:text-gold">
+                Open jobs
+              </Link>
+              {company || trade ? (
+                <>
+                  <span aria-hidden className="mx-2 text-white/55">
+                    /
                   </span>
-                ))}
-                {/* HIS WORDS, 4 October 2026: "sa fie o icoana ca EuEEA
-                    aplicants". A bare "EU/EEA" told a reader who already knew
-                    nothing; this says who may apply, and the hover says what
-                    it costs them to find out. The no-icons rule is about
-                    Facebook posts, not this page. */}
-                <span
-                  className="inline-flex items-center gap-1.5 rounded-full border border-white/20 px-3 py-1 text-xs font-medium text-white/80"
-                  title="EU/EEA citizenship required, no visa sponsorship"
-                >
-                  <BadgeCheck aria-hidden className="h-3.5 w-3.5 text-gold" />
-                  EU/EEA applicants
-                </span>
-              </div>
-
-              {/* The three a tradesman decides on, above the fold on a phone,
-                  before a word of the advert. */}
-              <dl className="mt-8 grid gap-x-8 gap-y-6 border-t border-white/15 pt-6 sm:grid-cols-3">
-                <div>
-                  <dt className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50">Pay</dt>
-                  <dd className="mt-1.5 text-xl font-bold leading-tight text-gold">{rate ?? "Agreed at interview"}</dd>
-                </div>
-                <div>
-                  <dt className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50">Where</dt>
-                  <dd className="mt-1.5 text-xl font-bold leading-tight text-white">{where}</dd>
-                </div>
-                <div>
-                  <dt className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50">Contract</dt>
-                  <dd className="mt-1.5 text-xl font-bold leading-tight text-white">{contract ?? "Not stated"}</dd>
-                </div>
-              </dl>
-            </div>
-
-            {/* The photograph the reader clicked on the board, carrying our
-                mark. It never comes back empty: a posting with no picture of
-                its own wears the logo rather than leaving a hole. */}
-            <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5 lg:justify-self-end">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={jobCardImage(job)}
-                alt={job.title}
-                className="h-48 w-full object-contain sm:h-64 lg:h-[220px] lg:w-[360px]"
-              />
+                  <span className="text-white/85">{[company, trade].filter(Boolean).join(" · ")}</span>
+                </>
+              ) : null}
+            </nav>
+            <h1 className="am-h-advert mt-2 max-w-[900px] font-extrabold text-white">{job.title}</h1>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {contract ? <span className="rounded-full bg-gold px-3 py-1 text-xs font-bold text-navy">{contract}</span> : null}
+              <span className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold text-white">{certificate}</span>
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/40 px-3 py-1 text-xs font-semibold text-white"
+                title="EU/EEA citizenship required, no visa sponsorship"
+              >
+                <BadgeCheck aria-hidden className="h-3.5 w-3.5 text-gold" />
+                EU/EØS · EU/EEA
+              </span>
+              {reference ? <span className="px-1 text-xs font-semibold text-white/75">{reference}</span> : null}
             </div>
           </div>
         </div>
       </header>
+
+      {/* Phone: the counters line and the three buttons right under the title. */}
+      <div className="border-b border-border bg-white lg:hidden">
+        <div className="mx-auto w-full max-w-content px-4 py-4">
+          <JobEngagement jobId={job.id} slug={slug} title={job.title} atsBaseUrl={atsBaseUrl()} initial={counters} layout="inline" />
+        </div>
+      </div>
+
+      <section aria-label="Facts" className="border-b border-border bg-surface">
+        <dl className="mx-auto grid w-full max-w-content grid-cols-2 gap-3 px-4 py-5 md:px-12 lg:grid-cols-4 lg:gap-6 lg:px-20">
+          {facts.map((f) => (
+            <div key={f.label} className="rounded-xl bg-white p-3 lg:bg-transparent lg:p-0">
+              <dt className="text-[11px] font-bold uppercase tracking-[0.08em] text-text-secondary">{f.label}</dt>
+              <dd className={`mt-1 text-lg font-extrabold leading-tight lg:text-[22px] ${f.gold ? "text-[#8A6A22]" : "text-navy"}`}>{f.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
 
       {/* The sheet. Everything below is #0D1B2A and #555 on white, which is
           where those two colours were always meant to be read. */}
@@ -272,50 +266,41 @@ export default async function StillingPage({ params }: Props) {
                 of prose would otherwise stand between the title and the one
                 thing the page is for. On a desktop they move to the right and
                 stay in view the whole way down the advert. */}
-            <aside className="order-first lg:order-last">
+            <aside className="hidden lg:order-last lg:block">
               <div className="lg:sticky lg:top-24">
-                {/* Same radius, border and padding as the advert's blocks, and its top on the
-                    same line as the first of them (his words, 5 October 2026: "the terms nu
-                    este aliniata cu celalalt tabel"). */}
-                <div className="rounded-2xl border border-border bg-surface p-6 sm:p-7">
-                  <h2 className="text-sm font-bold text-navy">The terms</h2>
-
-                  {/* The band above shouts three of these; this is the whole
-                      sheet, and on a desktop it stays beside the reader to the
-                      bottom of the advert, which is where the questions come
-                      back. */}
-                  <dl className="mt-5 space-y-4 border-t border-border pt-5">
-                    {terms.map((term) => (
-                      <div key={term.label}>
-                        <dt className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
-                          {term.label}
-                        </dt>
-                        <dd className="mt-1 font-semibold leading-snug text-navy">{term.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-
-                  {/* The application is taken here now, and worked in the ATS.
-                      It used to send the person to jobs.arbeidmatch.no; RecMan
-                      keeps staffing and the contracts already in it. His
-                      instruction, 3 September 2026. */}
+                {/* The card from his design: pay, Apply, the terms, and the
+                    three buttons with the four numbers (ORDER 57). */}
+                <div className="flex flex-col gap-4 rounded-2xl border border-border bg-white p-6 shadow-[0_8px_24px_rgba(15,27,45,0.08)]">
+                  <p className="text-[26px] font-extrabold leading-tight text-[#8A6A22]">{rate ?? "Agreed at interview"}</p>
                   <ApplyGateButton
                     loginHref={loginHref}
                     registerHref={registerHref}
                     slug={slug}
-                    className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-gold px-6 font-semibold text-navy transition hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                    className="inline-flex min-h-[54px] w-full items-center justify-center rounded-xl bg-gold px-6 text-[17px] font-extrabold text-navy transition hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                   />
-                  <p className="mt-3 text-[13px] leading-relaxed text-text-secondary">
+                  <dl className="flex flex-col gap-2.5 border-t border-border pt-4 text-sm">
+                    {terms.map((term) => (
+                      <div key={term.label} className="flex justify-between gap-3">
+                        <dt className="text-text-secondary">{term.label}</dt>
+                        <dd className="text-right font-bold text-navy">{term.value}</dd>
+                      </div>
+                    ))}
+                    {reference ? (
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-text-secondary">Referanse</dt>
+                        <dd className="text-right font-bold text-navy">{reference}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                  <JobEngagement jobId={job.id} slug={slug} title={job.title} atsBaseUrl={atsBaseUrl()} initial={counters} />
+                  <p className="text-[13px] leading-relaxed text-text-secondary">
                     EU/EEA citizenship required (passport or national ID card). No visa sponsorship, and we do not cover travel.
                   </p>
                 </div>
 
                 <p className="mt-4 text-sm text-text-secondary">
                   Not the right one?{" "}
-                  <Link
-                    href="/"
-                    className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4"
-                  >
+                  <Link href="/" className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">
                     See every open job
                   </Link>
                   .
@@ -455,6 +440,19 @@ export default async function StillingPage({ params }: Props) {
             </div>
           </div>
         </div>
+      </div>
+      {/* Phone: pay and Apply always in reach (ORDER 57). */}
+      <div className="sticky bottom-0 z-30 flex items-center gap-3 border-t border-border bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 lg:hidden">
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate text-[17px] font-extrabold text-[#8A6A22]">{rate ?? "Agreed at interview"}</span>
+          <span className="truncate text-xs text-text-secondary">{where}</span>
+        </div>
+        <ApplyGateButton
+          loginHref={loginHref}
+          registerHref={registerHref}
+          slug={slug}
+          className="inline-flex min-h-[52px] flex-1 items-center justify-center rounded-xl bg-gold px-5 text-base font-extrabold text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-navy"
+        />
       </div>
     </article>
   );

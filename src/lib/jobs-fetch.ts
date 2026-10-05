@@ -84,6 +84,9 @@ export type PublicJob = {
   public_applies: number | null;
   public_views: number | null;
   public_likes: number | null;
+  /** ORDER 57: shares and saves, counted in the ATS. */
+  public_shares?: number | null;
+  public_saves?: number | null;
   public_slug: string | null;
   public_show_company: boolean | null;
   project?: { name?: string | null; company?: { name?: string } | { name?: string }[] | null } | null;
@@ -287,7 +290,8 @@ export async function fetchPublicJob(
   revalidateSeconds?: number,
 ): Promise<PublicJobDetail | null> {
   try {
-    const res = await fetch(`${atsBaseUrl()}/api/public/jobs/s/${encodeURIComponent(slug)}`, {
+    // ?count=0: a view is counted once per device per day by the page itself (ORDER 57), not by this cached read.
+    const res = await fetch(`${atsBaseUrl()}/api/public/jobs/s/${encodeURIComponent(slug)}?count=0`, {
       next: { revalidate: revalidateSeconds ?? JOB_CACHE_SECONDS, tags: [BOARD_TAG, jobTag(slug)] },
     });
     if (!res.ok) return null;
