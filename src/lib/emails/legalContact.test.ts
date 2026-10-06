@@ -13,7 +13,13 @@ describe("privacy contact address", () => {
       to: "someone@example.invalid",
       unsubscribeUrl: "https://www.arbeidmatch.no/unsubscribe?t=x",
     });
-    expect(html).toContain("post@arbeidmatch.no");
     expect(html).not.toContain("legal@arbeidmatch.no");
+    // R106d: post@ is named in the privacy note as the controller's contact; the foot is the support link.
+    const foot = html.slice(html.indexOf("border-left:2px solid #C9A84C;padding:14px 16px"));
+    expect(html.slice(0, html.length - foot.length)).toContain(
+      "the data controller ArbeidMatch Norge AS is reached at post@arbeidmatch.no",
+    );
+    expect(foot).not.toContain("post@arbeidmatch.no");
+    expect(foot).toContain("https://arbeidmatch.no/contact?support=1");
   });
 });

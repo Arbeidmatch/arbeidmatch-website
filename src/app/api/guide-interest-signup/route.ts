@@ -4,6 +4,7 @@ import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { guideInterestLetter } from "@/lib/emails/letters";
+import { SUPPORT_PAGE_URL } from "@/lib/supportPage";
 import { notifyError } from "@/lib/errorNotifier";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
@@ -99,8 +100,8 @@ export async function POST(request: NextRequest) {
       if (guideWanted) {
         lines.push("", "We will also notify you when the guide for your profession becomes available.");
       }
-      // A candidate is sent to cv@ (the letter's contact box), not to support@.
-      lines.push("", "If you want to reach us, send your CV to: cv@arbeidmatch.no");
+      // The text twin of the letter's contact box, which is the support link (R106d).
+      lines.push("", `Questions? Contact our support: ${SUPPORT_PAGE_URL}`);
       const bodyText = lines.join("\n");
 
       try {

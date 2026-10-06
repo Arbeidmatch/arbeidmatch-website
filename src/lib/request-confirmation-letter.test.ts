@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildArbeidmatchLetter } from "./arbeidmatchEmailShell";
 import { positionNb } from "./request-position-nb";
+import { SUPPORT_PAGE_URL } from "./supportPage";
 
 /** The client's receipt of a request, as his test of 24 September 2026 corrected it. */
 describe("the receipt a client gets for a request", () => {
@@ -13,10 +14,13 @@ describe("the receipt a client gets for a request", () => {
     serviceLetter: true,
   });
 
-  it("names a person to answer to, not the office", () => {
+  it("names a person to answer to, not the office, and never a telephone (R106d)", () => {
     expect(html).toContain("Mirel Manoliu");
     expect(html).toContain("mirel@arbeidmatch.no");
     expect(html).not.toContain(">Kontoret<");
+    expect(html).not.toContain("967 34 730");
+    expect(html).not.toContain("tel:");
+    expect(html).toContain(SUPPORT_PAGE_URL);
   });
 
   it("carries no unsubscribe link, since it is a service letter", () => {
@@ -27,7 +31,9 @@ describe("the receipt a client gets for a request", () => {
   it("keeps the unsubscribe link on letters that are not service letters", () => {
     const other = buildArbeidmatchLetter({ title: "x", innerHtml: "<p>x</p>", lang: "no", unsubscribeUrl: "https://example.invalid/u" });
     expect(other).toContain("Meld av");
-    expect(other).toContain(">Kontoret<");
+    // R106d: the box is the support link, not the office.
+    expect(other).not.toContain(">Kontoret<");
+    expect(other).toContain("Spørsmål? Kontakt vår support");
   });
 
   it("says the position in Norwegian, and leaves a typed one as typed", () => {

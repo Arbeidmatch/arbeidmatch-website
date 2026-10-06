@@ -6,7 +6,13 @@ import { describe, expect, it } from "vitest";
 import { REQUEST_WORDS } from "@/app/request/[token]/request-words";
 import { buildCvEmail } from "@/lib/cv/emails";
 import { EMAIL_REPLY_TO } from "@/lib/emailPremiumTemplate";
-import { partnerRejectedLetter } from "@/lib/emails/letters";
+import {
+  feedbackNoticeLetter,
+  guideInterestLetter,
+  partnerRejectedLetter,
+  requestOtpLetter,
+} from "@/lib/emails/letters";
+import { buildArbeidmatchLetter, type EmailAudience } from "@/lib/arbeidmatchEmailShell";
 import { legalSeedMarkdown } from "@/lib/legal-seed-documents-data";
 import { SUPPORT_LABEL, SUPPORT_PAGE_PATH, SUPPORT_PAGE_URL } from "@/lib/supportPage";
 
@@ -78,7 +84,85 @@ describe("the support page is where questions go", () => {
   });
 });
 
+/** The foot of a letter: from the contact box to the end. The body is above it. */
+function footerOf(html: string): string {
+  const at = html.indexOf("border-left:2px solid #C9A84C;padding:14px 16px");
+  expect(at, "the letter has a contact box").toBeGreaterThan(-1);
+  return html.slice(at);
+}
+
+const FOOT_PHONE = /967\s?34\s?730|4796734730|tel:|\+47[\s-]?\d/;
+const FOOT_ADDRESS = /\b(post|support|cv)@arbeidmatch\.no\b/;
+
+/**
+ * R106d, the owner's rule confirmed 6 October 2026: the foot of every mail carries
+ * the support link and the company identity, and no telephone or office address.
+ */
+describe("R106d: the foot of every mail the website sends", () => {
+  const WORDS = { no: "Spørsmål? Kontakt vår support", en: "Questions? Contact our support" } as const;
+
+  for (const audience of ["client", "candidate", "support"] as EmailAudience[]) {
+    for (const lang of ["no", "en"] as const) {
+      it(`${audience}, ${lang}: the support link and the legal identity, no telephone, no office address`, () => {
+        const html = buildArbeidmatchLetter({ title: "T", innerHtml: "<p>x</p>", audience, lang, recipient: "reader@example.com", unsubscribeUrl: "https://example.com/u" });
+        const foot = footerOf(html);
+        expect(foot).not.toMatch(FOOT_PHONE);
+        expect(foot).not.toMatch(FOOT_ADDRESS);
+        expect(foot).not.toContain("Kontoret");
+        expect(foot).toContain(`href="${SUPPORT_PAGE_URL}"`);
+        expect(foot).toContain(WORDS[lang]);
+        expect(foot).toContain("ArbeidMatch Norge AS");
+        expect(foot).toContain("935 667 089");
+        expect(foot).toContain("Sverre Svendsens veg 38, 7056 Ranheim, Norway");
+      });
+    }
+  }
+
+  it("the real letters: a candidate's, a code, a legal receipt and an internal notice", () => {
+    const letters = [
+      guideInterestLetter({ specialty: "Welder", guideWanted: true, to: "reader@example.com", unsubscribeUrl: "https://example.com/u" }).html,
+      requestOtpLetter({ code: "123456", to: "reader@example.com", unsubscribeUrl: "https://example.com/u" }).html,
+      feedbackNoticeLetter({ score: 9, source: "s", purpose: "p", pageUrl: "https://example.com", submittedAt: "now", email: "", note: "" }).html,
+    ];
+    for (const html of letters) {
+      const foot = footerOf(html);
+      expect(foot).toContain(SUPPORT_PAGE_URL);
+      expect(foot).not.toMatch(FOOT_PHONE);
+      expect(foot).not.toMatch(/mailto:(post|support|cv)@arbeidmatch\.no/);
+    }
+  });
+
+  it("a desk named by the caller is no longer printed in the foot", () => {
+    const html = buildArbeidmatchLetter({ title: "T", innerHtml: "<p>x</p>", contactEmail: "legal@arbeidmatch.no" });
+    expect(footerOf(html)).not.toContain("legal@arbeidmatch.no");
+    expect(footerOf(html)).toContain(SUPPORT_PAGE_URL);
+  });
+
+  it("the guide sign-up's plain-text part gives the support link, not cv@", () => {
+    const route = source("src/app/api/guide-interest-signup/route.ts");
+    expect(route).toContain("Questions? Contact our support: ${SUPPORT_PAGE_URL}");
+    expect(route).not.toContain("send your CV to: cv@arbeidmatch.no");
+  });
+
+  it("a letter that asks for a CV keeps cv@ in its body", () => {
+    const html = buildArbeidmatchLetter({
+      title: "T",
+      innerHtml: "<p>Send your CV to <strong>cv@arbeidmatch.no</strong>.</p>",
+      audience: "candidate",
+      lang: "en",
+    });
+    const at = html.indexOf("border-left:2px solid #C9A84C;padding:14px 16px");
+    expect(html.slice(0, at)).toContain("cv@arbeidmatch.no");
+    expect(footerOf(html)).not.toMatch(FOOT_ADDRESS);
+  });
+
+  it("the shell source names no office telephone", () => {
+    expect(source("src/lib/arbeidmatchEmailShell.ts")).not.toMatch(/967\s?34\s?730|tel:/);
+  });
+});
+
 describe("the kept exceptions remain", () => {
+
   it("mail is still sent and replied to from the configured addresses", () => {
     expect(EMAIL_REPLY_TO).toBe("support@arbeidmatch.no");
     expect(source("src/app/api/contact/route.ts")).toContain('process.env.SUPPORT_EMAIL || "support@arbeidmatch.no"');

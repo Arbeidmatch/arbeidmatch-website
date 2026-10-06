@@ -1,4 +1,5 @@
 import { escapeHtml } from "@/lib/htmlSanitizer";
+import { SUPPORT_PAGE_URL } from "@/lib/supportPage";
 
 /**
  * The ArbeidMatch letter, as the website sends it.
@@ -38,44 +39,17 @@ export const BRAND = {
 } as const;
 
 /**
- * Which address a reader is told to write to. The ATS `BRAND_CONTACT`.
+ * Who a letter is written to. Kept so callers can say it; since R106d it no
+ * longer changes the contact box, which is the same support link for everybody.
  *
- * The owner's rule, 10 August 2026: candidates write to cv@, not to post@ or
- * support@. A candidate writing to the general post box lands in the same inbox
- * as invoices and supplier mail, and what he is sending is almost always the one
- * thing the recruitment side is waiting for. Clients keep the main address.
+ * R106d, the owner's rule confirmed 6 October 2026 ("oriunde ... sa nu mai fie
+ * public niciun email", and no telephone anywhere), after the ATS
+ * `contactBlockInnerHtml`: the foot of every mail carries the support page and
+ * nothing else to write to or ring. The office line ("Kontoret", the telephone,
+ * post@), the candidate's cv@ and the support@ box are gone from the foot. A
+ * letter that asks for a CV says cv@ in its own body.
  */
-const BRAND_CONTACT = {
-  candidate: { name: "Kontoret", phone: "+47 967 34 730", email: "cv@arbeidmatch.no" },
-  client: { name: "Kontoret", phone: "+47 967 34 730", email: "post@arbeidmatch.no" },
-  /** No phone, no desk name: a code or a status check goes to the mailbox, not a call. */
-  support: { name: "Kontoret", phone: "", email: "support@arbeidmatch.no" },
-} as const;
-
-export type EmailAudience = keyof typeof BRAND_CONTACT;
-
-/** Local parts that cannot take a reply, after the ATS `no-reply-address.ts`. */
-const NO_REPLY_EXACT = new Set(["postmaster", "mailer-daemon", "mailerdaemon", "mailer_daemon", "bounce", "bounces", "abuse"]);
-
-/**
- * The desk a letter came from, when it came from a desk. The ATS `deskContactEmail`.
- *
- * Only one of our own @arbeidmatch.no addresses is printed: this line tells the
- * reader where to write to us, and somebody else's address in it is worse than
- * the default. A box that refuses mail is not somewhere to send an answer, and
- * the general inbox is already the default, so neither is worth printing. The
- * general inbox is not a desk, which keeps the candidate rule standing: naming
- * post@ would put the office box where a candidate must be given cv@.
- */
-function deskContactEmail(from: string | null | undefined): string | null {
-  const angled = /<([^>]+)>/.exec(String(from ?? ""));
-  const address = (angled ? angled[1]! : String(from ?? "")).trim().toLowerCase();
-  if (!/^[^\s@]+@arbeidmatch\.no$/.test(address)) return null;
-  const local = address.slice(0, address.lastIndexOf("@"));
-  const collapsed = local.replace(/[.\-_+]/g, "");
-  if (NO_REPLY_EXACT.has(local) || collapsed.includes("noreply") || collapsed.includes("donotreply")) return null;
-  return address === BRAND_CONTACT.client.email ? null : address;
-}
+export type EmailAudience = "candidate" | "client" | "support";
 
 const COMPANY_LEGAL = {
   name: "ArbeidMatch Norge AS",
@@ -88,10 +62,10 @@ export type EmailLang = "no" | "en";
 
 const WORDS = {
   no: {
-    contactLead: "Har du spørsmål, ta kontakt:",
-    supportLead: "Har du spørsmål, skriv til:",
+    // The ATS SUPPORT_CTA_WORDS (lib/brand/support-contact.ts), word for word.
+    supportCta: "Spørsmål? Kontakt vår support",
+    replyLead: "Svar på denne e-posten går til:",
     unsubscribe: "Meld av",
-    cvLead: "Vil du komme i kontakt, send CV-en din til:",
     why: "Du får denne e-posten fordi du er i kontakt med ArbeidMatch.",
     internal: "Intern melding. Ingen avmelding.",
     confidentialTo: (to: string) =>
@@ -103,10 +77,9 @@ const WORDS = {
     ownSystem: "Sendt fra vårt eget system, RecOS beta. Ser du feil i tekst eller oppsett, si gjerne ifra.",
   },
   en: {
-    contactLead: "Any questions, write or call:",
-    supportLead: "Any questions, write to:",
+    supportCta: "Questions? Contact our support",
+    replyLead: "A reply to this e-mail reaches:",
     unsubscribe: "Unsubscribe",
-    cvLead: "If you want to reach us, send your CV to:",
     why: "You are receiving this because you are in contact with ArbeidMatch.",
     internal: "Internal notice. No unsubscribe.",
     confidentialTo: (to: string) =>
@@ -231,21 +204,23 @@ export function buildArbeidmatchLetter(args: {
   unsubscribeUrl?: string;
   /** Named in the confidentiality line. */
   recipient?: string | null;
-  /** Decides which address the reader is told to write to. Clients keep post@. */
+  /** Who the letter is written to. Since R106d every reader gets the same support link. */
   audience?: EmailAudience;
   /**
-   * The desk this letter came from, named back to the reader instead of the
-   * default for his audience: a letter written from legal@ is answered at
-   * legal@. The owner's correction in the ATS, 6 September 2026.
+   * The desk this letter came from. Accepted and no longer printed (R106d): the
+   * reply reaches the desk through Reply-To, and the foot carries the support
+   * link only.
    */
   contactEmail?: string | null;
   /** The hidden line an inbox shows under the subject. Absent means the letter's first sentence. */
   preheader?: string | null;
   /**
-   * A person to answer to instead of "Kontoret", as on the ATS's first letters to
-   * a firm (the owner, 24 September 2026: "Mirel Manoliu contact person").
+   * A person a reply reaches, as on the ATS's first letters to a firm (the
+   * owner, 24 September 2026: "Mirel Manoliu contact person"), printed above the
+   * support link. His decision, kept as it was; the telephone is accepted and
+   * never printed (R106d). No route passes one today.
    */
-  contactPerson?: { name: string; phone: string; email: string } | null;
+  contactPerson?: { name: string; phone?: string | null; email: string } | null;
   /**
    * A letter about something the reader asked for, such as the receipt of a
    * request: it says why it came and carries no unsubscribe link. His decision of
@@ -256,11 +231,6 @@ export function buildArbeidmatchLetter(args: {
   const lang: EmailLang = args.lang === "en" ? "en" : "no";
   const w = WORDS[lang];
   const unsub = args.unsubscribeUrl?.trim() || "#";
-  const audience: EmailAudience = args.audience ?? "client";
-  const brandContact = BRAND_CONTACT[audience];
-  const contact = args.contactPerson
-    ? { ...args.contactPerson }
-    : { ...brandContact, email: deskContactEmail(args.contactEmail) ?? brandContact.email };
 
   const ctaBlock = args.cta
     ? `<tr><td style="padding:4px 26px 0;">
@@ -269,39 +239,24 @@ export function buildArbeidmatchLetter(args: {
     : "";
 
   /**
-   * A CANDIDATE IS NOT GIVEN THE OFFICE LINE. The owner's rule in the ATS, 16
-   * August 2026, said twice because the first fix only swapped the address and
-   * left the office phone standing above it. A man asking about work does not
-   * ring the office; if he wants to reach us he sends his CV, and that is the
-   * whole of what this box says to him.
+   * THE CONTACT BOX IS THE SUPPORT LINK, FOR EVERY READER (R106d, 6 October
+   * 2026). It used to give a client the office ("Kontoret", the telephone and
+   * post@), a candidate cv@ and a code letter support@. The ATS made the same
+   * change in `contactBlockInnerHtml`; the words are its SUPPORT_CTA_WORDS.
    */
-  const contactBlock =
-    audience === "candidate"
-      ? `<tr><td style="padding:26px 26px 0;">
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-        <tr><td style="background:${BRAND.panel};border-left:2px solid ${BRAND.gold};padding:14px 16px;font-size:14px;line-height:1.6;color:${BRAND.bodySoft};">
-          ${w.cvLead}<br/>
-          <a href="mailto:${contact.email}" style="color:${BRAND.goldMuted};text-decoration:none;">${contact.email}</a>
-        </td></tr>
-      </table>
-    </td></tr>`
-      : audience === "support"
-      ? `<tr><td style="padding:26px 26px 0;">
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-        <tr><td style="background:${BRAND.panel};border-left:2px solid ${BRAND.gold};padding:14px 16px;font-size:14px;line-height:1.6;color:${BRAND.bodySoft};">
-          ${w.supportLead}<br/>
-          <a href="mailto:${contact.email}" style="color:${BRAND.goldMuted};text-decoration:none;">${contact.email}</a>
-        </td></tr>
-      </table>
-    </td></tr>`
-      : `<tr><td style="padding:26px 26px 0;">
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-        <tr><td style="background:${BRAND.panel};border-left:2px solid ${BRAND.gold};padding:14px 16px;font-size:14px;line-height:1.6;color:${BRAND.bodySoft};">
-          ${w.contactLead}<br/>
-          <strong style="color:${BRAND.ink};">${contact.name}</strong><br/>
-          <a href="tel:${contact.phone.replace(/\s/g, "")}" style="color:${BRAND.goldMuted};text-decoration:none;">${contact.phone}</a>
+  const supportLink = `<a href="${escapeHtml(SUPPORT_PAGE_URL)}" style="color:${BRAND.goldMuted};text-decoration:none;font-weight:600;">${w.supportCta}</a>`;
+  const person = args.contactPerson?.name.trim() && args.contactPerson.email.trim() ? args.contactPerson : null;
+  const contactInner = person
+    ? `${w.replyLead}<br/>
+          <strong style="color:${BRAND.ink};">${escapeHtml(person.name.trim())}</strong>
           &middot;
-          <a href="mailto:${contact.email}" style="color:${BRAND.goldMuted};text-decoration:none;">${contact.email}</a>
+          <a href="mailto:${escapeHtml(person.email.trim())}" style="color:${BRAND.goldMuted};text-decoration:none;">${escapeHtml(person.email.trim())}</a><br/>
+          ${supportLink}`
+    : supportLink;
+  const contactBlock = `<tr><td style="padding:26px 26px 0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+        <tr><td style="background:${BRAND.panel};border-left:2px solid ${BRAND.gold};padding:14px 16px;font-size:14px;line-height:1.6;color:${BRAND.bodySoft};">
+          ${contactInner}
         </td></tr>
       </table>
     </td></tr>`;

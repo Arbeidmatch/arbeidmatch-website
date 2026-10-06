@@ -286,7 +286,7 @@ export function feedbackNoticeLetter(args: {
   };
 }
 
-/** The eligibility check's feedback comes from candidates, so the contact box gives them cv@. */
+/** The eligibility check's feedback comes from candidates; the contact box is the support link (R106d). */
 export function feedbackReceiptLetter(args: { score: number; source: string; to: string; unsubscribeUrl: string }): Letter {
   return {
     subject: "Thank you for your feedback - ArbeidMatch",
@@ -361,7 +361,7 @@ export function siteFeedbackReceiptLetter(args: { rating: number; to: string; un
 /**
  * Unsigned now. It ended "Best regards, ArbeidMatch Team, support@", and the ATS
  * rule is that a letter with no person to sign it is signed by nobody rather
- * than by a team, and that a candidate is sent to cv@, which the box says.
+ * than by a team. Questions go to the support link the box carries (R106d).
  */
 export function guideInterestLetter(args: {
   specialty: string;
@@ -435,8 +435,10 @@ export function legalRequestNoticeLetter(args: {
 }
 
 /**
- * Sent from legal@ (the mailbox the route uses). The contact box points the reader to
+ * Sent from legal@ (the mailbox the route uses). The contact box pointed the reader to
  * post@, the one address for privacy and terms matters (legal review, 25 September 2026).
+ * Since R106d the contact box is the support link for every letter, so post@ is named
+ * in the privacy note instead, as the data controller's contact (a GDPR exception).
  */
 export function legalRequestReceiptLetter(args: {
   fullName: string;
@@ -462,11 +464,10 @@ export function legalRequestReceiptLetter(args: {
         ),
         letterParagraph("If you did not submit this request, please reply to this email immediately."),
         letterNote(
-          `How we handle personal data is described in our <a href="https://www.arbeidmatch.no/privacy" style="color:#a8871f;">privacy policy</a>.`,
+          `How we handle personal data is described in our <a href="https://www.arbeidmatch.no/privacy" style="color:#a8871f;">privacy policy</a>. For privacy matters, the data controller ArbeidMatch Norge AS is reached at post@arbeidmatch.no.`,
         ),
       ].join(""),
       lang: EN,
-      contactEmail: "post@arbeidmatch.no",
       recipient: args.to,
       unsubscribeUrl: args.unsubscribeUrl,
     }),
