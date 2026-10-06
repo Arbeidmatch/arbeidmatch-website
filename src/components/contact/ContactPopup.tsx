@@ -18,6 +18,7 @@ export function ContactPopup({
   onClose,
   flagContext,
   replyEmail,
+  lang = "nb",
 }: {
   title: string;
   children: ReactNode;
@@ -25,6 +26,8 @@ export function ContactPopup({
   /** Set only where something may have gone wrong; names what the visitor saw. */
   flagContext?: string;
   replyEmail?: string;
+  /** The language of the door the visitor is at; the flag's words follow it. */
+  lang?: "nb" | "en";
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -46,12 +49,12 @@ export function ContactPopup({
         className="relative w-full max-w-lg rounded-2xl border border-[rgba(201,168,76,0.3)] bg-[#0D1B2A] p-6 text-white shadow-[0_24px_64px_rgba(0,0,0,0.5)]"
       >
         <div className="absolute right-3 top-3 flex items-center gap-1">
-          {flagContext ? <SupportFlag context={flagContext} replyEmail={replyEmail} /> : null}
+          {flagContext ? <SupportFlag context={flagContext} replyEmail={replyEmail} lang={lang} /> : null}
           <button
             ref={closeRef}
             type="button"
             onClick={onClose}
-            aria-label="Lukk / Close"
+            aria-label={lang === "en" ? "Close" : "Lukk"}
             className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-white/70 hover:text-white"
           >
             <X className="h-5 w-5" aria-hidden />
@@ -64,12 +67,42 @@ export function ContactPopup({
   );
 }
 
-const CHOICES = {
-  feedback: ["Søket fant ikke firmaet vårt", "Skjemaet var vanskelig å bruke", "Annet"],
-  support: ["Firmaet finnes, men søket finner det ikke", "MVA-nummeret er gyldig, men ble ikke godkjent", "Skjemaet kan ikke sendes", "Annet"],
+/** The flag's words, in the language of the door (W1: a foreign company reads English throughout). */
+const FLAG_COPY = {
+  nb: {
+    open: "Gi tilbakemelding eller kontakt support",
+    feedback: "Gi tilbakemelding",
+    support: "Kontakt support (feil)",
+    choices: {
+      feedback: ["Søket fant ikke firmaet vårt", "Skjemaet var vanskelig å bruke", "Annet"],
+      support: ["Firmaet finnes, men søket finner det ikke", "MVA-nummeret er gyldig, men ble ikke godkjent", "Skjemaet kan ikke sendes", "Annet"],
+    },
+    note: "Kort kommentar (valgfritt)",
+    email: "E-post",
+    sent: "Takk, vi har mottatt det.",
+    failed: "Kunne ikke sende. Prøv igjen.",
+    sending: "Sender…",
+    send: "Send",
+  },
+  en: {
+    open: "Give feedback or contact support",
+    feedback: "Give feedback",
+    support: "Contact support (fault)",
+    choices: {
+      feedback: ["The form was hard to use", "Something on the page is unclear", "Other"],
+      support: ["The VAT number is valid but was not accepted", "The form cannot be sent", "Other"],
+    },
+    note: "Short comment (optional)",
+    email: "Email",
+    sent: "Thank you, we have received it.",
+    failed: "Could not send. Please try again.",
+    sending: "Sending…",
+    send: "Send",
+  },
 } as const;
 
-function SupportFlag({ context, replyEmail }: { context: string; replyEmail?: string }) {
+function SupportFlag({ context, replyEmail, lang }: { context: string; replyEmail?: string; lang: "nb" | "en" }) {
+  const t = FLAG_COPY[lang];
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"feedback" | "support" | null>(null);
   const [choice, setChoice] = useState("");
@@ -77,7 +110,10 @@ function SupportFlag({ context, replyEmail }: { context: string; replyEmail?: st
   const [email, setEmail] = useState(replyEmail ?? "");
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [error, setError] = useState("");
-  const renderedAt = useRef(String(Date.now()));
+  const renderedAt = useRef("");
+  useEffect(() => {
+    renderedAt.current = String(Date.now());
+  }, []);
 
   async function send() {
     if (!mode || !choice || !email.includes("@")) return;
@@ -100,7 +136,7 @@ function SupportFlag({ context, replyEmail }: { context: string; replyEmail?: st
     if (res && res.ok && data?.ok !== false) setState("sent");
     else {
       setState("error");
-      setError(data?.error ?? "Kunne ikke sende. Prøv igjen.");
+      setError(lang === "en" ? data?.error ?? t.failed : t.failed);
     }
   }
 
@@ -110,7 +146,7 @@ function SupportFlag({ context, replyEmail }: { context: string; replyEmail?: st
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-label="Gi tilbakemelding eller kontakt support"
+        aria-label={t.open}
         className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-white/60 hover:text-[#C9A84C]"
       >
         <Flag className="h-4 w-4" aria-hidden />
@@ -118,19 +154,19 @@ function SupportFlag({ context, replyEmail }: { context: string; replyEmail?: st
       {open ? (
         <div className="absolute right-0 top-12 z-10 w-[min(20rem,calc(100vw-3rem))] rounded-xl border border-[rgba(201,168,76,0.3)] bg-[#0f2133] p-3 text-[14px] shadow-xl">
           {state === "sent" ? (
-            <p role="status">Takk, vi har mottatt det. / Thank you, we have received it.</p>
+            <p role="status">{t.sent}</p>
           ) : !mode ? (
             <div className="flex flex-col gap-1">
               <button type="button" onClick={() => setMode("feedback")} className="min-h-11 rounded-lg px-3 text-left hover:bg-white/5">
-                Gi tilbakemelding
+                {t.feedback}
               </button>
               <button type="button" onClick={() => setMode("support")} className="min-h-11 rounded-lg px-3 text-left hover:bg-white/5">
-                Kontakt support (feil)
+                {t.support}
               </button>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {CHOICES[mode].map((c) => (
+              {t.choices[mode].map((c) => (
                 <label key={c} className="flex min-h-11 items-center gap-2">
                   <input type="radio" name="flag-choice" checked={choice === c} onChange={() => setChoice(c)} />
                   {c}
@@ -141,14 +177,14 @@ function SupportFlag({ context, replyEmail }: { context: string; replyEmail?: st
                 value={note}
                 maxLength={300}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Kort kommentar (valgfritt)"
+                placeholder={t.note}
                 className="min-h-11 rounded-lg border border-white/15 bg-white/5 px-3"
               />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="E-post"
+                placeholder={t.email}
                 className="min-h-11 rounded-lg border border-white/15 bg-white/5 px-3"
               />
               {state === "error" ? <p className="text-[13px] text-[#f0a8a8]">{error}</p> : null}
@@ -158,7 +194,7 @@ function SupportFlag({ context, replyEmail }: { context: string; replyEmail?: st
                 onClick={() => void send()}
                 className="min-h-11 rounded-lg bg-[#C9A84C] px-3 font-semibold text-[#0D1B2A] disabled:opacity-50"
               >
-                {state === "sending" ? "Sender…" : "Send"}
+                {state === "sending" ? t.sending : t.send}
               </button>
             </div>
           )}

@@ -183,7 +183,7 @@ export default function FeedbackPageClient() {
                 <label className="form-label-premium block text-sm text-navy">
                   What is this mainly about?*
                   <select
-                    className={inputClass}
+                    className={`${inputClass} select-light`}
                     value={issueCategory}
                     onChange={(event) => {
                       setIssueCategory(event.target.value);

@@ -159,7 +159,7 @@ export function SelectField<T extends string>({
     <FieldShell id={id} {...rest}>
       <select
         id={id}
-        className={inputClass}
+        className={`${inputClass} select-light`}
         value={value}
         onChange={(event) => onChange(event.target.value as T)}
       >

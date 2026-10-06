@@ -3,6 +3,8 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 
+import { SupportButton } from "@/components/support/SupportRequest";
+
 const fieldClass =
   "w-full min-h-[44px] rounded-[4px] border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.06)] px-4 py-3 text-[15px] text-[rgba(255,255,255,0.98)] placeholder:text-white/55 shadow-none focus:border-[#C9A84C] focus:outline-none focus:ring-2 focus:ring-[rgba(201,168,76,0.15)]";
 
@@ -52,13 +54,13 @@ export default function RequestInvitationForm() {
       });
       const data = (await res.json()) as { ok?: boolean; error?: string };
       if (!res.ok || !data.ok) {
-        setError("Something went wrong. Please try again or contact partners@arbeidmatch.no.");
+        setError("Something went wrong. Please try again or contact support.");
         return;
       }
       setSuccess(true);
       e.currentTarget.reset();
     } catch {
-      setError("Something went wrong. Please try again or contact partners@arbeidmatch.no.");
+      setError("Something went wrong. Please try again or contact support.");
     } finally {
       setSubmitting(false);
     }
@@ -173,7 +175,14 @@ export default function RequestInvitationForm() {
           </label>
 
           <div className="flex flex-col gap-2">
-            {error ? <p className="text-sm text-[rgba(248,113,113,0.95)]">{error}</p> : null}
+            {error ? (
+              <p className="text-sm text-[rgba(248,113,113,0.95)]">
+                {error}{" "}
+                <SupportButton lang="en" showIcon={false} className="font-semibold underline underline-offset-2">
+                  Contact support
+                </SupportButton>
+              </p>
+            ) : null}
             <button
               type="submit"
               disabled={submitting}

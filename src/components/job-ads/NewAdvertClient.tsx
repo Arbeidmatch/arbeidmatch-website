@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { SupportButton } from "@/components/support/SupportRequest";
 import { SLOW_REVIEW_MESSAGE } from "@/lib/job-ads/errors";
 import { emptyAdvert, INDUSTRIES, type AdvertDraft, type PublicOrderView } from "@/lib/job-ads/types";
 import AdvertForm, { type AdvertSubmitResult, type StoredDraft } from "./AdvertForm";
@@ -177,10 +178,10 @@ export default function NewAdvertClient({ prefill }: { prefill: AdvertPrefill })
       )}
 
       <p className="mt-8 text-center text-[13px] text-white/45">
-        Spørsmål? Skriv til{" "}
-        <a href="mailto:post@arbeidmatch.no" className="text-white/70 underline underline-offset-2">
-          post@arbeidmatch.no
-        </a>
+        Spørsmål?{" "}
+        <SupportButton lang="nb" showIcon={false} className="text-white/70 underline underline-offset-2">
+          Kontakt support
+        </SupportButton>
       </p>
     </div>
   );

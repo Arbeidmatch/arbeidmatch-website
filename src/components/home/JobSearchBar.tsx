@@ -91,7 +91,7 @@ export function JobSearchBar({
           name="where"
           value={where}
           onChange={(e) => setWhere(e.target.value)}
-          className="mt-1 w-full bg-transparent text-[15px] text-navy outline-none"
+          className="select-light mt-1 w-full bg-transparent text-[15px] text-navy outline-none"
         >
           <option value="">{labels.everywhere}</option>
           {/* Only towns that actually have a posting in them. A dropdown of

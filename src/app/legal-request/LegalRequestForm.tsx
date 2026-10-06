@@ -96,7 +96,7 @@ export default function LegalRequestForm() {
               id="request_type"
               value={requestType}
               onChange={(e) => setRequestType(e.target.value)}
-              className="rounded-[4px] border border-[#0D1B2A]/20 px-3 py-2.5 text-[#0D1B2A] focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]"
+              className="select-light rounded-[4px] border border-[#0D1B2A]/20 bg-white px-3 py-2.5 text-[#0D1B2A] focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]"
             >
               {REQUEST_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -143,7 +143,7 @@ export default function LegalRequestForm() {
               id="identity"
               value={identityMethod}
               onChange={(e) => setIdentityMethod(e.target.value)}
-              className="rounded-[4px] border border-[#0D1B2A]/20 px-3 py-2.5 text-[#0D1B2A] focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]"
+              className="select-light rounded-[4px] border border-[#0D1B2A]/20 bg-white px-3 py-2.5 text-[#0D1B2A] focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]"
             >
               <option value="">Select if applicable</option>
               {IDENTITY_OPTIONS.filter(Boolean).map((t) => (

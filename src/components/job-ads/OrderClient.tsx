@@ -12,6 +12,7 @@ import {
   type PublicOrderView,
   type ReviewFinding,
 } from "@/lib/job-ads/types";
+import { SupportButton } from "@/components/support/SupportRequest";
 import AdvertForm, { type AdvertSubmitResult } from "./AdvertForm";
 import PackagePicker from "./PackagePicker";
 import QuoteLines from "./QuoteLines";
@@ -348,11 +349,10 @@ export default function OrderClient({ token, sessionId }: { token: string; sessi
           <div className={cardHairline} />
           <h2 className="text-2xl font-extrabold">Vi kan ikke publisere denne annonsen</h2>
           <p className="mt-2 text-sm text-white/65">
-            Dette er ikke noe som kan rettes ved å endre teksten. Dere er ikke belastet noe. Se begrunnelsen under, og skriv gjerne til oss
-            på{" "}
-            <a href="mailto:post@arbeidmatch.no" className="text-[#C9A84C] underline underline-offset-2">
-              post@arbeidmatch.no
-            </a>{" "}
+            Dette er ikke noe som kan rettes ved å endre teksten. Dere er ikke belastet noe. Se begrunnelsen under, og{" "}
+            <SupportButton lang="nb" showIcon={false} className="text-[#C9A84C] underline underline-offset-2">
+              kontakt support
+            </SupportButton>{" "}
             hvis dere mener dette er feil, så ser vi på det sammen med dere.
           </p>
           {order.findings.length > 0 ? (
@@ -371,10 +371,10 @@ export default function OrderClient({ token, sessionId }: { token: string; sessi
               <>
                 <p className="text-xl font-bold">Vi har ikke fått bekreftet betalingen ennå</p>
                 <p className="mx-auto mt-2 max-w-md text-sm text-white/65">
-                  Er beløpet trukket, skal dere ikke betale på nytt. Skriv til{" "}
-                  <a href="mailto:post@arbeidmatch.no" className="text-[#C9A84C] underline underline-offset-2">
-                    post@arbeidmatch.no
-                  </a>
+                  Er beløpet trukket, skal dere ikke betale på nytt.{" "}
+                  <SupportButton lang="nb" showIcon={false} className="text-[#C9A84C] underline underline-offset-2">
+                    Kontakt support
+                  </SupportButton>
                   , så ordner vi det.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -491,20 +491,19 @@ export default function OrderClient({ token, sessionId }: { token: string; sessi
           <div className={cardHairline} />
           <h2 className="text-2xl font-extrabold">Bestillingen er avbrutt</h2>
           <p className="mt-2 text-sm text-white/65">
-            Skriv til{" "}
-            <a href="mailto:post@arbeidmatch.no" className="text-[#C9A84C] underline underline-offset-2">
-              post@arbeidmatch.no
-            </a>{" "}
+            <SupportButton lang="nb" showIcon={false} className="text-[#C9A84C] underline underline-offset-2">
+              Kontakt support
+            </SupportButton>{" "}
             hvis dette er feil.
           </p>
         </div>
       ) : null}
 
       <p className="mt-10 text-center text-[13px] text-white/45">
-        Spørsmål om annonsen? Skriv til{" "}
-        <a href="mailto:post@arbeidmatch.no" className="text-white/70 underline underline-offset-2">
-          post@arbeidmatch.no
-        </a>
+        Spørsmål om annonsen?{" "}
+        <SupportButton lang="nb" showIcon={false} className="text-white/70 underline underline-offset-2">
+          Kontakt support
+        </SupportButton>
       </p>
     </div>
   );

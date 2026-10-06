@@ -11,8 +11,8 @@ const KNOWN: { match: RegExp; message: string }[] = [
   { match: /rules must be accepted/i, message: "Dere må godta annonsereglene før annonsen kan sendes." },
   { match: /organisation number must have nine digits/i, message: "Organisasjonsnummeret må ha ni siffer." },
   { match: /organisation number cannot change/i, message: "Organisasjonsnummeret kan ikke endres på en bestilling. Start en ny annonse for et annet firma." },
-  { match: /too many adverts from this organisation/i, message: "Det er sendt mange annonser fra dette firmaet i dag. Prøv igjen i morgen, eller kontakt oss på post@arbeidmatch.no." },
-  { match: /too many rounds/i, message: "Annonsen har vært til kontroll mange ganger. Kontakt oss på post@arbeidmatch.no, så hjelper vi dere." },
+  { match: /too many adverts from this organisation/i, message: "Det er sendt mange annonser fra dette firmaet i dag. Prøv igjen i morgen, eller kontakt support på arbeidmatch.no/contact?support=1." },
+  { match: /too many rounds/i, message: "Annonsen har vært til kontroll mange ganger. Kontakt support på arbeidmatch.no/contact?support=1, så hjelper vi dere." },
   { match: /cannot be changed now/i, message: "Annonsen kan ikke endres nå." },
   { match: /application deadline has passed/i, message: "Søknadsfristen har gått ut. Endre fristen i annonsen før dere betaler." },
   { match: /payment is no longer open/i, message: "Bestillingen er endret i mellomtiden. Last inn siden på nytt." },
@@ -28,7 +28,7 @@ const KNOWN: { match: RegExp; message: string }[] = [
  * client is told not to send it again blind: a second send is a second order.
  */
 export const SLOW_REVIEW_MESSAGE =
-  "Kontrollen tar lengre tid enn vanlig, og annonsen kan allerede være mottatt. Vent et par minutter og skriv til post@arbeidmatch.no før dere sender den på nytt, så sjekker vi den for dere.";
+  "Kontrollen tar lengre tid enn vanlig, og annonsen kan allerede være mottatt. Vent et par minutter og kontakt support på arbeidmatch.no/contact?support=1 før dere sender den på nytt, så sjekker vi den for dere.";
 
 export function norwegianError(status: number, raw?: string | null): string {
   const text = String(raw ?? "");

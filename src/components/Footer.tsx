@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { langForPath } from "@/lib/pageLang";
 
 import { ProtectedEmail } from "@/components/ProtectedEmail";
+import { SupportButton } from "@/components/support/SupportRequest";
 import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 
 function FooterColumnTitle({ children }: { children: string }) {
@@ -35,15 +36,15 @@ export default function Footer() {
           <Link href="/" className="inline-block text-[1.3rem] font-bold leading-none text-[#C9A84C]">
             ArbeidMatch
           </Link>
-          <div className="mt-5 flex flex-col gap-2 text-sm text-white/70">
-            <p>
-              {no ? "Generelle henvendelser:" : "General enquiries:"}{" "}
-              <ProtectedEmail username="post" domain="arbeidmatch.no" className="text-white/85 hover:underline" loadingLabel="post@arbeidmatch.no" />
-            </p>
-            <p>
-              {no ? "Teknisk hjelp:" : "Technical support:"}{" "}
-              <ProtectedEmail username="support" domain="arbeidmatch.no" className="text-white/85 hover:underline" loadingLabel="support@arbeidmatch.no" />
-            </p>
+          {/* Support instead of the two mailboxes (W1, 6 October 2026). The imprint below keeps
+              one address, because ehandelsloven section 8 asks for it. */}
+          <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/70">
+            <span>{no ? "Kundestøtte:" : "Support:"}</span>
+            <SupportButton
+              lang={no ? "nb" : "en"}
+              showIcon={false}
+              className="inline-flex min-h-11 items-center font-medium text-[#C9A84C] hover:underline lg:min-h-0"
+            />
           </div>
         </div>
 

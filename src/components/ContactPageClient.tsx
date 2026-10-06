@@ -2,14 +2,16 @@
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Briefcase, Building2, LogIn, Mail, MapPin, Search, Shield, UserPlus, Users } from "lucide-react";
+import { ArrowRight, Briefcase, Building2, LogIn, MapPin, Search, Shield, UserPlus, Users } from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
 
 import ScrollReveal from "@/components/ScrollReveal";
 import { ContactPopup } from "@/components/contact/ContactPopup";
+import { SupportButton } from "@/components/support/SupportRequest";
 import { trackEvent } from "@/lib/analytics";
 import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
 import { CANDIDATE_NEED, EMPLOYER_NEED } from "@/lib/contactNeeds";
+import { CONTACT_FORM_COPY, ORIGIN_LABELS, type ContactFormLang } from "@/lib/contactFormCopy";
 import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 import { EEA_COUNTRIES, POLICY_REFUSAL, RECRUITER_NETWORK_URL, judgeForeignCompany } from "@/lib/foreignCompany";
 import { formatOrgNumber } from "@/lib/orgNumber";
@@ -24,11 +26,6 @@ const popupButton = "min-h-11 rounded-lg px-4 py-2.5 text-[14px] font-semibold";
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 const needsTurnstile = Boolean(TURNSTILE_SITE_KEY);
 
-// Split so the address never appears as a plain string in the page source - stops basic
-// regex/HTML scrapers. Not shown (or made a mailto: link) until the visitor clicks reveal.
-const EMAIL_USER = "support";
-const EMAIL_DOMAIN = "arbeidmatch.no";
-
 type Audience = "employer" | "candidate";
 type CompanyOrigin = "norway" | "foreign";
 type Company = { name: string; orgNumber: string };
@@ -42,34 +39,10 @@ type Popup =
 /**
  * Two doors, his decision of 28 September 2026: a client writes with the
  * company's organisation number, found in Brreg; a candidate is shown the
- * candidate's ways in first, and can still write. The employer copy is
- * Norwegian like the rest of the page; the candidate copy is English, because
- * the candidates come from across the EU/EEA.
+ * candidate's ways in first, and can still write. A Norwegian company reads
+ * Norwegian; a company from another EU/EEA country and a candidate read
+ * English, every word of the form (W1, 6 October 2026): see contactFormCopy.
  */
-const COPY = {
-  employer: {
-    generic: "Noe gikk galt. Prøv igjen.",
-    tooMany: "For mange forespørsler. Prøv igjen litt senere.",
-    bot: "Sikkerhetskontrollen ble ikke godkjent. Prøv igjen.",
-    required: "Fyll ut alle obligatoriske felt.",
-    phoneFormat: "Skriv telefonnummeret med landskode, for eksempel +49 …",
-    failed: "Vi kunne ikke sende meldingen. Prøv igjen senere.",
-    sending: "Sender…",
-    send: "Send melding",
-    thanks: "Takk! Vi tar kontakt med dere snart.",
-  },
-  candidate: {
-    generic: "Something went wrong. Please try again.",
-    tooMany: "Too many requests. Please try again a little later.",
-    bot: "The security check did not pass. Please try again.",
-    required: "Please fill in all required fields.",
-    phoneFormat: "Please fill in all required fields.",
-    failed: "We could not send your message. Please try again later.",
-    sending: "Sending…",
-    send: "Send message",
-    thanks: "Thank you! We will get back to you soon.",
-  },
-} as const;
 
 const CANDIDATE_OPTIONS = [
   { href: JOBS_PORTAL_URL, label: "Browse open jobs", hint: "See the positions we are hiring for now.", Icon: Briefcase },
@@ -112,15 +85,22 @@ function useCompanySearch(query: string, active: boolean) {
   return { suggestions, lookup };
 }
 
-export default function ContactPageClient() {
-  const [audience, setAudience] = useState<Audience>("employer");
-  const [origin, setOrigin] = useState<CompanyOrigin>("norway");
+export default function ContactPageClient({
+  initialAudience = "employer",
+  initialOrigin = "norway",
+}: {
+  /** For tests; the page itself opens on the company's side (or ?for=candidate). */
+  initialAudience?: Audience;
+  initialOrigin?: CompanyOrigin;
+}) {
+  const [audience, setAudience] = useState<Audience>(initialAudience);
+  const [origin, setOrigin] = useState<CompanyOrigin>(initialOrigin);
   const [submitted, setSubmitted] = useState(false);
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileKey, setTurnstileKey] = useState(0);
-  const [emailRevealed, setEmailRevealed] = useState(false);
+  const [supportOnArrival, setSupportOnArrival] = useState(false);
   const [popup, setPopup] = useState<Popup | null>(null);
 
   // Kept across a change of door, so the words the visitor wrote are not lost (ORDER 44).
@@ -140,11 +120,16 @@ export default function ContactPageClient() {
   const cvInputRef = useRef<HTMLInputElement>(null);
   const isEmployer = audience === "employer";
   const isForeign = isEmployer && origin === "foreign";
+  // Norwegian for a Norwegian company only; a foreign company and a candidate read English throughout.
+  const lang: ContactFormLang = isEmployer && !isForeign ? "nb" : "en";
+  const copy = CONTACT_FORM_COPY[lang];
   const { suggestions, lookup } = useCompanySearch(companyQuery, isEmployer && !isForeign && !company);
 
-  // /contact?for=candidate opens on the candidate's side.
+  // /contact?for=candidate opens on the candidate's side; /contact?support=1 opens the support request.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("for") === "candidate") setAudience("candidate");
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("for") === "candidate") setAudience("candidate");
+    if (params.get("support") === "1") setSupportOnArrival(true);
   }, []);
 
   const onTurnstileSuccess = useCallback((token: string) => {
@@ -193,7 +178,7 @@ export default function ContactPageClient() {
       const verdict = judgeForeignCompany({ country, email, phone, vatNumber });
       if (!verdict.ok && verdict.reason === "phone_unreadable") {
         setStatus("error");
-        setErrorMessage(COPY.employer.phoneFormat);
+        setErrorMessage(copy.phoneFormat);
         return;
       }
       if (!verdict.ok) {
@@ -243,11 +228,7 @@ export default function ContactPageClient() {
           return;
         }
         if (data.code === "vies_unreachable") {
-          errorPopup(
-            "MVA-registeret svarer ikke",
-            "EU-registeret VIES svarer ikke akkurat nå, så vi kunne ikke bekrefte MVA-nummeret. Prøv igjen om litt. / The EU VAT register (VIES) is not answering right now. Please try again shortly.",
-            "VIES unreachable on the foreign company form.",
-          );
+          errorPopup(copy.viesTitle, copy.viesBody, "VIES unreachable on the foreign company form.");
           return;
         }
         if (data.error === "Organisation number not found.") {
@@ -258,17 +239,13 @@ export default function ContactPageClient() {
           );
           return;
         }
-        if (response.status === 429) throw new Error(COPY[audience].tooMany);
-        if (response.status === 400 && data.error === "Bot detected") throw new Error(COPY[audience].bot);
-        if (data.code === "phone_format") throw new Error(COPY.employer.phoneFormat);
+        if (response.status === 429) throw new Error(copy.tooMany);
+        if (response.status === 400 && data.error === "Bot detected") throw new Error(copy.bot);
+        if (data.code === "phone_format") throw new Error(copy.phoneFormat);
         if (data.code === "cv_type") throw new Error("The CV must be a PDF or Word file.");
         if (data.code === "cv_too_large") throw new Error("The CV can be at most 5 MB.");
-        if (response.status === 400) throw new Error(COPY[audience].required);
-        errorPopup(
-          isEmployer ? "Meldingen ble ikke sendt" : "Your message was not sent",
-          COPY[audience].failed,
-          `Contact form submit failed with status ${response.status}.`,
-        );
+        if (response.status === 400) throw new Error(copy.required);
+        errorPopup(copy.failedTitle, copy.failed, `Contact form submit failed with status ${response.status}.`);
         return;
       }
       setSubmitted(true);
@@ -286,7 +263,7 @@ export default function ContactPageClient() {
       setSubmitted(false);
       setStatus("error");
       // A network failure throws a browser message in English; only our own messages are shown.
-      setErrorMessage(error instanceof Error && error.name === "Error" && error.message ? error.message : COPY[audience].generic);
+      setErrorMessage(error instanceof Error && error.name === "Error" && error.message ? error.message : copy.generic);
       setTurnstileToken(null);
       setTurnstileKey((k) => k + 1);
       return;
@@ -294,8 +271,6 @@ export default function ContactPageClient() {
 
     setStatus("idle");
   };
-
-  const copy = COPY[audience];
 
   const tabClass = (active: boolean) =>
     `flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-[14px] font-semibold transition-colors ${
@@ -311,9 +286,11 @@ export default function ContactPageClient() {
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <ScrollReveal variant="fadeUp">
           <header className="max-w-3xl">
-            <h1 className="am-h1 font-display font-extrabold tracking-[-0.03em] text-white">Ta kontakt</h1>
-            <p className="mt-4 text-base leading-relaxed text-[rgba(255,255,255,0.65)] md:text-lg">
-              Har dere spørsmål, eller er dere klare til å finne arbeidskraft til bedriften? Vi svarer innen én virkedag.
+            <h1 lang={lang} className="am-h1 font-display font-extrabold tracking-[-0.03em] text-white">
+              {copy.title}
+            </h1>
+            <p lang={lang} className="mt-4 text-base leading-relaxed text-[rgba(255,255,255,0.65)] md:text-lg">
+              {isEmployer ? copy.intro : "Questions about working in Norway with us? We reply within one working day."}
             </p>
           </header>
         </ScrollReveal>
@@ -356,24 +333,24 @@ export default function ContactPageClient() {
                   ))}
                 </div>
               ) : (
-                <div className="mb-4 flex gap-2" role="group" aria-label="Hvor er bedriften registrert?">
-                  <button type="button" aria-pressed={origin === "norway"} onClick={() => setOrigin("norway")} className={originClass(origin === "norway")}>
-                    Norsk bedrift
+                <div className="mb-4 flex gap-2" role="group" aria-label={isForeign ? "Where is the company registered?" : "Hvor er bedriften registrert?"}>
+                  <button type="button" lang="nb" aria-pressed={origin === "norway"} onClick={() => setOrigin("norway")} className={originClass(origin === "norway")}>
+                    {ORIGIN_LABELS.norway}
                   </button>
-                  <button type="button" aria-pressed={origin === "foreign"} onClick={() => setOrigin("foreign")} className={originClass(origin === "foreign")}>
-                    Bedrift i et annet EU/EØS-land
+                  <button type="button" lang="en" aria-pressed={origin === "foreign"} onClick={() => setOrigin("foreign")} className={originClass(origin === "foreign")}>
+                    {ORIGIN_LABELS.foreign}
                   </button>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="rounded-2xl border border-[rgba(201,168,76,0.18)] bg-[rgba(255,255,255,0.03)] p-6 md:p-8">
+              <form lang={lang} onSubmit={handleSubmit} className="rounded-2xl border border-[rgba(201,168,76,0.18)] bg-[rgba(255,255,255,0.03)] p-6 md:p-8">
                 <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
                 {!isEmployer ? (
                   <p className="mb-4 text-[14px] font-semibold text-white">Still have a question? Write to us.</p>
                 ) : null}
                 <div className="space-y-4">
                   <label className={labelClass}>
-                    {isEmployer ? "Navn" : "Name"} <span className="text-[#C9A84C]">*</span>
+                    {copy.name} <span className="text-[#C9A84C]">*</span>
                     <input
                       required
                       name="name"
@@ -382,7 +359,7 @@ export default function ContactPageClient() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className={`${inputClass} mt-1.5`}
-                      placeholder={isEmployer ? "Fullt navn" : "Full name"}
+                      placeholder={copy.namePlaceholder}
                     />
                   </label>
 
@@ -451,13 +428,21 @@ export default function ContactPageClient() {
                   {isForeign ? (
                     <>
                       <label className={labelClass}>
-                        Bedriftens navn <span className="text-[#C9A84C]">*</span>
-                        <input required type="text" value={foreignName} onChange={(e) => setForeignName(e.target.value)} className={`${inputClass} mt-1.5`} placeholder="Company name" />
+                        {copy.companyName} <span className="text-[#C9A84C]">*</span>
+                        <input
+                          required
+                          type="text"
+                          autoComplete="organization"
+                          value={foreignName}
+                          onChange={(e) => setForeignName(e.target.value)}
+                          className={`${inputClass} mt-1.5`}
+                          placeholder={copy.companyNamePlaceholder}
+                        />
                       </label>
                       <label className={labelClass}>
-                        Land <span className="text-[#C9A84C]">*</span>
+                        {copy.country} <span className="text-[#C9A84C]">*</span>
                         <select required value={country} onChange={(e) => setCountry(e.target.value)} className={`${inputClass} mt-1.5`}>
-                          <option value="">Velg land / Choose country</option>
+                          <option value="">{copy.countryPlaceholder}</option>
                           {EEA_COUNTRIES.map((c) => (
                             <option key={c.code} value={c.code}>
                               {c.name}
@@ -466,14 +451,14 @@ export default function ContactPageClient() {
                         </select>
                       </label>
                       <label className={labelClass}>
-                        MVA-nummer (EU VAT) <span className="text-[#C9A84C]">*</span>
-                        <input required type="text" value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} className={`${inputClass} mt-1.5`} placeholder="DE123456789" />
+                        {copy.vat} <span className="text-[#C9A84C]">*</span>
+                        <input required type="text" value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} className={`${inputClass} mt-1.5`} placeholder={copy.vatPlaceholder} />
                       </label>
                     </>
                   ) : null}
 
                   <label className={labelClass}>
-                    {isEmployer ? "E-post" : "Email"} <span className="text-[#C9A84C]">*</span>
+                    {copy.email} <span className="text-[#C9A84C]">*</span>
                     <input
                       required
                       name="email"
@@ -482,13 +467,13 @@ export default function ContactPageClient() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className={`${inputClass} mt-1.5`}
-                      placeholder={isEmployer ? "navn@firma.no" : "name@example.com"}
+                      placeholder={isEmployer ? copy.emailPlaceholder : "name@example.com"}
                     />
                   </label>
 
                   {isForeign || !isEmployer ? (
                     <label className={labelClass}>
-                      {isEmployer ? "Telefon" : "Phone"} <span className="text-[#C9A84C]">*</span>
+                      {copy.phone} <span className="text-[#C9A84C]">*</span>
                       <input
                         required
                         type="tel"
@@ -496,7 +481,7 @@ export default function ContactPageClient() {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         className={`${inputClass} mt-1.5`}
-                        placeholder="+47 400 00 000"
+                        placeholder={isEmployer ? copy.phonePlaceholder : "+47 400 00 000"}
                       />
                     </label>
                   ) : null}
@@ -521,7 +506,7 @@ export default function ContactPageClient() {
                   ) : null}
 
                   <label className={labelClass}>
-                    {isEmployer ? "Melding" : "Message"} <span className="text-[#C9A84C]">*</span>
+                    {copy.message} <span className="text-[#C9A84C]">*</span>
                     <textarea
                       required
                       name="message"
@@ -529,7 +514,7 @@ export default function ContactPageClient() {
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       className={`${inputClass} mt-1.5 min-h-[120px] resize-y`}
-                      placeholder={isEmployer ? "Hva kan vi hjelpe dere med?" : "How can we help you?"}
+                      placeholder={copy.messagePlaceholder}
                     />
                   </label>
                 </div>
@@ -551,11 +536,11 @@ export default function ContactPageClient() {
                 </button>
 
                 <p className="mt-4 text-center text-[11px] leading-relaxed text-white/60">
-                  {isEmployer ? "Les hvordan vi behandler opplysningene deres i " : "Read how we handle your information in our "}
+                  {copy.privacyBefore}
                   <Link href="/privacy" className="text-[#C9A84C] underline-offset-2 hover:underline">
-                    {isEmployer ? "personvernerklæringen" : "privacy notice"}
+                    {copy.privacyLink}
                   </Link>
-                  {isEmployer ? " vår." : "."}
+                  {copy.privacyAfter}
                 </p>
 
                 {submitted ? (
@@ -575,33 +560,23 @@ export default function ContactPageClient() {
                   <Shield className="h-4 w-4 shrink-0 text-[#C9A84C]" strokeWidth={1.75} aria-hidden />
                   <span>Org.nr: 935 667 089 MVA</span>
                 </p>
-                <p className="text-sm text-[rgba(255,255,255,0.5)]">Registrert i Norge</p>
+                <p lang={lang} className="text-sm text-[rgba(255,255,255,0.5)]">
+                  {copy.registered}
+                </p>
               </div>
             </div>
           </ScrollReveal>
 
           <ScrollReveal variant="fadeUp">
             <aside className="space-y-8 lg:pl-4">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">E-post</p>
-                {emailRevealed ? (
-                  <a
-                    href={`mailto:${EMAIL_USER}@${EMAIL_DOMAIN}`}
-                    className="mt-2 inline-flex items-center gap-2 text-lg font-medium text-[#C9A84C] transition-colors hover:text-[#d8bc6a]"
-                  >
-                    <Mail className="h-5 w-5 shrink-0" strokeWidth={1.75} aria-hidden />
-                    {EMAIL_USER}@{EMAIL_DOMAIN}
-                  </a>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setEmailRevealed(true)}
-                    className="mt-2 inline-flex items-center gap-2 text-lg font-medium text-[#C9A84C] transition-colors hover:text-[#d8bc6a]"
-                  >
-                    <Mail className="h-5 w-5 shrink-0" strokeWidth={1.75} aria-hidden />
-                    Vis e-postadressen
-                  </button>
-                )}
+              {/* Support instead of an e-mail address (W1, 6 October 2026): no mailbox is shown or revealed here. */}
+              <div lang={lang} data-testid="contact-support">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">{copy.supportHeading}</p>
+                <SupportButton
+                  lang={lang}
+                  autoOpen={supportOnArrival}
+                  className="mt-2 inline-flex min-h-11 items-center gap-2 text-lg font-medium text-[#C9A84C] transition-colors hover:text-[#d8bc6a]"
+                />
               </div>
               <div className="border-t border-[rgba(255,255,255,0.08)] pt-8">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">Adresse</p>
@@ -640,24 +615,26 @@ export default function ContactPageClient() {
       ) : null}
 
       {popup?.kind === "policy" ? (
-        <ContactPopup title="Vi kan ikke ta imot denne henvendelsen / We cannot take this request" onClose={() => setPopup(null)}>
-          <p>
+        <ContactPopup title={copy.policyTitle} onClose={() => setPopup(null)} lang={lang}>
+          <p lang="en">
             {POLICY_REFUSAL.en}{" "}
             <a href={RECRUITER_NETWORK_URL} className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline">
               Recruiter network
             </a>
           </p>
-          <p className="text-white/65">
-            {POLICY_REFUSAL.nb}{" "}
-            <a href={RECRUITER_NETWORK_URL} className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline">
-              Rekrutterernettverk
-            </a>
-          </p>
+          {lang === "nb" ? (
+            <p lang="nb" className="text-white/65">
+              {POLICY_REFUSAL.nb}{" "}
+              <a href={RECRUITER_NETWORK_URL} className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline">
+                Rekrutterernettverk
+              </a>
+            </p>
+          ) : null}
         </ContactPopup>
       ) : null}
 
       {popup?.kind === "error" ? (
-        <ContactPopup title={popup.title} onClose={() => setPopup(null)} flagContext={popup.context} replyEmail={email}>
+        <ContactPopup title={popup.title} onClose={() => setPopup(null)} flagContext={popup.context} replyEmail={email} lang={lang}>
           <p>{popup.body}</p>
         </ContactPopup>
       ) : null}

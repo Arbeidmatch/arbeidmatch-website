@@ -9,11 +9,9 @@ import { useEffect, useState, type ReactNode } from "react";
  * hydration, so a scraper reading the page source finds no user@domain to harvest and no
  * mailto: href to follow. A person sees the address and gets a working link.
  *
- * The contact page solves the same problem one step harder: it keeps the address behind a
- * "Show email address" click, so even a scraper that runs JavaScript has nothing to take
- * unless it clicks. That is right for the one page whose whole purpose is the address.
- * This component is for the places where the address has to be readable at a glance, like
- * the footer and the company facts.
+ * Since 6 October 2026 (W1) the site shows no mailbox where a person wants help: those
+ * places carry the "Contact support" button (components/support/SupportRequest). This
+ * component is left for the address the law asks for, the imprint in the footer.
  */
 export type ProtectedEmailProps = {
   username: string;

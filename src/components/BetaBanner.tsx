@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { SupportButton } from "@/components/support/SupportRequest";
 import { langForPath } from "@/lib/pageLang";
 
 const LEGAL_POLICY_PATHS = new Set(["/privacy", "/terms", "/unsubscribed"]);
@@ -22,7 +23,7 @@ export default function BetaBanner() {
     operation: "I betaperioden kan det forekomme feil, avbrudd, forsinkelser eller visningsproblemer. Innhold, funksjoner og grafisk utforming kan endres. Illustrasjonsbilder og eksempler viser ikke nødvendigvis en bestemt kandidat, arbeidsplass eller et avtalt leveranseomfang.",
     results: "Informasjon, kandidatpresentasjoner og estimater på nettsiden er ikke i seg selv en garanti for ansettelse, kandidattilgjengelighet, leveringstid eller et bestemt resultat. Omfang, pris, frister og forpliktelser for en konkret tjeneste avtales særskilt.",
     rights: "Denne informasjonen begrenser ikke ufravikelige rettigheter eller våre forpliktelser etter inngåtte avtaler. Kontakt oss hvis noe er uklart eller ikke fungerer som forventet.",
-    feedback: "Gi oss tilbakemelding", support: "Teknisk hjelp", terms: "Vilkår",
+    feedback: "Gi oss tilbakemelding", support: "Kontakt support", terms: "Vilkår",
   } : {
     heading: "In development. Improving with you.",
     intro: "Our website is in a beta version. We continually improve its features, content and design. Your feedback helps us understand your needs and make the service better.",
@@ -30,7 +31,7 @@ export default function BetaBanner() {
     operation: "During the beta period, errors, interruptions, delays or display issues may occur. Content, features and visual design may change. Illustrative images and examples do not necessarily depict a particular candidate, workplace or agreed service.",
     results: "Website information, candidate presentations and estimates do not in themselves guarantee employment, candidate availability, delivery times or a particular outcome. The scope, price, deadlines and commitments for a specific service are agreed separately.",
     rights: "This notice does not limit mandatory legal rights or our obligations under existing agreements. Please contact us if anything is unclear or does not work as expected.",
-    feedback: "Share your feedback", support: "Technical help", terms: "Terms of service",
+    feedback: "Share your feedback", support: "Contact support", terms: "Terms of service",
   };
 
   return (
@@ -42,7 +43,7 @@ export default function BetaBanner() {
           <summary className="min-h-11 cursor-pointer py-3 font-medium text-[#C9A84C]">{copy.details}</summary>
           <div className="space-y-3 pb-2 leading-relaxed text-white/75"><p>{copy.operation}</p><p>{copy.results}</p><p>{copy.rights}</p></div>
         </details>
-        <div className="mt-2 flex flex-wrap gap-x-7 gap-y-1 text-sm"><Link href="/feedback" className="inline-flex min-h-11 items-center font-medium text-[#C9A84C] hover:underline">{copy.feedback} →</Link><a href="mailto:support@arbeidmatch.no" className="inline-flex min-h-11 items-center text-white/75 hover:underline">{copy.support}: support@arbeidmatch.no</a><Link href="/terms" className="inline-flex min-h-11 items-center text-white/75 hover:underline">{copy.terms}</Link></div>
+        <div className="mt-2 flex flex-wrap gap-x-7 gap-y-1 text-sm"><Link href="/feedback" className="inline-flex min-h-11 items-center font-medium text-[#C9A84C] hover:underline">{copy.feedback} →</Link><SupportButton lang={no ? "nb" : "en"} showIcon={false} className="inline-flex min-h-11 items-center text-white/75 hover:underline">{copy.support}</SupportButton><Link href="/terms" className="inline-flex min-h-11 items-center text-white/75 hover:underline">{copy.terms}</Link></div>
       </div>
     </section>
   );

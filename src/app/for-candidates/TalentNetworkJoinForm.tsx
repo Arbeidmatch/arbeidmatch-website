@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SupportButton } from "@/components/support/SupportRequest";
 import { FormEvent, useMemo, useState } from "react";
 
 function isValidEmail(value: string): boolean {
@@ -110,7 +111,11 @@ export default function TalentNetworkJoinForm() {
 
       {error ? (
         <p className="text-center text-sm text-red-300/95" role="alert">
-          Something went wrong. Please try again or email us at cv@arbeidmatch.no
+          Something went wrong. Please try again or{" "}
+          <SupportButton lang="en" showIcon={false} className="font-semibold underline underline-offset-2">
+            contact support
+          </SupportButton>
+          .
         </p>
       ) : null}
     </form>
