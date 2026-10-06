@@ -283,7 +283,7 @@ export default function ContactPageClient({
     }`;
 
   return (
-    <section className="bg-[#0D1B2A] py-14 text-white md:py-20 lg:py-24">
+    <section className="bg-[#0D1B2A] pt-14 pb-32 text-white md:py-20 lg:py-24">
       <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
         <ScrollReveal variant="fadeUp">
           <header className="max-w-3xl">
@@ -306,7 +306,7 @@ export default function ContactPageClient({
               >
                 <button type="button" role="tab" aria-selected={isEmployer} onClick={() => switchTo("employer")} className={tabClass(isEmployer)}>
                   <Building2 className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden />
-                  Bedrift
+                  {copy.employerTab}
                 </button>
                 <button type="button" role="tab" aria-selected={!isEmployer} onClick={() => switchTo("candidate")} className={tabClass(!isEmployer)}>
                   <Users className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden />
@@ -334,7 +334,7 @@ export default function ContactPageClient({
                   ))}
                 </div>
               ) : (
-                <div className="mb-4 flex gap-2" role="group" aria-label={isForeign ? "Where is the company registered?" : "Hvor er bedriften registrert?"}>
+                <div className="mb-4 flex gap-2" role="group" aria-label={copy.originGroupLabel}>
                   <button type="button" lang="nb" aria-pressed={origin === "norway"} onClick={() => setOrigin("norway")} className={originClass(origin === "norway")}>
                     {ORIGIN_LABELS.norway}
                   </button>
@@ -367,7 +367,7 @@ export default function ContactPageClient({
                   {isEmployer && !isForeign ? (
                     <div className={labelClass}>
                       <label htmlFor="contact-company">
-                        Bedrift <span className="text-[#C9A84C]">*</span>
+                        {copy.companyField} <span className="text-[#C9A84C]">*</span>
                       </label>
                       {company ? (
                         <div className="mt-1.5 flex items-center justify-between gap-3 rounded-lg border border-[#C9A84C]/60 bg-[rgba(201,168,76,0.08)] px-4 py-3">
@@ -580,14 +580,14 @@ export default function ContactPageClient({
                 />
               </div>
               <div className="border-t border-[rgba(255,255,255,0.08)] pt-8">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">Adresse</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">{copy.addressHeading}</p>
                 <p className="mt-2 flex items-start gap-2 text-[15px] leading-relaxed text-[rgba(255,255,255,0.55)]">
                   <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#C9A84C]" strokeWidth={1.75} aria-hidden />
-                  <span>Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norge</span>
+                  <span>{copy.address}</span>
                 </p>
               </div>
               <div className="border-t border-[rgba(255,255,255,0.08)] pt-8">
-                <p className="text-[15px] text-[rgba(255,255,255,0.55)]">Vi holder til i Trondheim</p>
+                <p className="text-[15px] text-[rgba(255,255,255,0.55)]">{copy.basedIn}</p>
               </div>
             </aside>
           </ScrollReveal>

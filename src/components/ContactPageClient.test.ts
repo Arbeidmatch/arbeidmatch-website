@@ -56,6 +56,14 @@ describe("contact page: a company from another EU/EEA country reads English (W1)
     for (const word of NORWEGIAN_ONLY) {
       expect(form, `Norwegian left in the English form: ${word}`).not.toContain(escape(word));
     }
+    // The page framing follows the selected form language, except for the Norwegian choice label.
+    for (const text of ["Company", "Address", "We are based in Trondheim", "Where is the company registered?", "7056 Ranheim, Trondheim, Norway"]) {
+      expect(html).toContain(escape(text));
+    }
+    expect(html).toContain(escape("Norsk bedrift"));
+    for (const text of ["Bedrift", "Adresse", "Vi holder til i Trondheim", "Hvor er bedriften registrert?", "Trondheim, Norge"]) {
+      expect(html).not.toContain(escape(text));
+    }
     // The heading above the form follows the form.
     const heading = headingOf(html);
     expect(heading).toContain("Contact us");
@@ -67,6 +75,8 @@ describe("contact page: a company from another EU/EEA country reads English (W1)
     const form = formOf(page({}));
     for (const label of ["Navn", "E-post", "Melding", "Send melding", "personvernerklæringen"]) expect(form).toContain(escape(label));
     expect(form).not.toContain("Company name");
+    const html = page({});
+    for (const text of ["Bedrift", "Norsk bedrift", "Adresse", "Vi holder til i Trondheim"]) expect(html).toContain(escape(text));
   });
 
   it("gives the candidate an English form throughout", () => {
