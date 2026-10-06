@@ -1,3 +1,5 @@
+import { SUPPORT_PAGE_URL } from "@/lib/supportPage";
+
 const schema = {
   "@context": "https://schema.org",
   "@type": "AboutPage",
@@ -16,7 +18,8 @@ const schema = {
     },
     contactPoint: {
       "@type": "ContactPoint",
-      telephone: "+47-967-34-730",
+      // Questions go to the support page, never a phone (the owner, 6 October 2026).
+      url: SUPPORT_PAGE_URL,
       contactType: "customer service",
       availableLanguage: ["Norwegian", "English", "Romanian", "Polish"],
     },

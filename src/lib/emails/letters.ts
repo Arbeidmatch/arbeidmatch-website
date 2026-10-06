@@ -9,6 +9,7 @@ import {
 } from "@/lib/arbeidmatchEmailShell";
 import { CANDIDATE_PORTAL_REGISTER_URL } from "@/lib/candidatePortal";
 import { escapeHtml } from "@/lib/htmlSanitizer";
+import { SUPPORT_LABEL, SUPPORT_PAGE_URL } from "@/lib/supportPage";
 
 /**
  * Every letter the website sends, apart from the request form (send-request-email),
@@ -568,7 +569,7 @@ export function partnerRejectedLetter(args: { to: string; unsubscribeUrl: string
     html: buildArbeidmatchLetter({
       title: "Thank you for your interest",
       innerHtml: letterParagraph(
-        "After reviewing your request, we are unable to offer partner access at this time. You are welcome to reapply in the future, or reply to this email if you would like to know more.",
+        `After reviewing your request, we are unable to offer partner access at this time. You are welcome to reapply in the future, or ask <a href="${SUPPORT_PAGE_URL}" style="color:#a8871f;">${SUPPORT_LABEL.en}</a> if you would like to know more.`,
       ),
       lang: EN,
       recipient: args.to,

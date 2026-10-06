@@ -1,14 +1,13 @@
 import Link from "next/link";
 
-import { ProtectedEmail } from "@/components/ProtectedEmail";
+import { SUPPORT_LABEL, SUPPORT_PAGE_PATH } from "@/lib/supportPage";
 
 const FACTS = [
   { label: "Org.nr", value: "935 667 089 (MVA-registrert)" },
   { label: "Stiftet", value: "08. mai 2025" },
   { label: "Adresse", value: "Sverre Svendsens veg 38, 7056 Ranheim" },
-  // The address is assembled in the browser, so the page source carries no mailbox.
-  { label: "E-post", email: { username: "support", domain: "arbeidmatch.no" } },
-  { label: "Telefon", value: "967 34 730" },
+  // Questions go to the support page, never a mailbox or a phone (the owner, 6 October 2026).
+  { label: "Spørsmål", link: { href: SUPPORT_PAGE_PATH, text: SUPPORT_LABEL.nb } },
   { label: "Bransje", value: "78.200 - Midlertidig ansettelse" },
 ] as const;
 
@@ -38,13 +37,10 @@ export default function AboutUnderConstruction() {
                 {row.label}
               </dt>
               <dd className="mt-1 text-sm font-medium text-white">
-                {"email" in row ? (
-                  <ProtectedEmail
-                    username={row.email.username}
-                    domain={row.email.domain}
-                    className="text-white no-underline hover:text-[#C9A84C]"
-                    loadingLabel=""
-                  />
+                {"link" in row ? (
+                  <Link href={row.link.href} className="text-white underline hover:text-[#C9A84C]">
+                    {row.link.text}
+                  </Link>
                 ) : (
                   row.value
                 )}

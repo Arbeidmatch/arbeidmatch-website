@@ -6,8 +6,6 @@ export const CV_CONTROLLER = {
   country: "Norway",
 } as const;
 
-export const CV_SUPPORT_EMAIL = "post@arbeidmatch.no";
-
 export function controllerFooter(): string {
   return `${CV_CONTROLLER.name}, org.nr. ${CV_CONTROLLER.orgNumber}, ${CV_CONTROLLER.address}, ${CV_CONTROLLER.country}`;
 }

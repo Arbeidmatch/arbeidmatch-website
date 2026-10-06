@@ -51,6 +51,7 @@ import {
   type RoleQuestion,
 } from "@/lib/request-role-questions";
 import { contactIsComplete, knownContactFromToken, realContactValue } from "@/lib/request-contact-placeholders";
+import { SUPPORT_PAGE_PATH } from "@/lib/supportPage";
 import {
   contractTypeForService,
   isRequesterKind,
@@ -3374,7 +3375,13 @@ export default function RequestTokenPage() {
                     <input type="checkbox" checked={form.subscribeUpdates} onChange={(event) => setForm((previous) => ({ ...previous, subscribeUpdates: event.target.checked }))} className="mt-1 h-5 w-5 shrink-0 accent-[#C9A84C]" />
                     <span>{t.subscribeLabel}</span>
                   </label>
-                  <p className="mt-3 text-xs leading-relaxed text-white/60">{t.subscribeHelp}</p>
+                  <p className="mt-3 text-xs leading-relaxed text-white/60">
+                    {t.subscribeHelp}{" "}
+                    <Link href={SUPPORT_PAGE_PATH} className="text-[#C9A84C] underline">
+                      {t.subscribeHelpSupport}
+                    </Link>
+                    .
+                  </p>
                 </div>
               </div>
             )}

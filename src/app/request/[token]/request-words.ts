@@ -183,7 +183,8 @@ const en = {
   hireBy: "Hire needed by",
   subscribeLabel: "I want emails from ArbeidMatch when candidates matching this request become available.",
   subscribeHelp:
-    "Optional. Presentations are sent when suitable candidates are available, not immediately after your request. To stop updates, contact post@arbeidmatch.no.",
+    "Optional. Presentations are sent when suitable candidates are available, not immediately after your request. To stop updates, contact",
+  subscribeHelpSupport: "our support",
 
   // Step 3: requirements
   step3Title: "Requirements",
@@ -405,7 +406,8 @@ const no: Record<WordKey, string> = {
   hireBy: "Ansettelse innen",
   subscribeLabel: "Jeg ønsker e-post fra ArbeidMatch når kandidater som passer denne forespørselen blir tilgjengelige.",
   subscribeHelp:
-    "Valgfritt. Presentasjoner sendes når passende kandidater er tilgjengelige, ikke rett etter forespørselen. Ta kontakt på post@arbeidmatch.no for å stoppe oppdateringene.",
+    "Valgfritt. Presentasjoner sendes når passende kandidater er tilgjengelige, ikke rett etter forespørselen. For å stoppe oppdateringene, kontakt",
+  subscribeHelpSupport: "vår support",
 
   step3Title: "Krav",
   qualification: "Erfaring",

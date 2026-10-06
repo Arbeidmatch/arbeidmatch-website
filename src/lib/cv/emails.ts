@@ -1,4 +1,7 @@
-import { CV_SUPPORT_EMAIL, controllerFooter } from "@/lib/cv/org";
+import { controllerFooter } from "@/lib/cv/org";
+import { SUPPORT_LABEL, SUPPORT_PAGE_URL } from "@/lib/supportPage";
+
+const SUPPORT_LINK_STYLE = "color: #0D1B2A; font-weight: 700;";
 
 export type CvEmailLang = "en" | "ro";
 
@@ -15,7 +18,7 @@ const COPY = {
     cvDataIntro:
       "We created a work profile for you so we can match you with jobs. You can see everything we hold, export it, or delete it here:",
     cvDataLink: "See or delete my data",
-    cvQuestions: `Questions? Write to ${CV_SUPPORT_EMAIL}.`,
+    cvQuestions: `Questions? Ask <a href="${SUPPORT_PAGE_URL}" style="${SUPPORT_LINK_STYLE}">${SUPPORT_LABEL.en}</a>.`,
   },
   ro: {
     otpSubject: "Codul tau ArbeidMatch pentru CV",
@@ -29,7 +32,7 @@ const COPY = {
     cvDataIntro:
       "Ti-am creat un profil de lucru ca sa te putem potrivi cu joburi. Poti vedea tot ce detinem, poti exporta sau sterge totul aici:",
     cvDataLink: "Vezi sau sterge datele mele",
-    cvQuestions: `Intrebari? Scrie la ${CV_SUPPORT_EMAIL}.`,
+    cvQuestions: `Intrebari? Scrie-ne prin <a href="${SUPPORT_PAGE_URL}" style="${SUPPORT_LINK_STYLE}">${SUPPORT_LABEL.ro}</a>.`,
   },
 } as const;
 

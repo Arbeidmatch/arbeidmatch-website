@@ -7,6 +7,7 @@ import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { unsubscribeUrlFor } from "@/lib/emailSubscription";
 import { partnerApprovedLetter, partnerContactedLetter, partnerRejectedLetter } from "@/lib/emails/letters";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { SUPPORT_LABEL, SUPPORT_PAGE_URL } from "@/lib/supportPage";
 
 type SlackPayload = {
   actions?: Array<{ action_id?: string; value?: string }>;
@@ -164,7 +165,7 @@ export async function POST(request: NextRequest) {
           ...mailHeaders(),
           to: email,
           subject: letter.subject,
-          text: "After reviewing your request, we are unable to offer partner access at this time. You are welcome to reapply in the future or contact us at support@arbeidmatch.no for more information.",
+          text: `After reviewing your request, we are unable to offer partner access at this time. You are welcome to reapply in the future, or ask ${SUPPORT_LABEL.en} at ${SUPPORT_PAGE_URL} if you would like to know more.`,
           html: letter.html,
         });
       }
