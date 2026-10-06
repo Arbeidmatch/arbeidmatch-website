@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildArbeidmatchLetter, emailPreheaderText, letterParagraph } from "@/lib/arbeidmatchEmailShell";
-import { requestOtpLetter } from "@/lib/emails/letters";
+import { contactReceiptLang, contactReceiptLetter, requestOtpLetter } from "@/lib/emails/letters";
 
 const visible = (html: string) => html.replace(/<!--AM_PREHEADER-->[\s\S]*?<!--\/AM_PREHEADER-->/g, "");
 const count = (haystack: string, needle: string) => haystack.split(needle).length - 1;
@@ -61,5 +61,39 @@ describe("the verification code letter", () => {
   it("does not put the code in the inbox preview", () => {
     const preheader = /<!--AM_PREHEADER-->([\s\S]*?)<!--\/AM_PREHEADER-->/.exec(letter.html)?.[1] ?? "";
     expect(preheader).not.toContain("123456");
+  });
+});
+
+
+describe("contact form receipt language", () => {
+  const args = { name: "Navn", need: "Employer inquiry", to: "recipient@example.test", unsubscribeUrl: "https://example.test/unsubscribe" };
+
+  it("sends a Norwegian receipt for the Norwegian form", () => {
+    const receipt = contactReceiptLetter({ ...args, lang: "nb" });
+    expect(receipt.subject).toBe("Vi har mottatt meldingen din - ArbeidMatch");
+    expect(receipt.html).toContain('<html lang="no">');
+    expect(receipt.html).toContain("Hei Navn,");
+    expect(receipt.html).toContain("Takk for at du tok kontakt med oss. Vi har mottatt meldingen din og svarer så snart vi kan.");
+    expect(receipt.html).toContain("Med vennlig hilsen,");
+    expect(receipt.html).not.toContain("Kind regards");
+  });
+
+  it("sends an English receipt for the foreign form", () => {
+    const receipt = contactReceiptLetter({ ...args, lang: "en" });
+    expect(receipt.subject).toBe("We received your message - ArbeidMatch");
+    expect(receipt.html).toContain('<html lang="en">');
+    expect(receipt.html).toContain("Hi Navn,");
+    expect(receipt.html).toContain("Thank you for contacting us. We received your message and will respond shortly.");
+    expect(receipt.html).toContain("Kind regards,");
+    expect(receipt.html).not.toContain("Med vennlig hilsen");
+  });
+
+  it("uses the form context for a missing or invalid language", () => {
+    expect(contactReceiptLang(undefined, "nb")).toBe("nb");
+    expect(contactReceiptLang("fr", "nb")).toBe("nb");
+    expect(contactReceiptLang(undefined, "en")).toBe("en");
+    expect(contactReceiptLang("no", "en")).toBe("en");
+    expect(contactReceiptLang("nb", "en")).toBe("nb");
+    expect(contactReceiptLang("en", "nb")).toBe("en");
   });
 });

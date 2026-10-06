@@ -193,6 +193,7 @@ export default function ContactPageClient({
       orgNumber: isEmployer && !isForeign ? company?.orgNumber ?? "" : "",
       email: email.trim(),
       need: isEmployer ? EMPLOYER_NEED : CANDIDATE_NEED,
+      lang,
       message: message.trim(),
       website: String(new FormData(form).get("website") || ""),
       turnstileToken: turnstileToken ?? "",

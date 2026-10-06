@@ -5,7 +5,7 @@ import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
-import { contactNoticeLetter, contactReceiptLetter } from "@/lib/emails/letters";
+import { contactNoticeLetter, contactReceiptLang, contactReceiptLetter } from "@/lib/emails/letters";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 import { lookupBrregCompany } from "@/lib/brreg";
 import { CANDIDATE_NEED, EMPLOYER_NEED } from "@/lib/contactNeeds";
@@ -208,6 +208,7 @@ export async function POST(request: NextRequest) {
       const receipt = contactReceiptLetter({
         name,
         need,
+        lang: contactReceiptLang(rawBody.lang, need === EMPLOYER_NEED && !foreign ? "nb" : "en"),
         to: email,
         unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
       });

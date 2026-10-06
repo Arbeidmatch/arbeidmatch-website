@@ -76,26 +76,35 @@ export function contactNoticeLetter(args: {
   };
 }
 
-/** The sender's receipt. It used to end in a button asking for feedback on a message just sent. */
-export function contactReceiptLetter(args: { name: string; need: string; to: string; unsubscribeUrl: string }): Letter {
+export type ContactReceiptLang = "nb" | "en";
+
+export function contactReceiptLang(value: unknown, fallback: ContactReceiptLang): ContactReceiptLang {
+  return value === "nb" || value === "en" ? value : fallback;
+}
+
+/** The sender's receipt follows the language selected by the contact form. */
+export function contactReceiptLetter(args: { name: string; need: string; lang: "nb" | "en"; to: string; unsubscribeUrl: string }): Letter {
+  const norwegian = args.lang === "nb";
   return {
-    subject: "We received your message - ArbeidMatch",
+    subject: norwegian ? "Vi har mottatt meldingen din - ArbeidMatch" : "We received your message - ArbeidMatch",
     html: buildArbeidmatchLetter({
-      title: "We received your message",
+      title: norwegian ? "Vi har mottatt meldingen din" : "We received your message",
       innerHtml: [
-        letterParagraph(`Hi ${escapeHtml(args.name)},`),
-        letterParagraph("Thank you for contacting us. We received your message and will respond shortly."),
-        // ORDER 44: a job seeker is told the way in here, so the ATS needs no card to answer them.
+        letterParagraph(norwegian ? "Hei " + escapeHtml(args.name) + "," : "Hi " + escapeHtml(args.name) + ","),
+        letterParagraph(norwegian ? "Takk for at du tok kontakt med oss. Vi har mottatt meldingen din og svarer så snart vi kan." : "Thank you for contacting us. We received your message and will respond shortly."),
         ...(args.need === "Candidate inquiry"
           ? [
               letterParagraph(
-                `To be considered for our open positions, please register your profile at ${escapeHtml(CANDIDATE_PORTAL_REGISTER_URL)} and upload your CV and documents there. When your profile is ready, you can apply for the positions that fit you at https://arbeidmatch.no/jobs.`,
+                norwegian
+                  ? "For å bli vurdert til ledige stillinger bør du registrere profilen din på " + escapeHtml(CANDIDATE_PORTAL_REGISTER_URL) + " og laste opp CV-en og dokumentene dine der. Når profilen er klar, kan du søke på stillingene som passer for deg på https://arbeidmatch.no/jobs."
+                  : "To be considered for our open positions, please register your profile at " + escapeHtml(CANDIDATE_PORTAL_REGISTER_URL) + " and upload your CV and documents there. When your profile is ready, you can apply for the positions that fit you at https://arbeidmatch.no/jobs.",
               ),
             ]
           : []),
-        letterFacts([{ label: "Request type", value: args.need }]),
+        letterParagraph(norwegian ? "Med vennlig hilsen,<br>ArbeidMatch" : "Kind regards,<br>ArbeidMatch"),
+        letterFacts([{ label: norwegian ? "Henvendelsestype" : "Request type", value: args.need }]),
       ].join(""),
-      lang: EN,
+      lang: norwegian ? "no" : EN,
       recipient: args.to,
       unsubscribeUrl: args.unsubscribeUrl,
     }),
