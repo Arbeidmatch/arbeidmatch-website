@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import MinSideProjects from "@/components/min-side/MinSideProjects";
 
 import { CARD, EYEBROW, FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import {
@@ -341,6 +342,8 @@ export default function MinSideClient({ token }: { token: string }) {
                       </a>
                     ) : null}
                   </p>
+                  {/* The projects themselves, here (his order, 12 October 2026); the projects page keeps the choices. */}
+                  {profile.alerts?.projects_url ? <MinSideProjects projects={profile.alerts.projects} /> : null}
                 </Panel>
               ) : null}
 

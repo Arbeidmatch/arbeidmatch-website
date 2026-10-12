@@ -51,7 +51,7 @@ describe("Min side: the words on the page", () => {
     expect(free.title).toBe("Gratis til 30. april 2027");
     expect(free.text).toContain("kr 6 800 per år");
     expect(free.text).toContain("første faktura 1. mai 2027");
-    const cancelled = alertsWords({ plan: { ...profileFrom(answer)!.alerts!.plan!, status: "paid", until: "2028-04-30", cancelled: true }, free_until: null, projects_url: null });
+    const cancelled = alertsWords({ plan: { ...profileFrom(answer)!.alerts!.plan!, status: "paid", until: "2028-04-30", cancelled: true }, free_until: null, projects_url: null, projects: [] });
     expect(cancelled.title).toBe("Abonnementet avsluttes 30. april 2028");
   });
 
@@ -65,7 +65,7 @@ describe("Min side: the words on the page", () => {
   });
 
   it("never names where the projects come from", () => {
-    for (const a of [null, profileFrom(answer)!.alerts, { plan: null, free_until: "2027-01-31", projects_url: null }]) {
+    for (const a of [null, profileFrom(answer)!.alerts, { plan: null, free_until: "2027-01-31", projects_url: null, projects: [] }]) {
       const w = alertsWords(a);
       expect(`${w.title} ${w.text}`.toLowerCase()).not.toContain("doffin");
     }
@@ -129,5 +129,26 @@ describe("Min side: one section at a time", () => {
     expect(sectionHint("kandidater", p)).toBe("1 presentasjon");
     expect(p.candidates[0].url).toBeNull();
     expect(kronerNo(12500)).toBe("kr 12 500,00");
+  });
+
+  it("lists the alert projects it is sent, and keeps only safe links (12 October 2026)", () => {
+    const withProjects = {
+      ...answer,
+      alerts: {
+        ...(answer as { alerts: Record<string, unknown> }).alerts,
+        projects: [
+          { id: "p1", title: "Skole", stage: "tender", regions: ["NO060"], domains: ["buildings"], documents_url: "https://kgv.invalid/x", winners: [] },
+          { id: "p2", title: "Vei", stage: "awarded", regions: [], domains: [], documents_url: "javascript:alert(1)", winners: ["Bygg AS"] },
+          { id: "p3", title: "Avlyst", stage: "cancelled" },
+          { title: "uten id", stage: "planned" },
+        ],
+      },
+    };
+    const projects = profileFrom(withProjects)!.alerts!.projects;
+    expect(projects.map((p) => p.id)).toEqual(["p1", "p2"]);
+    expect(projects[0].documents_url).toBe("https://kgv.invalid/x");
+    expect(projects[1].documents_url).toBeNull();
+    expect(projects[1].winners).toEqual(["Bygg AS"]);
+    expect(profileFrom(answer)!.alerts!.projects).toEqual([]);
   });
 });

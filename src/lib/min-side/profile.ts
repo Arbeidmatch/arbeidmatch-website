@@ -39,7 +39,25 @@ export type Plan = {
   offer_url: string | null;
 };
 
-export type Alerts = { plan: Plan | null; free_until: string | null; projects_url: string | null };
+/** One project of the person's alerts, as Min side lists it (12 October 2026). */
+export type MinSideProject = {
+  id: string;
+  title: string;
+  stage: "planned" | "tender" | "awarded";
+  buyer_name: string | null;
+  regions: string[];
+  city: string | null;
+  domains: string[];
+  description: string | null;
+  estimated_value_nok: number | null;
+  awarded_value_nok: number | null;
+  published_on: string | null;
+  deadline_at: string | null;
+  documents_url: string | null;
+  winners: string[];
+};
+
+export type Alerts = { plan: Plan | null; free_until: string | null; projects_url: string | null; projects: MinSideProject[] };
 export type Offer = { number: string; title: string; state: string; open: boolean; sent_at: string | null; url: string | null };
 export type SignedDocument = { title: string; signed_at: string | null; pdf_url: string | null };
 
@@ -111,6 +129,43 @@ function planFrom(raw: unknown): Plan | null {
   };
 }
 
+const numOrNull = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : null);
+const strings = (v: unknown, max = 20, len = 40) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").map((x) => x.slice(0, len)).slice(0, max) : []);
+
+/** A link to the tender's documents, only over https; anything else is not a link. */
+function httpsLink(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+function projectsFrom(raw: unknown): MinSideProject[] {
+  return (Array.isArray(raw) ? raw : [])
+    .filter((p): p is Record<string, unknown> => Boolean(p) && typeof p === "object" && typeof (p as { id?: unknown }).id === "string")
+    .filter((p) => p.stage === "planned" || p.stage === "tender" || p.stage === "awarded")
+    .map((p) => ({
+      id: String(p.id).slice(0, 60),
+      title: str(p.title, 300),
+      stage: p.stage as MinSideProject["stage"],
+      buyer_name: str(p.buyer_name, 200) || null,
+      regions: strings(p.regions),
+      city: str(p.city, 80) || null,
+      domains: strings(p.domains),
+      description: str(p.description, 400) || null,
+      estimated_value_nok: numOrNull(p.estimated_value_nok),
+      awarded_value_nok: numOrNull(p.awarded_value_nok),
+      published_on: day(p.published_on),
+      deadline_at: typeof p.deadline_at === "string" ? p.deadline_at.slice(0, 40) : null,
+      documents_url: httpsLink(p.documents_url),
+      winners: strings(p.winners, 10, 120),
+    }))
+    .slice(0, 200);
+}
+
 /** The ATS's answer as the page uses it, or null when it is not a page at all. */
 export function profileFrom(raw: unknown): Profile | null {
   const r = (raw && typeof raw === "object" ? raw : null) as Record<string, unknown> | null;
@@ -149,7 +204,7 @@ export function profileFrom(raw: unknown): Profile | null {
       .filter((k) => typeof k.id === "string")
       .map((k) => ({ id: String(k.id), full_name: str(k.full_name, 120), role: str(k.role, 80), email: str(k.email, 254), phone: str(k.phone, 24), mine: k.mine === true }))
       .slice(0, 100),
-    alerts: a ? { plan: planFrom(a.plan), free_until: day(a.free_until), projects_url: ownLink(a.projects_url) } : null,
+    alerts: a ? { plan: planFrom(a.plan), free_until: day(a.free_until), projects_url: ownLink(a.projects_url), projects: projectsFrom(a.projects) } : null,
     free_alerts: freeAlertsFrom(r.free_alerts),
     offers: list(r.offers)
       .map((o) => ({ number: str(o.number, 40), title: str(o.title, 120), state: str(o.state, 40), open: o.open === true, sent_at: typeof o.sent_at === "string" ? o.sent_at : null, url: ownLink(o.url) }))
