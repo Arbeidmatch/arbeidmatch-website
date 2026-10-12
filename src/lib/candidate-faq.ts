@@ -24,12 +24,12 @@ export const CANDIDATE_FAQ: CandidateFaqItem[] = [
   {
     question: "Which trades do you recruit for?",
     answer:
-      "Our fields are construction, industry and mechanics. Your experience in one of them is what counts, so describe it in your profile: where, how long and what you worked on.",
+      "Construction, industry and automotive mechanics, and through our contract clients many other fields as well. Your experience counts, whatever the field, so describe it in your profile: where, how long and what you worked on.",
   },
   {
     question: "Who will employ me?",
     answer:
-      "In construction we employ you directly, on a Norwegian contract, and you work at our clients in Norway. In industry and mechanics we recruit you for our clients, and the contract is with them.",
+      "In construction, industry and automotive mechanics we employ and recruit ourselves, and in other fields we recruit for our contract clients. Who the employer is for each position we confirm clearly before any contract.",
   },
   {
     question: "How much is the pay?",
