@@ -83,7 +83,16 @@ export type Profile = {
   timesheets: Timesheets;
   invoices: Invoices;
   candidates: CandidatePresentation[];
+  /** U1b: the improvements this person has not ticked yet; empty from an older ATS. */
+  whats_new: WhatsNewEntry[];
 };
+
+export type WhatsNewEntry = { id: string; title: string; detail: string; variants: string[]; link: string | null };
+
+/** An item id as the ATS writes them: a date and words, nothing that could be anything else. */
+export function isWhatsNewId(value: unknown): value is string {
+  return typeof value === "string" && /^[0-9a-z-]{4,80}$/.test(value);
+}
 
 const TOKEN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -235,6 +244,16 @@ export function profileFrom(raw: unknown): Profile | null {
     candidates: list(r.candidates)
       .map((k) => ({ title: str(k.title, 200), sent_at: typeof k.sent_at === "string" ? k.sent_at : null, state: str(k.state, 60), url: ownLink(k.url) }))
       .slice(0, 50),
+    whats_new: list(r.whats_new)
+      .filter((w) => isWhatsNewId(w.id))
+      .map((w) => ({
+        id: String(w.id),
+        title: str(w.title, 160),
+        detail: str(w.detail, 600),
+        variants: Array.isArray(w.variants) ? w.variants.filter((v): v is string => typeof v === "string").map((v) => v.slice(0, 160)).slice(0, 6) : [],
+        link: ownLink(w.link),
+      }))
+      .slice(0, 10),
   };
 }
 

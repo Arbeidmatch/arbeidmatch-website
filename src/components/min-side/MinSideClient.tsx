@@ -7,6 +7,7 @@ import Link from "next/link";
 import MinSideProjects from "@/components/min-side/MinSideProjects";
 
 import { CARD, EYEBROW, FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
+import { MinSideWhatsNew } from "./MinSideWhatsNew";
 import {
   SECTIONS,
   SECTION_GROUPS,
@@ -190,6 +191,14 @@ export default function MinSideClient({ token }: { token: string }) {
 
   return (
     <div className="bg-[#0D1B2A] text-white">
+      {profile?.whats_new.length ? (
+        <MinSideWhatsNew
+          entries={profile.whats_new}
+          onTick={async (id, tried) => {
+            await send({ action: "whats_new", id, tried });
+          }}
+        />
+      ) : null}
       <div className="container-site flex flex-col gap-8 pb-16 pt-10 md:pb-24 md:pt-14">
         <header className="flex flex-col gap-3">
           <p className={EYEBROW}>ArbeidMatch Norge AS</p>

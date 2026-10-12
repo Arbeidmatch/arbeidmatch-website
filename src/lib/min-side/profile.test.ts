@@ -152,3 +152,20 @@ describe("Min side: one section at a time", () => {
     expect(profileFrom(answer)!.alerts!.projects).toEqual([]);
   });
 });
+
+describe("What's new on Min side (U1b)", () => {
+  const base = { me: { email: "a@example.test", contact_id: null }, company: { name: "Firma AS" } };
+  it("keeps only well-formed items and links of our own", () => {
+    const p = profileFrom({
+      ...base,
+      whats_new: [
+        { id: "2026-10-12-min-side-projects", title: "Prosjektene", detail: "Nå i Min side", variants: ["Velg fylke", 3], link: "https://evil.example/x" },
+        { id: "../../etc", title: "x" },
+      ],
+    });
+    expect(p?.whats_new).toEqual([{ id: "2026-10-12-min-side-projects", title: "Prosjektene", detail: "Nå i Min side", variants: ["Velg fylke"], link: null }]);
+  });
+  it("reads none from an older ATS", () => {
+    expect(profileFrom(base)?.whats_new).toEqual([]);
+  });
+});

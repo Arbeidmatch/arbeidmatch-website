@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { getRateLimitResult, noStoreJson } from "@/lib/apiSecurity";
-import { isProfileToken } from "@/lib/min-side/profile";
+import { isProfileToken, isWhatsNewId } from "@/lib/min-side/profile";
 import { callAts } from "@/lib/prosjekter/ats";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +39,13 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
   }
   const action = raw?.action;
-  if (action !== "company" && action !== "contact" && action !== "remove_contact" && action !== "start_free_alerts") return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+  if (action !== "company" && action !== "contact" && action !== "remove_contact" && action !== "start_free_alerts" && action !== "whats_new") return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+  // U1b: a tick in the What's new window, an item id and whether it was tried.
+  if (action === "whats_new") {
+    if (!isWhatsNewId(raw.id)) return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+    const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body: { action, id: raw.id, tried: raw.tried === true } });
+    return noStoreJson(answer.body, { status: answer.status });
+  }
 
   const plain = (value: unknown): Record<string, string | boolean> => {
     const out: Record<string, string | boolean> = {};
