@@ -20,7 +20,9 @@ const STAGES: { key: StageKey; label: string }[] = [
   { key: "closed", label: "Venter på tildeling" },
   { key: "awarded", label: "Tildelt" },
 ];
-const PAGE = 20;
+// Six at a time: on a phone the section stays a few screens long (his rule:
+// no endless scroll on a phone); "Vis flere" brings the next six.
+const PAGE = 6;
 
 function stageKey(p: MinSideProject, now: number): StageKey {
   if (p.stage === "tender" && p.deadline_at && Date.parse(p.deadline_at) < now) return "closed";
@@ -33,7 +35,7 @@ function ProjectRow({ p, now }: { p: MinSideProject; now: number }) {
   const value = valueNo(p);
   const date = keyDateNo({ ...p, start_on: null }, now);
   const place = placeNo(p);
-  const description = cleanDescription(p.description, 220);
+  const description = cleanDescription(p.description, 120);
   return (
     <li className={`${CARD} flex flex-col overflow-hidden`}>
       <div className="h-1" style={{ background: color }} aria-hidden />
@@ -56,7 +58,7 @@ function ProjectRow({ p, now }: { p: MinSideProject; now: number }) {
           {[p.buyer_name, place, value, date].filter(Boolean).join(" · ")}
         </p>
         {p.winners.length ? <p className="break-words text-[13px] text-white">Entreprenør: {p.winners.join(", ")}</p> : null}
-        {description ? <p className={`break-words text-[13px] leading-relaxed ${MUTED}`}>{description}</p> : null}
+        {description ? <p className={`line-clamp-2 break-words text-[13px] leading-relaxed ${MUTED}`}>{description}</p> : null}
         {p.documents_url ? (
           <div className="pt-1">
             <a href={p.documents_url} target="_blank" rel="noopener noreferrer" className={`${PRIMARY} min-h-[44px] px-5 text-sm`}>
