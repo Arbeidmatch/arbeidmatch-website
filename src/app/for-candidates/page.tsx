@@ -3,6 +3,7 @@ import { ClipboardList, FileText, ShieldCheck, UserCheck } from "lucide-react";
 
 import ScrollReveal from "@/components/ScrollReveal";
 import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
+import { CANDIDATE_FAQ } from "@/lib/candidate-faq";
 import { CANDIDATE_PORTAL_LOGIN_URL, CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
 
 export const metadata: Metadata = {
@@ -291,6 +292,50 @@ export default function ForCandidatesPage() {
               ))}
             </div>
           </ScrollReveal>
+        </div>
+      </section>
+
+      <section
+        id="questions"
+        className="scroll-mt-[100px] border-t border-[rgba(13,27,42,0.08)] bg-surface py-14 md:py-20 lg:py-24"
+      >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: CANDIDATE_FAQ.map((item) => ({
+                "@type": "Question",
+                name: item.question,
+                acceptedAnswer: { "@type": "Answer", text: item.answer },
+              })),
+            }),
+          }}
+        />
+        <div className="mx-auto w-full max-w-content px-6 md:px-12 lg:px-20">
+          <ScrollReveal variant="fadeUp" className="text-center">
+            <h2 className="am-h2 font-display font-extrabold tracking-[-0.02em] text-[#0D1B2A]">Questions candidates ask</h2>
+          </ScrollReveal>
+          <div className="mx-auto mt-10 max-w-3xl divide-y divide-[#E2E5EA] border-y border-[#E2E5EA]">
+            {CANDIDATE_FAQ.map((item) => (
+              <details key={item.question} className="group py-4">
+                <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 font-semibold text-[#0D1B2A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]">
+                  <span>{item.question}</span>
+                  <span aria-hidden className="text-[#C9A84C] transition-transform group-open:rotate-45">+</span>
+                </summary>
+                <p className="mt-2 text-[15px] leading-relaxed text-[#55616D]">{item.answer}</p>
+              </details>
+            ))}
+          </div>
+          <div className="mt-10 text-center">
+            <a
+              href={CANDIDATE_PORTAL_SIGNUP_URL}
+              className="inline-flex min-h-[52px] items-center justify-center rounded-lg bg-[#C9A84C] px-8 py-3.5 font-semibold text-[#0D1B2A] hover:bg-[#b8953f]"
+            >
+              Create your profile →
+            </a>
+          </div>
         </div>
       </section>
 
