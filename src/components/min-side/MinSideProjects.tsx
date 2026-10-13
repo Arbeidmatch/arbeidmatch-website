@@ -148,7 +148,7 @@ export default function MinSideProjects({ projects }: { projects: MinSideProject
         </button>
       ) : null}
       {/* ORDER 100: the source, smaller than small, never a link (his words, 13 October 2026). */}
-      <p className="text-[11px] font-normal leading-snug text-[#9AA3AF]">{PROJECT_SOURCE_LINE}</p>
+      <p className="max-w-[640px] text-[11px] font-normal leading-normal text-[#9AA3AF]">{PROJECT_SOURCE_LINE}</p>
     </div>
   );
 }

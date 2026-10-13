@@ -26,17 +26,19 @@ const project: MinSideProject = {
   winners: [],
 };
 
-describe("Kilde: Doffin on Min side", () => {
-  it("the project list ends with the source line, 11px, light grey, not bold and not a link", () => {
-    expect(PROJECT_SOURCE_LINE).toBe("Kilde: Doffin");
+describe("the source on Min side", () => {
+  it("the project list ends with the small disclaimer, Doffin in its middle, 11px, light grey, not a link", () => {
+    expect(PROJECT_SOURCE_LINE).toContain("hentet fra Doffin");
+    expect(PROJECT_SOURCE_LINE).not.toContain("Kilde:");
     const html = renderToStaticMarkup(createElement(MinSideProjects, { projects: [project] }));
-    expect(html).toContain("Kilde: Doffin");
-    const line = html.slice(html.lastIndexOf("<p", html.indexOf("Kilde: Doffin")), html.indexOf("Kilde: Doffin"));
+    const at = html.indexOf("hentet fra Doffin");
+    expect(at).toBeGreaterThan(0);
+    const line = html.slice(html.lastIndexOf("<p", at), at);
     expect(line).toContain("text-[11px]");
     expect(line).toContain("text-[#9AA3AF]");
     expect(line).toContain("font-normal");
     expect(line).not.toContain("<a");
-    expect(html.match(/Kilde: Doffin/g)).toHaveLength(1);
+    expect(html.match(/Doffin/g)).toHaveLength(1);
   });
 });
 

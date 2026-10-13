@@ -402,10 +402,12 @@ export function kronerNo(amount: number): string {
 
 /**
  * Where the projects come from, in the smallest print on the page (his words:
- * "si sa nu fie scris mare ci mai mic decat mic"), under the project list. Not
- * a link, not highlighted. It is never in an e-mail.
+ * "si sa nu fie scris mare ci mai mic decat mic"), under the project list: the
+ * disclaimer of the final design (13 October 2026) with Doffin in its middle.
+ * Not a link, not highlighted. It is never in an e-mail.
  */
-export const PROJECT_SOURCE_LINE = "Kilde: Doffin";
+export const PROJECT_SOURCE_LINE =
+  "Oversikten er ment som et hjelpemiddel og kan inneholde feil eller mangler. Prosjektene er offentlige kunngjøringer hentet fra Doffin, og oppdragsgiver kan endre dem etter at de vises her. Kontroller alltid frister og vilkår i selve konkurransen før dere gir tilbud. ArbeidMatch Norge AS er ikke part i konkurransene.";
 
 export const PLAN_CONFIRMATION = "Takk. Vi har fått forespørselen og tar kontakt innen én arbeidsdag.";
 
