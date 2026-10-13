@@ -1,28 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { WhatsNewEntry } from "@/lib/min-side/profile";
-import { EYEBROW, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
+import { BTN_OUTLINE, GOLD_TEXT, INK, SOFT } from "./ui";
 
 /**
  * What's new on Min side (U1b): the improvements that concern a client, one at
  * a time, until they tick them as seen or tried. "Lukk" only closes it for
  * this visit; the ticks are kept by the ATS for the person's address.
+ *
+ * ORDER 101 (13 October 2026): a small notice in the page, above the section,
+ * never a window over it. On a phone the first version covered most of the
+ * screen and the project list under it.
  */
 
 const CLOSED_KEY = "am-min-side-whats-new-closed";
 
 export function MinSideWhatsNew({ entries, onTick }: { entries: WhatsNewEntry[]; onTick: (id: string, tried: boolean) => Promise<void> }) {
-  const [closed, setClosed] = useState(true);
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
+  // Read once when it first shows: the page mounts it only after the profile has come, in the browser.
+  const [closed, setClosed] = useState(() => {
     try {
-      setClosed(window.sessionStorage.getItem(CLOSED_KEY) === "1");
+      return typeof window !== "undefined" && window.sessionStorage.getItem(CLOSED_KEY) === "1";
     } catch {
-      setClosed(false);
+      return false; /* private window: it shows, and closes for now all the same */
     }
-  }, []);
+  });
+  const [busy, setBusy] = useState(false);
 
   const entry = entries[0];
   if (!entry || closed) return null;
@@ -42,32 +45,26 @@ export function MinSideWhatsNew({ entries, onTick }: { entries: WhatsNewEntry[];
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="min-side-whats-new">
-      <div className="w-full max-w-md rounded-xl border border-white/10 bg-[#0D1B2A] p-6 text-white shadow-2xl">
-        <p className={EYEBROW}>Nytt på Min side{entries.length > 1 ? ` · 1 av ${entries.length}` : ""}</p>
-        <h2 id="min-side-whats-new" className="mt-2 text-xl font-semibold">
+    <aside aria-labelledby="min-side-whats-new" className="flex min-w-0 flex-col gap-2 rounded-xl border border-[#E6E1D6] border-l-[3px] border-l-[#1B2B44] bg-white px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
+      <div className="min-w-0 flex-1">
+        <p className={`text-[11px] font-bold uppercase tracking-[0.1em] ${GOLD_TEXT}`}>Nytt på Min side{entries.length > 1 ? ` · 1 av ${entries.length}` : ""}</p>
+        <h2 id="min-side-whats-new" className={`mt-0.5 break-words text-sm font-semibold ${INK}`}>
           {entry.title}
         </h2>
-        <p className={`mt-2 text-sm ${MUTED}`}>{entry.detail}</p>
-        {entry.variants.length ? (
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">
-            {entry.variants.map((v) => (
-              <li key={v}>{v}</li>
-            ))}
-          </ul>
-        ) : null}
-        <div className="mt-5 flex flex-wrap gap-2">
-          <button type="button" className={PRIMARY} disabled={busy} onClick={() => void tick(true)}>
-            Prøvd det
-          </button>
-          <button type="button" className={SECONDARY} disabled={busy} onClick={() => void tick(false)}>
-            Sett
-          </button>
-          <button type="button" className={SECONDARY} disabled={busy} onClick={close}>
-            Lukk
-          </button>
-        </div>
+        <p className={`mt-0.5 line-clamp-2 break-words text-[13px] ${SOFT}`}>{entry.detail}</p>
+        {entry.variants.length ? <p className={`mt-0.5 break-words text-[13px] ${SOFT}`}>{entry.variants.join(" · ")}</p> : null}
       </div>
-    </div>
+      <div className="flex shrink-0 flex-wrap gap-2">
+        <button type="button" className={`${BTN_OUTLINE} text-sm`} disabled={busy} onClick={() => void tick(true)}>
+          Prøvd det
+        </button>
+        <button type="button" className={`${BTN_OUTLINE} text-sm`} disabled={busy} onClick={() => void tick(false)}>
+          Sett
+        </button>
+        <button type="button" className={`${BTN_OUTLINE} text-sm`} disabled={busy} onClick={close}>
+          Lukk
+        </button>
+      </div>
+    </aside>
   );
 }

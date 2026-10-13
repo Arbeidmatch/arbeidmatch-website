@@ -58,12 +58,36 @@ export type MinSideProject = {
   deadline_at: string | null;
   documents_url: string | null;
   winners: string[];
+  /** ORDER 101: the project's town, the real one or one derived by the ATS; null shows "Sted ikke oppgitt". */
+  place: string | null;
 };
 
 /** ORDER 100: the subscription's fields (domain keys) and counties (NUTS codes), to preset the staffing request. */
 export type AlertChoices = { domains: string[]; regions: string[] };
 
-export type Alerts = { plan: Plan | null; free_until: string | null; projects_url: string | null; projects: MinSideProject[]; choices?: AlertChoices };
+/** ORDER 101: a town to choose among, with how many of the projects are there. */
+export type CityOption = { name: string; count: number };
+/** ORDER 101: the one-time question, while it is unanswered: the suggested towns and the county they are in. */
+export type CityQuestion = { cities: string[]; county: string };
+
+export type Alerts = {
+  plan: Plan | null;
+  free_until: string | null;
+  projects_url: string | null;
+  projects: MinSideProject[];
+  choices?: AlertChoices;
+  /** ORDER 101: the towns chosen; empty means the whole county. */
+  cities?: string[];
+  city_options?: CityOption[];
+  /** ORDER 101: the day before which the towns cannot change again; null when they may change now. */
+  next_city_change?: string | null;
+  city_question?: CityQuestion | null;
+  /** ORDER 101: YYYY-MM-DD, the last day of a free trial; null when the alerts are not a trial. */
+  trial_until?: string | null;
+};
+
+/** ORDER 101: our contact person, shown at the side of Min side. */
+export type ContactPerson = { name: string; role: string; phone: string; avatar_url: string | null };
 export type Offer = { number: string; title: string; state: string; open: boolean; sent_at: string | null; url: string | null };
 export type SignedDocument = { title: string; signed_at: string | null; pdf_url: string | null };
 
@@ -91,6 +115,8 @@ export type Profile = {
   candidates: CandidatePresentation[];
   /** U1b: the improvements this person has not ticked yet; empty from an older ATS. */
   whats_new: WhatsNewEntry[];
+  /** ORDER 101: our contact person for this client; null leaves the card out. */
+  contact_person: ContactPerson | null;
 };
 
 export type WhatsNewEntry = { id: string; title: string; detail: string; variants: string[]; link: string | null };
@@ -177,6 +203,7 @@ function projectsFrom(raw: unknown): MinSideProject[] {
       deadline_at: typeof p.deadline_at === "string" ? p.deadline_at.slice(0, 40) : null,
       documents_url: httpsLink(p.documents_url),
       winners: strings(p.winners, 10, 120),
+      place: str(p.place, 80).trim() || null,
     }))
     .slice(0, 200);
 }
@@ -185,6 +212,52 @@ function choicesFrom(raw: unknown): AlertChoices {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
   const codes = (v: unknown) => strings(v).filter((x) => /^[A-Za-z0-9_-]{2,20}$/.test(x));
   return { domains: codes(r.domains), regions: codes(r.regions) };
+}
+
+/** A town's name as the page accepts it: letters, spaces, hyphens and dots, nothing that could be markup. */
+export function isCityName(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length >= 2 && value.length <= 60 && /^\p{L}[\p{L} .'-]*$/u.test(value.trim());
+}
+
+const cityList = (v: unknown, max = 50) => (Array.isArray(v) ? [...new Set(v.filter(isCityName).map((x) => x.trim()))].slice(0, max) : []);
+
+function cityOptionsFrom(raw: unknown): CityOption[] {
+  return (Array.isArray(raw) ? raw : [])
+    .filter((o): o is Record<string, unknown> => Boolean(o) && typeof o === "object" && isCityName((o as { name?: unknown }).name))
+    .map((o) => ({ name: String(o.name).trim(), count: typeof o.count === "number" && Number.isFinite(o.count) && o.count > 0 ? Math.round(o.count) : 0 }))
+    .slice(0, 80);
+}
+
+function cityQuestionFrom(raw: unknown): CityQuestion | null {
+  const r = (raw && typeof raw === "object" ? raw : null) as Record<string, unknown> | null;
+  if (!r) return null;
+  const cities = cityList(r.cities, 5);
+  const county = str(r.county, 60).trim();
+  return cities.length && county ? { cities, county } : null;
+}
+
+/** Our contact person, with a photo only over https and a phone only as digits, spaces and a plus. */
+function contactPersonFrom(raw: unknown): ContactPerson | null {
+  const r = (raw && typeof raw === "object" ? raw : null) as Record<string, unknown> | null;
+  const name = str(r?.name, 120).trim();
+  if (!r || !name) return null;
+  const phone = str(r.phone, 24).trim();
+  return { name, role: str(r.role, 80).trim(), phone: /^\+?[0-9 ]{5,20}$/.test(phone) ? phone : "", avatar_url: httpsLink(r.avatar_url) };
+}
+
+function alertsFrom(a: Record<string, unknown>): Alerts {
+  return {
+    plan: planFrom(a.plan),
+    free_until: day(a.free_until),
+    projects_url: ownLink(a.projects_url),
+    projects: projectsFrom(a.projects),
+    choices: choicesFrom(a.choices),
+    cities: cityList(a.cities),
+    city_options: cityOptionsFrom(a.city_options),
+    next_city_change: day(a.next_city_change),
+    city_question: cityQuestionFrom(a.city_question),
+    trial_until: day(a.trial_until),
+  };
 }
 
 /** The ATS's answer as the page uses it, or null when it is not a page at all. */
@@ -225,7 +298,7 @@ export function profileFrom(raw: unknown): Profile | null {
       .filter((k) => typeof k.id === "string")
       .map((k) => ({ id: String(k.id), full_name: str(k.full_name, 120), role: str(k.role, 80), email: str(k.email, 254), phone: str(k.phone, 24), mine: k.mine === true }))
       .slice(0, 100),
-    alerts: a ? { plan: planFrom(a.plan), free_until: day(a.free_until), projects_url: ownLink(a.projects_url), projects: projectsFrom(a.projects), choices: choicesFrom(a.choices) } : null,
+    alerts: a ? alertsFrom(a) : null,
     free_alerts: freeAlertsFrom(r.free_alerts),
     offers: list(r.offers)
       .map((o) => ({ number: str(o.number, 40), title: str(o.title, 120), state: str(o.state, 40), open: o.open === true, sent_at: typeof o.sent_at === "string" ? o.sent_at : null, url: ownLink(o.url) }))
@@ -266,6 +339,7 @@ export function profileFrom(raw: unknown): Profile | null {
         link: ownLink(w.link),
       }))
       .slice(0, 10),
+    contact_person: contactPersonFrom(r.contact_person),
   };
 }
 
@@ -292,6 +366,15 @@ export function freeAlertsFrom(v: unknown): { months: number } | null {
 
 export function alertsWords(alerts: Alerts | null, freeMonths: number | null = null): { title: string; text: string } {
   const plan = alerts?.plan ?? null;
+  // ORDER 101: a trial says it is a trial, never the old thank-you words.
+  if (alerts?.trial_until && plan?.status !== "ended") {
+    const trial = `Gratis prøveperiode til og med ${dayNo(alerts.trial_until)}.`;
+    if (plan && plan.status === "free" && !plan.freeOnly && !plan.cancelled && plan.periodPrice > 0) {
+      const price = `kr ${nok.format(Math.round(plan.periodPrice)).replace(/[  ]/g, " ")} ${plan.billing === "yearly" ? "per år" : "per kvartal"}`;
+      return { title: "Gratis prøveperiode", text: `${trial} Deretter fortsetter abonnementet: ${price} uten merverdiavgift${plan.nextInvoiceOn ? `, første faktura ${dayNo(plan.nextInvoiceOn)}` : ""}.` };
+    }
+    return { title: "Gratis prøveperiode", text: trial };
+  }
   if (!alerts && freeMonths)
     return { title: `Gratis prosjektvarsler i ${freeMonths === 1 ? "1 måned" : `${freeMonths} måneder`}`, text: "Som takk for samarbeidet. Varslene stopper av seg selv når perioden er over, uten faktura." };
   if (!alerts) return { title: "Ingen prosjektvarsler ennå", text: "Dere kan følge bygg- og anleggsprosjekter der dere jobber. Se prosjektkartet, eller ta kontakt med oss." };
@@ -370,6 +453,7 @@ export function sectionHint(key: SectionKey, p: Profile): string {
   if (key === "varsler") {
     const plan = p.alerts?.plan ?? null;
     if (!p.alerts) return "Ikke aktivt";
+    if (p.alerts.trial_until && plan?.status !== "ended") return "Gratis prøveperiode";
     if (!plan) return "Gratis";
     if (plan.status === "ended") return "Avsluttet";
     if (plan.cancelled || plan.freeOnly) return "Avsluttes";
@@ -424,4 +508,70 @@ export function staffingPrefill(alerts: Alerts | null): { trade: string; place: 
   const domains = (alerts?.choices?.domains ?? []).filter(isDomainKey).map((d) => domainLabel(d, "no"));
   const regions = [...new Set((alerts?.choices?.regions ?? []).map((r) => NORWAY_REGIONS[r]).filter((x): x is string => Boolean(x)))];
   return { trade: domains.slice(0, 3).join(", "), place: regions.slice(0, 3).join(", ") };
+}
+
+export type StaffingPrefill = { trade: string; place: string; note?: string };
+
+/**
+ * "Be om folk" on one project (ORDER 101): the request opens with the
+ * project's own trades in Norwegian, its town, and its title in the note. What
+ * the project does not say comes from the subscription's choices.
+ */
+export function projectPrefill(p: MinSideProject, alerts: Alerts | null): Required<StaffingPrefill> {
+  const base = staffingPrefill(alerts);
+  const trades = p.domains.filter(isDomainKey).map((d) => domainLabel(d, "no"));
+  return { trade: trades.length ? trades.slice(0, 3).join(", ") : base.trade, place: p.place ?? base.place, note: `Prosjekt: ${p.title}`.slice(0, 1000) };
+}
+
+// ---------------------------------------------------------------------------
+// ORDER 101 (13 October 2026): the list follows the towns, the stage and the
+// unknown-place toggle, and the count follows the list.
+// ---------------------------------------------------------------------------
+
+export type MinSideStage = "planned" | "tender" | "closed" | "awarded";
+
+/** A tender past its deadline waits for the award: a stage of its own on the page. */
+export function projectStage(p: Pick<MinSideProject, "stage" | "deadline_at">, now: number): MinSideStage {
+  if (p.stage === "tender" && p.deadline_at && Date.parse(p.deadline_at) < now) return "closed";
+  return p.stage;
+}
+
+export type ProjectFilter = { cities: string[]; stages: MinSideStage[]; showUnknown: boolean; now: number };
+
+/**
+ * The projects the page shows. Chosen towns keep the projects in them and the
+ * ones with no known place (those stay, marked, unless the toggle hides them).
+ * No town chosen is the whole county. No stage chosen is every stage.
+ */
+export function visibleProjects(projects: MinSideProject[], f: ProjectFilter): MinSideProject[] {
+  const towns = new Set(f.cities.map((c) => c.toLocaleLowerCase("nb")));
+  return projects.filter((p) => {
+    if (!p.place) {
+      if (!f.showUnknown) return false;
+    } else if (towns.size && !towns.has(p.place.toLocaleLowerCase("nb"))) return false;
+    return !f.stages.length || f.stages.includes(projectStage(p, f.now));
+  });
+}
+
+/** "3 prosjekter i Trondheim og Malvik": always a whole number, from the list as it is filtered. */
+export function projectCountLine(count: number, cities: string[]): string {
+  const n = Number.isFinite(count) && count > 0 ? Math.floor(count) : 0;
+  const words = n === 1 ? "1 prosjekt" : `${n} prosjekter`;
+  if (!cities.length) return words;
+  const towns = cities.length === 1 ? cities[0] : `${cities.slice(0, -1).join(", ")} og ${cities[cities.length - 1]}`;
+  return `${words} i ${towns}`;
+}
+
+/** The bodies Min side posts for the towns and for the one-time question. */
+export function alertCitiesRequest(cities: string[]): { action: "alert_cities"; cities: string[] } {
+  return { action: "alert_cities", cities: cityList(cities) };
+}
+export function cityQuestionRequest(answer: "yes" | "no"): { action: "city_question"; answer: "yes" | "no" } {
+  return { action: "city_question", answer };
+}
+
+/** A phone number as a tel: link wants it: the plus and the digits. */
+export function telHref(phone: string): string | null {
+  const digits = phone.replace(/[^0-9+]/g, "");
+  return /^\+?[0-9]{5,15}$/.test(digits) ? `tel:${digits}` : null;
 }

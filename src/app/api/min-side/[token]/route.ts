@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { getRateLimitResult, noStoreJson } from "@/lib/apiSecurity";
-import { isProfileToken, isWhatsNewId } from "@/lib/min-side/profile";
+import { alertCitiesRequest, cityQuestionRequest, isCityName, isProfileToken, isWhatsNewId } from "@/lib/min-side/profile";
 import { callAts } from "@/lib/prosjekter/ats";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +39,29 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
   }
   const action = raw?.action;
-  if (action !== "company" && action !== "contact" && action !== "remove_contact" && action !== "start_free_alerts" && action !== "whats_new" && action !== "staffing_request") return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+  if (
+    action !== "company" &&
+    action !== "contact" &&
+    action !== "remove_contact" &&
+    action !== "start_free_alerts" &&
+    action !== "whats_new" &&
+    action !== "staffing_request" &&
+    action !== "alert_cities" &&
+    action !== "city_question"
+  )
+    return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+  // ORDER 101: the towns of the alerts, as a short list of plain names; the ATS checks them against the county and the 30-day rule.
+  if (action === "alert_cities") {
+    if (!Array.isArray(raw.cities) || raw.cities.length > 50 || !raw.cities.every(isCityName)) return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+    const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body: alertCitiesRequest(raw.cities) });
+    return noStoreJson(answer.body, { status: answer.status });
+  }
+  // ORDER 101: the one-time question about the suggested town, yes or no.
+  if (action === "city_question") {
+    if (raw.answer !== "yes" && raw.answer !== "no") return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+    const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body: cityQuestionRequest(raw.answer) });
+    return noStoreJson(answer.body, { status: answer.status });
+  }
   // ORDER 100: "Planlegg bemanning med oss", passed on as plain short text; the ATS checks every field.
   if (action === "staffing_request") {
     const text = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : typeof v === "number" && Number.isFinite(v) ? String(v) : "");

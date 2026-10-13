@@ -24,6 +24,7 @@ const project: MinSideProject = {
   deadline_at: "2999-01-01T00:00:00Z",
   documents_url: null,
   winners: [],
+  place: null,
 };
 
 describe("the source on Min side", () => {

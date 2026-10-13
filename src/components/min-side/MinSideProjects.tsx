@@ -1,149 +1,252 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CARD, FIELD, MUTED, PRIMARY, STAGE_COLOR, tint } from "@/components/prosjekter/ui";
-import { cleanDescription, keyDateNo, placeNo, regionChoices, stageNo, valueNo } from "@/lib/prosjekter/format";
+import { cleanDescription, keyDateNo, stageNo, valueNo } from "@/lib/prosjekter/format";
 import { domainLabel, isDomainKey } from "@/lib/prosjekter/domains";
-import { expandRegions } from "@/lib/prosjekter/regions";
-import { PROJECT_SOURCE_LINE, type MinSideProject } from "@/lib/min-side/profile";
+import { NORWAY_REGIONS } from "@/lib/prosjekter/regions";
+import {
+  PROJECT_SOURCE_LINE,
+  dayNo,
+  projectCountLine,
+  projectStage,
+  visibleProjects,
+  type AlertChoices,
+  type CityOption,
+  type MinSideProject,
+  type MinSideStage,
+} from "@/lib/min-side/profile";
+import { BTN_GREEN, BTN_OUTLINE, INK, MUTED_L, SOFT, chip } from "./ui";
 
 /**
  * The projects of the person's alerts, in the Prosjektvarsler section of Min
- * side itself (his order, 12 October 2026), filtered by county, domain and
- * stage. The projects page stays where the choices are changed.
+ * side itself (his order, 12 October 2026), in the final design of 13 October
+ * (ORDER 101): towns and stages as chips, a toggle for the projects with no
+ * known place, and a count that always follows the list as it is filtered.
+ *
+ * The towns are the subscription's own choice and are saved with us (the ATS
+ * keeps the 30-day rule); the stage and the toggle only filter the page.
  */
 
-type StageKey = "planned" | "tender" | "closed" | "awarded";
-const STAGES: { key: StageKey; label: string }[] = [
+const STAGES: { key: MinSideStage; label: string }[] = [
   { key: "planned", label: "Planlagt" },
   { key: "tender", label: "Åpen konkurranse" },
   { key: "closed", label: "Venter på tildeling" },
   { key: "awarded", label: "Tildelt" },
 ];
+
+/** The top accent and the tag of each stage: awarded green, open amber, the rest quiet. */
+const STAGE_LOOK: Record<MinSideStage, { accent: string; bg: string; fg: string }> = {
+  awarded: { accent: "#2E9E6B", bg: "#E3F4EA", fg: "#146C43" },
+  tender: { accent: "#D9A93B", bg: "#FCEFD2", fg: "#7A5A12" },
+  closed: { accent: "#C9CFD8", bg: "#EEF1F5", fg: "#3D4B60" },
+  planned: { accent: "#8FA6C8", bg: "#E8EEF8", fg: "#24456E" },
+};
+
 // Six at a time: on a phone the section stays a few screens long (his rule:
 // no endless scroll on a phone); "Vis flere" brings the next six.
 const PAGE = 6;
+/** Towns shown before "+ flere". */
+const TOP_CITIES = 3;
 
-function stageKey(p: MinSideProject, now: number): StageKey {
-  if (p.stage === "tender" && p.deadline_at && Date.parse(p.deadline_at) < now) return "closed";
-  return p.stage;
-}
+export const UNKNOWN_PLACE = "Sted ikke oppgitt";
 
-function ProjectRow({ p, now }: { p: MinSideProject; now: number }) {
-  const key = stageKey(p, now);
-  const color = STAGE_COLOR[key] ?? "rgba(255,255,255,0.2)";
+type Saved = { ok: true } | { ok: false; message: string };
+
+export type MinSideProjectsProps = {
+  projects: MinSideProject[];
+  cities?: string[];
+  cityOptions?: CityOption[];
+  nextCityChange?: string | null;
+  choices?: AlertChoices;
+  onCities?: (cities: string[]) => Promise<Saved>;
+  onAskPeople?: (p: MinSideProject) => void;
+};
+
+const same = (a: string, b: string) => a.toLocaleLowerCase("nb") === b.toLocaleLowerCase("nb");
+
+function ProjectCard({ p, now, onAskPeople }: { p: MinSideProject; now: number; onAskPeople?: (p: MinSideProject) => void }) {
+  const key = projectStage(p, now);
+  const look = STAGE_LOOK[key];
   const value = valueNo(p);
   const date = keyDateNo({ ...p, start_on: null }, now);
-  const place = placeNo(p);
   const description = cleanDescription(p.description, 120);
+  const ask = onAskPeople ? (
+    <button type="button" className={BTN_GREEN} aria-haspopup="dialog" onClick={() => onAskPeople(p)}>
+      Be om folk
+    </button>
+  ) : null;
   return (
-    <li className={`${CARD} flex flex-col overflow-hidden`}>
-      <div className="h-1" style={{ background: color }} aria-hidden />
-      <div className="flex flex-col gap-2 p-4">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="rounded-full px-2.5 py-1 font-semibold" style={{ color, background: tint(color) }}>
-            {stageNo(p, now)}
-          </span>
-          {p.domains
-            .filter(isDomainKey)
-            .slice(0, 2)
-            .map((d) => (
-              <span key={d} className="rounded-full border border-white/10 px-2.5 py-1 text-white/60">
-                {domainLabel(d, "no")}
-              </span>
-            ))}
-        </div>
-        <h3 className="break-words text-[15px] font-semibold leading-snug text-white">{p.title}</h3>
-        <p className={`break-words text-[13px] ${MUTED}`}>
-          {[p.buyer_name, place, value, date].filter(Boolean).join(" · ")}
-        </p>
-        {p.winners.length ? <p className="break-words text-[13px] text-white">Entreprenør: {p.winners.join(", ")}</p> : null}
-        {description ? <p className={`line-clamp-2 break-words text-[13px] leading-relaxed ${MUTED}`}>{description}</p> : null}
-        {p.documents_url ? (
-          <div className="pt-1">
-            <a href={p.documents_url} target="_blank" rel="noopener noreferrer" className={`${PRIMARY} min-h-[44px] px-5 text-sm`}>
+    <li className="flex min-w-0 flex-col gap-2 rounded-xl border border-[#E6E1D6] bg-white px-[18px] py-4" style={{ borderTop: `3px solid ${look.accent}` }}>
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <span className="rounded-full px-2.5 py-[3px] font-semibold" style={{ background: look.bg, color: look.fg }}>
+          {stageNo(p, now)}
+        </span>
+        {p.domains
+          .filter(isDomainKey)
+          .slice(0, 2)
+          .map((d) => (
+            <span key={d} className={`rounded-full border border-[#E6E1D6] px-2.5 py-[3px] ${SOFT}`}>
+              {domainLabel(d, "no")}
+            </span>
+          ))}
+      </div>
+      <h3 className={`break-words text-base font-semibold leading-snug ${INK}`}>{p.title}</h3>
+      <p className={`break-words text-[13px] ${MUTED_L}`}>
+        {[p.buyer_name, p.place ?? UNKNOWN_PLACE, value, date, p.winners.length ? `Entreprenør: ${p.winners.join(", ")}` : null].filter(Boolean).join(" · ")}
+      </p>
+      {description ? <p className={`line-clamp-2 break-words text-[13px] leading-relaxed ${SOFT}`}>{description}</p> : null}
+      {key === "awarded" ? (
+        ask ? (
+          <div className="mt-1 flex flex-wrap items-center gap-3 rounded-[10px] border border-[#E6E1D6] bg-white px-3 py-2.5">
+            <span className={`min-w-[180px] flex-1 text-sm font-semibold ${INK}`}>Vant dere denne? Trenger dere folk?</span>
+            {ask}
+          </div>
+        ) : null
+      ) : p.documents_url || ask ? (
+        <div className="mt-1 flex flex-wrap gap-2.5">
+          {p.documents_url ? (
+            <a href={p.documents_url} target="_blank" rel="noopener noreferrer" className={BTN_OUTLINE}>
               Gå til konkurransen
             </a>
-          </div>
-        ) : null}
-      </div>
+          ) : null}
+          {ask}
+        </div>
+      ) : null}
     </li>
   );
 }
 
-export default function MinSideProjects({ projects }: { projects: MinSideProject[] }) {
+export default function MinSideProjects({ projects, cities = [], cityOptions = [], nextCityChange = null, choices, onCities, onAskPeople }: MinSideProjectsProps) {
   const [now] = useState(() => Date.now());
-  const [county, setCounty] = useState("");
-  const [domain, setDomain] = useState("");
-  const [stage, setStage] = useState("");
+  const [stages, setStages] = useState<MinSideStage[]>([]);
+  const [showUnknown, setShowUnknown] = useState(true);
   const [shown, setShown] = useState(PAGE);
+  const [moreCities, setMoreCities] = useState(false);
+  // The towns as just chosen, until the saved answer comes back with the page.
+  const [pending, setPending] = useState<string[] | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [cityError, setCityError] = useState<string | null>(null);
+  const chosen = pending ?? cities;
 
-  // Only the choices that have a project behind them.
-  const counties = useMemo(() => {
-    const present = new Set(projects.flatMap((p) => expandRegions(p.regions)));
-    return regionChoices().filter((c) => present.has(c.code));
-  }, [projects]);
-  const domains = useMemo(() => {
-    const present = new Set(projects.flatMap((p) => p.domains).filter(isDomainKey));
-    return [...present].map((key) => ({ key, label: domainLabel(key, "no") })).sort((a, b) => a.label.localeCompare(b.label, "nb"));
-  }, [projects]);
-  const stages = useMemo(() => STAGES.filter((s) => projects.some((p) => stageKey(p, now) === s.key)), [projects, now]);
+  const stageChoices = useMemo(() => STAGES.filter((s) => projects.some((p) => projectStage(p, now) === s.key)), [projects, now]);
+  const anyUnknown = projects.some((p) => !p.place);
+  const filtered = useMemo(() => visibleProjects(projects, { cities: chosen, stages, showUnknown, now }), [projects, chosen, stages, showUnknown, now]);
 
-  const filtered = useMemo(
-    () =>
-      projects.filter(
-        (p) =>
-          (!county || expandRegions(p.regions).includes(county)) &&
-          (!domain || p.domains.includes(domain)) &&
-          (!stage || stageKey(p, now) === stage),
-      ),
-    [projects, county, domain, stage, now],
-  );
+  // The towns on show: the first few and every chosen one, or all of them after "+ flere".
+  const cityChips = useMemo(() => {
+    const names = cityOptions.map((o) => o.name);
+    for (const c of chosen) if (!names.some((n) => same(n, c))) names.push(c);
+    if (moreCities) return names;
+    return [...names.slice(0, TOP_CITIES), ...names.slice(TOP_CITIES).filter((n) => chosen.some((c) => same(c, n)))];
+  }, [cityOptions, chosen, moreCities]);
+  const hiddenCities = Math.max(0, cityOptions.length - cityChips.length);
 
-  if (!projects.length) return <p className={`text-sm ${MUTED}`}>Ingen prosjekter passer valgene deres akkurat nå.</p>;
+  const context = [
+    ...new Set((choices?.regions ?? []).map((r) => NORWAY_REGIONS[r]).filter((x): x is string => Boolean(x))),
+    ...(choices?.domains ?? []).filter(isDomainKey).map((d) => domainLabel(d, "no")),
+  ].join(" · ");
 
-  const select = (label: string, value: string, set: (v: string) => void, options: { value: string; label: string }[], all: string) => (
-    <label className="flex min-w-0 flex-col gap-1 text-xs font-semibold text-white/70">
-      {label}
-      <select
-        value={value}
-        onChange={(e) => {
-          set(e.target.value);
-          setShown(PAGE);
-        }}
-        className={FIELD}
-      >
-        <option value="">{all}</option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
+  if (!projects.length && !cityOptions.length) return <p className={`text-sm ${MUTED_L}`}>Ingen prosjekter passer valgene deres akkurat nå.</p>;
+
+  const isChosen = (name: string) => chosen.some((c) => same(c, name));
+  const toggleCity = async (name: string) => {
+    if (!onCities || saving) return;
+    const next = isChosen(name) ? chosen.filter((c) => !same(c, name)) : [...chosen, name];
+    setCityError(null);
+    setPending(next);
+    setSaving(true);
+    setShown(PAGE);
+    const r = await onCities(next);
+    setSaving(false);
+    setPending(null);
+    // Refused (too soon, or anything else): the towns stay as they were, and the ATS's own words say why.
+    if (!r.ok) setCityError(r.message);
+  };
+  const toggleStage = (key: MinSideStage) => {
+    setStages((s) => (s.includes(key) ? s.filter((x) => x !== key) : [...s, key]));
+    setShown(PAGE);
+  };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {select("Fylke", county, setCounty, counties.map((c) => ({ value: c.code, label: c.label })), "Alle fylker")}
-        {select("Fagområde", domain, setDomain, domains.map((d) => ({ value: d.key, label: d.label })), "Alle fagområder")}
-        {select("Stadium", stage, setStage, stages.map((s) => ({ value: s.key, label: s.label })), "Alle stadier")}
+    <div className="flex min-w-0 flex-col gap-4">
+      <div className="flex flex-col gap-2.5">
+        {cityChips.length ? (
+          <div className="flex flex-col gap-1.5">
+            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="By">
+              <span className={`w-full text-[13px] sm:w-[86px] ${MUTED_L}`}>By</span>
+              {cityChips.map((name) => {
+                const on = isChosen(name);
+                return (
+                  <button key={name} type="button" aria-pressed={on} disabled={!onCities || saving} className={chip(on)} onClick={() => void toggleCity(name)}>
+                    {on ? `${name} ✓` : name}
+                  </button>
+                );
+              })}
+              {hiddenCities > 0 || moreCities ? (
+                <button
+                  type="button"
+                  aria-expanded={moreCities}
+                  className={`inline-flex min-h-[36px] items-center rounded-full border border-dashed border-[#C9CFD8] bg-white px-3.5 text-[13px] ${MUTED_L} hover:border-[#1B2B44]`}
+                  onClick={() => setMoreCities((m) => !m)}
+                >
+                  {moreCities ? "Færre" : "+ flere"}
+                </button>
+              ) : null}
+            </div>
+            {nextCityChange ? <p className={`text-xs sm:pl-[94px] ${MUTED_L}`}>Byene kan endres igjen fra {dayNo(nextCityChange)}</p> : null}
+            {cityError ? (
+              <p role="alert" className="text-sm font-semibold text-[#B42318] sm:pl-[94px]">
+                {cityError}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        {stageChoices.length ? (
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Stadium">
+            <span className={`w-full text-[13px] sm:w-[86px] ${MUTED_L}`}>Stadium</span>
+            {stageChoices.map((s) => {
+              const on = stages.includes(s.key);
+              return (
+                <button key={s.key} type="button" aria-pressed={on} className={chip(on)} onClick={() => toggleStage(s.key)}>
+                  {s.label}
+                </button>
+              );
+            })}
+            {context ? <span className={`text-[13px] sm:ml-2 ${MUTED_L}`}>{context}</span> : null}
+          </div>
+        ) : null}
+        {anyUnknown ? (
+          <label className={`flex min-h-[44px] cursor-pointer items-center gap-3 self-start text-sm ${SOFT}`}>
+            <input
+              type="checkbox"
+              role="switch"
+              aria-checked={showUnknown}
+              className="h-5 w-5 accent-[#1B2B44]"
+              checked={showUnknown}
+              onChange={(e) => {
+                setShowUnknown(e.target.checked);
+                setShown(PAGE);
+              }}
+            />
+            Vis prosjekter uten oppgitt sted
+          </label>
+        ) : null}
       </div>
-      <p className={`text-sm ${MUTED}`} aria-live="polite">
-        {filtered.length === 1 ? "1 prosjekt" : `${filtered.length} prosjekter`}
+
+      <p className={`border-t border-[#EFEBE2] pt-3.5 text-[15px] font-bold ${INK}`} aria-live="polite" data-ms-count="">
+        {projectCountLine(filtered.length, chosen)}
       </p>
       {filtered.length ? (
         <ul className="flex flex-col gap-3">
           {filtered.slice(0, shown).map((p) => (
-            <ProjectRow key={p.id} p={p} now={now} />
+            <ProjectCard key={p.id} p={p} now={now} onAskPeople={onAskPeople} />
           ))}
         </ul>
       ) : (
-        <p className={`text-sm ${MUTED}`}>Ingen prosjekter passer filteret.</p>
+        <p className={`text-sm ${MUTED_L}`}>Ingen prosjekter passer filteret.</p>
       )}
       {filtered.length > shown ? (
-        <button type="button" onClick={() => setShown((n) => n + PAGE)} className="self-start text-sm font-semibold text-gold hover:underline min-h-[44px]">
+        <button type="button" onClick={() => setShown((n) => n + PAGE)} className={`${BTN_OUTLINE} self-start`}>
           Vis flere ({filtered.length - shown})
         </button>
       ) : null}
