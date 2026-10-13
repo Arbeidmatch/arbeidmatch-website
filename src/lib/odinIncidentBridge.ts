@@ -193,3 +193,23 @@ export async function reportWebsiteIncident(params: WebsiteIncidentParams): Prom
     return null;
   }
 }
+
+/**
+ * His rule, 13 October 2026: website errors reach him as a notification under
+ * Support in the RecOS bell, never as an e-mail. Type "error" is what the bell
+ * files under Support. Returns false when the ATS cannot be reached, so the
+ * caller can fall back to the GitHub issue.
+ */
+export async function notifyOwnerBell(input: { route: string; message: string; incidentRef?: string | null }): Promise<boolean> {
+  const client = getClient();
+  if (!client) return false;
+  const { error } = await client.from("ats_notifications").insert({
+    user_email: "post@arbeidmatch.no",
+    title: `Website error: ${input.route}`.slice(0, 200),
+    message: `${input.incidentRef ? `${input.incidentRef}. ` : ""}${input.message}`.slice(0, 500),
+    type: "error",
+    link: "/settings?section=system-health",
+    importance: "important",
+  });
+  return !error;
+}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { createSmtpTransporter, sendMailWithRetry } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
 import { TALENT_NETWORK_FORM_ENABLED } from "@/lib/featureFlags";
 import { isRateLimited } from "@/lib/requestProtection";
@@ -40,26 +40,28 @@ export async function POST(request: NextRequest) {
     const ts = formatEmailTimestampCet();
     const internalText = `Verified profile request\n\nCandidate email: ${email}\nEU/EEA citizenship confirmed (passport or national ID card): yes\nGDPR consent confirmed: yes\nTimestamp: ${ts}`;
 
-    const notice = verifiedProfileNoticeLetter({ email, timestamp: ts });
-    await transporter.sendMail({
-      ...mailHeaders(),
-      to: "cv@arbeidmatch.no",
-      subject: notice.subject,
-      text: internalText,
-      html: notice.html,
-    });
-
+    // The person waiting gets their letter first; our own notice must never be the
+    // reason they see an error (13 October 2026, an SMTP timeout on the notice).
     const letter = profileRequestLetter({
       to: email,
       unsubscribeUrl: await unsubscribeUrlFor(email, "candidate-join-network"),
     });
-    await transporter.sendMail({
+    await sendMailWithRetry(transporter, {
       ...mailHeaders(),
       to: email,
       subject: letter.subject,
       text: `You are receiving this email because you, or someone who entered your email address, requested to create a candidate profile with ArbeidMatch.\n\nIf this was you, continue by creating your profile here: ${CANDIDATE_REGISTER_URL}\n\nThis confirmation step helps us reduce false accounts and make sure we handle personal data in accordance with GDPR. If you did not make this request, you can safely ignore this email.`,
       html: letter.html,
     });
+
+    const notice = verifiedProfileNoticeLetter({ email, timestamp: ts });
+    await sendMailWithRetry(transporter, {
+      ...mailHeaders(),
+      to: "cv@arbeidmatch.no",
+      subject: notice.subject,
+      text: internalText,
+      html: notice.html,
+    }).catch((error) => notifyError({ route: "/api/candidate-join-network (internal notice)", error }));
 
     return NextResponse.json({ success: true });
   } catch (error) {

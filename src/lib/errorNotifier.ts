@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
-import { reportWebsiteIncident } from "@/lib/odinIncidentBridge";
+import { notifyOwnerBell, reportWebsiteIncident } from "@/lib/odinIncidentBridge";
 import { errorAlertLetter } from "@/lib/emails/letters";
 
 function createTransporter() {
@@ -133,6 +133,14 @@ This is an automated error notification from arbeidmatch.no
 
   if (!shouldAlertHuman) {
     console.error(`[errorNotifier] Suppressed repeat alert for ${route}: ODIN incident ${incident?.incident_ref} already open.`);
+    return;
+  }
+
+  // His rule, 13 October 2026: "nu vreau sa mai primesc mailuri pentru asta ci sa primesc notificari la support".
+  // The bell is the alert; e-mail only when the ATS cannot be reached at all, so an error is never invisible.
+  const belled = await notifyOwnerBell({ route, message: errorMessage, incidentRef: incident?.incident_ref ?? null }).catch(() => false);
+  if (belled) {
+    await createGitHubIssue({ route, errorMessage, errorStack, context });
     return;
   }
 
