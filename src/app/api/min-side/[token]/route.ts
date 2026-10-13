@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, ctx: Ctx) {
 }
 
 /**
- * One change from the page. Only the three the ATS knows are passed on, with
+ * One change from the page. Only the actions the ATS knows are passed on, with
  * the fields as plain values; the ATS decides what each may touch.
  */
 export async function POST(request: NextRequest, ctx: Ctx) {
@@ -39,7 +39,14 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
   }
   const action = raw?.action;
-  if (action !== "company" && action !== "contact" && action !== "remove_contact" && action !== "start_free_alerts" && action !== "whats_new") return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+  if (action !== "company" && action !== "contact" && action !== "remove_contact" && action !== "start_free_alerts" && action !== "whats_new" && action !== "staffing_request") return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+  // ORDER 100: "Planlegg bemanning med oss", passed on as plain short text; the ATS checks every field.
+  if (action === "staffing_request") {
+    const text = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : typeof v === "number" && Number.isFinite(v) ? String(v) : "");
+    const body = { action, trade: text(raw.trade, 120), count: text(raw.count, 6), from: text(raw.from, 10), duration: text(raw.duration, 80), place: text(raw.place, 120), note: text(raw.note, 1000) };
+    const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
+    return noStoreJson(answer.body, { status: answer.status });
+  }
   // U1b: a tick in the What's new window, an item id and whether it was tried.
   if (action === "whats_new") {
     if (!isWhatsNewId(raw.id)) return noStoreJson({ error: BAD_REQUEST }, { status: 400 });

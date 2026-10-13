@@ -9,11 +9,14 @@ import MinSideProjects from "@/components/min-side/MinSideProjects";
 import { CARD, EYEBROW, FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import { MinSideWhatsNew } from "./MinSideWhatsNew";
 import {
+  PLAN_CONFIRMATION,
   SECTIONS,
   SECTION_GROUPS,
   addressLine,
   alertsWords,
   dayNo,
+  intentFromSearch,
+  staffingPrefill,
   kronerNo,
   orgNumberNo,
   profileFrom,
@@ -55,6 +58,9 @@ import {
 const PortalModal = dynamic(() => import("@/components/prosjekter/PortalModal"), { ssr: false });
 
 const LABEL = "text-xs font-semibold uppercase tracking-[0.12em] text-white/55";
+/** The green of the approved visual for "Planlegg bemanning med oss" (ORDER 100). */
+const PLAN_BUTTON =
+  "inline-flex min-h-[48px] items-center justify-center rounded-md bg-[#2E9E6B] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-[#278a5d] disabled:opacity-50";
 const LINK = "inline-flex min-h-[44px] shrink-0 items-center whitespace-nowrap text-sm font-semibold text-gold underline-offset-4 hover:underline";
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
@@ -121,6 +127,7 @@ export default function MinSideClient({ token }: { token: string }) {
   const [editInvoice, setEditInvoice] = useState(false);
   const [editContact, setEditContact] = useState<Contact | "new" | null>(null);
   const [askRemove, setAskRemove] = useState<Contact | null>(null);
+  const [planOpen, setPlanOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -152,6 +159,14 @@ export default function MinSideClient({ token }: { token: string }) {
   useEffect(() => {
     const fromHash = sectionFromHash(window.location.hash);
     if (fromHash) setSection(fromHash);
+    // ORDER 100: a link from the weekly letter opens the staffing request (?plan=1) or the alerts (?alerts=1).
+    const intent = intentFromSearch(window.location.search);
+    if (intent) {
+      setSection("varsler");
+      if (intent === "plan") setPlanOpen(true);
+      // Said once: a reload does not open the form again.
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}#varsler`);
+    }
   }, []);
   const choose = (key: SectionKey) => {
     setSection(key);
@@ -326,6 +341,16 @@ export default function MinSideClient({ token }: { token: string }) {
 
               {section === "varsler" ? (
                 <Panel section="varsler">
+                  {/* ORDER 100: plan the workers with us, the request goes to us as a client request. */}
+                  <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-white/10 border-t-[3px] border-t-[#2E9E6B] bg-white/[0.03] p-5">
+                    <div className="min-w-0 flex-1 basis-[260px]">
+                      <p className="text-[17px] font-semibold text-white">Trenger dere folk de neste månedene?</p>
+                      <p className={`mt-1 text-sm leading-relaxed ${MUTED}`}>Fortell oss fag, antall og når. Vi setter sammen et lag som er klart når prosjektet starter.</p>
+                    </div>
+                    <button type="button" className={PLAN_BUTTON} aria-haspopup="dialog" onClick={() => setPlanOpen(true)}>
+                      Planlegg bemanning med oss
+                    </button>
+                  </div>
                   <div>
                     <p className="text-[15px] font-semibold text-white">{words.title}</p>
                     <p className={`mt-1 text-sm leading-relaxed ${MUTED}`}>{words.text}</p>
@@ -561,6 +586,23 @@ export default function MinSideClient({ token }: { token: string }) {
         </PortalModal>
       ) : null}
 
+      {planOpen && profile ? (
+        <PortalModal title="Planlegg bemanning med oss" onClose={() => setPlanOpen(false)}>
+          <StaffingForm
+            prefill={staffingPrefill(profile.alerts)}
+            onCancel={() => setPlanOpen(false)}
+            onSend={async (request) => {
+              const r = await send({ action: "staffing_request", ...request });
+              if (r.ok) {
+                setPlanOpen(false);
+                setNotice(PLAN_CONFIRMATION);
+              }
+              return r;
+            }}
+          />
+        </PortalModal>
+      ) : null}
+
       {askRemove ? (
         <PortalModal title="Be om fjerning" size="narrow" onClose={() => setAskRemove(null)}>
           <RemoveForm
@@ -771,6 +813,78 @@ function RemoveForm({ name, onConfirm, onCancel }: { name: string; onConfirm: ()
         </p>
       ) : null}
       <Buttons busy={busy} label="Send forespørselen" onCancel={onCancel} />
+    </form>
+  );
+}
+
+const DURATIONS = ["Under 1 måned", "1-3 måneder", "3-6 måneder", "Mer enn 6 måneder", "Vet ikke ennå"];
+
+/** Today in Norway, YYYY-MM-DD, for the earliest date the form offers. */
+function osloToday(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Oslo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+}
+
+/**
+ * "Planlegg bemanning med oss" (ORDER 100, 13 October 2026): trade, how many,
+ * from when, for how long, where, and a note. The trade and the place open
+ * with the alerts' own choices. The ATS checks every field and files it as a
+ * client request.
+ */
+function StaffingForm({ prefill, onSend, onCancel }: { prefill: { trade: string; place: string }; onSend: (request: Record<string, string>) => Promise<Saved>; onCancel: () => void }) {
+  const [v, setV] = useState({ trade: prefill.trade, count: "", from: "", duration: "", place: prefill.place, note: "" });
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState<Failed>(null);
+  const errorFor = (field: string) => (failed?.field === field ? failed.message : null);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setFailed(null);
+    const r = await onSend(v);
+    if (!r.ok) setFailed({ message: r.message, field: r.field });
+    setBusy(false);
+  };
+
+  return (
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_140px]">
+        <Field id="ms-p-trade" label="Fag" error={errorFor("trade")}>
+          <input id="ms-p-trade" data-autofocus className={FIELD} value={v.trade} maxLength={120} placeholder="For eksempel tømrer" onChange={(e) => setV({ ...v, trade: e.target.value })} required />
+        </Field>
+        <Field id="ms-p-count" label="Antall" error={errorFor("count")}>
+          <input id="ms-p-count" className={FIELD} type="number" inputMode="numeric" min={1} max={500} step={1} value={v.count} onChange={(e) => setV({ ...v, count: e.target.value })} required />
+        </Field>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field id="ms-p-from" label="Fra dato" error={errorFor("from")}>
+          <input id="ms-p-from" className={FIELD} type="date" min={osloToday()} value={v.from} onChange={(e) => setV({ ...v, from: e.target.value })} />
+        </Field>
+        <Field id="ms-p-duration" label="Varighet">
+          <select id="ms-p-duration" className={FIELD} value={v.duration} onChange={(e) => setV({ ...v, duration: e.target.value })}>
+            <option value="">Velg</option>
+            {DURATIONS.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      <Field id="ms-p-place" label="Sted">
+        <input id="ms-p-place" className={FIELD} value={v.place} maxLength={120} placeholder="By eller fylke" onChange={(e) => setV({ ...v, place: e.target.value })} />
+      </Field>
+      <Field id="ms-p-note" label="Merknad (valgfritt)">
+        <textarea id="ms-p-note" className={`${FIELD} min-h-[96px] py-2`} value={v.note} maxLength={1000} onChange={(e) => setV({ ...v, note: e.target.value })} />
+      </Field>
+      <FormError failed={failed} />
+      <div className="flex flex-wrap gap-3 pt-1">
+        <button type="submit" className={PLAN_BUTTON} disabled={busy}>
+          {busy ? "Sender ..." : "Send forespørselen"}
+        </button>
+        <button type="button" className={SECONDARY} disabled={busy} onClick={onCancel}>
+          Avbryt
+        </button>
+      </div>
     </form>
   );
 }

@@ -9,6 +9,9 @@
  * the screen and refuses anything that does not look like what it expects.
  */
 
+import { domainLabel, isDomainKey } from "@/lib/prosjekter/domains";
+import { NORWAY_REGIONS } from "@/lib/prosjekter/regions";
+
 export type Company = {
   name: string;
   org_number: string;
@@ -57,7 +60,10 @@ export type MinSideProject = {
   winners: string[];
 };
 
-export type Alerts = { plan: Plan | null; free_until: string | null; projects_url: string | null; projects: MinSideProject[] };
+/** ORDER 100: the subscription's fields (domain keys) and counties (NUTS codes), to preset the staffing request. */
+export type AlertChoices = { domains: string[]; regions: string[] };
+
+export type Alerts = { plan: Plan | null; free_until: string | null; projects_url: string | null; projects: MinSideProject[]; choices?: AlertChoices };
 export type Offer = { number: string; title: string; state: string; open: boolean; sent_at: string | null; url: string | null };
 export type SignedDocument = { title: string; signed_at: string | null; pdf_url: string | null };
 
@@ -175,6 +181,12 @@ function projectsFrom(raw: unknown): MinSideProject[] {
     .slice(0, 200);
 }
 
+function choicesFrom(raw: unknown): AlertChoices {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const codes = (v: unknown) => strings(v).filter((x) => /^[A-Za-z0-9_-]{2,20}$/.test(x));
+  return { domains: codes(r.domains), regions: codes(r.regions) };
+}
+
 /** The ATS's answer as the page uses it, or null when it is not a page at all. */
 export function profileFrom(raw: unknown): Profile | null {
   const r = (raw && typeof raw === "object" ? raw : null) as Record<string, unknown> | null;
@@ -213,7 +225,7 @@ export function profileFrom(raw: unknown): Profile | null {
       .filter((k) => typeof k.id === "string")
       .map((k) => ({ id: String(k.id), full_name: str(k.full_name, 120), role: str(k.role, 80), email: str(k.email, 254), phone: str(k.phone, 24), mine: k.mine === true }))
       .slice(0, 100),
-    alerts: a ? { plan: planFrom(a.plan), free_until: day(a.free_until), projects_url: ownLink(a.projects_url), projects: projectsFrom(a.projects) } : null,
+    alerts: a ? { plan: planFrom(a.plan), free_until: day(a.free_until), projects_url: ownLink(a.projects_url), projects: projectsFrom(a.projects), choices: choicesFrom(a.choices) } : null,
     free_alerts: freeAlertsFrom(r.free_alerts),
     offers: list(r.offers)
       .map((o) => ({ number: str(o.number, 40), title: str(o.title, 120), state: str(o.state, 40), open: o.open === true, sent_at: typeof o.sent_at === "string" ? o.sent_at : null, url: ownLink(o.url) }))
@@ -382,4 +394,32 @@ export function sectionHint(key: SectionKey, p: Profile): string {
 /** An amount as an invoice prints it: kr 12 500,00. */
 export function kronerNo(amount: number): string {
   return `kr ${new Intl.NumberFormat("nb-NO", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount).replace(/[\u00a0\u202f]/g, " ")}`;
+}
+
+// ---------------------------------------------------------------------------
+// ORDER 100 (13 October 2026): "Planlegg bemanning med oss", and the source line.
+// ---------------------------------------------------------------------------
+
+/**
+ * Where the projects come from, in the smallest print on the page (his words:
+ * "si sa nu fie scris mare ci mai mic decat mic"), under the project list. Not
+ * a link, not highlighted. It is never in an e-mail.
+ */
+export const PROJECT_SOURCE_LINE = "Kilde: Doffin";
+
+export const PLAN_CONFIRMATION = "Takk. Vi har fått forespørselen og tar kontakt innen én arbeidsdag.";
+
+/** What a link asks Min side to open: ?plan=1 the staffing request, ?alerts=1 the project alerts. */
+export function intentFromSearch(search: string): "plan" | "alerts" | null {
+  const q = new URLSearchParams(search);
+  if (q.get("plan") === "1") return "plan";
+  if (q.get("alerts") === "1") return "alerts";
+  return null;
+}
+
+/** The trade and place the staffing request opens with: the subscription's fields and counties, in Norwegian. */
+export function staffingPrefill(alerts: Alerts | null): { trade: string; place: string } {
+  const domains = (alerts?.choices?.domains ?? []).filter(isDomainKey).map((d) => domainLabel(d, "no"));
+  const regions = [...new Set((alerts?.choices?.regions ?? []).map((r) => NORWAY_REGIONS[r]).filter((x): x is string => Boolean(x)))];
+  return { trade: domains.slice(0, 3).join(", "), place: regions.slice(0, 3).join(", ") };
 }

@@ -5,7 +5,7 @@ import { CARD, FIELD, MUTED, PRIMARY, STAGE_COLOR, tint } from "@/components/pro
 import { cleanDescription, keyDateNo, placeNo, regionChoices, stageNo, valueNo } from "@/lib/prosjekter/format";
 import { domainLabel, isDomainKey } from "@/lib/prosjekter/domains";
 import { expandRegions } from "@/lib/prosjekter/regions";
-import type { MinSideProject } from "@/lib/min-side/profile";
+import { PROJECT_SOURCE_LINE, type MinSideProject } from "@/lib/min-side/profile";
 
 /**
  * The projects of the person's alerts, in the Prosjektvarsler section of Min
@@ -147,6 +147,8 @@ export default function MinSideProjects({ projects }: { projects: MinSideProject
           Vis flere ({filtered.length - shown})
         </button>
       ) : null}
+      {/* ORDER 100: the source, smaller than small, never a link (his words, 13 October 2026). */}
+      <p className="text-[11px] font-normal leading-snug text-[#9AA3AF]">{PROJECT_SOURCE_LINE}</p>
     </div>
   );
 }

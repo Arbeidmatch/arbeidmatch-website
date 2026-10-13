@@ -26,8 +26,18 @@ export const metadata: Metadata = {
  * unknown link, or an ATS that cannot be reached, ends on a plain page with the
  * way back to the form.
  */
-export default async function ProsjekterInnPage({ params }: { params: Promise<{ token: string }> }) {
+export default async function ProsjekterInnPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ token: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { token } = await params;
+  // ORDER 100: a link from the weekly letter may ask for a place on the page. Only these two words are carried on.
+  const query = await searchParams;
+  const plan = query.plan === "1";
+  const alerts = !plan && query.alerts === "1";
   let target: string | null = null;
   let unreachable = false;
   if (isLoginToken(token)) {
@@ -35,8 +45,12 @@ export default async function ProsjekterInnPage({ params }: { params: Promise<{ 
       method: "GET",
       visitorHeaders: await headers(),
     });
-    if (answer.status === 200 && isProfileToken(answer.body.profile)) target = `/min-side/${answer.body.profile}`;
-    else if (answer.status === 200 && isProjectToken(answer.body.token)) target = `/prosjekter/${answer.body.token}`;
+    const profile = answer.status === 200 && isProfileToken(answer.body.profile) ? answer.body.profile : null;
+    const projects = answer.status === 200 && isProjectToken(answer.body.token) ? answer.body.token : null;
+    // The alerts' county, field and frequency are changed on the subscription's own page, so ?alerts=1 goes there when there is one.
+    if (alerts && projects) target = `/prosjekter/${projects}`;
+    else if (profile) target = `/min-side/${profile}${plan ? "?plan=1" : alerts ? "?alerts=1" : ""}`;
+    else if (projects) target = `/prosjekter/${projects}`;
     else if (answer.status >= 500) unreachable = true;
   }
   // Outside any try: redirect() works by throwing.
