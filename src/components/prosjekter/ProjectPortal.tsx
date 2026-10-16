@@ -231,7 +231,9 @@ export default function ProjectPortal({
 
   useEffect(() => {
     try {
-      window.history.replaceState(null, "", `/prosjekter${queryFor(stages, county, domain)}${window.location.hash}`);
+      const query = new URLSearchParams(queryFor(stages, county, domain));
+      query.set("view", "old");
+      window.history.replaceState(null, "", `/prosjekter?${query}${window.location.hash}`);
     } catch {
       /* the address bar is a convenience */
     }

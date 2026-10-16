@@ -3,6 +3,9 @@ import { headers } from "next/headers";
 
 import AccessBand from "@/components/prosjekter/AccessBand";
 import PortalSteps from "@/components/prosjekter/PortalSteps";
+import ProjectVersion from "@/components/prosjekter/ProjectVersion";
+import PublicProjectExplorer from "@/components/prosjekter/PublicProjectExplorer";
+import { publicOverview } from "@/lib/prosjekter/explorer";
 import ProjectPortal from "@/components/prosjekter/ProjectPortal";
 import styles from "@/components/prosjekter/portal.module.css";
 import { callAts } from "@/lib/prosjekter/ats";
@@ -37,35 +40,32 @@ export const metadata: Metadata = {
 };
 
 /**
- * THE OPEN PROJECT PORTAL, arbeidmatch.no/prosjekter (version 2, 29 September 2026).
- *
- * Anybody may see the counts, the map and the list: a title with the buyer
- * taken out, the town and county, the stage, the value and the month that
- * matters. The buyer, the contractor, exact deadlines and the way into a
- * tender are for clients, who have a page of their own (/prosjekter/<token>,
- * reached by a login link sent from the "Logg inn" dialog). Below the map:
- * how it works, and a band whose buttons open the access and login dialogs
- * (#tilgang, #logg-inn; see PortalDialogs).
- *
- * Rendered on the server with the ATS's answer, so the list is readable
- * without JavaScript and by a search engine; the map, filters and sort then
- * work in the browser on the same answer.
+ * The public explorer exposes categories, regions, stages and value bands.
+ * Sanitize before serialization so both Ny and Old receive the same public
+ * payload. Exact titles and commercial details remain on the authenticated
+ * subscriber page. Access and login dialogs use #tilgang and #logg-inn.
  */
 export default async function ProsjekterPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const filters = filtersFrom(await searchParams);
+  const params = await searchParams;
+  const filters = filtersFrom(params);
   const answer = await callAts(`/api/public/projects-overview${filtersQuery(filters)}`, {
     method: "GET",
     visitorHeaders: await headers(),
   });
-  const initial: Overview | null = answer.status === 200 && isOverview(answer.body) ? answer.body : null;
+  const initial: Overview | null = answer.status === 200 && isOverview(answer.body) ? publicOverview(answer.body) : null;
 
   return (
     <div className={styles.portal}>
-      <ProjectPortal initial={initial} initialFilters={filters} />
+      <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-8">
+        <h1 className="text-2xl font-semibold text-white">Forsprang · Prosjekter i Norge</h1>
+        <ProjectVersion initialOld={params.view === "old"} modern={<PublicProjectExplorer initial={initial} />}>
+          <ProjectPortal initial={initial} initialFilters={filters} />
+        </ProjectVersion>
+      </div>
       <PortalSteps projects={placeProjects(initial?.map)} />
       <AccessBand />
     </div>

@@ -16,6 +16,8 @@ const contentSecurityPolicy = [
   "form-action 'self'",
 ].join("; ");
 
+const projectMapPolicy = contentSecurityPolicy.replace("connect-src 'self'", "connect-src 'self' https://tiles.mapterhorn.com https://services.arcgisonline.com") + "; worker-src 'self' blob:";
+
 const nextConfig: NextConfig = {
   // Keep the immersive document independent of the agency navigation and page scroll.
   async rewrites() {
@@ -45,6 +47,13 @@ const nextConfig: NextConfig = {
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "Cross-Origin-Resource-Policy", value: "same-site" },
           { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
+        ],
+      },
+      {
+        source: "/prosjekter/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: projectMapPolicy },
+          { key: "Referrer-Policy", value: "no-referrer" },
         ],
       },
       {

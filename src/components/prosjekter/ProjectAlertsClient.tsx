@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import ProjectVersion from "./ProjectVersion";
+import PublicProjectExplorer from "./PublicProjectExplorer";
 
 import { CARD, EYEBROW, MUTED, PRIMARY, SECONDARY, STAGE_COLOR, tint } from "@/components/prosjekter/ui";
 import { isSentProjectPath } from "@/lib/prosjekter/access";
@@ -438,6 +440,8 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
 
         {sub && sub.status === "active" ? (
           <>
+            <ProjectVersion modern={<PublicProjectExplorer subscriberProjects={projects} />}>
+            <div className="flex flex-col gap-8">
             <section className="grid grid-cols-3 gap-2 sm:gap-4" aria-label="Oversikt">
               {(
                 [
@@ -502,6 +506,9 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
                 ))}
               </section>
             )}
+
+            </div>
+            </ProjectVersion>
 
             {sent.length ? (
               <section className={`${CARD} p-5 sm:p-6`} aria-labelledby="sent-h">

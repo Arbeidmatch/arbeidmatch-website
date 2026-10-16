@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getRateLimitResult } from "@/lib/apiSecurity";
 import { callAts } from "@/lib/prosjekter/ats";
-import { filtersFrom, filtersQuery } from "@/lib/prosjekter/types";
+import { publicOverview } from "@/lib/prosjekter/explorer";
+import { isOverview, filtersFrom, filtersQuery } from "@/lib/prosjekter/types";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
     method: "GET",
     visitorHeaders: request.headers,
   });
-  return NextResponse.json(answer.body, {
+  return NextResponse.json(answer.status === 200 && isOverview(answer.body) ? publicOverview(answer.body) : answer.body, {
     status: answer.status,
     headers: {
       "Cache-Control": answer.status === 200 ? "public, max-age=60, s-maxage=300" : "no-store",
