@@ -141,7 +141,11 @@ export function readableText(text: string | null | undefined): string[] {
     .map((b) => b.trim())
     .filter(Boolean);
   if (blocks.length > 1) return blocks;
-  const sentences = s.split(/(?<=[.!?])\s+(?=[A-ZÆØÅ])/);
+  // No lookbehind: Safari before iOS 16.4 cannot parse one, and this file is in
+  // every page's bundle (the access dialog), so it left phones on a white screen.
+  const parts = s.split(/([.!?])\s+(?=[A-ZÆØÅ])/);
+  const sentences: string[] = [];
+  for (let i = 0; i < parts.length; i += 2) sentences.push(parts[i] + (parts[i + 1] ?? ""));
   const out: string[] = [];
   for (let i = 0; i < sentences.length; i += 3) out.push(sentences.slice(i, i + 3).join(" "));
   return out;
