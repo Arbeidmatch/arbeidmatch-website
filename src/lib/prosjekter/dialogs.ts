@@ -46,8 +46,8 @@ export function dialogForLink(href: string | null | undefined, currentPath: stri
   return dialogFromHash(url.hash);
 }
 
-/** Each dialog's title, and how wide it opens on a desktop. */
-export const DIALOG_META: Record<PortalDialog, { title: string; size: "wide" | "narrow" }> = {
-  tilgang: { title: "Be om tilgang", size: "wide" },
+/** Each dialog's title, how wide it opens on a desktop, and a mark beside the title. */
+export const DIALOG_META: Record<PortalDialog, { title: string; size: "wide" | "narrow"; badge?: string }> = {
+  tilgang: { title: "Be om tilgang", size: "wide", badge: "Beta" },
   "logg-inn": { title: "Logg inn", size: "narrow" },
 };

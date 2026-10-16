@@ -51,13 +51,15 @@ function unlockScroll() {
 
 export type PortalModalProps = {
   title: string;
+  /** A small mark beside the title ("Beta"). */
+  badge?: string;
   onClose: () => void;
   /** "wide" (about 640px, the access form and the choices) or "narrow" (about 440px, login). */
   size?: keyof typeof WIDTH;
   children: React.ReactNode;
 };
 
-export default function PortalModal({ title, onClose, size = "wide", children }: PortalModalProps) {
+export default function PortalModal({ title, badge, onClose, size = "wide", children }: PortalModalProps) {
   const id = useId();
   const titleId = `${id}-title`;
   const panelRef = useRef<HTMLDivElement>(null);
@@ -162,7 +164,10 @@ export default function PortalModal({ title, onClose, size = "wide", children }:
         style={{ "--modal-w": `${WIDTH[size]}px` } as React.CSSProperties}
       >
         <div className={styles.modalHead}>
-          <h2 id={titleId}>{title}</h2>
+          <h2 id={titleId}>
+            {title}
+            {badge ? <span className={styles.titleBadge}>{badge}</span> : null}
+          </h2>
           <button type="button" className={styles.modalClose} aria-label="Lukk" onClick={() => closeRef.current()}>
             <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
               <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" />

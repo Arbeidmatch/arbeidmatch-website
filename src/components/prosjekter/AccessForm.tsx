@@ -24,6 +24,11 @@ import { domainChoices, regionChoices } from "@/lib/prosjekter/format";
  *     sent to it, typed here in a second step. The ATS decides which; the
  *     request reaches the owner only once the address is confirmed.
  *
+ * Sending is the acceptance (his decision, 16 October 2026): no box to tick.
+ * The line above the buttons says that sending confirms the contact details
+ * are on the company's website and accepts the terms, the privacy notice and
+ * the disclaimer printed under it, so website_confirmed goes as true.
+ *
  * His design of 16 October 2026, for less on screen at once: who you are in
  * one step, what you follow in the next. Counties are picked by region, with
  * the fifteen one click away; trades start at "Alle fag" (an empty list, as
@@ -63,7 +68,6 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
   const [phone, setPhone] = useState("");
   const [regions, setRegions] = useState<string[]>([]);
   const [domains, setDomains] = useState<string[]>([]);
-  const [confirmed, setConfirmed] = useState(false);
   const [honey, setHoney] = useState("");
   const [token, setToken] = useState<string | null>(null);
   const [turnstileKey, setTurnstileKey] = useState(0);
@@ -83,7 +87,6 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
     contact_role: useRef<HTMLInputElement>(null),
     email: useRef<HTMLInputElement>(null),
     phone: useRef<HTMLInputElement>(null),
-    website_confirmed: useRef<HTMLInputElement>(null),
   };
   const codeRef = useRef<HTMLInputElement>(null);
   const doneRef = useRef<HTMLDivElement>(null);
@@ -140,7 +143,7 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
       phone,
       regions,
       domains,
-      website_confirmed: confirmed,
+      website_confirmed: true,
     });
 
   const next = (e: React.FormEvent) => {
@@ -371,11 +374,6 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
       <i className={step === 2 ? styles.on : undefined} />
     </div>
   );
-  const privacy = (
-    <span className={styles.small}>
-      <Link href="/privacy">Personvern</Link>
-    </span>
-  );
 
   if (step === 1) {
     return (
@@ -542,7 +540,7 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         <div className={styles.formFoot}>
-          {privacy}
+          <span />
           <button className={`${styles.btn} ${styles.btnGold}`} type="submit">
             Neste
           </button>
@@ -625,22 +623,6 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
         ) : null}
       </fieldset>
 
-      <div className={styles.field}>
-        <label className={styles.check}>
-          <input
-            ref={refs.website_confirmed}
-            type="checkbox"
-            checked={confirmed}
-            onChange={(e) => {
-              setConfirmed(e.target.checked);
-              clearError("website_confirmed");
-            }}
-            {...fieldProps("website_confirmed")}
-          />
-          <span>Kontaktinformasjonen min står på firmaets nettside.</span>
-        </label>
-        {fieldError("website_confirmed")}
-      </div>
 
       <div className={styles.honey} aria-hidden="true">
         <label htmlFor="pa-website">Nettsted</label>
@@ -656,9 +638,24 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
           options={{ theme: "dark", language: "nb", appearance: "interaction-only" }}
         />
       ) : null}
+      <p className={styles.consent}>
+        Ved å sende bekrefter du at kontaktinformasjonen din står på firmaets nettside, og godtar{" "}
+        <Link href="/terms" target="_blank">
+          vilkår
+        </Link>
+        ,{" "}
+        <Link href="/privacy" target="_blank">
+          personvern
+        </Link>{" "}
+        og ansvarsfraskrivelsen nedenfor.
+      </p>
+      <p className={styles.disclaimer}>
+        <strong>Ansvarsfraskrivelse.</strong> Forsprang er i beta. Opplysningene om prosjektene kan være ufullstendige
+        eller forsinket og erstatter ikke konkurransegrunnlaget. ArbeidMatch er ikke ansvarlig for beslutninger tatt på
+        grunnlag av dem.
+      </p>
       {errorBox}
       <div className={styles.formFoot}>
-        {privacy}
         <span className={styles.footBtns}>
           <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={() => setStep(1)} disabled={busy}>
             Tilbake

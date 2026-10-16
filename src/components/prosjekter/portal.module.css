@@ -1438,6 +1438,47 @@
   color: var(--text-2);
 }
 
+.titleBadge {
+  display: inline-block;
+  margin-left: 10px;
+  vertical-align: 3px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid rgba(201, 168, 76, 0.55);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.consent {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.consent a {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.disclaimer {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.disclaimer strong {
+  color: var(--text-2);
+}
+
 .footBtns {
   display: flex;
   gap: 10px;

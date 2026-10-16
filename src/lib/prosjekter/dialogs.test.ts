@@ -23,7 +23,7 @@ describe("which hash opens which dialog", () => {
   });
 
   it("gives every dialog a title and a width", () => {
-    expect(DIALOG_META.tilgang).toEqual({ title: "Be om tilgang", size: "wide" });
+    expect(DIALOG_META.tilgang).toEqual({ title: "Be om tilgang", size: "wide", badge: "Beta" });
     expect(DIALOG_META["logg-inn"]).toEqual({ title: "Logg inn", size: "narrow" });
   });
 });
