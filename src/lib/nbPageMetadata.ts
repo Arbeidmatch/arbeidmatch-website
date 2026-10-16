@@ -20,7 +20,7 @@ function canonicalPath(path: string): string {
 }
 
 /**
- * Norwegian page SEO bundle: canonical, hreflang stubs (en/ro/pl roots), Open Graph, Twitter.
+ * Page SEO bundle: canonical, Open Graph, Twitter.
  * Use `title.absolute` so layout title template does not append "| ArbeidMatch" twice.
  */
 export function nbPageMetadata(path: string, titleAbsolute: string, description: string): Metadata {
@@ -28,15 +28,10 @@ export function nbPageMetadata(path: string, titleAbsolute: string, description:
   return {
     title: { absolute: titleAbsolute },
     description,
-    alternates: {
-      canonical,
-      languages: {
-        nb: canonical,
-        en: `${SITE}/en`,
-        ro: `${SITE}/ro`,
-        pl: `${SITE}/pl`,
-      },
-    },
+    // No language alternates (his decision, 16 October 2026): they pointed every
+    // page at the /en, /ro and /pl front pages, which are not translations of
+    // it, and /en is noindex. Add them per page when a real translation exists.
+    alternates: { canonical },
     openGraph: {
       title: titleAbsolute,
       description,
