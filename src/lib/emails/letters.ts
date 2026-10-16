@@ -58,7 +58,14 @@ export function contactNoticeLetter(args: {
   to: string;
 }): Letter {
   return {
-    subject: `${args.isSupport ? "Support request" : "New contact message"}: ${args.name} from ${args.company}`,
+    // A job seeker names no company, and "from Not provided" read like a client
+    // (his report, 16 October 2026). The ATS reads only the subject's opening
+    // "New contact message:", so the rest may say what the message is.
+    subject: args.isSupport
+      ? `Support request: ${args.name} from ${args.company}`
+      : args.need === "Candidate inquiry"
+        ? `New contact message: ${args.name} (jobbsøker)`
+        : `New contact message: ${args.name} from ${args.company}`,
     html: buildArbeidmatchLetter({
       title: args.isSupport ? "Support request from the website" : "Contact form on arbeidmatch.no",
       innerHtml: letterFacts([
