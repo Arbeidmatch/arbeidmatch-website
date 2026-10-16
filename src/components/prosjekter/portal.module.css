@@ -589,7 +589,7 @@
 .tip {
   position: absolute;
   z-index: 5;
-  width: 280px;
+  width: 360px;
   pointer-events: none;
   background: #0b1320;
   border: 1px solid var(--line);
@@ -1704,7 +1704,7 @@
   }
 
   .tip {
-    width: 240px;
+    width: min(320px, calc(100vw - 48px));
   }
 
   .card {
