@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import styles from "@/components/prosjekter/portal.module.css";
+import { DOMAINS } from "@/lib/prosjekter/domains";
 import {
   clampView,
   clusterProjects,
@@ -27,7 +28,7 @@ import {
   lerpView,
   MAX_ZOOM,
   mapToScreen,
-  mnok,
+  valueBand,
   panBy,
   screenToMap,
   southView,
@@ -900,42 +901,55 @@ export default function PortalMap({ ref, visible, counts, county, onPickCounty, 
   );
 }
 
+/*
+ * The hover card says as little as the list beside the map: no project name,
+ * town, exact value or deadline, only county, stage, trade and a value band
+ * (his decision, 16 October 2026). The map itself is unchanged.
+ */
+const tradeOf = (p: { d: string[] }) => {
+  for (const k of p.d) {
+    const d = DOMAINS.find((x) => x.key === k);
+    if (d) return d.no;
+  }
+  return null;
+};
+
 function TipBody({ c }: { c: Cluster }) {
   if (c.members.length === 1) {
     const p = c.members[0];
-    const value = mnok(p.v);
+    const band = valueBand(p.v);
+    const trade = tradeOf(p);
     return (
       <>
         <span className={styles.pill} style={{ "--c": STAGE_HEX[p.st] } as React.CSSProperties}>
           {STAGE_LABEL[p.st]}
         </span>
-        <h4>{p.t}</h4>
-        <div className={styles.meta}>{[p.c, COUNTIES[p.r]?.n].filter(Boolean).join(" · ")}</div>
-        {value || p.k ? (
+        <h4>{COUNTIES[p.r]?.n ?? ""}</h4>
+        {trade || band ? (
           <div className={styles.tipRow}>
-            <span className={styles.num}>{value ? `${value} MNOK` : ""}</span>
-            <span style={{ color: "var(--text-2)" }}>{p.k ?? ""}</span>
+            <span style={{ color: "var(--text-2)" }}>{trade ?? ""}</span>
+            <span className={styles.num}>{band ?? ""}</span>
           </div>
         ) : null}
         <LockLine />
       </>
     );
   }
-  const towns = [...new Set(c.members.map((p) => p.c).filter((t): t is string => Boolean(t)))];
+  const counties = [...new Set(c.members.map((p) => COUNTIES[p.r]?.n).filter((t): t is string => Boolean(t)))];
   return (
     <>
       <span className={styles.tag}>{c.members.length} prosjekter</span>
       <h4>
-        {towns.length ? towns.slice(0, 3).join(", ") : COUNTIES[c.members[0].r]?.n ?? ""}
-        {towns.length > 3 ? " m.fl." : ""}
+        {counties.slice(0, 3).join(", ")}
+        {counties.length > 3 ? " m.fl." : ""}
       </h4>
       <ul className={styles.tipList}>
         {c.members.slice(0, 4).map((p) => (
           <li key={p.no}>
             <span className={styles.dot} style={{ "--c": STAGE_HEX[p.st] } as React.CSSProperties} />
-            <span>{p.t}</span>
+            <span>{tradeOf(p) ?? STAGE_LABEL[p.st]}</span>
             <span className={styles.num} style={{ color: "var(--text-2)" }}>
-              {mnok(p.v) ?? ""}
+              {valueBand(p.v) ?? ""}
             </span>
           </li>
         ))}
