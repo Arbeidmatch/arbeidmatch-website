@@ -1,5 +1,5 @@
 /**
- * Where the "Sign Up" section sits on /jobs.
+ * Where the "Register" section sits on /jobs.
  *
  * HIS RULE, 25 September 2026: with fewer than ten jobs on the page the section
  * comes before the list, because a short list is read to the end in a moment

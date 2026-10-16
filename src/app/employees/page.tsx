@@ -36,7 +36,7 @@ export default function EmployeesPage() {
           <p className="mt-4 text-sm text-white/55">
             New to ArbeidMatch?{" "}
             <a href={CANDIDATE_PORTAL_SIGNUP_URL} className="font-semibold text-[#C9A84C] underline-offset-2 hover:underline">
-              Sign Up
+              Register
             </a>
           </p>
         </section>

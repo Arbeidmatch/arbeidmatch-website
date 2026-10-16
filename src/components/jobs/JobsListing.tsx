@@ -24,7 +24,7 @@ function SignupSection({ className = "" }: { className?: string }) {
         href={CANDIDATE_PORTAL_SIGNUP_URL}
         className="inline-flex min-h-[44px] shrink-0 items-center justify-center self-start rounded-[6px] bg-gold px-5 py-2 text-[14px] font-semibold text-navy transition-colors hover:bg-gold-hover sm:self-center"
       >
-        Sign Up
+        Register
       </a>
     </section>
   );

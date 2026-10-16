@@ -170,7 +170,7 @@ export default function MobileDrawerContent({
             className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-md py-2.5 text-left text-[15px] font-semibold text-[#C9A84C] transition-colors hover:text-[#d4b55d]"
             onClick={() => navigateAfterClose(onClose, () => window.location.assign(CANDIDATE_PORTAL_SIGNUP_URL))}
           >
-            <span>Sign Up</span>
+            <span>Register</span>
             <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
           </button>
         </div>

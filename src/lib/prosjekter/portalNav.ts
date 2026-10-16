@@ -2,7 +2,7 @@ import { isProjectToken } from "@/lib/prosjekter/format";
 
 /**
  * The header's actions on the project portal (/prosjekter and everything
- * under it). The site's "Sign Up" is for job seekers and confused clients
+ * under it). The site's "Register" (once "Sign Up") is for job seekers and confused clients
  * there, so the portal has its own two: a quiet way in for clients who have
  * access, and the gold one for firms that want it. On a client's own page
  * (/prosjekter/<token>) the way in is already taken, so it reads "Min side"

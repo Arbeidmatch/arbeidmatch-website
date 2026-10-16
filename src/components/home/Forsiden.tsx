@@ -22,7 +22,7 @@ const COPY = {
     search: { role: "Ditt fag", rolePlaceholder: "f.eks. tømrer, mekaniker", where: "Sted", everywhere: "Hele Norge", company: "Bedrift, valgfritt", companyPlaceholder: "alle", search: "Finn jobber" },
     open: "Ledige stillinger", all: "Se alle jobber", results: "ledige stillinger",
     error: "Stillingslisten kunne ikke lastes. Prøv igjen snart, eller kontakt oss.",
-    empty: "Ingen stillinger er ledige akkurat nå. Trykk på Sign Up og fortell oss om faget ditt.",
+    empty: "Ingen stillinger er ledige akkurat nå. Trykk på Register og fortell oss om faget ditt.",
     requirement: "For kvalifiserte fagfolk fra EU og EØS",
   },
 } as const;
@@ -61,7 +61,7 @@ export async function Forsiden({ lang = "en" }: { lang?: "en" | "no" }) {
         {!ok || jobs.length === 0 ? (
           <div className="rounded-xl border border-border bg-surface p-6 text-text-secondary">
             <p>{!ok ? copy.error : copy.empty}</p>
-            <Link href={!ok ? "/contact" : "/candidate-register"} className="mt-3 inline-block font-semibold text-gold-ink underline">{!ok ? (lang === "en" ? "Contact us" : "Kontakt oss") : "Sign Up"}</Link>
+            <Link href={!ok ? "/contact" : "/candidate-register"} className="mt-3 inline-block font-semibold text-gold-ink underline">{!ok ? (lang === "en" ? "Contact us" : "Kontakt oss") : "Register"}</Link>
           </div>
         ) : (
           <div className="grid auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-3">
