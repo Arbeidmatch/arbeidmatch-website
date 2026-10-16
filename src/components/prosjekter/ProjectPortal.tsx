@@ -2,20 +2,20 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import PortalMap, { LockLine, type PortalMapHandle } from "@/components/prosjekter/PortalMap";
+import PortalMap, { type PortalMapHandle } from "@/components/prosjekter/PortalMap";
 import styles from "@/components/prosjekter/portal.module.css";
 import { domainChoices } from "@/lib/prosjekter/format";
 import {
   COUNTIES,
   countyCounts,
   filterProjects,
-  mnok,
   placeProjects,
   sortProjects,
   STAGE_HEX,
   STAGE_LABEL,
   STAGES,
   type MapStage,
+  valueBand,
   type PlacedProject,
 } from "@/lib/prosjekter/map";
 import { isOverview, type Overview, type OverviewFilters } from "@/lib/prosjekter/types";
@@ -99,6 +99,23 @@ function Stat({ stage, label, value }: { stage: string; label: string; value: nu
   );
 }
 
+/**
+ * The list names no project, place, exact value or deadline: with those a
+ * visitor finds the tender himself instead of asking for access (his decision,
+ * 16 October 2026). The name shows as grey bars, so the row reads as a real
+ * project whose details are kept for clients. The map is left as it was.
+ */
+function MaskedTitle({ seed }: { seed: number }) {
+  const a = 90 + ((seed * 37) % 90);
+  const b = 50 + ((seed * 53) % 80);
+  return (
+    <h3 className={styles.masked} aria-label="Prosjektnavn for kunder">
+      <i style={{ width: a }} />
+      <i style={{ width: b }} />
+    </h3>
+  );
+}
+
 function Row({
   p,
   hl,
@@ -112,7 +129,7 @@ function Row({
   onHover: (no: number | null) => void;
   onPick: (no: number) => void;
 }) {
-  const value = mnok(p.v);
+  const value = valueBand(p.v);
   return (
     <li className={`${styles.row} ${hl ? styles.rowHl : ""}`}>
       <button
@@ -130,33 +147,19 @@ function Row({
           {domainLabel ? <span className={styles.tag}>{domainLabel}</span> : null}
         </span>
         <span>
-          <h3>{p.t}</h3>
+          <MaskedTitle seed={p.no} />
           <span className={styles.where} style={{ display: "block" }}>
-            {[p.c, COUNTIES[p.r]?.n].filter(Boolean).join(" · ")}
+            {COUNTIES[p.r]?.n ?? ""}
           </span>
         </span>
         <span className={styles.val}>
-          {value ? (
-            <>
-              <span className={`${styles.valN} ${styles.num}`}>{value}</span>
-              <span className={styles.valU}>MNOK</span>
-            </>
-          ) : null}
-          {p.k ? (
-            <span className={styles.when} style={{ display: "block" }}>
-              {p.k}
-            </span>
-          ) : null}
+          {value ? <span className={`${styles.valBand} ${styles.num}`}>{value}</span> : null}
         </span>
       </button>
       <span className={styles.rowFoot}>
-        <LockLine
-          action={
-            <a href="#tilgang" aria-haspopup="dialog" className={styles.rowCta}>
-              Få tilgang
-            </a>
-          }
-        />
+        <a href="#tilgang" aria-haspopup="dialog" className={styles.rowCta}>
+          Få tilgang
+        </a>
       </span>
     </li>
   );
@@ -463,26 +466,12 @@ export default function ProjectPortal({
                         </span>
                       </span>
                       <span>
-                        <h3>{p.title}</h3>
-                        <span className={styles.where} style={{ display: "block" }}>
-                          {p.place}
-                        </span>
+                        <MaskedTitle seed={p.project_no ?? i} />
                       </span>
-                      <span className={styles.val}>
-                        {p.value_label ? <span className={`${styles.valN} ${styles.num}`}>{p.value_label}</span> : null}
-                        {p.date_label ? (
-                          <span className={styles.when} style={{ display: "block" }}>
-                            {p.date_label}
-                          </span>
-                        ) : null}
-                      </span>
-                      <LockLine
-                        action={
-                          <a href="#tilgang" aria-haspopup="dialog" className={styles.rowCta}>
-                          Få tilgang
-                        </a>
-                        }
-                      />
+                      <span className={styles.val} />
+                      <a href="#tilgang" aria-haspopup="dialog" className={styles.rowCta}>
+                        Få tilgang
+                      </a>
                     </li>
                   ))
                 )}

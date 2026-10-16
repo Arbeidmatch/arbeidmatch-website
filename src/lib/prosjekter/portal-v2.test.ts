@@ -14,6 +14,7 @@ import {
   mapToScreen,
   MAX_ZOOM,
   mnok,
+  valueBand,
   panBy,
   placeProjects,
   project,
@@ -221,6 +222,15 @@ describe("the list beside the map", () => {
     expect(mnok(2_450_000)).toBe("2,5");
     expect(mnok(250_000_000)).toBe("250");
     expect(mnok(null)).toBeNull();
+  });
+
+  it("gives the open list a value band, never the exact value", () => {
+    expect(valueBand(1_200_000_000)).toBe("over 1 000 MNOK");
+    expect(valueBand(600_000_000)).toBe("500-1 000 MNOK");
+    expect(valueBand(450_000_000)).toBe("100-500 MNOK");
+    expect(valueBand(60_000_000)).toBe("10-100 MNOK");
+    expect(valueBand(2_450_000)).toBe("under 10 MNOK");
+    expect(valueBand(null)).toBeNull();
   });
 });
 

@@ -148,6 +148,22 @@ export function countyFill(total: number, max: number): string {
 
 const nf = new Intl.NumberFormat("nb-NO");
 
+/**
+ * A value in NOK as a band for the open list ("100-500 MNOK"), or null. The
+ * list beside the map says how big a project is, never its exact value: an
+ * exact value with a county and a trade finds the tender elsewhere without
+ * access (his decision, 16 October 2026).
+ */
+export function valueBand(v: number | null): string | null {
+  if (v === null || !(v > 0)) return null;
+  const m = v / 1_000_000;
+  if (m < 10) return "under 10 MNOK";
+  if (m < 100) return "10-100 MNOK";
+  if (m < 500) return "100-500 MNOK";
+  if (m < 1000) return "500-1 000 MNOK";
+  return "over 1 000 MNOK";
+}
+
 /** A value in NOK as millions for the map ("60", "2,5"), or null. */
 export function mnok(v: number | null): string | null {
   if (v === null || !(v > 0)) return null;
