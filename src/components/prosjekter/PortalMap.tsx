@@ -954,24 +954,22 @@ function TipBody({ c }: { c: Cluster }) {
         {counties.slice(0, 3).join(", ")}
         {counties.length > 3 ? " m.fl." : ""}
       </h4>
-      <ul className={styles.tipList}>
+      <ul className={`${styles.tipList} ${styles.tipSum}`}>
         {stages.map(({ st, n }) => (
           <li key={st}>
             <span className={styles.dot} style={{ "--c": STAGE_HEX[st] } as React.CSSProperties} />
             <span>{STAGE_LABEL[st]}</span>
-            <span className={styles.num} style={{ color: "var(--text-2)" }}>
-              {n}
-            </span>
+            <span className={styles.num}>{n}</span>
+            <span />
           </li>
         ))}
       </ul>
-      <ul className={`${styles.tipList} ${styles.tipTrades}`}>
+      <ul className={`${styles.tipList} ${styles.tipSum} ${styles.tipTrades}`}>
         {tradeRows.slice(0, 3).map(([t, { n, v }]) => (
           <li key={t}>
+            <span />
             <span>{t}</span>
-            <span className={styles.num} style={{ color: "var(--text-2)" }}>
-              {n}
-            </span>
+            <span className={styles.num}>{n}</span>
             <span className={styles.num}>{valueBand(v || null) ?? ""}</span>
           </li>
         ))}

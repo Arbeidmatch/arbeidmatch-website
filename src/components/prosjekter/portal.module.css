@@ -680,9 +680,19 @@
   border-top: 1px solid var(--line-soft);
 }
 
-.tipTrades li {
-  grid-template-columns: 1fr auto auto;
-  gap: 10px;
+/* Stages and trades share one grid, so every count sits in the same column. */
+.tipSum li {
+  grid-template-columns: 10px 1fr 28px 112px;
+  gap: 8px;
+}
+
+.tipSum li > :nth-child(3),
+.tipSum li > :nth-child(4) {
+  text-align: right;
+}
+
+.tipSum li > :nth-child(4) {
+  color: var(--text-2);
 }
 
 .lockline {
