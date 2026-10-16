@@ -39,8 +39,8 @@ function Facts({ p, subscriber }: { p: ExplorerProject; subscriber: boolean }) {
   </dl>;
 }
 
-export default function ProjectExplorer({ projects, subscriber = false, loading = false, failed = false }: {
-  projects: ExplorerProject[]; subscriber?: boolean; loading?: boolean; failed?: boolean;
+export default function ProjectExplorer({ projects, subscriber = false, loading = false, failed = false, publicTotal }: {
+  projects: ExplorerProject[]; subscriber?: boolean; loading?: boolean; failed?: boolean; publicTotal?: number;
 }) {
   const [id, setId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -92,7 +92,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
 
   return <section className={styles.explorer} aria-label="Prosjektutforsker">
     <div className={styles.resultBar}>
-      <h2 aria-live="polite">{visible.length.toLocaleString("nb-NO")} prosjekter <span>av {projects.length.toLocaleString("nb-NO")} totalt</span></h2>
+      <h2 aria-live="polite">{visible.length.toLocaleString("nb-NO")} prosjekter <span>{publicTotal === undefined ? `av ${projects.length.toLocaleString("nb-NO")} totalt` : `${publicTotal.toLocaleString("nb-NO")} registrerte · ${projects.filter(p => p.coordinates).length.toLocaleString("nb-NO")} på kartet`}</span></h2>
       {subscriber ? <label className={styles.savedFilter}><input type="checkbox" checked={savedOnly} onChange={e => { setSavedOnly(e.target.checked); setPage(0); }} /> Mine lagrede</label> : null}
       <button type="button" className={styles.filterToggle} aria-expanded={filtersOpen} aria-controls="explorer-extra-filters" onClick={() => setFiltersOpen(v => !v)}>{filtersOpen ? "Lukk filtre" : "Flere filtre"}{[query, stage, region].filter(Boolean).length ? ` (${[query, stage, region].filter(Boolean).length})` : ""}</button>
     </div>
