@@ -10,9 +10,24 @@ export const metadata: Metadata = nbPageMetadata(
   "Praktisk sjekkliste for arbeidsgivere som henter fagarbeidere fra utlandet: hva som må avklares før oppstart, hvilken dokumentasjon som samles, og hva som oftest går galt.",
 );
 
+const ARTICLE_LD = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "Ansette utenlandske arbeidere i Norge: praktisk sjekkliste",
+  inLanguage: "nb",
+  datePublished: "2026-04-19",
+  dateModified: "2026-07-25",
+  mainEntityOfPage: "https://www.arbeidmatch.no/blog/ansette-utenlandske-arbeidere-lovlig",
+  image: "https://www.arbeidmatch.no/og-image.png",
+  author: { "@type": "Organization", name: "ArbeidMatch Norge AS", url: "https://www.arbeidmatch.no" },
+  publisher: { "@id": "https://www.arbeidmatch.no/#organization" },
+};
+
 export default function BlogPostAnsatteLovligPage() {
   return (
     <article className="bg-surface">
+      {/* Our own fixed text, not user input. */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ARTICLE_LD) }} />
       <BlogPostFromMarkdown filename="blog-ansette-utenlandske-arbeidere-lovlig.md" />
       <SeeAlsoSection
         variant="white"

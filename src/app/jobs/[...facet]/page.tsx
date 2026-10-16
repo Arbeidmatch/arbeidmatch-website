@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+import { DEFAULT_OG_IMAGE } from "@/lib/nbPageMetadata";
 import { notFound, redirect } from "next/navigation";
 import { JobsListing } from "@/components/jobs/JobsListing";
 import { canonicalFacetPath, facetCopy, facetLabel, facetPath, getBoard, jobsForFacet, listFacets, resolveFacet } from "@/lib/jobs-facets";
@@ -72,7 +74,8 @@ export async function generateMetadata({ params }: { params: Promise<{ facet: st
     title: { absolute: copy.title },
     description: copy.description,
     alternates: { canonical: url },
-    openGraph: { title: copy.title, description: copy.description, url, locale: "en_US" },
+    openGraph: { title: copy.title, description: copy.description, url, locale: "en_US", images: [DEFAULT_OG_IMAGE] },
+    twitter: { card: "summary_large_image", title: copy.title, description: copy.description, images: [DEFAULT_OG_IMAGE.url] },
   };
 }
 

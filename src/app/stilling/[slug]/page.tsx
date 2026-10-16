@@ -106,10 +106,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
    */
   const role = roleWithoutCity(job.title, where);
   const title = ownTitle || (where ? `${role} in ${where} | ArbeidMatch` : `${role} | ArbeidMatch`);
+  // The fallback said only "Flislegger - Trondheim, Trondheim" (47 characters,
+  // 16 October 2026): the role, the place and the rate once, then what applies
+  // to every advert on the board.
+  const rate = rateLine(job);
   const description =
     ownDescription ||
-    [job.title, where, rateLine(job)].filter(Boolean).join(", ") ||
-    "Open position in Norway for EU and EEA tradespeople.";
+    `${[where ? `${role} in ${where}, Norway` : `${role} in Norway`, rate].filter(Boolean).join(", ")}. Open position for EU/EEA tradespeople with a trade certificate or proven experience. Apply online.`;
   const url = `${SITE}/stilling/${encodeURIComponent(slug)}`;
 
   return {

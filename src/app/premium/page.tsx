@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+import { DEFAULT_OG_IMAGE } from "@/lib/nbPageMetadata";
 import { Suspense } from "react";
 
 import PremiumLandingPage from "@/components/premium/PremiumLandingPage";
@@ -15,8 +17,10 @@ export const metadata: Metadata = {
     description:
       "ArbeidMatch Premium is coming soon. Register to be notified at launch and receive an exclusive early access offer.",
     url: canonical,
-    locale: "nb_NO",
+    // The guides are written in English.
+    locale: "en_GB",
     type: "website",
+    images: [DEFAULT_OG_IMAGE],
   },
 };
 

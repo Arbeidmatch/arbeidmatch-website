@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+import { DEFAULT_OG_IMAGE } from "@/lib/nbPageMetadata";
 import { notFound } from "next/navigation";
 
 import PremiumArticleClient from "@/components/premium/PremiumArticleClient";
@@ -24,8 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: article.title,
       description: article.excerpt,
       url: canonical,
-      locale: "nb_NO",
+      locale: "en_GB",
       type: "article",
+      images: [DEFAULT_OG_IMAGE],
     },
   };
 }

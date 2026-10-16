@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+import { DEFAULT_OG_IMAGE } from "@/lib/nbPageMetadata";
 import { JobsListing } from "@/components/jobs/JobsListing";
 import { facetLabel, facetPath, getBoard, jobsForFacet, listFacets } from "@/lib/jobs-facets";
 import { filterJobSearch } from "@/lib/job-search";
@@ -38,14 +40,16 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 const TITLE = "Open jobs in Norway for EU and EEA tradespeople | ArbeidMatch";
+// Under 160 characters, so a search result shows it whole.
 const DESCRIPTION =
-  "Every open position: carpenters, bricklayers, concrete workers, car mechanics, welders and DSB-certified electricians. EU/EEA citizenship required (passport or national ID card), trade certificate or documented equivalent experience.";
+  "Open jobs in Norway for EU/EEA tradespeople: carpenters, bricklayers, car mechanics, welders and electricians. Trade certificate or proven experience.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: { canonical: "https://www.arbeidmatch.no/jobs" },
-  openGraph: { title: TITLE, description: DESCRIPTION, url: "https://www.arbeidmatch.no/jobs", locale: "en_US" },
+  openGraph: { title: TITLE, description: DESCRIPTION, url: "https://www.arbeidmatch.no/jobs", locale: "en_US", images: [DEFAULT_OG_IMAGE] },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, images: [DEFAULT_OG_IMAGE.url] },
 };
 
 export default async function JobsPage({ searchParams }: { searchParams: Promise<{ search?: string | string[]; location?: string | string[] }> }) {

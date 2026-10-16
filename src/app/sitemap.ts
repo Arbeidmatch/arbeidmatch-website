@@ -128,7 +128,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       "/bemanningsbyrå-stavanger",
       "/bemanningsbyrå-kristiansand",
     ].map((path) => ({
-      url: `${SITE}${path}`,
+      // Encoded: an address with å, written raw, is one Google asks to be escaped.
+      url: `${SITE}${encodeURI(path)}`,
       lastModified: primaryLastMod,
       changeFrequency: "monthly" as const,
       priority: 0.8,

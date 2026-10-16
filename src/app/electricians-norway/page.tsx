@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { DEFAULT_OG_IMAGE } from "@/lib/nbPageMetadata";
+
 import ElectriciansNorwayPage from "@/components/candidates/ElectriciansNorwayPage";
 
 const SITE = "https://www.arbeidmatch.no";
@@ -21,6 +23,7 @@ export const metadata: Metadata = {
     locale: "en_GB",
     siteName: "ArbeidMatch",
     type: "website",
+    images: [DEFAULT_OG_IMAGE],
     url: `${SITE}/electricians-norway`,
   },
   twitter: {
