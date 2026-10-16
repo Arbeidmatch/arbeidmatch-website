@@ -642,6 +642,16 @@
   align-items: baseline;
 }
 
+.tipTrades {
+  padding-top: 8px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.tipTrades li {
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+}
+
 .lockline {
   display: flex;
   gap: 7px;

@@ -936,6 +936,17 @@ function TipBody({ c }: { c: Cluster }) {
     );
   }
   const counties = [...new Set(c.members.map((p) => COUNTIES[p.r]?.n).filter((t): t is string => Boolean(t)))];
+  // A group is summed up, never listed project by project (his ask, 16 October
+  // 2026: the same trade three times said nothing): how many in each stage,
+  // then each trade once with its count and the band of its largest project.
+  const stages = STAGES.map((st) => ({ st, n: c.members.filter((p) => p.st === st).length })).filter((x) => x.n > 0);
+  const trades = new Map<string, { n: number; v: number }>();
+  for (const p of c.members) {
+    const t = tradeOf(p) ?? "Andre";
+    const o = trades.get(t) ?? { n: 0, v: 0 };
+    trades.set(t, { n: o.n + 1, v: Math.max(o.v, p.v ?? 0) });
+  }
+  const tradeRows = [...trades].sort((a, b) => b[1].n - a[1].n || b[1].v - a[1].v);
   return (
     <>
       <span className={styles.tag}>{c.members.length} prosjekter</span>
@@ -944,18 +955,29 @@ function TipBody({ c }: { c: Cluster }) {
         {counties.length > 3 ? " m.fl." : ""}
       </h4>
       <ul className={styles.tipList}>
-        {c.members.slice(0, 4).map((p) => (
-          <li key={p.no}>
-            <span className={styles.dot} style={{ "--c": STAGE_HEX[p.st] } as React.CSSProperties} />
-            <span>{tradeOf(p) ?? STAGE_LABEL[p.st]}</span>
+        {stages.map(({ st, n }) => (
+          <li key={st}>
+            <span className={styles.dot} style={{ "--c": STAGE_HEX[st] } as React.CSSProperties} />
+            <span>{STAGE_LABEL[st]}</span>
             <span className={styles.num} style={{ color: "var(--text-2)" }}>
-              {valueBand(p.v) ?? ""}
+              {n}
             </span>
           </li>
         ))}
       </ul>
-      <div className={styles.meta} style={{ marginTop: 6 }}>
-        {c.members.length > 4 ? `+ ${c.members.length - 4} til. Klikk for å se dem i listen.` : "Klikk for å se dem i listen."}
+      <ul className={`${styles.tipList} ${styles.tipTrades}`}>
+        {tradeRows.slice(0, 3).map(([t, { n, v }]) => (
+          <li key={t}>
+            <span>{t}</span>
+            <span className={styles.num} style={{ color: "var(--text-2)" }}>
+              {n}
+            </span>
+            <span className={styles.num}>{valueBand(v || null) ?? ""}</span>
+          </li>
+        ))}
+      </ul>
+      <div className={styles.meta} style={{ marginTop: 8 }}>
+        {tradeRows.length > 3 ? `+ ${tradeRows.length - 3} fag. ` : ""}Klikk for å se dem i listen.
       </div>
     </>
   );
