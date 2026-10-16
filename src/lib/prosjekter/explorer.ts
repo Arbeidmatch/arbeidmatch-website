@@ -12,6 +12,7 @@ export type ExplorerProject = {
   place: string;
   domains: string[];
   value: string;
+  mapValue: number | null;
   date: string | null;
   published: string | null;
   buyer: string | null;
@@ -38,7 +39,9 @@ export function publicOverview(data: Overview): Overview {
       title: "Prosjektdetaljer for abonnenter", place: "", value_label: null, date_label: null, domains: p.domains,
     })),
     ...(Array.isArray(data.map) ? { map: placeProjects(data.map).map(p => ({
-      no: p.no, st: p.st, lat: Math.round(p.lat * 10) / 10, lon: Math.round(p.lon * 10) / 10,
+      // The source is already a town/municipality reference, not a site address.
+      // Further rounding can move that reference several kilometres into a fjord.
+      no: p.no, st: p.st, lat: p.lat, lon: p.lon,
       v: publicValue(p.v), r: p.r, d: p.d, t: "Prosjektdetaljer for abonnenter", c: null, k: null,
     })) } : {}),
   };
@@ -51,15 +54,15 @@ export function publicExplorer(data: Overview | null): ExplorerProject[] {
   if (!Array.isArray(data.map)) return data.projects.map((p, i) => ({
     id: String(p.project_no ?? `public-${i}`), title: p.domains.map(d => labels.get(d) ?? d).join(", ") || "Bygg- og anleggsprosjekt",
     stage: p.stage, stageLabel: p.stage_label, region: "", place: "Norge", domains: p.domains.map(d => labels.get(d) ?? d),
-    value: "Verdi ikke oppgitt", date: null, published: null, buyer: null, winners: [], description: null, documents: null,
+    value: "Verdi ikke oppgitt", mapValue: null, date: null, published: null, buyer: null, winners: [], description: null, documents: null,
     coordinates: null, locationLabel: "Kartposisjon ikke tilgjengelig",
   }));
   return placeProjects(data.map).map(p => ({
     id: String(p.no), title: labels.get(p.d[0]) ?? "Bygg- og anleggsprosjekt", stage: p.st,
     stageLabel: STAGE_LABEL[p.st], region: p.r, place: COUNTIES[p.r]?.n ?? "Norge",
-    domains: p.d.map(d => labels.get(d) ?? d), value: valueBand(p.v) ?? "Verdi ikke oppgitt",
+    domains: p.d.map(d => labels.get(d) ?? d), value: valueBand(p.v) ?? "Verdi ikke oppgitt", mapValue: p.v,
     date: null, published: null, buyer: null, winners: [], description: null, documents: null,
-    coordinates: [p.lon, p.lat], locationLabel: "Omtrentlig område",
+    coordinates: [p.lon, p.lat], locationLabel: "Stedsreferanse, ikke bekreftet byggeplass",
   }));
 }
 
@@ -76,10 +79,11 @@ export function subscriberExplorer(projects: AlertProject[], overview: Overview 
       id: p.id, title: p.title, stage: p.stage, stageLabel: stageNo(p), region: p.regions[0] ?? "",
       place: placeNo(p) || "Sted ikke oppgitt", domains: domainsNo(p),
       value: amount && amount > 0 ? `${new Intl.NumberFormat("nb-NO", { maximumFractionDigits: 2 }).format(amount)} kr` : "Verdi ikke oppgitt",
+      mapValue: amount,
       date: keyDateNo(p), published: p.published_on, buyer: p.buyer_name, winners: p.winners.map(w => w.name),
       description: cleanDescription(p.description, 12000), documents: safeDocumentLink(p.documents_url),
       coordinates: point ? [point.lon, point.lat] : null,
-      locationLabel: point ? "Omtrentlig område, ikke nøyaktig byggeplass" : "Kartposisjon ikke tilgjengelig",
+      locationLabel: point ? "Stedsreferanse, ikke bekreftet byggeplass" : "Kartposisjon ikke tilgjengelig",
     };
   });
 }

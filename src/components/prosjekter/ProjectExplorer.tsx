@@ -16,6 +16,15 @@ function subscribeSaved(notify: () => void) {
 }
 function savedSnapshot() { try { return localStorage.getItem(SAVED) ?? "[]"; } catch { return "[]"; } }
 const serverSaved = () => "[]";
+const mobileQuery = "(max-width: 640px)";
+function subscribeMobile(notify: () => void) {
+  const media = window.matchMedia(mobileQuery);
+  media.addEventListener("change", notify);
+  return () => media.removeEventListener("change", notify);
+}
+const mobileSnapshot = () => window.matchMedia(mobileQuery).matches;
+const serverMobile = () => false;
+const PAGE_SIZE = 12;
 
 function Facts({ p, subscriber }: { p: ExplorerProject; subscriber: boolean }) {
   return <dl className={styles.facts}>
@@ -37,6 +46,10 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
   const [query, setQuery] = useState("");
   const [stage, setStage] = useState("");
   const [region, setRegion] = useState("");
+  const [domain, setDomain] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [mobileView, setMobileView] = useState<"details" | "map">("details");
+  const mobile = useSyncExternalStore(subscribeMobile, mobileSnapshot, serverMobile);
   const [savedOnly, setSavedOnly] = useState(false);
   const rawSaved = useSyncExternalStore(subscribeSaved, savedSnapshot, serverSaved);
   const [sessionSaved, setSessionSaved] = useState<string[] | null>(null);
@@ -48,16 +61,25 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
   const [compare, setCompare] = useState<string[]>([]);
   const [comparison, setComparison] = useState(false);
   const [showMap, setShowMap] = useState(true);
-  const [limit, setLimit] = useState(30);
+  const [page, setPage] = useState(0);
   const [now] = useState(() => Date.now());
   const visible = useMemo(() => projects.filter(p => (!stage || p.stageLabel === stage) && (!region || p.region === region)
-    && (!savedOnly || saved.includes(p.id)) && (!query || `${p.title} ${p.place} ${p.domains.join(" ")} ${p.buyer ?? ""}`.toLocaleLowerCase("nb").includes(query.toLocaleLowerCase("nb")))), [projects, stage, region, savedOnly, saved, query]);
+    && (!domain || p.domains.includes(domain))
+    && (!savedOnly || saved.includes(p.id)) && (!query || `${p.title} ${p.place} ${p.domains.join(" ")} ${p.buyer ?? ""}`.toLocaleLowerCase("nb").includes(query.toLocaleLowerCase("nb")))), [projects, stage, region, domain, savedOnly, saved, query]);
   const selected = visible.find(p => p.id === id) ?? visible[0] ?? null;
   const related = selected ? nearbyProjects(selected, visible) : [];
   const compared = projects.filter(p => compare.includes(p.id));
   const regions = [...new Map(projects.filter(p => p.region).map(p => [p.region, p.place.split(", ").at(-1) ?? p.place])).entries()];
   const stages = [...new Set(projects.map(p => p.stageLabel))];
-  const pick = (next: string) => { setId(next); document.getElementById("explorer-detail")?.scrollTo({ top: 0 }); };
+  const domains = [...new Set(projects.flatMap(p => p.domains))].sort((a, b) => a.localeCompare(b, "nb"));
+  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount - 1);
+  const selectedIndex = selected ? visible.indexOf(selected) : -1;
+  const pick = (next: string) => {
+    setId(next);
+    setPage(Math.max(0, Math.floor(visible.findIndex(p => p.id === next) / PAGE_SIZE)));
+    document.getElementById("explorer-detail")?.scrollTo({ top: 0 });
+  };
   const save = () => {
     if (!selected) return;
     const next = saved.includes(selected.id) ? saved.filter(x => x !== selected.id) : [...saved, selected.id].slice(-500);
@@ -69,13 +91,34 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
   };
 
   return <section className={styles.explorer} aria-label="Prosjektutforsker">
-    <div className={styles.filters}>
-      <label><span>Søk</span><input value={query} onChange={e => { setQuery(e.target.value); setLimit(30); }} placeholder={subscriber ? "Prosjekt, byggherre eller sted" : "Fag eller område"} /></label>
-      <label><span>Fase</span><select value={stage} onChange={e => { setStage(e.target.value); setLimit(30); }}><option value="">Alle faser</option>{stages.map(s => <option key={s}>{s}</option>)}</select></label>
-      <label><span>Område</span><select value={region} onChange={e => { setRegion(e.target.value); setLimit(30); }}><option value="">Hele Norge</option>{regions.map(([code, name]) => <option key={code} value={code}>{name}</option>)}</select></label>
-      {subscriber ? <label className={styles.savedFilter}><input type="checkbox" checked={savedOnly} onChange={e => setSavedOnly(e.target.checked)} /> Mine lagrede</label> : <a href="#tilgang" className={styles.access}>Få tilgang <ChevronRight size={15} /></a>}
+    <div className={styles.resultBar}>
+      <h2 aria-live="polite">{visible.length.toLocaleString("nb-NO")} prosjekter <span>av {projects.length.toLocaleString("nb-NO")} totalt</span></h2>
+      {subscriber ? <label className={styles.savedFilter}><input type="checkbox" checked={savedOnly} onChange={e => { setSavedOnly(e.target.checked); setPage(0); }} /> Mine lagrede</label> : null}
+      <button type="button" className={styles.filterToggle} aria-expanded={filtersOpen} aria-controls="explorer-extra-filters" onClick={() => setFiltersOpen(v => !v)}>{filtersOpen ? "Lukk filtre" : "Flere filtre"}{[query, stage, region].filter(Boolean).length ? ` (${[query, stage, region].filter(Boolean).length})` : ""}</button>
     </div>
-    <div className={styles.workspace}>
+    <div className={styles.filters}>
+      <label><span>Fagområde</span><select aria-label="Fagområde" value={domain} onChange={e => { setDomain(e.target.value); setPage(0); }}><option value="">Alle fagområder</option>{domains.map(d => <option key={d}>{d}</option>)}</select></label>
+      <div className={styles.extraFilters} id="explorer-extra-filters" data-open={filtersOpen}>
+        <label><span>Søk</span><input value={query} onChange={e => { setQuery(e.target.value); setPage(0); }} placeholder={subscriber ? "Prosjekt, byggherre eller sted" : "Fag eller område"} /></label>
+        <label><span>Fase</span><select aria-label="Fase" value={stage} onChange={e => { setStage(e.target.value); setPage(0); }}><option value="">Alle faser</option>{stages.map(s => <option key={s}>{s}</option>)}</select></label>
+        <label><span>Område</span><select aria-label="Område" value={region} onChange={e => { setRegion(e.target.value); setPage(0); }}><option value="">Hele Norge</option>{regions.map(([code, name]) => <option key={code} value={code}>{name}</option>)}</select></label>
+      </div>
+    </div>
+    <div className={styles.mobileNavigation}>
+      {selected ? <>
+        <label><span>Velg prosjekt</span><select aria-label="Velg prosjekt" value={selected.id} onChange={e => pick(e.target.value)}>{visible.map((p, i) => <option key={p.id} value={p.id}>{i + 1}. {p.title} · {p.place}</option>)}</select></label>
+        <div className={styles.projectPager}>
+          <button type="button" disabled={selectedIndex <= 0} onClick={() => pick(visible[selectedIndex - 1].id)}>Forrige</button>
+          <span>{selectedIndex + 1} / {visible.length.toLocaleString("nb-NO")}</span>
+          <button type="button" disabled={selectedIndex >= visible.length - 1} onClick={() => pick(visible[selectedIndex + 1].id)}>Neste <ChevronRight size={15} /></button>
+        </div>
+      </> : null}
+      <div className={styles.mobileTabs} role="group" aria-label="Prosjektvisning på mobil">
+        <button type="button" aria-pressed={mobileView === "details"} onClick={() => setMobileView("details")}>Detaljer</button>
+        <button type="button" aria-pressed={mobileView === "map"} onClick={() => setMobileView("map")}>3D-kart</button>
+      </div>
+    </div>
+    <div className={styles.workspace} data-mobile-view={mobileView}>
       <article className={styles.detail} id="explorer-detail" aria-live="polite">
         {selected ? <>
           <div className={styles.stage}>{selected.stageLabel}{subscriber && now !== null && selected.published && Date.parse(selected.published) <= now && now - Date.parse(selected.published) < 7 * 86400000 ? <span>Nylig kunngjort</span> : null}</div>
@@ -85,7 +128,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
           <Facts p={selected} subscriber={subscriber} />
           {subscriber ? <>
             <div className={styles.timeline} aria-label="Bekreftet fase"><span>Prosjektfase</span><strong>{selected.stageLabel}</strong></div>
-            {selected.description ? <section className={styles.description}><h3>Om prosjektet</h3><p>{selected.description}</p></section> : null}
+            {selected.description ? <details key={selected.id} className={styles.description} open={!mobile}><summary>Om prosjektet</summary><p>{selected.description}</p></details> : null}
             {selected.documents ? <a className={styles.document} href={selected.documents} target="_blank" rel="noopener noreferrer">Se konkurransegrunnlag <ChevronRight size={16} /></a> : <p className={styles.muted}>Konkurransegrunnlag er ikke tilgjengelig for dette prosjektet.</p>}
             <div className={styles.tools}>
               <button type="button" onClick={save} aria-pressed={saved.includes(selected.id)}><Bookmark size={15} />{saved.includes(selected.id) ? "Lagret" : "Lagre"}</button>
@@ -98,13 +141,13 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
         </> : <div className={styles.empty}><h2>{loading ? "Henter prosjekter ..." : failed ? "Prosjektene kunne ikke lastes" : "Ingen prosjekter i utvalget"}</h2><p>{failed ? "Prøv å laste siden på nytt." : "Velg et annet område eller en annen fase."}</p></div>}
       </article>
       <div className={styles.mapPanel}>
-        {showMap ? <Terrain projects={visible} selected={selected} onSelect={pick} /> : <div className={styles.mapOff}><MapPinned size={30} /><p>Kartet er skjult. Alle prosjektdetaljer er tilgjengelige.</p></div>}
+        {(mobile ? mobileView === "map" : showMap) ? <Terrain projects={visible} selected={selected} onSelect={pick} /> : <div className={styles.mapOff}><MapPinned size={30} /><p>Kartet er skjult. Alle prosjektdetaljer er tilgjengelige.</p></div>}
         <button type="button" className={styles.mapToggle} onClick={() => setShowMap(v => !v)}>{showMap ? "Skjul kart" : "Vis 3D-kart"}</button>
       </div>
     </div>
-    <div className={styles.listHead}><h2>{visible.length.toLocaleString("nb-NO")} prosjekter</h2>{selected && visible.length > 1 ? <button type="button" onClick={() => pick(visible[(visible.indexOf(selected) + 1) % visible.length].id)}>Neste prosjekt <ChevronRight size={16} /></button> : null}</div>
-    <ul className={styles.projectList}>{visible.slice(0, limit).map(p => <li key={p.id}><button type="button" className={p.id === selected?.id ? styles.selected : ""} onClick={() => pick(p.id)} aria-pressed={p.id === selected?.id}><span>{p.place} · {p.stageLabel}</span><strong>{p.title}</strong><b>{p.value}</b>{subscriber && p.date ? <small>{p.date}</small> : null}</button></li>)}</ul>
-    {visible.length > limit ? <button type="button" className={styles.more} onClick={() => setLimit(v => v + 30)}>Vis flere ({visible.length - limit})</button> : null}
+    <div className={styles.listHead}><h2>Prosjektoversikt</h2>{selected && visible.length > 1 ? <button type="button" onClick={() => pick(visible[(visible.indexOf(selected) + 1) % visible.length].id)}>Neste prosjekt <ChevronRight size={16} /></button> : null}</div>
+    <ul className={styles.projectList}>{visible.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE).map(p => <li key={p.id}><button type="button" className={p.id === selected?.id ? styles.selected : ""} onClick={() => pick(p.id)} aria-pressed={p.id === selected?.id}><span>{p.place} · {p.stageLabel}</span><strong>{p.title}</strong><b>{p.value}</b>{subscriber && p.date ? <small>{p.date}</small> : null}</button></li>)}</ul>
+    {pageCount > 1 ? <nav className={styles.pagination} aria-label="Prosjektsider"><button type="button" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Forrige side</button><span>Side {currentPage + 1} av {pageCount}</span><button type="button" disabled={currentPage === pageCount - 1} onClick={() => setPage(currentPage + 1)}>Neste side</button></nav> : null}
     {comparison && subscriber ? <PortalModal title="Sammenlign prosjekter" onClose={() => setComparison(false)}><div className={styles.comparison}>{compared.map(p => <article key={p.id}><h3>{p.title}</h3><strong>{p.value}</strong><Facts p={p} subscriber /></article>)}</div></PortalModal> : null}
   </section>;
 }

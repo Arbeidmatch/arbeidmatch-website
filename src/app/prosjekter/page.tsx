@@ -5,6 +5,7 @@ import AccessBand from "@/components/prosjekter/AccessBand";
 import PortalSteps from "@/components/prosjekter/PortalSteps";
 import ProjectVersion from "@/components/prosjekter/ProjectVersion";
 import PublicProjectExplorer from "@/components/prosjekter/PublicProjectExplorer";
+import ExplorerGuide from "@/components/prosjekter/ExplorerGuide";
 import { publicOverview } from "@/lib/prosjekter/explorer";
 import ProjectPortal from "@/components/prosjekter/ProjectPortal";
 import styles from "@/components/prosjekter/portal.module.css";
@@ -62,11 +63,11 @@ export default async function ProsjekterPage({
     <div className={styles.portal}>
       <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-8">
         <h1 className="text-2xl font-semibold text-white">Forsprang · Prosjekter i Norge</h1>
-        <ProjectVersion initialOld={params.view === "old"} modern={<PublicProjectExplorer initial={initial} />}>
+        <ProjectVersion initialOld={params.view !== "new"} modern={<><PublicProjectExplorer initial={initial} /><ExplorerGuide /></>}>
           <ProjectPortal initial={initial} initialFilters={filters} />
+          <PortalSteps projects={placeProjects(initial?.map)} />
         </ProjectVersion>
       </div>
-      <PortalSteps projects={placeProjects(initial?.map)} />
       <AccessBand />
     </div>
   );
