@@ -12,14 +12,15 @@ const bubbleStages = [...STAGES, "cancelled"] as const;
 const bubbleColors = { ...STAGE_HEX, cancelled: "#a47788" };
 const bubbleLabels = { ...STAGE_LABEL, cancelled: "Avlyst" };
 
-export default function ExplorerTerrain({ projects, selected, onSelect }: {
+export default function ExplorerTerrain({ projects, selected, cameraRequest, onSelect }: {
   projects: ExplorerProject[]; selected: ExplorerProject | null; onSelect: (id: string) => void;
+  cameraRequest: { id: string; revision: number } | null;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const map = useRef<TerrainMap | null>(null);
   const marker = useRef<Marker | null>(null);
-  const clusters = useRef(new Map<number, Marker>());
+  const clusters = useRef(new Map<string, Marker>());
   const props = useRef({ projects, selected, onSelect });
   props.current = { projects, selected, onSelect };
   const [ready, setReady] = useState(false);
@@ -34,10 +35,9 @@ export default function ExplorerTerrain({ projects, selected, onSelect }: {
     let disposed = false;
     void import("maplibre-gl").then(({ default: lib }) => {
       if (disposed || !container.current) return;
-      const point = props.current.selected?.coordinates;
       const instance = new lib.Map({
-        container: container.current, center: point ?? [13, 65], zoom: point ? 9.4 : 4.2,
-        pitch: point ? 60 : 30, maxPitch: 78, maxZoom: 15, attributionControl: false,
+        container: container.current, center: [13, 65], zoom: 4.2,
+        pitch: 30, maxPitch: 78, maxZoom: 15, attributionControl: false,
         cooperativeGestures: false, scrollZoom: true, dragPan: true, dragRotate: true,
         canvasContextAttributes: { alpha: true, antialias: true },
         style: { version: 8, sources: {
@@ -60,7 +60,7 @@ export default function ExplorerTerrain({ projects, selected, onSelect }: {
       instance.on("load", () => {
         if (disposed) return;
         instance.addSource("projects", {
-          type: "geojson", data: { type: "FeatureCollection", features: [] }, cluster: true, clusterRadius: 45, clusterMaxZoom: 14,
+          type: "geojson", data: { type: "FeatureCollection", features: [] }, cluster: true, clusterRadius: 45, clusterMaxZoom: 16,
           clusterProperties: Object.fromEntries(bubbleStages.map(stage => [stage, ["+", ["case", ["==", ["get", "stage"], stage], 1, 0]]])),
         });
         instance.addLayer({ id: "project-points", type: "circle", source: "projects", filter: ["!", ["has", "point_count"]], paint: {
@@ -70,11 +70,37 @@ export default function ExplorerTerrain({ projects, selected, onSelect }: {
         } });
         instance.on("render", () => {
           if (!instance.isSourceLoaded("projects")) return;
-          const present = new Set<number>();
+          const present = new Set<string>();
           for (const feature of instance.querySourceFeatures("projects")) {
             const values = feature.properties;
-            if (!values?.cluster || feature.geometry.type !== "Point") continue;
-            const id = Number(values.cluster_id);
+            if (!values || feature.geometry.type !== "Point") continue;
+            if (!values.cluster) {
+              const projectId = String(values.id);
+              const id = `project-${projectId}`;
+              if (present.has(id)) continue;
+              present.add(id);
+              const position = feature.geometry.coordinates as [number, number];
+              const signature = JSON.stringify([position, values.stage, values.radius]);
+              const existing = clusters.current.get(id);
+              if (existing?.getElement().dataset.signature === signature) continue;
+              existing?.remove();
+              const button = document.createElement("button");
+              button.type = "button";
+              button.className = styles.singleBubble;
+              button.dataset.signature = signature;
+              button.textContent = "1";
+              const stage = bubbleStages.find(stage => stage === values.stage) ?? "cancelled";
+              button.style.background = bubbleColors[stage];
+              button.style.width = button.style.height = `${Math.max(28, Number(values.radius) * 2 + 12)}px`;
+              const title = props.current.projects.find(p => p.id === projectId)?.title ?? "Prosjekt";
+              button.setAttribute("aria-label", `1 prosjekt. ${title}. ${bubbleLabels[stage]}`);
+              button.title = `1 prosjekt. ${title}. ${bubbleLabels[stage]}`;
+              button.onclick = event => { event.stopPropagation(); props.current.onSelect(projectId); };
+              clusters.current.set(id, new lib.Marker({ element: button }).setLngLat(position).addTo(instance));
+              continue;
+            }
+            const clusterId = Number(values.cluster_id);
+            const id = `cluster-${clusterId}`;
             if (present.has(id)) continue;
             present.add(id);
             const count = Number(values.point_count);
@@ -105,12 +131,12 @@ export default function ExplorerTerrain({ projects, selected, onSelect }: {
             button.title = `${count} prosjekter. ${breakdown}`;
             button.onclick = () => {
               const source = instance.getSource("projects") as import("maplibre-gl").GeoJSONSource;
-              void source.getClusterExpansionZoom(id).then(async zoom => {
+              void source.getClusterExpansionZoom(clusterId).then(async zoom => {
                 if (disposed) return;
                 if (zoom <= 14 && instance.getZoom() < 14) {
                   instance.easeTo({ center: position, zoom, duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700 });
                 } else {
-                  const leaves = await source.getClusterLeaves(id, count, 0);
+                  const leaves = await source.getClusterLeaves(clusterId, count, 0);
                   if (disposed) return;
                   setGroup(leaves.map(f => String(f.properties?.id)));
                   setGroupPage(0);
@@ -128,6 +154,7 @@ export default function ExplorerTerrain({ projects, selected, onSelect }: {
         });
         instance.on("mouseenter", "project-points", () => { instance.getCanvas().style.cursor = "pointer"; });
         instance.on("mouseleave", "project-points", () => { instance.getCanvas().style.cursor = ""; });
+        instance.fitBounds([[4, 57.5], [31.5, 71.5]], { padding: 45, pitch: 25, bearing: 0, duration: 0 });
         setFailed(false);
         setReady(true);
       });
@@ -156,9 +183,16 @@ export default function ExplorerTerrain({ projects, selected, onSelect }: {
     marker.current.getElement().textContent = `Område: ${selected.place}`;
     marker.current.getElement().setAttribute("aria-label", `Vis ${selected.title}`);
     marker.current.setLngLat(selected.coordinates).addTo(instance);
-    instance.flyTo({ center: selected.coordinates, zoom: 9.4, pitch: 60, bearing: -20,
-      duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 2400 });
   }, [selected, ready]);
+
+  useEffect(() => {
+    const instance = map.current;
+    if (!ready || !instance || !cameraRequest) return;
+    const point = props.current.projects.find(p => p.id === cameraRequest.id)?.coordinates;
+    if (!point) return;
+    instance.flyTo({ center: point, zoom: 9.4, pitch: 60, bearing: -20,
+      duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 2400 });
+  }, [cameraRequest, ready]);
 
   useEffect(() => {
     if (!north || !canvas.current) return;
