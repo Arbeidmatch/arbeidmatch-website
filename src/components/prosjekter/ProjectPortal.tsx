@@ -304,7 +304,14 @@ export default function ProjectPortal({
       <div className={styles.wrap}>
         <div className={styles.heroHead}>
           <div>
-            <p className={styles.eyebrow}>Bygg og anlegg · hele Norge</p>
+            <p className={`${styles.eyebrow} ${styles.brandLine}`}>
+              <span className={styles.brand}>
+                <i aria-hidden="true" />
+                Forsprang
+              </span>
+              <span className={styles.brandSep} aria-hidden="true" />
+              Bygg- og anleggsprosjekter
+            </p>
             <h1>
               Se hvor Norge <em>bygger</em>, fylke for fylke.
             </h1>

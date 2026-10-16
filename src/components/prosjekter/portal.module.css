@@ -64,6 +64,39 @@
   color: var(--gold);
 }
 
+/* The product's name on the page (his decision, 16 October 2026); the address stays /prosjekter. */
+.brandLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.brand i {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--gold);
+  transform: rotate(45deg);
+}
+
+.brandSep {
+  width: 1px;
+  height: 12px;
+  background: var(--line);
+}
+
 .portal :where(h1, h2, h3, h4) {
   font-weight: 700;
   margin: 0;

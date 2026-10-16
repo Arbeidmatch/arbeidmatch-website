@@ -11,7 +11,7 @@ import { filtersFrom, filtersQuery, isOverview, type Overview } from "@/lib/pros
 
 export const dynamic = "force-dynamic";
 
-const TITLE = "Bygg- og anleggsprosjekter i hele Norge | ArbeidMatch";
+const TITLE = "Forsprang · Bygg- og anleggsprosjekter | ArbeidMatch";
 const DESCRIPTION =
   "Se hvilke bygg- og anleggsprosjekter som planlegges, hvilke konkurranser som er åpne og hvem som har fått kontraktene, i hele Norge. Oppdatert hver dag.";
 
