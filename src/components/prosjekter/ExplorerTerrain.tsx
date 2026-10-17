@@ -260,6 +260,7 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
     <div className={styles.mapLegend} aria-label="Faser og antall på kartet">{counts.filter(c => c.count > 0).map(({ stage, count }) => <span key={stage}><i style={{ background: bubbleColors[stage] }} />{bubbleLabels[stage]} <b>{count.toLocaleString("nb-NO")}</b></span>)}<small>Størrelse = verdi · Ring = faser · Tall = prosjekter</small></div>
     {demo && demoOpen ? <section className={styles.demoPreview} aria-label="Demoprosjekt">
       <header><strong>Demo - fiktive data</strong><button type="button" aria-label="Lukk demo" onClick={() => setDemoOpen(false)}>Lukk</button></header>
+      <p>Kartbildet er en illustrasjon. Detaljene nedenfor er fiktive demodata og gjelder ikke et reelt prosjekt.</p>
       <h3>{MAP_DEMO.title}</h3>
       <p>{MAP_DEMO.stage} · {MAP_DEMO.value}</p>
       <p>Byggherre: {MAP_DEMO.buyer}</p>

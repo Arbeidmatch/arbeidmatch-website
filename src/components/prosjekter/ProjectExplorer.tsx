@@ -142,6 +142,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
         <button type="button" aria-pressed={mobileView === "map"} onClick={() => setMobileView("map")}>3D-kart</button>
       </div>
     </div>
+    {!subscriber ? <p className={styles.muted}><strong>Demo - kartbilde og detaljvisning.</strong> Forhåndsvisning av tjenesten. Fullstendige prosjektdetaljer krever aktivert abonnement.</p> : null}
     <div className={styles.workspace} data-mobile-view={mobileView}>
       <article className={styles.detail} id="explorer-detail" aria-live="polite">
         {selected ? <>
