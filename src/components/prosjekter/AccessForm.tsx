@@ -546,15 +546,16 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         <p className={styles.consent}>
+          {/* The privacy notice is read, not accepted (the owner's yes, 17 October 2026). */}
           Ved å sende bekrefter du at kontaktinformasjonen din står på firmaets nettside, og godtar{" "}
           <Link href="/terms" target="_blank">
-            vilkår
-          </Link>
-          ,{" "}
-          <Link href="/privacy" target="_blank">
-            personvern
+            vilkårene
           </Link>{" "}
-          og ansvarsfraskrivelsen nedenfor.
+          og ansvarsfraskrivelsen nedenfor. Les hvordan vi behandler personopplysningene dine i{" "}
+          <Link href="/privacy" target="_blank">
+            personvernerklæringen
+          </Link>
+          .
         </p>
         <p className={styles.disclaimer}>
           <strong>Ansvarsfraskrivelse.</strong> Forsprang er i beta. Opplysningene om prosjektene kan være ufullstendige
