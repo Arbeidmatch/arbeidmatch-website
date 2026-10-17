@@ -7,17 +7,6 @@
   width:100%;
   min-width:0
 }
-.tourStart { color:#e9d588; min-height:44px; margin-bottom:10px; text-decoration:underline; }
-.tourTarget { position:relative; outline:3px solid #e3b93f; outline-offset:-3px; scroll-margin-block:100px 300px; }
-.tourTarget::after { content:""; position:absolute; inset:0; border:3px solid #e3b93f; border-radius:6px; z-index:10; pointer-events:none; }
-.tour { position:fixed; bottom:16px; right:16px; z-index:60; width:min(390px, calc(100vw - 32px)); padding:18px; border:2px solid #d4b04d; border-radius:12px; background:#f5f7f1; color:#203b34; box-shadow:0 8px 36px #0006; }
-.tour small { font-size:12px; color:#536953; }
-.tour h3 { font-size:18px; margin:6px 0; }
-.tour p { font-size:14px; line-height:1.5; margin:0; }
-.tourActions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
-.tourActions button { min-height:44px; padding:8px 14px; border:1px solid #b9c6b2; border-radius:6px; }
-.tourActions button:last-child { background:#244235; color:#fff; }
-@media (max-width:640px) { .tour { bottom:68px; right:8px; width:calc(100vw - 16px); padding:12px; } }
 .versionRoot {
   min-width:0;
   width:100%
@@ -676,7 +665,7 @@
   margin-top:4px
 }
 .guide {
-  margin:28px 0 12px;
+  margin:0 0 16px;
   padding:16px 20px;
   border:1px solid #ffffff30;
   border-radius:8px;
@@ -689,7 +678,7 @@
   align-content:center;
   font-weight:600
 }
-.guide ol {
+.guide ul {
   padding-left:20px
 }
 .guide li {

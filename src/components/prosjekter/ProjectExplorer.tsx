@@ -6,7 +6,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { Bookmark, ChevronRight, LockKeyhole, MapPinned, Scale } from "lucide-react";
 import { nearbyProjects, type ExplorerProject } from "@/lib/prosjekter/explorer";
 import PortalModal from "./PortalModal";
-import ExplorerTour from "./ExplorerTour";
+import ExplorerGuide from "./ExplorerGuide";
 import styles from "./explorer.module.css";
 import { domainChoices } from "@/lib/prosjekter/format";
 import { NORWAY_REGIONS } from "@/lib/prosjekter/regions";
@@ -114,14 +114,14 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
   };
 
   return <section className={styles.explorer} aria-label="Prosjektutforsker">
-    <ExplorerTour mobile={mobile} onView={setMobileView} onShowMap={() => setShowMap(true)} />
+    <ExplorerGuide mobile={mobile} />
     <div className={styles.resultBar}>
       <h2 aria-live="polite">{visible.length.toLocaleString("nb-NO")} prosjekter <span>{`av ${projects.length.toLocaleString("nb-NO")} totalt`}{syncFiltersToUrl ? ` · ${visible.filter(p => p.coordinates).length.toLocaleString("nb-NO")} i utvalget på kartet` : ""}</span></h2>
       {subscriber ? <label className={styles.savedFilter}><input type="checkbox" checked={savedOnly} onChange={e => { setSavedOnly(e.target.checked); setPage(0); }} /> Mine lagrede</label> : null}
       <button type="button" className={styles.filterToggle} aria-expanded={filtersOpen} aria-controls="explorer-extra-filters" onClick={() => setFiltersOpen(v => !v)}>{filtersOpen ? "Lukk filtre" : "Flere filtre"}{[query, stage, region].filter(Boolean).length ? ` (${[query, stage, region].filter(Boolean).length})` : ""}</button>
     </div>
     <div className={styles.filters}>
-      <label data-tour="domain"><span>Fagområde</span><select aria-label="Fagområde" value={domain} onChange={e => changeFilter("domain", e.target.value)}><option value="">Alle fagområder</option>{domains.map(d => <option key={d}>{d}</option>)}</select></label>
+      <label><span>Fagområde</span><select aria-label="Fagområde" value={domain} onChange={e => changeFilter("domain", e.target.value)}><option value="">Alle fagområder</option>{domains.map(d => <option key={d}>{d}</option>)}</select></label>
       <div className={styles.extraFilters} id="explorer-extra-filters" data-open={filtersOpen}>
         <label><span>Søk</span><input value={query} maxLength={syncFiltersToUrl ? 80 : undefined} onChange={e => changeFilter("q", e.target.value)} placeholder={subscriber ? "Prosjekt, byggherre eller sted" : "Fag eller område"} /></label>
         <label><span>Fase</span><select aria-label="Fase" value={stage} onChange={e => changeFilter("stage", e.target.value)}><option value="">Alle faser</option>{stages.map(s => <option key={s}>{s}</option>)}</select></label>
@@ -130,7 +130,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
     </div>
     <div className={styles.mobileNavigation}>
       {selected ? <>
-        <label data-tour="mobile-project"><span>Velg prosjekt</span><select aria-label="Velg prosjekt" value={selected.id} onChange={e => pick(e.target.value)}>{visible.map((p, i) => <option key={p.id} value={p.id}>{i + 1}. {p.title} · {p.place}</option>)}</select></label>
+        <label><span>Velg prosjekt</span><select aria-label="Velg prosjekt" value={selected.id} onChange={e => pick(e.target.value)}>{visible.map((p, i) => <option key={p.id} value={p.id}>{i + 1}. {p.title} · {p.place}</option>)}</select></label>
         <div className={styles.projectPager}>
           <button type="button" disabled={selectedIndex <= 0} onClick={() => pick(visible[selectedIndex - 1].id)}>Forrige</button>
           <span>{selectedIndex + 1} / {visible.length.toLocaleString("nb-NO")}</span>
@@ -143,7 +143,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
       </div>
     </div>
     <div className={styles.workspace} data-mobile-view={mobileView}>
-      <article className={styles.detail} id="explorer-detail" data-tour="details" aria-live="polite">
+      <article className={styles.detail} id="explorer-detail" aria-live="polite">
         {selected ? <>
           <div className={styles.stage}>{selected.stageLabel}{subscriber && now !== null && selected.published && Date.parse(selected.published) <= now && now - Date.parse(selected.published) < 7 * 86400000 ? <span>Nylig kunngjort</span> : null}</div>
           <h2>{selected.title}</h2>
@@ -165,13 +165,13 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
           </> : <div className={styles.lock}><LockKeyhole size={18} /><div><h3>Hele bildet, med abonnement</h3><p>Prosjektnavn, byggherre, entreprenør, nøyaktig verdi, frister og dokumenter.</p><a href="#tilgang">Se detaljer med abonnement <ChevronRight size={14} /></a><a href="#logg-inn">Har du tilgang? Logg inn</a></div></div>}
         </> : <div className={styles.empty}><h2>{loading ? "Henter prosjekter ..." : failed ? "Prosjektene kunne ikke lastes" : "Ingen prosjekter i utvalget"}</h2><p>{failed ? "Prøv å laste siden på nytt." : "Velg et annet område eller en annen fase."}</p></div>}
       </article>
-      <div className={styles.mapPanel} data-tour="map">
+      <div className={styles.mapPanel}>
         {(mobile ? mobileView === "map" : showMap) ? <Terrain projects={visible} selected={selected} cameraRequest={cameraRequest} onSelect={pick} /> : <div className={styles.mapOff}><MapPinned size={30} /><p>Kartet er skjult. Alle prosjektdetaljer er tilgjengelige.</p></div>}
         <button type="button" className={styles.mapToggle} onClick={() => setShowMap(v => !v)}>{showMap ? "Skjul kart" : "Vis 3D-kart"}</button>
       </div>
     </div>
     <div className={styles.listHead}><h2>Prosjektoversikt</h2>{selected && visible.length > 1 ? <button type="button" onClick={() => pick(visible[(visible.indexOf(selected) + 1) % visible.length].id)}>Neste prosjekt <ChevronRight size={16} /></button> : null}</div>
-    <ul className={styles.projectList} data-tour="projects">{visible.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE).map(p => <li key={p.id}><button type="button" className={p.id === selected?.id ? styles.selected : ""} onClick={() => pick(p.id)} aria-pressed={p.id === selected?.id}><span>{p.place} · {p.stageLabel}</span><strong>{p.title}</strong><b>{p.value}</b>{subscriber && p.date ? <small>{p.date}</small> : null}</button></li>)}</ul>
+    <ul className={styles.projectList}>{visible.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE).map(p => <li key={p.id}><button type="button" className={p.id === selected?.id ? styles.selected : ""} onClick={() => pick(p.id)} aria-pressed={p.id === selected?.id}><span>{p.place} · {p.stageLabel}</span><strong>{p.title}</strong><b>{p.value}</b>{subscriber && p.date ? <small>{p.date}</small> : null}</button></li>)}</ul>
     {pageCount > 1 ? <nav className={styles.pagination} aria-label="Prosjektsider"><button type="button" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Forrige side</button><span>Side {currentPage + 1} av {pageCount}</span><button type="button" disabled={currentPage === pageCount - 1} onClick={() => setPage(currentPage + 1)}>Neste side</button></nav> : null}
     {comparison && subscriber ? <PortalModal title="Sammenlign prosjekter" onClose={() => setComparison(false)}><div className={styles.comparison}>{compared.map(p => <article key={p.id}><h3>{p.title}</h3><strong>{p.value}</strong><Facts p={p} subscriber /></article>)}</div></PortalModal> : null}
   </section>;

@@ -6,7 +6,6 @@ import { publicExplorer } from "@/lib/prosjekter/explorer";
 
 const navigation = vi.hoisted(() => ({ query: "" }));
 vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(navigation.query) }));
-vi.mock("./ExplorerTour", () => ({ default: () => null }));
 vi.mock("next/dynamic", () => ({ default: () => () => null }));
 
 const projects = publicExplorer({
