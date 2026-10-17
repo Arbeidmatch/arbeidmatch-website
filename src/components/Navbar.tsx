@@ -155,7 +155,7 @@ export default function Navbar() {
         className={`sticky top-0 transition-colors duration-200 ${headerSurface} ${isOpen ? "z-30" : "z-[210]"}`}
       >
         <div className="mx-auto flex h-[60px] min-h-[60px] w-full max-w-content items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 md:h-16 md:min-h-[64px] md:px-10 xl:h-[72px] xl:min-h-[72px] xl:gap-10 xl:px-20">
-          <BrandMark href="/" logoSize={34} />
+          <BrandMark href="/" logoSize={34} className={portal ? "max-[399px]:min-w-[44px] max-[399px]:justify-center max-[399px]:[&>span]:hidden" : ""} />
 
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-6 xl:flex xl:gap-8 2xl:gap-10">
             {/* Lands on the employer page, which explains the service and sends them to /request.

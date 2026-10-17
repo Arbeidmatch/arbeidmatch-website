@@ -15,7 +15,7 @@ function source(path: string) {
 describe("site header brand", () => {
   it("uses the same transparent A emblem in every header", () => {
     expect(source("src/components/BrandMark.tsx")).toContain("/brand/arbeidmatch-a-emblem.png");
-    expect(source("src/components/Navbar.tsx")).toContain(`<BrandMark href="/" logoSize={34} />`);
+    expect(source("src/components/Navbar.tsx")).toContain(`<BrandMark href="/" logoSize={34}`);
     expect(source("src/components/home/HomeNavigation.tsx")).toContain(`<BrandMark href={no ? "/no" : "/"} logoSize={34} />`);
     expect(source("src/components/MobileDrawerContent.tsx")).toContain(`<BrandMark href="/" logoSize={36}`);
   });
