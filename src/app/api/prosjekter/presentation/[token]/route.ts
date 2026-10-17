@@ -44,10 +44,10 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     visitorHeaders: request.headers,
     headers: sessionHeaders(request.cookies.get(PORTAL_SESSION_COOKIE)?.value),
   });
-  // Only a web address goes back to the browser to be opened, never another scheme.
+  // Only an https address goes back to the browser to be opened, never another scheme (PROJ-REST B).
   if (answer.status === 200) {
     const url = typeof answer.body.url === "string" ? answer.body.url : "";
-    if (!/^https?:\/\//i.test(url)) return noStoreJson({ error: "Konkurransen er ikke åpen lenger." }, { status: 404 });
+    if (!/^https:\/\//i.test(url)) return noStoreJson({ error: "Konkurransen er ikke åpen lenger." }, { status: 404 });
     return noStoreJson({ url });
   }
   return noStoreJson(answer.body, { status: answer.status });

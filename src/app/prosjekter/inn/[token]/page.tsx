@@ -57,9 +57,6 @@ export default async function ProsjekterInnPage({
               Logg inn
             </Link>
           )}
-          <Link href="/prosjekter" className={`${styles.btn} ${styles.btnGhost}`}>
-            Til prosjektkartet
-          </Link>
         </div>
       </div>
     </div>
