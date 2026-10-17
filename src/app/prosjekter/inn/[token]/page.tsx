@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import ResendLoginButton from "@/components/prosjekter/ResendLoginButton";
 import styles from "@/components/prosjekter/portal.module.css";
 import { isLoginToken } from "@/lib/prosjekter/access";
-import { callAts } from "@/lib/prosjekter/ats";
-import { isProjectToken } from "@/lib/prosjekter/format";
-import { isProfileToken } from "@/lib/min-side/profile";
+import { intentQuery, loginIntentFrom } from "@/lib/prosjekter/portal-session";
 
 export const dynamic = "force-dynamic";
 
@@ -18,13 +16,14 @@ export const metadata: Metadata = {
 };
 
 /**
- * Where a login link from the e-mail lands. The ATS trades the one-time login
- * token for the key to the client's own page and the visitor goes on to
- * /min-side/<that key> (the owner's decision of 30 September 2026: a client has
- * their own page). An address that only gets project alerts and has no page
- * goes to /prosjekter/<subscription token>, as before. A used, expired or
- * unknown link, or an ATS that cannot be reached, ends on a plain page with the
- * way back to the form.
+ * Where a login link from the e-mail lands. The link is redeemed by
+ * /api/prosjekter/inn/<token> (PROJ-REST A, 17 October 2026), which keeps the
+ * client's session in a cookie and sends them on: their own page
+ * /min-side/<key> (the owner's decision of 30 September 2026), their
+ * subscription page, or the presentation whose "Logg inn" they pressed. A used,
+ * expired or unknown link, or an ATS that cannot be reached, comes back here
+ * with a status and ends on a plain page with "Send ny lenke", which mails a
+ * new link to the address the old one was sent to and to no other.
  */
 export default async function ProsjekterInnPage({
   params,
@@ -34,28 +33,12 @@ export default async function ProsjekterInnPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { token } = await params;
-  // ORDER 100: a link from the weekly letter may ask for a place on the page. Only these two words are carried on.
   const query = await searchParams;
-  const plan = query.plan === "1";
-  const alerts = !plan && query.alerts === "1";
-  let target: string | null = null;
-  let unreachable = false;
-  if (isLoginToken(token)) {
-    const answer = await callAts(`/api/public/project-login/${encodeURIComponent(token)}`, {
-      method: "GET",
-      visitorHeaders: await headers(),
-    });
-    const profile = answer.status === 200 && isProfileToken(answer.body.profile) ? answer.body.profile : null;
-    const projects = answer.status === 200 && isProjectToken(answer.body.token) ? answer.body.token : null;
-    // The alerts' county, field and frequency are changed on the subscription's own page, so ?alerts=1 goes there when there is one.
-    if (alerts && projects) target = `/prosjekter/${projects}`;
-    else if (profile) target = `/min-side/${profile}${plan ? "?plan=1" : alerts ? "?alerts=1" : ""}`;
-    else if (projects) target = `/prosjekter/${projects}`;
-    else if (answer.status >= 500) unreachable = true;
-  }
+  const status = query.status === "feil" ? "feil" : query.status === "utlopt" ? "utlopt" : null;
   // Outside any try: redirect() works by throwing.
-  if (target) redirect(target);
+  if (!status && isLoginToken(token)) redirect(`/api/prosjekter/inn/${encodeURIComponent(token)}${intentQuery(loginIntentFrom(query))}`);
 
+  const unreachable = status === "feil";
   return (
     <div className={styles.portal} style={{ minHeight: "70vh" }}>
       <div className={styles.narrow}>
@@ -64,16 +47,20 @@ export default async function ProsjekterInnPage({
         <p className={styles.lede}>
           {unreachable
             ? "Prøv lenken igjen om litt. Virker den fortsatt ikke, kan du be om en ny."
-            : "En innloggingslenke virker én gang og i 30 minutter. Be om en ny, så sender vi den til e-posten din."}
+            : "Be om en ny lenke, så sender vi den til den samme e-postadressen."}
         </p>
-        <p style={{ marginTop: 28, display: "flex", flexWrap: "wrap", gap: 12 }}>
-          <Link href="#logg-inn" className={`${styles.btn} ${styles.btnGold}`} aria-haspopup="dialog">
-            Send meg en ny lenke
-          </Link>
+        <div style={{ marginTop: 28, display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+          {isLoginToken(token) ? (
+            <ResendLoginButton token={token} className={`${styles.btn} ${styles.btnGold}`} />
+          ) : (
+            <Link href="#logg-inn" className={`${styles.btn} ${styles.btnGold}`} aria-haspopup="dialog">
+              Logg inn
+            </Link>
+          )}
           <Link href="/prosjekter" className={`${styles.btn} ${styles.btnGhost}`}>
             Til prosjektkartet
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

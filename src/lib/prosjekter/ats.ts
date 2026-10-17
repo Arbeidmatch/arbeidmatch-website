@@ -76,7 +76,7 @@ const UNREACHABLE = "Prosjektene kunne ikke hentes akkurat nå. Prøv igjen om l
  */
 export async function callAts(
   path: string,
-  init: { method: "GET" | "POST"; visitorHeaders: Headers; body?: unknown; timeoutMs?: number },
+  init: { method: "GET" | "POST"; visitorHeaders: Headers; body?: unknown; timeoutMs?: number; headers?: Record<string, string> },
 ): Promise<AtsAnswer> {
   try {
     const response = await fetch(`${atsBase()}${path}`, {
@@ -84,6 +84,7 @@ export async function callAts(
       headers: {
         Accept: "application/json",
         ...vouchingHeaders(init.visitorHeaders),
+        ...(init.headers ?? {}),
         ...(init.body !== undefined ? { "Content-Type": "application/json" } : {}),
       },
       body: init.body !== undefined ? JSON.stringify(init.body) : undefined,

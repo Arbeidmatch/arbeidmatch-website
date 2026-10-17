@@ -4,8 +4,18 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { CARD, EYEBROW, MUTED, PRIMARY, SECONDARY, STAGE_COLOR, tint } from "@/components/prosjekter/ui";
-import { domainLabel, domainsOf } from "@/lib/prosjekter/domains";
-import { formatDateNo, keyDateNo, placeNo, readableText, stageNo, valueNo, type AlertProject } from "@/lib/prosjekter/format";
+import { domainLabel, domainsOf, isDomainKey } from "@/lib/prosjekter/domains";
+import {
+  formatDateNo,
+  keyDateNo,
+  placeNo,
+  readableText,
+  regionNo,
+  STAGE_NO,
+  stageNo,
+  valueNo,
+  type AlertProject,
+} from "@/lib/prosjekter/format";
 import { STAFFING_AREA_NO } from "@/lib/prosjekter/staffingArea";
 
 /**
@@ -50,6 +60,16 @@ type Presentation = {
   };
 };
 
+/** What a masked presentation shows (PROJ-REST A): what the open list shows of a project, and nothing more. */
+type Masked = {
+  project: { project_no: number | null; stage: "planned" | "tender" | "awarded"; regions: string[]; domains: string[]; value_band: number | null };
+};
+
+function isMasked(value: unknown): value is Masked {
+  const p = (value as { project?: Record<string, unknown> } | null)?.project;
+  return Boolean(p) && typeof p?.stage === "string" && Array.isArray(p?.regions) && Array.isArray(p?.domains);
+}
+
 function durationNo(text: string | null): string | null {
   if (!text) return null;
   return text
@@ -77,11 +97,113 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** The value as the open list shows it, a band and never the amount (lib/prosjekter/map.ts valueBand, kept here without the map's data). */
+function bandNo(v: number | null): string | null {
+  if (v === null || !(v > 0)) return null;
+  const m = v / 1_000_000;
+  if (m < 10) return "under 10 MNOK";
+  if (m < 100) return "10-100 MNOK";
+  if (m < 500) return "100-500 MNOK";
+  if (m < 1000) return "500-1 000 MNOK";
+  return "over 1 000 MNOK";
+}
+
+/**
+ * The presentation before the client has logged in (PROJ-REST A, the owner's
+ * yes of 17 October 2026: only a signed-in client sees the details). The name
+ * shows as grey bars like the open list; stage, fields, county and a value band
+ * are all that is said. "Logg inn" mails a login link to the address the
+ * presentation was sent to, never to one typed here, and the link comes back.
+ */
+function MaskedPresentation({ token, view, refused, note }: { token: string; view: Masked; refused: boolean; note: string | null }) {
+  const [state, setState] = useState<"idle" | "busy" | "sent" | "error">("idle");
+  const [message, setMessage] = useState<string | null>(null);
+  const p = view.project;
+  const color = STAGE_COLOR[p.stage] ?? STAGE_COLOR.tender;
+  const facts = (
+    [
+      ["Sted", regionNo(p.regions) || null],
+      ["Verdi", bandNo(p.value_band)],
+    ] as const
+  ).filter(([, v]) => Boolean(v));
+
+  const login = async () => {
+    setState("busy");
+    try {
+      const res = await fetch(`/api/prosjekter/presentation/${encodeURIComponent(token)}/logg-inn`, { method: "POST" });
+      const payload = (await res.json().catch(() => ({}))) as { error?: string };
+      if (res.ok) {
+        setState("sent");
+        setMessage("Vi har sendt en innloggingslenke til e-postadressen prosjektet ble sendt til. Den virker i 30 minutter og tar deg tilbake hit.");
+      } else {
+        setState("error");
+        setMessage(payload.error ?? "Noe gikk galt. Prøv igjen om litt.");
+      }
+    } catch {
+      setState("error");
+      setMessage("Noe gikk galt. Prøv igjen om litt.");
+    }
+  };
+
+  return (
+    <Shell>
+      <p className={EYEBROW}>ArbeidMatch Norge AS</p>
+      <header className={`${CARD} overflow-hidden`}>
+        <div className="h-1.5" style={{ background: color }} aria-hidden />
+        <div className="flex flex-col gap-5 p-6 sm:p-8">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="rounded-full px-3 py-1 font-semibold" style={{ color, background: tint(color) }}>
+              {STAGE_NO[p.stage] ?? STAGE_NO.tender}
+            </span>
+            {p.domains.filter(isDomainKey).map((d) => (
+              <span key={d} className="rounded-full border border-white/10 px-3 py-1 text-white/60">
+                {domainLabel(d, "no")}
+              </span>
+            ))}
+          </div>
+          <h1 className="flex flex-col gap-2" aria-label="Prosjektnavn for kunder">
+            {p.project_no !== null ? <span className="font-mono text-lg font-normal text-white/45">#{p.project_no}</span> : null}
+            <span className="block h-5 w-[min(420px,85%)] rounded bg-white/15" aria-hidden />
+            <span className="block h-5 w-[min(260px,60%)] rounded bg-white/10" aria-hidden />
+          </h1>
+          <p className={`text-sm leading-relaxed ${MUTED}`}>
+            {refused
+              ? (note ?? "Prosjektet ble sendt til en annen e-postadresse enn den du er logget inn med.")
+              : "Logg inn for å se prosjektet: byggherre, sted, frister, krav og veien til konkurransen."}
+          </p>
+          <div>
+            <button type="button" onClick={() => void login()} disabled={state === "busy" || state === "sent"} className={`${PRIMARY} w-full sm:w-auto`}>
+              Logg inn
+            </button>
+            {message ? (
+              <p className="mt-3 text-sm text-white/80" role="status">
+                {message}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </header>
+      {facts.length ? (
+        <section className="grid gap-3 sm:grid-cols-2" aria-label="Nøkkeltall">
+          {facts.map(([label, v]) => (
+            <div key={label} className={`${CARD} p-4`}>
+              <p className="text-xs text-white/55">{label}</p>
+              <p className="mt-1 text-sm font-semibold leading-snug text-white">{v}</p>
+            </div>
+          ))}
+        </section>
+      ) : null}
+    </Shell>
+  );
+}
+
 export default function ProjectPresentationClient({ token }: { token: string }) {
   const [data, setData] = useState<Presentation | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [showAllReq, setShowAllReq] = useState(false);
+  // PROJ-REST A: without the recipient's session the ATS answers the project masked (401), or refused for another address (403).
+  const [masked, setMasked] = useState<{ view: Masked; refused: boolean } | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -90,9 +212,14 @@ export default function ProjectPresentationClient({ token }: { token: string }) 
       const res = await fetch(`/api/prosjekter/presentation/${encodeURIComponent(token)}${preview}`, {
         cache: "no-store",
       }).catch(() => null);
-      const payload = res ? ((await res.json().catch(() => ({}))) as { data?: Presentation; error?: string }) : {};
+      const payload = res
+        ? ((await res.json().catch(() => ({}))) as { data?: Presentation; error?: string; masked?: unknown; refused?: unknown })
+        : {};
       if (!live) return;
-      if (!res?.ok || !payload.data) setError(payload.error ?? "Siden kunne ikke lastes. Prøv igjen om litt.");
+      if ((res?.status === 401 || res?.status === 403) && isMasked(payload.masked)) {
+        setMasked({ view: payload.masked, refused: res.status === 403 || payload.refused === true });
+        setError(payload.error ?? null);
+      } else if (!res?.ok || !payload.data) setError(payload.error ?? "Siden kunne ikke lastes. Prøv igjen om litt.");
       else setData(payload.data);
     })();
     return () => {
@@ -138,6 +265,8 @@ export default function ProjectPresentationClient({ token }: { token: string }) 
       rest: d.filter((x) => !["Tildelingskriterium", "Kvalifikasjonskrav", "Delkontrakt", "Om prosedyren"].includes(x.label)),
     };
   }, [p]);
+
+  if (masked && !data) return <MaskedPresentation token={token} view={masked.view} refused={masked.refused} note={error} />;
 
   if (error && !data) {
     return (
