@@ -53,7 +53,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
   const [cameraRequest, setCameraRequest] = useState<{ id: string; revision: number } | null>(null);
   const params = useSearchParams();
   const [localFilters, setLocalFilters] = useState({ q: "", stage: "", region: "", domain: "" });
-  const query = syncFiltersToUrl ? (params.get("q") ?? "").slice(0, 80) : localFilters.q;
+  const query = subscriber ? (syncFiltersToUrl ? (params.get("q") ?? "").slice(0, 80) : localFilters.q) : "";
   const stage = syncFiltersToUrl ? Object.entries(STAGE_LABEL).find(([key]) => key === params.get("stage"))?.[1] ?? "" : localFilters.stage;
   const region = syncFiltersToUrl ? Object.keys(NORWAY_REGIONS).find(key => key === params.get("region")) ?? "" : localFilters.region;
   const domain = syncFiltersToUrl ? domainOptions.find(d => d.key === params.get("domain"))?.label ?? "" : localFilters.domain;
@@ -61,6 +61,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
     setPage(0);
     if (!syncFiltersToUrl) { setLocalFilters(previous => ({ ...previous, [key]: value })); return; }
     const url = new URL(window.location.href);
+    if (!subscriber) url.searchParams.delete("q");
     const encoded = key === "domain" ? domainOptions.find(d => d.label === value)?.key ?? ""
       : key === "stage" ? Object.entries(STAGE_LABEL).find(([, label]) => label === value)?.[0] ?? "" : value;
     if (encoded) url.searchParams.set(key, encoded); else url.searchParams.delete(key);
@@ -123,7 +124,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
     <div className={styles.filters}>
       <label><span>Fagområde</span><select aria-label="Fagområde" value={domain} onChange={e => changeFilter("domain", e.target.value)}><option value="">Alle fagområder</option>{domains.map(d => <option key={d}>{d}</option>)}</select></label>
       <div className={styles.extraFilters} id="explorer-extra-filters" data-open={filtersOpen}>
-        <label><span>Søk</span><input value={query} maxLength={syncFiltersToUrl ? 80 : undefined} onChange={e => changeFilter("q", e.target.value)} placeholder={subscriber ? "Prosjekt, byggherre eller sted" : "Fag eller område"} /></label>
+        {subscriber ? <label><span>Søk</span><input value={query} maxLength={syncFiltersToUrl ? 80 : undefined} onChange={e => changeFilter("q", e.target.value)} placeholder="Prosjekt, byggherre eller sted" /></label> : null}
         <label><span>Fase</span><select aria-label="Fase" value={stage} onChange={e => changeFilter("stage", e.target.value)}><option value="">Alle faser</option>{stages.map(s => <option key={s}>{s}</option>)}</select></label>
         <label><span>Område</span><select aria-label="Område" value={region} onChange={e => changeFilter("region", e.target.value)}><option value="">Hele Norge</option>{regions.map(([code, name]) => <option key={code} value={code}>{name}</option>)}</select></label>
       </div>
