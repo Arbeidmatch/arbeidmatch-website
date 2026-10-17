@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -14,7 +15,7 @@ import { portalHeader } from "@/lib/prosjekter/portalNav";
  * browser refuses nothing but malformed input. The ATS decides and flags.
  */
 
-const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
+const here = path.dirname(fileURLToPath(import.meta.url));
 const source = (rel: string) => readFileSync(path.resolve(here, rel), "utf8");
 const ORIGIN = "https://www.arbeidmatch.no";
 const PLAN_WORDS = /plan|pris|price|kr\s?\d|abonnement|prøveperiode|regional|tilgang/i;

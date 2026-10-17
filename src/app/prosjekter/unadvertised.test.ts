@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 
 /**
@@ -12,7 +13,7 @@ vi.mock("@/lib/jobs-facets", () => ({ facetPath: () => "/jobs", getBoard: async 
 vi.mock("@/lib/jobs-fetch", () => ({ jobUrl: () => "/j/1" }));
 vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
 
-const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
+const here = path.dirname(fileURLToPath(import.meta.url));
 const source = (rel: string) => readFileSync(path.resolve(here, rel), "utf8");
 
 describe("the project page is reached by link only", () => {
