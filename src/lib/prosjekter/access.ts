@@ -14,7 +14,10 @@ import { isValidOrgNumber, normalizeOrgNumber } from "@/lib/orgNumber";
  * address we do not already hold confirms itself with a code (checkAccessCode).
  */
 
+export type AccessPlan = "trial" | "regional" | "national";
 export type AccessRequest = {
+  requested_plan?: AccessPlan;
+  requested_frequency?: "daily" | "weekly";
   company: string;
   orgnr: string;
   email: string;
@@ -85,6 +88,12 @@ export function checkAccessRequest(raw: unknown): Checked<AccessRequest> {
   if (!regions) return { ok: false, field: "regions", error: "Velg fylker fra listen." };
   const domains = knownList(r.domains, ACCESS_DOMAIN_KEYS);
   if (!domains) return { ok: false, field: "domains", error: "Velg fag fra listen." };
+  const plan = r.requested_plan;
+  if (plan !== undefined && plan !== "trial" && plan !== "regional" && plan !== "national") return { ok: false, field: "regions", error: "Velg en gyldig plan." };
+  const frequency = r.requested_frequency;
+  if (frequency !== undefined && frequency !== "daily" && frequency !== "weekly") return { ok: false, field: "regions", error: "Velg daglig eller ukentlig varsling." };
+  if (plan === "trial" && (regions.length !== 1 || domains.length !== 1 || frequency !== "weekly")) return { ok: false, field: "regions", error: "Prøveperioden gjelder ett fylke, ett fag og ukentlig varsling." };
+  if (plan === "regional" && regions.length === 0) return { ok: false, field: "regions", error: "Velg minst ett fylke." };
 
   if (r.website_confirmed !== true) {
     return { ok: false, field: "website_confirmed", error: "Bekreft at kontaktinformasjonen din står på firmaets nettside." };
@@ -92,7 +101,7 @@ export function checkAccessRequest(raw: unknown): Checked<AccessRequest> {
 
   return {
     ok: true,
-    value: { company, orgnr, email, phone, regions, domains, contact_name, contact_role, website_confirmed: true },
+    value: { company, orgnr, email, phone, regions: plan === "national" ? [...ACCESS_REGION_CODES] : regions, domains, contact_name, contact_role, website_confirmed: true, ...(plan ? { requested_plan: plan as AccessPlan, requested_frequency: (frequency ?? "weekly") as "daily" | "weekly" } : {}) },
   };
 }
 

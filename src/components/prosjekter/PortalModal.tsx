@@ -16,7 +16,7 @@ import styles from "@/components/prosjekter/portal.module.css";
  * opened it; the page behind does not scroll.
  */
 
-const WIDTH = { wide: 640, narrow: 440 } as const;
+const WIDTH = { plans: 900, wide: 640, narrow: 440 } as const;
 
 const FOCUSABLE =
   'a[href], area[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), iframe, [tabindex]:not([tabindex="-1"]), [contenteditable="true"]';
@@ -54,7 +54,7 @@ export type PortalModalProps = {
   /** A small mark beside the title ("Beta"). */
   badge?: string;
   onClose: () => void;
-  /** "wide" (about 640px, the access form and the choices) or "narrow" (about 440px, login). */
+  /** Plans use 900px, ordinary forms 640px, and login 440px. */
   size?: keyof typeof WIDTH;
   children: React.ReactNode;
 };

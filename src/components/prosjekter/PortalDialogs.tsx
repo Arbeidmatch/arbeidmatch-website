@@ -72,7 +72,7 @@ export default function PortalDialogs() {
   if (!dialog) return null;
   const meta = DIALOG_META[dialog];
   return (
-    <PortalModal title={meta.title} badge={meta.badge} size={meta.size} onClose={close}>
+    <PortalModal title={meta.title} badge={meta.badge} size={dialog === "tilgang" ? "plans" : meta.size} onClose={close}>
       {dialog === "tilgang" ? <AccessForm onClose={close} /> : <LoginForm />}
     </PortalModal>
   );

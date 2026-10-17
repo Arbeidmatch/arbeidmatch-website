@@ -4,6 +4,10 @@ import { Turnstile } from "@marsidev/react-turnstile";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import AccessPlans, { ACCESS_PLAN_NAMES } from "./AccessPlans";
+import planStyles from "./access-plans.module.css";
+import type { AccessPlan } from "@/lib/prosjekter/access";
+
 import styles from "@/components/prosjekter/portal.module.css";
 import { checkAccessCode, checkAccessRequest, type AccessField } from "@/lib/prosjekter/access";
 import { domainChoices, regionChoices } from "@/lib/prosjekter/format";
@@ -78,7 +82,9 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
   const [code, setCode] = useState("");
   const [codeNote, setCodeNote] = useState<string | null>(null);
   const [done, setDone] = useState(false);
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<0 | 1 | 2>(0);
+  const [plan, setPlan] = useState<AccessPlan>("trial");
+  const [frequency, setFrequency] = useState<"daily" | "weekly">("weekly");
   const [showCounties, setShowCounties] = useState(false);
   const [showTrades, setShowTrades] = useState(false);
   const refs = {
@@ -144,6 +150,8 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
       regions,
       domains,
       website_confirmed: true,
+      requested_plan: plan,
+      requested_frequency: frequency,
     });
 
   const next = (e: React.FormEvent) => {
@@ -284,17 +292,16 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
 
   if (done) {
     return (
-      <div className={styles.modalForm}>
+      <div className={`${styles.modalForm} ${planStyles.form}`}>
         <div className={styles.done} ref={doneRef} tabIndex={-1} role="status">
           <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
             <circle cx="11" cy="11" r="10" fill="none" stroke="#3fa87b" strokeWidth="1.5" />
             <path d="M6.5 11.5l3 3 6-6.5" fill="none" stroke="#3fa87b" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
           <div>
-            <h3>Takk, {company?.name}.</h3>
+            <h3>Venter på aktivering</h3>
             <p>
-              Vi har fått forespørselen og går gjennom den. Du får en personlig lenke på {email.trim().toLowerCase()} når
-              tilgangen er klar.
+              Vi har mottatt registreringen din. Du får beskjed på {email.trim().toLowerCase()} når ArbeidMatch har aktivert tilgangen. Prosjektvarsler starter først etter aktivering.
             </p>
           </div>
         </div>
@@ -309,7 +316,7 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
 
   if (codeStep) {
     return (
-      <form className={styles.modalForm} onSubmit={verify} noValidate aria-describedby={formError ? "pa-form-error" : undefined}>
+      <form className={`${styles.modalForm} ${planStyles.form}`} onSubmit={verify} noValidate aria-describedby={formError ? "pa-form-error" : undefined}>
         <p className={styles.modalLede} style={{ margin: 0 }}>
           Vi har sendt en kode på 6 siffer til <strong>{email.trim().toLowerCase()}</strong>. Skriv den inn her for å
           bekrefte e-postadressen. Koden virker i 10 minutter.
@@ -367,9 +374,12 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
     );
   }
 
+  if (step === 0) return <AccessPlans onChoose={chosen => { setPlan(chosen); if (chosen === "trial") { setRegions([]); setDomains([]); setFrequency("weekly"); } if (chosen === "national") setRegions(regionChoices().map(r => r.code)); setStep(1); }} />;
+
   const progress = (
-    <div className={styles.stepBar} aria-label={`Steg ${step} av 2`}>
-      <span className={styles.stepNo}>{step} av 2</span>
+    <div className={styles.stepBar} aria-label={`Steg ${step + 1} av 3`}>
+      <span className={styles.stepNo}>{step + 1} av 3</span>
+      <i className={styles.on} />
       <i className={styles.on} />
       <i className={step === 2 ? styles.on : undefined} />
     </div>
@@ -377,8 +387,9 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
 
   if (step === 1) {
     return (
-      <form className={styles.modalForm} onSubmit={next} noValidate>
+      <form className={`${styles.modalForm} ${planStyles.form}`} onSubmit={next} noValidate>
         {progress}
+        <div className={styles.formFoot}><strong>{ACCESS_PLAN_NAMES[plan]}</strong><button type="button" className={styles.linkBtn} onClick={() => setStep(0)}>Endre plan</button></div>
         <div className={styles.field}>
           <label className={styles.lab} htmlFor="pa-company">
             Firma
@@ -583,9 +594,15 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
               .join(", ")} og ${chosen.length - 3} til`;
 
   return (
-    <form className={styles.modalForm} onSubmit={submit} noValidate aria-describedby={formError ? "pa-form-error" : undefined}>
+    <form className={`${styles.modalForm} ${planStyles.form}`} onSubmit={submit} noValidate aria-describedby={formError ? "pa-form-error" : undefined}>
       {progress}
-      <fieldset className={styles.field}>
+      <div className={styles.formFoot}><strong>{ACCESS_PLAN_NAMES[plan]}</strong><button type="button" className={styles.linkBtn} onClick={() => setStep(0)}>Endre plan</button></div>
+      {plan === "trial" ? <>
+        <div className={styles.field}><label className={styles.lab} htmlFor="pa-county">Fylke</label><select id="pa-county" className={styles.input} value={regions[0] ?? ""} onChange={e => setRegions(e.target.value ? [e.target.value] : [])}><option value="">Velg fylke</option>{regionChoices().map(r => <option key={r.code} value={r.code}>{r.label}</option>)}</select></div>
+        <div className={styles.field}><label className={styles.lab} htmlFor="pa-trade">Fagområde</label><select id="pa-trade" className={styles.input} value={domains[0] ?? ""} onChange={e => setDomains(e.target.value ? [e.target.value] : [])}><option value="">Velg fagområde</option>{domainChoices().map(d => <option key={d.key} value={d.key}>{d.label}</option>)}</select></div>
+        <p className={styles.small}>Ukentlig varsling til én e-postadresse. Dag og tidspunkt avtales før aktivering.</p>
+      </> : <>
+      {plan === "national" ? <p className={styles.small}>Alle norske fylker er inkludert.</p> : <fieldset className={styles.field}>
         <legend className={styles.lab}>Områder</legend>
         <div className={styles.opts} style={{ marginTop: 6 }}>
           <label className={styles.opt}>
@@ -615,7 +632,7 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
             ))}
           </div>
         ) : null}
-      </fieldset>
+      </fieldset>}
       <fieldset className={styles.field}>
         <legend className={styles.lab}>Fag</legend>
         <span className={styles.pickSum} style={{ marginTop: 6 }}>
@@ -640,6 +657,10 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
       </fieldset>
 
 
+
+        <div className={styles.field}><label className={styles.lab} htmlFor="pa-frequency">Varsling</label><select id="pa-frequency" className={styles.input} value={frequency} onChange={e => setFrequency(e.target.value as "daily" | "weekly")}><option value="weekly">Ukentlig</option><option value="daily">Daglig</option></select></div>
+      </>}
+      <p className={styles.small}>Forespørselen gir ikke tilgang automatisk. ArbeidMatch må aktivere abonnementet først.</p>
       <div className={styles.honey} aria-hidden="true">
         <label htmlFor="pa-website">Nettsted</label>
         <input id="pa-website" type="text" tabIndex={-1} autoComplete="off" value={honey} onChange={(e) => setHoney(e.target.value)} />
