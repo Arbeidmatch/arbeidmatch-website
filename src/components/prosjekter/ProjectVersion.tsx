@@ -16,5 +16,5 @@ export default function ProjectVersion({ modern, children, initialOld = true }: 
     url.searchParams.set("view", value ? "old" : "new");
     history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
   };
-  return <div className={styles.versionRoot}><div className={styles.version}><span>Prosjektvisning</span><div role="group" aria-label="Velg versjon"><button type="button" onClick={() => choose(false)} aria-pressed={!old}>Ny</button><button type="button" onClick={() => choose(true)} aria-pressed={old}>Old</button></div></div>{old ? children : modern}</div>;
+  return <div className={styles.versionRoot}><div className={styles.version}><span>Prosjektvisning</span><div role="group" aria-label="Velg versjon"><button type="button" onClick={() => choose(false)} aria-pressed={!old}>Ny</button><button type="button" onClick={() => choose(true)} aria-pressed={old}>Klassisk</button></div></div>{old ? children : modern}</div>;
 }
