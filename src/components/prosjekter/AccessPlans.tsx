@@ -20,7 +20,7 @@ export default function AccessPlans({ onChoose }: { onChoose: (plan: AccessPlan)
     <section className={styles.benefits}>
       <h4>Begge abonnementer inkluderer</h4>
       <p className={styles.notifications}>Daglig eller ukentlig e-post · Tre mottakere</p>
-      <div><p>Prosjektnavn og involverte virksomheter</p><p>Verdi, fase og frister</p><p>Dokumenter og kilder</p><p>Kart, søk og prosjektoppdateringer</p></div>
+      <div><p>Prosjektnavn og involverte virksomheter</p><p>Verdi, fase og frister</p><p>Lenker til kildene</p><p>Kart, søk og prosjektoppdateringer</p></div>
       <small>Detaljer der kildene har dem, innenfor dine områder og fag.</small>
     </section>
     <p className={styles.pending}>Du sender en forespørsel. Vilkår avtales før ArbeidMatch aktiverer tilgang og varsler.</p>

@@ -154,7 +154,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
           {subscriber ? <>
             <div className={styles.timeline} aria-label="Bekreftet fase"><span>Prosjektfase</span><strong>{selected.stageLabel}</strong></div>
             {selected.description ? <details key={selected.id} className={styles.description} open={!mobile}><summary>Om prosjektet</summary><p>{selected.description}</p></details> : null}
-            {selected.documents ? <a className={styles.document} href={selected.documents} target="_blank" rel="noopener noreferrer">Se konkurransegrunnlag <ChevronRight size={16} /></a> : <p className={styles.muted}>Konkurransegrunnlag er ikke tilgjengelig for dette prosjektet.</p>}
+            {selected.documents ? <a className={styles.document} href={selected.documents} target="_blank" rel="noopener noreferrer">Gå til kilden <ChevronRight size={16} /></a> : <p className={styles.muted}>Kildelenke er ikke tilgjengelig for dette prosjektet.</p>}
             <div className={styles.tools}>
               <button type="button" onClick={save} aria-pressed={saved.includes(selected.id)}><Bookmark size={15} />{saved.includes(selected.id) ? "Lagret" : "Lagre"}</button>
               <button type="button" onClick={toggleCompare} disabled={compare.length >= 3 && !compare.includes(selected.id)} aria-pressed={compare.includes(selected.id)}><Scale size={15} />{compare.includes(selected.id) ? "Valgt" : "Sammenlign"}</button>
@@ -162,7 +162,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
             </div>
             <p className={styles.fine}>Lagrede prosjekter huskes i denne nettleseren. Sammenlign inntil tre.</p>
             {related.length ? <section className={styles.related}><h3>Flere prosjekter i samme område</h3>{related.map(p => <button key={p.id} type="button" onClick={() => pick(p.id)}>{p.title}<ChevronRight size={14} /></button>)}</section> : null}
-          </> : <div className={styles.lock}><LockKeyhole size={18} /><div><h3>Hele bildet, med abonnement</h3><p>Prosjektnavn, byggherre, entreprenør, nøyaktig verdi, frister og dokumenter.</p><a href="#tilgang">Se detaljer med abonnement <ChevronRight size={14} /></a><a href="#logg-inn">Har du tilgang? Logg inn</a></div></div>}
+          </> : <div className={styles.lock}><LockKeyhole size={18} /><div><h3>Hele bildet, med abonnement</h3><p>Prosjektnavn, byggherre, entreprenør, nøyaktig verdi, frister og lenker til kildene.</p><a href="#tilgang">Se detaljer med abonnement <ChevronRight size={14} /></a><a href="#logg-inn">Har du tilgang? Logg inn</a></div></div>}
         </> : <div className={styles.empty}><h2>{loading ? "Henter prosjekter ..." : failed ? "Prosjektene kunne ikke lastes" : "Ingen prosjekter i utvalget"}</h2><p>{failed ? "Prøv å laste siden på nytt." : "Velg et annet område eller en annen fase."}</p></div>}
       </article>
       <div className={styles.mapPanel}>
