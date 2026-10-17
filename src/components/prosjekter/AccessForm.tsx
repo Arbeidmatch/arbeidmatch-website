@@ -25,7 +25,7 @@ import { domainChoices, regionChoices } from "@/lib/prosjekter/format";
  *     request reaches the owner only once the address is confirmed.
  *
  * Sending is the acceptance (his decision, 16 October 2026): no box to tick.
- * The line above the buttons says that sending confirms the contact details
+ * The notice in the first step says that sending confirms the contact details
  * are on the company's website and accepts the terms, the privacy notice and
  * the disclaimer printed under it, so website_confirmed goes as true.
  *
@@ -539,6 +539,22 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
             {fieldError("phone")}
           </div>
         </div>
+        <p className={styles.consent}>
+          Ved å sende bekrefter du at kontaktinformasjonen din står på firmaets nettside, og godtar{" "}
+          <Link href="/terms" target="_blank">
+            vilkår
+          </Link>
+          ,{" "}
+          <Link href="/privacy" target="_blank">
+            personvern
+          </Link>{" "}
+          og ansvarsfraskrivelsen nedenfor.
+        </p>
+        <p className={styles.disclaimer}>
+          <strong>Ansvarsfraskrivelse.</strong> Forsprang er i beta. Opplysningene om prosjektene kan være ufullstendige
+          eller forsinket og erstatter ikke konkurransegrunnlaget. ArbeidMatch er ikke ansvarlig for beslutninger tatt på
+          grunnlag av dem.
+        </p>
         <div className={styles.formFoot}>
           <span />
           <button className={`${styles.btn} ${styles.btnGold}`} type="submit">
@@ -638,22 +654,6 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
           options={{ theme: "dark", language: "nb", appearance: "interaction-only" }}
         />
       ) : null}
-      <p className={styles.consent}>
-        Ved å sende bekrefter du at kontaktinformasjonen din står på firmaets nettside, og godtar{" "}
-        <Link href="/terms" target="_blank">
-          vilkår
-        </Link>
-        ,{" "}
-        <Link href="/privacy" target="_blank">
-          personvern
-        </Link>{" "}
-        og ansvarsfraskrivelsen nedenfor.
-      </p>
-      <p className={styles.disclaimer}>
-        <strong>Ansvarsfraskrivelse.</strong> Forsprang er i beta. Opplysningene om prosjektene kan være ufullstendige
-        eller forsinket og erstatter ikke konkurransegrunnlaget. ArbeidMatch er ikke ansvarlig for beslutninger tatt på
-        grunnlag av dem.
-      </p>
       {errorBox}
       <div className={styles.formFoot}>
         <span className={styles.footBtns}>
