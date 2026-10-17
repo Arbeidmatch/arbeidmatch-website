@@ -36,7 +36,7 @@ describe("public explorer URL filters and counts", () => {
     expect(html).toContain('Kartposisjon ikke tilgjengelig');
   });
   it("shows zero mapped results for an empty selection", () => {
-    navigation.query += "&q=does-not-exist";
+    navigation.query += "&stage=tender&region=NO060";
     expect(render()).toContain('0 i utvalget på kartet');
     expect(render()).toContain('Ingen prosjekter i utvalget');
   });

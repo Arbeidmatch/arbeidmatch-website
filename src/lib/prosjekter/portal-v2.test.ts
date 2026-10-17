@@ -307,7 +307,7 @@ describe("the header on the portal", () => {
     for (const p of ["/prosjekter", "/prosjekter/logg-inn", `/prosjekter/inn/${"a".repeat(32)}`, `/prosjekt/${token}`]) {
       expect(portalHeader(p)).toEqual({
         quiet: { label: "Logg inn", href: "#logg-inn" },
-        gold: { label: "Få tilgang", href: "#tilgang" },
+        gold: { label: "Be om invitasjon", href: "#tilgang" },
       });
     }
   });

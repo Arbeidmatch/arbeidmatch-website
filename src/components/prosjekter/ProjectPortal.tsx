@@ -158,7 +158,7 @@ function Row({
       </button>
       <span className={styles.rowFoot}>
         <a href="#tilgang" aria-haspopup="dialog" className={styles.rowCta}>
-          Få tilgang
+          Be om invitasjon
         </a>
       </span>
     </li>
@@ -480,7 +480,7 @@ export default function ProjectPortal({
                       </span>
                       <span className={styles.val} />
                       <a href="#tilgang" aria-haspopup="dialog" className={styles.rowCta}>
-                        Få tilgang
+                        Be om invitasjon
                       </a>
                     </li>
                   ))

@@ -8,7 +8,7 @@ import { isProjectToken } from "@/lib/prosjekter/format";
  * (/prosjekter/<token>) the way in is already taken, so it reads "Min side"
  * and the gold button leads back to the map.
  *
- * "Logg inn" and "Få tilgang" are hashes: they open their dialog over the
+ * "Logg inn" and "Be om invitasjon" are hashes: they open their dialog over the
  * page the visitor is on (PortalDialogs), never a page of their own.
  *
  * Returns null everywhere else, where the header stays as it is.
@@ -35,6 +35,6 @@ export function portalHeader(pathname: string | null | undefined): PortalHeader 
   }
   return {
     quiet: { label: "Logg inn", href: "#logg-inn" },
-    gold: { label: "Få tilgang", href: "#tilgang" },
+    gold: { label: "Be om invitasjon", href: "#tilgang" },
   };
 }

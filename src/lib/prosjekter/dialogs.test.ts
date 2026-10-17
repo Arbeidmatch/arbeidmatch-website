@@ -14,6 +14,11 @@ describe("which hash opens which dialog", () => {
     expect(dialogFromHash("#LOGG-INN")).toBe("logg-inn");
   });
 
+  it("opens the invitation form from #invitasjon as well", () => {
+    expect(dialogFromHash("#invitasjon")).toBe("tilgang");
+    expect(dialogForLink("/prosjekter#invitasjon", "/prosjekter", ORIGIN)).toBe("tilgang");
+  });
+
   it("opens nothing for any other hash", () => {
     for (const h of ["", "#", "#top", "#tilgang-h", "#logg", null, undefined]) expect(dialogFromHash(h)).toBeNull();
   });
@@ -23,7 +28,7 @@ describe("which hash opens which dialog", () => {
   });
 
   it("gives every dialog a title and a width", () => {
-    expect(DIALOG_META.tilgang).toEqual({ title: "Be om tilgang", size: "wide", badge: "Beta" });
+    expect(DIALOG_META.tilgang).toEqual({ title: "Be om invitasjon", size: "wide", badge: "Beta" });
     expect(DIALOG_META["logg-inn"]).toEqual({ title: "Logg inn", size: "narrow" });
   });
 });

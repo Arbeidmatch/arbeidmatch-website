@@ -19,6 +19,9 @@ const DESCRIPTION =
   "Se hvilke bygg- og anleggsprosjekter som planlegges, hvilke konkurranser som er åpne og hvem som har fått kontraktene, i hele Norge. Oppdatert hver dag.";
 
 export const metadata: Metadata = {
+  // Not advertised (the owner's decision, 17 October 2026): he sends the link himself.
+  // Out of the sitemap, the footer and For bedrifter, and kept out of search.
+  robots: { index: false, follow: false },
   alternates: { canonical: "/prosjekter" },
   title: { absolute: TITLE },
   description: DESCRIPTION,

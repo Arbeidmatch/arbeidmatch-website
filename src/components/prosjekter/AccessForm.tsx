@@ -4,18 +4,21 @@ import { Turnstile } from "@marsidev/react-turnstile";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import AccessPlans, { ACCESS_PLAN_NAMES } from "./AccessPlans";
-import planStyles from "./access-plans.module.css";
-import type { AccessPlan } from "@/lib/prosjekter/access";
-
 import styles from "@/components/prosjekter/portal.module.css";
 import { checkAccessCode, checkAccessRequest, type AccessField } from "@/lib/prosjekter/access";
 import { domainChoices, regionChoices } from "@/lib/prosjekter/format";
 
 /**
- * "Be om tilgang": a firm asks for the whole picture in its counties and
- * trades. The body of the access dialog (see PortalDialogs): it opens over any
- * page from a link to #tilgang.
+ * "Be om invitasjon": a firm asks to be invited to the whole picture in its
+ * counties and trades. The body of the invitation dialog (see PortalDialogs):
+ * it opens over any page from a link to #tilgang (or #invitasjon).
+ *
+ * The owner's decision of 17 October 2026: no plans and no prices here. He
+ * sends the link himself, the firm fills this in, and he approves or refuses
+ * the request in the ATS; whoever he invites gets normal access. So the form
+ * opens straight on who you are, and the only checks in the browser are
+ * format checks (a valid organisation number, an e-mail address). Whether a
+ * firm is a fit, an agency or outside our area, the ATS decides and flags.
  *
  * The owner's rules, 29 September 2026:
  *   - the company is looked up in the register, by name or by organisation
@@ -38,6 +41,9 @@ import { domainChoices, regionChoices } from "@/lib/prosjekter/format";
  * the fifteen one click away; trades start at "Alle fag" (an empty list, as
  * before) with the twelve one click away.
  */
+
+/** What the visitor reads once the request is sent and the address confirmed (the owner's words, 17 October 2026). */
+export const INVITE_THANKS = "Takk. Vi vurderer forespørselen og sender deg en invitasjon hvis den blir godkjent.";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
@@ -82,9 +88,7 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
   const [code, setCode] = useState("");
   const [codeNote, setCodeNote] = useState<string | null>(null);
   const [done, setDone] = useState(false);
-  const [step, setStep] = useState<0 | 1 | 2>(0);
-  const [plan, setPlan] = useState<AccessPlan>("trial");
-  const [frequency, setFrequency] = useState<"daily" | "weekly">("weekly");
+  const [step, setStep] = useState<1 | 2>(1);
   const [showCounties, setShowCounties] = useState(false);
   const [showTrades, setShowTrades] = useState(false);
   const refs = {
@@ -150,8 +154,6 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
       regions,
       domains,
       website_confirmed: true,
-      requested_plan: plan,
-      requested_frequency: frequency,
     });
 
   const next = (e: React.FormEvent) => {
@@ -292,17 +294,14 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
 
   if (done) {
     return (
-      <div className={`${styles.modalForm} ${planStyles.form}`}>
+      <div className={styles.modalForm}>
         <div className={styles.done} ref={doneRef} tabIndex={-1} role="status">
           <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
             <circle cx="11" cy="11" r="10" fill="none" stroke="#3fa87b" strokeWidth="1.5" />
             <path d="M6.5 11.5l3 3 6-6.5" fill="none" stroke="#3fa87b" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
           <div>
-            <h3>Venter på aktivering</h3>
-            <p>
-              Vi har mottatt registreringen din. Du får beskjed på {email.trim().toLowerCase()} når ArbeidMatch har aktivert tilgangen. Prosjektvarsler starter først etter aktivering.
-            </p>
+            <p>{INVITE_THANKS}</p>
           </div>
         </div>
         <div>
@@ -316,7 +315,7 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
 
   if (codeStep) {
     return (
-      <form className={`${styles.modalForm} ${planStyles.form}`} onSubmit={verify} noValidate aria-describedby={formError ? "pa-form-error" : undefined}>
+      <form className={styles.modalForm} onSubmit={verify} noValidate aria-describedby={formError ? "pa-form-error" : undefined}>
         <p className={styles.modalLede} style={{ margin: 0 }}>
           Vi har sendt en kode på 6 siffer til <strong>{email.trim().toLowerCase()}</strong>. Skriv den inn her for å
           bekrefte e-postadressen. Koden virker i 10 minutter.
@@ -374,11 +373,9 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
     );
   }
 
-  if (step === 0) return <AccessPlans onChoose={chosen => { setPlan(chosen); if (chosen === "trial") { setRegions([]); setDomains([]); setFrequency("weekly"); } if (chosen === "national") setRegions(regionChoices().map(r => r.code)); setStep(1); }} />;
-
   const progress = (
     <div className={styles.stepBar}>
-      <span className={styles.stepNo}>{step === 1 ? "Kontaktinformasjon" : "Preferanser"}</span>
+      <span className={styles.stepNo}>{step === 1 ? "Kontaktinformasjon" : "Fylker og fag"}</span>
       <i className={styles.on} aria-hidden="true" />
       <i className={step === 2 ? styles.on : undefined} aria-hidden="true" />
     </div>
@@ -386,9 +383,8 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
 
   if (step === 1) {
     return (
-      <form className={`${styles.modalForm} ${planStyles.form}`} onSubmit={next} noValidate>
+      <form className={styles.modalForm} onSubmit={next} noValidate>
         {progress}
-        <div className={styles.formFoot}><strong>{ACCESS_PLAN_NAMES[plan]}</strong><button type="button" className={styles.linkBtn} onClick={() => setStep(0)}>Endre plan</button></div>
         <div className={styles.field}>
           <label className={styles.lab} htmlFor="pa-company">
             Firma
@@ -593,15 +589,9 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
               .join(", ")} og ${chosen.length - 3} til`;
 
   return (
-    <form className={`${styles.modalForm} ${planStyles.form}`} onSubmit={submit} noValidate aria-describedby={formError ? "pa-form-error" : undefined}>
+    <form className={styles.modalForm} onSubmit={submit} noValidate aria-describedby={formError ? "pa-form-error" : undefined}>
       {progress}
-      <div className={styles.formFoot}><strong>{ACCESS_PLAN_NAMES[plan]}</strong><button type="button" className={styles.linkBtn} onClick={() => setStep(0)}>Endre plan</button></div>
-      {plan === "trial" ? <>
-        <div className={styles.field}><label className={styles.lab} htmlFor="pa-county">Fylke</label><select id="pa-county" className={styles.input} value={regions[0] ?? ""} onChange={e => setRegions(e.target.value ? [e.target.value] : [])}><option value="">Velg fylke</option>{regionChoices().map(r => <option key={r.code} value={r.code}>{r.label}</option>)}</select></div>
-        <div className={styles.field}><label className={styles.lab} htmlFor="pa-trade">Fagområde</label><select id="pa-trade" className={styles.input} value={domains[0] ?? ""} onChange={e => setDomains(e.target.value ? [e.target.value] : [])}><option value="">Velg fagområde</option>{domainChoices().map(d => <option key={d.key} value={d.key}>{d.label}</option>)}</select></div>
-        <p className={styles.small}>Ukentlig varsling til én e-postadresse. Dag og tidspunkt avtales før aktivering.</p>
-      </> : <>
-      {plan === "national" ? <p className={styles.small}>Alle norske fylker er inkludert.</p> : <fieldset className={styles.field}>
+      <fieldset className={styles.field}>
         <legend className={styles.lab}>Områder</legend>
         <div className={styles.opts} style={{ marginTop: 6 }}>
           <label className={styles.opt}>
@@ -631,7 +621,7 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
             ))}
           </div>
         ) : null}
-      </fieldset>}
+      </fieldset>
       <fieldset className={styles.field}>
         <legend className={styles.lab}>Fag</legend>
         <span className={styles.pickSum} style={{ marginTop: 6 }}>
@@ -654,12 +644,7 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
           </div>
         ) : null}
       </fieldset>
-
-
-
-        <div className={styles.field}><label className={styles.lab} htmlFor="pa-frequency">Varsling</label><select id="pa-frequency" className={styles.input} value={frequency} onChange={e => setFrequency(e.target.value as "daily" | "weekly")}><option value="weekly">Ukentlig</option><option value="daily">Daglig</option></select></div>
-      </>}
-      <p className={styles.small}>Forespørselen gir ikke tilgang automatisk. ArbeidMatch må aktivere abonnementet først.</p>
+      <p className={styles.small}>Vi går gjennom forespørselen og sender en invitasjon hvis den blir godkjent.</p>
       <div className={styles.honey} aria-hidden="true">
         <label htmlFor="pa-website">Nettsted</label>
         <input id="pa-website" type="text" tabIndex={-1} autoComplete="off" value={honey} onChange={(e) => setHoney(e.target.value)} />
@@ -681,7 +666,7 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
             Tilbake
           </button>
           <button className={`${styles.btn} ${styles.btnGold}`} type="submit" disabled={busy}>
-            {busy ? "Sender ..." : "Send"}
+            {busy ? "Sender ..." : "Send forespørsel"}
           </button>
         </span>
       </div>

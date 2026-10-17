@@ -164,7 +164,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
             </div>
             <p className={styles.fine}>Lagrede prosjekter huskes i denne nettleseren. Sammenlign inntil tre.</p>
             {related.length ? <section className={styles.related}><h3>Flere prosjekter i samme område</h3>{related.map(p => <button key={p.id} type="button" onClick={() => pick(p.id)}>{p.title}<ChevronRight size={14} /></button>)}</section> : null}
-          </> : <div className={styles.lock}><LockKeyhole size={18} /><div><h3>Hele bildet, med abonnement</h3><p>Prosjektnavn, byggherre, entreprenør, nøyaktig verdi, frister og lenker til kildene.</p><a href="#tilgang">Se detaljer med abonnement <ChevronRight size={14} /></a><a href="#logg-inn">Har du tilgang? Logg inn</a></div></div>}
+          </> : <div className={styles.lock}><LockKeyhole size={18} /><div><h3>Hele bildet, med invitasjon</h3><p>Prosjektnavn, byggherre, entreprenør, nøyaktig verdi, frister og lenker til kildene.</p><a href="#tilgang">Be om invitasjon <ChevronRight size={14} /></a><a href="#logg-inn">Har du tilgang? Logg inn</a></div></div>}
         </> : <div className={styles.empty}><h2>{loading ? "Henter prosjekter ..." : failed ? "Prosjektene kunne ikke lastes" : "Ingen prosjekter i utvalget"}</h2><p>{failed ? "Prøv å laste siden på nytt." : "Velg et annet område eller en annen fase."}</p></div>}
       </article>
       <div className={styles.mapPanel}>

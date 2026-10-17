@@ -8,7 +8,7 @@ import { DIALOG_META, dialogForLink, dialogFromHash, hashFor, type PortalDialog 
 
 /**
  * The portal's forms, reachable from any page by a hash: a link to #tilgang
- * opens "Be om tilgang", a link to #logg-inn opens "Logg inn", over the page
+ * opens "Be om invitasjon", a link to #logg-inn opens "Logg inn", over the page
  * the visitor is on. Mounted once in the root layout.
  *
  * The address carries the open dialog (so /prosjekter#tilgang in an e-mail
@@ -72,7 +72,7 @@ export default function PortalDialogs() {
   if (!dialog) return null;
   const meta = DIALOG_META[dialog];
   return (
-    <PortalModal title={meta.title} badge={meta.badge} size={dialog === "tilgang" ? "plans" : meta.size} onClose={close}>
+    <PortalModal title={meta.title} badge={meta.badge} size={meta.size} onClose={close}>
       {dialog === "tilgang" ? <AccessForm onClose={close} /> : <LoginForm />}
     </PortalModal>
   );

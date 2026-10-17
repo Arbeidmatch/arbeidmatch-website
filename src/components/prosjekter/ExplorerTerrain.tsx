@@ -269,7 +269,7 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
         if (document.fullscreenElement === surface.current) await document.exitFullscreen();
         else surface.current?.querySelector<HTMLButtonElement>(".maplibregl-ctrl-shrink")?.click();
         window.location.hash = "tilgang";
-      }}>Registrer deg for detaljer</a>
+      }}>Be om invitasjon</a>
     </section> : null}
     {!demo && groupProjects.length > 0 ? <section className={styles.clusterList} aria-label="Prosjekter i kartgruppen"><header><strong>{groupProjects.length} prosjekter i området</strong><button type="button" onClick={() => setGroup([])}>Lukk</button></header>{groupProjects.slice(groupPage * 5, groupPage * 5 + 5).map(p => <button key={p.id} type="button" onClick={() => { onSelect(p.id); setGroup([]); }}>{p.title}<small>{p.stageLabel} · {p.value}</small></button>)}{groupProjects.length > 5 ? <footer><button type="button" disabled={groupPage === 0} onClick={() => setGroupPage(v => v - 1)}>Forrige</button><span>{groupPage + 1} / {Math.ceil(groupProjects.length / 5)}</span><button type="button" disabled={(groupPage + 1) * 5 >= groupProjects.length} onClick={() => setGroupPage(v => v + 1)}>Neste</button></footer> : null}</section> : null}
     {failed ? <p className={styles.mapMessage}>Kartet kunne ikke lastes. Prosjektdetaljene er fortsatt tilgjengelige.</p> : !ready ? <p className={styles.mapMessage}>Laster kart ...</p> : null}

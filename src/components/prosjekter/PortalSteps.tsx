@@ -71,7 +71,7 @@ export default function PortalSteps({ projects }: { projects: PlacedProject[] })
                 <span className={styles.stepN}>2</span>
                 <span className={styles.stepLine} />
               </div>
-              <h3>Be om tilgang</h3>
+              <h3>Be om invitasjon</h3>
               <p>Et kort skjema: firma, org.nr., e-post, fylker og fag. Er dere allerede kunde hos oss, får dere en invitasjon.</p>
               <div className={styles.mini} aria-hidden="true">
                 <div className={styles.miniF}>

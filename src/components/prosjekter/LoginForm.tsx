@@ -64,7 +64,7 @@ export default function LoginForm() {
         <p className={styles.small}>
           Har dere ikke tilgang ennå?{" "}
           <a href="#tilgang" className={styles.linkGold} aria-haspopup="dialog">
-            Be om tilgang
+            Be om invitasjon
           </a>
         </p>
       </div>
@@ -109,7 +109,7 @@ export default function LoginForm() {
       <p className={styles.small}>
         Har dere ikke tilgang ennå?{" "}
         <a href="#tilgang" className={styles.linkGold} aria-haspopup="dialog">
-          Be om tilgang
+          Be om invitasjon
         </a>
       </p>
     </form>
