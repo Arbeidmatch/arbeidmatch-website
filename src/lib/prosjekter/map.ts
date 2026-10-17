@@ -79,6 +79,9 @@ export function project(lon: number, lat: number): [number, number] {
 const round1 = (v: number) => Math.round(v * 10) / 10;
 
 /** Keeps only well formed map rows from whatever the ATS sent, and places them. */
+/** What a dot is called when the answer carries no title: the open page names no project. */
+export const PUBLIC_DOT_TITLE = "Prosjektdetaljer for abonnenter";
+
 export function placeProjects(raw: unknown): PlacedProject[] {
   if (!Array.isArray(raw)) return [];
   const out: PlacedProject[] = [];
@@ -89,17 +92,19 @@ export function placeProjects(raw: unknown): PlacedProject[] {
     if (p.st !== "planned" && p.st !== "tender" && p.st !== "closed" && p.st !== "awarded") continue;
     if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
     if (p.lat < 57 || p.lat > 72 || p.lon < 3 || p.lon > 33) continue;
-    if (typeof p.t !== "string" || !p.t.trim()) continue;
     const [x, y] = project(p.lon, p.lat);
+    // The open answer (PROJ-SEC, 17 October 2026) sends no title and names the
+    // value `band`; a dot without a title is still a dot on the map.
+    const value = typeof p.v === "number" ? p.v : (p as { band?: unknown }).band;
     out.push({
       no: p.no,
       st: p.st,
       lat: p.lat,
       lon: p.lon,
-      v: typeof p.v === "number" && Number.isFinite(p.v) && p.v > 0 ? p.v : null,
+      v: typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null,
       r: typeof p.r === "string" ? p.r : "",
       d: Array.isArray(p.d) ? p.d.filter((x): x is string => typeof x === "string") : [],
-      t: p.t.trim(),
+      t: typeof p.t === "string" && p.t.trim() ? p.t.trim() : PUBLIC_DOT_TITLE,
       c: typeof p.c === "string" && p.c.trim() ? p.c.trim() : null,
       k: typeof p.k === "string" && p.k.trim() ? p.k.trim() : null,
       x: round1(x),

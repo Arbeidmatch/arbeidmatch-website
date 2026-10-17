@@ -15,14 +15,16 @@ import { logApiError } from "@/lib/secureLogger";
  * from the ATS, every request from here comes from this site's own egress
  * address, so without help one busy visitor would spend the whole site's
  * allowance. The ATS therefore accepts a visitor address from us, but only when
- * it arrives together with the secret we already share with it for the mail
- * relay (ATS_EMAIL_SECRET here, WEBSITE_EMAIL_SECRET there):
+ * it arrives together with the portal's own secret, ATS_PORTAL_SECRET, set to
+ * the same value in both projects (PROJ-SEC, 17 October 2026). Until it is set
+ * here the mail relay secret, ATS_EMAIL_SECRET, is sent as before:
  *
- *   x-arbeidmatch-website-secret: <ATS_EMAIL_SECRET>
+ *   x-arbeidmatch-website-secret: <ATS_PORTAL_SECRET, else ATS_EMAIL_SECRET>
  *   x-arbeidmatch-applicant-ip:   <the visitor's address>
  *
  * Without the secret the address header is ignored and the ATS counts our own
  * address, so a missing secret degrades to a shared limit rather than failing.
+ * The secret goes server to server only; nothing here is ever sent to a browser.
  */
 
 export const ATS_DEFAULT_BASE = "https://ats.arbeidmatch.no";
@@ -52,8 +54,12 @@ export function visitorIp(headers: Headers): string | null {
 }
 
 /** The headers that vouch for one visitor. Empty when the secret is not configured. */
+export function portalSecret(): string | null {
+  return process.env.ATS_PORTAL_SECRET?.trim() || process.env.ATS_EMAIL_SECRET?.trim() || null;
+}
+
 export function vouchingHeaders(visitorHeaders: Headers): Record<string, string> {
-  const secret = process.env.ATS_EMAIL_SECRET?.trim();
+  const secret = portalSecret();
   const ip = visitorIp(visitorHeaders);
   if (!secret || !ip) return {};
   return { "x-arbeidmatch-website-secret": secret, "x-arbeidmatch-applicant-ip": ip };

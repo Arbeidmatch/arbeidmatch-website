@@ -51,6 +51,7 @@ export default async function ProsjekterPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  // Stage, county and trade only: no search words go to the ATS (PROJ-SEC).
   const filters = filtersFrom(params);
   const answer = await callAts(`/api/public/projects-overview${filtersQuery(filters)}`, {
     method: "GET",

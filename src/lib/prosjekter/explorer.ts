@@ -32,20 +32,21 @@ export function publicValue(value: number | null): number | null {
   return value < 1e7 ? 5e6 : value < 1e8 ? 5e7 : value < 5e8 ? 2e8 : value < 1e9 ? 7e8 : 1e9;
 }
 
+// PROJ-SEC (17 October 2026): the public payload carries no list and the
+// unfiltered total; the page lists projects from the catalog and the map.
 export function publicOverview(data: Overview): Overview {
+  const total = Array.isArray(data.catalog) ? data.catalog.length
+    : data.counts.planned + data.counts.tender + data.counts.awarded;
   return {
-    counts: data.counts, total: data.total, page: data.page, page_size: data.page_size,
+    counts: data.counts, total, page: data.page, page_size: data.page_size,
     regions: data.regions, domains: data.domains, county_counts: data.county_counts,
     ...(Array.isArray(data.catalog) ? { catalog: data.catalog.filter(p =>
       Number.isFinite(p.no) && ["planned", "tender", "awarded"].includes(p.st)
     ).map(p => ({ no: p.no, st: p.st,
       rs: Array.isArray(p.rs) ? p.rs.filter(r => typeof r === "string" && r in NORWAY_REGIONS) : [],
-      d: Array.isArray(p.d) ? p.d.filter(d => labels.has(d)) : [], v: publicValue(p.v),
+      d: Array.isArray(p.d) ? p.d.filter(d => labels.has(d)) : [], v: publicValue(p.v ?? p.band ?? null),
     })) } : {}),
-    projects: data.projects.map(p => ({
-      project_no: p.project_no, stage: p.stage, stage_label: p.stage_label,
-      title: "Prosjektdetaljer for abonnenter", place: "", value_label: null, date_label: null, domains: p.domains,
-    })),
+    projects: [],
     ...(Array.isArray(data.map) ? { map: placeProjects(data.map).map(p => ({
       // The source is already a town/municipality reference, not a site address.
       // Further rounding can move that reference several kilometres into a fjord.
@@ -64,11 +65,12 @@ export function publicExplorer(data: Overview | null): ExplorerProject[] {
     return data.catalog.map(p => {
       const point = locations.get(p.no);
       const regions = p.rs.filter(r => r in NORWAY_REGIONS);
+      const band = p.v ?? p.band ?? null;
       return {
         id: String(p.no), title: labels.get(p.d[0]) ?? "Bygg- og anleggsprosjekt",
         stage: p.st, stageLabel: STAGE_LABEL[p.st], region: regions[0] ?? "", regions,
         place: regions.map(r => NORWAY_REGIONS[r]).join(", ") || "Område ikke oppgitt",
-        domains: p.d.map(d => labels.get(d) ?? d), value: valueBand(p.v) ?? "Verdi ikke oppgitt", mapValue: p.v,
+        domains: p.d.map(d => labels.get(d) ?? d), value: valueBand(band) ?? "Verdi ikke oppgitt", mapValue: band,
         date: null, published: null, buyer: null, winners: [], description: null, documents: null,
         coordinates: point ? [point.lon, point.lat] as [number, number] : null,
         locationLabel: point ? "Stedsreferanse, ikke bekreftet byggeplass" : "Kartposisjon ikke tilgjengelig",

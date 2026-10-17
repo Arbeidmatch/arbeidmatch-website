@@ -15,8 +15,12 @@ export type OverviewProject = {
 };
 
 export type Overview = {
-  /** Complete eligible public list; coordinates are optional and joined from map. */
-  catalog?: { no: number; st: "planned" | "tender" | "awarded"; rs: string[]; d: string[]; v: number | null }[];
+  /**
+   * Complete eligible public list; coordinates are optional and joined from map.
+   * The value is a band representative: `v` from the ATS's full answer, `band`
+   * from its open one (PROJ-SEC, 17 October 2026).
+   */
+  catalog?: { no: number; st: "planned" | "tender" | "awarded"; rs: string[]; d: string[]; v?: number | null; band?: number | null }[];
   counts: { planned: number; tender: number; awarded: number };
   total: number;
   page: number;
@@ -34,11 +38,15 @@ export type Overview = {
   county_counts?: Record<string, number[]>;
 };
 
+/**
+ * No free-text search is sent to the ATS: the open overview ignores it (PROJ-SEC,
+ * 17 October 2026), since a search over titles and towns told a stranger what
+ * the demo hides.
+ */
 export type OverviewFilters = {
   stage: "" | "planned" | "tender" | "awarded";
   region: string;
   domain: string;
-  q: string;
   page: number;
 };
 
@@ -59,7 +67,6 @@ export function filtersFrom(params: Record<string, string | string[] | undefined
     // Only the shapes the ATS knows; anything else is dropped rather than forwarded.
     region: /^NO[0-9A-Z]{3}$/.test(one("region")) ? one("region") : "",
     domain: /^[a-z]{2,20}$/.test(one("domain")) ? one("domain") : "",
-    q: one("q").slice(0, 80),
     page: Number.isFinite(page) && page > 1 ? Math.min(page, 500) : 1,
   };
 }
@@ -70,7 +77,6 @@ export function filtersQuery(f: OverviewFilters): string {
   if (f.stage) out.set("stage", f.stage);
   if (f.region) out.set("region", f.region);
   if (f.domain) out.set("domain", f.domain);
-  if (f.q) out.set("q", f.q);
   if (f.page > 1) out.set("page", String(f.page));
   const s = out.toString();
   return s ? `?${s}` : "";

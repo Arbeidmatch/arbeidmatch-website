@@ -55,9 +55,32 @@ describe("project explorer access boundary", () => {
     expect(safeDocumentLink("https://example.invalid/tender")).toBe("https://example.invalid/tender");
   });
   it("still shows the project list if coordinates are unavailable", () => {
-    const data = publicOverview({ ...publicData, map: undefined });
+    const catalog: NonNullable<Overview["catalog"]> = [{ no: 42, st: "tender", rs: ["NO060"], d: ["buildings"], v: 5e7 }];
+    const data = publicOverview({ ...publicData, map: undefined, catalog });
     expect(publicExplorer(data)).toHaveLength(1);
     expect(publicExplorer(data)[0].coordinates).toBeNull();
+  });
+  it("PROJ-SEC: passes no list on, and the total is the unfiltered one", () => {
+    const output = publicOverview({ ...publicData, total: 1, counts: { planned: 3, tender: 1, awarded: 2 } });
+    expect(output.projects).toEqual([]);
+    expect(output.total).toBe(6);
+    const withCatalog = publicOverview({ ...publicData, total: 1, catalog: [
+      { no: 42, st: "tender", rs: ["NO060"], d: ["buildings"], v: 5e7 },
+      { no: 43, st: "planned", rs: ["NO081"], d: [], v: null },
+    ] });
+    expect(withCatalog.total).toBe(2);
+  });
+  it("PROJ-SEC: reads the ATS's open answer, which has no title and names the value band", () => {
+    const open: Overview = {
+      counts: { planned: 0, tender: 1, awarded: 0 }, total: 1, page: 1, page_size: 20, regions: [], domains: [], projects: [],
+      catalog: [{ no: 42, st: "tender", rs: ["NO060"], d: ["buildings"], band: 2e8 }],
+      map: [{ no: 42, st: "tender", lat: 63.43123, lon: 10.39567, band: 2e8, r: "NO060", d: ["buildings"] }],
+    };
+    const output = publicOverview(open);
+    expect(output.map).toHaveLength(1);
+    expect(output.map?.[0]).toMatchObject({ no: 42, lat: 63.43123, lon: 10.39567, v: 2e8 });
+    const [p] = publicExplorer(output);
+    expect(p).toMatchObject({ id: "42", value: "100-500 MNOK", coordinates: [10.39567, 63.43123] });
   });
   it("suggests only other projects in the same known region", () => {
     const [p] = subscriberExplorer([privateProject], null);

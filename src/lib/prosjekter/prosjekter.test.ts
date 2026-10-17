@@ -38,6 +38,19 @@ describe("vouching for a visitor", () => {
     expect(vouchingHeaders(new Headers({ "x-forwarded-for": "203.0.113.7" }))).toEqual({});
   });
 
+  it("PROJ-SEC: sends the portal's own secret when it is set, not the mail relay's", () => {
+    vi.stubEnv("ATS_EMAIL_SECRET", "mail-relay");
+    vi.stubEnv("ATS_PORTAL_SECRET", "portal-only");
+    expect(vouchingHeaders(new Headers({ "x-forwarded-for": "203.0.113.7" }))["x-arbeidmatch-website-secret"]).toBe("portal-only");
+    vi.stubEnv("ATS_PORTAL_SECRET", "");
+    expect(vouchingHeaders(new Headers({ "x-forwarded-for": "203.0.113.7" }))["x-arbeidmatch-website-secret"]).toBe("mail-relay");
+  });
+
+  it("PROJ-SEC: the secret is read only in server code", () => {
+    const ats = readFileSync(path.join(process.cwd(), "src/lib/prosjekter/ats.ts"), "utf8");
+    expect(ats.startsWith('import "server-only";')).toBe(true);
+  });
+
   it("calls the ATS with the headers and passes its status through", async () => {
     vi.stubEnv("ATS_BASE_URL", "https://ats.example/");
     vi.stubEnv("ATS_EMAIL_SECRET", "s3cret");
@@ -65,7 +78,9 @@ describe("vouching for a visitor", () => {
 describe("the overview filters", () => {
   it("keeps only the shapes the ATS reads", () => {
     const f = filtersFrom({ stage: "tender", region: "NO060", domain: "electrical", q: "  skole ", page: "3", x: "y" });
-    expect(filtersQuery(f)).toBe("?stage=tender&region=NO060&domain=electrical&q=skole&page=3");
+    // PROJ-SEC (17 October 2026): no search words go to the ATS.
+    expect(filtersQuery(f)).toBe("?stage=tender&region=NO060&domain=electrical&page=3");
+    expect(f).not.toHaveProperty("q");
     expect(filtersQuery(filtersFrom({ stage: "cancelled", region: "Oslo';", domain: "A B", page: "-2" }))).toBe("");
   });
 });
