@@ -377,11 +377,10 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
   if (step === 0) return <AccessPlans onChoose={chosen => { setPlan(chosen); if (chosen === "trial") { setRegions([]); setDomains([]); setFrequency("weekly"); } if (chosen === "national") setRegions(regionChoices().map(r => r.code)); setStep(1); }} />;
 
   const progress = (
-    <div className={styles.stepBar} aria-label={`Steg ${step + 1} av 3`}>
-      <span className={styles.stepNo}>{step + 1} av 3</span>
-      <i className={styles.on} />
-      <i className={styles.on} />
-      <i className={step === 2 ? styles.on : undefined} />
+    <div className={styles.stepBar}>
+      <span className={styles.stepNo}>{step === 1 ? "Kontaktinformasjon" : "Preferanser"}</span>
+      <i className={styles.on} aria-hidden="true" />
+      <i className={step === 2 ? styles.on : undefined} aria-hidden="true" />
     </div>
   );
 
