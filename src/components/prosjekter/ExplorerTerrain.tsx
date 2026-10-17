@@ -17,6 +17,7 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
   projects: ExplorerProject[]; selected: ExplorerProject | null; onSelect: (id: string) => void;
   cameraRequest: { id: string; revision: number } | null; demo?: boolean;
 }) {
+  const surface = useRef<HTMLDivElement>(null);
   const container = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const map = useRef<TerrainMap | null>(null);
@@ -35,10 +36,18 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
 
   useEffect(() => {
     let disposed = false;
+    let resize: ResizeObserver | null = null;
+    let unlockPage: (() => void) | null = null;
+    const exitExpanded = () => surface.current?.querySelector<HTMLButtonElement>(".maplibregl-ctrl-shrink")?.click();
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && surface.current?.classList.contains("maplibregl-pseudo-fullscreen")) exitExpanded();
+    };
+    document.addEventListener("keydown", onEscape);
     void import("maplibre-gl").then(({ default: lib }) => {
       if (disposed || !container.current) return;
       const instance = new lib.Map({
         container: container.current, center: [13, 65], zoom: 4.2,
+        locale: { "FullscreenControl.Enter": "Fullskjerm", "FullscreenControl.Exit": "Avslutt fullskjerm" },
         pitch: 30, maxPitch: 78, maxZoom: 15, attributionControl: false,
         cooperativeGestures: false, scrollZoom: true, dragPan: true, dragRotate: true,
         canvasContextAttributes: { alpha: true, antialias: true },
@@ -52,7 +61,21 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
         ], terrain: { source: "terrain", exaggeration: 1 } },
       });
       map.current = instance;
+      resize = new ResizeObserver(() => instance.resize());
+      resize.observe(container.current);
+      const fullscreen = new lib.FullscreenControl({ container: surface.current! });
+      fullscreen.on("fullscreenstart", () => {
+        if (!surface.current?.classList.contains("maplibregl-pseudo-fullscreen")) return;
+        const previous = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        unlockPage = () => { document.body.style.overflow = previous; };
+      });
+      fullscreen.on("fullscreenend", () => {
+        unlockPage?.(); unlockPage = null;
+        surface.current?.querySelector<HTMLButtonElement>(".maplibregl-ctrl-fullscreen")?.focus({ preventScroll: true });
+      });
       instance.addControl(new lib.NavigationControl({ visualizePitch: true }), "top-right");
+      instance.addControl(fullscreen, "top-right");
       instance.addControl(new lib.AttributionControl({ compact: true }));
       const el = document.createElement("button");
       el.className = styles.pin;
@@ -167,7 +190,7 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
       instance.on("error", () => { if (!disposed && !instance.isStyleLoaded()) setFailed(true); });
     }).catch(() => { if (!disposed) setFailed(true); });
     const bubbles = clusters.current;
-    return () => { disposed = true; for (const bubble of bubbles.values()) bubble.remove(); bubbles.clear(); marker.current?.remove(); map.current?.remove(); marker.current = null; map.current = null; };
+    return () => { disposed = true; document.removeEventListener("keydown", onEscape); resize?.disconnect(); unlockPage?.(); for (const bubble of bubbles.values()) bubble.remove(); bubbles.clear(); marker.current?.remove(); map.current?.remove(); marker.current = null; map.current = null; };
   }, []);
 
   useEffect(() => {
@@ -230,7 +253,7 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
     return () => cancelAnimationFrame(frame);
   }, [north]);
 
-  return <div className={`${styles.terrain} ${north ? styles.north : ""}`}>
+  return <div ref={surface} className={`${styles.terrain} ${north ? styles.north : ""}`}>
     <canvas className={styles.aurora} ref={canvas} aria-hidden="true" />
     <div className={styles.mapCanvas} ref={container} aria-label="Prosjektkart i 3D" />
     <button type="button" className={styles.overviewButton} disabled={!ready} onClick={() => map.current?.fitBounds([[4, 57.5], [31.5, 71.5]], { padding: 45, pitch: 25, bearing: 0, duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1200 })}>Hele Norge</button>
@@ -240,7 +263,12 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
       <h3>{MAP_DEMO.title}</h3>
       <p>{MAP_DEMO.stage} · {MAP_DEMO.value}</p>
       <p>Byggherre: {MAP_DEMO.buyer}</p>
-      <a className={styles.demoAccess} href="#tilgang">Registrer deg for detaljer</a>
+      <a className={styles.demoAccess} href="#tilgang" onClick={async event => {
+        event.preventDefault();
+        if (document.fullscreenElement === surface.current) await document.exitFullscreen();
+        else surface.current?.querySelector<HTMLButtonElement>(".maplibregl-ctrl-shrink")?.click();
+        window.location.hash = "tilgang";
+      }}>Registrer deg for detaljer</a>
     </section> : null}
     {!demo && groupProjects.length > 0 ? <section className={styles.clusterList} aria-label="Prosjekter i kartgruppen"><header><strong>{groupProjects.length} prosjekter i området</strong><button type="button" onClick={() => setGroup([])}>Lukk</button></header>{groupProjects.slice(groupPage * 5, groupPage * 5 + 5).map(p => <button key={p.id} type="button" onClick={() => { onSelect(p.id); setGroup([]); }}>{p.title}<small>{p.stageLabel} · {p.value}</small></button>)}{groupProjects.length > 5 ? <footer><button type="button" disabled={groupPage === 0} onClick={() => setGroupPage(v => v - 1)}>Forrige</button><span>{groupPage + 1} / {Math.ceil(groupProjects.length / 5)}</span><button type="button" disabled={(groupPage + 1) * 5 >= groupProjects.length} onClick={() => setGroupPage(v => v + 1)}>Neste</button></footer> : null}</section> : null}
     {failed ? <p className={styles.mapMessage}>Kartet kunne ikke lastes. Prosjektdetaljene er fortsatt tilgjengelige.</p> : !ready ? <p className={styles.mapMessage}>Laster kart ...</p> : null}

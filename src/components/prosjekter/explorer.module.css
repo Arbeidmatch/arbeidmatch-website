@@ -915,3 +915,5 @@
 .demoPreview p { margin:4px 0; }
 
 .demoAccess { display:inline-flex; align-items:center; justify-content:center; min-height:44px; margin-top:8px; padding:8px 12px; border-radius:6px; background:#244235; color:#fff; font-weight:600; }
+
+.terrain:fullscreen { width:100%; height:100%; }
