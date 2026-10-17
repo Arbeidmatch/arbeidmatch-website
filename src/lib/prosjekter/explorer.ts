@@ -2,6 +2,7 @@ import { domainsNo, cleanDescription, keyDateNo, placeNo, stageNo, type AlertPro
 import { COUNTIES, placeProjects, STAGE_LABEL, valueBand } from "./map";
 import { domainChoices } from "./format";
 import type { Overview } from "./types";
+import { NORWAY_REGIONS } from "./regions";
 
 export type ExplorerProject = {
   id: string;
@@ -9,6 +10,7 @@ export type ExplorerProject = {
   stage: string;
   stageLabel: string;
   region: string;
+  regions?: string[];
   place: string;
   domains: string[];
   value: string;
@@ -34,6 +36,12 @@ export function publicOverview(data: Overview): Overview {
   return {
     counts: data.counts, total: data.total, page: data.page, page_size: data.page_size,
     regions: data.regions, domains: data.domains, county_counts: data.county_counts,
+    ...(Array.isArray(data.catalog) ? { catalog: data.catalog.filter(p =>
+      Number.isFinite(p.no) && ["planned", "tender", "awarded"].includes(p.st)
+    ).map(p => ({ no: p.no, st: p.st,
+      rs: Array.isArray(p.rs) ? p.rs.filter(r => typeof r === "string" && r in NORWAY_REGIONS) : [],
+      d: Array.isArray(p.d) ? p.d.filter(d => labels.has(d)) : [], v: publicValue(p.v),
+    })) } : {}),
     projects: data.projects.map(p => ({
       project_no: p.project_no, stage: p.stage, stage_label: p.stage_label,
       title: "Prosjektdetaljer for abonnenter", place: "", value_label: null, date_label: null, domains: p.domains,
@@ -51,6 +59,22 @@ const labels = new Map(domainChoices().map(d => [String(d.key), d.label]));
 
 export function publicExplorer(data: Overview | null): ExplorerProject[] {
   if (!data) return [];
+  if (Array.isArray(data.catalog)) {
+    const locations = new Map(placeProjects(data.map).map(p => [p.no, p]));
+    return data.catalog.map(p => {
+      const point = locations.get(p.no);
+      const regions = p.rs.filter(r => r in NORWAY_REGIONS);
+      return {
+        id: String(p.no), title: labels.get(p.d[0]) ?? "Bygg- og anleggsprosjekt",
+        stage: p.st, stageLabel: STAGE_LABEL[p.st], region: regions[0] ?? "", regions,
+        place: regions.map(r => NORWAY_REGIONS[r]).join(", ") || "Område ikke oppgitt",
+        domains: p.d.map(d => labels.get(d) ?? d), value: valueBand(p.v) ?? "Verdi ikke oppgitt", mapValue: p.v,
+        date: null, published: null, buyer: null, winners: [], description: null, documents: null,
+        coordinates: point ? [point.lon, point.lat] as [number, number] : null,
+        locationLabel: point ? "Stedsreferanse, ikke bekreftet byggeplass" : "Kartposisjon ikke tilgjengelig",
+      };
+    });
+  }
   if (!Array.isArray(data.map)) return data.projects.map((p, i) => ({
     id: String(p.project_no ?? `public-${i}`), title: p.domains.map(d => labels.get(d) ?? d).join(", ") || "Bygg- og anleggsprosjekt",
     stage: p.stage, stageLabel: p.stage_label, region: "", place: "Norge", domains: p.domains.map(d => labels.get(d) ?? d),

@@ -15,6 +15,8 @@ export type OverviewProject = {
 };
 
 export type Overview = {
+  /** Complete eligible public list; coordinates are optional and joined from map. */
+  catalog?: { no: number; st: "planned" | "tender" | "awarded"; rs: string[]; d: string[]; v: number | null }[];
   counts: { planned: number; tender: number; awarded: number };
   total: number;
   page: number;

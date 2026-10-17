@@ -21,5 +21,5 @@ export default function PublicProjectExplorer({ initial, subscriberProjects }: {
     return () => controller.abort();
   }, [initial]);
   const projects = useMemo(() => subscriberProjects ? subscriberExplorer(subscriberProjects, data) : publicExplorer(data), [data, subscriberProjects]);
-  return <ProjectExplorer projects={projects} publicTotal={subscriberProjects ? undefined : data?.total} subscriber={Boolean(subscriberProjects)} loading={!subscriberProjects && loading} failed={!subscriberProjects && failed} />;
+  return <ProjectExplorer projects={projects} syncFiltersToUrl={!subscriberProjects} subscriber={Boolean(subscriberProjects)} loading={!subscriberProjects && loading} failed={!subscriberProjects && failed} />;
 }

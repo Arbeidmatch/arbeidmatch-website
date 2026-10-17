@@ -1,12 +1,18 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { Bookmark, ChevronRight, LockKeyhole, MapPinned, Scale } from "lucide-react";
 import { nearbyProjects, type ExplorerProject } from "@/lib/prosjekter/explorer";
 import PortalModal from "./PortalModal";
 import ExplorerTour from "./ExplorerTour";
 import styles from "./explorer.module.css";
+import { domainChoices } from "@/lib/prosjekter/format";
+import { NORWAY_REGIONS } from "@/lib/prosjekter/regions";
+import { STAGE_LABEL } from "@/lib/prosjekter/map";
+
+const domainOptions = domainChoices();
 
 const Terrain = dynamic(() => import("./ExplorerTerrain"), { ssr: false, loading: () => <div className={styles.terrain}>Laster kart ...</div> });
 const SAVED = "am-projects-saved:v1";
@@ -40,15 +46,27 @@ function Facts({ p, subscriber }: { p: ExplorerProject; subscriber: boolean }) {
   </dl>;
 }
 
-export default function ProjectExplorer({ projects, subscriber = false, loading = false, failed = false, publicTotal }: {
-  projects: ExplorerProject[]; subscriber?: boolean; loading?: boolean; failed?: boolean; publicTotal?: number;
+export default function ProjectExplorer({ projects, subscriber = false, loading = false, failed = false, syncFiltersToUrl = false }: {
+  projects: ExplorerProject[]; subscriber?: boolean; loading?: boolean; failed?: boolean; syncFiltersToUrl?: boolean;
 }) {
   const [id, setId] = useState<string | null>(null);
   const [cameraRequest, setCameraRequest] = useState<{ id: string; revision: number } | null>(null);
-  const [query, setQuery] = useState("");
-  const [stage, setStage] = useState("");
-  const [region, setRegion] = useState("");
-  const [domain, setDomain] = useState("");
+  const params = useSearchParams();
+  const [localFilters, setLocalFilters] = useState({ q: "", stage: "", region: "", domain: "" });
+  const query = syncFiltersToUrl ? (params.get("q") ?? "").slice(0, 80) : localFilters.q;
+  const stage = syncFiltersToUrl ? Object.entries(STAGE_LABEL).find(([key]) => key === params.get("stage"))?.[1] ?? "" : localFilters.stage;
+  const region = syncFiltersToUrl ? Object.keys(NORWAY_REGIONS).find(key => key === params.get("region")) ?? "" : localFilters.region;
+  const domain = syncFiltersToUrl ? domainOptions.find(d => d.key === params.get("domain"))?.label ?? "" : localFilters.domain;
+  function changeFilter(key: keyof typeof localFilters, value: string) {
+    setPage(0);
+    if (!syncFiltersToUrl) { setLocalFilters(previous => ({ ...previous, [key]: value })); return; }
+    const url = new URL(window.location.href);
+    const encoded = key === "domain" ? domainOptions.find(d => d.label === value)?.key ?? ""
+      : key === "stage" ? Object.entries(STAGE_LABEL).find(([, label]) => label === value)?.[0] ?? "" : value;
+    if (encoded) url.searchParams.set(key, encoded); else url.searchParams.delete(key);
+    url.searchParams.delete("page");
+    window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [mobileView, setMobileView] = useState<"details" | "map">("details");
   const mobile = useSyncExternalStore(subscribeMobile, mobileSnapshot, serverMobile);
@@ -65,13 +83,15 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
   const [showMap, setShowMap] = useState(true);
   const [page, setPage] = useState(0);
   const [now] = useState(() => Date.now());
-  const visible = useMemo(() => projects.filter(p => (!stage || p.stageLabel === stage) && (!region || p.region === region)
+  const visible = useMemo(() => projects.filter(p => (!stage || p.stageLabel === stage) && (!region || (p.regions ?? [p.region]).includes(region))
     && (!domain || p.domains.includes(domain))
     && (!savedOnly || saved.includes(p.id)) && (!query || `${p.title} ${p.place} ${p.domains.join(" ")} ${p.buyer ?? ""}`.toLocaleLowerCase("nb").includes(query.toLocaleLowerCase("nb")))), [projects, stage, region, domain, savedOnly, saved, query]);
   const selected = visible.find(p => p.id === id) ?? visible[0] ?? null;
   const related = selected ? nearbyProjects(selected, visible) : [];
   const compared = projects.filter(p => compare.includes(p.id));
-  const regions = [...new Map(projects.filter(p => p.region).map(p => [p.region, p.place.split(", ").at(-1) ?? p.place])).entries()];
+  const regions = syncFiltersToUrl
+    ? [...new Map(projects.flatMap(p => (p.regions ?? [p.region]).filter(Boolean).map(r => [r, NORWAY_REGIONS[r] ?? r] as const))).entries()]
+    : [...new Map(projects.filter(p => p.region).map(p => [p.region, p.place.split(", ").at(-1) ?? p.place])).entries()];
   const stages = [...new Set(projects.map(p => p.stageLabel))];
   const domains = [...new Set(projects.flatMap(p => p.domains))].sort((a, b) => a.localeCompare(b, "nb"));
   const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
@@ -96,16 +116,16 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
   return <section className={styles.explorer} aria-label="Prosjektutforsker">
     <ExplorerTour mobile={mobile} onView={setMobileView} onShowMap={() => setShowMap(true)} />
     <div className={styles.resultBar}>
-      <h2 aria-live="polite">{visible.length.toLocaleString("nb-NO")} prosjekter <span>{publicTotal === undefined ? `av ${projects.length.toLocaleString("nb-NO")} totalt` : `${publicTotal.toLocaleString("nb-NO")} registrerte · ${projects.filter(p => p.coordinates).length.toLocaleString("nb-NO")} på kartet`}</span></h2>
+      <h2 aria-live="polite">{visible.length.toLocaleString("nb-NO")} prosjekter <span>{`av ${projects.length.toLocaleString("nb-NO")} totalt`}{syncFiltersToUrl ? ` · ${visible.filter(p => p.coordinates).length.toLocaleString("nb-NO")} i utvalget på kartet` : ""}</span></h2>
       {subscriber ? <label className={styles.savedFilter}><input type="checkbox" checked={savedOnly} onChange={e => { setSavedOnly(e.target.checked); setPage(0); }} /> Mine lagrede</label> : null}
       <button type="button" className={styles.filterToggle} aria-expanded={filtersOpen} aria-controls="explorer-extra-filters" onClick={() => setFiltersOpen(v => !v)}>{filtersOpen ? "Lukk filtre" : "Flere filtre"}{[query, stage, region].filter(Boolean).length ? ` (${[query, stage, region].filter(Boolean).length})` : ""}</button>
     </div>
     <div className={styles.filters}>
-      <label data-tour="domain"><span>Fagområde</span><select aria-label="Fagområde" value={domain} onChange={e => { setDomain(e.target.value); setPage(0); }}><option value="">Alle fagområder</option>{domains.map(d => <option key={d}>{d}</option>)}</select></label>
+      <label data-tour="domain"><span>Fagområde</span><select aria-label="Fagområde" value={domain} onChange={e => changeFilter("domain", e.target.value)}><option value="">Alle fagområder</option>{domains.map(d => <option key={d}>{d}</option>)}</select></label>
       <div className={styles.extraFilters} id="explorer-extra-filters" data-open={filtersOpen}>
-        <label><span>Søk</span><input value={query} onChange={e => { setQuery(e.target.value); setPage(0); }} placeholder={subscriber ? "Prosjekt, byggherre eller sted" : "Fag eller område"} /></label>
-        <label><span>Fase</span><select aria-label="Fase" value={stage} onChange={e => { setStage(e.target.value); setPage(0); }}><option value="">Alle faser</option>{stages.map(s => <option key={s}>{s}</option>)}</select></label>
-        <label><span>Område</span><select aria-label="Område" value={region} onChange={e => { setRegion(e.target.value); setPage(0); }}><option value="">Hele Norge</option>{regions.map(([code, name]) => <option key={code} value={code}>{name}</option>)}</select></label>
+        <label><span>Søk</span><input value={query} maxLength={syncFiltersToUrl ? 80 : undefined} onChange={e => changeFilter("q", e.target.value)} placeholder={subscriber ? "Prosjekt, byggherre eller sted" : "Fag eller område"} /></label>
+        <label><span>Fase</span><select aria-label="Fase" value={stage} onChange={e => changeFilter("stage", e.target.value)}><option value="">Alle faser</option>{stages.map(s => <option key={s}>{s}</option>)}</select></label>
+        <label><span>Område</span><select aria-label="Område" value={region} onChange={e => changeFilter("region", e.target.value)}><option value="">Hele Norge</option>{regions.map(([code, name]) => <option key={code} value={code}>{name}</option>)}</select></label>
       </div>
     </div>
     <div className={styles.mobileNavigation}>
@@ -130,6 +150,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
           {!subscriber ? <p className={styles.muted}>Prosjektnavn og fullstendige detaljer er for abonnenter.</p> : null}
           <div className={styles.amount}><span>{subscriber ? "Oppgitt verdi" : "Verdiintervall"}</span><strong>{selected.value}</strong></div>
           <Facts p={selected} subscriber={subscriber} />
+          {syncFiltersToUrl && !selected.coordinates ? <p className={styles.muted}>Kartposisjon ikke tilgjengelig</p> : null}
           {subscriber ? <>
             <div className={styles.timeline} aria-label="Bekreftet fase"><span>Prosjektfase</span><strong>{selected.stageLabel}</strong></div>
             {selected.description ? <details key={selected.id} className={styles.description} open={!mobile}><summary>Om prosjektet</summary><p>{selected.description}</p></details> : null}

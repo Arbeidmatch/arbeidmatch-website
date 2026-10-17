@@ -15,6 +15,20 @@ const privateProject: AlertProject = {
 };
 
 describe("project explorer access boundary", () => {
+  it("keeps the complete catalog when some or all projects lack map coordinates", () => {
+    const catalog: NonNullable<Overview["catalog"]> = [
+      { no: 42, st: "tender", rs: ["NO060"], d: ["buildings"], v: 123456789 },
+      { no: 43, st: "planned", rs: ["NO060", "NO081"], d: ["electrical"], v: 9e6 },
+    ];
+    const data = publicOverview({ ...publicData, catalog });
+    const projects = publicExplorer(data);
+    expect(projects).toHaveLength(2);
+    expect(projects[1]).toMatchObject({ id: "43", coordinates: null, regions: ["NO060", "NO081"], value: "under 10 MNOK" });
+    expect(projects.filter(p => p.coordinates)).toHaveLength(1);
+    expect(publicExplorer({ ...data, map: [] })).toHaveLength(2);
+    expect(publicOverview(data)).toEqual(data);
+    expect(JSON.stringify(data)).not.toContain("123456789");
+  });
   it("strips protected strings and exact values from every public payload, not just the UI", () => {
     const output = publicOverview(publicData);
     const json = JSON.stringify(output);
