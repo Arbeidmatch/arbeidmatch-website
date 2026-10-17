@@ -166,7 +166,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
         </> : <div className={styles.empty}><h2>{loading ? "Henter prosjekter ..." : failed ? "Prosjektene kunne ikke lastes" : "Ingen prosjekter i utvalget"}</h2><p>{failed ? "Prøv å laste siden på nytt." : "Velg et annet område eller en annen fase."}</p></div>}
       </article>
       <div className={styles.mapPanel}>
-        {(mobile ? mobileView === "map" : showMap) ? <Terrain projects={visible} selected={selected} cameraRequest={cameraRequest} onSelect={pick} /> : <div className={styles.mapOff}><MapPinned size={30} /><p>Kartet er skjult. Alle prosjektdetaljer er tilgjengelige.</p></div>}
+        {(mobile ? mobileView === "map" : showMap) ? <Terrain demo={!subscriber} projects={visible} selected={selected} cameraRequest={cameraRequest} onSelect={pick} /> : <div className={styles.mapOff}><MapPinned size={30} /><p>Kartet er skjult. Alle prosjektdetaljer er tilgjengelige.</p></div>}
         <button type="button" className={styles.mapToggle} onClick={() => setShowMap(v => !v)}>{showMap ? "Skjul kart" : "Vis 3D-kart"}</button>
       </div>
     </div>

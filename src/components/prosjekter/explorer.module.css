@@ -892,3 +892,26 @@
     transition:none!important
   }
 }
+
+.demoPreview {
+  position:absolute;
+  bottom:48px;
+  left:12px;
+  right:12px;
+  max-height:45%;
+  overflow:auto;
+  z-index:3;
+  padding:8px 12px;
+  border:1px solid #dce5d9;
+  border-radius:8px;
+  background:#f5f7f1;
+  color:#203b34;
+  box-shadow:0 4px 16px #0003;
+  font-size:13px;
+}
+.demoPreview header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.demoPreview button { min-width:44px; min-height:44px; }
+.demoPreview h3 { font-size:15px; font-weight:600; }
+.demoPreview p { margin:4px 0; }
+
+.demoAccess { display:inline-flex; align-items:center; justify-content:center; min-height:44px; margin-top:8px; padding:8px 12px; border-radius:6px; background:#244235; color:#fff; font-weight:600; }

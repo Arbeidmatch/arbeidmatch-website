@@ -5,6 +5,7 @@ import type { Map as TerrainMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { ExplorerProject } from "@/lib/prosjekter/explorer";
 import { STAGE_HEX, STAGE_LABEL, STAGES, dotRadius } from "@/lib/prosjekter/map";
+import { MAP_DEMO, clusterTargetZoom } from "@/lib/prosjekter/map-preview";
 import styles from "./explorer.module.css";
 
 const mapStage = (p: ExplorerProject) => p.stage === "tender" && p.stageLabel === STAGE_LABEL.closed ? "closed" : p.stage;
@@ -12,22 +13,23 @@ const bubbleStages = [...STAGES, "cancelled"] as const;
 const bubbleColors = { ...STAGE_HEX, cancelled: "#a47788" };
 const bubbleLabels = { ...STAGE_LABEL, cancelled: "Avlyst" };
 
-export default function ExplorerTerrain({ projects, selected, cameraRequest, onSelect }: {
+export default function ExplorerTerrain({ projects, selected, cameraRequest, onSelect, demo = true }: {
   projects: ExplorerProject[]; selected: ExplorerProject | null; onSelect: (id: string) => void;
-  cameraRequest: { id: string; revision: number } | null;
+  cameraRequest: { id: string; revision: number } | null; demo?: boolean;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const map = useRef<TerrainMap | null>(null);
   const marker = useRef<Marker | null>(null);
   const clusters = useRef(new Map<string, Marker>());
-  const props = useRef({ projects, selected, onSelect });
-  props.current = { projects, selected, onSelect };
+  const props = useRef({ projects, selected, onSelect, demo });
+  props.current = { projects, selected, onSelect, demo };
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [north, setNorth] = useState(false);
   const [group, setGroup] = useState<string[]>([]);
   const [groupPage, setGroupPage] = useState(0);
+  const [demoOpen, setDemoOpen] = useState(false);
   const groupProjects = projects.filter(p => group.includes(p.id));
   const counts = bubbleStages.map(stage => ({ stage, count: projects.filter(p => mapStage(p) === stage && p.coordinates).length }));
 
@@ -95,7 +97,7 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
               const title = props.current.projects.find(p => p.id === projectId)?.title ?? "Prosjekt";
               button.setAttribute("aria-label", `1 prosjekt. ${title}. ${bubbleLabels[stage]}`);
               button.title = `1 prosjekt. ${title}. ${bubbleLabels[stage]}`;
-              button.onclick = event => { event.stopPropagation(); props.current.onSelect(projectId); };
+              button.onclick = event => { event.stopPropagation(); props.current.onSelect(projectId); setDemoOpen(props.current.demo); };
               clusters.current.set(id, new lib.Marker({ element: button }).setLngLat(position).addTo(instance));
               continue;
             }
@@ -133,9 +135,12 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
               const source = instance.getSource("projects") as import("maplibre-gl").GeoJSONSource;
               void source.getClusterExpansionZoom(clusterId).then(async zoom => {
                 if (disposed) return;
-                if (zoom <= 14 && instance.getZoom() < 14) {
-                  instance.easeTo({ center: position, zoom, duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700 });
-                } else {
+                const targetZoom = clusterTargetZoom(instance.getZoom(), zoom, instance.getMaxZoom());
+                instance.easeTo({ center: position, zoom: targetZoom, duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700 });
+                if (props.current.demo) {
+                  setGroup([]);
+                  setDemoOpen(true);
+                } else if (zoom > instance.getMaxZoom()) {
                   const leaves = await source.getClusterLeaves(clusterId, count, 0);
                   if (disposed) return;
                   setGroup(leaves.map(f => String(f.properties?.id)));
@@ -190,7 +195,7 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
     if (!ready || !instance || !cameraRequest) return;
     const point = props.current.projects.find(p => p.id === cameraRequest.id)?.coordinates;
     if (!point) return;
-    instance.flyTo({ center: point, zoom: 9.4, pitch: 60, bearing: -20,
+    instance.flyTo({ center: point, zoom: Math.max(instance.getZoom(), 9.4), pitch: 60, bearing: -20,
       duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 2400 });
   }, [cameraRequest, ready]);
 
@@ -230,7 +235,14 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
     <div className={styles.mapCanvas} ref={container} aria-label="Prosjektkart i 3D" />
     <button type="button" className={styles.overviewButton} disabled={!ready} onClick={() => map.current?.fitBounds([[4, 57.5], [31.5, 71.5]], { padding: 45, pitch: 25, bearing: 0, duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1200 })}>Hele Norge</button>
     <div className={styles.mapLegend} aria-label="Faser og antall på kartet">{counts.filter(c => c.count > 0).map(({ stage, count }) => <span key={stage}><i style={{ background: bubbleColors[stage] }} />{bubbleLabels[stage]} <b>{count.toLocaleString("nb-NO")}</b></span>)}<small>Størrelse = verdi · Ring = faser · Tall = prosjekter</small></div>
-    {groupProjects.length > 0 ? <section className={styles.clusterList} aria-label="Prosjekter i kartgruppen"><header><strong>{groupProjects.length} prosjekter i området</strong><button type="button" onClick={() => setGroup([])}>Lukk</button></header>{groupProjects.slice(groupPage * 5, groupPage * 5 + 5).map(p => <button key={p.id} type="button" onClick={() => { onSelect(p.id); setGroup([]); }}>{p.title}<small>{p.stageLabel} · {p.value}</small></button>)}{groupProjects.length > 5 ? <footer><button type="button" disabled={groupPage === 0} onClick={() => setGroupPage(v => v - 1)}>Forrige</button><span>{groupPage + 1} / {Math.ceil(groupProjects.length / 5)}</span><button type="button" disabled={(groupPage + 1) * 5 >= groupProjects.length} onClick={() => setGroupPage(v => v + 1)}>Neste</button></footer> : null}</section> : null}
+    {demo && demoOpen ? <section className={styles.demoPreview} aria-label="Demoprosjekt">
+      <header><strong>Demo - fiktive data</strong><button type="button" aria-label="Lukk demo" onClick={() => setDemoOpen(false)}>Lukk</button></header>
+      <h3>{MAP_DEMO.title}</h3>
+      <p>{MAP_DEMO.stage} · {MAP_DEMO.value}</p>
+      <p>Byggherre: {MAP_DEMO.buyer}</p>
+      <a className={styles.demoAccess} href="#tilgang">Registrer deg for detaljer</a>
+    </section> : null}
+    {!demo && groupProjects.length > 0 ? <section className={styles.clusterList} aria-label="Prosjekter i kartgruppen"><header><strong>{groupProjects.length} prosjekter i området</strong><button type="button" onClick={() => setGroup([])}>Lukk</button></header>{groupProjects.slice(groupPage * 5, groupPage * 5 + 5).map(p => <button key={p.id} type="button" onClick={() => { onSelect(p.id); setGroup([]); }}>{p.title}<small>{p.stageLabel} · {p.value}</small></button>)}{groupProjects.length > 5 ? <footer><button type="button" disabled={groupPage === 0} onClick={() => setGroupPage(v => v - 1)}>Forrige</button><span>{groupPage + 1} / {Math.ceil(groupProjects.length / 5)}</span><button type="button" disabled={(groupPage + 1) * 5 >= groupProjects.length} onClick={() => setGroupPage(v => v + 1)}>Neste</button></footer> : null}</section> : null}
     {failed ? <p className={styles.mapMessage}>Kartet kunne ikke lastes. Prosjektdetaljene er fortsatt tilgjengelige.</p> : !ready ? <p className={styles.mapMessage}>Laster kart ...</p> : null}
     <span className={styles.mapCaption}>{selected?.locationLabel ?? "Velg et prosjekt"}{north ? " · Nordlysillustrasjon" : ""}</span>
   </div>;
