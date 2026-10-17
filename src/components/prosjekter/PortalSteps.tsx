@@ -46,8 +46,7 @@ export default function PortalSteps({ projects }: { projects: PlacedProject[] })
             <h2 id="slik-h">Slik fungerer det</h2>
           </div>
           <p>
-            Fra kartet til riktig konkurranse i fire steg. Du velger selv hvilke fylker og fag du vil følge, og hvor ofte du
-            vil høre fra oss.
+            Fra kartet til riktig konkurranse i fire steg. Du velger selv hvilke fylker og fag du vil følge.
           </p>
         </div>
         <ol className={styles.steps}>
@@ -72,7 +71,7 @@ export default function PortalSteps({ projects }: { projects: PlacedProject[] })
                 <span className={styles.stepLine} />
               </div>
               <h3>Be om invitasjon</h3>
-              <p>Et kort skjema: firma, org.nr., e-post, fylker og fag. Er dere allerede kunde hos oss, får dere en invitasjon.</p>
+              <p>Et kort skjema: firma, org.nr., e-post, fylker og fag.</p>
               <div className={styles.mini} aria-hidden="true">
                 <div className={styles.miniF}>
                   <span>Firma</span>
@@ -100,7 +99,7 @@ export default function PortalSteps({ projects }: { projects: PlacedProject[] })
                 <span className={styles.stepLine} />
               </div>
               <h3>Få din personlige lenke</h3>
-              <p>Velg fylker, fag og hvor ofte du vil få varsler.</p>
+              <p>Velg fylker og fag.</p>
               <div className={styles.mini} aria-hidden="true">
                 <div className={styles.miniLbl}>Fylker</div>
                 <div className={styles.miniChips}>

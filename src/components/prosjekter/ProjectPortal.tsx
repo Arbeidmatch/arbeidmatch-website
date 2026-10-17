@@ -329,7 +329,7 @@ export default function ProjectPortal({
           </div>
         </div>
 
-        <p style={{ color: "var(--text-2)", fontSize: 14, margin: "16px 0" }}><strong>Demo - kartbilde og detaljvisning.</strong> Forhåndsvisning av tjenesten. Fullstendige prosjektdetaljer krever aktivert abonnement.</p>
+        <p style={{ color: "var(--text-2)", fontSize: 14, margin: "16px 0" }}><strong>Demo - kartbilde og detaljvisning.</strong> Forhåndsvisning av tjenesten. Fullstendige prosjektdetaljer krever invitasjon.</p>
         <div className={styles.explorer} data-view={view}>
           <div className={styles.bar} role="toolbar" aria-label="Filtre">
             <div className={styles.viewToggle} role="group" aria-label="Visning">
