@@ -70,7 +70,7 @@ export default function EmployerExitIntentPopup({ enabled }: { enabled: boolean 
           <button
             type="button"
             className="absolute inset-0 bg-[#030508]/75 backdrop-blur-[2px]"
-            aria-label="Close dialog backdrop"
+            aria-label="Lukk"
             onClick={() => dismiss(true)}
           />
           <motion.div
@@ -82,29 +82,19 @@ export default function EmployerExitIntentPopup({ enabled }: { enabled: boolean 
           >
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-gold/[0.07] via-transparent to-transparent" />
             <div className="relative px-7 pb-7 pt-8 text-center sm:px-8 sm:pt-9">
-              <div
-                className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-gold/30 bg-gold/10 text-4xl animate-pulse-glow"
-                aria-hidden
-              >
-                🎯
-              </div>
               <h2
                 id="employer-exit-intent-title"
                 className="font-sans text-2xl font-bold tracking-tight text-white sm:text-3xl"
               >
-                Build your candidate pipeline before you leave
+                Trenger dere folk? Vi finner dem.
               </h2>
               <div className="mt-4 space-y-3 text-left">
                 <p className="text-sm leading-relaxed text-white/70 sm:text-base">
-                  Every day, qualified EU/EEA workers become available.
+                  Hver dag blir kvalifiserte fagfolk fra EU/EØS ledige.
                 </p>
                 <p className="text-sm leading-relaxed text-white/70 sm:text-base">
-                  Let our sourcing specialists find, screen and present candidates that match your hiring needs, so your
-                  team can focus on hiring instead of searching.
-                </p>
-                <p className="text-sm leading-relaxed text-white/70 sm:text-base">
-                  Whether you&apos;re a recruitment agency, staffing company or employer, we&apos;ll help you build a
-                  stronger candidate pipeline.
+                  Vi finner, sjekker og presenterer kandidater som passer behovet deres, så dere kan bruke tiden på å ansette i
+                  stedet for å lete.
                 </p>
               </div>
               <div className="mt-8">
@@ -113,7 +103,7 @@ export default function EmployerExitIntentPopup({ enabled }: { enabled: boolean 
                   onClick={() => dismiss(true)}
                   className="btn-gold-shine relative inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#b8923f] via-gold to-[#d4b45c] px-6 py-3.5 text-sm font-semibold text-[#0a0f14] shadow-[0_8px_32px_rgba(201,168,76,0.35)] transition-[transform,box-shadow] duration-300 ease-premium hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(201,168,76,0.45)]"
                 >
-                  Start sourcing today
+                  Send en forespørsel
                 </Link>
               </div>
               <button
@@ -121,11 +111,10 @@ export default function EmployerExitIntentPopup({ enabled }: { enabled: boolean 
                 onClick={() => dismiss(true)}
                 className="mt-5 min-h-[44px] w-full rounded-md px-3 py-2.5 text-xs font-medium text-white/55 transition-colors duration-300 hover:bg-white/5 hover:text-white/80"
               >
-                No thanks, continue browsing
+                Nei takk, fortsett å lese
               </button>
               <p className="mt-4 text-[11px] leading-relaxed text-white/55">
-                No obligation. We&apos;ll review your requirements and recommend the best sourcing solution for your
-                business.
+                Uforpliktende. Vi går gjennom behovet deres og foreslår det som passer best.
               </p>
             </div>
           </motion.div>
