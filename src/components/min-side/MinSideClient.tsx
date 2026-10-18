@@ -185,6 +185,13 @@ export default function MinSideClient({ token }: { token: string }) {
       // Said once: a reload does not open the form again.
       window.history.replaceState(window.history.state, "", `${window.location.pathname}#varsler`);
     }
+    // A link to another section on the page, or the browser's back and forward, moves the section too.
+    const onHash = () => {
+      const next = sectionFromHash(window.location.hash);
+      if (next) setSection(next);
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
   const choose = (key: SectionKey) => {
     setSection(key);
@@ -554,19 +561,25 @@ export default function MinSideClient({ token }: { token: string }) {
                               Faktura <span className="tabular-nums">{inv.number || inv.id}</span> · <span className="tabular-nums">{kronerNo(inv.amount)}</span>
                             </p>
                             <p className={`text-sm ${MUTED_L}`}>
-                              <span className={inv.state_key === "overdue" ? "font-semibold text-[#B42318]" : inv.state_key === "open" ? "font-semibold ${GOLD_TEXT}" : ""}>{inv.state}</span>
+                              <span className={inv.state_key === "overdue" ? "font-semibold text-[#B42318]" : inv.state_key === "open" ? `font-semibold ${GOLD_TEXT}` : ""}>{inv.state}</span>
                               {inv.date ? ` · datert ${dayNo(inv.date)}` : ""}
                               {inv.due && (inv.state_key === "open" || inv.state_key === "overdue") ? ` · forfall ${dayNo(inv.due)}` : ""}
                             </p>
                           </div>
-                          <a href={`/api/min-side/${encodeURIComponent(token)}/invoice/${inv.id}`} className={LINK}>
-                            Last ned PDF
-                          </a>
+                          {profile.invoices.pdf_requires_sign_in ? null : (
+                            <a href={`/api/min-side/${encodeURIComponent(token)}/invoice/${inv.id}`} className={LINK}>
+                              Last ned PDF
+                            </a>
+                          )}
                         </li>
                       ))}
                     </ul>
                   )}
-                  {profile.invoices.allowed ? <p className={`text-sm ${MUTED_L}`}>Beløpene er med merverdiavgift.</p> : null}
+                  {profile.invoices.allowed ? (
+                    <p className={`text-sm ${MUTED_L}`}>
+                      Beløpene er med merverdiavgift.{profile.invoices.pdf_requires_sign_in && profile.invoices.rows.length ? " Trenger dere en kopi av en faktura, ta kontakt med oss." : ""}
+                    </p>
+                  ) : null}
                 </Panel>
               ) : null}
 
@@ -740,7 +753,7 @@ function FirmForm({ company, onSave, onCancel }: { company: Company; onSave: (pa
           <input id="ms-phone" className={FIELD} type="tel" value={v.phone} maxLength={24} autoComplete="tel" onChange={(e) => setV({ ...v, phone: e.target.value })} />
         </Field>
         <Field id="ms-email" label="Firmaets e-post" error={errorFor("email")}>
-          <input id="ms-email" className={FIELD} type="email" value={v.email} maxLength={254} onChange={(e) => setV({ ...v, email: e.target.value })} />
+          <input id="ms-email" className={`${FIELD} cursor-default opacity-70`} type="email" value={v.email} maxLength={254} readOnly aria-readonly="true" title="Ta kontakt med oss for å endre e-postadressen." />
         </Field>
       </div>
       <FormError failed={failed} />
@@ -777,10 +790,10 @@ function InvoiceForm({ company, onSave, onCancel }: { company: Company; onSave: 
     <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="ms-inv-email" label="Faktura-e-post" error={errorFor("invoice_email")}>
-          <input id="ms-inv-email" data-autofocus className={FIELD} type="email" value={v.invoice_email} maxLength={254} onChange={(e) => setV({ ...v, invoice_email: e.target.value })} />
+          <input id="ms-inv-email" className={`${FIELD} cursor-default opacity-70`} type="email" value={v.invoice_email} maxLength={254} readOnly aria-readonly="true" title="Ta kontakt med oss for å endre e-postadressen." />
         </Field>
         <Field id="ms-ref" label="Deres referanse">
-          <input id="ms-ref" className={FIELD} value={v.invoice_reference} maxLength={120} onChange={(e) => setV({ ...v, invoice_reference: e.target.value })} />
+          <input id="ms-ref" data-autofocus className={FIELD} value={v.invoice_reference} maxLength={120} onChange={(e) => setV({ ...v, invoice_reference: e.target.value })} />
         </Field>
       </div>
       <label htmlFor="ms-ehf" className="flex min-h-[44px] items-center gap-3 text-[15px] text-white">

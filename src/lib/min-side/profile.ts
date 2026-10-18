@@ -97,7 +97,12 @@ export type Timesheets = { waiting: WaitingTimesheet[]; signed: SignedDocument[]
 
 export type Invoice = { id: number; number: string; date: string | null; due: string | null; amount: number; outstanding: number; state: string; state_key: "paid" | "open" | "overdue" | "credit" };
 /** The firm's invoices, for the person at its invoice address; `allowed` false for anybody else. */
-export type Invoices = { allowed: boolean; rows: Invoice[] };
+export type Invoices = {
+  allowed: boolean;
+  rows: Invoice[];
+  /** The ATS hands the PDF only to a signed-in session (ORDER G2), so the page draws no link that cannot work. */
+  pdf_requires_sign_in: boolean;
+};
 
 export type CandidatePresentation = { title: string; sent_at: string | null; state: string; url: string | null };
 
@@ -312,6 +317,8 @@ export function profileFrom(raw: unknown): Profile | null {
     },
     invoices: {
       allowed: inv?.allowed === true,
+      // Unless the ATS says plainly that the PDF can be fetched, it is treated as closed.
+      pdf_requires_sign_in: inv?.pdf_requires_sign_in !== false,
       rows: list(inv?.rows)
         .filter((i) => typeof i.id === "number" && Number.isFinite(i.id))
         .map((i) => ({
