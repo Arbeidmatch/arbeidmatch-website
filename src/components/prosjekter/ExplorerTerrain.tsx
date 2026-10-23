@@ -52,13 +52,12 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
         cooperativeGestures: false, scrollZoom: true, dragPan: true, dragRotate: true,
         canvasContextAttributes: { alpha: true, antialias: true },
         style: { version: 8, sources: {
-          imagery: { type: "raster", tiles: ["https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, maxzoom: 18, attribution: "Imagery © Esri, Maxar, Earthstar Geographics" },
-          reference: { type: "raster", tiles: ["https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, maxzoom: 23, attribution: "Labels and boundaries © Esri, HERE, Garmin, OpenStreetMap contributors" },
-          terrain: { type: "raster-dem", tiles: ["https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"], tileSize: 512, encoding: "terrarium", maxzoom: 14, attribution: '<a href="https://mapterhorn.com/attribution" target="_blank" rel="noreferrer">© Mapterhorn</a>' },
+          imagery: { type: "raster", tiles: ["https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg"], tileSize: 256, maxzoom: 11, attribution: 'Sentinel-2 cloudless - <a href="https://s2maps.eu" target="_blank" rel="noreferrer">https://s2maps.eu</a> by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2016)' },
+          reference: { type: "raster", tiles: ["https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/{z}/{y}/{x}.png"], tileSize: 256, maxzoom: 11, attribution: "© Kartverket" },
         }, layers: [
           { id: "imagery", type: "raster", source: "imagery", paint: { "raster-saturation": -0.2, "raster-contrast": 0.02 } },
-          { id: "reference", type: "raster", source: "reference" },
-        ], terrain: { source: "terrain", exaggeration: 1 } },
+          { id: "reference", type: "raster", source: "reference", paint: { "raster-opacity": 0.5 } },
+        ] },
       });
       map.current = instance;
       resize = new ResizeObserver(() => instance.resize());

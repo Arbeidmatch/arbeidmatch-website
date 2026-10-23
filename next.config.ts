@@ -16,7 +16,7 @@ const contentSecurityPolicy = [
   "form-action 'self'",
 ].join("; ");
 
-const projectMapPolicy = contentSecurityPolicy.replace("connect-src 'self'", "connect-src 'self' https://tiles.mapterhorn.com https://services.arcgisonline.com") + "; worker-src 'self' blob:";
+const projectMapPolicy = contentSecurityPolicy.replace("connect-src 'self'", "connect-src 'self' https://tiles.maps.eox.at https://cache.kartverket.no") + "; worker-src 'self' blob:";
 
 const nextConfig: NextConfig = {
   // Keep the immersive document independent of the agency navigation and page scroll.
