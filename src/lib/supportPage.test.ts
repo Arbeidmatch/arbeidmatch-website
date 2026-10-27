@@ -171,7 +171,8 @@ describe("the kept exceptions remain", () => {
   it("the privacy and legal contact stays post@", () => {
     expect(legalSeedMarkdown("Terms of Service")).toContain("post@arbeidmatch.no");
     expect(source("src/app/request/page.tsx")).toContain("Kontakt:</strong> post@arbeidmatch.no");
-    expect(source("src/app/legal-request/LegalRequestForm.tsx")).toContain("post@arbeidmatch.no");
+    // The legal request form names no mailbox any more: it is the way in (legal-request, 27 October 2026).
+    expect(source("src/app/legal-request/LegalRequestForm.tsx")).not.toContain("post@arbeidmatch.no");
   });
 
   it("the company identity in the footer and the stand-in stays", () => {

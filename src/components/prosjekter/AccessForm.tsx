@@ -548,11 +548,11 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
         <p className={styles.consent}>
           {/* The privacy notice is read, not accepted (the owner's yes, 17 October 2026). */}
           Ved å sende bekrefter du at kontaktinformasjonen din står på firmaets nettside, og godtar{" "}
-          <Link href="/terms" target="_blank">
+          <Link href="/terms?lang=no" target="_blank">
             vilkårene
           </Link>{" "}
           og ansvarsfraskrivelsen nedenfor. Les hvordan vi behandler personopplysningene dine i{" "}
-          <Link href="/privacy" target="_blank">
+          <Link href="/privacy?lang=no" target="_blank">
             personvernerklæringen
           </Link>
           .
