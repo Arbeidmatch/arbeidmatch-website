@@ -38,7 +38,7 @@ describe("the support page is where questions go", () => {
 
   it("/terms carries no local text: it renders the platform's published terms", () => {
     const page = source("src/app/terms/page.tsx");
-    expect(page).toContain('fetchAtsLegalDocument("tos-platform")');
+    expect(page).toContain('fetchAtsLegalDocument("tos-platform", language)');
     expect(page).not.toMatch(QUESTION_CONTACT);
   });
 

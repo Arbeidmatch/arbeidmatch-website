@@ -24,9 +24,15 @@ function atsPublicBaseUrl(): string {
   return raw.replace(/\/$/, "");
 }
 
-export async function fetchAtsLegalDocument(slug: string): Promise<AtsLegalDocumentJson | null> {
+/**
+ * One published document in one language. The platform answers 404 for a
+ * language it has no text in yet, which is null here: the caller decides what
+ * to show instead (see loadLegalPage), this function never substitutes a
+ * different language by itself.
+ */
+export async function fetchAtsLegalDocument(slug: string, language: "en" | "no" = "en"): Promise<AtsLegalDocumentJson | null> {
   const base = atsPublicBaseUrl();
-  const url = `${base}/api/public/legal/${encodeURIComponent(slug)}`;
+  const url = `${base}/api/public/legal/${encodeURIComponent(slug)}?language=${language}`;
 
   try {
     const res = await fetch(url, {

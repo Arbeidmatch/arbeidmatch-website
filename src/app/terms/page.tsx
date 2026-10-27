@@ -2,43 +2,36 @@ import type { Metadata } from "next";
 
 import { AtsLegalDocumentPage } from "@/components/legal/AtsLegalDocumentPage";
 import { fetchAtsLegalDocument } from "@/lib/atsLegalDocument";
-import { nbPageMetadata } from "@/lib/nbPageMetadata";
-import { resolveLegalDocument } from "@/lib/legalDocumentFallback";
+import { loadLegalPage, parseLegalLanguage } from "@/lib/legalPageLanguage";
+import { legalPageMetadata } from "@/lib/legalPageMetadata";
 
 // Rendered per request: the Vercel build cannot reach the platform (see resolveLegalDocument).
 export const dynamic = "force-dynamic";
 
-const TITLE = "Terms of Service | ArbeidMatch";
-const DESCRIPTION = "Terms of service for ArbeidMatch Norge AS, governing use of arbeidmatch.no.";
+const PATH = "/terms";
 
-const OG_IMAGE = {
-  url: "/og-image.png",
-  width: 1200,
-  height: 630,
-  alt: "ArbeidMatch | EU/EEA Recruitment Norway",
-} as const;
+type Props = { searchParams: Promise<{ lang?: string | string[] }> };
 
-const base = nbPageMetadata("/terms", TITLE, DESCRIPTION);
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  return legalPageMetadata(PATH, parseLegalLanguage((await searchParams).lang), {
+    no: {
+      title: "Vilkår | ArbeidMatch",
+      description: "Vilkårene til ArbeidMatch Norge AS for bruk av arbeidmatch.no.",
+    },
+    en: {
+      title: "Terms of Service | ArbeidMatch",
+      description: "Terms of service for ArbeidMatch Norge AS, governing use of arbeidmatch.no.",
+    },
+  });
+}
 
-export const metadata: Metadata = {
-  ...base,
-  robots: { index: true, follow: true },
-  openGraph: {
-    ...base.openGraph,
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [OG_IMAGE],
-  },
-  twitter: {
-    ...base.twitter,
-    title: TITLE,
-    description: DESCRIPTION,
-    images: ["/og-image.png"],
-  },
-};
-
-export default async function TermsPage() {
+export default async function TermsPage({ searchParams }: Props) {
   // Never an old local text: see resolveLegalDocument (legal review, 25 September 2026).
-  const doc = resolveLegalDocument(await fetchAtsLegalDocument("tos-platform"), "tos-platform", "Terms of Service");
-  return <AtsLegalDocumentPage doc={doc} />;
+  const page = await loadLegalPage({
+    slug: "tos-platform",
+    title: "Terms of Service",
+    requested: parseLegalLanguage((await searchParams).lang),
+    fetch: (language) => fetchAtsLegalDocument("tos-platform", language),
+  });
+  return <AtsLegalDocumentPage doc={page.doc} language={{ path: PATH, page }} />;
 }

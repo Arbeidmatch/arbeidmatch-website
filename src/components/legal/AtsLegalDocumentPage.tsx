@@ -4,18 +4,32 @@ import type { AtsLegalDocumentJson } from "@/lib/atsLegalDocument";
 import { dedupeLegalHtmlLead, dedupeLegalMarkdownLead } from "@/lib/legalDocumentLead";
 import { sanitizeLegalHtml } from "@/lib/sanitize-legal-html";
 import { SimpleLegalMarkdown } from "@/components/legal/SimpleLegalMarkdown";
+import LegalHtmlLang from "@/components/legal/LegalHtmlLang";
+import { LegalLanguageSwitch } from "@/components/legal/LegalLanguageSwitch";
+import type { LegalPage } from "@/lib/legalPageLanguage";
 
-function formatIsoDate(iso: string): string {
+function formatIsoDate(iso: string, locale: string): string {
   if (!iso) return "";
   try {
     const d = new Date(iso);
-    return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+    return d.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
   } catch {
     return iso;
   }
 }
 
-export function AtsLegalDocumentPage({ doc }: { doc: AtsLegalDocumentJson }) {
+/**
+ * `language` is given by the pages that offer Norsk / English (/privacy, /terms,
+ * /cookies). Without it the page is the plain English document, as /dpa still is.
+ */
+export function AtsLegalDocumentPage({
+  doc,
+  language,
+}: {
+  doc: AtsLegalDocumentJson;
+  language?: { path: string; page: LegalPage };
+}) {
+  const shown = language?.page.shown ?? "en";
   // Prefer content_html (the authoritative, editor-published field).
   // Fall back to content_md only when HTML is absent.
   const useHtml = typeof doc.content_html === "string" && doc.content_html.trim().length > 0;
@@ -27,13 +41,27 @@ export function AtsLegalDocumentPage({ doc }: { doc: AtsLegalDocumentJson }) {
   const safeHtml = useHtml ? sanitizeLegalHtml(lead.body) : null;
   // The date is the document's own: updated_at from the ATS, or, for a local
   // fallback text, the date written in that text. Never a date typed into a page.
-  const shownDate = doc.updated_at ? formatIsoDate(doc.updated_at) : lead.lastUpdatedFromContent;
-  const lastLine = shownDate ? `Last updated: ${shownDate}` : null;
+  const shownDate = doc.updated_at ? formatIsoDate(doc.updated_at, shown === "no" ? "nb-NO" : "en-GB") : lead.lastUpdatedFromContent;
+  const lastLine = shownDate ? `${shown === "no" ? "Sist oppdatert" : "Last updated"}: ${shownDate}` : null;
 
   return (
     <section className="min-h-[60vh] bg-white text-[#0D1B2A]">
       <div className="mx-auto w-full max-w-[720px] px-6 py-12 md:px-12 md:py-12">
-        <article lang="en">
+        {language ? (
+          <>
+            <LegalHtmlLang lang={shown === "no" ? "nb" : "en"} />
+            <LegalLanguageSwitch path={language.path} current={language.page.requested} />
+            {language.page.norwegianPending ? (
+              <p lang="nb" className="mb-6 rounded-[4px] border border-[#0D1B2A]/15 px-4 py-3 text-[15px] text-[#0D1B2A]">
+                Norsk versjon kommer
+                <span lang="en" className="ml-2 text-[13px] text-[#0D1B2A]/60">
+                  (the Norwegian version is coming; the English text applies until then)
+                </span>
+              </p>
+            ) : null}
+          </>
+        ) : null}
+        <article lang={shown === "no" ? "nb" : "en"}>
           <header className="mb-8">
             <h1 className="text-3xl font-bold text-[#0D1B2A]">{doc.name}</h1>
             {lastLine ? <p className="mt-2 text-[12px] italic text-[#0D1B2A]/60">{lastLine}</p> : null}
@@ -67,10 +95,10 @@ export function AtsLegalDocumentPage({ doc }: { doc: AtsLegalDocumentJson }) {
           )}
           <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
             <Link
-              href="/legal-request"
+              href={language ? `/legal-request?lang=${language.page.requested}` : "/legal-request"}
               className="inline-flex w-fit rounded-[4px] bg-[#C9A84C] px-6 py-3 text-center text-[15px] font-semibold text-[#0D1B2A] transition-opacity hover:opacity-95"
             >
-              Have a legal question? Contact us
+              {shown === "no" ? "Har du et juridisk spørsmål? Kontakt oss" : "Have a legal question? Contact us"}
             </Link>
           </div>
         </article>
