@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -9,11 +9,16 @@ import MinSideProjects from "@/components/min-side/MinSideProjects";
 import { FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import { MinSideWhatsNew } from "./MinSideWhatsNew";
 import { MinSideCityQuestion, MinSideContactCard } from "./MinSideCityQuestion";
-import { BTN_GREEN, BTN_OUTLINE, CARD_L, GOLD_TEXT, INK, LINK_L, MUTED_L, SOFT } from "./ui";
+import MinSideHiring, { ConfirmForm, HiringStop, ProjectsTeaser, useProjectsTrial, type Fetched } from "./MinSideHiring";
+import { BTN_GREEN, BTN_OUTLINE, CARD_L, GOLD_TEXT, INK, LINK_L, MUTED_L, RULE, SOFT } from "./ui";
 import {
   PLAN_CONFIRMATION,
   SECTIONS,
   SECTION_GROUPS,
+  hiringIntentFromSearch,
+  hiringSubtitle,
+  showsProjectsTeaser,
+  visibleSections,
   addressLine,
   alertCitiesRequest,
   alertsWords,
@@ -103,7 +108,7 @@ function Field({ id, label, children, error }: { id: string; label: string; chil
 }
 
 /** One section on screen: its name, the line that says what it is, its one action, and what it holds. */
-function Panel({ section, action, lead, children }: { section: SectionKey; action?: ReactNode; lead?: ReactNode; children: ReactNode }) {
+function Panel({ section, action, lead, about, children }: { section: SectionKey; action?: ReactNode; lead?: ReactNode; about?: ReactNode; children: ReactNode }) {
   const meta = SECTIONS.find((s) => s.key === section)!;
   return (
     <section id={`ms-panel-${section}`} role="tabpanel" aria-labelledby={`ms-tab-${section}`} className={`${CARD_L} flex min-w-0 flex-col gap-5 p-5 sm:p-6`}>
@@ -111,7 +116,7 @@ function Panel({ section, action, lead, children }: { section: SectionKey; actio
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <h2 className={`text-xl font-semibold ${INK}`}>{meta.label}</h2>
-          <p className={`mt-1 text-sm ${MUTED_L}`}>{meta.about}</p>
+          <p className={`mt-1 text-sm ${MUTED_L}`}>{about ?? meta.about}</p>
         </div>
         {action}
       </div>
@@ -137,7 +142,7 @@ export default function MinSideClient({ token }: { token: string }) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
-  const [section, setSection] = useState<SectionKey>("firma");
+  const [chosen, setSection] = useState<SectionKey>("firma");
   const [editFirm, setEditFirm] = useState(false);
   const [editInvoice, setEditInvoice] = useState(false);
   const [editContact, setEditContact] = useState<Contact | "new" | null>(null);
@@ -146,6 +151,14 @@ export default function MinSideClient({ token }: { token: string }) {
   const [planPrefill, setPlanPrefill] = useState<StaffingPrefill | "alerts" | null>(null);
   const [answering, setAnswering] = useState(false);
   const [questionError, setQuestionError] = useState<string | null>(null);
+  // ORDER 157: last_viewed_at as it stood before this visit said it was seen (undefined until then).
+  const [hiringSince, setHiringSince] = useState<string | null | undefined>(undefined);
+  const [hiringFocus, setHiringFocus] = useState(false);
+  const [askClose, setAskClose] = useState(false);
+  // Whether the address chose a section itself: then the first load does not move to the hiring terms.
+  const addressChose = useRef(false);
+  const firstLoad = useRef(true);
+  const viewedSent = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -162,6 +175,11 @@ export default function MinSideClient({ token }: { token: string }) {
       }
       setError(null);
       setProfile(parsed);
+      // ORDER 157: hiring alerts with terms not yet accepted open their section on the first load.
+      if (firstLoad.current) {
+        firstLoad.current = false;
+        if (parsed.hiring && !parsed.hiring.terms.accepted && !addressChose.current) setSection("ansetter");
+      }
     } catch {
       setError("Siden kunne ikke hentes akkurat nå. Prøv igjen om litt.");
     } finally {
@@ -176,10 +194,21 @@ export default function MinSideClient({ token }: { token: string }) {
   // The address remembers the section, so a reload or a link from us opens the same one.
   useEffect(() => {
     const fromHash = sectionFromHash(window.location.hash);
-    if (fromHash) setSection(fromHash);
+    if (fromHash) {
+      setSection(fromHash);
+      addressChose.current = true;
+    }
+    // ORDER 157: "Prøv prosjektvarsler" in the weekly letter (?hiring=projects) opens the hiring section at the projects card.
+    if (hiringIntentFromSearch(window.location.search)) {
+      setSection("ansetter");
+      setHiringFocus(true);
+      addressChose.current = true;
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}#ansetter`);
+    }
     // ORDER 100: a link from the weekly letter opens the staffing request (?plan=1) or the alerts (?alerts=1).
     const intent = intentFromSearch(window.location.search);
     if (intent) {
+      addressChose.current = true;
       setSection("varsler");
       if (intent === "plan") setPlanPrefill("alerts");
       // Said once: a reload does not open the form again.
@@ -211,6 +240,35 @@ export default function MinSideClient({ token }: { token: string }) {
       return { ok: false, message: "Noe gikk galt. Prøv igjen.", field: null };
     }
   };
+
+  /** A POST whose answer the page needs back (the lead card); the page is not reloaded. */
+  const sendData = useCallback(
+    async (body: Record<string, unknown>): Promise<Fetched> => {
+      try {
+        const res = await fetch(`/api/min-side/${encodeURIComponent(token)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+        const payload = (await res.json().catch(() => ({}))) as { error?: string; data?: unknown };
+        if (!res.ok) return { ok: false, message: payload.error ?? "Noe gikk galt. Prøv igjen.", status: res.status };
+        return { ok: true, data: payload.data ?? null };
+      } catch {
+        return { ok: false, message: "Noe gikk galt. Prøv igjen.", status: 0 };
+      }
+    },
+    [token],
+  );
+
+  const hiring = profile?.hiring ?? null;
+  // A section the person cannot have (an old link to the hiring section) shows the firm.
+  const section: SectionKey = chosen === "ansetter" && !hiring ? "firma" : chosen;
+  const trial = useProjectsTrial(hiring?.projects ?? null, send);
+
+  // ORDER 157: the first time the hiring list is on screen after the terms, keep the old last_viewed_at for
+  // "Bare nye siden sist", then tell the ATS it was seen. Once per visit.
+  useEffect(() => {
+    if (section !== "ansetter" || !hiring?.terms.accepted || viewedSent.current) return;
+    viewedSent.current = true;
+    setHiringSince(hiring.last_viewed_at);
+    void sendData({ action: "hiring_viewed" });
+  }, [section, hiring, sendData]);
 
   const c = profile?.company ?? null;
   const words = alertsWords(profile?.alerts ?? null, profile?.free_alerts?.months ?? null);
@@ -286,7 +344,7 @@ export default function MinSideClient({ token }: { token: string }) {
                     <div key={g.key} className="flex flex-col gap-2">
                       <p className={`text-xs font-semibold uppercase tracking-[0.12em] ${MUTED_L}`}>{g.label}</p>
                       <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-                        {SECTIONS.filter((x) => x.group === g.key).map((x) => {
+                        {visibleSections(profile).filter((x) => x.group === g.key).map((x) => {
                           const on = x.key === section;
                           return (
                             <button
@@ -342,6 +400,13 @@ export default function MinSideClient({ token }: { token: string }) {
                     <Row label="E-post">{c.email || "Ikke oppgitt"}</Row>
                   </dl>
                   <p className={`text-sm ${MUTED_L}`}>Navn og org.nr. følger Brønnøysundregistrene og endres ikke her.</p>
+                  {/* ORDER 157: the person asks us to close their login; the firm's papers stay. */}
+                  <div className={`flex flex-wrap items-center justify-between gap-3 border-t ${RULE} pt-4`}>
+                    <span className={`text-[15px] font-semibold ${INK}`}>Lukk kontoen</span>
+                    <button type="button" className={BTN_OUTLINE} aria-haspopup="dialog" onClick={() => setAskClose(true)}>
+                      Lukk
+                    </button>
+                  </div>
                 </Panel>
               ) : null}
 
@@ -407,6 +472,11 @@ export default function MinSideClient({ token }: { token: string }) {
                     section="varsler"
                     lead={<MinSideCityQuestion question={profile.alerts?.city_question} busy={answering} error={questionError} onAnswer={(a) => void answerCityQuestion(a)} />}
                   >
+                    {/* ORDER 157: no project alerts, but hiring alerts: the real list as a teaser instead of the empty state. */}
+                    {showsProjectsTeaser(profile) && profile.hiring?.projects ? (
+                      <ProjectsTeaser projects={profile.hiring.projects} trades={profile.hiring.subscription.trades} trial={trial} />
+                    ) : (
+                    <>
                     <div>
                       <p className={`text-[15px] font-semibold ${INK}`}>{words.title}</p>
                       <p className={`mt-1 text-sm leading-relaxed ${MUTED_L}`}>{words.text}</p>
@@ -432,6 +502,8 @@ export default function MinSideClient({ token }: { token: string }) {
                         </a>
                       ) : null}
                     </p>
+                    </>
+                    )}
                     {/* The projects themselves, here (his order, 12 October 2026); the projects page keeps the choices. */}
                     {profile.alerts?.projects_url ? (
                       <MinSideProjects
@@ -583,6 +655,25 @@ export default function MinSideClient({ token }: { token: string }) {
                 </Panel>
               ) : null}
 
+              {section === "ansetter" && hiring ? (
+                <Panel
+                  section="ansetter"
+                  about={hiringSubtitle(hiring) || undefined}
+                  action={hiring.terms.accepted ? <HiringStop send={send} onStopped={() => setNotice("Varslene om bedrifter som ansetter er stoppet.")} /> : undefined}
+                >
+                  <MinSideHiring
+                    token={token}
+                    hiring={hiring}
+                    since={hiringSince === undefined ? hiring.last_viewed_at : hiringSince}
+                    send={send}
+                    sendData={sendData}
+                    trial={trial}
+                    focusProjects={hiringFocus}
+                    onAskPeople={() => setPlanPrefill({ trade: hiring.subscription.trades.slice(0, 3).join(", "), place: hiring.subscription.counties.slice(0, 3).join(", ") })}
+                  />
+                </Panel>
+              ) : null}
+
               {section === "dokumenter" ? (
                 <Panel section="dokumenter">
                   {profile.documents.length === 0 ? <p className={`text-sm ${MUTED_L}`}>Dere har ingen signerte dokumenter hos oss ennå.</p> : null}
@@ -669,6 +760,26 @@ export default function MinSideClient({ token }: { token: string }) {
               if (r.ok) {
                 setPlanPrefill(null);
                 setNotice(PLAN_CONFIRMATION);
+              }
+              return r;
+            }}
+          />
+        </PortalModal>
+      ) : null}
+
+      {trial.dialog}
+
+      {askClose ? (
+        <PortalModal title="Lukk kontoen" size="narrow" onClose={() => setAskClose(false)}>
+          <ConfirmForm
+            text="Bare innloggingen deres lukkes. Firmaets dokumenter, timelister, tilbud og fakturaer blir liggende hos oss."
+            label="Send"
+            onCancel={() => setAskClose(false)}
+            onConfirm={async () => {
+              const r = await send({ action: "close_account" });
+              if (r.ok) {
+                setAskClose(false);
+                setNotice("Vi har fått forespørselen og lukker innloggingen når den er behandlet.");
               }
               return r;
             }}

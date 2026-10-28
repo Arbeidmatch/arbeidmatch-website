@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { getRateLimitResult, noStoreJson } from "@/lib/apiSecurity";
-import { alertCitiesRequest, cityQuestionRequest, isCityName, isProfileToken, isWhatsNewId } from "@/lib/min-side/profile";
+import { alertCitiesRequest, cityQuestionRequest, hiringRequest, isCityName, isHiringAction, isProfileToken, isWhatsNewId } from "@/lib/min-side/profile";
 import { callAts } from "@/lib/prosjekter/ats";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +39,13 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
   }
   const action = raw?.action;
+  // ORDER 157: the hiring alerts and the account; each passed on with only its named fields, bounded.
+  if (isHiringAction(action)) {
+    const body = hiringRequest(raw);
+    if (!body) return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+    const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
+    return noStoreJson(answer.body, { status: answer.status });
+  }
   if (
     action !== "company" &&
     action !== "contact" &&

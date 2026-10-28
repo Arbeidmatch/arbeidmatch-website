@@ -122,6 +122,8 @@ export type Profile = {
   whats_new: WhatsNewEntry[];
   /** ORDER 101: our contact person for this client; null leaves the card out. */
   contact_person: ContactPerson | null;
+  /** ORDER 157: Bedrifter som ansetter; null for a person without hiring alerts. */
+  hiring: Hiring | null;
 };
 
 export type WhatsNewEntry = { id: string; title: string; detail: string; variants: string[]; link: string | null };
@@ -347,6 +349,7 @@ export function profileFrom(raw: unknown): Profile | null {
       }))
       .slice(0, 10),
     contact_person: contactPersonFrom(r.contact_person),
+    hiring: hiringFrom(r.hiring),
   };
 }
 
@@ -420,7 +423,7 @@ export function addressLine(street: string, postcode: string, town: string): str
  * "Fakturaopplysninger" is where invoices are sent; "Fakturaer" is the
  * invoices themselves. They are two sections because they are two questions.
  */
-export type SectionKey = "firma" | "fakturaopplysninger" | "kontakter" | "kandidater" | "tilbud" | "timelister" | "fakturaer" | "dokumenter" | "varsler";
+export type SectionKey = "firma" | "fakturaopplysninger" | "kontakter" | "kandidater" | "tilbud" | "timelister" | "fakturaer" | "dokumenter" | "varsler" | "ansetter";
 
 export type SectionGroup = "firmaet" | "samarbeidet";
 export const SECTION_GROUPS: { key: SectionGroup; label: string }[] = [
@@ -439,7 +442,14 @@ export const SECTIONS: { key: SectionKey; group: SectionGroup; label: string; ab
   { key: "fakturaer", group: "samarbeidet", label: "Fakturaer", about: "Fakturaene fra oss til firmaet, med status." },
   { key: "dokumenter", group: "samarbeidet", label: "Signerte dokumenter", about: "Avtaler og tilbud du har signert hos oss, som PDF." },
   { key: "varsler", group: "samarbeidet", label: "Prosjektvarsler", about: "Varslene om bygg- og anleggsprosjekter, og abonnementet." },
+  // ORDER 157: only in the list for a person with hiring alerts (visibleSections).
+  { key: "ansetter", group: "samarbeidet", label: "Bedrifter som ansetter", about: "Firmaer som ansetter i fylkene og fagene deres." },
 ];
+
+/** The sections this person's list shows: "Bedrifter som ansetter" only with hiring alerts. */
+export function visibleSections(p: Pick<Profile, "hiring">): typeof SECTIONS {
+  return SECTIONS.filter((s) => s.key !== "ansetter" || p.hiring !== null);
+}
 
 /** The section an address asks for (#fakturaer), or null for anything else, a dialog's hash included. */
 export function sectionFromHash(hash: string): SectionKey | null {
@@ -465,6 +475,13 @@ export function sectionHint(key: SectionKey, p: Profile): string {
     if (plan.status === "ended") return "Avsluttet";
     if (plan.cancelled || plan.freeOnly) return "Avsluttes";
     return plan.status === "paid" ? "Betalt" : "Gratis";
+  }
+  if (key === "ansetter") {
+    const h = p.hiring;
+    if (!h) return "";
+    if (!h.terms.accepted) return h.terms.ready ? "Godta vilkårene" : "Åpnes snart";
+    if (h.subscription.tier === "basis") return "Basis";
+    return count(h.rows.length, "bedrift", "bedrifter", "Ingen ennå");
   }
   if (key === "tilbud") {
     const open = p.offers.filter((o) => o.open).length;
@@ -581,4 +598,342 @@ export function cityQuestionRequest(answer: "yes" | "no"): { action: "city_quest
 export function telHref(phone: string): string | null {
   const digits = phone.replace(/[^0-9+]/g, "");
   return /^\+?[0-9]{5,15}$/.test(digits) ? `tel:${digits}` : null;
+}
+
+// ---------------------------------------------------------------------------
+// ORDER 157 (October 2026): Bedrifter som ansetter, the hiring alerts. The
+// firms that hire in the client's counties and trades, behind terms the client
+// accepts first; the full lead card is Premium, Basis shows the list locked.
+// ---------------------------------------------------------------------------
+
+export type HiringTier = "basis" | "premium";
+export type HiringStatus = "new" | "contacted";
+
+/** Terms as the ATS sends them to be read and accepted. */
+export type TermsText = { title: string; paragraphs: string[]; version: string; consent: string };
+export type HiringTerms = TermsText & { accepted: boolean; ready: boolean };
+
+export type HiringSubscription = { status: string; counties: string[]; trades: string[]; free_until: string | null; tier: HiringTier; frequency: string };
+
+export type HiringRow = {
+  orgnr: string;
+  name: string;
+  town: string | null;
+  county: string | null;
+  county_name: string | null;
+  trades: string[];
+  trade_names: string[];
+  positions: number;
+  published: string | null;
+  status: HiringStatus;
+  /** Null in Basis. */
+  behov: string | null;
+  /** Null in Basis, and when the firm did not say. */
+  english_ok: boolean | null;
+  won: string | null;
+  note: string | null;
+  follow_up_on: string | null;
+  opened: boolean;
+};
+
+/** The full lead card, Premium only. */
+export type HiringCard = HiringRow & { address: string | null; website: string | null; industry: string | null; employees: number | null; recruits: string | null };
+
+export type HiringProjectRow = { id: string; title: string; county: string | null; stage: string };
+export type HiringProjects = {
+  count: number;
+  won_count: number;
+  counties: string[];
+  rows: HiringProjectRow[];
+  request: { sent_at: string; status: string } | null;
+  terms: TermsText;
+  terms_accepted: boolean;
+  email: string;
+};
+
+export type Hiring = {
+  subscription: HiringSubscription;
+  terms: HiringTerms;
+  /** Empty until the terms are accepted. */
+  rows: HiringRow[];
+  last_viewed_at: string | null;
+  filters: { counties: { code: string; name: string }[]; trades: { key: string; name: string }[] };
+  /** Null when the firm already has project alerts, or before the terms are accepted. */
+  projects: HiringProjects | null;
+};
+
+const COUNTY_CODE = /^NO[0-9A-Z]{3}$/;
+const TRADE_KEY = /^[a-z0-9_]{2,40}$/;
+const ORGNR = /^\d{9}$/;
+const obj = (v: unknown) => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null);
+const objs = (v: unknown) => (Array.isArray(v) ? v.map(obj).filter((x): x is Record<string, unknown> => x !== null) : []);
+const textOrNull = (v: unknown, max: number) => str(v, max).trim() || null;
+const isoOrNull = (v: unknown) => (typeof v === "string" && Number.isFinite(Date.parse(v)) ? v.slice(0, 40) : null);
+const wholeOrZero = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.round(v) : 0);
+
+function termsTextFrom(r: Record<string, unknown> | null): TermsText {
+  return {
+    title: str(r?.title, 200).trim() || "Vilkår",
+    paragraphs: strings(r?.paragraphs, 60, 4000),
+    version: str(r?.version, 40),
+    consent: str(r?.consent, 300).trim() || "Jeg har lest og godtar vilkårene",
+  };
+}
+
+function hiringRowFrom(r: Record<string, unknown>): HiringRow | null {
+  const orgnr = str(r.orgnr, 20).replace(/\s/g, "");
+  const name = str(r.name, 200).trim();
+  if (!ORGNR.test(orgnr) || !name) return null;
+  const county = str(r.county, 10);
+  return {
+    orgnr,
+    name,
+    town: textOrNull(r.town, 80),
+    county: COUNTY_CODE.test(county) ? county : null,
+    county_name: textOrNull(r.county_name, 80),
+    trades: strings(r.trades, 20, 40).filter((t) => TRADE_KEY.test(t)),
+    trade_names: strings(r.trade_names, 20, 80),
+    positions: wholeOrZero(r.positions),
+    published: isoOrNull(r.published),
+    status: r.status === "contacted" ? "contacted" : "new",
+    behov: textOrNull(r.behov, 300),
+    english_ok: typeof r.english_ok === "boolean" ? r.english_ok : null,
+    won: textOrNull(r.won, 200),
+    note: textOrNull(r.note, 2000),
+    follow_up_on: day(r.follow_up_on)?.slice(0, 10) ?? null,
+    opened: r.opened === true,
+  };
+}
+
+/** The firm's own website: a plain http(s) address, nothing else. */
+function websiteFrom(v: unknown): string | null {
+  if (typeof v !== "string" || !v.trim()) return null;
+  try {
+    const url = new URL(/^https?:\/\//i.test(v) ? v : `https://${v}`);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The lead card the ATS answers to hiring_card, or null when it is not one. */
+export function hiringCardFrom(raw: unknown): HiringCard | null {
+  const r = obj(raw);
+  const row = r ? hiringRowFrom(r) : null;
+  if (!r || !row) return null;
+  const employees = typeof r.employees === "number" && Number.isFinite(r.employees) && r.employees >= 0 ? Math.round(r.employees) : null;
+  return { ...row, address: textOrNull(r.address, 300), website: websiteFrom(r.website), industry: textOrNull(r.industry, 200), employees, recruits: textOrNull(r.recruits, 40) };
+}
+
+function hiringProjectsFrom(raw: unknown): HiringProjects | null {
+  const r = obj(raw);
+  if (!r) return null;
+  const req = obj(r.request);
+  const sentAt = req ? isoOrNull(req.sent_at) : null;
+  return {
+    count: wholeOrZero(r.count),
+    won_count: wholeOrZero(r.won_count),
+    counties: strings(r.counties, 20, 80),
+    rows: objs(r.rows)
+      .filter((p) => typeof p.id === "string" && p.id.length > 0)
+      .map((p) => ({ id: String(p.id).slice(0, 60), title: str(p.title, 300), county: textOrNull(p.county, 80), stage: str(p.stage, 40) }))
+      .slice(0, 200),
+    request: sentAt ? { sent_at: sentAt, status: str(req?.status, 40) } : null,
+    terms: termsTextFrom(obj(r.terms)),
+    terms_accepted: r.terms_accepted === true,
+    email: str(r.email, 254),
+  };
+}
+
+/** The hiring part of the ATS's answer, or null: absent, or not shaped like one. */
+export function hiringFrom(raw: unknown): Hiring | null {
+  const r = obj(raw);
+  const s = obj(r?.subscription);
+  const t = obj(r?.terms);
+  if (!r || !s || !t) return null;
+  const f = obj(r.filters);
+  return {
+    subscription: {
+      status: str(s.status, 40),
+      counties: strings(s.counties, 20, 80),
+      trades: strings(s.trades, 30, 80),
+      free_until: day(s.free_until)?.slice(0, 10) ?? null,
+      tier: s.tier === "basis" ? "basis" : "premium",
+      frequency: str(s.frequency, 40),
+    },
+    terms: { ...termsTextFrom(t), accepted: t.accepted === true, ready: t.ready === true },
+    rows: objs(r.rows)
+      .map(hiringRowFrom)
+      .filter((x): x is HiringRow => x !== null)
+      .slice(0, 1000),
+    last_viewed_at: isoOrNull(r.last_viewed_at),
+    filters: {
+      counties: objs(f?.counties)
+        .filter((c) => typeof c.code === "string" && COUNTY_CODE.test(c.code))
+        .map((c) => ({ code: String(c.code), name: str(c.name, 80) || String(c.code) }))
+        .slice(0, 30),
+      trades: objs(f?.trades)
+        .filter((c) => typeof c.key === "string" && TRADE_KEY.test(c.key))
+        .map((c) => ({ key: String(c.key), name: str(c.name, 80) || String(c.key) }))
+        .slice(0, 60),
+    },
+    projects: hiringProjectsFrom(r.projects),
+  };
+}
+
+/** "Trøndelag · Tømrer, Murer · prøveperiode til 31. desember 2026": the line under the section's name. */
+export function hiringSubtitle(h: Hiring): string {
+  const s = h.subscription;
+  const trial = s.free_until && s.tier !== "basis" ? `prøveperiode til ${dayNo(s.free_until)}` : null;
+  return [s.counties.join(", "), s.trades.join(", "), trial].filter(Boolean).join(" · ");
+}
+
+export type HiringFilter = { county: string; trade: string; english: boolean; onlyNew: boolean };
+export const NO_HIRING_FILTER: HiringFilter = { county: "", trade: "", english: false, onlyNew: false };
+
+/**
+ * The rows the list shows. `since` is last_viewed_at as it stood BEFORE this
+ * visit told the ATS it was seen: "Bare nye siden sist" compares against that.
+ * Never seen before means every dated row is new. In Basis the language and
+ * the new-only filters are locked, so they never narrow the list.
+ */
+export function visibleHiringRows(rows: HiringRow[], f: HiringFilter, since: string | null, tier: HiringTier): HiringRow[] {
+  const sinceMs = since ? Date.parse(since) : Number.NEGATIVE_INFINITY;
+  const premium = tier === "premium";
+  return rows.filter((r) => {
+    if (f.county && r.county !== f.county) return false;
+    if (f.trade && !r.trades.includes(f.trade)) return false;
+    if (premium && f.english && r.english_ok !== true) return false;
+    if (premium && f.onlyNew) {
+      const at = r.published ? Date.parse(r.published) : NaN;
+      if (!Number.isFinite(at) || !(at > sinceMs)) return false;
+    }
+    return true;
+  });
+}
+
+/** The CSV download with the filters on screen; the language and new-only filters are Premium. */
+export function hiringCsvHref(token: string, f: HiringFilter): string {
+  const q = new URLSearchParams();
+  if (COUNTY_CODE.test(f.county)) q.set("county", f.county);
+  if (TRADE_KEY.test(f.trade)) q.set("trade", f.trade);
+  if (f.english) q.set("english", "1");
+  if (f.onlyNew) q.set("new", "1");
+  const s = q.toString();
+  return `/api/min-side/${encodeURIComponent(token)}/hiring-csv${s ? `?${s}` : ""}`;
+}
+
+/** The CSV query as the proxy passes it on: only the four known values in their shapes, or null for anything else. */
+export function hiringCsvQuery(params: URLSearchParams): string | null {
+  const out = new URLSearchParams();
+  for (const [k, v] of params) {
+    if (k === "county" && COUNTY_CODE.test(v)) out.set(k, v);
+    else if (k === "trade" && TRADE_KEY.test(v)) out.set(k, v);
+    else if ((k === "english" || k === "new") && v === "1") out.set(k, v);
+    else return null;
+  }
+  return out.toString();
+}
+
+/** What "Åpne lead" does: the card in Premium, the "Bedriftskortet er Premium" dialog in Basis. */
+export function leadAction(tier: HiringTier): "card" | "premium" {
+  return tier === "premium" ? "card" : "premium";
+}
+
+export const HIRING_STATUS_NO: Record<HiringStatus, string> = { new: "Ny", contacted: "Kontaktet" };
+
+/** The lead card as plain text, for "Kopier". */
+export function leadCardText(c: HiringCard, note: string, followUp: string): string {
+  const lines: [string, string | null][] = [
+    ["Org.nr", orgNumberNo(c.orgnr)],
+    ["Bransje", c.industry],
+    ["Ansatte", c.employees === null ? null : String(c.employees)],
+    ["Adresse", c.address ?? ([c.town, c.county_name].filter(Boolean).join(", ") || null)],
+    ["Nettsted", c.website],
+    ["Fag", c.trade_names.join(", ") || null],
+    ["Behov", c.behov],
+    ["Byrå", c.recruits],
+    ["Språk", c.english_ok ? "Aksepterer engelsk" : "Ikke oppgitt"],
+    ["Offentlig kontrakt", c.won],
+    ["Status", HIRING_STATUS_NO[c.status]],
+    ["Følg opp", followUp ? dayNo(followUp) : null],
+    ["Notat", note.trim() || null],
+  ];
+  return [c.name, ...lines.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`)].join("\n");
+}
+
+/** The stage of a project in the teaser, in Norwegian; an unknown stage is shown as sent. */
+export function projectStageNo(stage: string): string {
+  const words: Record<string, string> = { planned: "Planlagt", tender: "Åpen konkurranse", closed: "Venter på tildeling", awarded: "Tildelt", cancelled: "Avlyst" };
+  return words[stage] ?? stage;
+}
+
+/** "Prøv prosjektvarsler" from the weekly letter (?hiring=projects) opens the hiring section at the projects card. */
+export function hiringIntentFromSearch(search: string): "projects" | null {
+  return new URLSearchParams(search).get("hiring") === "projects" ? "projects" : null;
+}
+
+/** The project teaser replaces the empty Prosjektvarsler state only for a person with neither alerts nor free months. */
+export function showsProjectsTeaser(p: Pick<Profile, "alerts" | "free_alerts" | "hiring">): boolean {
+  return !p.alerts && !p.free_alerts && Boolean(p.hiring?.projects);
+}
+
+const DAY_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
+
+export const HIRING_ACTIONS = ["hiring_terms", "hiring_viewed", "hiring_card", "hiring_lead", "hiring_feedback", "hiring_stop", "hiring_premium", "projects_trial", "close_account"] as const;
+
+export function isHiringAction(v: unknown): v is (typeof HIRING_ACTIONS)[number] {
+  return typeof v === "string" && (HIRING_ACTIONS as readonly string[]).includes(v);
+}
+
+/**
+ * The body the proxy passes on for one of the hiring actions, with only the
+ * fields named and as plain bounded values, or null when it is not one. The
+ * ATS validates again.
+ */
+export function hiringRequest(raw: Record<string, unknown>): Record<string, unknown> | null {
+  const action = raw.action;
+  switch (action) {
+    case "hiring_viewed":
+    case "hiring_stop":
+    case "hiring_premium":
+    case "projects_trial":
+    case "close_account":
+      return { action };
+    case "hiring_terms":
+      return raw.service === "hiring" || raw.service === "projects" ? { action, service: raw.service } : null;
+    case "hiring_card":
+      return typeof raw.orgnr === "string" && ORGNR.test(raw.orgnr) ? { action, orgnr: raw.orgnr } : null;
+    case "hiring_lead": {
+      if (typeof raw.orgnr !== "string" || !ORGNR.test(raw.orgnr)) return null;
+      const body: Record<string, unknown> = { action, orgnr: raw.orgnr };
+      if (raw.status !== undefined) {
+        if (raw.status !== "new" && raw.status !== "contacted") return null;
+        body.status = raw.status;
+      }
+      if (raw.note !== undefined) {
+        if (typeof raw.note !== "string" || raw.note.length > 2000) return null;
+        body.note = raw.note;
+      }
+      if (raw.follow_up_on !== undefined) {
+        if (typeof raw.follow_up_on !== "string" || (raw.follow_up_on !== "" && !DAY_SHAPE.test(raw.follow_up_on))) return null;
+        body.follow_up_on = raw.follow_up_on;
+      }
+      return Object.keys(body).length > 2 ? body : null;
+    }
+    case "hiring_feedback": {
+      const body: Record<string, unknown> = { action };
+      if (raw.score !== undefined) {
+        if (typeof raw.score !== "number" || !Number.isInteger(raw.score) || raw.score < 1 || raw.score > 5) return null;
+        body.score = raw.score;
+      }
+      if (raw.text !== undefined) {
+        if (typeof raw.text !== "string" || raw.text.length > 2000) return null;
+        body.text = raw.text;
+      }
+      return Object.keys(body).length > 1 ? body : null;
+    }
+    default:
+      return null;
+  }
 }

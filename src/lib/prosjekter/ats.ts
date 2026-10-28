@@ -105,3 +105,22 @@ export async function callAts(
     return { status: timedOut ? 504 : 503, body: { error: UNREACHABLE } };
   }
 }
+
+/**
+ * A GET to the ATS for a file that is not JSON (ORDER 157: the hiring CSV),
+ * with the same vouching headers. The ATS's own response comes back for the
+ * caller to stream on, or null when the ATS cannot be reached.
+ */
+export async function callAtsRaw(path: string, init: { visitorHeaders: Headers; accept: string; timeoutMs?: number }): Promise<Response | null> {
+  try {
+    return await fetch(`${atsBase()}${path}`, {
+      method: "GET",
+      headers: { Accept: init.accept, ...vouchingHeaders(init.visitorHeaders) },
+      cache: "no-store",
+      signal: AbortSignal.timeout(init.timeoutMs ?? 30_000),
+    });
+  } catch (error) {
+    logApiError("prosjekter/ats", error, { path: path.replace(/[0-9a-f-]{36}/i, ":token").split("?")[0] ?? "" });
+    return null;
+  }
+}
