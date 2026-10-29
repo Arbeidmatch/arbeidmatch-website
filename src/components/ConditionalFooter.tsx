@@ -26,6 +26,7 @@ function pathnameShowsFooter(pathname: string): boolean {
   if (p === "/feedback" || p.startsWith("/feedback/")) return false;
   if (p === "/become-a-partner" || p.startsWith("/become-a-partner/")) return false;
   if (p.startsWith("/premium")) return false;
+  if (p === "/beta") return false;
 
   if (p === "/") return true;
   if (EXACT_ALLOW.has(p)) return true;

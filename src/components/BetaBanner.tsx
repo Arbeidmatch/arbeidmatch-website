@@ -15,6 +15,8 @@ function normalizePathname(pathname: string | null): string {
 
 export default function BetaBanner() {
   const pathname = usePathname();
+  // The new front page under review says beta in its own way (29 October 2026).
+  if (pathname === "/beta") return null;
   const no = pathname === "/" || langForPath(pathname) === "nb";
   const copy = no ? {
     heading: "Under utvikling. Bedre sammen med deg.",

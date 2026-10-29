@@ -97,6 +97,8 @@ export default function Navbar() {
   // Flislegger is a standalone ArbeidMatch department with its own navigation.
   // Do not mix the recruitment/staffing website menu into this microsite.
   if (pathname?.startsWith("/flislegger")) return null;
+  // The new front page under review carries its own header (29 October 2026).
+  if (pathname === "/beta") return null;
   if (pathname === "/" || pathname === "/no") return <HomeNavigation key={pathname} lang="no" />;
 
   const navItemClass =
