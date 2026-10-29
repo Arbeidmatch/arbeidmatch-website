@@ -8,7 +8,8 @@ import { BetaForside } from "./BetaForside";
  *
  * HIS YES, 29 October 2026, after three mock-ups: the brand first, a single
  * photograph, thin serif headlines, lists instead of cards, the open jobs
- * further down. Built here so he can see it live, on a computer and on a
+ * behind one link, by his word of the same day ("jiburile sa nu fie pe prima
+ * pagina ci sa fie trimitere catre ele"). Built here so he can see it live, on a computer and on a
  * phone, before it replaces "/". Not indexed, not linked from anywhere.
  */
 
@@ -32,7 +33,7 @@ export default async function BetaForsidePage() {
   const board = await getBoard();
   return (
     <div className={serif.variable} lang="nb">
-      <BetaForside jobs={board.ok ? board.jobs.slice(0, 3) : []} totalOpen={board.ok ? board.totalOpen : 0} />
+      <BetaForside totalOpen={board.ok ? board.totalOpen : 0} />
     </div>
   );
 }
