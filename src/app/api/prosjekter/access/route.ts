@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
-import { getRateLimitResult, hasHoneypotValue, noStoreJson } from "@/lib/apiSecurity";
-import { verifyCaptcha } from "@/lib/cv/captcha";
+import { getRateLimitResult, hasHoneypotValue, isKeyRateLimited, noStoreJson } from "@/lib/apiSecurity";
+import { filledTooFast } from "@/lib/humanCheck";
 import { checkAccessRequest, isAccessRequestId } from "@/lib/prosjekter/access";
 import { callAts, visitorIp } from "@/lib/prosjekter/ats";
 
@@ -15,8 +15,8 @@ const UNAVAILABLE = "Forespørselen kunne ikke sendes akkurat nå. Prøv igjen o
 /**
  * "Be om tilgang" on /prosjekter. Checked here the way the form checks it
  * (company, a real organisation number, an e-mail, known county and trade
- * codes only), guarded like the site's other public forms (a honeypot, a rate
- * limit per visitor, Turnstile when it is configured), and forwarded to the
+ * codes only), guarded like the site's other public forms (a honeypot, a minimum
+ * fill time, a rate limit per visitor and per e-mail), and forwarded to the
  * ATS, which puts it in front of the owner. The ATS's own Norwegian message
  * comes back when it refuses; anything else becomes one plain sentence.
  */
@@ -35,18 +35,13 @@ export async function POST(request: NextRequest) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
 
   // A bot filled the hidden field: thank it and send nothing.
-  if (hasHoneypotValue(raw)) return noStoreJson({ ok: true });
+  if (hasHoneypotValue(raw) || filledTooFast(raw)) return noStoreJson({ ok: true });
+  if (typeof raw.email === "string" && isKeyRateLimited("prosjekter-access-email", raw.email, 4, 10 * 60 * 1000)) {
+    return noStoreJson({ error: TOO_MANY }, { status: 429 });
+  }
 
   const checked = checkAccessRequest(raw);
   if (!checked.ok) return noStoreJson({ error: checked.error, field: checked.field }, { status: 400 });
-
-  const captcha = await verifyCaptcha(
-    typeof raw.turnstileToken === "string" ? raw.turnstileToken : null,
-    visitorIp(request.headers),
-  );
-  if (!captcha.ok) {
-    return noStoreJson({ error: "Bekreft at du ikke er en robot, og prøv igjen." }, { status: 400 });
-  }
 
   const answer = await callAts("/api/public/project-access", {
     method: "POST",

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 
 import { hasHoneypotValue, noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
+import { filledTooFast } from "@/lib/humanCheck";
 import { logApiError } from "@/lib/secureLogger";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { CONSENT_TEXT_SHA256, getPolicyVersion } from "@/lib/cv/consent";
@@ -18,7 +19,6 @@ import {
   hashOtpCode,
   normalizeEmail,
 } from "@/lib/cv/otp";
-import { verifyCaptcha } from "@/lib/cv/captcha";
 import { sendCvEmail } from "@/lib/cv/mailer";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +31,7 @@ const bodySchema = z
     policyVersion: z.string().trim().max(40),
     policyTextSha256: z.string().trim().length(64),
     lang: z.enum(["en", "ro"]).optional(),
-    captchaToken: z.string().max(4096).optional(),
+    formRenderedAt: z.number().optional(),
     website: z.string().max(256).optional(),
     honeypot: z.string().max(256).optional(),
   })
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
   try {
     const parsed = await parseJsonBodyWithSchema(request, bodySchema, { maxBytes: 8 * 1024 });
     if (!parsed.ok) return parsed.response;
-    if (hasHoneypotValue(parsed.data)) return noStoreJson({ success: true });
+    if (hasHoneypotValue(parsed.data) || filledTooFast(parsed.data)) return noStoreJson({ success: true });
 
     const body = parsed.data;
 
@@ -61,11 +61,6 @@ export async function POST(request: NextRequest) {
         { success: false, error: "The consent text has changed. Please reload the page.", code: "policy_mismatch" },
         { status: 409 },
       );
-    }
-
-    const captcha = await verifyCaptcha(body.captchaToken ?? null, clientIp(request.headers));
-    if (!captcha.ok) {
-      return noStoreJson({ success: false, error: GENERIC_ERROR, code: "captcha" }, { status: 400 });
     }
 
     const supabase = getSupabaseAdminClient();

@@ -1,9 +1,8 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Briefcase, Building2, LogIn, MapPin, Search, Shield, UserPlus, Users } from "lucide-react";
-import { Turnstile } from "@marsidev/react-turnstile";
 
 import ScrollReveal from "@/components/ScrollReveal";
 import { ContactPopup } from "@/components/contact/ContactPopup";
@@ -22,9 +21,6 @@ const labelClass = "block text-[13px] font-medium text-[rgba(255,255,255,0.65)]"
 const submitClass =
   "mt-6 w-full rounded-lg bg-[#C9A84C] py-3.5 text-[15px] font-semibold text-[#0D1B2A] transition-colors hover:bg-[#b8953f] disabled:opacity-60";
 const popupButton = "min-h-11 rounded-lg px-4 py-2.5 text-[14px] font-semibold";
-
-const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
-const needsTurnstile = Boolean(TURNSTILE_SITE_KEY);
 
 type Audience = "employer" | "candidate";
 type CompanyOrigin = "norway" | "foreign";
@@ -98,8 +94,7 @@ export default function ContactPageClient({
   const [submitted, setSubmitted] = useState(false);
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [turnstileKey, setTurnstileKey] = useState(0);
+  const renderedAt = useRef(0);
   const [supportOnArrival, setSupportOnArrival] = useState(false);
   const [popup, setPopup] = useState<Popup | null>(null);
 
@@ -132,8 +127,8 @@ export default function ContactPageClient({
     if (params.get("support") === "1") setSupportOnArrival(true);
   }, []);
 
-  const onTurnstileSuccess = useCallback((token: string) => {
-    setTurnstileToken(token);
+  useEffect(() => {
+    renderedAt.current = Date.now();
   }, []);
 
   const resetFeedback = () => {
@@ -147,8 +142,6 @@ export default function ContactPageClient({
     if (next === audience) return;
     setAudience(next);
     resetFeedback();
-    setTurnstileToken(null);
-    setTurnstileKey((k) => k + 1);
   };
 
   const pickCompany = (picked: Company) => {
@@ -196,7 +189,7 @@ export default function ContactPageClient({
       lang,
       message: message.trim(),
       website: String(new FormData(form).get("website") || ""),
-      turnstileToken: turnstileToken ?? "",
+      formRenderedAt: String(renderedAt.current),
       ...(isForeign ? { foreign: "1", country, vatNumber: vatNumber.trim(), phone: phone.trim() } : {}),
       ...(!isEmployer ? { phone: phone.trim(), trade: trade.trim() } : {}),
     };
@@ -222,8 +215,6 @@ export default function ContactPageClient({
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string; refused?: string; code?: string };
         setStatus("idle");
-        setTurnstileToken(null);
-        setTurnstileKey((k) => k + 1);
         if (response.status === 422 && data.refused === "policy") {
           setPopup({ kind: "policy" });
           return;
@@ -258,15 +249,11 @@ export default function ContactPageClient({
         setCompany(null);
         setCompanyQuery("");
       }
-      setTurnstileToken(null);
-      setTurnstileKey((k) => k + 1);
     } catch (error) {
       setSubmitted(false);
       setStatus("error");
       // A network failure throws a browser message in English; only our own messages are shown.
       setErrorMessage(error instanceof Error && error.name === "Error" && error.message ? error.message : copy.generic);
-      setTurnstileToken(null);
-      setTurnstileKey((k) => k + 1);
       return;
     }
 
@@ -520,19 +507,8 @@ export default function ContactPageClient({
                   </label>
                 </div>
 
-                {needsTurnstile ? (
-                  <div className="mt-4 flex justify-center">
-                    <Turnstile
-                      key={turnstileKey}
-                      siteKey={TURNSTILE_SITE_KEY}
-                      onSuccess={onTurnstileSuccess}
-                      onExpire={() => setTurnstileToken(null)}
-                      onError={() => setTurnstileToken(null)}
-                    />
-                  </div>
-                ) : null}
 
-                <button type="submit" disabled={status === "submitting" || (needsTurnstile && !turnstileToken)} className={submitClass}>
+                <button type="submit" disabled={status === "submitting"} className={submitClass}>
                   {status === "submitting" ? copy.sending : copy.send}
                 </button>
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
+import { isKeyRateLimited } from "@/lib/apiSecurity";
+import { filledTooFast } from "@/lib/humanCheck";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
@@ -12,12 +14,6 @@ import { CANDIDATE_NEED, EMPLOYER_NEED } from "@/lib/contactNeeds";
 import { formatOrgNumber, isValidOrgNumber, normalizeOrgNumber } from "@/lib/orgNumber";
 import { EEA_COUNTRIES, judgeForeignCompany } from "@/lib/foreignCompany";
 import { checkVies } from "@/lib/vies";
-
-/** Server-side Turnstile siteverify disabled (Vercel Hobby outbound); widget still gates submit on client. Re-enable when on Pro. */
-async function verifyTurnstileToken(token: string | undefined): Promise<boolean> {
-  void token;
-  return true;
-}
 
 function getSmtpConfig(): { host: string; port: number; user: string; pass: string } | null {
   const host = process.env.SMTP_HOST?.trim();
@@ -69,15 +65,14 @@ async function readForm(request: NextRequest): Promise<{ fields: Record<string, 
 export async function POST(request: NextRequest) {
   try {
     const { fields: rawBody, cv } = await readForm(request);
-    if (hasHoneypotValue(rawBody)) {
+    if (hasHoneypotValue(rawBody) || filledTooFast(rawBody)) {
       return NextResponse.json({ success: true });
     }
     if (isRateLimited(request, "contact-form", 8, 10 * 60 * 1000)) {
       return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
     }
-    const turnstileToken = typeof rawBody.turnstileToken === "string" ? rawBody.turnstileToken : "";
-    if (!(await verifyTurnstileToken(turnstileToken))) {
-      return NextResponse.json({ success: false, error: "Bot detected" }, { status: 400 });
+    if (typeof rawBody.email === "string" && isKeyRateLimited("contact-form-email", rawBody.email, 4, 10 * 60 * 1000)) {
+      return NextResponse.json({ success: false, error: "Too many requests. Please try again later." }, { status: 429 });
     }
     // Slack gets the escaped copy, as before. The letters escape what they print,
     // so they are given the words as typed: escaped twice, "Bygg & Anlegg AS"

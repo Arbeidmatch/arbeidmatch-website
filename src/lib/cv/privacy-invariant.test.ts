@@ -20,7 +20,7 @@ describe("no personal data can reach the server before verification", () => {
         policyVersion: z.string().trim().max(40),
         policyTextSha256: z.string().trim().length(64),
         lang: z.enum(["en", "ro"]).optional(),
-        captchaToken: z.string().max(4096).optional(),
+        formRenderedAt: z.number().optional(),
         website: z.string().max(256).optional(),
         honeypot: z.string().max(256).optional(),
       })

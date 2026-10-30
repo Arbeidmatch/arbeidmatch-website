@@ -42,6 +42,20 @@ export function getRateLimitResult(
   return { limited: false, retryAfterSeconds: 0 };
 }
 
+/** A rate limit keyed on something other than the address, such as an e-mail. */
+export function isKeyRateLimited(scope: string, key: string, maxRequests: number, windowMs: number): boolean {
+  const now = Date.now();
+  const bucketKey = `${scope}:key:${key.trim().toLowerCase()}`;
+  const existing = rateBuckets.get(bucketKey);
+  if (!existing || now >= existing.resetAt) {
+    rateBuckets.set(bucketKey, { count: 1, resetAt: now + windowMs });
+    return false;
+  }
+  if (existing.count >= maxRequests) return true;
+  existing.count += 1;
+  return false;
+}
+
 export function hasHoneypotValue(
   payload: Record<string, unknown>,
   fields: string[] = ["website", "company_website", "honeypot"],

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
-import { hasHoneypotValue } from "@/lib/requestProtection";
+import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
+import { isKeyRateLimited } from "@/lib/apiSecurity";
+import { filledTooFast } from "@/lib/humanCheck";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { createEligibilityVerificationToken } from "@/lib/notificationToken";
@@ -49,24 +51,18 @@ async function getEmailDbRateLimitRetrySeconds(
   return Math.ceil((TWO_MIN_MS - elapsed) / 1000);
 }
 
-/** Server-side Turnstile siteverify disabled (Vercel Hobby outbound); widget still gates submit on client. Re-enable when on Pro. */
-async function verifyTurnstileToken(token: string | undefined): Promise<boolean> {
-  void token;
-  return true;
-}
-
 export async function POST(request: NextRequest) {
   try {
     const rawData = (await request.json()) as Record<string, unknown>;
-    if (hasHoneypotValue(rawData)) {
+    if (hasHoneypotValue(rawData) || filledTooFast(rawData)) {
       return NextResponse.json({ success: true });
     }
 
-    const turnstileToken = typeof rawData.turnstileToken === "string" ? rawData.turnstileToken : "";
-    const turnstileOk = await verifyTurnstileToken(turnstileToken);
-    if (!turnstileOk) {
-      const body = { success: false, error: "Bot detected" };
-      return NextResponse.json(body, { status: 400 });
+    if (isRateLimited(request, "eligibility-form", 8, 10 * 60 * 1000)) {
+      return NextResponse.json({ success: false, error: "Too many requests. Please try again later.", rateLimited: true }, { status: 429 });
+    }
+    if (typeof rawData.notifyEmail === "string" && isKeyRateLimited("eligibility-form-email", rawData.notifyEmail, 4, 10 * 60 * 1000)) {
+      return NextResponse.json({ success: false, error: "Too many requests. Please try again later.", rateLimited: true }, { status: 429 });
     }
 
     const data = sanitizeStringRecord(rawData);

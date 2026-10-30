@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Turnstile } from "@marsidev/react-turnstile";
+import { useEffect, useRef, useState } from "react";
 import {
   MARKETING_CONSENT_TEXT,
   PRIVACY_CONSENT_TEXT,
@@ -23,13 +22,6 @@ interface Props {
 
 const RESEND_SECONDS = 60;
 
-/**
- * When the site key is present the server also has its secret and will reject a request
- * without a token, so the widget has to be rendered and solved before Send code works.
- */
-const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
-const needsTurnstile = Boolean(TURNSTILE_SITE_KEY);
-
 export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClose }: Props) {
   const [stage, setStage] = useState<Stage>("consent");
   const [privacy, setPrivacy] = useState(false);
@@ -40,12 +32,12 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [turnstileKey, setTurnstileKey] = useState(0);
+  const renderedAt = useRef(0);
+  const honeyRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  const onTurnstileSuccess = useCallback((token: string) => {
-    setTurnstileToken(token);
+  useEffect(() => {
+    renderedAt.current = Date.now();
   }, []);
 
   useEffect(() => {
@@ -78,7 +70,7 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
    */
   const emailLooksRight = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
   const canSend =
-    privacy && workProfile && emailLooksRight && !busy && (!needsTurnstile || Boolean(turnstileToken));
+    privacy && workProfile && emailLooksRight && !busy;
 
   async function sendCode() {
     if (!canSend) return;
@@ -95,7 +87,8 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
           consentWorkProfile: workProfile,
           policyVersion,
           policyTextSha256,
-          ...(turnstileToken ? { captchaToken: turnstileToken } : {}),
+          formRenderedAt: renderedAt.current,
+          website: honeyRef.current?.value ?? "",
         }),
       });
       const result = (await response.json()) as { success?: boolean; error?: string };
@@ -108,16 +101,10 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
             ? "That email address does not look right. Check it and try again."
             : raw || "Could not send the code. Please try again.",
         );
-        // A Turnstile token is single use, so a retry needs a fresh one.
-        setTurnstileToken(null);
-        setTurnstileKey((value) => value + 1);
         return;
       }
       setStage("code");
       setCooldown(RESEND_SECONDS);
-      // The token is spent. Resending needs the widget to hand over a new one.
-      setTurnstileToken(null);
-      setTurnstileKey((value) => value + 1);
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
     } finally {
@@ -239,19 +226,9 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
                 className="w-full rounded border border-[#E2E5EA] bg-white px-3 py-2.5 text-[15px] text-[#0D1B2A] outline-none placeholder:text-[#5F6873] focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/40"
                 placeholder="you@example.com"
               />
+              <input type="text" name="website" ref={honeyRef} tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
             </div>
 
-            {needsTurnstile ? (
-              <div className="mt-4">
-                <Turnstile
-                  key={turnstileKey}
-                  siteKey={TURNSTILE_SITE_KEY}
-                  onSuccess={onTurnstileSuccess}
-                  onExpire={() => setTurnstileToken(null)}
-                  onError={() => setTurnstileToken(null)}
-                />
-              </div>
-            ) : null}
 
             {error ? (
               <p role="alert" className="mt-3 text-[14px] font-medium text-[#B03A2E]">
@@ -304,17 +281,6 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
               placeholder="000000"
             />
 
-            {needsTurnstile ? (
-              <div className="mt-4">
-                <Turnstile
-                  key={turnstileKey}
-                  siteKey={TURNSTILE_SITE_KEY}
-                  onSuccess={onTurnstileSuccess}
-                  onExpire={() => setTurnstileToken(null)}
-                  onError={() => setTurnstileToken(null)}
-                />
-              </div>
-            ) : null}
 
             {error ? (
               <p role="alert" className="mt-3 text-[14px] font-medium text-[#B03A2E]">
@@ -334,7 +300,7 @@ export function ConsentModal({ doc, policyVersion, onVerified, onDecline, onClos
               <button
                 type="button"
                 onClick={sendCode}
-                disabled={cooldown > 0 || busy || (needsTurnstile && !turnstileToken)}
+                disabled={cooldown > 0 || busy}
                 className="rounded border border-[#E2E5EA] px-5 py-3 font-semibold text-[#55616D] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0D1B2A] disabled:opacity-50"
               >
                 {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}

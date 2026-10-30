@@ -1,6 +1,5 @@
 "use client";
 
-import { Turnstile } from "@marsidev/react-turnstile";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -45,7 +44,6 @@ import { domainChoices, regionChoices } from "@/lib/prosjekter/format";
 /** What the visitor reads once the request is sent and the address confirmed (the owner's words, 17 October 2026). */
 export const INVITE_THANKS = "Takk. Vi vurderer forespørselen og sender deg en invitasjon hvis den blir godkjent.";
 
-const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 type Company = { name: string; orgNumber: string; city?: string };
 
@@ -79,8 +77,7 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
   const [regions, setRegions] = useState<string[]>([]);
   const [domains, setDomains] = useState<string[]>([]);
   const [honey, setHoney] = useState("");
-  const [token, setToken] = useState<string | null>(null);
-  const [turnstileKey, setTurnstileKey] = useState(0);
+  const renderedAt = useRef(0);
   const [errors, setErrors] = useState<Partial<Record<AccessField, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -99,6 +96,9 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
     phone: useRef<HTMLInputElement>(null),
   };
   const codeRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    renderedAt.current = Date.now();
+  }, []);
   const doneRef = useRef<HTMLDivElement>(null);
 
   // The register, asked as the visitor types: by name, or by number when it is nine digits.
@@ -182,16 +182,12 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
       return;
     }
     setErrors({});
-    if (TURNSTILE_SITE_KEY && !token) {
-      setFormError("Bekreft at du ikke er en robot, og prøv igjen.");
-      return;
-    }
     setBusy(true);
     try {
       const res = await fetch("/api/prosjekter/access", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...checked.value, turnstileToken: token ?? "", website: honey }),
+        body: JSON.stringify({ ...checked.value, formRenderedAt: String(renderedAt.current), website: honey }),
       });
       const payload = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
@@ -204,8 +200,6 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
         if (payload.field) setErrors({ [payload.field]: payload.error ?? "Sjekk feltet." });
         if (payload.field && STEP_ONE.includes(payload.field)) setStep(1);
         setFormError(payload.error ?? "Forespørselen kunne ikke sendes. Prøv igjen om litt.");
-        setToken(null);
-        setTurnstileKey((n) => n + 1);
         return;
       }
       if (payload.needsCode && payload.requestId) {
@@ -356,8 +350,6 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
                 setCodeStep(null);
                 setStep(1);
                 setFormError(null);
-                setToken(null);
-                setTurnstileKey((n) => n + 1);
                 requestAnimationFrame(() => refs.email.current?.focus());
               }}
               disabled={busy}
@@ -650,16 +642,6 @@ export default function AccessForm({ onClose }: { onClose: () => void }) {
         <label htmlFor="pa-website">Nettsted</label>
         <input id="pa-website" type="text" tabIndex={-1} autoComplete="off" value={honey} onChange={(e) => setHoney(e.target.value)} />
       </div>
-      {TURNSTILE_SITE_KEY ? (
-        <Turnstile
-          key={turnstileKey}
-          siteKey={TURNSTILE_SITE_KEY}
-          onSuccess={setToken}
-          onExpire={() => setToken(null)}
-          onError={() => setToken(null)}
-          options={{ theme: "dark", language: "nb", appearance: "interaction-only" }}
-        />
-      ) : null}
       {errorBox}
       <div className={styles.formFoot}>
         <span className={styles.footBtns}>

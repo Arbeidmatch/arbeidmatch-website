@@ -1,14 +1,11 @@
 "use client";
 
-import { Turnstile } from "@marsidev/react-turnstile";
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { SupportButton } from "@/components/support/SupportRequest";
 import { getWorkGuidePageMetadata } from "@/lib/eligibilityGuidePageTitle";
 
-const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
-const needsTurnstile = Boolean(TURNSTILE_SITE_KEY);
 
 const inputClass =
   "w-full rounded-md border border-border px-4 py-2 text-navy focus:outline-none focus:ring-2 focus:ring-gold";
@@ -44,8 +41,8 @@ export function EligibilityAssistanceClient() {
   const [feedbackNote, setFeedbackNote] = useState("");
   const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [registrationKind, setRegistrationKind] = useState<"verify" | "already" | "direct">("verify");
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [turnstileKey, setTurnstileKey] = useState(0);
+  const renderedAt = useRef(0);
+  const honeyRef = useRef<HTMLInputElement>(null);
   const [rateLimitSecondsLeft, setRateLimitSecondsLeft] = useState(0);
 
   const pageMetadata = useMemo(
@@ -79,8 +76,8 @@ export function EligibilityAssistanceClient() {
     return () => window.clearInterval(id);
   }, [status]);
 
-  const onTurnstileSuccess = useCallback((token: string) => {
-    setTurnstileToken(token);
+  useEffect(() => {
+    renderedAt.current = Date.now();
   }, []);
 
   const totalSteps = 2;
@@ -155,7 +152,8 @@ export function EligibilityAssistanceClient() {
           targetCountry,
           targetRegion,
           marketingConsent: marketingConsent ? "Yes" : "No",
-          turnstileToken: turnstileToken ?? "",
+          formRenderedAt: String(renderedAt.current),
+          website: honeyRef.current?.value ?? "",
           wantsAssistance,
         }),
       });
@@ -175,16 +173,12 @@ export function EligibilityAssistanceClient() {
       if (isRateLimited) {
         setRateLimitSecondsLeft(retryAfterSec);
         setStatus("rate-limited");
-        setTurnstileToken(null);
-        setTurnstileKey((k) => k + 1);
         return;
       }
 
       if (!response.ok) {
         if (response.status === 400 && result.error === "Bot detected") {
           setStepError("Security check failed. Please complete the verification and try again.");
-          setTurnstileToken(null);
-          setTurnstileKey((k) => k + 1);
           setStatus("idle");
           return;
         }
@@ -224,8 +218,6 @@ export function EligibilityAssistanceClient() {
     setTargetCountry("");
     setCountrySearch("");
     setIsCountryPickerOpen(true);
-    setTurnstileToken(null);
-    setTurnstileKey((k) => k + 1);
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   };
 
@@ -667,19 +659,8 @@ export function EligibilityAssistanceClient() {
                 Read how we handle your data in our{" "}
                 <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-gold underline underline-offset-2 hover:opacity-80">privacy notice</a>.
               </p>
+              <input type="text" name="website" ref={honeyRef} tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
 
-              {needsTurnstile ? (
-                <div className="flex flex-col items-center justify-center gap-2 pt-2">
-                  <Turnstile
-                    key={turnstileKey}
-                    siteKey={TURNSTILE_SITE_KEY}
-                    onSuccess={onTurnstileSuccess}
-                    onExpire={() => setTurnstileToken(null)}
-                    onError={() => setTurnstileToken(null)}
-                    options={{ theme: "light" }}
-                  />
-                </div>
-              ) : null}
             </div>
           )}
 
@@ -694,9 +675,7 @@ export function EligibilityAssistanceClient() {
               {currentStep === 1 && (
                 <button
                   type="submit"
-                  disabled={
-                    status === "submitting" || (needsTurnstile && !turnstileToken)
-                  }
+                  disabled={status === "submitting"}
                   className="w-full rounded-md bg-gold py-3 text-sm font-medium text-navy hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {status === "submitting" ? "Sending..." : "Notify me"}
