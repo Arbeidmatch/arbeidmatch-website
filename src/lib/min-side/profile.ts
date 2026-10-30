@@ -636,6 +636,8 @@ export type HiringRow = {
   opened: boolean;
   /** ORDER 170: the client follows this firm. */
   watched: boolean;
+  /** ORDER 181: why the firm is on the list: "Ny bedrift", "Nye stillinger: Elektrikere (1)" or "Vant kontrakt". */
+  label: string | null;
 };
 
 /** The full lead card, Premium only. */
@@ -668,49 +670,50 @@ export type Hiring = {
   confirm: HiringConfirm | null;
   /** ORDER 171: for a client who accepted older terms, a sentence shown once with "OK". */
   beta_notice: string | null;
+  /** ORDER 181: whether a paid plan can be chosen yet, and the billing it starts with. */
+  plans: HiringPlans;
 };
 
-// ORDER 171: the one screen an invited client confirms himself, his firm's billing and the terms on.
+// ORDER 171: the one screen an invited client confirms himself and the terms on.
+// ORDER 181: it also asks what he receives (trades, counties, how often, only new),
+// and no longer asks for billing, which waits for a paid plan (HiringPlans).
 
 export type HiringDelivery = "email" | "ehf";
+export type HiringOption = { code: string; name: string };
+export type HiringTradeOption = { key: string; name: string };
+
+/** What the confirm screen sets for the alerts; the four controls of "Hva vil du motta". */
+export type HiringConfirmReceive = { counties: string[]; trades: string[]; frequency: HiringFrequency; only_new: boolean };
 
 export type HiringConfirm = {
   person: { full_name: string; role: string; email: string };
-  company: {
-    name: string;
-    org_number: string | null;
-    address: string;
-    postal_code: string;
-    city: string;
-    billing_same_as_address: boolean;
-    billing_address: string;
-    billing_postal_code: string;
-    billing_city: string;
-    delivery: HiringDelivery | null;
-    invoice_email: string;
-    /** The invoice e-mail on file is shown read-only; it cannot be changed from the link. */
-    invoice_email_locked: boolean;
-  };
+  /** Shown read-only with his details. */
+  company: { name: string; org_number: string | null };
+  /** The prefill: the owner's suggestion, else the firm's own county, else nothing. */
+  receive: HiringConfirmReceive & { suggested: boolean };
+  options: { counties: HiringOption[]; trades: HiringTradeOption[] };
+  /** "Treff nå" for the prefill. */
+  matches: number;
   /** The beta sentence, the label of the second box. */
   beta: string;
 };
 
-/** What the client has on the screen: the details as he edits them, and the two boxes. */
+/** What the client has on the screen: his details as he edits them, what he receives, and the two boxes. */
 export type HiringConfirmValues = {
   full_name: string;
   role: string;
   email: string;
-  billing_same_as_address: boolean;
-  billing_address: string;
-  billing_postal_code: string;
-  billing_city: string;
-  delivery: HiringDelivery | null;
-  invoice_email: string;
+  trades: string[];
+  counties: string[];
+  frequency: HiringFrequency;
+  only_new: boolean;
   accept_terms: boolean;
   accept_beta: boolean;
 };
 
 const CONFIRM_EMAIL = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
+/** The most trades or counties one choice may hold, the same bound as the settings. */
+export const RECEIVE_MAX = 20;
 
 /** The screen's starting values, from what the ATS holds; both boxes unticked. */
 export function hiringConfirmValues(c: HiringConfirm): HiringConfirmValues {
@@ -718,30 +721,20 @@ export function hiringConfirmValues(c: HiringConfirm): HiringConfirmValues {
     full_name: c.person.full_name,
     role: c.person.role,
     email: c.person.email,
-    billing_same_as_address: c.company.billing_same_as_address,
-    billing_address: c.company.billing_address,
-    billing_postal_code: c.company.billing_postal_code,
-    billing_city: c.company.billing_city,
-    delivery: c.company.delivery === "ehf" && !hasEhfAddress(c) ? null : c.company.delivery,
-    invoice_email: c.company.invoice_email,
+    trades: [...c.receive.trades],
+    counties: [...c.receive.counties],
+    frequency: c.receive.frequency,
+    only_new: c.receive.only_new,
     accept_terms: false,
     accept_beta: false,
   };
 }
 
-/** EHF needs the firm's 9-digit organisation number as its address. */
-export function hasEhfAddress(c: HiringConfirm): boolean {
-  return Boolean(c.company.org_number && ORGNR.test(c.company.org_number));
-}
-
 /** Whether "Godta og start" may be pressed: every rule of the screen, checked in one place. */
-export function hiringConfirmReady(v: HiringConfirmValues, c: HiringConfirm): boolean {
+export function hiringConfirmReady(v: HiringConfirmValues): boolean {
   if (v.full_name.trim().length < 2) return false;
   if (!CONFIRM_EMAIL.test(v.email.trim())) return false;
-  if (v.delivery === null) return false;
-  if (v.delivery === "ehf" && !hasEhfAddress(c)) return false;
-  if (v.delivery === "email" && !CONFIRM_EMAIL.test(v.invoice_email.trim())) return false;
-  if (!v.billing_same_as_address && (!v.billing_address.trim() || !v.billing_postal_code.trim())) return false;
+  if (v.trades.length < 1 || v.counties.length < 1) return false;
   return v.accept_terms && v.accept_beta;
 }
 
@@ -750,18 +743,24 @@ export function hiringConfirmBody(v: HiringConfirmValues): Record<string, unknow
   return {
     action: "hiring_confirm",
     person: { full_name: v.full_name.trim(), role: v.role.trim(), email: v.email.trim() },
-    billing: {
-      billing_same_as_address: v.billing_same_as_address,
-      billing_address: v.billing_address.trim(),
-      billing_postal_code: v.billing_postal_code.trim(),
-      billing_city: v.billing_city.trim(),
-      delivery: v.delivery,
-      invoice_email: v.invoice_email.trim(),
-    },
+    receive: { trades: v.trades, counties: v.counties, frequency: v.frequency, only_new: v.only_new },
     accept_terms: v.accept_terms,
     accept_beta: v.accept_beta,
   };
 }
+
+/** The live count's request for the choice on screen. */
+export function hiringConfirmCountBody(v: Pick<HiringConfirmValues, "counties" | "trades">): Record<string, unknown> {
+  return { action: "hiring_confirm_count", counties: v.counties, trades: v.trades };
+}
+
+/** The number in the answer to hiring_confirm_count, or null when it is not one. */
+export function confirmMatchesFrom(data: unknown): number | null {
+  const n = obj(data)?.matches;
+  return typeof n === "number" && Number.isFinite(n) && n >= 0 ? Math.round(n) : null;
+}
+
+const frequencyOf = (v: unknown): HiringFrequency => (v === "daily" || v === "monthly" ? v : "weekly");
 
 function hiringConfirmFrom(raw: unknown): HiringConfirm | null {
   const r = obj(raw);
@@ -769,23 +768,148 @@ function hiringConfirmFrom(raw: unknown): HiringConfirm | null {
   const c = obj(r?.company);
   if (!r || !p || !c) return null;
   const org = str(c.org_number, 20).replace(/\s/g, "");
+  const rc = obj(r.receive) ?? {};
+  const o = obj(r.options) ?? {};
+  const counties = countyOptions(o.counties);
+  const trades = tradeOptions(o.trades);
+  // Only what can be shown as a chip is kept as chosen.
+  const countyCodes = new Set(counties.map((x) => x.code));
+  const tradeKeys = new Set(trades.map((x) => x.key));
   return {
     person: { full_name: str(p.full_name, 120), role: str(p.role, 80), email: str(p.email, 254) },
-    company: {
-      name: str(c.name, 200).trim(),
-      org_number: org || null,
-      address: str(c.address, 200),
-      postal_code: str(c.postal_code, 12),
-      city: str(c.city, 80),
-      billing_same_as_address: c.billing_same_as_address !== false,
-      billing_address: str(c.billing_address, 200),
-      billing_postal_code: str(c.billing_postal_code, 12),
-      billing_city: str(c.billing_city, 80),
-      delivery: c.delivery === "email" || c.delivery === "ehf" ? c.delivery : null,
-      invoice_email: str(c.invoice_email, 254),
-      invoice_email_locked: c.invoice_email_locked === true,
+    company: { name: str(c.name, 200).trim(), org_number: org || null },
+    receive: {
+      counties: [...new Set(strings(rc.counties, 30, 10))].filter((x) => countyCodes.has(x)).slice(0, RECEIVE_MAX),
+      trades: [...new Set(strings(rc.trades, 60, 40))].filter((x) => tradeKeys.has(x)).slice(0, RECEIVE_MAX),
+      frequency: frequencyOf(rc.frequency),
+      only_new: rc.only_new === true,
+      suggested: rc.suggested === true,
     },
+    options: { counties, trades },
+    matches: wholeOrZero(r.matches),
     beta: str(r.beta, 600).trim() || "Jeg forstår at tjenesten er i beta",
+  };
+}
+
+// ORDER 181: billing is asked only when a paid plan starts, and no plan before 1 January 2027.
+
+/** The firm's invoicing as the ATS holds it, prefilled on "Fakturering". */
+export type HiringBilling = {
+  name: string;
+  org_number: string | null;
+  address: string;
+  postal_code: string;
+  city: string;
+  billing_same_as_address: boolean;
+  billing_address: string;
+  billing_postal_code: string;
+  billing_city: string;
+  delivery: HiringDelivery | null;
+  invoice_email: string;
+  /** The invoice e-mail on file is shown read-only; it cannot be changed from the link. */
+  invoice_email_locked: boolean;
+};
+
+export type HiringPlans = {
+  /** False until the plans open (1 January 2027): no Premium button, one quiet line instead. */
+  open: boolean;
+  opens_on: string | null;
+  /** The firm has no invoice delivery on file: Premium asks "Fakturering" first. */
+  billing_needed: boolean;
+  billing: HiringBilling | null;
+};
+
+/** The plans closed, as an ATS that says nothing about them is read. */
+export const PLANS_CLOSED: HiringPlans = { open: false, opens_on: null, billing_needed: false, billing: null };
+export const PLANS_CLOSED_LINE = "Fra 1. januar velger dere abonnement.";
+
+export const NO_BILLING: HiringBilling = {
+  name: "",
+  org_number: null,
+  address: "",
+  postal_code: "",
+  city: "",
+  billing_same_as_address: true,
+  billing_address: "",
+  billing_postal_code: "",
+  billing_city: "",
+  delivery: null,
+  invoice_email: "",
+  invoice_email_locked: false,
+};
+
+/** What the client has on "Fakturering". */
+export type HiringBillingValues = {
+  billing_same_as_address: boolean;
+  billing_address: string;
+  billing_postal_code: string;
+  billing_city: string;
+  delivery: HiringDelivery | null;
+  invoice_email: string;
+};
+
+function hiringBillingFrom(raw: unknown): HiringBilling | null {
+  const c = obj(raw);
+  if (!c) return null;
+  const org = str(c.org_number, 20).replace(/\s/g, "");
+  return {
+    name: str(c.name, 200).trim(),
+    org_number: org || null,
+    address: str(c.address, 200),
+    postal_code: str(c.postal_code, 12),
+    city: str(c.city, 80),
+    billing_same_as_address: c.billing_same_as_address !== false,
+    billing_address: str(c.billing_address, 200),
+    billing_postal_code: str(c.billing_postal_code, 12),
+    billing_city: str(c.billing_city, 80),
+    delivery: c.delivery === "email" || c.delivery === "ehf" ? c.delivery : null,
+    invoice_email: str(c.invoice_email, 254),
+    invoice_email_locked: c.invoice_email_locked === true,
+  };
+}
+
+/** The plans part of the ATS's answer; absent or malformed reads as closed. */
+export function hiringPlansFrom(raw: unknown): HiringPlans {
+  const r = obj(raw);
+  if (!r) return PLANS_CLOSED;
+  return { open: r.open === true, opens_on: day(r.opens_on)?.slice(0, 10) ?? null, billing_needed: r.billing_needed === true, billing: hiringBillingFrom(r.billing) };
+}
+
+/** EHF needs the firm's 9-digit organisation number as its address. */
+export function hasEhfAddress(b: Pick<HiringBilling, "org_number">): boolean {
+  return Boolean(b.org_number && ORGNR.test(b.org_number));
+}
+
+/** The starting values of "Fakturering", from what the ATS holds. */
+export function hiringBillingValues(b: HiringBilling): HiringBillingValues {
+  return {
+    billing_same_as_address: b.billing_same_as_address,
+    billing_address: b.billing_address,
+    billing_postal_code: b.billing_postal_code,
+    billing_city: b.billing_city,
+    delivery: b.delivery === "ehf" && !hasEhfAddress(b) ? null : b.delivery,
+    invoice_email: b.invoice_email,
+  };
+}
+
+/** Whether "Fakturering" may be sent: the rules of ORDER 171's billing block. */
+export function hiringBillingReady(v: HiringBillingValues, b: HiringBilling): boolean {
+  if (v.delivery === null) return false;
+  if (v.delivery === "ehf" && !hasEhfAddress(b)) return false;
+  if (v.delivery === "email" && !CONFIRM_EMAIL.test(v.invoice_email.trim())) return false;
+  if (!v.billing_same_as_address && (!v.billing_address.trim() || !v.billing_postal_code.trim())) return false;
+  return true;
+}
+
+/** The billing part of hiring_premium. */
+export function hiringBillingBody(v: HiringBillingValues): Record<string, unknown> {
+  return {
+    delivery: v.delivery,
+    invoice_email: v.invoice_email.trim(),
+    billing_same_as_address: v.billing_same_as_address,
+    billing_address: v.billing_address.trim(),
+    billing_postal_code: v.billing_postal_code.trim(),
+    billing_city: v.billing_city.trim(),
   };
 }
 
@@ -869,6 +993,7 @@ function hiringRowFrom(r: Record<string, unknown>): HiringRow | null {
     follow_up_on: day(r.follow_up_on)?.slice(0, 10) ?? null,
     opened: r.opened === true,
     watched: r.watched === true,
+    label: textOrNull(r.label, 120),
   };
 }
 
@@ -1039,6 +1164,7 @@ export function hiringFrom(raw: unknown): Hiring | null {
     prefs: hiringPrefsFrom(r.prefs),
     confirm: t.accepted === true ? null : hiringConfirmFrom(r.confirm),
     beta_notice: textOrNull(r.beta_notice, 600),
+    plans: hiringPlansFrom(r.plans),
   };
 }
 
@@ -1156,6 +1282,7 @@ export const HIRING_ACTIONS = [
   "hiring_prefs_firms",
   "hiring_confirm",
   "hiring_beta_ack",
+  "hiring_confirm_count",
 ] as const;
 
 export function isHiringAction(v: unknown): v is (typeof HIRING_ACTIONS)[number] {
@@ -1270,31 +1397,66 @@ function prefsFirmsRequest(raw: Record<string, unknown>): Record<string, unknown
   return { action, [key]: value };
 }
 
+const boundedText = (v: unknown, max: number): string | null => (typeof v === "string" && v.length <= max ? v : null);
+const isCountyCode = (x: unknown) => typeof x === "string" && COUNTY_CODE.test(x);
+const isTradeKey = (x: unknown) => typeof x === "string" && TRADE_KEY.test(x);
+
 /**
- * ORDER 171: "Godta og start", the person, the billing and the two boxes, each
- * field a bounded plain value. The shapes (the e-mails, the postnummer, the
- * ticks) are the ATS's to refuse, so its message lands under the right field.
+ * ORDER 171 and 181: the billing of a paid plan (ORDER 171's fields), each a
+ * bounded plain value, or null when it is not shaped like one. The postnummer
+ * and the e-mail are the ATS's to refuse, so its message lands at its field.
  */
-function confirmRequest(raw: Record<string, unknown>): Record<string, unknown> | null {
-  const p = obj(raw.person);
-  const b = obj(raw.billing);
-  if (!p || !b) return null;
-  const text = (v: unknown, max: number): string | null => (typeof v === "string" && v.length <= max ? v : null);
-  const person = { full_name: text(p.full_name, 120), role: text(p.role ?? "", 80), email: text(p.email, 254) };
+function billingRequest(raw: unknown): Record<string, unknown> | null {
+  const b = obj(raw);
+  if (!b) return null;
   const billing = {
-    billing_same_as_address: b.billing_same_as_address,
-    billing_address: text(b.billing_address ?? "", 200),
-    billing_postal_code: text(b.billing_postal_code ?? "", 12),
-    billing_city: text(b.billing_city ?? "", 80),
     delivery: b.delivery,
-    invoice_email: text(b.invoice_email ?? "", 254),
+    invoice_email: boundedText(b.invoice_email ?? "", 254),
+    billing_same_as_address: b.billing_same_as_address,
+    billing_address: boundedText(b.billing_address ?? "", 200),
+    billing_postal_code: boundedText(b.billing_postal_code ?? "", 12),
+    billing_city: boundedText(b.billing_city ?? "", 80),
   };
-  if (Object.values(person).some((v) => v === null)) return null;
   if (typeof billing.billing_same_as_address !== "boolean") return null;
   if ([billing.billing_address, billing.billing_postal_code, billing.billing_city, billing.invoice_email].some((v) => v === null)) return null;
   if (billing.delivery !== "email" && billing.delivery !== "ehf") return null;
+  return billing;
+}
+
+/** ORDER 181: "Premium", with the billing of "Fakturering" when the firm has none on file. */
+function premiumRequest(raw: Record<string, unknown>): Record<string, unknown> | null {
+  if (raw.billing === undefined) return { action: "hiring_premium" };
+  const billing = billingRequest(raw.billing);
+  return billing ? { action: "hiring_premium", billing } : null;
+}
+
+/** ORDER 181: the live count on "Bekreft og start", the counties and trades on screen; none is a valid choice. */
+function confirmCountRequest(raw: Record<string, unknown>): Record<string, unknown> | null {
+  const counties = boundedList(raw.counties ?? [], isCountyCode);
+  const trades = boundedList(raw.trades ?? [], isTradeKey);
+  return counties && trades ? { action: "hiring_confirm_count", counties, trades } : null;
+}
+
+/**
+ * ORDER 171 and 181: "Godta og start", the person, what he receives and the
+ * two boxes, each field a bounded plain value; no billing any more. The shapes
+ * (the e-mail, at least one trade and county, the ticks) are the ATS's to
+ * refuse, so its message lands under the right field.
+ */
+function confirmRequest(raw: Record<string, unknown>): Record<string, unknown> | null {
+  const p = obj(raw.person);
+  const rc = obj(raw.receive);
+  if (!p || !rc) return null;
+  const person = { full_name: boundedText(p.full_name, 120), role: boundedText(p.role ?? "", 80), email: boundedText(p.email, 254) };
+  if (Object.values(person).some((v) => v === null)) return null;
+  const counties = boundedList(rc.counties, isCountyCode);
+  const trades = boundedList(rc.trades, isTradeKey);
+  if (!counties || !trades) return null;
+  if (rc.frequency !== "daily" && rc.frequency !== "weekly" && rc.frequency !== "monthly") return null;
+  if (typeof rc.only_new !== "boolean") return null;
   if (typeof raw.accept_terms !== "boolean" || typeof raw.accept_beta !== "boolean") return null;
-  return { action: "hiring_confirm", person, billing, accept_terms: raw.accept_terms, accept_beta: raw.accept_beta };
+  const receive = { trades, counties, frequency: rc.frequency, only_new: rc.only_new };
+  return { action: "hiring_confirm", person, receive, accept_terms: raw.accept_terms, accept_beta: raw.accept_beta };
 }
 
 /**
@@ -1307,7 +1469,6 @@ export function hiringRequest(raw: Record<string, unknown>): Record<string, unkn
   switch (action) {
     case "hiring_viewed":
     case "hiring_stop":
-    case "hiring_premium":
     case "projects_trial":
     case "close_account":
       return { action };
@@ -1354,6 +1515,10 @@ export function hiringRequest(raw: Record<string, unknown>): Record<string, unkn
       return { action };
     case "hiring_confirm":
       return confirmRequest(raw);
+    case "hiring_confirm_count":
+      return confirmCountRequest(raw);
+    case "hiring_premium":
+      return premiumRequest(raw);
     default:
       return null;
   }

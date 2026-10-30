@@ -66,7 +66,7 @@ const rawHiring = (prefs: unknown = rawPrefs()) => ({
 
 const prefs = (extra: Record<string, unknown> = {}) => hiringPrefsFrom(rawPrefs(extra)) as HiringPrefs;
 const saver = (extra: Partial<Saver> = {}): Saver => ({ busy: false, save: vi.fn(async () => ({ ok: true as const })), fieldError: () => null, ...extra });
-const premium: PremiumOffer = { ask: () => {}, busy: false, sent: false, error: null };
+const premium: PremiumOffer = { ask: () => {}, busy: false, sent: false, error: null, open: true };
 const controls = (html: string) => (html.match(/data-control=""/g) ?? []).length;
 
 describe("the settings as the ATS sends them", () => {
@@ -162,6 +162,20 @@ describe("the three tabs", () => {
     expect(html).toContain("Basis gjelder ett fylke.");
     expect(html).toMatch(/<button type="button"[^>]*>Premium<\/button>/);
     expect(html).toContain("Vi kjenner ikke adressen deres.");
+  });
+
+  it("ORDER 181: while the plans are closed, the 402 sentence comes with one quiet line and no Premium button", () => {
+    const html = renderToStaticMarkup(createElement(ReceivePanel, { prefs: prefs(), saver: saver({ fieldError: (f) => (f === "premium" ? "Basis gjelder ett fylke." : null) }), premium: { ...premium, open: false } }));
+    expect(html).toContain("Basis gjelder ett fylke.");
+    expect(html).toContain("Fra 1. januar velger dere abonnement.");
+    expect(html).not.toMatch(/>Premium<\/button>/);
+  });
+
+  it("ORDER 181: the only-new setting reads Bare nye stillinger siden sist, same field", () => {
+    const html = renderToStaticMarkup(createElement(ReceivePanel, { prefs: prefs(), saver: saver(), premium }));
+    expect(html).toContain("Bare nye stillinger siden sist");
+    expect(html).not.toContain("Bare bedrifter som er nye siden forrige e-post");
+    expect(source("MinSideHiringSettings.tsx")).toContain("onChange={(e) => save({ only_new: e.target.checked })}");
   });
 
   it("says Basis: ett fylke when the county limit is one", () => {

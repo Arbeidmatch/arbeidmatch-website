@@ -7,8 +7,11 @@ import dynamic from "next/dynamic";
 import { FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import {
   HIRING_STATUS_NO,
+  NO_BILLING,
   NO_HIRING_FILTER,
+  PLANS_CLOSED_LINE,
   dayNo,
+  hiringBillingBody,
   hiringCardFrom,
   hiringCsvHref,
   leadAction,
@@ -18,7 +21,9 @@ import {
   visibleHiringRows,
   type Hiring,
   type HiringCard,
+  type HiringBillingValues,
   type HiringFilter,
+  type HiringPlans,
   type HiringProjects,
   type HiringRow,
   type TermsText,
@@ -38,6 +43,7 @@ import {
   GREEN_CARD,
   GREEN_TEXT,
   INK,
+  LABEL_CHIP,
   LOCKED,
   LOCKED_CHIP,
   MUTED_L,
@@ -46,8 +52,9 @@ import {
   TH_L,
   chip,
 } from "./ui";
+import { HiringBillingScreen } from "./MinSideHiringBilling";
 import HiringConfirmScreen from "./MinSideHiringConfirm";
-import MinSideHiringSettings from "./MinSideHiringSettings";
+import MinSideHiringSettings, { type PremiumOffer } from "./MinSideHiringSettings";
 
 /**
  * ORDER 157: "Bedrifter som ansetter", the firms that hire in the client's
@@ -473,6 +480,59 @@ function LeadCard({ orgnr, send, sendData }: { orgnr: string; send: Send; sendDa
 // The section.
 // ---------------------------------------------------------------------------
 
+/**
+ * ORDER 181: the one way to Premium on the section, used by the Basis card,
+ * the "Bedriftskortet er Premium" dialog and the settings' county offer.
+ * Closed (before 1 January 2027) it does nothing and the places show one
+ * quiet line instead of a button. Open, it sends hiring_premium; when the
+ * firm has no invoicing on file (billing_needed, or the ATS answers 409 field
+ * "billing") it opens "Fakturering" first and sends the billing with it.
+ */
+export function usePremium(plans: HiringPlans, send: Send): PremiumOffer & { billing: boolean; closeBilling: () => void; submitBilling: (v: HiringBillingValues) => Promise<Saved> } {
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [billing, setBilling] = useState(false);
+  const ask = () => {
+    if (!plans.open || busy || sent) return;
+    setError(null);
+    if (plans.billing_needed) {
+      setBilling(true);
+      return;
+    }
+    setBusy(true);
+    void send({ action: "hiring_premium" }).then((r) => {
+      setBusy(false);
+      if (r.ok) setSent(true);
+      else if (r.field === "billing") setBilling(true);
+      else setError(r.message);
+    });
+  };
+  const submitBilling = async (v: HiringBillingValues): Promise<Saved> => {
+    const r = await send({ action: "hiring_premium", billing: hiringBillingBody(v) });
+    if (r.ok) {
+      setSent(true);
+      setBilling(false);
+    }
+    return r;
+  };
+  return { open: plans.open, ask, busy, sent, error, billing, closeBilling: () => setBilling(false), submitBilling };
+}
+
+/** Where a Premium button would be while the plans are closed: one quiet line. */
+function PlansClosed() {
+  return (
+    <p data-plans-closed="" className={`min-w-0 text-sm ${MUTED_L}`}>
+      {PLANS_CLOSED_LINE}
+    </p>
+  );
+}
+
+/** ORDER 181: why the firm is on the list, as a small tag. */
+function RowLabel({ label }: { label: string | null }) {
+  return label ? <span className={LABEL_CHIP}>{label}</span> : null;
+}
+
 export type MinSideHiringProps = {
   token: string;
   hiring: Hiring;
@@ -547,9 +607,7 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
   const [shown, setShown] = useState(PAGE);
   const [lead, setLead] = useState<string | null>(null);
   const [premiumAsk, setPremiumAsk] = useState(false);
-  const [premiumSent, setPremiumSent] = useState(false);
-  const [premiumBusy, setPremiumBusy] = useState(false);
-  const [premiumError, setPremiumError] = useState<string | null>(null);
+  const premium = usePremium(hiring.plans, send);
   const [betaSeen, setBetaSeen] = useState(false);
 
   const rows = useMemo(() => visibleHiringRows(hiring.rows, filter, since, subscription.tier), [hiring.rows, filter, since, subscription.tier]);
@@ -562,9 +620,9 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
 
   if (!terms.accepted) {
     if (!terms.ready) return <p className={`text-sm ${MUTED_L}`}>Tjenesten åpnes snart.</p>;
-    // ORDER 171: the person, the billing and the terms on one screen. An older ATS without
+    // ORDER 171 and 181: the person, what he receives and the terms on one screen. An older ATS without
     // `confirm` keeps the terms dialog below.
-    if (hiring.confirm) return <HiringConfirmScreen confirm={hiring.confirm} terms={terms} send={send} />;
+    if (hiring.confirm) return <HiringConfirmScreen confirm={hiring.confirm} terms={terms} send={send} sendData={sendData} />;
     return (
       <>
         <div className={`${GOLD_CARD} flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5`}>
@@ -588,16 +646,17 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
     );
   }
 
-  const askPremium = async () => {
-    setPremiumBusy(true);
-    setPremiumError(null);
-    const r = await send({ action: "hiring_premium" });
-    setPremiumBusy(false);
-    if (r.ok) {
-      setPremiumSent(true);
-      setPremiumAsk(false);
-    } else setPremiumError(r.message);
-    return r;
+  // ORDER 181: "Fakturering" in place of the section while a paid plan waits for the firm's invoicing.
+  if (premium.billing) {
+    return (
+      <HiringBillingScreen billing={hiring.plans.billing ?? NO_BILLING} submit={premium.submitBilling} onCancel={premium.closeBilling} />
+    );
+  }
+
+  const askPremium = async (): Promise<Saved> => {
+    setPremiumAsk(false);
+    premium.ask();
+    return { ok: true };
   };
   const openLead = (row: HiringRow) => (leadAction(subscription.tier) === "card" ? setLead(row.orgnr) : setPremiumAsk(true));
   const set = (part: Partial<HiringFilter>) => {
@@ -612,21 +671,23 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
       {hiring.beta_notice && !betaSeen ? <BetaNotice text={hiring.beta_notice} send={send} onSeen={() => setBetaSeen(true)} /> : null}
       {basis ? (
         <div className={`${GOLD_CARD} flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5`}>
-          <p className={`min-w-0 flex-1 basis-[200px] text-[15px] font-semibold ${INK}`}>{premiumSent ? "Vi har fått beskjed og sender dere et tilbud." : "Prøveperioden er over"}</p>
-          {premiumSent ? null : (
-            <button type="button" className={BTN_OUTLINE} disabled={premiumBusy} onClick={() => void askPremium()}>
-              {premiumBusy ? "Sender ..." : "Premium"}
+          <p className={`min-w-0 flex-1 basis-[200px] text-[15px] font-semibold ${INK}`}>{premium.sent ? "Vi har fått beskjed og sender dere et tilbud." : "Prøveperioden er over"}</p>
+          {premium.sent ? null : premium.open ? (
+            <button type="button" className={BTN_OUTLINE} disabled={premium.busy} onClick={premium.ask}>
+              {premium.busy ? "Sender ..." : "Premium"}
             </button>
+          ) : (
+            <PlansClosed />
           )}
-          {premiumError ? (
+          {premium.error ? (
             <p role="alert" className={`w-full text-sm font-semibold ${ERROR_L}`}>
-              {premiumError}
+              {premium.error}
             </p>
           ) : null}
         </div>
       ) : null}
 
-      {hiring.prefs ? <MinSideHiringSettings prefs={hiring.prefs} send={send} sendData={sendData} /> : null}
+      {hiring.prefs ? <MinSideHiringSettings prefs={hiring.prefs} send={send} sendData={sendData} premium={premium} /> : null}
 
       <div className="flex flex-wrap items-end gap-3" role="group" aria-label="Filtre">
         <label className="flex min-w-[150px] flex-1 basis-[150px] flex-col gap-1 sm:flex-none">
@@ -699,6 +760,11 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
                 <tr key={r.orgnr} className={`border-b ${RULE} align-top`}>
                   <td className={`break-words px-2 py-2.5 font-semibold ${INK}`}>
                     {r.name}
+                    {r.label ? (
+                      <span className="mt-1 flex font-normal">
+                        <RowLabel label={r.label} />
+                      </span>
+                    ) : null}
                     {r.positions > 1 ? <span className={`block text-xs font-normal ${MUTED_L}`}>{r.positions} stillinger</span> : null}
                     {hiring.prefs ? (
                       <div className="mt-2 font-normal">
@@ -727,6 +793,11 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
               <li key={r.orgnr} className="flex min-w-0 flex-col gap-2 py-3 first:pt-0">
                 <div className="min-w-0">
                   <p className={`break-words text-[15px] font-semibold ${INK}`}>{r.name}</p>
+                  {r.label ? (
+                    <p className="my-1 flex">
+                      <RowLabel label={r.label} />
+                    </p>
+                  ) : null}
                   <p className={`break-words text-sm ${MUTED_L}`}>{[[r.town, r.county_name].filter(Boolean).join(", "), r.trade_names.join(", "), r.published ? dayNo(r.published) : null].filter(Boolean).join(" · ")}</p>
                   <p className={`break-words text-sm ${SOFT}`}>{basis ? <Locked label="Behov" /> : r.behov}</p>
                 </div>
@@ -777,7 +848,18 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
       ) : null}
       {premiumAsk ? (
         <PortalModal title="Bedriftskortet er Premium" size="narrow" onClose={() => setPremiumAsk(false)}>
-          <ConfirmForm text="Med Premium ser dere hele bedriftskortet: behov, språk, bransje, ansatte og kontaktopplysninger." label="Premium" onConfirm={askPremium} onCancel={() => setPremiumAsk(false)} />
+          {premium.open ? (
+            <ConfirmForm text="Med Premium ser dere hele bedriftskortet: behov, språk, bransje, ansatte og kontaktopplysninger." label="Premium" onConfirm={askPremium} onCancel={() => setPremiumAsk(false)} />
+          ) : (
+            <div className="flex flex-col gap-4">
+              <p className="text-[15px] leading-relaxed text-white">{PLANS_CLOSED_LINE}</p>
+              <div className="flex flex-wrap gap-3 pt-1">
+                <button type="button" className={SECONDARY} onClick={() => setPremiumAsk(false)}>
+                  Lukk
+                </button>
+              </div>
+            </div>
+          )}
         </PortalModal>
       ) : null}
     </div>

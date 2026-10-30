@@ -58,5 +58,8 @@ export const CHECK_D = "h-5 w-5 shrink-0 accent-[#C9A84C]";
 /** The smallest print on the page (the projects' source line has the same). */
 export const FINE_PRINT = "text-[11px] font-normal leading-normal text-[#9AA3AF]";
 
+/** ORDER 181: why a firm is on the list ("Ny bedrift", "Nye stillinger: ..."), a small tag that wraps on a phone. */
+export const LABEL_CHIP = "inline-flex max-w-full items-center rounded-full border border-[#E9D9A6] bg-[#FBF6E8] px-2.5 py-0.5 text-xs font-semibold leading-snug text-[#7A5A12] break-words";
+
 /** A text link inside a list, navy and underlined. */
 export const LINK_L = "inline-flex min-h-[44px] shrink-0 items-center whitespace-nowrap text-sm font-semibold text-[#1B2B44] underline underline-offset-4 hover:text-[#24385a]";

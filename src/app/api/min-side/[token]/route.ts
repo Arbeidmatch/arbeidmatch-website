@@ -40,7 +40,8 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   const action = raw.action;
   // ORDER 170: the hiring settings save on every change, so they count in a bucket of their own and
   // ordinary use of the settings never reaches the general limit of the page's other changes.
-  const rate = isHiringPrefsAction(action)
+  // ORDER 181: so does the live count on "Bekreft og start", asked as the client picks.
+  const rate = isHiringPrefsAction(action) || action === "hiring_confirm_count"
     ? getRateLimitResult(request, "min-side-prefs", 120, 10 * 60 * 1000)
     : getRateLimitResult(request, "min-side-post", 30, 10 * 60 * 1000);
   if (rate.limited) return noStoreJson({ error: TOO_MANY }, { status: 429 });

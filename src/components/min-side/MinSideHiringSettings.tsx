@@ -4,7 +4,7 @@ import { useId, useMemo, useState, type FocusEvent, type FormEvent, type Keyboar
 
 import dynamic from "next/dynamic";
 
-import { dayNo, hiringLetterFrom, type HiringFrequency, type HiringLetter, type HiringPrefs, type HiringSignal } from "@/lib/min-side/profile";
+import { PLANS_CLOSED_LINE, dayNo, hiringLetterFrom, type HiringFrequency, type HiringLetter, type HiringPrefs, type HiringSignal } from "@/lib/min-side/profile";
 import type { Fetched, Saved } from "./MinSideHiring";
 import { BTN_OUTLINE, CARD_L, DIVIDE_L, ERROR_L, FIELD_L, GOLD_CARD, GREEN_TEXT, INK, MUTED_L, RULE, SOFT, chip } from "./ui";
 
@@ -36,7 +36,10 @@ export const SETTINGS_TABS: { key: TabKey; label: string }[] = [
 
 /** What a panel needs to save: whether a save is in flight, the save itself, and the error for one field. */
 export type Saver = { busy: boolean; save: (body: Record<string, unknown>) => Promise<Saved>; fieldError: (field: string) => string | null };
-export type PremiumOffer = { ask: () => void; busy: boolean; sent: boolean; error: string | null };
+/** ORDER 181: `open` is false until a paid plan can be chosen (1 January 2027); then no Premium button shows. */
+export type PremiumOffer = { ask: () => void; busy: boolean; sent: boolean; error: string | null; open: boolean };
+/** No plan to offer: what the settings use when the section gives them none. */
+export const NO_PREMIUM: PremiumOffer = { ask: () => {}, busy: false, sent: false, error: null, open: false };
 
 /** The fields whose error is shown beside their own control rather than under the panel. */
 const OWN_PLACE = new Set(["premium", "radius_km"]);
@@ -46,7 +49,7 @@ const SIGNALS: { key: HiringSignal; label: string }[] = [
   { key: "won", label: "Vant offentlig kontrakt" },
   { key: "both", label: "Begge" },
 ];
-const FREQUENCIES: { key: HiringFrequency; label: string }[] = [
+export const FREQUENCIES: { key: HiringFrequency; label: string }[] = [
   { key: "daily", label: "Daglig" },
   { key: "weekly", label: "Ukentlig" },
   { key: "monthly", label: "Månedlig" },
@@ -63,11 +66,11 @@ export function isoDay(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-const toggled = (list: string[], value: string) => (list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
-const firmsWord = (n: number) => (n === 1 ? "1 bedrift" : `${n} bedrifter`);
+export const toggled = (list: string[], value: string) => (list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
+export const firmsWord = (n: number) => (n === 1 ? "1 bedrift" : `${n} bedrifter`);
 
 /** One control of a panel: a fieldset with its name, so each tab can be counted (data-control). */
-function Control({ legend, note, children }: { legend: string; note?: ReactNode; children: ReactNode }) {
+export function Control({ legend, note, children }: { legend: string; note?: ReactNode; children: ReactNode }) {
   return (
     <fieldset data-control="" className="flex min-w-0 flex-col gap-2">
       <legend className={`mb-2 flex flex-wrap items-baseline gap-x-2 text-sm font-semibold ${INK}`}>
@@ -79,7 +82,7 @@ function Control({ legend, note, children }: { legend: string; note?: ReactNode;
   );
 }
 
-function Chips({ children }: { children: ReactNode }) {
+export function Chips({ children }: { children: ReactNode }) {
   return <div className="flex min-w-0 flex-wrap gap-2">{children}</div>;
 }
 
@@ -177,6 +180,15 @@ function EmployeesFields({ min, max, onSave }: { min: number | null; max: number
 }
 
 function PremiumBox({ message, premium }: { message: string; premium: PremiumOffer }) {
+  if (!premium.open) {
+    // ORDER 181: no plan before 1 January; the refusal and one quiet line, no button.
+    return (
+      <div className={`${CARD_L} flex min-w-0 flex-col gap-1 p-3`}>
+        <p className={`text-sm ${INK}`}>{message}</p>
+        <p className={`text-sm ${MUTED_L}`}>{PLANS_CLOSED_LINE}</p>
+      </div>
+    );
+  }
   return (
     <div className={`${GOLD_CARD} flex flex-wrap items-center justify-between gap-3 p-3`}>
       <p className={`min-w-0 flex-1 basis-[200px] text-sm ${INK}`}>{premium.sent ? "Vi har fått beskjed og sender dere et tilbud." : message}</p>
@@ -264,10 +276,10 @@ export function ReceivePanel({ prefs, saver, premium }: { prefs: HiringPrefs; sa
         </Chips>
       </Control>
 
-      <Control legend="Nye bedrifter">
+      <Control legend="Nye stillinger">
         <label className={`flex min-h-[44px] items-center gap-3 text-[15px] ${SOFT}`}>
           <input type="checkbox" className={CHECK_L} checked={r.only_new} onChange={(e) => save({ only_new: e.target.checked })} />
-          Bare bedrifter som er nye siden forrige e-post
+          Bare nye stillinger siden sist
         </label>
       </Control>
     </fieldset>
@@ -548,16 +560,15 @@ export type MinSideHiringSettingsProps = {
   /** For a test or a link: open at once, on this tab. */
   initialOpen?: boolean;
   initialTab?: TabKey;
+  /** ORDER 181: the section's one Premium path (closed before 1 January, "Fakturering" when billing is needed). */
+  premium?: PremiumOffer;
 };
 
-export default function MinSideHiringSettings({ prefs, send, sendData, initialOpen = false, initialTab = "receive" }: MinSideHiringSettingsProps) {
+export default function MinSideHiringSettings({ prefs, send, sendData, initialOpen = false, initialTab = "receive", premium = NO_PREMIUM }: MinSideHiringSettingsProps) {
   const [open, setOpen] = useState(initialOpen);
   const [tab, setTab] = useState<TabKey>(initialTab);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Saved | null>(null);
-  const [premiumBusy, setPremiumBusy] = useState(false);
-  const [premiumSent, setPremiumSent] = useState(false);
-  const [premiumError, setPremiumError] = useState<string | null>(null);
   const base = useId();
 
   const save = async (body: Record<string, unknown>): Promise<Saved> => {
@@ -569,20 +580,6 @@ export default function MinSideHiringSettings({ prefs, send, sendData, initialOp
     return r;
   };
   const saver: Saver = { busy, save, fieldError: (field) => (result && !result.ok && result.field === field ? result.message : null) };
-  const premium: PremiumOffer = {
-    busy: premiumBusy,
-    sent: premiumSent,
-    error: premiumError,
-    ask: () => {
-      setPremiumBusy(true);
-      setPremiumError(null);
-      void send({ action: "hiring_premium" }).then((r) => {
-        setPremiumBusy(false);
-        if (r.ok) setPremiumSent(true);
-        else setPremiumError(r.message);
-      });
-    },
-  };
 
   const onTabKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;

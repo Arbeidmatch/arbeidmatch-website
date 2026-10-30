@@ -1,68 +1,51 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
-import { hasEhfAddress, hiringConfirmBody, hiringConfirmReady, hiringConfirmValues, orgNumberNo, type HiringConfirm, type HiringConfirmValues, type TermsText } from "@/lib/min-side/profile";
-import type { Saved } from "./MinSideHiring";
-import { BTN_OUTLINE, CARD_L, ERROR_L, FIELD_L, INK, MUTED_L, SOFT } from "./ui";
+import {
+  RECEIVE_MAX,
+  confirmMatchesFrom,
+  hiringConfirmBody,
+  hiringConfirmCountBody,
+  hiringConfirmReady,
+  hiringConfirmValues,
+  orgNumberNo,
+  type HiringConfirm,
+  type HiringConfirmValues,
+  type TermsText,
+} from "@/lib/min-side/profile";
+import type { Fetched, Saved } from "./MinSideHiring";
+import { Block, CHECK, CHOICE, FieldError, ReadOnlyLine, TextField, type Failed } from "./MinSideHiringBilling";
+import { Chips, Control, FREQUENCIES, firmsWord, toggled } from "./MinSideHiringSettings";
+import { BTN_OUTLINE, FIELD_L, INK, MUTED_L, SOFT, chip } from "./ui";
 
 /**
  * ORDER 171: "Bekreft og start", the one screen an invited client sees before
- * the hiring list. Three blocks of at most seven controls: who he is, how his
- * firm is invoiced, and the terms with the two boxes. "Godta og start" stays
- * disabled until every rule in hiringConfirmReady holds; on success the page
- * reloads and the section shows the list.
+ * the hiring list. ORDER 181: three blocks, each of at most seven controls:
+ * who he is (with the firm read-only), what he wants to receive (trades,
+ * counties, how often, only new; nothing else, his rule P4), and the terms
+ * with the two boxes. Billing is asked later, only when a paid plan starts.
+ * "Godta og start" stays disabled until every rule in hiringConfirmReady holds;
+ * on success the page reloads and the section shows the list.
  */
 
 type Send = (body: Record<string, unknown>) => Promise<Saved>;
-type Failed = { message: string; field: string | null } | null;
+type SendData = (body: Record<string, unknown>) => Promise<Fetched>;
 
 /** The fields the ATS can name in a refusal; anything else is shown above the button. */
-const OWN_PLACE = new Set(["full_name", "email", "delivery", "invoice_email", "billing_postal_code", "accept_terms", "accept_beta"]);
+const OWN_PLACE = new Set(["full_name", "email", "trades", "counties", "frequency", "accept_terms", "accept_beta"]);
 
-const CHECK = "h-5 w-5 shrink-0 accent-[#1B2B44]";
-const READ_ONLY = `${FIELD_L} cursor-default bg-[#F4F6F9]`;
-const CHOICE = `flex min-h-[44px] items-center gap-3 text-[15px] ${INK}`;
+/** How long the live count waits after the last change before it asks. */
+export const COUNT_DELAY_MS = 300;
 
-function FieldError({ message }: { message: string | null }) {
-  return message ? (
-    <p role="alert" className={`text-sm font-semibold ${ERROR_L}`}>
-      {message}
-    </p>
-  ) : null;
-}
+/** The live count: a number, null while it is asked, false when it could not be had. */
+export type Matches = number | null | false;
 
-function Block({ id, title, children }: { id: string; title: string; children: ReactNode }) {
-  return (
-    <section data-block={id} aria-labelledby={`ms-cf-h-${id}`} className={`${CARD_L} flex min-w-0 flex-col gap-4 p-4 sm:p-5`}>
-      <h4 id={`ms-cf-h-${id}`} className={`text-[15px] font-bold ${INK}`}>
-        {title}
-      </h4>
-      {children}
-    </section>
-  );
-}
-
-/** A labelled text field; data-control marks it so a block's controls can be counted. */
-function TextField({ id, label, error, children }: { id: string; label: string; error?: string | null; children: ReactNode }) {
-  return (
-    <div data-control="" className="flex min-w-0 flex-col gap-1.5">
-      <label htmlFor={id} className={`text-sm font-semibold ${INK}`}>
-        {label}
-      </label>
-      {children}
-      <FieldError message={error ?? null} />
-    </div>
-  );
-}
-
-function ReadOnlyLine({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex min-w-0 flex-col gap-0.5">
-      <span className={`text-xs font-semibold ${MUTED_L}`}>{label}</span>
-      <span className={`min-w-0 break-words text-[15px] ${INK}`}>{children}</span>
-    </div>
-  );
+/** "Treff nå: N bedrifter", or what to do to see it. */
+export function matchesLine(counties: string[], matches: Matches): string {
+  if (counties.length === 0) return "Velg minst ett fylke for å se treff.";
+  if (matches === false) return "Treff kan ikke vises akkurat nå.";
+  return matches === null ? "Treff nå: ..." : `Treff nå: ${firmsWord(matches)}`;
 }
 
 export type ConfirmFieldsProps = {
@@ -72,16 +55,17 @@ export type ConfirmFieldsProps = {
   onChange: (part: Partial<HiringConfirmValues>) => void;
   busy: boolean;
   failed: Failed;
+  /** The live count for the counties and trades on screen. */
+  matches: Matches;
 };
 
 /** The three blocks and the button, drawn from the values; the state lives in HiringConfirmScreen. */
-export function ConfirmFields({ confirm, terms, value: v, onChange, busy, failed }: ConfirmFieldsProps) {
+export function ConfirmFields({ confirm, terms, value: v, onChange, busy, failed, matches }: ConfirmFieldsProps) {
   const c = confirm.company;
-  const ehfOk = hasEhfAddress(confirm);
+  const o = confirm.options;
   const errorFor = (field: string) => (failed?.field === field ? failed.message : null);
   const general = failed && !OWN_PLACE.has(failed.field ?? "") ? failed.message : null;
-  const ready = hiringConfirmReady(v, confirm);
-  const firmAddress = [c.address, [c.postal_code, c.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  const ready = hiringConfirmReady(v);
 
   return (
     <fieldset disabled={busy} className="flex min-w-0 flex-col gap-4">
@@ -97,70 +81,64 @@ export function ConfirmFields({ confirm, terms, value: v, onChange, busy, failed
         <TextField id="ms-cf-email" label="E-post på jobb" error={errorFor("email")}>
           <input id="ms-cf-email" className={FIELD_L} type="email" value={v.email} maxLength={254} autoComplete="email" inputMode="email" onChange={(e) => onChange({ email: e.target.value })} />
         </TextField>
-      </Block>
-
-      <Block id="company" title="Firma og fakturering">
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
           <ReadOnlyLine label="Firma">{c.name || "Ikke oppgitt"}</ReadOnlyLine>
           <ReadOnlyLine label="Org.nr">
             <span className="tabular-nums">{c.org_number ? orgNumberNo(c.org_number) : "Ikke oppgitt"}</span>
           </ReadOnlyLine>
         </div>
+      </Block>
 
-        <fieldset data-control="" className="flex min-w-0 flex-col">
-          <legend className={`mb-1 text-sm font-semibold ${INK}`}>Fakturaadresse</legend>
-          <label className={CHOICE}>
-            <input type="radio" name="ms-cf-billing" className={CHECK} checked={v.billing_same_as_address} onChange={() => onChange({ billing_same_as_address: true })} />
-            Samme som firmaadressen
-          </label>
-          {v.billing_same_as_address ? <p className={`break-words pb-1 pl-8 text-sm ${SOFT}`}>{firmAddress || "Ikke oppgitt"}</p> : null}
-          <label className={CHOICE}>
-            <input type="radio" name="ms-cf-billing" className={CHECK} checked={!v.billing_same_as_address} onChange={() => onChange({ billing_same_as_address: false })} />
-            En annen adresse
-          </label>
-        </fieldset>
-        {!v.billing_same_as_address ? (
-          <>
-            <TextField id="ms-cf-b-address" label="Adresse">
-              <input id="ms-cf-b-address" className={FIELD_L} value={v.billing_address} maxLength={200} autoComplete="street-address" onChange={(e) => onChange({ billing_address: e.target.value })} />
-            </TextField>
-            <div className="grid min-w-0 gap-4 sm:grid-cols-[140px_minmax(0,1fr)]">
-              <TextField id="ms-cf-b-postal" label="Postnummer" error={errorFor("billing_postal_code")}>
-                <input id="ms-cf-b-postal" className={FIELD_L} value={v.billing_postal_code} maxLength={12} inputMode="numeric" autoComplete="postal-code" onChange={(e) => onChange({ billing_postal_code: e.target.value })} />
-              </TextField>
-              <TextField id="ms-cf-b-city" label="Sted">
-                <input id="ms-cf-b-city" className={FIELD_L} value={v.billing_city} maxLength={80} autoComplete="address-level2" onChange={(e) => onChange({ billing_city: e.target.value })} />
-              </TextField>
-            </div>
-          </>
-        ) : null}
+      <Block id="receive" title="Hva vil du motta">
+        <Control legend="Fag">
+          <Chips>
+            {o.trades.map((t) => {
+              const on = v.trades.includes(t.key);
+              return (
+                <button key={t.key} type="button" aria-pressed={on} className={chip(on)} disabled={!on && v.trades.length >= RECEIVE_MAX} onClick={() => onChange({ trades: toggled(v.trades, t.key) })}>
+                  {t.name}
+                </button>
+              );
+            })}
+          </Chips>
+          <FieldError message={errorFor("trades")} />
+        </Control>
 
-        <fieldset data-control="" className="flex min-w-0 flex-col">
-          <legend className={`mb-1 text-sm font-semibold ${INK}`}>Faktura sendes som</legend>
-          <label className={CHOICE}>
-            <input type="radio" name="ms-cf-delivery" value="email" className={CHECK} checked={v.delivery === "email"} onChange={() => onChange({ delivery: "email" })} />
-            E-post
+        <Control legend="Fylker">
+          <Chips>
+            {o.counties.map((x) => {
+              const on = v.counties.includes(x.code);
+              return (
+                <button key={x.code} type="button" aria-pressed={on} className={chip(on)} disabled={!on && v.counties.length >= RECEIVE_MAX} onClick={() => onChange({ counties: toggled(v.counties, x.code) })}>
+                  {x.name}
+                </button>
+              );
+            })}
+          </Chips>
+          <FieldError message={errorFor("counties")} />
+        </Control>
+
+        <Control legend="Hvor ofte">
+          <Chips>
+            {FREQUENCIES.map((f) => (
+              <button key={f.key} type="button" aria-pressed={v.frequency === f.key} className={chip(v.frequency === f.key, true)} onClick={() => onChange({ frequency: f.key })}>
+                {f.label}
+              </button>
+            ))}
+          </Chips>
+          <FieldError message={errorFor("frequency")} />
+        </Control>
+
+        <Control legend="Nye stillinger">
+          <label htmlFor="ms-cf-only-new" className={`${CHOICE} ${SOFT}`}>
+            <input id="ms-cf-only-new" type="checkbox" className={CHECK} checked={v.only_new} onChange={(e) => onChange({ only_new: e.target.checked })} />
+            Bare nye stillinger siden sist
           </label>
-          <label className={`${CHOICE} ${ehfOk ? "" : "cursor-not-allowed opacity-60"}`}>
-            <input type="radio" name="ms-cf-delivery" value="ehf" className={CHECK} checked={v.delivery === "ehf"} disabled={!ehfOk} onChange={() => onChange({ delivery: "ehf" })} />
-            EHF
-          </label>
-          {ehfOk ? (
-            v.delivery === "ehf" ? <p className={`pb-1 pl-8 text-sm ${SOFT}`}>EHF-adresse: org.nr {orgNumberNo(c.org_number ?? "")}</p> : null
-          ) : (
-            <p className={`pl-8 text-sm ${MUTED_L}`}>EHF krever et gyldig org.nr.</p>
-          )}
-          <FieldError message={errorFor("delivery")} />
-        </fieldset>
-        {v.delivery === "email" ? (
-          <TextField id="ms-cf-inv-email" label="Faktura-e-post" error={errorFor("invoice_email")}>
-            {c.invoice_email_locked ? (
-              <input id="ms-cf-inv-email" className={READ_ONLY} type="email" value={v.invoice_email} readOnly aria-readonly="true" />
-            ) : (
-              <input id="ms-cf-inv-email" className={FIELD_L} type="email" value={v.invoice_email} maxLength={254} autoComplete="email" inputMode="email" onChange={(e) => onChange({ invoice_email: e.target.value })} />
-            )}
-          </TextField>
-        ) : null}
+        </Control>
+
+        <p data-matches="" className={`text-[15px] font-bold ${v.counties.length ? INK : MUTED_L}`} aria-live="polite">
+          {matchesLine(v.counties, matches)}
+        </p>
       </Block>
 
       <Block id="terms" title="Vilkår">
@@ -197,15 +175,46 @@ export function ConfirmFields({ confirm, terms, value: v, onChange, busy, failed
   );
 }
 
+/**
+ * The live count: the prefill's number at first, then hiring_confirm_count
+ * COUNT_DELAY_MS after the last change of the trades or counties. An answer
+ * that arrives after a newer change is dropped. No county asks nothing.
+ */
+function useConfirmMatches(confirm: HiringConfirm, value: HiringConfirmValues, sendData: SendData): Matches {
+  const [matches, setMatches] = useState<Matches>(confirm.matches);
+  const asked = useRef(0);
+  const { counties, trades } = value;
+  // The choice the ATS already counted: back at it, its number is shown again without asking.
+  const prefill = useRef(`${confirm.receive.counties.join(",")}|${confirm.receive.trades.join(",")}`);
+  useEffect(() => {
+    const id = ++asked.current;
+    if (counties.length === 0) return;
+    const t = window.setTimeout(() => {
+      if (`${counties.join(",")}|${trades.join(",")}` === prefill.current) {
+        setMatches(confirm.matches);
+        return;
+      }
+      setMatches(null);
+      void sendData(hiringConfirmCountBody({ counties, trades })).then((r) => {
+        if (id !== asked.current) return;
+        setMatches((r.ok ? confirmMatchesFrom(r.data) : null) ?? false);
+      });
+    }, COUNT_DELAY_MS);
+    return () => window.clearTimeout(t);
+  }, [counties, trades, sendData, confirm.matches]);
+  return matches;
+}
+
 /** The screen with its state; a success reloads the page through send, which then shows the list. */
-export default function HiringConfirmScreen({ confirm, terms, send }: { confirm: HiringConfirm; terms: TermsText; send: Send }) {
+export default function HiringConfirmScreen({ confirm, terms, send, sendData }: { confirm: HiringConfirm; terms: TermsText; send: Send; sendData: SendData }) {
   const [value, setValue] = useState<HiringConfirmValues>(() => hiringConfirmValues(confirm));
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<Failed>(null);
+  const matches = useConfirmMatches(confirm, value, sendData);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (busy || !hiringConfirmReady(value, confirm)) return;
+    if (busy || !hiringConfirmReady(value)) return;
     setBusy(true);
     setFailed(null);
     const r = await send(hiringConfirmBody(value));
@@ -222,6 +231,7 @@ export default function HiringConfirmScreen({ confirm, terms, send }: { confirm:
         value={value}
         busy={busy}
         failed={failed}
+        matches={matches}
         onChange={(part) => {
           setValue((v) => ({ ...v, ...part }));
           if (failed?.field && Object.keys(part).includes(failed.field)) setFailed(null);
