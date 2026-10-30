@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { getRateLimitResult, noStoreJson } from "@/lib/apiSecurity";
-import { alertCitiesRequest, cityQuestionRequest, hiringRequest, isCityName, isHiringAction, isProfileToken, isWhatsNewId } from "@/lib/min-side/profile";
+import { alertCitiesRequest, cityQuestionRequest, hiringRequest, isCityName, isHiringAction, isHiringPrefsAction, isProfileToken, isWhatsNewId } from "@/lib/min-side/profile";
 import { callAts } from "@/lib/prosjekter/ats";
 
 export const dynamic = "force-dynamic";
@@ -29,8 +29,6 @@ export async function GET(request: NextRequest, ctx: Ctx) {
 export async function POST(request: NextRequest, ctx: Ctx) {
   const { token } = await ctx.params;
   if (!isProfileToken(token)) return noStoreJson({ error: INVALID_LINK }, { status: 404 });
-  const rate = getRateLimitResult(request, "min-side-post", 30, 10 * 60 * 1000);
-  if (rate.limited) return noStoreJson({ error: TOO_MANY }, { status: 429 });
 
   let raw: Record<string, unknown>;
   try {
@@ -38,7 +36,14 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   } catch {
     return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
   }
-  const action = raw?.action;
+  if (!raw || typeof raw !== "object") return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+  const action = raw.action;
+  // ORDER 170: the hiring settings save on every change, so they count in a bucket of their own and
+  // ordinary use of the settings never reaches the general limit of the page's other changes.
+  const rate = isHiringPrefsAction(action)
+    ? getRateLimitResult(request, "min-side-prefs", 120, 10 * 60 * 1000)
+    : getRateLimitResult(request, "min-side-post", 30, 10 * 60 * 1000);
+  if (rate.limited) return noStoreJson({ error: TOO_MANY }, { status: 429 });
   // ORDER 157: the hiring alerts and the account; each passed on with only its named fields, bounded.
   if (isHiringAction(action)) {
     const body = hiringRequest(raw);

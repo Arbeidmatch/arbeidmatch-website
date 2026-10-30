@@ -46,6 +46,7 @@ import {
   TH_L,
   chip,
 } from "./ui";
+import MinSideHiringSettings from "./MinSideHiringSettings";
 
 /**
  * ORDER 157: "Bedrifter som ansetter", the firms that hire in the client's
@@ -505,6 +506,38 @@ function StatusButton({ row, send }: { row: HiringRow; send: Send }) {
   );
 }
 
+/**
+ * ORDER 170: "Følg" (pressed: "Følger", pressing again stops following) and
+ * "Ikke vis meg denne" on each firm. A hidden firm leaves the list after the
+ * reload; it comes back with "Angre" under Mine bedrifter.
+ */
+function FirmActions({ row, send }: { row: HiringRow; send: Send }) {
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
+  const act = async (key: "watch" | "unwatch" | "hide") => {
+    setBusy(true);
+    setFailed(null);
+    const r = await send({ action: "hiring_prefs_firms", [key]: row.orgnr });
+    setBusy(false);
+    if (!r.ok) setFailed(r.message);
+  };
+  return (
+    <div className="flex min-w-0 flex-wrap items-center gap-2">
+      <button type="button" aria-pressed={row.watched} className={chip(row.watched)} disabled={busy} onClick={() => void act(row.watched ? "unwatch" : "watch")}>
+        {row.watched ? "Følger" : "Følg"}
+      </button>
+      <button type="button" className={chip(false)} disabled={busy} onClick={() => void act("hide")}>
+        Ikke vis meg denne
+      </button>
+      {failed ? (
+        <p role="alert" className={`w-full text-xs font-semibold ${ERROR_L}`}>
+          {failed}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 export default function MinSideHiring({ token, hiring, since, send, sendData, trial, onAskPeople, focusProjects = false }: MinSideHiringProps) {
   const { terms, subscription } = hiring;
   const basis = subscription.tier === "basis";
@@ -587,6 +620,8 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
         </div>
       ) : null}
 
+      {hiring.prefs ? <MinSideHiringSettings prefs={hiring.prefs} send={send} sendData={sendData} /> : null}
+
       <div className="flex flex-wrap items-end gap-3" role="group" aria-label="Filtre">
         <label className="flex min-w-[150px] flex-1 basis-[150px] flex-col gap-1 sm:flex-none">
           <span className={`text-xs font-semibold ${MUTED_L}`}>Fylke</span>
@@ -659,6 +694,11 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
                   <td className={`break-words px-2 py-2.5 font-semibold ${INK}`}>
                     {r.name}
                     {r.positions > 1 ? <span className={`block text-xs font-normal ${MUTED_L}`}>{r.positions} stillinger</span> : null}
+                    {hiring.prefs ? (
+                      <div className="mt-2 font-normal">
+                        <FirmActions row={r} send={send} />
+                      </div>
+                    ) : null}
                   </td>
                   <td className={`break-words px-2 py-2.5 ${SOFT}`}>{[r.town, r.county_name].filter(Boolean).join(", ")}</td>
                   <td className={`break-words px-2 py-2.5 ${SOFT}`}>{r.trade_names.join(", ")}</td>
@@ -690,6 +730,7 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
                     Åpne lead
                   </button>
                 </div>
+                {hiring.prefs ? <FirmActions row={r} send={send} /> : null}
               </li>
             ))}
           </ul>

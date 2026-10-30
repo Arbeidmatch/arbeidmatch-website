@@ -634,6 +634,8 @@ export type HiringRow = {
   note: string | null;
   follow_up_on: string | null;
   opened: boolean;
+  /** ORDER 170: the client follows this firm. */
+  watched: boolean;
 };
 
 /** The full lead card, Premium only. */
@@ -660,6 +662,47 @@ export type Hiring = {
   filters: { counties: { code: string; name: string }[]; trades: { key: string; name: string }[] };
   /** Null when the firm already has project alerts, or before the terms are accepted. */
   projects: HiringProjects | null;
+  /** ORDER 170: what the client receives, when and to whom, and his own firms; null until the terms are accepted. */
+  prefs: HiringPrefs | null;
+};
+
+// ORDER 170: the client's own settings for the hiring alerts.
+
+export type HiringSignal = "adverts" | "won" | "both";
+export type HiringFrequency = "daily" | "weekly" | "monthly";
+export type HiringRecipient = { id: string | null; email: string; name: string | null; primary: boolean };
+export type HiringFirmRef = { orgnr: string; name: string; added_at: string | null };
+export type HiringLetterRef = { id: string; sent_at: string | null; firm_count: number; kind: "weekly" | "watch"; subject: string | null };
+export type HiringLetter = { id: string; sent_at: string | null; subject: string | null; html: string; firm_count: number };
+
+export type HiringPrefs = {
+  set_by_client_at: string | null;
+  receive: {
+    counties: string[];
+    trades: string[];
+    towns: string[];
+    radius_km: number | null;
+    base_known: boolean;
+    min_employees: number | null;
+    max_employees: number | null;
+    signal: HiringSignal;
+    only_new: boolean;
+  };
+  when: { frequency: HiringFrequency; weekday: number; hour: number; language: "no" | "en"; paused_until: string | null; recipients: HiringRecipient[] };
+  firms: { watch: HiringFirmRef[]; hidden: HiringFirmRef[]; archive: HiringLetterRef[] };
+  options: {
+    counties: { code: string; name: string }[];
+    trades: { key: string; name: string }[];
+    towns: string[];
+    radius_km: number[];
+    hours: [number, number];
+    max_recipients: number;
+    pause_max_days: number;
+    /** 1 on Basis, null on Premium (no limit). */
+    county_limit: number | null;
+  };
+  /** "Treff nå": the firms on the list with every choice applied. */
+  matches: number;
 };
 
 const COUNTY_CODE = /^NO[0-9A-Z]{3}$/;
@@ -702,7 +745,108 @@ function hiringRowFrom(r: Record<string, unknown>): HiringRow | null {
     note: textOrNull(r.note, 2000),
     follow_up_on: day(r.follow_up_on)?.slice(0, 10) ?? null,
     opened: r.opened === true,
+    watched: r.watched === true,
   };
+}
+
+/** A whole number within [min, max], or null for anything else. */
+const intIn = (v: unknown, min: number, max: number): number | null => (typeof v === "number" && Number.isInteger(v) && v >= min && v <= max ? v : null);
+/** A town as the settings carry it: plain text of 1 to 60 characters, nothing that could be markup. */
+const isTownText = (v: unknown): v is string => typeof v === "string" && v.trim().length >= 1 && v.length <= 60 && !/[<>\u0000-\u001f]/.test(v);
+const EMAIL_SHAPE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+
+function countyOptions(v: unknown) {
+  return objs(v)
+    .filter((c) => typeof c.code === "string" && COUNTY_CODE.test(c.code))
+    .map((c) => ({ code: String(c.code), name: str(c.name, 80) || String(c.code) }))
+    .slice(0, 30);
+}
+
+function tradeOptions(v: unknown) {
+  return objs(v)
+    .filter((c) => typeof c.key === "string" && TRADE_KEY.test(c.key))
+    .map((c) => ({ key: String(c.key), name: str(c.name, 80) || String(c.key) }))
+    .slice(0, 60);
+}
+
+function firmRefs(v: unknown): HiringFirmRef[] {
+  return objs(v)
+    .map((f) => ({ orgnr: str(f.orgnr, 20).replace(/\s/g, ""), name: str(f.name, 200).trim(), added_at: isoOrNull(f.added_at) }))
+    .filter((f) => ORGNR.test(f.orgnr))
+    .map((f) => ({ ...f, name: f.name || orgNumberNo(f.orgnr) }))
+    .slice(0, 500);
+}
+
+/** The client's settings for the hiring alerts, or null when absent or not shaped like them; never throws. */
+export function hiringPrefsFrom(raw: unknown): HiringPrefs | null {
+  const r = obj(raw);
+  if (!r) return null;
+  const rc = obj(r.receive) ?? {};
+  const w = obj(r.when) ?? {};
+  const f = obj(r.firms) ?? {};
+  const o = obj(r.options) ?? {};
+  const hoursRaw = Array.isArray(o.hours) ? o.hours : [];
+  const h0 = intIn(hoursRaw[0], 0, 23);
+  const h1 = intIn(hoursRaw[1], 0, 23);
+  const hours: [number, number] = h0 !== null && h1 !== null && h0 <= h1 ? [h0, h1] : [6, 20];
+  const hour = intIn(w.hour, hours[0], hours[1]) ?? hours[0];
+  const recipients = objs(w.recipients)
+    .filter((p) => typeof p.email === "string" && p.email.length <= 254 && EMAIL_SHAPE.test(p.email))
+    .map((p) => ({ id: typeof p.id === "string" && TOKEN.test(p.id) ? p.id : null, email: String(p.email), name: textOrNull(p.name, 120), primary: p.primary === true }))
+    // The primary address has no id; an extra without one cannot be removed and is not shown.
+    .filter((p) => p.primary || p.id !== null)
+    .sort((a, b) => Number(b.primary) - Number(a.primary))
+    .slice(0, 21);
+  const minEmp = intIn(rc.min_employees, 0, 1_000_000);
+  const maxEmp = intIn(rc.max_employees, 0, 1_000_000);
+  return {
+    set_by_client_at: isoOrNull(r.set_by_client_at),
+    receive: {
+      counties: strings(rc.counties, 30, 10).filter((c) => COUNTY_CODE.test(c)),
+      trades: strings(rc.trades, 60, 40).filter((t) => TRADE_KEY.test(t)),
+      towns: (Array.isArray(rc.towns) ? rc.towns.filter(isTownText).map((t) => t.trim()) : []).slice(0, 50),
+      radius_km: intIn(rc.radius_km, 1, 1000),
+      base_known: rc.base_known === true,
+      min_employees: minEmp,
+      max_employees: maxEmp,
+      signal: rc.signal === "adverts" || rc.signal === "won" ? rc.signal : "both",
+      only_new: rc.only_new === true,
+    },
+    when: {
+      frequency: w.frequency === "daily" || w.frequency === "monthly" ? w.frequency : "weekly",
+      weekday: intIn(w.weekday, 1, 7) ?? 1,
+      hour,
+      language: w.language === "en" ? "en" : "no",
+      paused_until: day(w.paused_until)?.slice(0, 10) ?? null,
+      recipients,
+    },
+    firms: {
+      watch: firmRefs(f.watch),
+      hidden: firmRefs(f.hidden),
+      archive: objs(f.archive)
+        .filter((a) => typeof a.id === "string" && TOKEN.test(a.id))
+        .map((a) => ({ id: String(a.id), sent_at: isoOrNull(a.sent_at), firm_count: wholeOrZero(a.firm_count), kind: (a.kind === "watch" ? "watch" : "weekly") as HiringLetterRef["kind"], subject: textOrNull(a.subject, 200) }))
+        .slice(0, 200),
+    },
+    options: {
+      counties: countyOptions(o.counties),
+      trades: tradeOptions(o.trades),
+      towns: [...new Set((Array.isArray(o.towns) ? o.towns.filter(isTownText) : []).map((t) => t.trim()))].slice(0, 1000),
+      radius_km: (Array.isArray(o.radius_km) ? o.radius_km : []).filter((n): n is number => intIn(n, 1, 1000) !== null).slice(0, 10),
+      hours,
+      max_recipients: intIn(o.max_recipients, 0, 20) ?? 5,
+      pause_max_days: intIn(o.pause_max_days, 1, 366) ?? 90,
+      county_limit: intIn(o.county_limit, 1, 30),
+    },
+    matches: wholeOrZero(r.matches),
+  };
+}
+
+/** A stored letter the ATS answers to open_letter, or null when it is not one. */
+export function hiringLetterFrom(raw: unknown): HiringLetter | null {
+  const r = obj(raw);
+  if (!r || typeof r.id !== "string" || !TOKEN.test(r.id) || typeof r.html !== "string") return null;
+  return { id: r.id, sent_at: isoOrNull(r.sent_at), subject: textOrNull(r.subject, 200), html: r.html.slice(0, 500_000), firm_count: wholeOrZero(r.firm_count) };
 }
 
 /** The firm's own website: a plain http(s) address, nothing else. */
@@ -767,17 +911,9 @@ export function hiringFrom(raw: unknown): Hiring | null {
       .filter((x): x is HiringRow => x !== null)
       .slice(0, 1000),
     last_viewed_at: isoOrNull(r.last_viewed_at),
-    filters: {
-      counties: objs(f?.counties)
-        .filter((c) => typeof c.code === "string" && COUNTY_CODE.test(c.code))
-        .map((c) => ({ code: String(c.code), name: str(c.name, 80) || String(c.code) }))
-        .slice(0, 30),
-      trades: objs(f?.trades)
-        .filter((c) => typeof c.key === "string" && TRADE_KEY.test(c.key))
-        .map((c) => ({ key: String(c.key), name: str(c.name, 80) || String(c.key) }))
-        .slice(0, 60),
-    },
+    filters: { counties: countyOptions(f?.counties), trades: tradeOptions(f?.trades) },
     projects: hiringProjectsFrom(r.projects),
+    prefs: hiringPrefsFrom(r.prefs),
   };
 }
 
@@ -880,10 +1016,131 @@ export function showsProjectsTeaser(p: Pick<Profile, "alerts" | "free_alerts" | 
 
 const DAY_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
 
-export const HIRING_ACTIONS = ["hiring_terms", "hiring_viewed", "hiring_card", "hiring_lead", "hiring_feedback", "hiring_stop", "hiring_premium", "projects_trial", "close_account"] as const;
+export const HIRING_ACTIONS = [
+  "hiring_terms",
+  "hiring_viewed",
+  "hiring_card",
+  "hiring_lead",
+  "hiring_feedback",
+  "hiring_stop",
+  "hiring_premium",
+  "projects_trial",
+  "close_account",
+  "hiring_prefs_receive",
+  "hiring_prefs_when",
+  "hiring_prefs_firms",
+] as const;
 
 export function isHiringAction(v: unknown): v is (typeof HIRING_ACTIONS)[number] {
   return typeof v === "string" && (HIRING_ACTIONS as readonly string[]).includes(v);
+}
+
+/** ORDER 170: the settings actions, saved on every change, which have a rate-limit bucket of their own. */
+export function isHiringPrefsAction(v: unknown): v is "hiring_prefs_receive" | "hiring_prefs_when" | "hiring_prefs_firms" {
+  return v === "hiring_prefs_receive" || v === "hiring_prefs_when" || v === "hiring_prefs_firms";
+}
+
+/** A list of at most 20 values that each pass the check, or undefined when it is not one. */
+function boundedList(v: unknown, ok: (x: unknown) => boolean): string[] | undefined {
+  return Array.isArray(v) && v.length <= 20 && v.every(ok) ? (v as string[]) : undefined;
+}
+
+/** A whole number within the range, or null; undefined when it is neither. */
+function intOrNull(v: unknown, min: number, max: number): number | null | undefined {
+  if (v === null) return null;
+  return intIn(v, min, max) ?? undefined;
+}
+
+function prefsReceiveRequest(raw: Record<string, unknown>): Record<string, unknown> | null {
+  const body: Record<string, unknown> = { action: "hiring_prefs_receive" };
+  if (raw.counties !== undefined) {
+    const v = boundedList(raw.counties, (x) => typeof x === "string" && COUNTY_CODE.test(x));
+    if (!v) return null;
+    body.counties = v;
+  }
+  if (raw.trades !== undefined) {
+    const v = boundedList(raw.trades, (x) => typeof x === "string" && TRADE_KEY.test(x));
+    if (!v) return null;
+    body.trades = v;
+  }
+  if (raw.towns !== undefined) {
+    const v = boundedList(raw.towns, isTownText);
+    if (!v) return null;
+    body.towns = v.map((t) => t.trim());
+  }
+  for (const [key, max] of [
+    ["radius_km", 1000],
+    ["min_employees", 1_000_000],
+    ["max_employees", 1_000_000],
+  ] as const) {
+    if (raw[key] === undefined) continue;
+    const v = intOrNull(raw[key], key === "radius_km" ? 1 : 0, max);
+    if (v === undefined) return null;
+    body[key] = v;
+  }
+  if (raw.signal !== undefined) {
+    if (raw.signal !== "adverts" && raw.signal !== "won" && raw.signal !== "both") return null;
+    body.signal = raw.signal;
+  }
+  if (raw.only_new !== undefined) {
+    if (typeof raw.only_new !== "boolean") return null;
+    body.only_new = raw.only_new;
+  }
+  return Object.keys(body).length > 1 ? body : null;
+}
+
+function prefsWhenRequest(raw: Record<string, unknown>): Record<string, unknown> | null {
+  const action = "hiring_prefs_when";
+  const fields = ["frequency", "weekday", "hour", "language", "paused_until"].filter((k) => raw[k] !== undefined);
+  // Adding or removing a recipient is a request of its own, never mixed with the other fields.
+  if (raw.add_recipient !== undefined) {
+    const a = obj(raw.add_recipient);
+    if (!a || fields.length || raw.remove_recipient !== undefined) return null;
+    if (typeof a.email !== "string" || a.email.length > 254 || !EMAIL_SHAPE.test(a.email.trim())) return null;
+    const add: Record<string, string> = { email: a.email.trim() };
+    if (a.name !== undefined) {
+      if (typeof a.name !== "string" || a.name.length > 120) return null;
+      if (a.name.trim()) add.name = a.name.trim();
+    }
+    return { action, add_recipient: add };
+  }
+  if (raw.remove_recipient !== undefined) {
+    if (fields.length || typeof raw.remove_recipient !== "string" || !TOKEN.test(raw.remove_recipient)) return null;
+    return { action, remove_recipient: raw.remove_recipient };
+  }
+  const body: Record<string, unknown> = { action };
+  if (raw.frequency !== undefined) {
+    if (raw.frequency !== "daily" && raw.frequency !== "weekly" && raw.frequency !== "monthly") return null;
+    body.frequency = raw.frequency;
+  }
+  if (raw.weekday !== undefined) {
+    if (intIn(raw.weekday, 1, 7) === null) return null;
+    body.weekday = raw.weekday;
+  }
+  if (raw.hour !== undefined) {
+    if (intIn(raw.hour, 6, 20) === null) return null;
+    body.hour = raw.hour;
+  }
+  if (raw.language !== undefined) {
+    if (raw.language !== "no" && raw.language !== "en") return null;
+    body.language = raw.language;
+  }
+  if (raw.paused_until !== undefined) {
+    if (typeof raw.paused_until !== "string" || (raw.paused_until !== "" && !DAY_SHAPE.test(raw.paused_until))) return null;
+    body.paused_until = raw.paused_until;
+  }
+  return Object.keys(body).length > 1 ? body : null;
+}
+
+function prefsFirmsRequest(raw: Record<string, unknown>): Record<string, unknown> | null {
+  const action = "hiring_prefs_firms";
+  const keys = (["watch", "unwatch", "hide", "unhide", "open_letter"] as const).filter((k) => raw[k] !== undefined);
+  if (keys.length !== 1) return null;
+  const key = keys[0];
+  const value = raw[key];
+  if (typeof value !== "string") return null;
+  if (key === "open_letter" ? !TOKEN.test(value) : !ORGNR.test(value)) return null;
+  return { action, [key]: value };
 }
 
 /**
@@ -933,6 +1190,12 @@ export function hiringRequest(raw: Record<string, unknown>): Record<string, unkn
       }
       return Object.keys(body).length > 1 ? body : null;
     }
+    case "hiring_prefs_receive":
+      return prefsReceiveRequest(raw);
+    case "hiring_prefs_when":
+      return prefsWhenRequest(raw);
+    case "hiring_prefs_firms":
+      return prefsFirmsRequest(raw);
     default:
       return null;
   }
