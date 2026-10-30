@@ -46,6 +46,7 @@ import {
   TH_L,
   chip,
 } from "./ui";
+import HiringConfirmScreen from "./MinSideHiringConfirm";
 import MinSideHiringSettings from "./MinSideHiringSettings";
 
 /**
@@ -549,6 +550,7 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
   const [premiumSent, setPremiumSent] = useState(false);
   const [premiumBusy, setPremiumBusy] = useState(false);
   const [premiumError, setPremiumError] = useState<string | null>(null);
+  const [betaSeen, setBetaSeen] = useState(false);
 
   const rows = useMemo(() => visibleHiringRows(hiring.rows, filter, since, subscription.tier), [hiring.rows, filter, since, subscription.tier]);
 
@@ -560,6 +562,9 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
 
   if (!terms.accepted) {
     if (!terms.ready) return <p className={`text-sm ${MUTED_L}`}>Tjenesten åpnes snart.</p>;
+    // ORDER 171: the person, the billing and the terms on one screen. An older ATS without
+    // `confirm` keeps the terms dialog below.
+    if (hiring.confirm) return <HiringConfirmScreen confirm={hiring.confirm} terms={terms} send={send} />;
     return (
       <>
         <div className={`${GOLD_CARD} flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5`}>
@@ -604,6 +609,7 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
 
   return (
     <div className="flex min-w-0 flex-col gap-5">
+      {hiring.beta_notice && !betaSeen ? <BetaNotice text={hiring.beta_notice} send={send} onSeen={() => setBetaSeen(true)} /> : null}
       {basis ? (
         <div className={`${GOLD_CARD} flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5`}>
           <p className={`min-w-0 flex-1 basis-[200px] text-[15px] font-semibold ${INK}`}>{premiumSent ? "Vi har fått beskjed og sender dere et tilbud." : "Prøveperioden er over"}</p>
@@ -773,6 +779,33 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
         <PortalModal title="Bedriftskortet er Premium" size="narrow" onClose={() => setPremiumAsk(false)}>
           <ConfirmForm text="Med Premium ser dere hele bedriftskortet: behov, språk, bransje, ansatte og kontaktopplysninger." label="Premium" onConfirm={askPremium} onCancel={() => setPremiumAsk(false)} />
         </PortalModal>
+      ) : null}
+    </div>
+  );
+}
+
+/** ORDER 171: the beta sentence for a client who accepted older terms, once; "OK" sends hiring_beta_ack and hides it. */
+export function BetaNotice({ text, send, onSeen }: { text: string; send: Send; onSeen: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
+  const ok = async () => {
+    setBusy(true);
+    setFailed(null);
+    const r = await send({ action: "hiring_beta_ack" });
+    setBusy(false);
+    if (r.ok) onSeen();
+    else setFailed(r.message);
+  };
+  return (
+    <div data-beta-notice="" className={`${GOLD_CARD} flex flex-wrap items-center justify-between gap-3 p-4`} role="status">
+      <p className={`min-w-0 flex-1 basis-[220px] break-words text-[15px] ${INK}`}>{text}</p>
+      <button type="button" className={BTN_OUTLINE} disabled={busy} onClick={() => void ok()}>
+        OK
+      </button>
+      {failed ? (
+        <p role="alert" className={`w-full text-sm font-semibold ${ERROR_L}`}>
+          {failed}
+        </p>
       ) : null}
     </div>
   );

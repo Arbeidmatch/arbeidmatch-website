@@ -664,7 +664,130 @@ export type Hiring = {
   projects: HiringProjects | null;
   /** ORDER 170: what the client receives, when and to whom, and his own firms; null until the terms are accepted. */
   prefs: HiringPrefs | null;
+  /** ORDER 171: "Bekreft og start", non-null exactly when the terms are not accepted and are ready. */
+  confirm: HiringConfirm | null;
+  /** ORDER 171: for a client who accepted older terms, a sentence shown once with "OK". */
+  beta_notice: string | null;
 };
+
+// ORDER 171: the one screen an invited client confirms himself, his firm's billing and the terms on.
+
+export type HiringDelivery = "email" | "ehf";
+
+export type HiringConfirm = {
+  person: { full_name: string; role: string; email: string };
+  company: {
+    name: string;
+    org_number: string | null;
+    address: string;
+    postal_code: string;
+    city: string;
+    billing_same_as_address: boolean;
+    billing_address: string;
+    billing_postal_code: string;
+    billing_city: string;
+    delivery: HiringDelivery | null;
+    invoice_email: string;
+    /** The invoice e-mail on file is shown read-only; it cannot be changed from the link. */
+    invoice_email_locked: boolean;
+  };
+  /** The beta sentence, the label of the second box. */
+  beta: string;
+};
+
+/** What the client has on the screen: the details as he edits them, and the two boxes. */
+export type HiringConfirmValues = {
+  full_name: string;
+  role: string;
+  email: string;
+  billing_same_as_address: boolean;
+  billing_address: string;
+  billing_postal_code: string;
+  billing_city: string;
+  delivery: HiringDelivery | null;
+  invoice_email: string;
+  accept_terms: boolean;
+  accept_beta: boolean;
+};
+
+const CONFIRM_EMAIL = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
+
+/** The screen's starting values, from what the ATS holds; both boxes unticked. */
+export function hiringConfirmValues(c: HiringConfirm): HiringConfirmValues {
+  return {
+    full_name: c.person.full_name,
+    role: c.person.role,
+    email: c.person.email,
+    billing_same_as_address: c.company.billing_same_as_address,
+    billing_address: c.company.billing_address,
+    billing_postal_code: c.company.billing_postal_code,
+    billing_city: c.company.billing_city,
+    delivery: c.company.delivery === "ehf" && !hasEhfAddress(c) ? null : c.company.delivery,
+    invoice_email: c.company.invoice_email,
+    accept_terms: false,
+    accept_beta: false,
+  };
+}
+
+/** EHF needs the firm's 9-digit organisation number as its address. */
+export function hasEhfAddress(c: HiringConfirm): boolean {
+  return Boolean(c.company.org_number && ORGNR.test(c.company.org_number));
+}
+
+/** Whether "Godta og start" may be pressed: every rule of the screen, checked in one place. */
+export function hiringConfirmReady(v: HiringConfirmValues, c: HiringConfirm): boolean {
+  if (v.full_name.trim().length < 2) return false;
+  if (!CONFIRM_EMAIL.test(v.email.trim())) return false;
+  if (v.delivery === null) return false;
+  if (v.delivery === "ehf" && !hasEhfAddress(c)) return false;
+  if (v.delivery === "email" && !CONFIRM_EMAIL.test(v.invoice_email.trim())) return false;
+  if (!v.billing_same_as_address && (!v.billing_address.trim() || !v.billing_postal_code.trim())) return false;
+  return v.accept_terms && v.accept_beta;
+}
+
+/** The hiring_confirm body as the page sends it. */
+export function hiringConfirmBody(v: HiringConfirmValues): Record<string, unknown> {
+  return {
+    action: "hiring_confirm",
+    person: { full_name: v.full_name.trim(), role: v.role.trim(), email: v.email.trim() },
+    billing: {
+      billing_same_as_address: v.billing_same_as_address,
+      billing_address: v.billing_address.trim(),
+      billing_postal_code: v.billing_postal_code.trim(),
+      billing_city: v.billing_city.trim(),
+      delivery: v.delivery,
+      invoice_email: v.invoice_email.trim(),
+    },
+    accept_terms: v.accept_terms,
+    accept_beta: v.accept_beta,
+  };
+}
+
+function hiringConfirmFrom(raw: unknown): HiringConfirm | null {
+  const r = obj(raw);
+  const p = obj(r?.person);
+  const c = obj(r?.company);
+  if (!r || !p || !c) return null;
+  const org = str(c.org_number, 20).replace(/\s/g, "");
+  return {
+    person: { full_name: str(p.full_name, 120), role: str(p.role, 80), email: str(p.email, 254) },
+    company: {
+      name: str(c.name, 200).trim(),
+      org_number: org || null,
+      address: str(c.address, 200),
+      postal_code: str(c.postal_code, 12),
+      city: str(c.city, 80),
+      billing_same_as_address: c.billing_same_as_address !== false,
+      billing_address: str(c.billing_address, 200),
+      billing_postal_code: str(c.billing_postal_code, 12),
+      billing_city: str(c.billing_city, 80),
+      delivery: c.delivery === "email" || c.delivery === "ehf" ? c.delivery : null,
+      invoice_email: str(c.invoice_email, 254),
+      invoice_email_locked: c.invoice_email_locked === true,
+    },
+    beta: str(r.beta, 600).trim() || "Jeg forstår at tjenesten er i beta",
+  };
+}
 
 // ORDER 170: the client's own settings for the hiring alerts.
 
@@ -914,6 +1037,8 @@ export function hiringFrom(raw: unknown): Hiring | null {
     filters: { counties: countyOptions(f?.counties), trades: tradeOptions(f?.trades) },
     projects: hiringProjectsFrom(r.projects),
     prefs: hiringPrefsFrom(r.prefs),
+    confirm: t.accepted === true ? null : hiringConfirmFrom(r.confirm),
+    beta_notice: textOrNull(r.beta_notice, 600),
   };
 }
 
@@ -1029,6 +1154,8 @@ export const HIRING_ACTIONS = [
   "hiring_prefs_receive",
   "hiring_prefs_when",
   "hiring_prefs_firms",
+  "hiring_confirm",
+  "hiring_beta_ack",
 ] as const;
 
 export function isHiringAction(v: unknown): v is (typeof HIRING_ACTIONS)[number] {
@@ -1144,6 +1271,33 @@ function prefsFirmsRequest(raw: Record<string, unknown>): Record<string, unknown
 }
 
 /**
+ * ORDER 171: "Godta og start", the person, the billing and the two boxes, each
+ * field a bounded plain value. The shapes (the e-mails, the postnummer, the
+ * ticks) are the ATS's to refuse, so its message lands under the right field.
+ */
+function confirmRequest(raw: Record<string, unknown>): Record<string, unknown> | null {
+  const p = obj(raw.person);
+  const b = obj(raw.billing);
+  if (!p || !b) return null;
+  const text = (v: unknown, max: number): string | null => (typeof v === "string" && v.length <= max ? v : null);
+  const person = { full_name: text(p.full_name, 120), role: text(p.role ?? "", 80), email: text(p.email, 254) };
+  const billing = {
+    billing_same_as_address: b.billing_same_as_address,
+    billing_address: text(b.billing_address ?? "", 200),
+    billing_postal_code: text(b.billing_postal_code ?? "", 12),
+    billing_city: text(b.billing_city ?? "", 80),
+    delivery: b.delivery,
+    invoice_email: text(b.invoice_email ?? "", 254),
+  };
+  if (Object.values(person).some((v) => v === null)) return null;
+  if (typeof billing.billing_same_as_address !== "boolean") return null;
+  if ([billing.billing_address, billing.billing_postal_code, billing.billing_city, billing.invoice_email].some((v) => v === null)) return null;
+  if (billing.delivery !== "email" && billing.delivery !== "ehf") return null;
+  if (typeof raw.accept_terms !== "boolean" || typeof raw.accept_beta !== "boolean") return null;
+  return { action: "hiring_confirm", person, billing, accept_terms: raw.accept_terms, accept_beta: raw.accept_beta };
+}
+
+/**
  * The body the proxy passes on for one of the hiring actions, with only the
  * fields named and as plain bounded values, or null when it is not one. The
  * ATS validates again.
@@ -1196,6 +1350,10 @@ export function hiringRequest(raw: Record<string, unknown>): Record<string, unkn
       return prefsWhenRequest(raw);
     case "hiring_prefs_firms":
       return prefsFirmsRequest(raw);
+    case "hiring_beta_ack":
+      return { action };
+    case "hiring_confirm":
+      return confirmRequest(raw);
     default:
       return null;
   }

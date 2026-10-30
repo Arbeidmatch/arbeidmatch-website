@@ -232,8 +232,9 @@ export default function MinSideClient({ token }: { token: string }) {
   const send = async (body: Record<string, unknown>): Promise<Saved> => {
     try {
       const res = await fetch(`/api/min-side/${encodeURIComponent(token)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-      const payload = (await res.json().catch(() => ({}))) as { error?: string; field?: string | null };
-      if (!res.ok) return { ok: false, message: payload.error ?? "Noe gikk galt. Prøv igjen.", field: payload.field ?? null };
+      const payload = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; message?: string; field?: string | null };
+      // ORDER 171: a refusal may carry its words as `message` rather than `error`, and say ok: false.
+      if (!res.ok || payload.ok === false) return { ok: false, message: payload.error ?? payload.message ?? "Noe gikk galt. Prøv igjen.", field: payload.field ?? null };
       await load();
       return { ok: true };
     } catch {
