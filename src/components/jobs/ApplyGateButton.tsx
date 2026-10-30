@@ -46,7 +46,7 @@ type Lang = "no" | "en";
 
 const WORDS: Record<
   Lang,
-  { title: string; intro: string; readThe: string; notice: string; consent: string; login: string; register: string; hint: string; close: string }
+  { title: string; intro: string; readThe: string; notice: string; consent: string; login: string; register: string; adults: string; hint: string; close: string }
 > = {
   en: {
     title: "Sign in to apply",
@@ -57,6 +57,7 @@ const WORDS: Record<
     consent: "and consent to ArbeidMatch processing my personal data to handle my application and find work for me.",
     login: "I have a profile",
     register: "Create my profile",
+    adults: "18+ only: you must be 18 or older to register.",
     hint: "Tick the box to continue.",
     close: "Close",
   },
@@ -69,6 +70,7 @@ const WORDS: Record<
     consent: "og samtykker til at ArbeidMatch behandler personopplysningene mine for å behandle søknaden min og finne arbeid til meg.",
     login: "Jeg har en profil",
     register: "Opprett profil",
+    adults: "Kun 18+: du mÃ¥ vÃ¦re 18 Ã¥r eller eldre for Ã¥ registrere deg.",
     hint: "Kryss av i boksen for å gå videre.",
     close: "Lukk",
   },
@@ -250,6 +252,8 @@ export function ApplyGateButton(props: {
                 {w.register}
               </a>
             </div>
+            {/* Only people aged 18 or older can register (ORDER 189); the profile screen asks the date of birth. */}
+            <p className="mt-3 text-center text-[13px] font-semibold text-text-secondary">{w.adults}</p>
             {!accepted ? <p className="mt-3 text-center text-[13px] text-text-secondary">{w.hint}</p> : null}
           </div>
         </div>,

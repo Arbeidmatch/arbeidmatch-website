@@ -164,6 +164,8 @@ export default async function RegisterPage({ params }: Props) {
             >
               Create my profile
             </a>
+            {/* Only people aged 18 or older can register (ORDER 189). */}
+            <p className="text-center text-sm font-semibold text-text-secondary md:text-left">18+ only: you must be 18 or older to register.</p>
             <p className="text-center text-sm text-text-secondary md:text-left">
               <span className="hidden md:inline">Looking for something specific? </span>
               <Link href="/" className="inline-flex min-h-[44px] items-center font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">
