@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 /**
  * The Apply button on an advert (17 September 2026).
@@ -34,6 +35,11 @@ import { useEffect, useId, useRef, useState } from "react";
  * - Both doors turn gold the moment the box is ticked.
  * - Pressing Apply and ticking the box are counted, first party, per job, with
  *   a random id for this visit and nothing about the person.
+ *
+ * The window is rendered on document.body (31 October 2026). Rendered where the
+ * button is, it sat inside the sticky side card, and a sticky element is a
+ * stacking context of its own: the window's z-index stopped at the card, so the
+ * advert's text, scrolled into view, was painted over the consent box.
  */
 
 type Lang = "no" | "en";
@@ -181,7 +187,8 @@ export function ApplyGateButton(props: {
       >
         {label}
       </button>
-      {open ? (
+      {open && typeof document !== "undefined"
+        ? createPortal(
         <div
           className="fixed inset-0 z-[100] flex items-end justify-center bg-navy/60 p-4 sm:items-center"
           onClick={(e) => {
@@ -245,8 +252,10 @@ export function ApplyGateButton(props: {
             </div>
             {!accepted ? <p className="mt-3 text-center text-[13px] text-text-secondary">{w.hint}</p> : null}
           </div>
-        </div>
-      ) : null}
+        </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
