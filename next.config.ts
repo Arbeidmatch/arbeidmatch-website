@@ -32,6 +32,15 @@ const nextConfig: NextConfig = {
       // workers from outside the EU/EEA and its waitlist are gone. Old links land on the
       // candidate page, which states the rule. Stored rows were kept.
       { source: "/outside-eu-eea", destination: "/for-candidates", permanent: true },
+      // HIS INSTRUCTION, 3 November 2026: every address a candidate receives is on
+      // arbeidmatch.no, never on the ATS subdomain. The sign-in door is
+      // arbeidmatch.no/sign-in (and /logg-inn); it forwards to the candidate login in
+      // the ATS, query string included, so the ATS keeps the session and the codes.
+      // Temporary (307) on purpose: a browser must not cache where the door leads.
+      { source: "/sign-in", destination: "https://ats.arbeidmatch.no/candidate/login", permanent: false },
+      { source: "/sign-in/:path*", destination: "https://ats.arbeidmatch.no/candidate/login/:path*", permanent: false },
+      { source: "/logg-inn", destination: "https://ats.arbeidmatch.no/candidate/login", permanent: false },
+      { source: "/logg-inn/:path*", destination: "https://ats.arbeidmatch.no/candidate/login/:path*", permanent: false },
     ];
   },
   async headers() {
