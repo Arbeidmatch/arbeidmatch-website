@@ -16,6 +16,7 @@ import {
   hiringBillingValues,
   hiringConfirmBody,
   hiringConfirmCountBody,
+  hiringConfirmMissing,
   hiringConfirmReady,
   hiringConfirmValues,
   hiringFrom,
@@ -185,17 +186,21 @@ describe("Bekreft og start", () => {
     expect(src).toContain("if (id !== asked.current) return;");
   });
 
-  it("keeps Godta og start disabled until a trade, a county and both boxes are there", () => {
+  it("Godta og start is green and never greyed out; a press names what is missing, in order", () => {
     const c = confirmOf();
-    // As it opens: a county from the register, no trade, no box ticked.
-    expect(disabled(fields(c, hiringConfirmValues(c)))).toBe(true);
+    // As it opens: a county from the register, no trade, no box ticked. The button still presses.
+    expect(disabled(fields(c, hiringConfirmValues(c)))).toBe(false);
+    expect(submit(fields(c, hiringConfirmValues(c)))).toContain("bg-[#2E9E6B]");
+    expect(hiringConfirmMissing(hiringConfirmValues(c))).toEqual({ field: "trades", message: "Velg minst ett fag." });
+    expect(hiringConfirmMissing({ ...valid(c), counties: [] })).toEqual({ field: "counties", message: "Velg minst ett fylke." });
+    expect(hiringConfirmMissing({ ...valid(c), accept_terms: false })?.field).toBe("accept_terms");
+    expect(hiringConfirmMissing({ ...valid(c), accept_beta: false })?.field).toBe("accept_beta");
+    expect(hiringConfirmMissing(valid(c))).toBeNull();
     expect(hiringConfirmReady({ ...valid(c), trades: [] })).toBe(false);
     expect(hiringConfirmReady({ ...valid(c), counties: [] })).toBe(false);
-    expect(disabled(fields(c, { ...valid(c), trades: [] }))).toBe(true);
-    expect(disabled(fields(c, { ...valid(c), counties: [] }))).toBe(true);
-    // Only one box ticked.
-    expect(disabled(fields(c, { ...valid(c), accept_beta: false }))).toBe(true);
-    expect(disabled(fields(c, { ...valid(c), accept_terms: false }))).toBe(true);
+    // The missing thing has a place to scroll to.
+    expect(source("./MinSideHiringConfirm.tsx")).toContain('id="ms-cf-trades"');
+    expect(source("./MinSideHiringConfirm.tsx")).toContain('id="ms-cf-counties"');
     // A name too short, a work e-mail not of the form x@y.zz.
     expect(hiringConfirmReady({ ...valid(c), full_name: " A " })).toBe(false);
     expect(hiringConfirmReady({ ...valid(c), email: "test@eksempel" })).toBe(false);

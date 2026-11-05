@@ -730,12 +730,26 @@ export function hiringConfirmValues(c: HiringConfirm): HiringConfirmValues {
   };
 }
 
-/** Whether "Godta og start" may be pressed: every rule of the screen, checked in one place. */
+/**
+ * The first thing still missing before "Godta og start" can send, with the
+ * words shown under its field; null when nothing is. The button is never
+ * greyed out: on 5 November 2026 an invited client (RMB) ticked the terms,
+ * pressed, and nothing happened, because no trade and no county were chosen
+ * and the disabled button said nothing. A press now names what is missing.
+ */
+export function hiringConfirmMissing(v: HiringConfirmValues): { field: string; message: string } | null {
+  if (v.full_name.trim().length < 2) return { field: "full_name", message: "Skriv fullt navn." };
+  if (!CONFIRM_EMAIL.test(v.email.trim())) return { field: "email", message: "Skriv e-posten på jobb, for eksempel navn@firma.no." };
+  if (v.trades.length < 1) return { field: "trades", message: "Velg minst ett fag." };
+  if (v.counties.length < 1) return { field: "counties", message: "Velg minst ett fylke." };
+  if (!v.accept_terms) return { field: "accept_terms", message: "Godta vilkårene for å starte." };
+  if (!v.accept_beta) return { field: "accept_beta", message: "Bekreft at tjenesten er i betatest." };
+  return null;
+}
+
+/** Whether "Godta og start" sends: every rule of the screen, checked in one place. */
 export function hiringConfirmReady(v: HiringConfirmValues): boolean {
-  if (v.full_name.trim().length < 2) return false;
-  if (!CONFIRM_EMAIL.test(v.email.trim())) return false;
-  if (v.trades.length < 1 || v.counties.length < 1) return false;
-  return v.accept_terms && v.accept_beta;
+  return hiringConfirmMissing(v) === null;
 }
 
 /** The hiring_confirm body as the page sends it. */

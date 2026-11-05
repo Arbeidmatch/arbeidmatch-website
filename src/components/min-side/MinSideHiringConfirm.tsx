@@ -7,7 +7,7 @@ import {
   confirmMatchesFrom,
   hiringConfirmBody,
   hiringConfirmCountBody,
-  hiringConfirmReady,
+  hiringConfirmMissing,
   hiringConfirmValues,
   orgNumberNo,
   type HiringConfirm,
@@ -17,7 +17,7 @@ import {
 import type { Fetched, Saved } from "./MinSideHiring";
 import { Block, CHECK, CHOICE, FieldError, ReadOnlyLine, TextField, type Failed } from "./MinSideHiringBilling";
 import { Chips, Control, FREQUENCIES, firmsWord, toggled } from "./MinSideHiringSettings";
-import { BTN_OUTLINE, FIELD_L, INK, MUTED_L, SOFT, chip } from "./ui";
+import { BTN_GREEN, FIELD_L, INK, MUTED_L, SOFT, chip } from "./ui";
 
 /**
  * ORDER 171: "Bekreft og start", the one screen an invited client sees before
@@ -25,8 +25,10 @@ import { BTN_OUTLINE, FIELD_L, INK, MUTED_L, SOFT, chip } from "./ui";
  * who he is (with the firm read-only), what he wants to receive (trades,
  * counties, how often, only new; nothing else, his rule P4), and the terms
  * with the two boxes. Billing is asked later, only when a paid plan starts.
- * "Godta og start" stays disabled until every rule in hiringConfirmReady holds;
- * on success the page reloads and the section shows the list.
+ * "Godta og start" is the green action and is never greyed out: a press with
+ * something missing names it under its field and scrolls there (5 November
+ * 2026, after an invited client pressed a disabled button and saw nothing).
+ * On success the page reloads and the section shows the list.
  */
 
 type Send = (body: Record<string, unknown>) => Promise<Saved>;
@@ -65,7 +67,6 @@ export function ConfirmFields({ confirm, terms, value: v, onChange, busy, failed
   const o = confirm.options;
   const errorFor = (field: string) => (failed?.field === field ? failed.message : null);
   const general = failed && !OWN_PLACE.has(failed.field ?? "") ? failed.message : null;
-  const ready = hiringConfirmReady(v);
 
   return (
     <fieldset disabled={busy} className="flex min-w-0 flex-col gap-4">
@@ -101,7 +102,7 @@ export function ConfirmFields({ confirm, terms, value: v, onChange, busy, failed
               );
             })}
           </Chips>
-          <FieldError message={errorFor("trades")} />
+          <div id="ms-cf-trades"><FieldError message={errorFor("trades")} /></div>
         </Control>
 
         <Control legend="Fylker">
@@ -115,7 +116,7 @@ export function ConfirmFields({ confirm, terms, value: v, onChange, busy, failed
               );
             })}
           </Chips>
-          <FieldError message={errorFor("counties")} />
+          <div id="ms-cf-counties"><FieldError message={errorFor("counties")} /></div>
         </Control>
 
         <Control legend="Hvor ofte">
@@ -168,7 +169,7 @@ export function ConfirmFields({ confirm, terms, value: v, onChange, busy, failed
       </Block>
 
       <FieldError message={general} />
-      <button type="submit" className={`${BTN_OUTLINE} w-full sm:w-auto sm:self-start`} disabled={busy || !ready}>
+      <button type="submit" className={`${BTN_GREEN} w-full sm:w-auto sm:self-start`} disabled={busy}>
         {busy ? "Lagrer ..." : "Godta og start"}
       </button>
     </fieldset>
@@ -205,6 +206,9 @@ function useConfirmMatches(confirm: HiringConfirm, value: HiringConfirmValues, s
   return matches;
 }
 
+/** Where each missing thing is on the screen, for the scroll after a press. */
+const CONFIRM_ANCHOR: Record<string, string> = { full_name: "ms-cf-name", email: "ms-cf-email", trades: "ms-cf-trades", counties: "ms-cf-counties", accept_terms: "ms-cf-terms", accept_beta: "ms-cf-beta" };
+
 /** The screen with its state; a success reloads the page through send, which then shows the list. */
 export default function HiringConfirmScreen({ confirm, terms, send, sendData }: { confirm: HiringConfirm; terms: TermsText; send: Send; sendData: SendData }) {
   const [value, setValue] = useState<HiringConfirmValues>(() => hiringConfirmValues(confirm));
@@ -214,7 +218,13 @@ export default function HiringConfirmScreen({ confirm, terms, send, sendData }: 
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (busy || !hiringConfirmReady(value)) return;
+    if (busy) return;
+    const missing = hiringConfirmMissing(value);
+    if (missing) {
+      setFailed(missing);
+      window.setTimeout(() => document.getElementById(CONFIRM_ANCHOR[missing.field] ?? "")?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
+      return;
+    }
     setBusy(true);
     setFailed(null);
     const r = await send(hiringConfirmBody(value));
