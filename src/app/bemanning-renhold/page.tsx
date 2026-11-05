@@ -27,7 +27,7 @@ export default function BemanningRenholdPage() {
             Vi avklarer arbeidstid, transport og språkbehov tidlig. Bemanning renhold skal være forutsigbar: faste team
             der det er behov, og fleksible vikarer når topper oppstår. Vi hjelper dere å finne riktig balanse og viser vei
             til{" "}
-            <Link href="/request" className="font-medium text-gold-ink hover:underline">
+            <Link href="/request" data-rask-foresporsel className="font-medium text-gold-ink hover:underline">
               forespørsel
             </Link>{" "}
             når dere er klare.
@@ -65,7 +65,7 @@ export default function BemanningRenholdPage() {
         />
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
           <Link
-            href="/request"
+            href="/request" data-rask-foresporsel
             className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-gold-hover sm:w-auto"
           >
             Få tilbud

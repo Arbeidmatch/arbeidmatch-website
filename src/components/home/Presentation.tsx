@@ -13,7 +13,7 @@ export default function Presentation() {
         <h1>Riktig kompetanse.<br /><em>På rett plass.</em></h1>
         <p className={s.intro}>Trenger du flere fagfolk? Vi hjelper deg med bemanning og rekruttering, så du kan holde prosjektet i gang og bygge teamet videre.</p>
         <div className={s.actions}>
-          <Link href="/request" className={s.primary}>Jeg trenger medarbeidere <ArrowUpRight size={19} /></Link>
+          <Link href="/request" data-rask-foresporsel className={s.primary}>Jeg trenger medarbeidere <ArrowUpRight size={19} /></Link>
           <Link href="/jobs" className={s.secondary}>Jeg ser etter jobb <ArrowRight size={18} /></Link>
         </div>
         <div className={s.details}><span><Check size={15} /> Personlig oppfølging</span><span><Check size={15} /> Kandidater vurdert for ditt behov</span></div>

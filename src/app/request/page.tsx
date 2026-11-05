@@ -41,6 +41,8 @@ import {
   type SelectableRequestService,
 } from "@/lib/request-service";
 import { useToast } from "@/lib/toast-context";
+import AnswerModeStep from "@/components/rask-foresporsel/AnswerModeStep";
+import { ANSWER_MODE_STORAGE_KEY, isAnswerMode, type AnswerMode } from "@/lib/pay-conditions";
 
 type PartnerVerifyCompany = {
   id: string;
@@ -477,9 +479,46 @@ function ServiceChoiceCard({
   );
 }
 
+/**
+ * The wizard's address with the client's answer mode on it (ORDER 224): the
+ * wizard reads it to know whether the pay range is required.
+ */
+function withAnswerMode(redirectUrl: string, mode: AnswerMode | ""): string {
+  if (!mode) return redirectUrl;
+  return `${redirectUrl}${redirectUrl.includes("?") ? "&" : "?"}svar=${mode}`;
+}
+
 export default function RequestPage() {
   const router = useRouter();
   const toast = useToast();
+  /**
+   * Step 1 of both request variants (the owner, 5 November 2026): a candidate
+   * on the role (faster) or on the details (slower). Preselected from
+   * ?svar=, which the popup sets when the client chose the details there.
+   */
+  const [answerMode, setAnswerMode] = useState<AnswerMode | "">("");
+  useEffect(() => {
+    let mode: AnswerMode | "" = "";
+    try {
+      const fromUrl = new URLSearchParams(window.location.search).get("svar");
+      const stored = window.sessionStorage.getItem(ANSWER_MODE_STORAGE_KEY);
+      mode = isAnswerMode(fromUrl) ? fromUrl : isAnswerMode(stored) ? stored : "";
+    } catch {
+      /* ignore */
+    }
+    if (mode) setAnswerMode(mode);
+  }, []);
+  const chooseAnswerMode = useCallback((mode: AnswerMode) => {
+    setAnswerMode(mode);
+    try {
+      window.sessionStorage.setItem(ANSWER_MODE_STORAGE_KEY, mode);
+      const url = new URL(window.location.href);
+      url.searchParams.set("svar", mode);
+      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+    } catch {
+      /* the wizard's address carries it too */
+    }
+  }, []);
 
   const navigateBackOrHome = useCallback(() => {
     if (typeof window === "undefined") {
@@ -870,7 +909,7 @@ export default function RequestPage() {
         return;
       }
       allowNextNavigationRef.current = true;
-      router.push(data.redirectUrl);
+      router.push(withAnswerMode(data.redirectUrl, answerMode));
     } catch {
       setOtpError("Vi kunne ikke bekrefte koden akkurat nå. Prøv igjen.");
     } finally {
@@ -1011,7 +1050,12 @@ export default function RequestPage() {
       allowNextNavigationRef.current = true;
       // Neither the code nor the token has a column for these two answers, so
       // they ride on the wizard's address, which keeps them per token.
-      router.push(withServiceChoice(data.redirectUrl, { service: serviceChoice, kind: requesterKind, fromPresentation: Boolean(presentationKind) }));
+      router.push(
+        withAnswerMode(
+          withServiceChoice(data.redirectUrl, { service: serviceChoice, kind: requesterKind, fromPresentation: Boolean(presentationKind) }),
+          answerMode,
+        ),
+      );
     } catch {
       setOtpError("Vi kunne ikke bekrefte koden akkurat nå. Prøv igjen.");
     } finally {
@@ -1249,7 +1293,10 @@ export default function RequestPage() {
             : "rounded-2xl border border-white/10 md:rounded-[16px] md:border-[rgba(201,168,76,0.15)] md:border-t-2 md:border-t-[rgba(201,168,76,0.4)]"
         }`}
       >
-        {checkState === "partner_check" && (
+        <div className={answerMode ? "mb-8 border-b border-white/10 pb-8" : ""}>
+          <AnswerModeStep tone="dark" value={answerMode} onChoose={chooseAnswerMode} />
+        </div>
+        {answerMode && checkState === "partner_check" && (
           <>
             <button
               type="button"
@@ -1312,7 +1359,7 @@ export default function RequestPage() {
             </AnimatePresence>
           </>
         )}
-        {checkState === "idle" && (
+        {answerMode && checkState === "idle" && (
           <>
             <button
               type="button"

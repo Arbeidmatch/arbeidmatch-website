@@ -49,7 +49,7 @@ export default function BemanningByggAnleggNb() {
               elektrikere i Norge
             </Link>{" "}
             der det er relevant. Start med en bemanningsbeskrivelse via{" "}
-            <Link href="/request" className="font-medium text-gold-ink hover:underline">
+            <Link href="/request" data-rask-foresporsel className="font-medium text-gold-ink hover:underline">
               forespørselsskjemaet
             </Link>
             .
@@ -161,7 +161,7 @@ export default function BemanningByggAnleggNb() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
             <Link
-              href="/request"
+              href="/request" data-rask-foresporsel
               className="inline-flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-navy hover:bg-gold-hover sm:w-auto"
             >
               Be om kandidater

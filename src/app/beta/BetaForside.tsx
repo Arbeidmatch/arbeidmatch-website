@@ -85,7 +85,7 @@ export function BetaForside({ totalOpen }: { totalOpen: number }) {
                 Bemanning og rekruttering til bygg, industri, elektro og logistikk. Dere sier hva dere trenger, vi tar resten.
               </p>
               <div className="hidden flex-wrap gap-3 md:flex">
-                <Link href="/request" className={btnGreen}>Be om folk</Link>
+                <Link href="/request" data-rask-foresporsel className={btnGreen}>Be om folk</Link>
                 <Link href="/jobs" className={btnOutline}>Finn jobb</Link>
               </div>
             </div>
@@ -170,7 +170,7 @@ export function BetaForside({ totalOpen }: { totalOpen: number }) {
         <div className="flex flex-col items-start gap-6 border-t border-navy pt-10 md:flex-row md:items-center md:justify-between md:pt-14">
           <h2 className={`${serif} text-[length:var(--t2)] leading-[1.06] text-navy`}>Trenger dere folk?</h2>
           <div className="flex flex-wrap gap-3">
-            <Link href="/request" className={btnGreen}>Be om folk</Link>
+            <Link href="/request" data-rask-foresporsel className={btnGreen}>Be om folk</Link>
             <Link href="/contact" className={btnOutline}>Ta kontakt</Link>
           </div>
         </div>
@@ -188,7 +188,7 @@ export function BetaForside({ totalOpen }: { totalOpen: number }) {
             </div>
             <div>
               <h4 className={`${label} mb-2.5 !text-[#14202f]`}>Bedrift</h4>
-              <ul className="grid gap-1.5"><li><Link href="/for-employers" className={focus}>Bemanning</Link></li><li><Link href="/for-employers" className={focus}>Rekruttering</Link></li><li><a href="#bransjer" className={focus}>Bransjer</a></li><li><Link href="/request" className={focus}>Be om folk</Link></li></ul>
+              <ul className="grid gap-1.5"><li><Link href="/for-employers" className={focus}>Bemanning</Link></li><li><Link href="/for-employers" className={focus}>Rekruttering</Link></li><li><a href="#bransjer" className={focus}>Bransjer</a></li><li><Link href="/request" data-rask-foresporsel className={focus}>Be om folk</Link></li></ul>
             </div>
             <div>
               <h4 className={`${label} mb-2.5 !text-[#14202f]`}>Jobbsøker</h4>
@@ -207,7 +207,7 @@ export function BetaForside({ totalOpen }: { totalOpen: number }) {
 
       <div className="fixed inset-x-0 bottom-0 z-20 flex gap-2.5 border-t border-[#e6e1d6] bg-[#fbfaf7] px-4 pb-[calc(10px+env(safe-area-inset-bottom,0px))] pt-2.5 md:hidden">
         <Link href="/jobs" className={`${btnOutline} flex-1`}>Finn jobb</Link>
-        <Link href="/request" className={`${btnGreen} flex-1`}>Be om folk</Link>
+        <Link href="/request" data-rask-foresporsel className={`${btnGreen} flex-1`}>Be om folk</Link>
       </div>
       <div className="h-[72px] md:hidden" aria-hidden="true" />
     </div>

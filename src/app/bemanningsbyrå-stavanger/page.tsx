@@ -43,7 +43,7 @@ export default function BemanningsbyraStavangerPage() {
           </p>
           <p>
             Vi rekrutterer fra EU/EØS til regulerte miljøer og prosjektbaserte team. Ta kontakt via en{" "}
-            <Link href="/request" className="font-medium text-gold-ink hover:underline">
+            <Link href="/request" data-rask-foresporsel className="font-medium text-gold-ink hover:underline">
               bemanningsforespørsel
             </Link>{" "}
             eller les mer{" "}
@@ -98,7 +98,7 @@ export default function BemanningsbyraStavangerPage() {
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
           <Link
-            href="/request"
+            href="/request" data-rask-foresporsel
             className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-gold-hover sm:w-auto"
           >
             Avklar bemanningsbehovet

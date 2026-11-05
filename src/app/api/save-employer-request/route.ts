@@ -11,6 +11,90 @@ import { conditionsAskedFor, withoutConditionAnswers } from "@/lib/request-wizar
 import { contractTypeForService, isRequesterKind, isServiceAllowedFor, REQUESTER_KINDS } from "@/lib/request-service";
 import { isPresentationTicket, PRESENTATION_SOURCE } from "@/lib/presentation-request-ticket";
 import { tellAtsAboutRequest } from "@/lib/ats-request-notify";
+import { ANSWER_MODES, BENEFITS, checkPayConditions, parseKroner, TRADE_KEYS } from "@/lib/pay-conditions";
+
+/**
+ * PAY AND CONDITIONS (ORDER 224, the owner, 5 November 2026). Both request
+ * variants carry them: the equal-treatment confirmation, the hourly range, the
+ * floor the browser showed, the benefits. New keys, so withoutConditionAnswers
+ * never strips them; a submission without sourceVariant (a browser that
+ * opened the form before this) is saved exactly as before.
+ */
+const kroner = z.union([z.number().finite().min(0).max(100000), z.string().trim().max(12), z.null()]).optional();
+const payConditionKeys = {
+  answerMode: z.enum(ANSWER_MODES).optional(),
+  payFrom: kroner,
+  payTo: kroner,
+  payFloorAtSubmit: kroner,
+  equalTreatmentConfirmed: z.boolean().optional(),
+  benefits: z.array(z.enum(BENEFITS)).max(8).optional(),
+  outsideOurTrades: z.boolean().optional(),
+};
+
+/**
+ * "Rask forespørsel", the popup (ORDER 224): eight taps, the org.nr. from the
+ * register and the work e-mail. Nothing else is asked, so nothing else is
+ * required; the ATS shows the rest as not stated.
+ */
+const raskSchema = z
+  .object({
+    sourceVariant: z.literal("rask"),
+    token: z.string().uuid(),
+    company: z.string().trim().min(2).max(160).refine((v) => realContactValue(v) !== "", "company is required"),
+    orgNumber: z.string().trim().regex(/^\d{9}$/),
+    email: z.string().trim().email().max(200),
+    trade: z.enum(TRADE_KEYS).optional(),
+    category: z.string().trim().min(1).max(120),
+    position: z.string().trim().min(1).max(300),
+    numberOfPositions: z.string().trim().min(1).max(10),
+    startDate: z.string().trim().min(1).max(80),
+    county: z.string().trim().max(60).refine((v) => !/[<>]/.test(v), "county must be plain text").optional(),
+    city: z.string().trim().min(1).max(120).refine((v) => !/[<>]/.test(v), "city must be plain text"),
+    job_summary: z.string().trim().max(1000).optional().or(z.literal("")),
+    ...payConditionKeys,
+    answerMode: z.literal("rolle"),
+    equalTreatmentConfirmed: z.boolean(),
+    website: z.string().max(256).optional(),
+    company_website: z.string().max(256).optional(),
+    honeypot: z.string().max(256).optional(),
+  })
+  .strict();
+
+/** The pay and conditions as form_answers keeps them: numbers, and the confirmation as the server's time. */
+function payConditionAnswers(data: {
+  answerMode?: string;
+  payFrom?: unknown;
+  payTo?: unknown;
+  payFloorAtSubmit?: unknown;
+  equalTreatmentConfirmed?: boolean;
+  benefits?: string[];
+  outsideOurTrades?: boolean;
+}) {
+  const payFrom = parseKroner(data.payFrom);
+  // On the role variant an empty Til is Fra (the owner's decision by silence, 5 November 2026).
+  const payTo = parseKroner(data.payTo) ?? (data.answerMode === "rolle" ? payFrom : null);
+  return {
+    answerMode: data.answerMode ?? null,
+    payFrom,
+    payTo,
+    payFloorAtSubmit: parseKroner(data.payFloorAtSubmit),
+    ...(data.equalTreatmentConfirmed === true ? { equalTreatmentConfirmedAt: new Date().toISOString() } : {}),
+    benefits: data.benefits ?? [],
+    outsideOurTrades: data.outsideOurTrades === true,
+  };
+}
+
+/** The refusal of a submission's pay and conditions, in Norwegian, or null. */
+function payConditionsRefusal(data: Parameters<typeof payConditionAnswers>[0]) {
+  const reason = checkPayConditions({
+    answerMode: data.answerMode === "rolle" || data.answerMode === "detaljer" ? data.answerMode : null,
+    equalTreatmentConfirmed: data.equalTreatmentConfirmed,
+    payFrom: data.payFrom,
+    payTo: data.payTo,
+    payFloorAtSubmit: data.payFloorAtSubmit,
+  });
+  return reason ? noStoreJson({ success: false, error: reason, code: "pay_conditions" }, { status: 400 }) : null;
+}
 
 const requestSchema = z
   .object({
@@ -104,6 +188,9 @@ const requestSchema = z
      * keeps them as the "Role details" lines in `requirements`, as before.
      */
     roleAnswers: z.record(z.string(), z.unknown()).optional(),
+    /** The detailed form with the pay block (ORDER 224); absent on a form opened before it. */
+    sourceVariant: z.literal("detaljert").optional(),
+    ...payConditionKeys,
   })
   .strict();
 
@@ -132,6 +219,107 @@ const hasNonEmptyString = (val: unknown): val is string =>
 function formAnswersOf(payload: z.infer<typeof requestSchema>): Record<string, unknown> {
   const { token: _token, deck: _deck, website: _website, company_website: _companyWebsite, honeypot: _honeypot, roleAnswers: _roleAnswers, ...answers } = payload;
   return answers;
+}
+
+/** The reference the client and the office quote, from the inserted row's id. */
+function referenceIdFor(rawId: unknown): string | undefined {
+  if (rawId === undefined || rawId === null) return undefined;
+  if (typeof rawId === "number" && Number.isFinite(rawId)) {
+    return `AM-ER-2026-${String(Math.floor(rawId)).padStart(5, "0")}`;
+  }
+  if (typeof rawId === "string" && rawId.length > 0) {
+    const compact = rawId.replace(/-/g, "").slice(0, 8).toUpperCase();
+    return compact ? `AM-ER-2026-${compact}` : undefined;
+  }
+  return undefined;
+}
+
+/**
+ * The popup's request (ORDER 224), saved as an employer request marked
+ * sourceVariant "rask". The ticket is read and the ATS told exactly as for
+ * the detailed form; the columns nobody was asked stay empty.
+ */
+async function saveRaskRequest(parsedJson: unknown, noteCompany: (company: string) => void) {
+  const parsed = raskSchema.safeParse(parsedJson);
+  if (!parsed.success) {
+    await notifyError({
+      route: "/api/save-employer-request",
+      error: new Error(JSON.stringify(parsed.error.flatten())),
+    });
+    return NextResponse.json({ error: "Invalid request payload", details: parsed.error.flatten() }, { status: 400 });
+  }
+  const data = parsed.data;
+  if (hasHoneypotValue(data)) return noStoreJson({ success: true });
+
+  const refusal = payConditionsRefusal(data);
+  if (refusal) return refusal;
+
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) {
+    return noStoreJson({ success: false, error: "Supabase configuration missing" }, { status: 500 });
+  }
+
+  const { data: ticket, error: ticketError } = await supabase
+    .from("request_tokens")
+    .select("how_did_you_hear, created_at, expires_at, used")
+    .eq("token", data.token)
+    .maybeSingle();
+  if (ticketError) throw ticketError;
+  const fromPresentation = isPresentationTicket(ticket);
+
+  noteCompany(data.company);
+  const pay = payConditionAnswers(data);
+  // "Utenfor våre fag": the trade "Annet" always is; a typed role is, as the browser said.
+  const outsideOurTrades = data.outsideOurTrades === true || data.trade === "annet";
+  const {
+    token: _token,
+    website: _website,
+    company_website: _companyWebsite,
+    honeypot: _honeypot,
+    equalTreatmentConfirmed: _confirmed,
+    ...answers
+  } = data;
+  const salary = pay.payFrom === null ? null : pay.payTo !== null && pay.payTo !== pay.payFrom ? `${pay.payFrom}-${pay.payTo}` : String(pay.payFrom);
+
+  const { data: insertedRow, error } = await supabase
+    .from("employer_requests")
+    .insert({
+      token_id:            data.token,
+      company:             data.company,
+      org_number:          data.orgNumber,
+      email:               data.email,
+      // Not asked on the popup; the columns are NOT NULL.
+      full_name:           "",
+      phone:               "",
+      job_summary:         data.job_summary || `${data.numberOfPositions} x ${data.position}, ${data.city}`,
+      // Not asked: the ATS shows "Not stated".
+      hiring_type:         "",
+      qualification:       "",
+      category:            data.category,
+      position:            data.position,
+      number_of_positions: parseNumeric(data.numberOfPositions),
+      city:                data.city,
+      start_date:          data.startDate,
+      salary,
+      salary_period:       salary ? "Per hour" : null,
+      how_did_you_hear:    fromPresentation ? PRESENTATION_SOURCE : null,
+      required_skills:     [],
+      form_answers: {
+        ...answers,
+        sourceVariant: "rask",
+        ...pay,
+        outsideOurTrades,
+        ...(fromPresentation ? { source: PRESENTATION_SOURCE } : {}),
+      },
+    })
+    .select("id")
+    .maybeSingle();
+  if (error) throw error;
+
+  const rawId = insertedRow?.id;
+  const referenceId = referenceIdFor(rawId);
+  if (typeof rawId === "string" && rawId) await tellAtsAboutRequest(rawId);
+  return noStoreJson({ success: true, ...(referenceId ? { referenceId } : {}) });
 }
 
 export async function POST(request: NextRequest) {
@@ -175,6 +363,12 @@ export async function POST(request: NextRequest) {
       return noStoreJson({ success: false, error: "Invalid JSON payload." }, { status: 400 });
     }
 
+    if (parsedJson && typeof parsedJson === "object" && (parsedJson as { sourceVariant?: unknown }).sourceVariant === "rask") {
+      return await saveRaskRequest(parsedJson, (company) => {
+        companySnapshot = company;
+      });
+    }
+
     const parsed = requestSchema.safeParse(parsedJson);
     if (!parsed.success) {
       await notifyError({
@@ -189,6 +383,12 @@ export async function POST(request: NextRequest) {
 
     if (hasHoneypotValue(parsed.data)) {
       return noStoreJson({ success: true });
+    }
+
+    // The detailed form's pay block (ORDER 224): checked only when the form carried it.
+    if (parsed.data.sourceVariant) {
+      const refusal = payConditionsRefusal(parsed.data);
+      if (refusal) return refusal;
     }
 
     // The owner, 24 September 2026: no staffing for an agency, and job
@@ -364,6 +564,7 @@ export async function POST(request: NextRequest) {
         ...(fromPresentation
           ? { source: PRESENTATION_SOURCE, deck: payload.deck ?? null }
           : {}),
+        ...(payload.sourceVariant ? { sourceVariant: payload.sourceVariant, ...payConditionAnswers(payload) } : {}),
       },
     })
       .select("id")
@@ -374,15 +575,7 @@ export async function POST(request: NextRequest) {
     }
 
     const rawId = insertedRow?.id;
-    let referenceId: string | undefined;
-    if (rawId !== undefined && rawId !== null) {
-      if (typeof rawId === "number" && Number.isFinite(rawId)) {
-        referenceId = `AM-ER-2026-${String(Math.floor(rawId)).padStart(5, "0")}`;
-      } else if (typeof rawId === "string" && rawId.length > 0) {
-        const compact = rawId.replace(/-/g, "").slice(0, 8).toUpperCase();
-        referenceId = compact ? `AM-ER-2026-${compact}` : undefined;
-      }
-    }
+    const referenceId = referenceIdFor(rawId);
 
     // The ATS makes its proposal from this row at once (the owner, 25 September
     // 2026: why wait fifteen minutes for the inbox?). Only the id is sent; the

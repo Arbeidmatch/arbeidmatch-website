@@ -66,6 +66,21 @@ import {
 } from "@/lib/request-service";
 import { conditionsAskedFor, withoutConditionAnswers, wizardStepOrder } from "@/lib/request-wizard-steps";
 import { addTypedLocation, listedPlace, normalizePlaceName } from "@/lib/request-location";
+import PayAndConditions from "@/components/rask-foresporsel/PayAndConditions";
+import {
+  ANSWER_MODE_STORAGE_KEY,
+  checkPayConditions,
+  fetchPayFloors,
+  isAnswerMode,
+  parseKroner,
+  payFieldErrors,
+  selectPayFloor,
+  toggleBenefit,
+  tradeKeyForWizardIndustry,
+  type AnswerMode,
+  type Benefit,
+  type PayFloorRow,
+} from "@/lib/pay-conditions";
 import {
   fill,
   optionLabel,
@@ -926,6 +941,71 @@ export default function RequestTokenPage() {
   const [citySearch, setCitySearch] = useState("");
   const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
   const [showChoice, setShowChoice] = useState(!startWizard);
+  /**
+   * PAY AND CONDITIONS (ORDER 224, the owner, 5 November 2026), on the last
+   * step before the submit, in addition to the salary step: equal treatment
+   * confirmed, an hourly range at or above the floor RecOS holds for the
+   * trade, and the benefits. New payload keys, so withoutConditionAnswers
+   * leaves them alone. The range is required when the client asked for a
+   * candidate on the details (step 1 on /request, carried as ?svar=).
+   */
+  const [payBlock, setPayBlock] = useState<{ equalTreatment: boolean; from: string; to: string; benefits: Benefit[] }>({
+    equalTreatment: false,
+    from: "",
+    to: "",
+    benefits: [],
+  });
+  const [payTried, setPayTried] = useState(false);
+  const [payFloors, setPayFloors] = useState<PayFloorRow[]>([]);
+  const [storedAnswerMode, setStoredAnswerMode] = useState<AnswerMode | "">("");
+  useEffect(() => {
+    try {
+      const stored = window.sessionStorage.getItem(ANSWER_MODE_STORAGE_KEY);
+      if (isAnswerMode(stored)) setStoredAnswerMode(stored);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+  const svarParam = searchParams.get("svar");
+  // A client who reached the wizard without step 1 (an older link) is on the detailed form, so "detaljer";
+  // a presentation's client, who is never asked pay up front, is not held to a range.
+  const answerMode: AnswerMode = isAnswerMode(svarParam) ? svarParam : storedAnswerMode || (isPresentation ? "rolle" : "detaljer");
+  const payTrade = tradeKeyForWizardIndustry(form.industry);
+  useEffect(() => {
+    if (!payTrade) {
+      setPayFloors([]);
+      return;
+    }
+    let cancelled = false;
+    void fetchPayFloors(payTrade).then((rows) => {
+      if (!cancelled) setPayFloors(rows);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [payTrade]);
+  const payFloor = payTrade ? selectPayFloor(payFloors, [form.workerType]) : null;
+  const payProblem = checkPayConditions({
+    answerMode,
+    equalTreatmentConfirmed: payBlock.equalTreatment,
+    payFrom: payBlock.from,
+    payTo: answerMode === "rolle" && !payBlock.to.trim() ? payBlock.from : payBlock.to,
+    payFloorAtSubmit: payFloor,
+  });
+  /** The pay block's keys for the save route; the e-mail routes never see them. */
+  const payConditionPayload = () => {
+    const from = parseKroner(payBlock.from);
+    const to = payBlock.to.trim() ? parseKroner(payBlock.to) : answerMode === "rolle" ? from : null;
+    return {
+      sourceVariant: "detaljert" as const,
+      answerMode,
+      payFrom: from,
+      payTo: to,
+      payFloorAtSubmit: payFloor,
+      equalTreatmentConfirmed: payBlock.equalTreatment,
+      benefits: payBlock.benefits,
+    };
+  };
   const [showCheckFlow, setShowCheckFlow] = useState(false);
   const [choiceMode, setChoiceMode] = useState<"cards" | "check">("cards");
   const [partnerFlowVisible, setPartnerFlowVisible] = useState(false);
@@ -1520,6 +1600,12 @@ export default function RequestTokenPage() {
       handleNext();
       return;
     }
+    const payFields = payFieldErrors({ from: payBlock.from, to: payBlock.to, floor: payFloor });
+    if (payProblem || payFields.from || payFields.to) {
+      setPayTried(true);
+      requestAnimationFrame(() => document.querySelector('[data-wizard-field="payConditions"]')?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+      return;
+    }
     await performEmployerSubmit();
   };
 
@@ -1657,7 +1743,7 @@ export default function RequestTokenPage() {
       const saveRes = await fetch("/api/save-employer-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(deck ? { ...payload, deck } : payload),
+        body: JSON.stringify({ ...(deck ? { ...payload, deck } : payload), ...payConditionPayload() }),
       });
       if (!saveRes.ok) throw new Error("save-employer-request");
       const saveData = (await saveRes.json()) as { success?: boolean; referenceId?: string };
@@ -3840,6 +3926,27 @@ export default function RequestTokenPage() {
                 </div>
               </div>
             )}
+
+            {step === LAST_STEP ? (
+              <div data-wizard-field="payConditions" className="mt-8 border-t border-white/10 pt-6" lang="nb">
+                <h3 className="mb-4 text-xl font-extrabold">Lønn og vilkår</h3>
+                <PayAndConditions
+                  idPrefix="wiz"
+                  tone="dark"
+                  floor={payFloor}
+                  equalTreatment={payBlock.equalTreatment}
+                  onEqualTreatment={(v) => setPayBlock((p) => ({ ...p, equalTreatment: v }))}
+                  payFrom={payBlock.from}
+                  payTo={payBlock.to}
+                  onPayFrom={(v) => setPayBlock((p) => ({ ...p, from: v }))}
+                  onPayTo={(v) => setPayBlock((p) => ({ ...p, to: v }))}
+                  benefits={payBlock.benefits}
+                  onToggleBenefit={(b) => setPayBlock((p) => ({ ...p, benefits: toggleBenefit(p.benefits, b) }))}
+                  showConfirmError={payTried}
+                  rangeError={payTried && payBlock.equalTreatment ? payProblem : null}
+                />
+              </div>
+            ) : null}
 
             {/* The privacy policy where the details are sent, his instruction of 24 September 2026:
                 "cand trimite datele din formular atunci sa fie linkul catre politica de confidentialitate". */}
