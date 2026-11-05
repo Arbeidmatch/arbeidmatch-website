@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import PasskeyLoginButton from "@/components/min-side/PasskeyLoginButton";
 import ResendLoginButton from "@/components/prosjekter/ResendLoginButton";
 import styles from "@/components/prosjekter/portal.module.css";
 import { isLoginToken } from "@/lib/prosjekter/access";
@@ -50,6 +51,8 @@ export default async function ProsjekterInnPage({
             : "Be om en ny lenke, så sender vi den til den samme e-postadressen."}
         </p>
         <div style={{ marginTop: 28, display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-start" }}>
+          {/* ORDER 228: a passkey from Min side opens it without a new link. */}
+          <PasskeyLoginButton className={`${styles.btn} ${styles.btnGhost}`} errorClassName={styles.err} />
           {isLoginToken(token) ? (
             <ResendLoginButton token={token} className={`${styles.btn} ${styles.btnGold}`} />
           ) : (

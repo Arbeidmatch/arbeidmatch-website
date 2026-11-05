@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import PasskeyLoginButton from "@/components/min-side/PasskeyLoginButton";
 import styles from "@/components/prosjekter/portal.module.css";
 import { checkLoginEmail } from "@/lib/prosjekter/access";
 
@@ -76,6 +77,8 @@ export default function LoginForm() {
       <p className={styles.modalLede} style={{ margin: 0 }}>
         Skriv e-postadressen dere fikk tilgang med, så sender vi en lenke som logger deg rett inn. Du trenger ikke passord.
       </p>
+      {/* ORDER 228: a client who added a passkey on Min side signs in with it; hidden where the browser has none. */}
+      <PasskeyLoginButton className={`${styles.btn} ${styles.btnGhost}`} errorClassName={styles.err} />
       <div className={styles.field}>
         <label className={styles.lab} htmlFor="pl-email">
           E-post

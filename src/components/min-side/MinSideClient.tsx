@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNod
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import MinSideProjects from "@/components/min-side/MinSideProjects";
+import MinSidePasskeys from "@/components/min-side/MinSidePasskeys";
 
 import { FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import { MinSideWhatsNew } from "./MinSideWhatsNew";
@@ -401,6 +402,8 @@ export default function MinSideClient({ token }: { token: string }) {
                     <Row label="E-post">{c.email || "Ikke oppgitt"}</Row>
                   </dl>
                   <p className={`text-sm ${MUTED_L}`}>Navn og org.nr. følger Brønnøysundregistrene og endres ikke her.</p>
+                  {/* ORDER 228: a passkey of this device instead of the e-mail link. */}
+                  <MinSidePasskeys token={token} />
                   {/* ORDER 157: the person asks us to close their login; the firm's papers stay. */}
                   <div className={`flex flex-wrap items-center justify-between gap-3 border-t ${RULE} pt-4`}>
                     <span className={`text-[15px] font-semibold ${INK}`}>Lukk kontoen</span>
