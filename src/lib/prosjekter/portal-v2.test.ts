@@ -296,6 +296,9 @@ describe("the header on the portal", () => {
 
   it("is the site's own everywhere else", () => {
     expect(portalHeader("/")).toBeNull();
+    // Min side is a client page: no job-seeker Register in the header, the gold button asks us for people.
+    expect(isPortalPath("/min-side/abc")).toBe(true);
+    expect(portalHeader("/min-side/abc")).toEqual({ quiet: { label: "Min side", href: "/min-side/abc" }, gold: { label: "Be om folk", href: "/request" } });
     expect(portalHeader("/for-employers")).toBeNull();
     expect(portalHeader("/prosjekterx")).toBeNull();
     expect(portalHeader("/prosjektx")).toBeNull();

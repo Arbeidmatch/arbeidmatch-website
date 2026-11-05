@@ -20,12 +20,16 @@ export type PortalHeader = { quiet: PortalLink; gold: PortalLink };
 export function isPortalPath(pathname: string | null | undefined): boolean {
   const p = String(pathname ?? "");
   // A one-project presentation (/prosjekt/<token>) is part of the portal too.
-  return p === "/prosjekter" || p.startsWith("/prosjekter/") || p.startsWith("/prosjekt/");
+  return p === "/prosjekter" || p.startsWith("/prosjekter/") || p.startsWith("/prosjekt/") || p === "/min-side" || p.startsWith("/min-side/");
 }
 
 export function portalHeader(pathname: string | null | undefined): PortalHeader | null {
   if (!isPortalPath(pathname)) return null;
   const segments = String(pathname).split("/").filter(Boolean);
+  // Min side (5 November 2026): an invited client found the gold "Register" of
+  // the job seekers and made himself a candidate. On his own page the quiet
+  // link is where he is, and the gold one asks us for people.
+  if (segments[0] === "min-side") return { quiet: { label: "Min side", href: String(pathname) }, gold: { label: "Be om folk", href: "/request" } };
   const own = segments.length === 2 && segments[0] === "prosjekter" && isProjectToken(segments[1]);
   if (own) {
     return {
