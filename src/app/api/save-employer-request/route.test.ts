@@ -225,3 +225,112 @@ describe("save-employer-request and a staffing worksite", () => {
     expect((mocks.inserted[0].form_answers as Record<string, unknown>).roleAnswers).toBeUndefined();
   });
 });
+
+/** ORDER 224: "Rask forespørsel", the popup, and the pay block on both variants. */
+describe("save-employer-request from the popup (sourceVariant rask)", () => {
+  const rask = {
+    sourceVariant: "rask",
+    answerMode: "rolle",
+    token: TOKEN,
+    company: "Test Bygg AS",
+    orgNumber: "999999999",
+    email: "post@testbygg.invalid",
+    trade: "bygg",
+    category: "Construction",
+    position: "Betongarbeider",
+    numberOfPositions: "3",
+    startDate: "Så snart som mulig",
+    county: "Trøndelag",
+    city: "Trondheim, Trøndelag",
+    job_summary: "3 personer: betongarbeider, Trondheim, Trøndelag, så snart som mulig, 260-300 kr/t",
+    payFrom: 260,
+    payTo: 300,
+    payFloorAtSubmit: 250,
+    equalTreatmentConfirmed: true,
+    benefits: ["Bolig uten trekk", "Kost"],
+    outsideOurTrades: false,
+    website: "",
+  };
+
+  it("saves a valid request marked rask, with the unasked columns empty and the pay kept", async () => {
+    const response = await POST(request(rask));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ success: true, referenceId: "AM-ER-2026-00042" });
+    const row = mocks.inserted[0];
+    expect(row).toMatchObject({ full_name: "", phone: "", hiring_type: "", qualification: "", required_skills: [], org_number: "999999999" });
+    const answers = row.form_answers as Record<string, unknown>;
+    expect(answers).toMatchObject({
+      sourceVariant: "rask",
+      answerMode: "rolle",
+      payFrom: 260,
+      payTo: 300,
+      payFloorAtSubmit: 250,
+      benefits: ["Bolig uten trekk", "Kost"],
+      outsideOurTrades: false,
+    });
+    expect(typeof answers.equalTreatmentConfirmedAt).toBe("string");
+    expect(Number.isNaN(Date.parse(String(answers.equalTreatmentConfirmedAt)))).toBe(false);
+    expect(answers.token).toBeUndefined();
+  });
+
+  it("takes Til as Fra when the client left it empty", async () => {
+    await POST(request({ ...rask, payTo: null }));
+    expect((mocks.inserted[0].form_answers as Record<string, unknown>).payTo).toBe(260);
+  });
+
+  it("refuses a request without the equal-treatment confirmation, and saves nothing", async () => {
+    const response = await POST(request({ ...rask, equalTreatmentConfirmed: false }));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: "pay_conditions" });
+    expect(mocks.inserted).toHaveLength(0);
+  });
+
+  it("refuses an amount under the floor, and saves nothing", async () => {
+    const response = await POST(request({ ...rask, payFrom: 240 }));
+    expect(response.status).toBe(400);
+    expect(((await response.json()) as { error: string }).error).toBe("Under minstelønn (250 kr per time).");
+    expect(mocks.inserted).toHaveLength(0);
+  });
+
+  it("refuses Til under Fra and a malformed org.nr.", async () => {
+    expect((await POST(request({ ...rask, payTo: 255 }))).status).toBe(400);
+    expect((await POST(request({ ...rask, orgNumber: "12345" }))).status).toBe(400);
+    expect(mocks.inserted).toHaveLength(0);
+  });
+
+  it("marks the trade Annet as outside our trades whatever the browser said", async () => {
+    await POST(request({ ...rask, trade: "annet", category: "Other", position: "Smed", payFloorAtSubmit: null }));
+    expect((mocks.inserted[0].form_answers as Record<string, unknown>).outsideOurTrades).toBe(true);
+  });
+});
+
+describe("save-employer-request from the detailed form with the pay block", () => {
+  const pay = { sourceVariant: "detaljert", answerMode: "detaljer", payFrom: "260", payTo: "300", payFloorAtSubmit: 250, equalTreatmentConfirmed: true, benefits: ["Kost"] };
+
+  it("keeps the pay block next to the answers", async () => {
+    const response = await POST(request({ ...valid, ...pay }));
+    expect(response.status).toBe(200);
+    const answers = mocks.inserted[0].form_answers as Record<string, unknown>;
+    expect(answers).toMatchObject({ sourceVariant: "detaljert", answerMode: "detaljer", payFrom: 260, payTo: 300, benefits: ["Kost"] });
+    expect(typeof answers.equalTreatmentConfirmedAt).toBe("string");
+  });
+
+  it("requires both amounts on the detailed variant", async () => {
+    expect((await POST(request({ ...valid, ...pay, payTo: "" }))).status).toBe(400);
+    expect(mocks.inserted).toHaveLength(0);
+  });
+
+  it("refuses it without the confirmation or under the floor", async () => {
+    expect((await POST(request({ ...valid, ...pay, equalTreatmentConfirmed: false }))).status).toBe(400);
+    expect((await POST(request({ ...valid, ...pay, payFrom: "200" }))).status).toBe(400);
+    expect(mocks.inserted).toHaveLength(0);
+  });
+
+  it("saves a form opened before the pay block exactly as before", async () => {
+    const response = await POST(request(valid));
+    expect(response.status).toBe(200);
+    const answers = mocks.inserted[0].form_answers as Record<string, unknown>;
+    expect(answers.sourceVariant).toBeUndefined();
+    expect(answers.equalTreatmentConfirmedAt).toBeUndefined();
+  });
+});

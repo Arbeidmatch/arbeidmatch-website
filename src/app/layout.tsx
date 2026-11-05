@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import ConditionalFooter from "@/components/ConditionalFooter";
@@ -12,6 +12,7 @@ import { TrafficBeacon } from "@/components/TrafficBeacon";
 import HomeJsonLd from "@/components/seo/HomeJsonLd";
 import HtmlLang from "@/components/HtmlLang";
 import PortalDialogs from "@/components/prosjekter/PortalDialogs";
+import RaskForesporselRoot from "@/components/rask-foresporsel/RaskForesporselRoot";
 import { pageLangInlineScript } from "@/lib/pageLang";
 
 const DeferredAppOverlays = dynamic(() => import("@/components/client/DeferredAppOverlays"), { loading: () => null });
@@ -23,6 +24,18 @@ const fontSans = Plus_Jakarta_Sans({
   display: "swap",
   adjustFontFallback: true,
   preload: true,
+});
+
+/**
+ * The headline face of the brief of 29 October 2026, for "Rask forespørsel",
+ * which opens over any page. Not preloaded: it is fetched only when used.
+ */
+const fontSerif = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  variable: "--font-serif",
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -92,7 +105,7 @@ export default function RootLayout({
     // "en" as rendered, corrected per page before first paint: most pages are
     // English and the employer side is Norwegian. See src/lib/pageLang.ts.
     // suppressHydrationWarning: the head script changes `lang` before React hydrates.
-    <html lang="en" suppressHydrationWarning className={`h-full overflow-x-hidden antialiased ${fontSans.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`h-full overflow-x-hidden antialiased ${fontSans.variable} ${fontSerif.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: pageLangInlineScript() }} />
       </head>
@@ -107,6 +120,8 @@ export default function RootLayout({
         <DeferredAppOverlays />
         {/* #tilgang and #logg-inn open the project portal's forms over any page. */}
         <PortalDialogs />
+        {/* Every link with data-rask-foresporsel ("Be om folk") opens the request popup over the page. */}
+        <RaskForesporselRoot />
         <CookieConsent />
         <TrafficBeacon />
         <HomeJsonLd />

@@ -28,7 +28,7 @@ export default function BemanningIndustriPage() {
             erfaring fra tilsvarende miljø. Når prosjektet krever dokumentasjon mot internkontroll, hjelper vi med å
             strukturere informasjonen slik at verksleder og HMS får det de trenger. Vi tilstreber ryddige prosesser og
             viser vei til{" "}
-            <Link href="/request" className="font-medium text-gold-ink hover:underline">
+            <Link href="/request" data-rask-foresporsel className="font-medium text-gold-ink hover:underline">
               kapasitetsavklaring
             </Link>{" "}
             og{" "}
@@ -73,7 +73,7 @@ export default function BemanningIndustriPage() {
         />
         <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
           <Link
-            href="/request"
+            href="/request" data-rask-foresporsel
             className="btn-gold-premium inline-flex min-h-[48px] w-full items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-gold-hover sm:w-auto"
           >
             Avklar kapasitet
