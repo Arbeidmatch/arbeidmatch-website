@@ -643,7 +643,12 @@ export type HiringRow = {
 };
 
 /** The full lead card, Premium only. */
-export type HiringCard = HiringRow & { address: string | null; website: string | null; industry: string | null; employees: number | null; recruits: string | null };
+/** ORDER 244: the firm card the ATS writes in Norwegian; Min side only draws it. */
+export type FirmCardRow = { label: string; value: string; tone: "danger" | null; href: string | null };
+export type FirmCardSection = { key: string; title: string; source: string; rows: FirmCardRow[]; bars: { month: string; adverts: number }[] };
+export type FirmCardNo = { sections: FirmCardSection[]; footer: string };
+
+export type HiringCard = HiringRow & { address: string | null; website: string | null; industry: string | null; employees: number | null; recruits: string | null; firm: FirmCardNo | null };
 
 export type HiringProjectRow = { id: string; title: string; county: string | null; stage: string };
 export type HiringProjects = {
@@ -1131,7 +1136,36 @@ export function hiringCardFrom(raw: unknown): HiringCard | null {
   const row = r ? hiringRowFrom(r) : null;
   if (!r || !row) return null;
   const employees = typeof r.employees === "number" && Number.isFinite(r.employees) && r.employees >= 0 ? Math.round(r.employees) : null;
-  return { ...row, address: textOrNull(r.address, 300), website: websiteFrom(r.website), industry: textOrNull(r.industry, 200), employees, recruits: textOrNull(r.recruits, 40) };
+  return { ...row, address: textOrNull(r.address, 300), website: websiteFrom(r.website), industry: textOrNull(r.industry, 200), employees, recruits: textOrNull(r.recruits, 40), firm: firmCardFrom(r.firm_no) };
+}
+
+/** A link on the firm card: the firm's website, a phone number or an e-mail address, nothing else. */
+function firmHrefFrom(v: unknown): string | null {
+  const s = str(v, 300).trim();
+  if (/^tel:\+?[\d]{6,15}$/.test(s) || /^mailto:[^@\s<>"]+@[^@\s<>"]+\.[a-z]{2,}$/i.test(s)) return s;
+  return websiteFrom(s);
+}
+
+/** The firm card the ATS answers inside hiring_card (ORDER 244), or null. */
+export function firmCardFrom(raw: unknown): FirmCardNo | null {
+  const r = obj(raw);
+  if (!r) return null;
+  const sections = objs(r.sections)
+    .map((x) => ({
+      key: str(x.key, 20),
+      title: str(x.title, 60),
+      source: str(x.source, 120),
+      rows: objs(x.rows)
+        .map((row) => ({ label: str(row.label, 60), value: str(row.value, 400), tone: row.tone === "danger" ? ("danger" as const) : null, href: firmHrefFrom(row.href) }))
+        .filter((row) => row.label && row.value)
+        .slice(0, 20),
+      bars: objs(x.bars)
+        .map((b) => ({ month: str(b.month, 12), adverts: wholeOrZero(b.adverts) }))
+        .slice(0, 24),
+    }))
+    .filter((x) => x.title && x.rows.length)
+    .slice(0, 8);
+  return sections.length ? { sections, footer: str(r.footer, 200) } : null;
 }
 
 function hiringProjectsFrom(raw: unknown): HiringProjects | null {

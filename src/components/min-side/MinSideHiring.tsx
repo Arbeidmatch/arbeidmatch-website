@@ -21,6 +21,7 @@ import {
   visibleHiringRows,
   type Hiring,
   type HiringCard,
+  type FirmCardNo,
   type HiringBillingValues,
   type HiringFilter,
   type HiringPlans,
@@ -359,6 +360,56 @@ function CardRow({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
+/**
+ * ORDER 244: the firm card, as the ATS wrote it: Oversikt, Kontakt, Økonomi,
+ * Ansettelser, Prognose, each with its source. One section open at a time, so
+ * a phone never scrolls through all of them.
+ */
+function FirmSections({ firm }: { firm: FirmCardNo }) {
+  const [open, setOpen] = useState(firm.sections[0]?.key ?? "");
+  return (
+    <div className="flex flex-col gap-2" data-testid="ms-firm-card">
+      {firm.sections.map((s) => {
+        const isOpen = open === s.key;
+        const max = Math.max(1, ...s.bars.map((b) => b.adverts));
+        return (
+          <section key={s.key} className="rounded-xl border border-white/15">
+            <button type="button" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? "" : s.key)} className="flex min-h-11 w-full items-center justify-between gap-3 px-3.5 py-2 text-left">
+              <span className="font-semibold text-white">{s.title}</span>
+              <span className={`text-xs ${MUTED}`}>{s.source}</span>
+            </button>
+            {isOpen ? (
+              <div className="flex flex-col gap-2 px-3.5 pb-3">
+                {s.bars.length ? (
+                  <div className="flex h-12 items-end gap-1" aria-label="Annonser per måned, siste 12 måneder">
+                    {s.bars.map((b) => (
+                      <span key={b.month} title={`${b.month}: ${b.adverts}`} className="flex-1 rounded-sm bg-[#C9A84C]" style={{ height: `${Math.max(4, (b.adverts / max) * 100)}%`, opacity: b.adverts ? 1 : 0.25 }} />
+                    ))}
+                  </div>
+                ) : null}
+                <dl className="flex flex-col gap-2">
+                  {s.rows.map((r) => (
+                    <CardRow key={`${s.key}-${r.label}`} label={r.label}>
+                      {r.href ? (
+                        <a href={r.href} target={r.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer nofollow" className="underline underline-offset-4">
+                          {r.value}
+                        </a>
+                      ) : (
+                        <span className={r.tone === "danger" ? "font-semibold text-[#F87171]" : undefined}>{r.value}</span>
+                      )}
+                    </CardRow>
+                  ))}
+                </dl>
+              </div>
+            ) : null}
+          </section>
+        );
+      })}
+      {firm.footer ? <p className={`text-xs ${MUTED}`}>{firm.footer}</p> : null}
+    </div>
+  );
+}
+
 /** Opening the card is the POST hiring_card (the ATS records that it was opened). */
 function LeadCard({ orgnr, send, sendData }: { orgnr: string; send: Send; sendData: SendData }) {
   const [card, setCard] = useState<HiringCard | null>(null);
@@ -426,24 +477,29 @@ function LeadCard({ orgnr, send, sendData }: { orgnr: string; send: Send; sendDa
         <CardRow label="Org.nr">
           <span className="tabular-nums">{orgNumberNo(card.orgnr)}</span>
         </CardRow>
-        <CardRow label="Bransje">{card.industry ?? "Ikke oppgitt"}</CardRow>
-        <CardRow label="Ansatte">{card.employees ?? "Ikke oppgitt"}</CardRow>
-        <CardRow label="Adresse">{card.address ?? ([card.town, card.county_name].filter(Boolean).join(", ") || "Ikke oppgitt")}</CardRow>
-        <CardRow label="Nettsted">
-          {card.website ? (
-            <a href={card.website} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-4">
-              {card.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-            </a>
-          ) : (
-            "Ikke oppgitt"
-          )}
-        </CardRow>
+        {card.firm ? null : (
+          <>
+            <CardRow label="Bransje">{card.industry ?? "Ikke oppgitt"}</CardRow>
+            <CardRow label="Ansatte">{card.employees ?? "Ikke oppgitt"}</CardRow>
+            <CardRow label="Adresse">{card.address ?? ([card.town, card.county_name].filter(Boolean).join(", ") || "Ikke oppgitt")}</CardRow>
+            <CardRow label="Nettsted">
+              {card.website ? (
+                <a href={card.website} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-4">
+                  {card.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                </a>
+              ) : (
+                "Ikke oppgitt"
+              )}
+            </CardRow>
+          </>
+        )}
         <CardRow label="Behov">{card.behov ?? "Ikke oppgitt"}</CardRow>
         <CardRow label="Byrå">{card.recruits ?? "Ikke oppgitt"}</CardRow>
         <CardRow label="Språk">{card.english_ok ? "Aksepterer engelsk" : "Ikke oppgitt"}</CardRow>
         {card.won ? <CardRow label="Offentlig kontrakt">{card.won}</CardRow> : null}
         <CardRow label="Status">{HIRING_STATUS_NO[card.status]}</CardRow>
       </dl>
+      {card.firm ? <FirmSections firm={card.firm} /> : null}
       <div className="flex flex-col gap-1.5">
         <label htmlFor="ms-lead-follow" className="text-sm font-medium text-white">
           Følg opp
