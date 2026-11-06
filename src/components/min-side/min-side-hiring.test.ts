@@ -182,6 +182,15 @@ describe("filters and the CSV link", () => {
     expect(visibleHiringRows(rows, { ...f, english: true, onlyNew: true }, "2026-10-10T00:00:00Z", "basis")).toHaveLength(2);
   });
 
+  // ORDER 244 ADDED 4: "Sannsynlig å ansette snart" keeps the high and medium estimates, high first; locked in Basis.
+  it("filters and sorts by the hiring-soon estimate", () => {
+    const f = { county: "", trade: "", english: false, onlyNew: false, soon: true };
+    const marked = [{ ...rows[0], hiring_soon: "medium" as const }, { ...rows[1], hiring_soon: "high" as const }, { ...rows[0], orgnr: "923456789", hiring_soon: null }];
+    expect(visibleHiringRows(marked, f, null, "premium").map((r) => r.hiring_soon)).toEqual(["high", "medium"]);
+    expect(visibleHiringRows(marked, f, null, "basis")).toHaveLength(3);
+    expect(hiring({ rows: [{ ...rows[0], hiring_soon: "high" }, { ...rows[1], hiring_soon: "certain" }] }).rows.map((r) => r.hiring_soon)).toEqual(["high", null]);
+  });
+
   it("carries the filters in the CSV link, and the proxy accepts only their shapes", () => {
     const token = "00000000-0000-4000-8000-0000000000a1";
     expect(hiringCsvHref(token, { county: "NO0A2", trade: "carpenter", english: true, onlyNew: true })).toBe(`/api/min-side/${token}/hiring-csv?county=NO0A2&trade=carpenter&english=1&new=1`);

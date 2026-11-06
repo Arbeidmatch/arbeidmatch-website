@@ -938,6 +938,7 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
           <>
             <LockedChip label="Aksepterer engelsk" />
             <LockedChip label="Bare nye siden sist" />
+            <LockedChip label="Sannsynlig å ansette snart" />
             <LockedChip label="Last ned" />
           </>
         ) : (
@@ -947,6 +948,9 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
             </button>
             <button type="button" aria-pressed={filter.onlyNew} className={chip(filter.onlyNew, true)} onClick={() => set({ onlyNew: !filter.onlyNew })}>
               Bare nye siden sist
+            </button>
+            <button type="button" aria-pressed={filter.soon === true} className={chip(filter.soon === true, true)} onClick={() => set({ soon: !filter.soon })} title="Estimat, basert på firmaets egne annonser">
+              Sannsynlig å ansette snart
             </button>
             <a href={hiringCsvHref(token, filter)} download className={BTN_OUTLINE}>
               Last ned

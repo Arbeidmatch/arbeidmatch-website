@@ -640,6 +640,8 @@ export type HiringRow = {
   label: string | null;
   /** ORDER 230: why ArbeidMatch recommends this firm, one line, on a firm we sent by hand; null on every other row. */
   recommended: string | null;
+  /** ORDER 244: "Sannsynlig å ansette snart", our estimate from the firm's own adverts, when high or medium; null otherwise. */
+  hiring_soon: "high" | "medium" | null;
 };
 
 /**
@@ -1037,6 +1039,7 @@ function hiringRowFrom(r: Record<string, unknown>): HiringRow | null {
     watched: r.watched === true,
     label: textOrNull(r.label, 120),
     recommended: textOrNull(r.recommended, 160),
+    hiring_soon: r.hiring_soon === "high" || r.hiring_soon === "medium" ? r.hiring_soon : null,
   };
 }
 
@@ -1276,19 +1279,23 @@ export function hiringSubtitle(h: Hiring): string {
   return [s.counties.join(", "), s.trades.join(", "), trial].filter(Boolean).join(" · ");
 }
 
-export type HiringFilter = { county: string; trade: string; english: boolean; onlyNew: boolean };
-export const NO_HIRING_FILTER: HiringFilter = { county: "", trade: "", english: false, onlyNew: false };
+/** `soon` (ORDER 244): only the firms likely to hire soon, high first. */
+export type HiringFilter = { county: string; trade: string; english: boolean; onlyNew: boolean; soon?: boolean };
+export const NO_HIRING_FILTER: HiringFilter = { county: "", trade: "", english: false, onlyNew: false, soon: false };
 
 /**
  * The rows the list shows. `since` is last_viewed_at as it stood BEFORE this
  * visit told the ATS it was seen: "Bare nye siden sist" compares against that.
- * Never seen before means every dated row is new. In Basis the language and
- * the new-only filters are locked, so they never narrow the list.
+ * Never seen before means every dated row is new. In Basis the language, the
+ * new-only and the hiring-soon filters are locked, so they never narrow the
+ * list. Hiring soon also sorts: high before medium, otherwise as it came.
  */
 export function visibleHiringRows(rows: HiringRow[], f: HiringFilter, since: string | null, tier: HiringTier): HiringRow[] {
   const sinceMs = since ? Date.parse(since) : Number.NEGATIVE_INFINITY;
   const premium = tier === "premium";
-  return rows.filter((r) => {
+  const soon = premium && f.soon === true;
+  const shown = rows.filter((r) => {
+    if (soon && !r.hiring_soon) return false;
     if (f.county && r.county !== f.county) return false;
     if (f.trade && !r.trades.includes(f.trade)) return false;
     if (premium && f.english && r.english_ok !== true) return false;
@@ -1298,6 +1305,7 @@ export function visibleHiringRows(rows: HiringRow[], f: HiringFilter, since: str
     }
     return true;
   });
+  return soon ? [...shown.filter((r) => r.hiring_soon === "high"), ...shown.filter((r) => r.hiring_soon === "medium")] : shown;
 }
 
 /** The CSV download with the filters on screen; the language and new-only filters are Premium. */
