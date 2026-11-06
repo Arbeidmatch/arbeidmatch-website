@@ -636,8 +636,10 @@ export type HiringRow = {
   opened: boolean;
   /** ORDER 170: the client follows this firm. */
   watched: boolean;
-  /** ORDER 181: why the firm is on the list: "Ny bedrift", "Nye stillinger: Elektrikere (1)" or "Vant kontrakt". */
+  /** ORDER 181: why the firm is on the list: "Ny bedrift", "Nye stillinger: Elektrikere (1)" or "Vant kontrakt"; "Anbefalt av ArbeidMatch" for a firm we sent (ORDER 230). */
   label: string | null;
+  /** ORDER 230: why ArbeidMatch recommends this firm, one line, on a firm we sent by hand; null on every other row. */
+  recommended: string | null;
 };
 
 /** The full lead card, Premium only. */
@@ -1008,6 +1010,7 @@ function hiringRowFrom(r: Record<string, unknown>): HiringRow | null {
     opened: r.opened === true,
     watched: r.watched === true,
     label: textOrNull(r.label, 120),
+    recommended: textOrNull(r.recommended, 160),
   };
 }
 

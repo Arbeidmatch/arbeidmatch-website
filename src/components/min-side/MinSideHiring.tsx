@@ -533,6 +533,15 @@ function RowLabel({ label }: { label: string | null }) {
   return label ? <span className={LABEL_CHIP}>{label}</span> : null;
 }
 
+/** ORDER 230: on a firm we recommend, our reason under its name, as we wrote it. */
+function RecommendedReason({ text, className }: { text: string | null; className: string }) {
+  return text ? (
+    <span data-recommended="" className={`block break-words text-sm font-normal ${className}`}>
+      {text}
+    </span>
+  ) : null;
+}
+
 export type MinSideHiringProps = {
   token: string;
   hiring: Hiring;
@@ -765,6 +774,7 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
                         <RowLabel label={r.label} />
                       </span>
                     ) : null}
+                    <RecommendedReason text={r.recommended} className={`mt-1 ${SOFT}`} />
                     {r.positions > 1 ? <span className={`block text-xs font-normal ${MUTED_L}`}>{r.positions} stillinger</span> : null}
                     {hiring.prefs ? (
                       <div className="mt-2 font-normal">
@@ -798,6 +808,7 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
                       <RowLabel label={r.label} />
                     </p>
                   ) : null}
+                  <RecommendedReason text={r.recommended} className={`mb-1 ${SOFT}`} />
                   <p className={`break-words text-sm ${MUTED_L}`}>{[[r.town, r.county_name].filter(Boolean).join(", "), r.trade_names.join(", "), r.published ? dayNo(r.published) : null].filter(Boolean).join(" · ")}</p>
                   <p className={`break-words text-sm ${SOFT}`}>{basis ? <Locked label="Behov" /> : r.behov}</p>
                 </div>

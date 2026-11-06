@@ -322,3 +322,26 @@ describe("the CSV proxy", () => {
     expect((await get("")).status).toBe(404);
   });
 });
+
+describe("a firm ArbeidMatch recommends (ORDER 230)", () => {
+  it("stands where the ATS put it, first, with the label and our reason under the name", () => {
+    const h = hiring({
+      rows: [
+        row({ orgnr: "911111111", name: "Anbefalt Bygg AS", label: "Anbefalt av ArbeidMatch", recommended: "2 tømrere, engelsk er ok: kan ta folk fra utlandet." }),
+        row(),
+      ],
+    });
+    expect(h.rows[0].recommended).toBe("2 tømrere, engelsk er ok: kan ta folk fra utlandet.");
+    expect(h.rows[1].recommended).toBeNull();
+    const html = renderToStaticMarkup(createElement(MinSideHiring, props(h)));
+    expect(html.indexOf("Anbefalt Bygg AS")).toBeLessThan(html.indexOf("Eksempel Bygg AS"));
+    expect(html).toContain("Anbefalt av ArbeidMatch");
+    expect(html).toContain("2 tømrere, engelsk er ok: kan ta folk fra utlandet.");
+    expect(html.match(/data-recommended=""/g)?.length).toBe(2);
+  });
+
+  it("keeps a reason to one line of 160 characters at most", () => {
+    const h = hiring({ rows: [row({ recommended: "x".repeat(400) })] });
+    expect(h.rows[0].recommended?.length).toBeLessThanOrEqual(160);
+  });
+});
