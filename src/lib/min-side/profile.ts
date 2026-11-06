@@ -642,6 +642,25 @@ export type HiringRow = {
   recommended: string | null;
 };
 
+/**
+ * ORDER 220: an advert of a staffing agency, in its own tab. Market information, never a lead:
+ * no status, no follow, no request for people.
+ */
+export type HiringAgencyRow = {
+  orgnr: string;
+  name: string;
+  town: string | null;
+  county_name: string | null;
+  trade_names: string[];
+  positions: number;
+  published: string | null;
+  /** The advert names no employer: the agency hires for a client it does not name. */
+  client_not_named: boolean;
+};
+
+/** "Om bedriften" of an agency row, Premium only: what the register holds, no lead state. */
+export type HiringAgencyCard = HiringAgencyRow & { address: string | null; website: string | null; industry: string | null; employees: number | null };
+
 /** The full lead card, Premium only. */
 /** ORDER 244: the firm card the ATS writes in Norwegian; Min side only draws it. */
 export type FirmCardRow = { label: string; value: string; tone: "danger" | null; href: string | null };
@@ -667,6 +686,8 @@ export type Hiring = {
   terms: HiringTerms;
   /** Empty until the terms are accepted. */
   rows: HiringRow[];
+  /** ORDER 220: the adverts of staffing agencies, the tab "Via bemanningsbyrå"; never among the firms hiring. */
+  agency_rows: HiringAgencyRow[];
   last_viewed_at: string | null;
   filters: { counties: { code: string; name: string }[]; trades: { key: string; name: string }[] };
   /** Null when the firm already has project alerts, or before the terms are accepted. */
@@ -1130,6 +1151,31 @@ function websiteFrom(v: unknown): string | null {
   }
 }
 
+function hiringAgencyRowFrom(r: Record<string, unknown>): HiringAgencyRow | null {
+  const orgnr = str(r.orgnr, 20).replace(/\s/g, "");
+  const name = str(r.name, 200).trim();
+  if (!ORGNR.test(orgnr) || !name) return null;
+  return {
+    orgnr,
+    name,
+    town: textOrNull(r.town, 80),
+    county_name: textOrNull(r.county_name, 80),
+    trade_names: strings(r.trade_names, 20, 80),
+    positions: wholeOrZero(r.positions),
+    published: isoOrNull(r.published),
+    client_not_named: r.client_not_named === true,
+  };
+}
+
+/** The agency card the ATS answers to hiring_agency_card, or null when it is not one. */
+export function hiringAgencyCardFrom(raw: unknown): HiringAgencyCard | null {
+  const r = obj(raw);
+  const row = r ? hiringAgencyRowFrom(r) : null;
+  if (!r || !row) return null;
+  const employees = typeof r.employees === "number" && Number.isFinite(r.employees) && r.employees >= 0 ? Math.round(r.employees) : null;
+  return { ...row, address: textOrNull(r.address, 300), website: websiteFrom(r.website), industry: textOrNull(r.industry, 200), employees };
+}
+
 /** The lead card the ATS answers to hiring_card, or null when it is not one. */
 export function hiringCardFrom(raw: unknown): HiringCard | null {
   const r = obj(raw);
@@ -1208,6 +1254,10 @@ export function hiringFrom(raw: unknown): Hiring | null {
     rows: objs(r.rows)
       .map(hiringRowFrom)
       .filter((x): x is HiringRow => x !== null)
+      .slice(0, 1000),
+    agency_rows: objs(r.agency_rows)
+      .map(hiringAgencyRowFrom)
+      .filter((x): x is HiringAgencyRow => x !== null)
       .slice(0, 1000),
     last_viewed_at: isoOrNull(r.last_viewed_at),
     filters: { counties: countyOptions(f?.counties), trades: tradeOptions(f?.trades) },
@@ -1306,9 +1356,10 @@ export function projectStageNo(stage: string): string {
   return words[stage] ?? stage;
 }
 
-/** "Prøv prosjektvarsler" from the weekly letter (?hiring=projects) opens the hiring section at the projects card. */
-export function hiringIntentFromSearch(search: string): "projects" | null {
-  return new URLSearchParams(search).get("hiring") === "projects" ? "projects" : null;
+/** "Prøv prosjektvarsler" from the weekly letter (?hiring=projects) opens the hiring section at the projects card; ?hiring=agency (ORDER 220) opens the tab "Via bemanningsbyrå". */
+export function hiringIntentFromSearch(search: string): "projects" | "agency" | null {
+  const v = new URLSearchParams(search).get("hiring");
+  return v === "projects" || v === "agency" ? v : null;
 }
 
 /** The project teaser replaces the empty Prosjektvarsler state only for a person with neither alerts nor free months. */
@@ -1322,6 +1373,7 @@ export const HIRING_ACTIONS = [
   "hiring_terms",
   "hiring_viewed",
   "hiring_card",
+  "hiring_agency_card",
   "hiring_lead",
   "hiring_feedback",
   "hiring_stop",
@@ -1526,6 +1578,7 @@ export function hiringRequest(raw: Record<string, unknown>): Record<string, unkn
     case "hiring_terms":
       return raw.service === "hiring" || raw.service === "projects" ? { action, service: raw.service } : null;
     case "hiring_card":
+    case "hiring_agency_card":
       return typeof raw.orgnr === "string" && ORGNR.test(raw.orgnr) ? { action, orgnr: raw.orgnr } : null;
     case "hiring_lead": {
       if (typeof raw.orgnr !== "string" || !ORGNR.test(raw.orgnr)) return null;

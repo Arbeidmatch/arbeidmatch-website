@@ -12,6 +12,7 @@ import {
   PLANS_CLOSED_LINE,
   dayNo,
   hiringBillingBody,
+  hiringAgencyCardFrom,
   hiringCardFrom,
   hiringCsvHref,
   leadAction,
@@ -20,6 +21,8 @@ import {
   projectStageNo,
   visibleHiringRows,
   type Hiring,
+  type HiringAgencyCard,
+  type HiringAgencyRow,
   type HiringCard,
   type FirmCardNo,
   type HiringBillingValues,
@@ -532,6 +535,139 @@ function LeadCard({ orgnr, send, sendData }: { orgnr: string; send: Send; sendDa
   );
 }
 
+/** ORDER 220: "Om bedriften" of an agency row: what the register holds, no status and no note, because it is no lead. */
+function AgencyInfo({ orgnr, sendData }: { orgnr: string; sendData: SendData }) {
+  const [card, setCard] = useState<HiringAgencyCard | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    void sendData({ action: "hiring_agency_card", orgnr }).then((r) => {
+      if (!live) return;
+      if (!r.ok) {
+        setFailed(r.status === 402 ? "Bedriftskortet er Premium." : r.message);
+        return;
+      }
+      const parsed = hiringAgencyCardFrom((r.data as { card?: unknown } | null)?.card);
+      if (!parsed) {
+        setFailed("Bedriftskortet kunne ikke hentes akkurat nå. Prøv igjen om litt.");
+        return;
+      }
+      setCard(parsed);
+    });
+    return () => {
+      live = false;
+    };
+  }, [orgnr, sendData]);
+
+  if (failed) return <Failure message={failed} />;
+  if (!card) return <p className={`text-sm ${MUTED}`}>Henter bedriftskortet ...</p>;
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-lg font-semibold text-white">{card.name}</p>
+      <dl className="flex flex-col gap-3">
+        <CardRow label="Org.nr">
+          <span className="tabular-nums">{orgNumberNo(card.orgnr)}</span>
+        </CardRow>
+        <CardRow label="Bransje">{card.industry ?? "Ikke oppgitt"}</CardRow>
+        <CardRow label="Ansatte">{card.employees ?? "Ikke oppgitt"}</CardRow>
+        <CardRow label="Adresse">{card.address ?? ([card.town, card.county_name].filter(Boolean).join(", ") || "Ikke oppgitt")}</CardRow>
+        <CardRow label="Nettsted">
+          {card.website ? (
+            <a href={card.website} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-4">
+              {card.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+            </a>
+          ) : (
+            "Ikke oppgitt"
+          )}
+        </CardRow>
+        <CardRow label="Stillinger">{card.positions}</CardRow>
+      </dl>
+    </div>
+  );
+}
+
+const AGENCY_NOT_NAMED = "Bemanningsbyrå, kunden ikke oppgitt";
+
+/**
+ * ORDER 220: the tab "Via bemanningsbyrå". Where the demand is, in which trade and how many positions:
+ * market information. No Følg, no status, no "Be om folk"; only "Om bedriften" opens.
+ */
+function AgencyTab({ rows, onOpen }: { rows: HiringAgencyRow[]; onOpen: (r: HiringAgencyRow) => void }) {
+  const [shown, setShown] = useState(PAGE);
+  if (rows.length === 0) return <p className={`text-sm ${MUTED_L}`}>Ingen stillinger via bemanningsbyrå akkurat nå.</p>;
+  const page = rows.slice(0, shown);
+  return (
+    <>
+      <p className={`text-sm ${MUTED_L}`}>Stillinger lagt ut av bemanningsbyråer i fylkene og fagene dine.</p>
+      <table className="hidden w-full table-fixed border-collapse text-sm sm:table">
+        <thead>
+          <tr>
+            <th className={`${TH_L} w-[28%]`}>Bemanningsbyrå</th>
+            <th className={TH_L}>Sted</th>
+            <th className={TH_L}>Fag</th>
+            <th className={TH_L}>Stillinger</th>
+            <th className={TH_L}>Publisert</th>
+            <th className={TH_L}>
+              <span className="sr-only">Om bedriften</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {page.map((r) => (
+            <tr key={r.orgnr} className={`border-b ${RULE} align-top`}>
+              <td className={`break-words px-2 py-2.5 font-semibold ${INK}`}>
+                {r.name}
+                {r.client_not_named ? (
+                  <span className="mt-1 flex font-normal">
+                    <span className={LABEL_CHIP}>{AGENCY_NOT_NAMED}</span>
+                  </span>
+                ) : null}
+              </td>
+              <td className={`break-words px-2 py-2.5 ${SOFT}`}>{[r.town, r.county_name].filter(Boolean).join(", ")}</td>
+              <td className={`break-words px-2 py-2.5 ${SOFT}`}>{r.trade_names.join(", ")}</td>
+              <td className={`px-2 py-2.5 ${SOFT}`}>{r.positions}</td>
+              <td className={`px-2 py-2.5 ${SOFT}`}>{dayNo(r.published)}</td>
+              <td className="px-2 py-1.5 text-right">
+                <button type="button" className={`${BTN_OUTLINE} px-3 text-sm`} aria-haspopup="dialog" onClick={() => onOpen(r)}>
+                  Om bedriften
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <ul className={`flex flex-col sm:hidden ${DIVIDE_L}`}>
+        {page.map((r) => (
+          <li key={r.orgnr} className="flex min-w-0 flex-col gap-2 py-3 first:pt-0">
+            <div className="min-w-0">
+              <p className={`break-words text-[15px] font-semibold ${INK}`}>{r.name}</p>
+              {r.client_not_named ? (
+                <p className="my-1 flex">
+                  <span className={LABEL_CHIP}>{AGENCY_NOT_NAMED}</span>
+                </p>
+              ) : null}
+              <p className={`break-words text-sm ${MUTED_L}`}>
+                {[[r.town, r.county_name].filter(Boolean).join(", "), r.trade_names.join(", "), r.positions === 1 ? "1 stilling" : `${r.positions} stillinger`, r.published ? dayNo(r.published) : null].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" className={BTN_OUTLINE} aria-haspopup="dialog" onClick={() => onOpen(r)}>
+                Om bedriften
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {rows.length > shown ? (
+        <button type="button" className={`${BTN_OUTLINE} self-start`} onClick={() => setShown((n) => n + PAGE)}>
+          Vis flere ({rows.length - shown})
+        </button>
+      ) : null}
+    </>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // The section.
 // ---------------------------------------------------------------------------
@@ -610,6 +746,8 @@ export type MinSideHiringProps = {
   onAskPeople: () => void;
   /** ?hiring=projects: scroll to the projects card once. */
   focusProjects?: boolean;
+  /** ?hiring=agency (ORDER 220): open the tab "Via bemanningsbyrå". */
+  openAgencyTab?: boolean;
 };
 
 function StatusButton({ row, send }: { row: HiringRow; send: Send }) {
@@ -664,7 +802,7 @@ function FirmActions({ row, send }: { row: HiringRow; send: Send }) {
   );
 }
 
-export default function MinSideHiring({ token, hiring, since, send, sendData, trial, onAskPeople, focusProjects = false }: MinSideHiringProps) {
+export default function MinSideHiring({ token, hiring, since, send, sendData, trial, onAskPeople, focusProjects = false, openAgencyTab = false }: MinSideHiringProps) {
   const { terms, subscription } = hiring;
   const basis = subscription.tier === "basis";
   const [termsOpen, setTermsOpen] = useState(!terms.accepted && terms.ready);
@@ -674,6 +812,12 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
   const [premiumAsk, setPremiumAsk] = useState(false);
   const premium = usePremium(hiring.plans, send);
   const [betaSeen, setBetaSeen] = useState(false);
+  // ORDER 220: the firms that hire directly, and apart from them the adverts of staffing agencies.
+  const [tab, setTab] = useState<"direct" | "agency">(openAgencyTab ? "agency" : "direct");
+  const [agencyOrg, setAgencyOrg] = useState<string | null>(null);
+  useEffect(() => {
+    if (openAgencyTab) setTab("agency");
+  }, [openAgencyTab]);
 
   const rows = useMemo(() => visibleHiringRows(hiring.rows, filter, since, subscription.tier), [hiring.rows, filter, since, subscription.tier]);
 
@@ -754,6 +898,19 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
 
       {hiring.prefs ? <MinSideHiringSettings prefs={hiring.prefs} send={send} sendData={sendData} premium={premium} /> : null}
 
+      <div role="tablist" aria-label="Visning" className="flex flex-wrap gap-2">
+        <button type="button" role="tab" aria-selected={tab === "direct"} className={chip(tab === "direct", true)} onClick={() => setTab("direct")}>
+          {`Bedrifter som ansetter (${hiring.rows.length})`}
+        </button>
+        <button type="button" role="tab" aria-selected={tab === "agency"} className={chip(tab === "agency", true)} onClick={() => setTab("agency")}>
+          {`Via bemanningsbyrå (${hiring.agency_rows.length})`}
+        </button>
+      </div>
+
+      {tab === "agency" ? (
+        <AgencyTab rows={hiring.agency_rows} onOpen={(r) => (leadAction(subscription.tier) === "card" ? setAgencyOrg(r.orgnr) : setPremiumAsk(true))} />
+      ) : (
+        <>
       <div className="flex flex-wrap items-end gap-3" role="group" aria-label="Filtre">
         <label className="flex min-w-[150px] flex-1 basis-[150px] flex-col gap-1 sm:flex-none">
           <span className={`text-xs font-semibold ${MUTED_L}`}>Fylke</span>
@@ -886,6 +1043,9 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
         </>
       )}
 
+        </>
+      )}
+
       {projects ? (
         <div id="ms-hiring-projects" className="scroll-mt-6">
           <TrialBanner
@@ -911,6 +1071,11 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
       {lead ? (
         <PortalModal title="Bedriftskort" onClose={() => setLead(null)}>
           <LeadCard orgnr={lead} send={send} sendData={sendData} />
+        </PortalModal>
+      ) : null}
+      {agencyOrg ? (
+        <PortalModal title="Om bedriften" onClose={() => setAgencyOrg(null)}>
+          <AgencyInfo orgnr={agencyOrg} sendData={sendData} />
         </PortalModal>
       ) : null}
       {premiumAsk ? (
