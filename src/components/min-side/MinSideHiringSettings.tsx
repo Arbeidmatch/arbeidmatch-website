@@ -402,6 +402,21 @@ export function WhenPanel({ prefs, saver }: { prefs: HiringPrefs; saver: Saver }
         </Chips>
       </Control>
 
+      <Control legend="Daglig varsel" note="Ring i dag, hver arbeidsdag">
+        <Chips>
+          {(
+            [
+              [false, "Av"],
+              [true, "På"],
+            ] as const
+          ).map(([on, label]) => (
+            <button key={label} type="button" aria-pressed={w.daily_alert === on} className={chip(w.daily_alert === on, true)} onClick={() => w.daily_alert !== on && void saver.save({ action: "hiring_daily_alert", on })}>
+              {label}
+            </button>
+          ))}
+        </Chips>
+      </Control>
+
       {w.frequency === "weekly" ? (
         <Control legend="Dag">
           <label htmlFor={dayId} className="sr-only">

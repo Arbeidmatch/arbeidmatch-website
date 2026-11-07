@@ -607,7 +607,12 @@ export function telHref(phone: string): string | null {
 // ---------------------------------------------------------------------------
 
 export type HiringTier = "basis" | "premium";
-export type HiringStatus = "new" | "contacted";
+/** ORDER 235: the outcome marks beside new and contacted: Ringt, Møte avtalt, Ny kunde, Ikke aktuell. */
+export const HIRING_STATUSES = ["new", "contacted", "called", "meeting", "won", "not_relevant"] as const;
+export type HiringStatus = (typeof HIRING_STATUSES)[number];
+export function isHiringStatus(v: unknown): v is HiringStatus {
+  return typeof v === "string" && (HIRING_STATUSES as readonly string[]).includes(v);
+}
 
 /** Terms as the ATS sends them to be read and accepted. */
 export type TermsText = { title: string; paragraphs: string[]; version: string; consent: string };
@@ -642,7 +647,26 @@ export type HiringRow = {
   recommended: string | null;
   /** ORDER 244: "Sannsynlig å ansette snart", our estimate from the firm's own adverts, when high or medium; null otherwise. */
   hiring_soon: "high" | "medium" | null;
+  /** ORDER 235: "Ikke fylt", the firm's own hiring for one role has not succeeded, as a fact in numbers; null in Basis and when none holds. */
+  ikke_fylt: string | null;
 };
+
+/** ORDER 235: one of today's "Ring i dag" firms, as the ATS cut it from the client's own list. */
+export type HiringRingCard = {
+  orgnr: string;
+  name: string;
+  town: string | null;
+  county_name: string | null;
+  trade_names: string[];
+  reason: string | null;
+  ikke_fylt: string | null;
+  /** Written from the facts above only, and checked against them; null when none held. */
+  opener: string | null;
+  status: HiringStatus;
+  rank: number;
+};
+
+export type HiringRing = { title: string; day: string; source: string; cards: HiringRingCard[]; daily_alert: boolean };
 
 /**
  * ORDER 220: an advert of a staffing agency, in its own tab. Market information, never a lead:
@@ -702,6 +726,8 @@ export type Hiring = {
   beta_notice: string | null;
   /** ORDER 181: whether a paid plan can be chosen yet, and the billing it starts with. */
   plans: HiringPlans;
+  /** ORDER 235: "Ring i dag", today's three firms to call; null in Basis, before the terms, or from an older ATS. */
+  ring: HiringRing | null;
 };
 
 // ORDER 171: the one screen an invited client confirms himself and the terms on.
@@ -979,7 +1005,8 @@ export type HiringPrefs = {
     signal: HiringSignal;
     only_new: boolean;
   };
-  when: { frequency: HiringFrequency; weekday: number; hour: number; language: "no" | "en"; paused_until: string | null; recipients: HiringRecipient[] };
+  /** daily_alert (ORDER 235): "Daglig varsel" for Ring i dag, off by default. */
+  when: { frequency: HiringFrequency; weekday: number; hour: number; language: "no" | "en"; paused_until: string | null; daily_alert: boolean; recipients: HiringRecipient[] };
   firms: { watch: HiringFirmRef[]; hidden: HiringFirmRef[]; archive: HiringLetterRef[] };
   options: {
     counties: { code: string; name: string }[];
@@ -1029,7 +1056,7 @@ function hiringRowFrom(r: Record<string, unknown>): HiringRow | null {
     trade_names: strings(r.trade_names, 20, 80),
     positions: wholeOrZero(r.positions),
     published: isoOrNull(r.published),
-    status: r.status === "contacted" ? "contacted" : "new",
+    status: isHiringStatus(r.status) ? r.status : "new",
     behov: textOrNull(r.behov, 300),
     english_ok: typeof r.english_ok === "boolean" ? r.english_ok : null,
     won: textOrNull(r.won, 200),
@@ -1040,7 +1067,35 @@ function hiringRowFrom(r: Record<string, unknown>): HiringRow | null {
     label: textOrNull(r.label, 120),
     recommended: textOrNull(r.recommended, 160),
     hiring_soon: r.hiring_soon === "high" || r.hiring_soon === "medium" ? r.hiring_soon : null,
+    ikke_fylt: textOrNull(r.ikke_fylt, 120),
   };
+}
+
+/** ORDER 235: "Ring i dag" as the ATS sent it, three cards at most; null when absent or not shaped like it. */
+export function hiringRingFrom(raw: unknown): HiringRing | null {
+  const r = obj(raw);
+  if (!r) return null;
+  const cards = objs(r.cards)
+    .map((c): HiringRingCard | null => {
+      const orgnr = str(c.orgnr, 20).replace(/\s/g, "");
+      const name = str(c.name, 200).trim();
+      if (!ORGNR.test(orgnr) || !name) return null;
+      return {
+        orgnr,
+        name,
+        town: textOrNull(c.town, 80),
+        county_name: textOrNull(c.county_name, 80),
+        trade_names: strings(c.trade_names, 20, 80),
+        reason: textOrNull(c.reason, 300),
+        ikke_fylt: textOrNull(c.ikke_fylt, 120),
+        opener: textOrNull(c.opener, 400),
+        status: isHiringStatus(c.status) ? c.status : "new",
+        rank: intIn(c.rank, 1, 3) ?? 3,
+      };
+    })
+    .filter((x): x is HiringRingCard => x !== null)
+    .slice(0, 3);
+  return { title: str(r.title, 60) || "Ring i dag", day: day(r.day)?.slice(0, 10) ?? "", source: str(r.source, 120), cards, daily_alert: r.daily_alert === true };
 }
 
 /** A whole number within [min, max], or null for anything else. */
@@ -1112,6 +1167,7 @@ export function hiringPrefsFrom(raw: unknown): HiringPrefs | null {
       hour,
       language: w.language === "en" ? "en" : "no",
       paused_until: day(w.paused_until)?.slice(0, 10) ?? null,
+      daily_alert: w.daily_alert === true,
       recipients,
     },
     firms: {
@@ -1269,6 +1325,7 @@ export function hiringFrom(raw: unknown): Hiring | null {
     confirm: t.accepted === true ? null : hiringConfirmFrom(r.confirm),
     beta_notice: textOrNull(r.beta_notice, 600),
     plans: hiringPlansFrom(r.plans),
+    ring: hiringRingFrom(r.ring),
   };
 }
 
@@ -1336,7 +1393,7 @@ export function leadAction(tier: HiringTier): "card" | "premium" {
   return tier === "premium" ? "card" : "premium";
 }
 
-export const HIRING_STATUS_NO: Record<HiringStatus, string> = { new: "Ny", contacted: "Kontaktet" };
+export const HIRING_STATUS_NO: Record<HiringStatus, string> = { new: "Ny", contacted: "Kontaktet", called: "Ringt", meeting: "Møte avtalt", won: "Ny kunde", not_relevant: "Ikke aktuell" };
 
 /** The lead card as plain text, for "Kopier". */
 export function leadCardText(c: HiringCard, note: string, followUp: string): string {
@@ -1394,6 +1451,8 @@ export const HIRING_ACTIONS = [
   "hiring_confirm",
   "hiring_beta_ack",
   "hiring_confirm_count",
+  // ORDER 235: "Daglig varsel", on or off.
+  "hiring_daily_alert",
 ] as const;
 
 export function isHiringAction(v: unknown): v is (typeof HIRING_ACTIONS)[number] {
@@ -1592,8 +1651,13 @@ export function hiringRequest(raw: Record<string, unknown>): Record<string, unkn
       if (typeof raw.orgnr !== "string" || !ORGNR.test(raw.orgnr)) return null;
       const body: Record<string, unknown> = { action, orgnr: raw.orgnr };
       if (raw.status !== undefined) {
-        if (raw.status !== "new" && raw.status !== "contacted") return null;
+        if (!isHiringStatus(raw.status)) return null;
         body.status = raw.status;
+      }
+      // ORDER 235: a mark set on a Ring i dag card says so.
+      if (raw.from !== undefined) {
+        if (raw.from !== "ring") return null;
+        body.from = "ring";
       }
       if (raw.note !== undefined) {
         if (typeof raw.note !== "string" || raw.note.length > 2000) return null;
@@ -1625,6 +1689,8 @@ export function hiringRequest(raw: Record<string, unknown>): Record<string, unkn
       return prefsFirmsRequest(raw);
     case "hiring_beta_ack":
       return { action };
+    case "hiring_daily_alert":
+      return typeof raw.on === "boolean" ? { action, on: raw.on } : null;
     case "hiring_confirm":
       return confirmRequest(raw);
     case "hiring_confirm_count":

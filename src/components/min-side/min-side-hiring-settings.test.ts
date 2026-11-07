@@ -116,7 +116,8 @@ describe("the three tabs", () => {
     const when = renderToStaticMarkup(createElement(WhenPanel, { prefs: prefs(), saver: saver() }));
     const firms = renderToStaticMarkup(createElement(FirmsPanel, { prefs: prefs(), saver: saver(), sendData: vi.fn() }));
     expect(controls(receive)).toBe(6);
-    expect(controls(when)).toBe(6);
+    // ORDER 235: Daglig varsel is the seventh.
+    expect(controls(when)).toBe(7);
     expect(controls(firms)).toBe(3);
     for (const html of [receive, when, firms]) expect(controls(html)).toBeLessThanOrEqual(7);
   });
@@ -189,7 +190,7 @@ describe("the three tabs", () => {
     expect(renderToStaticMarkup(createElement(ReceivePanel, { prefs: prefs(), saver: saver(), premium }))).toContain("Søk etter sted");
     const daily = renderToStaticMarkup(createElement(WhenPanel, { prefs: prefs({ when: { ...rawPrefs().when, frequency: "daily" } }), saver: saver() }));
     expect(daily).not.toContain("Mandag");
-    expect(controls(daily)).toBe(5);
+    expect(controls(daily)).toBe(6);
   });
 
   it("lists the recipients: the primary not removable, extras with Fjern, add stops at the limit", () => {

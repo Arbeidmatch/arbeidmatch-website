@@ -149,7 +149,8 @@ describe("Premium and Basis", () => {
     expect(html).not.toContain("hiring-csv");
     expect(html).toContain("data-locked");
     // The status and the feedback stay usable.
-    expect(html).toMatch(/<button type="button"[^>]*aria-label="Status Ny/);
+    // ORDER 235: the status is a choice of the outcome marks.
+    expect(html).toMatch(/<select[^>]*aria-label="Status for /);
     expect(html).toContain("Hvor nyttig er listen?");
     expect(leadAction("basis")).toBe("premium");
     expect(leadAction("premium")).toBe("card");
@@ -291,7 +292,9 @@ describe("the passthrough of the hiring actions", () => {
       { action: "hiring_terms", service: "other" },
       { action: "hiring_card", orgnr: "../x" },
       { action: "hiring_lead", orgnr: "912345678" },
-      { action: "hiring_lead", orgnr: "912345678", status: "won" },
+      { action: "hiring_lead", orgnr: "912345678", status: "lost" },
+      { action: "hiring_lead", orgnr: "912345678", status: "called", from: "list" },
+      { action: "hiring_daily_alert", on: "yes" },
       { action: "hiring_lead", orgnr: "912345678", note: "x".repeat(2001) },
       { action: "hiring_lead", orgnr: "912345678", follow_up_on: "i morgen" },
       { action: "hiring_feedback", score: 6 },
@@ -352,5 +355,44 @@ describe("a firm ArbeidMatch recommends (ORDER 230)", () => {
   it("keeps a reason to one line of 160 characters at most", () => {
     const h = hiring({ rows: [row({ recommended: "x".repeat(400) })] });
     expect(h.rows[0].recommended?.length).toBeLessThanOrEqual(160);
+  });
+});
+
+// ORDER 235: Ring i dag first on the page, Ikke fylt on rows and cards, the outcome marks.
+describe("Ring i dag", () => {
+  const ring = (cards: Record<string, unknown>[]) => ({ title: "Ring i dag", day: "2026-11-09", source: "Egne annonser fra 11.09.2026", daily_alert: false, cards });
+  const card = (extra: Record<string, unknown> = {}) => ({ orgnr: "912345678", name: "Eksempel Bygg AS", town: "Trondheim", county_name: "Trøndelag", trade_names: ["Tømrer"], reason: "åpen i 47 dager · 2 stillinger", ikke_fylt: "åpen i 47 dager", opener: "Hei! Jeg ser at dere har søkt etter tømrer i Trondheim i 47 dager. Har dere fått dekket behovet?", status: "new", rank: 1, ...extra });
+
+  it("shows three cards at most, before the list, with the reason, the chip, the line and the source", () => {
+    const h = hiring({ ring: ring([card(), card({ orgnr: "998877665", rank: 2 }), card({ orgnr: "923456789", rank: 3 }), card({ orgnr: "934567890", rank: 3 })]), rows: [row({ ikke_fylt: "åpen i 47 dager" })] });
+    expect(h.ring?.cards).toHaveLength(3);
+    const html = renderToStaticMarkup(createElement(MinSideHiring, props(h)));
+    expect(html.match(/data-ring-card=""/g)).toHaveLength(3);
+    expect(html.indexOf("data-ring-today")).toBeLessThan(html.indexOf("Bedrifter som ansetter ("));
+    expect(html).toContain("Ikke fylt: åpen i 47 dager");
+    expect(html).toContain("Egne annonser fra 11.09.2026");
+    expect(html).toContain(">Kopier<");
+    expect(html).toContain(">Ringt<");
+    expect(html).toContain(">Ikke aktuell<");
+  });
+
+  it("renders a card without its line when none held, and offers the next mark after the one set", () => {
+    const html = renderToStaticMarkup(createElement(MinSideHiring, props(hiring({ ring: ring([card({ opener: null, status: "called" })]) }))));
+    expect(html).not.toContain("data-ring-opener");
+    expect(html).not.toContain(">Kopier<");
+    expect(html).toContain(">Møte avtalt<");
+  });
+
+  it("is left out in Basis, when absent, and for a card out of shape", () => {
+    const basis = hiring({ subscription: { status: "active", counties: [], trades: [], free_until: null, tier: "basis", frequency: "weekly" }, ring: ring([card()]) });
+    expect(renderToStaticMarkup(createElement(MinSideHiring, props(basis)))).not.toContain("data-ring-today");
+    expect(hiring().ring).toBeNull();
+    expect(hiring({ ring: ring([card({ orgnr: "../x" }), card({ status: "sold" })]) }).ring?.cards.map((c) => c.status)).toEqual(["new"]);
+  });
+
+  it("passes the marks and Daglig varsel on, and nothing else", () => {
+    expect(hiringRequest({ action: "hiring_lead", orgnr: "912345678", status: "meeting", from: "ring" })).toEqual({ action: "hiring_lead", orgnr: "912345678", status: "meeting", from: "ring" });
+    expect(hiringRequest({ action: "hiring_daily_alert", on: true })).toEqual({ action: "hiring_daily_alert", on: true });
+    expect(hiringRequest({ action: "hiring_daily_alert" })).toBeNull();
   });
 });

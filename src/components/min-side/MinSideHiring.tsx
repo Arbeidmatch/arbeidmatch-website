@@ -29,7 +29,10 @@ import {
   type HiringFilter,
   type HiringPlans,
   type HiringProjects,
+  type HiringRing,
+  type HiringRingCard,
   type HiringRow,
+  type HiringStatus,
   type TermsText,
 } from "@/lib/min-side/profile";
 import {
@@ -750,23 +753,132 @@ export type MinSideHiringProps = {
   openAgencyTab?: boolean;
 };
 
-function StatusButton({ row, send }: { row: HiringRow; send: Send }) {
+/** ORDER 235: the marks a client sets on a firm, in the order a call goes; "Kontaktet" stays for a firm marked so before. */
+const STATUS_CHOICES: HiringStatus[] = ["new", "called", "meeting", "won", "not_relevant"];
+
+function StatusButton({ row, send }: { row: Pick<HiringRow, "orgnr" | "name" | "status">; send: Send }) {
   const [busy, setBusy] = useState(false);
-  const next = row.status === "new" ? "contacted" : "new";
+  const choices = row.status === "contacted" ? (["contacted", ...STATUS_CHOICES] as HiringStatus[]) : STATUS_CHOICES;
   return (
-    <button
-      type="button"
-      className={chip(row.status === "contacted", true)}
-      aria-label={`Status ${HIRING_STATUS_NO[row.status]}. Endre til ${HIRING_STATUS_NO[next]}`}
+    <select
+      className={`${FIELD_L} min-h-[44px] w-auto max-w-full py-1.5 text-sm`}
+      aria-label={`Status for ${row.name}`}
+      value={row.status}
       disabled={busy}
-      onClick={async () => {
+      onChange={async (e) => {
         setBusy(true);
-        await send({ action: "hiring_lead", orgnr: row.orgnr, status: next });
+        await send({ action: "hiring_lead", orgnr: row.orgnr, status: e.target.value });
         setBusy(false);
       }}
     >
-      {HIRING_STATUS_NO[row.status]}
-    </button>
+      {choices.map((s) => (
+        <option key={s} value={s}>
+          {HIRING_STATUS_NO[s]}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/** ORDER 235: "Ikke fylt" and the fact behind it, on a row and a card. */
+function IkkeFylt({ text }: { text: string | null }) {
+  return text ? (
+    <span data-ikke-fylt="" className={LABEL_CHIP}>
+      Ikke fylt: {text}
+    </span>
+  ) : null;
+}
+
+/** The next marks a Ring i dag card offers after the one set: Ringt, then Møte avtalt, then Ny kunde. */
+function nextMarks(status: HiringStatus): HiringStatus[] {
+  if (status === "new" || status === "contacted") return ["called", "not_relevant"];
+  if (status === "called") return ["meeting", "not_relevant"];
+  if (status === "meeting") return ["won"];
+  return [];
+}
+
+function RingCardView({ card, send, onOpen }: { card: HiringRingCard; send: Send; onOpen: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
+  const mark = async (status: HiringStatus) => {
+    setBusy(true);
+    setFailed(null);
+    const r = await send({ action: "hiring_lead", orgnr: card.orgnr, status, from: "ring" });
+    setBusy(false);
+    if (!r.ok) setFailed(r.message);
+  };
+  const copy = async () => {
+    if (!card.opener) return;
+    try {
+      await navigator.clipboard.writeText(card.opener);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setFailed("Kunne ikke kopiere. Marker teksten og kopier selv.");
+    }
+  };
+  return (
+    <li data-ring-card="" className={`${CARD_L} flex min-w-0 flex-col gap-3 p-4`}>
+      <div className="min-w-0">
+        <p className={`break-words text-[15px] font-bold ${INK}`}>{card.name}</p>
+        <p className={`break-words text-sm ${MUTED_L}`}>{[[card.town, card.county_name].filter(Boolean).join(", "), card.trade_names.join(", ")].filter(Boolean).join(" · ")}</p>
+      </div>
+      {card.ikke_fylt ? (
+        <p className="flex">
+          <IkkeFylt text={card.ikke_fylt} />
+        </p>
+      ) : null}
+      {card.reason ? <p className={`break-words text-sm font-semibold ${SOFT}`}>{card.reason}</p> : null}
+      {card.opener ? (
+        <div className="flex min-w-0 flex-col gap-2 rounded-[10px] bg-[#F7F5F0] p-3">
+          <p className={`break-words text-sm italic ${INK}`} data-ring-opener="">
+            {card.opener}
+          </p>
+          <button type="button" className={`${BTN_OUTLINE} self-start px-3 text-sm`} onClick={() => void copy()}>
+            {copied ? "Kopiert" : "Kopier"}
+          </button>
+        </div>
+      ) : null}
+      <div className="mt-auto flex flex-wrap items-center gap-2">
+        {nextMarks(card.status).map((s, i) => (
+          <button key={s} type="button" className={i === 0 ? BTN_GREEN : BTN_OUTLINE} disabled={busy} onClick={() => void mark(s)}>
+            {HIRING_STATUS_NO[s]}
+          </button>
+        ))}
+        {card.status !== "new" ? <span className={`text-sm font-semibold ${GREEN_TEXT}`}>{HIRING_STATUS_NO[card.status]}</span> : null}
+        <button type="button" className={`${BTN_OUTLINE} px-3 text-sm`} aria-haspopup="dialog" onClick={onOpen}>
+          Om bedriften
+        </button>
+      </div>
+      {failed ? (
+        <p role="alert" className={`text-xs font-semibold ${ERROR_L}`}>
+          {failed}
+        </p>
+      ) : null}
+    </li>
+  );
+}
+
+/**
+ * ORDER 235: "Ring i dag", first on the page. Three firms from the client's
+ * own list each working morning, the reason in numbers and, when one held, an
+ * opening line to copy; the source of the facts in small text.
+ */
+function RingToday({ ring, send, onOpen }: { ring: HiringRing; send: Send; onOpen: (orgnr: string) => void }) {
+  if (!ring.cards.length) return null;
+  return (
+    <section aria-labelledby="ms-ring-today" className="flex min-w-0 flex-col gap-3" data-ring-today="">
+      <h3 id="ms-ring-today" className={`text-[17px] font-bold ${INK}`}>
+        {ring.title}
+      </h3>
+      <ul className="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-3">
+        {ring.cards.map((c) => (
+          <RingCardView key={c.orgnr} card={c} send={send} onOpen={() => onOpen(c.orgnr)} />
+        ))}
+      </ul>
+      <p className={FINE_PRINT}>{ring.source}</p>
+    </section>
   );
 }
 
@@ -896,6 +1008,8 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
         </div>
       ) : null}
 
+      {hiring.ring && !basis ? <RingToday ring={hiring.ring} send={send} onOpen={(orgnr) => setLead(orgnr)} /> : null}
+
       {hiring.prefs ? <MinSideHiringSettings prefs={hiring.prefs} send={send} sendData={sendData} premium={premium} /> : null}
 
       <div role="tablist" aria-label="Visning" className="flex flex-wrap gap-2">
@@ -992,6 +1106,11 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
                       </span>
                     ) : null}
                     <RecommendedReason text={r.recommended} className={`mt-1 ${SOFT}`} />
+                    {r.ikke_fylt ? (
+                      <span className="mt-1 flex font-normal">
+                        <IkkeFylt text={r.ikke_fylt} />
+                      </span>
+                    ) : null}
                     {r.positions > 1 ? <span className={`block text-xs font-normal ${MUTED_L}`}>{r.positions} stillinger</span> : null}
                     {hiring.prefs ? (
                       <div className="mt-2 font-normal">
@@ -1026,6 +1145,11 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
                     </p>
                   ) : null}
                   <RecommendedReason text={r.recommended} className={`mb-1 ${SOFT}`} />
+                  {r.ikke_fylt ? (
+                    <p className="my-1 flex">
+                      <IkkeFylt text={r.ikke_fylt} />
+                    </p>
+                  ) : null}
                   <p className={`break-words text-sm ${MUTED_L}`}>{[[r.town, r.county_name].filter(Boolean).join(", "), r.trade_names.join(", "), r.published ? dayNo(r.published) : null].filter(Boolean).join(" · ")}</p>
                   <p className={`break-words text-sm ${SOFT}`}>{basis ? <Locked label="Behov" /> : r.behov}</p>
                 </div>
