@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
 import { getRateLimitResult, noStoreJson } from "@/lib/apiSecurity";
-import { alertCitiesRequest, cityQuestionRequest, hiringRequest, isCityName, isHiringAction, isHiringPrefsAction, isProfileToken, isWhatsNewId } from "@/lib/min-side/profile";
+import { alertCitiesRequest, cityQuestionRequest, hiringRequest, isCityName, isHiringAction, isHiringPrefsAction, isProfileToken, isWhatsNewId, messageReadRequest } from "@/lib/min-side/profile";
 import { callAts } from "@/lib/prosjekter/ats";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +48,13 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   // ORDER 157: the hiring alerts and the account; each passed on with only its named fields, bounded.
   if (isHiringAction(action)) {
     const body = hiringRequest(raw);
+    if (!body) return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+    const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
+    return noStoreJson(answer.body, { status: answer.status });
+  }
+  // ORDER 236: Meldinger opened, one message or all of them read; nothing else is passed on.
+  if (action === "message_read") {
+    const body = messageReadRequest(raw);
     if (!body) return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
     const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
     return noStoreJson(answer.body, { status: answer.status });

@@ -33,6 +33,7 @@ import {
   profileFrom,
   sectionFromHash,
   sectionHint,
+  unreadMessages,
   type Company,
   type Contact,
   type Profile,
@@ -161,6 +162,7 @@ export default function MinSideClient({ token }: { token: string }) {
   const addressChose = useRef(false);
   const firstLoad = useRef(true);
   const viewedSent = useRef(false);
+  const readSent = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -181,6 +183,8 @@ export default function MinSideClient({ token }: { token: string }) {
       if (firstLoad.current) {
         firstLoad.current = false;
         if (parsed.hiring && !parsed.hiring.terms.accepted && !addressChose.current) setSection("ansetter");
+        // ORDER 236: our e-mail only said a message is waiting, so a new one is what opens first.
+        else if (unreadMessages(parsed) > 0 && !addressChose.current) setSection("meldinger");
       }
     } catch {
       setError("Siden kunne ikke hentes akkurat nå. Prøv igjen om litt.");
@@ -265,6 +269,13 @@ export default function MinSideClient({ token }: { token: string }) {
   const hiring = profile?.hiring ?? null;
   // A section the person cannot have (an old link to the hiring section) shows the firm.
   const section: SectionKey = chosen === "ansetter" && !hiring ? "firma" : chosen;
+  // ORDER 236: opening Meldinger marks what is there as read, once per visit.
+  const unread = profile ? unreadMessages(profile) : 0;
+  useEffect(() => {
+    if (section !== "meldinger" || unread === 0 || readSent.current) return;
+    readSent.current = true;
+    void fetch(`/api/min-side/${encodeURIComponent(token)}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "message_read", all: true }) }).catch(() => undefined);
+  }, [section, unread, token]);
   const trial = useProjectsTrial(hiring?.projects ?? null, send);
 
   // ORDER 157: the first time the hiring list is on screen after the terms, keep the old last_viewed_at for
@@ -547,6 +558,33 @@ export default function MinSideClient({ token }: { token: string }) {
                           <a href={o.url} className={LINK}>
                             {o.open ? "Åpne og svar" : "Åpne"}
                           </a>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </Panel>
+              ) : null}
+
+              {section === "meldinger" ? (
+                <Panel section="meldinger">
+                  {profile.messages.length === 0 ? <p className={`text-sm ${MUTED_L}`}>Du har ingen meldinger fra oss ennå.</p> : null}
+                  <ul className={`flex flex-col ${DIVIDE}`}>
+                    {profile.messages.map((m) => (
+                      <li key={m.id} id={`melding-${m.id}`} className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <p className={`min-w-0 break-words text-[15px] font-semibold ${INK}`}>{m.subject}</p>
+                          {!m.read_at ? <span className="rounded-full bg-[#F3E9CF] px-2 py-0.5 text-xs font-bold text-[#1B2B44]">Ny</span> : null}
+                        </div>
+                        <p className={`text-sm ${MUTED_L}`}>{dayNo(m.created_at)}</p>
+                        {m.text ? <p className={`whitespace-pre-line break-words text-[15px] leading-relaxed ${INK}`}>{m.text}</p> : null}
+                        {m.links.length ? (
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {m.links.map((l) => (
+                              <a key={l.href} href={l.href} className={LINK}>
+                                {l.label}
+                              </a>
+                            ))}
+                          </div>
                         ) : null}
                       </li>
                     ))}

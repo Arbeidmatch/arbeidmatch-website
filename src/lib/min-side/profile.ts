@@ -124,7 +124,30 @@ export type Profile = {
   contact_person: ContactPerson | null;
   /** ORDER 157: Bedrifter som ansetter; null for a person without hiring alerts. */
   hiring: Hiring | null;
+  /** ORDER 236: the letters we wrote to this person; their e-mail only said one was waiting. Empty from an older ATS. */
+  messages: Message[];
 };
+
+/** ORDER 236: one message, as it was approved, its buttons kept as buttons. */
+export type Message = { id: string; subject: string; text: string; links: { label: string; href: string }[]; created_at: string; read_at: string | null };
+
+const MESSAGE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** A message id as the ATS writes them, for "message_read". */
+export function isMessageId(value: unknown): value is string {
+  return typeof value === "string" && MESSAGE_ID.test(value);
+}
+
+/** The body of "message_read": one message, or all of them. Null for anything else. */
+export function messageReadRequest(raw: Record<string, unknown>): { action: "message_read"; id?: string; all?: true } | null {
+  if (raw.all === true) return { action: "message_read", all: true };
+  return isMessageId(raw.id) ? { action: "message_read", id: raw.id } : null;
+}
+
+/** How many messages wait unread. */
+export function unreadMessages(p: Pick<Profile, "messages">): number {
+  return p.messages.filter((m) => !m.read_at).length;
+}
 
 export type WhatsNewEntry = { id: string; title: string; detail: string; variants: string[]; link: string | null };
 
@@ -338,6 +361,20 @@ export function profileFrom(raw: unknown): Profile | null {
     candidates: list(r.candidates)
       .map((k) => ({ title: str(k.title, 200), sent_at: typeof k.sent_at === "string" ? k.sent_at : null, state: str(k.state, 60), url: ownLink(k.url) }))
       .slice(0, 50),
+    messages: list(r.messages)
+      .filter((m) => isMessageId(m.id) && typeof m.created_at === "string")
+      .map((m) => ({
+        id: String(m.id),
+        subject: str(m.subject, 300),
+        text: str(m.text, 20000),
+        links: list(m.links)
+          .map((l) => ({ label: str(l.label, 120), href: ownLink(l.href) }))
+          .filter((l): l is { label: string; href: string } => Boolean(l.label && l.href))
+          .slice(0, 12),
+        created_at: String(m.created_at),
+        read_at: typeof m.read_at === "string" ? m.read_at : null,
+      }))
+      .slice(0, 100),
     whats_new: list(r.whats_new)
       .filter((w) => isWhatsNewId(w.id))
       .map((w) => ({
@@ -423,7 +460,7 @@ export function addressLine(street: string, postcode: string, town: string): str
  * "Fakturaopplysninger" is where invoices are sent; "Fakturaer" is the
  * invoices themselves. They are two sections because they are two questions.
  */
-export type SectionKey = "firma" | "fakturaopplysninger" | "kontakter" | "kandidater" | "tilbud" | "timelister" | "fakturaer" | "dokumenter" | "varsler" | "ansetter";
+export type SectionKey = "firma" | "fakturaopplysninger" | "kontakter" | "meldinger" | "kandidater" | "tilbud" | "timelister" | "fakturaer" | "dokumenter" | "varsler" | "ansetter";
 
 export type SectionGroup = "firmaet" | "samarbeidet";
 export const SECTION_GROUPS: { key: SectionGroup; label: string }[] = [
@@ -436,6 +473,8 @@ export const SECTIONS: { key: SectionKey; group: SectionGroup; label: string; ab
   // The label carries a soft hyphen (written as its escape so it can be seen): on a phone the long word breaks at its joint.
   { key: "fakturaopplysninger", group: "firmaet", label: "Faktura­opplysninger", about: "Hvor og hvordan fakturaene fra oss sendes." },
   { key: "kontakter", group: "firmaet", label: "Kontaktpersoner", about: "Personene vi kan kontakte hos dere." },
+  // ORDER 236: what our e-mails announce; the e-mail itself only says a message is waiting.
+  { key: "meldinger", group: "samarbeidet", label: "Meldinger", about: "Meldingene fra ArbeidMatch til deg. Alt blir liggende her." },
   { key: "kandidater", group: "samarbeidet", label: "Kandidater", about: "Kandidatene vi har presentert for deg." },
   { key: "tilbud", group: "samarbeidet", label: "Tilbud", about: "Tilbud fra oss til deg: de som venter på svar, og de som er besvart." },
   { key: "timelister", group: "samarbeidet", label: "Timelister", about: "Timelistene du skal signere, og de du har signert." },
@@ -466,6 +505,10 @@ export function sectionHint(key: SectionKey, p: Profile): string {
   if (key === "firma") return p.company.city || "Adresse og kontakt";
   if (key === "fakturaopplysninger") return p.company.invoice_ehf ? "EHF" : p.company.invoice_email ? "På e-post" : "Ikke oppgitt";
   if (key === "kontakter") return count(p.contacts.length, "person", "personer", "Ingen registrert");
+  if (key === "meldinger") {
+    const unread = unreadMessages(p);
+    return unread ? count(unread, "ny melding", "nye meldinger", "") : count(p.messages.length, "melding", "meldinger", "Ingen ennå");
+  }
   if (key === "kandidater") return count(p.candidates.length, "presentasjon", "presentasjoner", "Ingen ennå");
   if (key === "varsler") {
     const plan = p.alerts?.plan ?? null;

@@ -79,9 +79,9 @@ describe("Min side: the words on the page", () => {
 });
 
 describe("Min side: one section at a time", () => {
-  it("has ten sections in two groups (the tenth only with hiring alerts), each with a name and a line that says what it is", async () => {
+  it("has eleven sections in two groups (the last only with hiring alerts), each with a name and a line that says what it is", async () => {
     const { SECTIONS, SECTION_GROUPS } = await import("./profile");
-    expect(SECTIONS.map((s) => s.key)).toEqual(["firma", "fakturaopplysninger", "kontakter", "kandidater", "tilbud", "timelister", "fakturaer", "dokumenter", "varsler", "ansetter"]);
+    expect(SECTIONS.map((s) => s.key)).toEqual(["firma", "fakturaopplysninger", "kontakter", "meldinger", "kandidater", "tilbud", "timelister", "fakturaer", "dokumenter", "varsler", "ansetter"]);
     expect(SECTION_GROUPS.map((g) => g.key)).toEqual(["firmaet", "samarbeidet"]);
     for (const s of SECTIONS) {
       expect(s.label.length).toBeGreaterThan(2);
@@ -167,5 +167,39 @@ describe("What's new on Min side (U1b)", () => {
   });
   it("reads none from an older ATS", () => {
     expect(profileFrom(base)?.whats_new).toEqual([]);
+  });
+});
+
+describe("Min side: Meldinger (ORDER 236)", () => {
+  const base = { me: { email: "a@example.test", contact_id: null }, company: { name: "Firma AS" } };
+  const message = (o: Record<string, unknown> = {}) => ({
+    id: "00000000-0000-4000-8000-0000000000a1",
+    subject: "Kandidater til dere",
+    text: "Hei. Her er tre kandidater.",
+    links: [{ label: "Se kandidatene", href: "https://ats.arbeidmatch.no/p/abc" }, { label: "Bad", href: "https://evil.example/x" }],
+    created_at: "2026-11-07T09:00:00Z",
+    read_at: null,
+    ...o,
+  });
+
+  it("shows the whole message with its own buttons only, newest first as sent, unread until opened", async () => {
+    const { unreadMessages } = await import("./profile");
+    const p = profileFrom({ ...base, messages: [message(), message({ id: "00000000-0000-4000-8000-0000000000a2", read_at: "2026-11-07T10:00:00Z" }), { id: "x" }] });
+    expect(p?.messages).toHaveLength(2);
+    expect(p?.messages[0].text).toBe("Hei. Her er tre kandidater.");
+    expect(p?.messages[0].links).toEqual([{ label: "Se kandidatene", href: "https://ats.arbeidmatch.no/p/abc" }]);
+    expect(unreadMessages(p!)).toBe(1);
+  });
+
+  it("reads none from an older ATS", () => {
+    expect(profileFrom(base)?.messages).toEqual([]);
+  });
+
+  it("passes on only one message id or all", async () => {
+    const { messageReadRequest } = await import("./profile");
+    expect(messageReadRequest({ all: true })).toEqual({ action: "message_read", all: true });
+    expect(messageReadRequest({ id: "00000000-0000-4000-8000-0000000000a1" })).toEqual({ action: "message_read", id: "00000000-0000-4000-8000-0000000000a1" });
+    expect(messageReadRequest({ id: "../x" })).toBeNull();
+    expect(messageReadRequest({})).toBeNull();
   });
 });
