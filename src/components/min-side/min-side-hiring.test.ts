@@ -369,7 +369,9 @@ describe("Ring i dag", () => {
     const html = renderToStaticMarkup(createElement(MinSideHiring, props(h)));
     expect(html.match(/data-ring-card=""/g)).toHaveLength(3);
     expect(html.indexOf("data-ring-today")).toBeLessThan(html.indexOf("Bedrifter som ansetter ("));
-    expect(html).toContain("Ikke fylt: åpen i 47 dager");
+    expect(html).toContain(">Ikke fylt<");
+    // The fact in numbers is said once, in the reason beside the chip.
+    expect(html.split("åpen i 47 dager · 2 stillinger")).toHaveLength(4);
     expect(html).toContain("Egne annonser fra 11.09.2026");
     expect(html).toContain(">Kopier<");
     expect(html).toContain(">Ringt<");

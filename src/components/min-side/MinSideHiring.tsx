@@ -761,7 +761,7 @@ function StatusButton({ row, send }: { row: Pick<HiringRow, "orgnr" | "name" | "
   const choices = row.status === "contacted" ? (["contacted", ...STATUS_CHOICES] as HiringStatus[]) : STATUS_CHOICES;
   return (
     <select
-      className={`${FIELD_L} min-h-[44px] w-auto max-w-full py-1.5 text-sm`}
+      className={`${FIELD_L} min-h-[44px] w-auto min-w-[128px] py-1.5 text-sm`}
       aria-label={`Status for ${row.name}`}
       value={row.status}
       disabled={busy}
@@ -780,11 +780,11 @@ function StatusButton({ row, send }: { row: Pick<HiringRow, "orgnr" | "name" | "
   );
 }
 
-/** ORDER 235: "Ikke fylt" and the fact behind it, on a row and a card. */
+/** ORDER 235: "Ikke fylt" on a row and a card; the fact in numbers is the Behov beside it, said once. */
 function IkkeFylt({ text }: { text: string | null }) {
   return text ? (
-    <span data-ikke-fylt="" className={LABEL_CHIP}>
-      Ikke fylt: {text}
+    <span data-ikke-fylt="" className={LABEL_CHIP} title={text}>
+      Ikke fylt
     </span>
   ) : null;
 }
@@ -1089,7 +1089,7 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
                 <th className={TH_L}>Fag</th>
                 <th className={TH_L}>Behov</th>
                 <th className={TH_L}>Publisert</th>
-                <th className={TH_L}>Status</th>
+                <th className={`${TH_L} w-[150px]`}>Status</th>
                 <th className={TH_L}>
                   <span className="sr-only">Lead</span>
                 </th>
