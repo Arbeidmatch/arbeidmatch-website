@@ -42,9 +42,17 @@ export function sessionHeaders(cookieValue: string | null | undefined): Record<s
   return isProjectToken(key) ? { [PORTAL_SESSION_HEADER]: key } : {};
 }
 
-export type LoginIntent = { plan: boolean; alerts: boolean; prosjekt: string | null };
+export type LoginIntent = {
+  plan: boolean;
+  alerts: boolean;
+  prosjekt: string | null;
+  /** ORDER 157 and 220: the weekly letter's buttons, the projects card or the agency tab of Firms hiring. */
+  hiring?: "projects" | "agency" | null;
+  /** ORDER 244: a letter's firm button opens that firm's card on Min side. */
+  firm?: string | null;
+};
 
-/** What a login link may ask for, read from its query; only these three words are carried on. */
+/** What a login link may ask for, read from its query; only these words are carried on. */
 export function loginIntentFrom(query: { get(name: string): string | null } | Record<string, string | string[] | undefined>): LoginIntent {
   const read = (name: string): string | null => {
     if (typeof (query as { get?: unknown }).get === "function") return (query as { get(n: string): string | null }).get(name);
@@ -54,7 +62,26 @@ export function loginIntentFrom(query: { get(name: string): string | null } | Re
   const plan = read("plan") === "1";
   const alerts = !plan && read("alerts") === "1";
   const p = read("prosjekt");
-  return { plan, alerts, prosjekt: !plan && !alerts && isProjectToken(p) ? p.toLowerCase() : null };
+  const prosjekt = !plan && !alerts && isProjectToken(p) ? p.toLowerCase() : null;
+  const h = read("hiring");
+  const f = read("firm");
+  const free = !plan && !alerts && !prosjekt;
+  return {
+    plan,
+    alerts,
+    prosjekt,
+    hiring: free && (h === "projects" || h === "agency") ? h : null,
+    firm: free && typeof f === "string" && /^\d{9}$/.test(f) ? f : null,
+  };
+}
+
+/** The Min side query for the hiring words, "" without them. */
+function hiringQuery(intent: LoginIntent): string {
+  const q = new URLSearchParams();
+  if (intent.hiring) q.set("hiring", intent.hiring);
+  if (intent.firm) q.set("firm", intent.firm);
+  const s = q.toString();
+  return s ? `?${s}` : "";
 }
 
 /** The query string that carries an intent on to the next hop, "" without one. */
@@ -62,7 +89,7 @@ export function intentQuery(intent: LoginIntent): string {
   if (intent.plan) return "?plan=1";
   if (intent.alerts) return "?alerts=1";
   if (intent.prosjekt) return `?prosjekt=${intent.prosjekt}`;
-  return "";
+  return hiringQuery(intent);
 }
 
 /**
@@ -74,7 +101,7 @@ export function loginTarget(answer: { profile: string | null; projects: string |
   const { profile, projects } = answer;
   if (intent.prosjekt && (profile || projects)) return `/prosjekt/${intent.prosjekt}`;
   if (intent.alerts && projects) return `/prosjekter/${projects}`;
-  if (profile) return `/min-side/${profile}${intent.plan ? "?plan=1" : intent.alerts ? "?alerts=1" : ""}`;
+  if (profile) return `/min-side/${profile}${intent.plan ? "?plan=1" : intent.alerts ? "?alerts=1" : hiringQuery(intent)}`;
   if (projects) return `/prosjekter/${projects}`;
   return null;
 }

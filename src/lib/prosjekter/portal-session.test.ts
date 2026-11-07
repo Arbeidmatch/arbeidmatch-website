@@ -69,6 +69,17 @@ describe("where a redeemed login goes", () => {
     expect(intentQuery(loginIntentFrom({ prosjekt: PRES }))).toBe(`?prosjekt=${PRES}`);
     expect(intentQuery(loginIntentFrom({ plan: "1" }))).toBe("?plan=1");
   });
+  it("a letter's hiring and firm buttons reach Min side through the login (ORDER 220, 244)", () => {
+    expect(intentQuery(loginIntentFrom(new URLSearchParams("hiring=agency")))).toBe("?hiring=agency");
+    expect(intentQuery(loginIntentFrom({ firm: "923609016" }))).toBe("?firm=923609016");
+    expect(loginTarget({ profile: PROFILE, projects: SUB }, loginIntentFrom(new URLSearchParams("firm=923609016")))).toBe(`/min-side/${PROFILE}?firm=923609016`);
+    expect(loginTarget({ profile: PROFILE, projects: SUB }, loginIntentFrom(new URLSearchParams("hiring=projects")))).toBe(`/min-side/${PROFILE}?hiring=projects`);
+    // Only nine digits and the two hiring words are carried; plan wins over them.
+    expect(loginIntentFrom(new URLSearchParams("firm=../x&hiring=evil"))).toMatchObject({ firm: null, hiring: null });
+    expect(intentQuery(loginIntentFrom(new URLSearchParams("plan=1&firm=923609016")))).toBe("?plan=1");
+    // A subscription page alone has no firm card to open.
+    expect(loginTarget({ profile: null, projects: SUB }, loginIntentFrom(new URLSearchParams("firm=923609016")))).toBe(`/prosjekter/${SUB}`);
+  });
   it("the session is the Min side key first, else the subscription's, and only a well-formed one is passed on", () => {
     expect(sessionKeyFrom({ profile: PROFILE, token: SUB })).toBe(PROFILE);
     expect(sessionKeyFrom({ profile: null, token: SUB })).toBe(SUB);

@@ -1470,6 +1470,20 @@ export function hiringIntentFromSearch(search: string): "projects" | "agency" | 
   return v === "projects" || v === "agency" ? v : null;
 }
 
+/** ORDER 244: ?firm=<orgnr> opens that firm's card in Firms hiring; anything but nine digits is no firm. */
+export function firmFromSearch(search: string): string | null {
+  const v = new URLSearchParams(search).get("firm");
+  return v && /^\d{9}$/.test(v) ? v : null;
+}
+
+/** The address with ?firm= set to the open card, or taken off when it closes; the rest of the query and the hash stay. */
+export function withFirmParam(href: string, orgnr: string | null): string {
+  const u = new URL(href);
+  if (orgnr) u.searchParams.set("firm", orgnr);
+  else u.searchParams.delete("firm");
+  return `${u.pathname}${u.search}${u.hash}`;
+}
+
 /** The project teaser replaces the empty Prosjektvarsler state only for a person with neither alerts nor free months. */
 export function showsProjectsTeaser(p: Pick<Profile, "alerts" | "free_alerts" | "hiring">): boolean {
   return !p.alerts && !p.free_alerts && Boolean(p.hiring?.projects);

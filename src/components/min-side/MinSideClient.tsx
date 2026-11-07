@@ -17,6 +17,7 @@ import {
   SECTIONS,
   SECTION_GROUPS,
   hiringIntentFromSearch,
+  firmFromSearch,
   hiringSubtitle,
   showsProjectsTeaser,
   visibleSections,
@@ -157,6 +158,7 @@ export default function MinSideClient({ token }: { token: string }) {
   const [hiringSince, setHiringSince] = useState<string | null | undefined>(undefined);
   const [hiringFocus, setHiringFocus] = useState(false);
   const [hiringAgencyTab, setHiringAgencyTab] = useState(false);
+  const [hiringFirm, setHiringFirm] = useState<string | null>(null);
   const [askClose, setAskClose] = useState(false);
   // Whether the address chose a section itself: then the first load does not move to the hiring terms.
   const addressChose = useRef(false);
@@ -206,13 +208,16 @@ export default function MinSideClient({ token }: { token: string }) {
     }
     // ORDER 157: "Prøv prosjektvarsler" in the weekly letter (?hiring=projects) opens the hiring section at the projects card.
     const hiringIntent = hiringIntentFromSearch(window.location.search);
-    if (hiringIntent) {
+    // ORDER 244: ?firm=<orgnr> (a letter's firm button, or a shared address) opens that firm's card; the address keeps it while open.
+    const firm = firmFromSearch(window.location.search);
+    if (hiringIntent || firm) {
       setSection("ansetter");
       // ORDER 220: ?hiring=agency (the weekly letter's second button) opens the tab "Via bemanningsbyrå".
       if (hiringIntent === "agency") setHiringAgencyTab(true);
-      else setHiringFocus(true);
+      else if (hiringIntent === "projects") setHiringFocus(true);
+      if (firm) setHiringFirm(firm);
       addressChose.current = true;
-      window.history.replaceState(window.history.state, "", `${window.location.pathname}#ansetter`);
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${firm ? `?firm=${firm}` : ""}#ansetter`);
     }
     // ORDER 100: a link from the weekly letter opens the staffing request (?plan=1) or the alerts (?alerts=1).
     const intent = intentFromSearch(window.location.search);
@@ -716,6 +721,7 @@ export default function MinSideClient({ token }: { token: string }) {
                     trial={trial}
                     focusProjects={hiringFocus}
                     openAgencyTab={hiringAgencyTab}
+                    openFirm={hiringFirm}
                     onAskPeople={() => setPlanPrefill({ trade: hiring.subscription.trades.slice(0, 3).join(", "), place: hiring.subscription.counties.slice(0, 3).join(", ") })}
                   />
                 </Panel>

@@ -20,6 +20,7 @@ import {
   orgNumberNo,
   projectStageNo,
   visibleHiringRows,
+  withFirmParam,
   type Hiring,
   type HiringAgencyCard,
   type HiringAgencyRow,
@@ -751,6 +752,8 @@ export type MinSideHiringProps = {
   focusProjects?: boolean;
   /** ?hiring=agency (ORDER 220): open the tab "Via bemanningsbyrå". */
   openAgencyTab?: boolean;
+  /** ?firm=<orgnr> (ORDER 244): open that firm's card once. */
+  openFirm?: string | null;
 };
 
 /** ORDER 235: the marks a client sets on a firm, in the order a call goes; "Kontaktet" stays for a firm marked so before. */
@@ -914,7 +917,7 @@ function FirmActions({ row, send }: { row: HiringRow; send: Send }) {
   );
 }
 
-export default function MinSideHiring({ token, hiring, since, send, sendData, trial, onAskPeople, focusProjects = false, openAgencyTab = false }: MinSideHiringProps) {
+export default function MinSideHiring({ token, hiring, since, send, sendData, trial, onAskPeople, focusProjects = false, openAgencyTab = false, openFirm = null }: MinSideHiringProps) {
   const { terms, subscription } = hiring;
   const basis = subscription.tier === "basis";
   const [termsOpen, setTermsOpen] = useState(!terms.accepted && terms.ready);
@@ -938,6 +941,20 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
     const t = window.setTimeout(() => document.getElementById("ms-hiring-projects")?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
     return () => window.clearTimeout(t);
   }, [focusProjects]);
+
+  // ORDER 244: ?firm=<orgnr> opens its card once the terms are accepted; Basis is offered Premium, as a click on a row is.
+  const tier = subscription.tier;
+  useEffect(() => {
+    if (!openFirm || !terms.accepted) return;
+    if (leadAction(tier) === "card") setLead(openFirm);
+    else setPremiumAsk(true);
+  }, [openFirm, terms.accepted, tier]);
+
+  // The open card is the address (?firm=), so it can be shared and reopened; closing it takes the firm off.
+  useEffect(() => {
+    const next = withFirmParam(window.location.href, lead);
+    if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) window.history.replaceState(window.history.state, "", next);
+  }, [lead]);
 
   if (!terms.accepted) {
     if (!terms.ready) return <p className={`text-sm ${MUTED_L}`}>Tjenesten åpnes snart.</p>;
