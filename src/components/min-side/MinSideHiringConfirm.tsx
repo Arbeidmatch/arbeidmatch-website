@@ -16,7 +16,7 @@ import {
 } from "@/lib/min-side/profile";
 import type { Fetched, Saved } from "./MinSideHiring";
 import { Block, CHECK, CHOICE, FieldError, ReadOnlyLine, TextField, type Failed } from "./MinSideHiringBilling";
-import { Chips, Control, FREQUENCIES, firmsWord, toggled } from "./MinSideHiringSettings";
+import { Chips, Control, FREQUENCIES, OccupationChips, firmsWord, toggled } from "./MinSideHiringSettings";
 import { BTN_GREEN, FIELD_L, INK, MUTED_L, SOFT, chip } from "./ui";
 
 /**
@@ -91,17 +91,8 @@ export function ConfirmFields({ confirm, terms, value: v, onChange, busy, failed
       </Block>
 
       <Block id="receive" title="Hva vil du motta">
-        <Control legend="Fag">
-          <Chips>
-            {o.trades.map((t) => {
-              const on = v.trades.includes(t.key);
-              return (
-                <button key={t.key} type="button" aria-pressed={on} className={chip(on)} disabled={!on && v.trades.length >= RECEIVE_MAX} onClick={() => onChange({ trades: toggled(v.trades, t.key) })}>
-                  {t.name}
-                </button>
-              );
-            })}
-          </Chips>
+        <Control legend="Yrker">
+          <OccupationChips areas={o.areas} trades={o.trades} value={v.trades} max={RECEIVE_MAX} onChange={(trades) => onChange({ trades })} />
           <div id="ms-cf-trades"><FieldError message={errorFor("trades")} /></div>
         </Control>
 

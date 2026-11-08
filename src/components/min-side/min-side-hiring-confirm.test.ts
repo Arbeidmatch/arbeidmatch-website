@@ -114,8 +114,18 @@ describe("the confirm part of the ATS's answer", () => {
     // An ATS without receive or options gives an empty choice, not a broken screen.
     const bare = confirmOf({ receive: undefined, options: undefined, matches: undefined });
     expect(bare.receive.counties).toEqual([]);
-    expect(bare.options).toEqual({ counties: [], trades: [] });
+    expect(bare.options).toEqual({ counties: [], trades: [], areas: [] });
     expect(bare.matches).toBe(0);
+  });
+
+  it("reads the occupation areas with their trades and keeps an area as chosen (ORDER 234)", () => {
+    const c = confirmOf({
+      receive: { counties: [], trades: ["area_health", "carpenter", "area_nope"], frequency: "weekly" },
+      options: { counties: [], trades: [], areas: [{ key: "area_health", name: "Helse og omsorg", trades: [] }, { key: "area_construction", name: "Bygg og anlegg", trades: [{ key: "carpenter", name: "Tømrere og snekkere" }] }] },
+    });
+    expect(c.options.areas.map((a) => a.key)).toEqual(["area_health", "area_construction"]);
+    expect(c.options.areas[1].trades).toEqual([{ key: "carpenter", name: "Tømrere og snekkere" }]);
+    expect(c.receive.trades).toEqual(["area_health", "carpenter"]);
   });
 
   it("starts with both boxes unticked and the prefill of what he receives", () => {
@@ -155,7 +165,7 @@ describe("Bekreft og start", () => {
     expect(Object.keys(controlsPerBlock(html))).toEqual(["person", "receive", "terms"]);
     expect(controlsPerBlock(html)).toEqual({ person: 3, receive: 4, terms: 2 });
     const receive = html.slice(html.indexOf('data-block="receive"'), html.indexOf('data-block="terms"'));
-    for (const word of ["Fag", "Fylker", "Hvor ofte", "Elektriker", "Tømrer", "Trøndelag", "Oslo", "Daglig", "Ukentlig", "Månedlig", "Bare nye stillinger siden sist"]) expect(receive).toContain(word);
+    for (const word of ["Yrker", "Fylker", "Hvor ofte", "Elektriker", "Tømrer", "Trøndelag", "Oslo", "Daglig", "Ukentlig", "Månedlig", "Bare nye stillinger siden sist"]) expect(receive).toContain(word);
     // His rule P4: nothing else on this screen.
     for (const gone of ["Steder", "Bedriftsstørrelse", "Type signal", "Mottakere", "Språk", "Pause", "Klokkeslett"]) expect(html).not.toContain(gone);
     // The prefill is pressed.
@@ -191,7 +201,7 @@ describe("Bekreft og start", () => {
     // As it opens: a county from the register, no trade, no box ticked. The button still presses.
     expect(disabled(fields(c, hiringConfirmValues(c)))).toBe(false);
     expect(submit(fields(c, hiringConfirmValues(c)))).toContain("bg-[#2E9E6B]");
-    expect(hiringConfirmMissing(hiringConfirmValues(c))).toEqual({ field: "trades", message: "Velg minst ett fag." });
+    expect(hiringConfirmMissing(hiringConfirmValues(c))).toEqual({ field: "trades", message: "Velg minst ett yrkesområde." });
     expect(hiringConfirmMissing({ ...valid(c), counties: [] })).toEqual({ field: "counties", message: "Velg minst ett fylke." });
     expect(hiringConfirmMissing({ ...valid(c), accept_terms: false })?.field).toBe("accept_terms");
     expect(hiringConfirmMissing({ ...valid(c), accept_beta: false })?.field).toBe("accept_beta");
@@ -216,9 +226,9 @@ describe("Bekreft og start", () => {
     const at = email.indexOf("Ugyldig e-post.");
     expect(at).toBeGreaterThan(email.indexOf('id="ms-cf-email"'));
     expect(at).toBeLessThan(email.indexOf("Hva vil du motta"));
-    const trades = fields(c, valid(c), 12, { message: "Velg minst ett fag.", field: "trades" });
-    expect(trades.indexOf("Velg minst ett fag.")).toBeGreaterThan(trades.indexOf(">Fag<"));
-    expect(trades.indexOf("Velg minst ett fag.")).toBeLessThan(trades.indexOf(">Fylker<"));
+    const trades = fields(c, valid(c), 12, { message: "Velg minst ett yrkesområde.", field: "trades" });
+    expect(trades.indexOf("Velg minst ett yrkesområde.")).toBeGreaterThan(trades.indexOf(">Yrker<"));
+    expect(trades.indexOf("Velg minst ett yrkesområde.")).toBeLessThan(trades.indexOf(">Fylker<"));
     const counties = fields(c, valid(c), 12, { message: "Velg minst ett fylke.", field: "counties" });
     expect(counties.indexOf("Velg minst ett fylke.")).toBeGreaterThan(counties.indexOf(">Fylker<"));
     expect(counties.indexOf("Velg minst ett fylke.")).toBeLessThan(counties.indexOf(">Hvor ofte<"));

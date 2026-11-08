@@ -4,7 +4,7 @@ import { useId, useMemo, useState, type FocusEvent, type FormEvent, type Keyboar
 
 import dynamic from "next/dynamic";
 
-import { PLANS_CLOSED_LINE, dayNo, hiringLetterFrom, type HiringFrequency, type HiringLetter, type HiringPrefs, type HiringSignal } from "@/lib/min-side/profile";
+import { PLANS_CLOSED_LINE, dayNo, hiringLetterFrom, type HiringAreaOption, type HiringFrequency, type HiringLetter, type HiringPrefs, type HiringSignal, type HiringTradeOption } from "@/lib/min-side/profile";
 import type { Fetched, Saved } from "./MinSideHiring";
 import { BTN_OUTLINE, CARD_L, DIVIDE_L, ERROR_L, FIELD_L, GOLD_CARD, GREEN_TEXT, INK, MUTED_L, RULE, SOFT, chip } from "./ui";
 
@@ -84,6 +84,77 @@ export function Control({ legend, note, children }: { legend: string; note?: Rea
 
 export function Chips({ children }: { children: ReactNode }) {
   return <div className="flex min-w-0 flex-wrap gap-2">{children}</div>;
+}
+
+/**
+ * ORDER 234: what the client follows, by occupation area; an area with our
+ * trades opens to them as the finer choice. An area takes all of it, so its
+ * trades are cleared; a trade clears its area. From an ATS that sends no
+ * areas, the trades alone, as before.
+ */
+export function OccupationChips({ areas, trades, value, max, onChange }: { areas: HiringAreaOption[]; trades: HiringTradeOption[]; value: string[]; max: number; onChange: (next: string[]) => void }) {
+  const [open, setOpen] = useState<string[]>(() => areas.filter((a) => a.trades.some((t) => value.includes(t.key))).map((a) => a.key));
+  if (!areas.length)
+    return (
+      <Chips>
+        {trades.map((t) => {
+          const on = value.includes(t.key);
+          return (
+            <button key={t.key} type="button" aria-pressed={on} className={chip(on)} disabled={!on && value.length >= max} onClick={() => onChange(toggled(value, t.key))}>
+              {t.name}
+            </button>
+          );
+        })}
+      </Chips>
+    );
+  const full = value.length >= max;
+  return (
+    <div className="flex min-w-0 flex-col gap-3">
+      <Chips>
+        {areas.map((a) => {
+          const on = value.includes(a.key);
+          const keys = a.trades.map((t) => t.key);
+          const picked = keys.filter((k) => value.includes(k)).length;
+          return (
+            <span key={a.key} className="inline-flex items-center gap-1">
+              <button type="button" aria-pressed={on} className={chip(on)} disabled={!on && full && !picked} onClick={() => onChange(on ? value.filter((x) => x !== a.key) : [...value.filter((x) => !keys.includes(x)), a.key])}>
+                {picked ? `${a.name} (${picked})` : a.name}
+              </button>
+              {a.trades.length ? (
+                <button
+                  type="button"
+                  aria-expanded={open.includes(a.key)}
+                  aria-label={`Fag i ${a.name}`}
+                  title={`Fag i ${a.name}`}
+                  className={`${chip(open.includes(a.key))} min-w-[36px] justify-center px-0`}
+                  onClick={() => setOpen(open.includes(a.key) ? open.filter((x) => x !== a.key) : [...open, a.key])}
+                >
+                  {open.includes(a.key) ? "-" : "+"}
+                </button>
+              ) : null}
+            </span>
+          );
+        })}
+      </Chips>
+      {areas
+        .filter((a) => a.trades.length && open.includes(a.key))
+        .map((a) => (
+          <div key={a.key} className="flex min-w-0 flex-col gap-2 rounded-xl border border-[#C9CFD8] p-3">
+            <p className={`text-xs font-semibold ${MUTED_L}`}>{a.name}</p>
+            <Chips>
+              {a.trades.map((t) => {
+                const on = value.includes(t.key);
+                return (
+                  <button key={t.key} type="button" aria-pressed={on} className={chip(on)} disabled={!on && full && !value.includes(a.key)} onClick={() => onChange(on ? value.filter((x) => x !== t.key) : [...value.filter((x) => x !== a.key), t.key])}>
+                    {t.name}
+                  </button>
+                );
+              })}
+            </Chips>
+          </div>
+        ))}
+    </div>
+  );
 }
 
 function FieldError({ message }: { message: string | null }) {
@@ -210,17 +281,8 @@ export function ReceivePanel({ prefs, saver, premium }: { prefs: HiringPrefs; sa
   const radiusSelectId = useId();
   return (
     <fieldset disabled={saver.busy} className="flex min-w-0 flex-col gap-5">
-      <Control legend="Fag" note={r.trades.length ? undefined : "Alle"}>
-        <Chips>
-          {o.trades.map((t) => {
-            const on = r.trades.includes(t.key);
-            return (
-              <button key={t.key} type="button" aria-pressed={on} className={chip(on)} disabled={!on && r.trades.length >= 20} onClick={() => save({ trades: toggled(r.trades, t.key) })}>
-                {t.name}
-              </button>
-            );
-          })}
-        </Chips>
+      <Control legend="Yrker" note={r.trades.length ? undefined : "Alle"}>
+        <OccupationChips areas={o.areas} trades={o.trades} value={r.trades} max={20} onChange={(trades) => save({ trades })} />
       </Control>
 
       <Control legend="Fylker" note={limit ? (limit === 1 ? "Basis: ett fylke" : `Basis: ${limit} fylker`) : r.counties.length ? undefined : "Alle"}>

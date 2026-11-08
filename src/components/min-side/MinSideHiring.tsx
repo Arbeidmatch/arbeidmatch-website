@@ -1055,7 +1055,7 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
           </select>
         </label>
         <label className="flex min-w-[150px] flex-1 basis-[150px] flex-col gap-1 sm:flex-none">
-          <span className={`text-xs font-semibold ${MUTED_L}`}>Fag</span>
+          <span className={`text-xs font-semibold ${MUTED_L}`}>Yrke</span>
           <select className={FIELD_L} value={filter.trade} onChange={(e) => set({ trade: e.target.value })}>
             <option value="">Alle</option>
             {hiring.filters.trades.map((t) => (

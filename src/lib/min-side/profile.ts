@@ -780,6 +780,8 @@ export type Hiring = {
 export type HiringDelivery = "email" | "ehf";
 export type HiringOption = { code: string; name: string };
 export type HiringTradeOption = { key: string; name: string };
+/** ORDER 234: an occupation area, every occupation in it, with our trades under it as the finer choice. */
+export type HiringAreaOption = { key: string; name: string; trades: HiringTradeOption[] };
 
 /** What the confirm screen sets for the alerts; the four controls of "Hva vil du motta". */
 export type HiringConfirmReceive = { counties: string[]; trades: string[]; frequency: HiringFrequency; only_new: boolean };
@@ -790,7 +792,7 @@ export type HiringConfirm = {
   company: { name: string; org_number: string | null };
   /** The prefill: the owner's suggestion, else the firm's own county, else nothing. */
   receive: HiringConfirmReceive & { suggested: boolean };
-  options: { counties: HiringOption[]; trades: HiringTradeOption[] };
+  options: { counties: HiringOption[]; trades: HiringTradeOption[]; areas: HiringAreaOption[] };
   /** "Treff nå" for the prefill. */
   matches: number;
   /** The beta sentence, the label of the second box. */
@@ -839,7 +841,7 @@ export function hiringConfirmValues(c: HiringConfirm): HiringConfirmValues {
 export function hiringConfirmMissing(v: HiringConfirmValues): { field: string; message: string } | null {
   if (v.full_name.trim().length < 2) return { field: "full_name", message: "Skriv fullt navn." };
   if (!CONFIRM_EMAIL.test(v.email.trim())) return { field: "email", message: "Skriv e-posten på jobb, for eksempel navn@firma.no." };
-  if (v.trades.length < 1) return { field: "trades", message: "Velg minst ett fag." };
+  if (v.trades.length < 1) return { field: "trades", message: "Velg minst ett yrkesområde." };
   if (v.counties.length < 1) return { field: "counties", message: "Velg minst ett fylke." };
   if (!v.accept_terms) return { field: "accept_terms", message: "Godta vilkårene for å starte." };
   if (!v.accept_beta) return { field: "accept_beta", message: "Bekreft at tjenesten er i betatest." };
@@ -885,9 +887,10 @@ function hiringConfirmFrom(raw: unknown): HiringConfirm | null {
   const o = obj(r.options) ?? {};
   const counties = countyOptions(o.counties);
   const trades = tradeOptions(o.trades);
+  const areas = areaOptions(o.areas);
   // Only what can be shown as a chip is kept as chosen.
   const countyCodes = new Set(counties.map((x) => x.code));
-  const tradeKeys = new Set(trades.map((x) => x.key));
+  const tradeKeys = new Set([...trades, ...areas, ...areas.flatMap((a) => a.trades)].map((x) => x.key));
   return {
     person: { full_name: str(p.full_name, 120), role: str(p.role, 80), email: str(p.email, 254) },
     company: { name: str(c.name, 200).trim(), org_number: org || null },
@@ -898,7 +901,7 @@ function hiringConfirmFrom(raw: unknown): HiringConfirm | null {
       only_new: rc.only_new === true,
       suggested: rc.suggested === true,
     },
-    options: { counties, trades },
+    options: { counties, trades, areas },
     matches: wholeOrZero(r.matches),
     beta: str(r.beta, 600).trim() || "Jeg forstår at tjenesten er i beta",
   };
@@ -1054,6 +1057,8 @@ export type HiringPrefs = {
   options: {
     counties: { code: string; name: string }[];
     trades: { key: string; name: string }[];
+    /** ORDER 234: every occupation area, our trades under theirs; empty from an ATS before it. */
+    areas: HiringAreaOption[];
     towns: string[];
     radius_km: number[];
     hours: [number, number];
@@ -1154,6 +1159,13 @@ function countyOptions(v: unknown) {
     .slice(0, 30);
 }
 
+function areaOptions(v: unknown): HiringAreaOption[] {
+  return objs(v)
+    .filter((c) => typeof c.key === "string" && TRADE_KEY.test(c.key))
+    .map((c) => ({ key: String(c.key), name: str(c.name, 80) || String(c.key), trades: tradeOptions(c.trades) }))
+    .slice(0, 40);
+}
+
 function tradeOptions(v: unknown) {
   return objs(v)
     .filter((c) => typeof c.key === "string" && TRADE_KEY.test(c.key))
@@ -1224,6 +1236,7 @@ export function hiringPrefsFrom(raw: unknown): HiringPrefs | null {
     options: {
       counties: countyOptions(o.counties),
       trades: tradeOptions(o.trades),
+      areas: areaOptions(o.areas),
       towns: [...new Set((Array.isArray(o.towns) ? o.towns.filter(isTownText) : []).map((t) => t.trim()))].slice(0, 1000),
       radius_km: (Array.isArray(o.radius_km) ? o.radius_km : []).filter((n): n is number => intIn(n, 1, 1000) !== null).slice(0, 10),
       hours,

@@ -141,7 +141,7 @@ describe("the three tabs", () => {
     const src = source("MinSideHiringSettings.tsx");
     expect(src).toContain('saver.save({ action: "hiring_prefs_receive", ...fields })');
     expect(src).toContain('saver.save({ action: "hiring_prefs_when", ...fields })');
-    expect(src).toContain('onClick={() => save({ trades: toggled(r.trades, t.key) })}');
+    expect(src).toContain('onChange={(trades) => save({ trades })}');
     expect(src).toContain('onClick={() => save({ counties: toggled(r.counties, c.code) })}');
     expect(src).toContain('onChange={(e) => save({ radius_km: e.target.value === "" ? null : Number(e.target.value) })}');
     expect(src).toContain("onChange={(e) => save({ only_new: e.target.checked })}");
