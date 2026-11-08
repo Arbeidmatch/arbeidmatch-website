@@ -3,7 +3,7 @@
 import { Check, Lightbulb, MessageSquare, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { IDEA_MAX, MORE_MAX, SAME_DAY_THRESHOLDS, nearestThreshold, preselectedOpinion, proposalPageOf, type OpinionKey, type ProposalPage } from "@/lib/min-side/proposal";
+import { EMAIL_MAX, IDEA_MAX, MORE_MAX, SAME_DAY_THRESHOLDS, extraAddressOf, nearestThreshold, preselectedOpinion, proposalPageOf, type OpinionKey, type ProposalPage } from "@/lib/min-side/proposal";
 import { BTN_NAVY, BTN_OUTLINE, CARD_L, ERROR_L, FIELD_L, GOLD_TEXT, GREEN_CARD, GREEN_TEXT, INK, MUTED_L, SOFT, chip } from "./ui";
 
 /** His rule of 3 November 2026: text buttons 160 x 44, never full width, label centred, icon in front. */
@@ -36,6 +36,7 @@ export default function MinSideProposal({ token, svar }: { token: string; svar: 
   const [opinion, setOpinion] = useState<OpinionKey | null>(preselectedOpinion(svar));
   const [threshold, setThreshold] = useState<number>(2);
   const [idea, setIdea] = useState("");
+  const [email, setEmail] = useState("");
   const [more, setMore] = useState("");
   const [moreDone, setMoreDone] = useState<string | null>(null);
 
@@ -184,8 +185,21 @@ export default function MinSideProposal({ token, svar }: { token: string; svar: 
                     </div>
                   </div>
                 ) : null}
+                {page.address_field ? (
+                  <div className="flex flex-col gap-2.5">
+                    <label htmlFor="forslag-email" className={`text-sm font-semibold ${INK}`}>
+                      {page.address_field.label}
+                    </label>
+                    <input id="forslag-email" type="email" inputMode="email" autoComplete="off" maxLength={EMAIL_MAX} value={email} onChange={(e) => setEmail(e.target.value)} className={`${FIELD_L} max-w-[420px]`} />
+                  </div>
+                ) : null}
                 <div className="flex flex-wrap gap-2.5">
-                  <button type="button" className={`${BTN_NAVY} ${SIZE}`} disabled={busy} onClick={() => press(page.same_day ? { threshold_mnok: threshold } : {})}>
+                  <button
+                    type="button"
+                    className={`${BTN_NAVY} ${SIZE}`}
+                    disabled={busy || (page.address_field !== null && !extraAddressOf(email))}
+                    onClick={() => press(page.same_day ? { threshold_mnok: threshold } : page.address_field ? { email } : {})}
+                  >
                     <Check className="h-4 w-4" aria-hidden />
                     {page.button}
                   </button>

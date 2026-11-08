@@ -44,6 +44,16 @@ describe("the proposals letter's answer page (ORDER 210 b)", () => {
     expect(proposalPageOf({ error: "x" })).toBeNull();
   });
 
+  it("passes on one more address, lower case, and nothing that is not one (ORDER 210 d)", () => {
+    expect(proposalRequest({ t: KEY, email: " Kalk@Firma.NO " })).toEqual({ t: KEY, email: "kalk@firma.no" });
+    expect(proposalRequest({ t: KEY, email: "a@b.no, c@d.no" })).toBeNull();
+    expect(proposalRequest({ t: KEY, email: "nope" })).toBeNull();
+    expect(proposalRequest({ t: KEY, email: "*@firma.no" })).toBeNull();
+    const p = proposalPageOf({ target: "more_addresses", title: "Flere mottakere", button: "Bekreft", address_field: { label: "E-post" }, answered: null });
+    expect(p?.address_field).toEqual({ label: "E-post" });
+    expect(proposalPageOf({ target: "who_won", title: "Hvem vant", button: "Bekreft" })?.address_field).toBeNull();
+  });
+
   it("chooses the offered threshold nearest the suggestion", () => {
     expect(nearestThreshold(2)).toBe(2);
     expect(nearestThreshold(3)).toBe(2);
