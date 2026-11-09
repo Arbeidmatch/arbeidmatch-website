@@ -7,7 +7,7 @@ import { chosenRoles, isOutsideOurTrades, placeLine, summaryLine, tradeOf, whenL
  * sourceVariant "rask" (ORDER 224). Nothing unasked is filled in: no name, no
  * phone, no service; the ATS shows those as not stated.
  */
-export function buildRaskPayload(a: RaskAnswers, token: string, floor: number | null) {
+export function buildRaskPayload(a: RaskAnswers, token: string, floor: number | null, serviceType?: "recruitment" | "staffing") {
   const from = parseKroner(a.payFrom);
   const to = a.payTo.trim() ? parseKroner(a.payTo) : from;
   const trade = tradeOf(a.trade);
@@ -32,6 +32,8 @@ export function buildRaskPayload(a: RaskAnswers, token: string, floor: number | 
     equalTreatmentConfirmed: a.equalTreatment,
     benefits: [...a.benefits],
     outsideOurTrades: isOutsideOurTrades(a),
+    // Only a warm-request ticket's popup asks the service (ATS ORDER 237).
+    ...(serviceType ? { serviceType } : {}),
     website: "",
   };
 }

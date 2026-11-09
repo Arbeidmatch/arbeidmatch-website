@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { ANSWER_MODE_STORAGE_KEY, fetchPayFloors, formatKroner, selectPayFloor, type PayFloorRow } from "@/lib/pay-conditions";
+import { warmServiceKept, type WarmOpen } from "@/lib/warm-request";
 
 import AnswerModeStep from "./AnswerModeStep";
 import CodeStep from "./CodeStep";
 import ContactStep from "./ContactStep";
 import CountStep from "./CountStep";
-import { chosenRoles, EMPTY_ANSWERS, firstOpenStep, INITIAL_STATE, STORAGE_KEY, TOTAL_STEPS, type RaskAnswers, type RaskState } from "./data";
+import { chosenRoles, COUNTIES, ELSEWHERE_IN_COUNTY, EMPTY_ANSWERS, firstOpenStep, INITIAL_STATE, ROLES_BY_TRADE, STORAGE_KEY, TOTAL_STEPS, type RaskAnswers, type RaskState } from "./data";
 import DoneStep from "./DoneStep";
 import { buildRaskPayload, otpContext } from "./payload";
 import PayStep from "./PayStep";
@@ -58,9 +59,31 @@ function writeStored(state: RaskState) {
   }
 }
 
+/** The answers a warm-request ticket fills in: the firm and its address from the ticket, the role and the place from the letter. */
+export function warmAnswers(open: WarmOpen, ticket: { company?: string | null; org_number?: string | null; email?: string | null } | null): RaskAnswers {
+  const role = open.role ? open.role.charAt(0).toUpperCase() + open.role.slice(1) : "";
+  const listed = open.trade ? ROLES_BY_TRADE[open.trade].find((r) => r.toLowerCase() === role.toLowerCase()) : undefined;
+  const county = COUNTIES.find((c) => c.name === open.county) ?? null;
+  const town = county ? (county.towns.find((t) => t.toLowerCase() === open.town.toLowerCase()) ?? ELSEWHERE_IN_COUNTY) : "";
+  const orgNumber = String(ticket?.org_number ?? "").replace(/\D/g, "");
+  return {
+    ...EMPTY_ANSWERS,
+    answerMode: "rolle",
+    trade: open.trade || (role ? "annet" : ""),
+    roles: listed ? [listed] : [],
+    otherRoleChosen: Boolean(role && !listed),
+    otherRole: role && !listed ? role : "",
+    county: county?.name ?? "",
+    town,
+    company: ticket?.company && orgNumber.length === 9 ? { name: ticket.company, orgNumber } : null,
+    companyQuery: ticket?.company ?? "",
+    email: String(ticket?.email ?? ""),
+  };
+}
+
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
-export default function RaskForesporselDialog({ onClose }: { onClose: () => void }) {
+export default function RaskForesporselDialog({ onClose, warm = null }: { onClose: () => void; warm?: WarmOpen | null }) {
   const router = useRouter();
   const [state, setState] = useState<RaskState>(INITIAL_STATE);
   const [hydrated, setHydrated] = useState(false);
@@ -72,14 +95,33 @@ export default function RaskForesporselDialog({ onClose }: { onClose: () => void
   const [codeNotice, setCodeNotice] = useState<string | null>(null);
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [reference, setReference] = useState("");
+  const [service, setService] = useState<"recruitment" | "staffing">("recruitment");
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = "rask-foresporsel-title";
   const { step, answers } = state;
 
   useEffect(() => {
-    setState(readStored());
-    setHydrated(true);
-  }, []);
+    if (!warm) {
+      setState(readStored());
+      setHydrated(true);
+      return;
+    }
+    // A warm-request ticket: the firm from the ticket, then the first step still open (how many, from when).
+    let cancelled = false;
+    void fetch(`/api/token-data/${encodeURIComponent(warm.ticket)}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null)
+      .then((body: { data?: { company?: string | null; org_number?: string | null; email?: string | null } } | null) => {
+        if (cancelled) return;
+        const answers = warmAnswers(warm, body?.data ?? null);
+        const open = firstOpenStep(answers);
+        setState({ step: open === 7 ? TOTAL_STEPS : Math.max(2, open), answers });
+        setHydrated(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [warm]);
 
   useEffect(() => {
     if (hydrated && phase !== "done") writeStored(state);
@@ -193,9 +235,39 @@ export default function RaskForesporselDialog({ onClose }: { onClose: () => void
     return true;
   };
 
+  /** A warm-request ticket saves straight away: we wrote to that address ourselves, no code is sent. */
+  const saveOnTicket = async (token: string): Promise<string | null> => {
+    const save = await fetch("/api/save-employer-request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(buildRaskPayload(answers, token, floor, warm ? warmServiceKept(warm, service) : undefined)),
+    });
+    const saved = (await save.json().catch(() => null)) as { success?: boolean; referenceId?: string; error?: string; code?: string } | null;
+    if (!save.ok || saved?.success !== true) return saved?.code === "pay_conditions" && saved.error ? saved.error : "Forespørselen kunne ikke sendes. Prøv igjen.";
+    setReference(typeof saved.referenceId === "string" ? saved.referenceId : "");
+    try {
+      window.sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+    setPhase("done");
+    return null;
+  };
+
   const onSend = async () => {
     setBusy(true);
     setSendError(null);
+    if (warm) {
+      try {
+        const problem = await saveOnTicket(warm.ticket);
+        if (problem) setSendError(problem);
+      } catch {
+        setSendError("Forespørselen kunne ikke sendes. Prøv igjen.");
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     try {
       await sendCode();
       setCodeError(null);
@@ -359,7 +431,13 @@ export default function RaskForesporselDialog({ onClose }: { onClose: () => void
           ) : step === 7 ? (
             <PayStep {...stepProps} floor={floor} />
           ) : (
-            <ContactStep {...stepProps} onSend={() => void onSend()} busy={busy} error={sendError} />
+            <ContactStep
+              {...stepProps}
+              onSend={() => void onSend()}
+              busy={busy}
+              error={sendError}
+              warm={warm ? { services: warm.services, service, onService: setService } : null}
+            />
           )}
         </div>
       </div>

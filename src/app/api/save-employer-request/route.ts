@@ -10,6 +10,7 @@ import { collectStaffingSiteInvalid } from "@/lib/request-role-questions";
 import { conditionsAskedFor, withoutConditionAnswers } from "@/lib/request-wizard-steps";
 import { contractTypeForService, isRequesterKind, isServiceAllowedFor, REQUESTER_KINDS } from "@/lib/request-service";
 import { isPresentationTicket, PRESENTATION_SOURCE } from "@/lib/presentation-request-ticket";
+import { isWarmTicket, WARM_SOURCE } from "@/lib/warm-request";
 import { tellAtsAboutRequest } from "@/lib/ats-request-notify";
 import { ANSWER_MODES, BENEFITS, checkPayConditions, parseKroner, TRADE_KEYS } from "@/lib/pay-conditions";
 
@@ -54,6 +55,8 @@ const raskSchema = z
     ...payConditionKeys,
     answerMode: z.literal("rolle"),
     equalTreatmentConfirmed: z.boolean(),
+    // Only on a warm-request ticket (ATS ORDER 237); the ATS holds it to what the letter offered.
+    serviceType: z.enum(["recruitment", "staffing"]).optional(),
     website: z.string().max(256).optional(),
     company_website: z.string().max(256).optional(),
     honeypot: z.string().max(256).optional(),
@@ -266,6 +269,7 @@ async function saveRaskRequest(parsedJson: unknown, noteCompany: (company: strin
     .maybeSingle();
   if (ticketError) throw ticketError;
   const fromPresentation = isPresentationTicket(ticket);
+  const fromWarm = isWarmTicket(ticket);
 
   noteCompany(data.company);
   const pay = payConditionAnswers(data);
@@ -302,7 +306,7 @@ async function saveRaskRequest(parsedJson: unknown, noteCompany: (company: strin
       start_date:          data.startDate,
       salary,
       salary_period:       salary ? "Per hour" : null,
-      how_did_you_hear:    fromPresentation ? PRESENTATION_SOURCE : null,
+      how_did_you_hear:    fromPresentation ? PRESENTATION_SOURCE : fromWarm ? WARM_SOURCE : null,
       required_skills:     [],
       form_answers: {
         ...answers,
@@ -310,6 +314,7 @@ async function saveRaskRequest(parsedJson: unknown, noteCompany: (company: strin
         ...pay,
         outsideOurTrades,
         ...(fromPresentation ? { source: PRESENTATION_SOURCE } : {}),
+        ...(fromWarm ? { source: WARM_SOURCE, service_type: data.serviceType ?? "recruitment" } : {}),
       },
     })
     .select("id")

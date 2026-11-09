@@ -44,7 +44,14 @@ export default function ContactStep({
   onSend,
   busy,
   error,
-}: StepProps & { onSend: () => void; busy: boolean; error: string | null }) {
+  warm = null,
+}: StepProps & {
+  onSend: () => void;
+  busy: boolean;
+  error: string | null;
+  /** A warm-request ticket (ATS ORDER 237): the service choice, when the letter offered more than recruitment. */
+  warm?: { services: readonly ("recruitment" | "staffing")[]; service: "recruitment" | "staffing"; onService: (s: "recruitment" | "staffing") => void } | null;
+}) {
   const [hits, setHits] = useState<Company[] | null>(null);
   const [lookup, setLookup] = useState<"idle" | "loading" | "error">("idle");
   const [showNotFound, setShowNotFound] = useState(false);
@@ -225,6 +232,23 @@ export default function ContactStep({
 
         {summary ? <p className="border-l border-[#C9A84C] pl-3 text-[14.5px] text-[#14202F]">{summary}</p> : null}
 
+        {warm && warm.services.includes("staffing") ? (
+          <fieldset className="space-y-2">
+            <legend className={labelClass}>Hva trenger dere?</legend>
+            {(
+              [
+                ["recruitment", "Rekruttering til fast stilling"],
+                ["staffing", "Vikar gjennom innleie"],
+              ] as const
+            ).map(([key, label]) => (
+              <label key={key} className="flex cursor-pointer items-center gap-3 text-[14.5px] text-[#14202F]">
+                <input type="radio" name="rf-service" checked={warm.service === key} onChange={() => warm.onService(key)} className="h-5 w-5 accent-[#0D1B2A]" />
+                {label}
+              </label>
+            ))}
+          </fieldset>
+        ) : null}
+
         <div className="space-y-3 text-[14px] leading-relaxed text-[#14202F]">
           <label className="flex cursor-pointer items-start gap-3">
             <input
@@ -260,7 +284,11 @@ export default function ContactStep({
       </div>
 
       {tried && problem ? <InlineError>{problem}</InlineError> : error ? <InlineError>{error}</InlineError> : null}
-      <p className="mt-6 text-[13.5px] text-[#6B7382]">Vi sender en kode til e-posten for å bekrefte den.</p>
+      <p className="mt-6 text-[13.5px] text-[#6B7382]">
+        {warm
+          ? "Forespørselen går bare til ArbeidMatch. Vi bruker navnet og e-posten til å svare på den, og tar vare på dem som en del av forespørselen."
+          : "Vi sender en kode til e-posten for å bekrefte den."}
+      </p>
       <StepButtons
         primary={busy ? "Sender ..." : "Send"}
         primaryBlocked={problem !== null}

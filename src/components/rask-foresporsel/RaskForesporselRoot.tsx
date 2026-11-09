@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { readWarmOpen, type WarmOpen } from "@/lib/warm-request";
+
 /**
  * Opens "Rask forespørsel" over the page from every link that asks us for
  * people (ORDER 224). Mounted once in the root layout.
@@ -30,7 +32,16 @@ export function shouldOpenRask(e: Pick<MouseEvent, "defaultPrevented" | "button"
 
 export default function RaskForesporselRoot() {
   const [open, setOpen] = useState(false);
+  const [warm, setWarm] = useState<WarmOpen | null>(null);
   const opener = useRef<HTMLElement | null>(null);
+
+  // A "Ja, vi trenger folk" from a warm-request letter opens the popup on its ticket (ATS ORDER 237).
+  useEffect(() => {
+    const found = readWarmOpen(new URLSearchParams(window.location.search));
+    if (!found) return;
+    setWarm(found);
+    setOpen(true);
+  }, []);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -47,10 +58,11 @@ export default function RaskForesporselRoot() {
 
   const close = useCallback(() => {
     setOpen(false);
+    setWarm(null);
     const back = opener.current;
     opener.current = null;
     if (back && document.contains(back)) requestAnimationFrame(() => back.focus());
   }, []);
 
-  return open ? <RaskForesporselDialog onClose={close} /> : null;
+  return open ? <RaskForesporselDialog onClose={close} warm={warm} /> : null;
 }
