@@ -693,6 +693,8 @@ export type HiringRow = {
   hiring_soon: "high" | "medium" | null;
   /** ORDER 235: "Ikke fylt", the firm's own hiring for one role has not succeeded, as a fact in numbers; null in Basis and when none holds. */
   ikke_fylt: string | null;
+  /** ORDER 249: the firm is hiring on Indeed: the link to that advert, shown as the chip "Indeed"; never the advert's title or text. */
+  indeed_link: string | null;
 };
 
 /** ORDER 235: one of today's "Ring i dag" firms, as the ATS cut it from the client's own list. */
@@ -1081,6 +1083,16 @@ const textOrNull = (v: unknown, max: number) => str(v, max).trim() || null;
 const isoOrNull = (v: unknown) => (typeof v === "string" && Number.isFinite(Date.parse(v)) ? v.slice(0, 40) : null);
 const wholeOrZero = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.round(v) : 0);
 
+/** ORDER 249: an https link to an advert on Indeed, or null; no other address is kept. */
+export function indeedLinkOrNull(v: unknown): string | null {
+  try {
+    const u = new URL(str(v, 2000).trim());
+    return u.protocol === "https:" && /(^|\.)indeed\.com$/i.test(u.hostname) ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 function termsTextFrom(r: Record<string, unknown> | null): TermsText {
   return {
     title: str(r?.title, 200).trim() || "Vilkår",
@@ -1117,6 +1129,7 @@ function hiringRowFrom(r: Record<string, unknown>): HiringRow | null {
     recommended: textOrNull(r.recommended, 160),
     hiring_soon: r.hiring_soon === "high" || r.hiring_soon === "medium" ? r.hiring_soon : null,
     ikke_fylt: textOrNull(r.ikke_fylt, 120),
+    indeed_link: indeedLinkOrNull(r.indeed_link),
   };
 }
 

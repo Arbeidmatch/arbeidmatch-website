@@ -169,6 +169,23 @@ describe("the list never points to where a position was announced", () => {
   });
 });
 
+describe("a firm hiring on Indeed (ORDER 249)", () => {
+  const link = "https://to.indeed.com/aa1bb2cc3dd4";
+
+  it("keeps only an https link on Indeed", () => {
+    const h = hiring({ rows: [row({ indeed_link: link }), row({ orgnr: "998877665", indeed_link: "https://evil.example/x" as never }), row({ orgnr: "998877666", indeed_link: "http://to.indeed.com/x" as never })] });
+    expect(h.rows.map((r) => r.indeed_link)).toEqual([link, null, null]);
+  });
+
+  it("shows the chip Indeed as a link to the advert, and nothing of the advert's text", () => {
+    const html = renderToStaticMarkup(createElement(MinSideHiring, props(hiring({ rows: [row({ indeed_link: link, title: "Tomrer sokes til prosjekt" } as never)] }))));
+    expect(html).toContain(`href="${link}"`);
+    expect(html).toContain('rel="noopener noreferrer nofollow"');
+    expect(html).toMatch(/data-indeed=""[^>]*>Indeed<\/a>/);
+    expect(html).not.toContain("Tomrer sokes til prosjekt");
+  });
+});
+
 describe("filters and the CSV link", () => {
   const rows = hiring().rows;
 

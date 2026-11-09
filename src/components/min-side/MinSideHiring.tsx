@@ -784,6 +784,15 @@ function StatusButton({ row, send }: { row: Pick<HiringRow, "orgnr" | "name" | "
 }
 
 /** ORDER 235: "Ikke fylt" on a row and a card; the fact in numbers is the Behov beside it, said once. */
+/** ORDER 249: a firm hiring on Indeed: the chip opens that advert on Indeed; nothing of the advert is copied here. */
+function IndeedChip({ href }: { href: string | null }) {
+  return href ? (
+    <a data-indeed="" className={`${LABEL_CHIP} underline-offset-2 hover:underline`} href={href} target="_blank" rel="noopener noreferrer nofollow" title="Åpne annonsen på Indeed">
+      Indeed
+    </a>
+  ) : null;
+}
+
 function IkkeFylt({ text }: { text: string | null }) {
   return text ? (
     <span data-ikke-fylt="" className={LABEL_CHIP} title={text}>
@@ -1128,6 +1137,11 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
                         <IkkeFylt text={r.ikke_fylt} />
                       </span>
                     ) : null}
+                    {r.indeed_link ? (
+                      <span className="mt-1 flex font-normal">
+                        <IndeedChip href={r.indeed_link} />
+                      </span>
+                    ) : null}
                     {r.positions > 1 ? <span className={`block text-xs font-normal ${MUTED_L}`}>{r.positions} stillinger</span> : null}
                     {hiring.prefs ? (
                       <div className="mt-2 font-normal">
@@ -1165,6 +1179,11 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
                   {r.ikke_fylt ? (
                     <p className="my-1 flex">
                       <IkkeFylt text={r.ikke_fylt} />
+                    </p>
+                  ) : null}
+                  {r.indeed_link ? (
+                    <p className="my-1 flex">
+                      <IndeedChip href={r.indeed_link} />
                     </p>
                   ) : null}
                   <p className={`break-words text-sm ${MUTED_L}`}>{[[r.town, r.county_name].filter(Boolean).join(", "), r.trade_names.join(", "), r.published ? dayNo(r.published) : null].filter(Boolean).join(" · ")}</p>
