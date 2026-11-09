@@ -233,19 +233,21 @@ describe("the three tabs", () => {
   });
 });
 
-describe("Følg and Ikke vis meg denne on the list", () => {
+// ORDER 252: Følg and Skjul moved from the rows into the firm card, so the table keeps seven columns.
+describe("Følg and Skjul in the firm card", () => {
   const noTrial: ProjectsTrial = { start: () => {}, busy: false, error: null, dialog: null };
-  it("shows Følger pressed for a followed firm, Følg for the others, and hide on each", () => {
+  it("are not on the list, and the card sends follow, unfollow and hide as before", () => {
     const h = hiringFrom(rawHiring()) as Hiring;
     const html = renderToStaticMarkup(createElement(MinSideHiring, { token: "00000000-0000-4000-8000-0000000000a1", hiring: h, since: null, send: vi.fn(), sendData: vi.fn(), trial: noTrial, onAskPeople: () => {} }));
-    // Two rows, each in the desktop table and the phone list.
-    expect(html.match(/aria-pressed="true"[^>]*>Følger</g)).toHaveLength(2);
-    expect(html.match(/aria-pressed="false"[^>]*>Følg</g)).toHaveLength(2);
-    expect(html.match(/>Ikke vis meg denne</g)).toHaveLength(4);
+    expect(html).not.toMatch(/>Følg(er)?</);
+    expect(html).not.toContain(">Skjul<");
     expect(html).toContain("Treff nå: 7 bedrifter");
     const src = source("MinSideHiring.tsx");
-    expect(src).toContain('send({ action: "hiring_prefs_firms", [key]: row.orgnr })');
-    expect(src).toContain('act(row.watched ? "unwatch" : "watch")');
+    expect(src).toContain('send({ action: "hiring_prefs_firms", [key]: orgnr })');
+    expect(src).toContain('act(watched ? "unwatch" : "watch")');
+    expect(src).toMatch(/>\s*Skjul\s*</);
+    const card = src.slice(src.indexOf("function LeadCard"), src.indexOf("function AgencyInfo"));
+    expect(card).toContain("<FirmActions");
   });
 });
 

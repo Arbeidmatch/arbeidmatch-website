@@ -1,39 +1,50 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type MouseEvent, type ReactNode } from "react";
 
 import dynamic from "next/dynamic";
 
 import { FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import {
+  HIRING_STATUSES,
   HIRING_STATUS_NO,
   NO_BILLING,
-  NO_HIRING_FILTER,
+  NO_HIRING_QUERY,
   PLANS_CLOSED_LINE,
+  clientTableFrom,
   dayNo,
+  defaultLocks,
   hiringBillingBody,
   hiringAgencyCardFrom,
   hiringCardFrom,
   hiringCsvHref,
+  hiringTableHref,
+  isHiringStatus,
   leadAction,
   leadCardText,
+  needWords,
+  nextHiringStatus,
   orgNumberNo,
   projectStageNo,
-  visibleHiringRows,
+  telHref,
   withFirmParam,
+  type ClientTable,
+  type ClientTableRow,
   type Hiring,
   type HiringAgencyCard,
   type HiringAgencyRow,
   type HiringCard,
+  type HiringContact,
   type FirmCardNo,
   type HiringBillingValues,
-  type HiringFilter,
   type HiringPlans,
   type HiringProjects,
+  type HiringQuery,
   type HiringRing,
   type HiringRingCard,
-  type HiringRow,
   type HiringStatus,
+  type TableLock,
+  type TableNeed,
   type TermsText,
 } from "@/lib/min-side/profile";
 import {
@@ -91,12 +102,12 @@ type SendData = (body: Record<string, unknown>) => Promise<Fetched>;
 /** Rows at a time: on a phone the section stays a few screens long. */
 const PAGE = 20;
 
-export const FOOTER_LINE = "Opplysningene om stillingene kan ha endret seg siden de ble publisert. ArbeidMatch Norge AS.";
+export const FOOTER_LINE = "Listen oppdateres daglig fra offentlige utlysninger";
 
 /** The lock mark and the word Premium, never clickable. */
-export function Locked({ label }: { label?: string }) {
+export function Locked({ label, lock }: { label?: string; lock?: TableLock }) {
   return (
-    <span className={LOCKED} data-locked="">
+    <span className={LOCKED} data-locked="" data-hiring-locked={lock}>
       <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
         <rect x="2" y="5.5" width="8" height="5.5" rx="1" fill="currentColor" />
         <path d="M4 5.5V4a2 2 0 0 1 4 0v1.5" stroke="currentColor" strokeWidth="1.3" fill="none" />
@@ -106,10 +117,10 @@ export function Locked({ label }: { label?: string }) {
   );
 }
 
-function LockedChip({ label }: { label: string }) {
+function LockedChip({ label, lock }: { label: string; lock?: TableLock }) {
   return (
     <span className={LOCKED_CHIP} aria-disabled="true">
-      <Locked label={label} />
+      <Locked label={label} lock={lock} />
     </span>
   );
 }
@@ -417,8 +428,103 @@ function FirmSections({ firm }: { firm: FirmCardNo }) {
   );
 }
 
+/**
+ * ORDER 252: the firm's general contact from the public register, Premium.
+ * "Ring" and "Skriv" ask first; the confirmed press opens the call or the
+ * letter and sets the status Kontaktet through hiring_lead. Never a person.
+ */
+export function ContactBlock({ name, contact, onContacted }: { name: string; contact: HiringContact | null; onContacted: () => Promise<void> }) {
+  const [ask, setAsk] = useState<{ href: string; label: "Ring" | "Skriv"; text: string } | null>(null);
+  const phone = contact?.phone ?? null;
+  const tel = phone ? telHref(phone) : null;
+  const email = contact?.email ?? null;
+  const website = contact?.website ?? null;
+  const site = website ? (
+    <a href={website} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-4">
+      {website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+    </a>
+  ) : null;
+  const askFor = (e: MouseEvent<HTMLAnchorElement>, next: { href: string; label: "Ring" | "Skriv"; text: string }) => {
+    e.preventDefault();
+    setAsk(next);
+  };
+  return (
+    <section aria-labelledby="ms-lead-contact" data-contact="" data-hiring-contact="" className="flex flex-col gap-3 rounded-xl border border-white/15 p-3.5">
+      <p id="ms-lead-contact" className="font-semibold text-white">
+        Kontakt
+      </p>
+      {!tel && !email ? (
+        <div className="flex flex-col gap-2 text-[15px] text-white">
+          <p>Ingen kontaktinfo registrert</p>
+          {site}
+        </div>
+      ) : (
+        <dl className="flex flex-col gap-3">
+          {tel && phone ? (
+            <CardRow label="Telefon">
+              <span className="flex flex-wrap items-center gap-3">
+                <span className="tabular-nums">{phone}</span>
+                <a href={tel} className={SECONDARY} onClick={(e) => askFor(e, { href: tel, label: "Ring", text: `Ringe ${name}? Status blir Kontaktet.` })}>
+                  Ring
+                </a>
+              </span>
+            </CardRow>
+          ) : null}
+          {email ? (
+            <CardRow label="E-post">
+              <span className="flex flex-wrap items-center gap-3">
+                <span className="break-all">{email}</span>
+                <a href={`mailto:${email}`} className={SECONDARY} onClick={(e) => askFor(e, { href: `mailto:${email}`, label: "Skriv", text: `Skrive til ${name}? Status blir Kontaktet.` })}>
+                  Skriv
+                </a>
+              </span>
+            </CardRow>
+          ) : null}
+          {site ? <CardRow label="Nettsted">{site}</CardRow> : null}
+          {contact?.address ? <CardRow label="Besøksadresse">{contact.address}</CardRow> : null}
+        </dl>
+      )}
+      {ask ? (
+        <div role="alertdialog" aria-labelledby="ms-contact-ask" className="flex flex-col gap-3 rounded-lg border border-white/20 bg-white/[0.06] p-3">
+          <p id="ms-contact-ask" className="text-[15px] text-white">
+            {ask.text}
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <a
+              href={ask.href}
+              className={SECONDARY}
+              data-autofocus
+              onClick={() => {
+                setAsk(null);
+                void onContacted();
+              }}
+            >
+              {ask.label}
+            </a>
+            <button type="button" className={SECONDARY} onClick={() => setAsk(null)}>
+              Avbryt
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+/** ORDER 252: the Kontakt block on Basis: the lock and the word Premium, never clickable. */
+function LockedContact() {
+  return (
+    <section data-contact="" data-contact-locked="" data-hiring-contact="" className="flex items-center justify-between gap-3 rounded-xl border border-white/15 p-3.5">
+      <p className="font-semibold text-white">Kontakt</p>
+      <span className="text-[#E9D9A6]">
+        <Locked lock="contact" />
+      </span>
+    </section>
+  );
+}
+
 /** Opening the card is the POST hiring_card (the ATS records that it was opened). */
-function LeadCard({ orgnr, send, sendData }: { orgnr: string; send: Send; sendData: SendData }) {
+function LeadCard({ orgnr, send, sendData, follow, onChanged, onHidden }: { orgnr: string; send: Send; sendData: SendData; follow: boolean; onChanged: () => void; onHidden: () => void }) {
   const [card, setCard] = useState<HiringCard | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [note, setNote] = useState("");
@@ -456,8 +562,10 @@ function LeadCard({ orgnr, send, sendData }: { orgnr: string; send: Send; sendDa
     setSaid(null);
     const r = await send({ action: "hiring_lead", orgnr, status: "contacted" });
     setBusy(null);
-    if (r.ok) setCard({ ...card, status: "contacted" });
-    else setFailed(r.message);
+    if (r.ok) {
+      setCard({ ...card, status: "contacted" });
+      onChanged();
+    } else setFailed(r.message);
   };
   const save = async (e: FormEvent) => {
     e.preventDefault();
@@ -465,8 +573,10 @@ function LeadCard({ orgnr, send, sendData }: { orgnr: string; send: Send; sendDa
     setSaid(null);
     const r = await send({ action: "hiring_lead", orgnr, note: note.slice(0, 2000), follow_up_on: followUp });
     setBusy(null);
-    if (r.ok) setSaid("Lagret.");
-    else setFailed(r.message);
+    if (r.ok) {
+      setSaid("Lagret.");
+      onChanged();
+    } else setFailed(r.message);
   };
   const copy = async () => {
     try {
@@ -480,6 +590,19 @@ function LeadCard({ orgnr, send, sendData }: { orgnr: string; send: Send; sendDa
   return (
     <form onSubmit={save} className="flex flex-col gap-4">
       <p className="text-lg font-semibold text-white">{card.name}</p>
+      {follow ? (
+        <FirmActions
+          orgnr={card.orgnr}
+          watched={card.watched}
+          send={send}
+          onDone={(key) => {
+            if (key === "hide") onHidden();
+            else setCard({ ...card, watched: key === "watch" });
+            onChanged();
+          }}
+        />
+      ) : null}
+      <ContactBlock name={card.name} contact={card.contact ?? { phone: null, email: null, website: card.website, address: null }} onContacted={contacted} />
       <dl className="flex flex-col gap-3">
         <CardRow label="Org.nr">
           <span className="tabular-nums">{orgNumberNo(card.orgnr)}</span>
@@ -489,15 +612,6 @@ function LeadCard({ orgnr, send, sendData }: { orgnr: string; send: Send; sendDa
             <CardRow label="Bransje">{card.industry ?? "Ikke oppgitt"}</CardRow>
             <CardRow label="Ansatte">{card.employees ?? "Ikke oppgitt"}</CardRow>
             <CardRow label="Adresse">{card.address ?? ([card.town, card.county_name].filter(Boolean).join(", ") || "Ikke oppgitt")}</CardRow>
-            <CardRow label="Nettsted">
-              {card.website ? (
-                <a href={card.website} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-4">
-                  {card.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-                </a>
-              ) : (
-                "Ikke oppgitt"
-              )}
-            </CardRow>
           </>
         )}
         <CardRow label="Behov">{card.behov ?? "Ikke oppgitt"}</CardRow>
@@ -724,24 +838,13 @@ function PlansClosed() {
   );
 }
 
-/** ORDER 181: why the firm is on the list, as a small tag. */
-function RowLabel({ label }: { label: string | null }) {
-  return label ? <span className={LABEL_CHIP}>{label}</span> : null;
-}
-
-/** ORDER 230: on a firm we recommend, our reason under its name, as we wrote it. */
-function RecommendedReason({ text, className }: { text: string | null; className: string }) {
-  return text ? (
-    <span data-recommended="" className={`block break-words text-sm font-normal ${className}`}>
-      {text}
-    </span>
-  ) : null;
-}
+/** ORDER 252: what Premium opens, in one line beside the one Premium button (ORDER 181). */
+export const PREMIUM_OPENS = "Premium åpner alle fylker, fag, behov, engelsk ok, anbefalte bedrifter, kontaktinfo og nedlasting.";
 
 export type MinSideHiringProps = {
   token: string;
   hiring: Hiring;
-  /** last_viewed_at as it stood before this visit's hiring_viewed. */
+  /** last_viewed_at as it stood before this visit's hiring_viewed; "Nye siden sist" is now cut by the ATS. */
   since: string | null;
   send: Send;
   sendData: SendData;
@@ -756,49 +859,42 @@ export type MinSideHiringProps = {
   openFirm?: string | null;
 };
 
-/** ORDER 235: the marks a client sets on a firm, in the order a call goes; "Kontaktet" stays for a firm marked so before. */
-const STATUS_CHOICES: HiringStatus[] = ["new", "called", "meeting", "won", "not_relevant"];
-
-function StatusButton({ row, send }: { row: Pick<HiringRow, "orgnr" | "name" | "status">; send: Send }) {
-  const [busy, setBusy] = useState(false);
-  const choices = row.status === "contacted" ? (["contacted", ...STATUS_CHOICES] as HiringStatus[]) : STATUS_CHOICES;
+/** ORDER 252: the client's mark on a firm as a chip; a press moves it on (Ny, Ringt, Møte avtalt, Ny kunde, Ikke aktuell) through hiring_lead. */
+function StatusChip({ row, busy, onCycle }: { row: Pick<ClientTableRow, "name" | "status">; busy: boolean; onCycle: () => void }) {
   return (
-    <select
-      className={`${FIELD_L} min-h-[44px] w-auto min-w-[128px] py-1.5 text-sm`}
-      aria-label={`Status for ${row.name}`}
-      value={row.status}
+    <button
+      type="button"
+      data-status-chip=""
+      className={`${chip(row.status !== "new")} whitespace-nowrap`}
+      aria-label={`Status for ${row.name}: ${HIRING_STATUS_NO[row.status]}. Trykk for ${HIRING_STATUS_NO[nextHiringStatus(row.status)]}.`}
+      title={`Neste: ${HIRING_STATUS_NO[nextHiringStatus(row.status)]}`}
       disabled={busy}
-      onChange={async (e) => {
-        setBusy(true);
-        await send({ action: "hiring_lead", orgnr: row.orgnr, status: e.target.value });
-        setBusy(false);
+      onClick={(e) => {
+        e.stopPropagation();
+        onCycle();
       }}
     >
-      {choices.map((s) => (
-        <option key={s} value={s}>
-          {HIRING_STATUS_NO[s]}
-        </option>
-      ))}
-    </select>
+      {HIRING_STATUS_NO[row.status]}
+    </button>
   );
 }
 
-/** ORDER 235: "Ikke fylt" on a row and a card; the fact in numbers is the Behov beside it, said once. */
-/** ORDER 249: a firm hiring on Indeed: the chip opens that advert on Indeed; nothing of the advert is copied here. */
-function IndeedChip({ href }: { href: string | null }) {
-  return href ? (
-    <a data-indeed="" className={`${LABEL_CHIP} underline-offset-2 hover:underline`} href={href} target="_blank" rel="noopener noreferrer nofollow" title="Åpne annonsen på Indeed">
-      Indeed
-    </a>
-  ) : null;
-}
-
+/** ORDER 235: "Ikke fylt" on a Ring i dag card; the fact in numbers is the reason beside it, said once. */
 function IkkeFylt({ text }: { text: string | null }) {
   return text ? (
     <span data-ikke-fylt="" className={LABEL_CHIP} title={text}>
       Ikke fylt
     </span>
   ) : null;
+}
+
+/** ORDER 252: the firm needs people now. */
+function HasterChip() {
+  return (
+    <span data-haster="" className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-[#FDECEA] px-2.5 py-0.5 text-xs font-semibold text-[#B42318]">
+      Haster
+    </span>
+  );
 }
 
 /** The next marks a Ring i dag card offers after the one set: Ringt, then Møte avtalt, then Ny kunde. */
@@ -895,30 +991,31 @@ function RingToday({ ring, send, onOpen }: { ring: HiringRing; send: Send; onOpe
 }
 
 /**
- * ORDER 170: "Følg" (pressed: "Følger", pressing again stops following) and
- * "Ikke vis meg denne" on each firm. A hidden firm leaves the list after the
- * reload; it comes back with "Angre" under Mine bedrifter.
+ * ORDER 170, moved into the firm card by ORDER 252: "Følg" (pressed:
+ * "Følger", pressing again stops following) and "Skjul". A hidden firm leaves
+ * the list; it comes back with "Angre" under Mine bedrifter.
  */
-function FirmActions({ row, send }: { row: HiringRow; send: Send }) {
+function FirmActions({ orgnr, watched, send, onDone }: { orgnr: string; watched: boolean; send: Send; onDone: (key: "watch" | "unwatch" | "hide") => void }) {
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const act = async (key: "watch" | "unwatch" | "hide") => {
     setBusy(true);
     setFailed(null);
-    const r = await send({ action: "hiring_prefs_firms", [key]: row.orgnr });
+    const r = await send({ action: "hiring_prefs_firms", [key]: orgnr });
     setBusy(false);
-    if (!r.ok) setFailed(r.message);
+    if (r.ok) onDone(key);
+    else setFailed(r.message);
   };
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-2">
-      <button type="button" aria-pressed={row.watched} className={chip(row.watched)} disabled={busy} onClick={() => void act(row.watched ? "unwatch" : "watch")}>
-        {row.watched ? "Følger" : "Følg"}
+    <div className="flex min-w-0 flex-wrap items-center gap-3" data-firm-actions="">
+      <button type="button" aria-pressed={watched} className={SECONDARY} disabled={busy} onClick={() => void act(watched ? "unwatch" : "watch")}>
+        {watched ? "Følger" : "Følg"}
       </button>
-      <button type="button" className={chip(false)} disabled={busy} onClick={() => void act("hide")}>
-        Ikke vis meg denne
+      <button type="button" className={SECONDARY} disabled={busy} onClick={() => void act("hide")}>
+        Skjul
       </button>
       {failed ? (
-        <p role="alert" className={`w-full text-xs font-semibold ${ERROR_L}`}>
+        <p role="alert" className={`w-full text-xs font-semibold ${ERROR_D}`}>
           {failed}
         </p>
       ) : null}
@@ -926,24 +1023,315 @@ function FirmActions({ row, send }: { row: HiringRow; send: Send }) {
   );
 }
 
-export default function MinSideHiring({ token, hiring, since, send, sendData, trial, onAskPeople, focusProjects = false, openAgencyTab = false, openFirm = null }: MinSideHiringProps) {
+/** A count on top of the list; a Premium count on Basis is the lock instead, never clickable. */
+function Tile({ tile, label, value, lock, locks, phone }: { tile: "newThisWeek" | "urgent" | "englishOk" | "recommended"; label: string; value: number | null; lock: TableLock | null; locks: TableLock[]; phone: boolean }) {
+  const locked = lock !== null && locks.includes(lock);
+  return (
+    <div data-tile="" data-hiring-tile={tile} className={`${CARD_L} ${phone ? "flex" : "hidden sm:flex"} min-w-0 flex-col gap-1 p-3 sm:p-4`} aria-disabled={locked || undefined}>
+      <span className={`break-words text-xs font-semibold ${MUTED_L}`}>{label}</span>
+      {locked && lock ? (
+        <Locked lock={lock} />
+      ) : (
+        <span className={`text-2xl font-bold tabular-nums ${INK}`}>{value ?? 0}</span>
+      )}
+    </div>
+  );
+}
+
+/** "12. nov. 2026": short enough for a column. */
+function foundNo(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return "";
+  return d.toLocaleDateString("nb-NO", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Oslo" });
+}
+
+const place = (r: Pick<ClientTableRow, "town" | "county_name">) => [r.town, r.county_name].filter(Boolean).join(", ");
+
+/** The second line under a firm's name: our reason on a firm we recommend, else why it is on the list. */
+function SecondLine({ row, className }: { row: ClientTableRow; className: string }) {
+  if (row.recommended) {
+    return (
+      <span data-recommended="" className={`block break-words text-sm font-normal ${className}`}>
+        {row.recommended.reason}
+      </span>
+    );
+  }
+  return row.label ? (
+    <span className="mt-1 flex font-normal">
+      <span className={LABEL_CHIP}>{row.label}</span>
+    </span>
+  ) : null;
+}
+
+function NeedCell({ need, locked }: { need: TableNeed | null; locked: boolean }) {
+  if (locked) return <Locked lock="column_need" />;
+  if (!need) return null;
+  const words = needWords(need);
+  return (
+    <span className="flex min-w-0 flex-col items-start gap-1">
+      {need.urgent ? <HasterChip /> : null}
+      {words ? <span className="break-words">{words}</span> : null}
+    </span>
+  );
+}
+
+/** The seven columns of the computer table, in order. */
+export const TABLE_COLUMNS = ["#", "Bedrift", "Sted", "Fag", "Behov", "Funnet", "Status"] as const;
+
+export type FirmsViewProps = {
+  table: ClientTable | null;
+  loading: boolean;
+  error: string | null;
+  locks: TableLock[];
+  busyOrg: string | null;
+  onOpen: (row: ClientTableRow) => void;
+  onCycle: (row: ClientTableRow) => void;
+  onPage: (page: number) => void;
+};
+
+/**
+ * ORDER 252: the firms, as a table of seven columns on a computer and as
+ * stacked cards on a phone; recommended firms first on a pale gold row. A row
+ * opens the firm card; the status chip moves the mark on.
+ */
+export function FirmsView({ table, loading, error, locks, busyOrg, onOpen, onCycle, onPage }: FirmsViewProps) {
+  const needLocked = locks.includes("column_need");
+  if (error) {
+    return (
+      <p role="alert" className={`text-sm font-semibold ${ERROR_L}`}>
+        {error}
+      </p>
+    );
+  }
+  if (!table) return <p className={`text-sm ${MUTED_L}`}>{loading ? "Henter bedriftene ..." : ""}</p>;
+  if (table.rows.length === 0) {
+    return <p className={`text-sm ${MUTED_L}`}>{table.all ? "Ingen bedrifter passer filteret." : "Ingen bedrifter ennå."}</p>;
+  }
+  const rowTone = (r: ClientTableRow) => (r.recommended ? "bg-[#FBF6E8]" : "");
+  return (
+    <div className={`flex min-w-0 flex-col gap-4 ${loading ? "opacity-60" : ""}`} aria-busy={loading || undefined}>
+      <table className="hidden w-full table-fixed border-collapse text-sm sm:table" data-firms-table="" data-hiring-table="" data-tier={table.tier}>
+        <thead>
+          <tr>
+            <th className={`${TH_L} w-[44px]`}>#</th>
+            <th className={`${TH_L} w-[26%]`}>Bedrift</th>
+            <th className={TH_L}>Sted</th>
+            <th className={TH_L}>Fag</th>
+            <th className={TH_L}>Behov</th>
+            <th className={`${TH_L} w-[110px]`}>Funnet</th>
+            <th className={`${TH_L} w-[128px]`}>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {table.rows.map((r) => (
+            <tr key={r.orgnr} data-row="" data-hiring-row="" data-orgnr={r.orgnr} className={`cursor-pointer border-b ${RULE} align-top hover:bg-[#F7F5F0] ${rowTone(r)}`} onClick={() => onOpen(r)}>
+              <td className={`px-2 py-2.5 tabular-nums ${MUTED_L}`}>{r.rank}</td>
+              <td className={`break-words px-2 py-2.5 font-semibold ${INK}`}>
+                <button
+                  type="button"
+                  aria-haspopup="dialog"
+                  className="text-left font-semibold underline-offset-4 hover:underline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpen(r);
+                  }}
+                >
+                  {r.name}
+                </button>
+                <SecondLine row={r} className={`mt-1 ${SOFT}`} />
+              </td>
+              <td className={`break-words px-2 py-2.5 ${SOFT}`}>{place(r)}</td>
+              <td className={`break-words px-2 py-2.5 ${SOFT}`}>{r.trades.join(", ")}</td>
+              <td className={`px-2 py-2.5 ${SOFT}`}>
+                <NeedCell need={r.need} locked={needLocked} />
+              </td>
+              <td className={`px-2 py-2.5 ${SOFT}`}>{foundNo(r.found_at)}</td>
+              <td className="px-2 py-1.5">
+                <StatusChip row={r} busy={busyOrg === r.orgnr} onCycle={() => onCycle(r)} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <ul className="flex min-w-0 flex-col gap-3 sm:hidden" data-firms-cards="" data-hiring-table="" data-tier={table.tier}>
+        {table.rows.map((r) => (
+          <li key={r.orgnr} data-hiring-row="" data-orgnr={r.orgnr} className={`${CARD_L} ${rowTone(r)} flex min-w-0 flex-col gap-2 p-3.5`}>
+            <button type="button" aria-haspopup="dialog" className="flex min-w-0 flex-col gap-1 text-left" onClick={() => onOpen(r)}>
+              <span className="flex min-w-0 items-start justify-between gap-2">
+                <span className={`min-w-0 break-words text-[15px] font-semibold ${INK}`}>{r.name}</span>
+                {!needLocked && r.need?.urgent ? <HasterChip /> : null}
+              </span>
+              <SecondLine row={r} className={SOFT} />
+              <span className={`break-words text-sm ${MUTED_L}`}>{[place(r), r.trades.join(", ")].filter(Boolean).join(" · ")}</span>
+              <span className={`break-words text-sm ${SOFT}`}>{needLocked ? <Locked label="Behov" lock="column_need" /> : r.need ? needWords(r.need) : null}</span>
+            </button>
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+              <span className={`text-xs ${MUTED_L}`}>{r.found_at ? `Funnet ${foundNo(r.found_at)}` : ""}</span>
+              <StatusChip row={r} busy={busyOrg === r.orgnr} onCycle={() => onCycle(r)} />
+            </div>
+          </li>
+        ))}
+      </ul>
+      {table.pages > 1 ? (
+        <nav aria-label="Sider" className="flex flex-wrap items-center justify-between gap-3">
+          <button type="button" className={BTN_OUTLINE} disabled={loading || table.page <= 1} onClick={() => onPage(table.page - 1)}>
+            Forrige
+          </button>
+          <span className={`text-sm ${MUTED_L}`}>
+            Side {table.page} av {table.pages}
+          </span>
+          <button type="button" className={BTN_OUTLINE} disabled={loading || table.page >= table.pages} onClick={() => onPage(table.page + 1)}>
+            Neste
+          </button>
+        </nav>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * ORDER 252: the list's state: the choice on screen, the search typed (sent
+ * after a pause), the page size (10 on a phone, 20 on a computer), and the
+ * page the ATS answered. `refresh` fetches the same page again after a change.
+ */
+function useHiringTable(token: string, enabled: boolean) {
+  const [query, setQuery] = useState<HiringQuery>(NO_HIRING_QUERY);
+  const [search, setSearch] = useState("");
+  const [narrow, setNarrow] = useState(false);
+  const [version, setVersion] = useState(0);
+  const [table, setTable] = useState<ClientTable | null>(null);
+  // The page last answered (or refused); the list is loading while it is not the one asked for.
+  const [done, setDone] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 639px)");
+    const apply = () => setNarrow(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setQuery((q) => (q.q === search ? q : { ...q, q: search, page: 1 })), 350);
+    return () => window.clearTimeout(t);
+  }, [search]);
+
+  const href = hiringTableHref(token, { ...query, size: narrow ? 10 : 20 });
+  const key = `${href}#${version}`;
+  const loading = enabled && done !== key;
+  useEffect(() => {
+    if (!enabled) return;
+    const ctrl = new AbortController();
+    void fetch(href, { signal: ctrl.signal, headers: { accept: "application/json" } })
+      .then(async (res) => {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        const parsed = res.ok ? clientTableFrom(body) : null;
+        if (parsed) {
+          setTable(parsed);
+          setError(null);
+        } else {
+          setError(res.status === 404 ? "Listen ble ikke funnet." : (body?.error ?? "Listen kunne ikke hentes akkurat nå. Prøv igjen om litt."));
+        }
+      })
+      .catch((e: unknown) => {
+        if (!(e instanceof DOMException && e.name === "AbortError")) setError("Listen kunne ikke hentes akkurat nå. Prøv igjen om litt.");
+      })
+      .finally(() => {
+        if (!ctrl.signal.aborted) setDone(`${href}#${version}`);
+      });
+    return () => ctrl.abort();
+  }, [href, enabled, version]);
+
+  const set = (part: Partial<HiringQuery>) => setQuery((q) => ({ ...q, ...part, page: part.page ?? 1 }));
+  return { query, set, search, setSearch, table, setTable, loading, error, refresh: () => setVersion((v) => v + 1) };
+}
+
+/** ORDER 252: the one bar: search, Fylke, Fag, Nye siden sist and Flere filtre (Engelsk ok and Status). */
+function FilterBar({ list, locks, counties, occupations }: { list: ReturnType<typeof useHiringTable>; locks: TableLock[]; counties: { code: string; name: string }[]; occupations: { key: string; name: string }[] }) {
+  const [more, setMore] = useState(false);
+  const { query, set } = list;
+  const moreOn = query.english || query.status !== "";
+  return (
+    <div className="flex min-w-0 flex-col gap-3">
+      <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3" role="group" aria-label="Filtre">
+        <label className="flex min-w-0 flex-1 basis-full sm:basis-[240px]">
+          <span className="sr-only">Søk</span>
+          <input type="search" className={FIELD_L} placeholder="Bedrift, fag eller sted" value={list.search} maxLength={100} onChange={(e) => list.setSearch(e.target.value)} />
+        </label>
+        <select aria-label="Fylke" className={`${FIELD_L} min-w-0 flex-1 basis-[140px] sm:w-[180px] sm:flex-none`} value={query.county} onChange={(e) => set({ county: e.target.value })}>
+          <option value="">Alle fylker</option>
+          {counties.map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        {locks.includes("filter_occupation") ? (
+          <LockedChip label="Fag" lock="filter_occupation" />
+        ) : (
+          <select aria-label="Fag" className={`${FIELD_L} min-w-0 flex-1 basis-[140px] sm:w-[180px] sm:flex-none`} value={query.occupation} onChange={(e) => set({ occupation: e.target.value })}>
+            <option value="">Alle fag</option>
+            {occupations.map((o) => (
+              <option key={o.key} value={o.key}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+        )}
+        {locks.includes("filter_new") ? (
+          <LockedChip label="Nye siden sist" lock="filter_new" />
+        ) : (
+          <button type="button" aria-pressed={query.onlyNew} className={chip(query.onlyNew, true)} onClick={() => set({ onlyNew: !query.onlyNew })}>
+            Nye siden sist
+          </button>
+        )}
+        <button type="button" aria-expanded={more} aria-controls="ms-more-filters" className={chip(moreOn, true)} onClick={() => setMore((m) => !m)}>
+          Flere filtre
+        </button>
+      </div>
+      {more ? (
+        <div id="ms-more-filters" className={`${CARD_L} flex min-w-0 flex-wrap items-center gap-3 p-3`}>
+          {locks.includes("filter_english") ? (
+            <LockedChip label="Engelsk ok" lock="filter_english" />
+          ) : (
+            <button type="button" aria-pressed={query.english} className={chip(query.english, true)} onClick={() => set({ english: !query.english })}>
+              Engelsk ok
+            </button>
+          )}
+          <select aria-label="Status" className={`${FIELD_L} min-w-0 flex-1 basis-[160px] sm:w-[180px] sm:flex-none`} value={query.status} onChange={(e) => set({ status: isHiringStatus(e.target.value) ? e.target.value : "" })}>
+            <option value="">Alle statuser</option>
+            {HIRING_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {HIRING_STATUS_NO[s]}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export default function MinSideHiring({ token, hiring, send, sendData, trial, onAskPeople, focusProjects = false, openAgencyTab = false, openFirm = null }: MinSideHiringProps) {
   const { terms, subscription } = hiring;
   const basis = subscription.tier === "basis";
   const [termsOpen, setTermsOpen] = useState(!terms.accepted && terms.ready);
-  const [filter, setFilter] = useState<HiringFilter>(NO_HIRING_FILTER);
-  const [shown, setShown] = useState(PAGE);
   const [lead, setLead] = useState<string | null>(null);
-  const [premiumAsk, setPremiumAsk] = useState(false);
+  // Basis: the row that asked for Premium (its Følg and Skjul stay usable there), or true from elsewhere.
+  const [premiumAsk, setPremiumAsk] = useState<ClientTableRow | true | false>(false);
   const premium = usePremium(hiring.plans, send);
   const [betaSeen, setBetaSeen] = useState(false);
+  const [busyOrg, setBusyOrg] = useState<string | null>(null);
+  const [rowError, setRowError] = useState<string | null>(null);
   // ORDER 220: the firms that hire directly, and apart from them the adverts of staffing agencies.
   const [tab, setTab] = useState<"direct" | "agency">(openAgencyTab ? "agency" : "direct");
   const [agencyOrg, setAgencyOrg] = useState<string | null>(null);
+  const list = useHiringTable(token, terms.accepted && tab === "direct");
   useEffect(() => {
     if (openAgencyTab) setTab("agency");
   }, [openAgencyTab]);
-
-  const rows = useMemo(() => visibleHiringRows(hiring.rows, filter, since, subscription.tier), [hiring.rows, filter, since, subscription.tier]);
 
   useEffect(() => {
     if (!focusProjects) return;
@@ -1005,208 +1393,96 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
     premium.ask();
     return { ok: true };
   };
-  const openLead = (row: HiringRow) => (leadAction(subscription.tier) === "card" ? setLead(row.orgnr) : setPremiumAsk(true));
-  const set = (part: Partial<HiringFilter>) => {
-    setFilter((f) => ({ ...f, ...part }));
-    setShown(PAGE);
+  const table = list.table;
+  const locks = table?.locks ?? defaultLocks(tier);
+  const counties = table?.filters.counties.length ? table.filters.counties : hiring.filters.counties;
+  const occupations = table?.filters.occupations ?? [];
+  const openRow = (row: ClientTableRow) => (leadAction(tier) === "card" ? setLead(row.orgnr) : setPremiumAsk(row));
+  const cycle = async (row: ClientTableRow) => {
+    const next = nextHiringStatus(row.status);
+    setBusyOrg(row.orgnr);
+    setRowError(null);
+    list.setTable((t) => (t ? { ...t, rows: t.rows.map((x) => (x.orgnr === row.orgnr ? { ...x, status: next } : x)) } : t));
+    const r = await send({ action: "hiring_lead", orgnr: row.orgnr, status: next });
+    setBusyOrg(null);
+    if (!r.ok) {
+      setRowError(r.message);
+      list.setTable((t) => (t ? { ...t, rows: t.rows.map((x) => (x.orgnr === row.orgnr ? { ...x, status: row.status } : x)) } : t));
+    }
   };
-  const page = rows.slice(0, shown);
   const projects = hiring.projects;
+  const askRow = premiumAsk && premiumAsk !== true ? premiumAsk : null;
 
   return (
     <div className="flex min-w-0 flex-col gap-5">
       {hiring.beta_notice && !betaSeen ? <BetaNotice text={hiring.beta_notice} send={send} onSeen={() => setBetaSeen(true)} /> : null}
-      {basis ? (
-        <div className={`${GOLD_CARD} flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5`}>
-          <p className={`min-w-0 flex-1 basis-[200px] text-[15px] font-semibold ${INK}`}>{premium.sent ? "Vi har fått beskjed og sender dere et tilbud." : "Prøveperioden er over"}</p>
-          {premium.sent ? null : premium.open ? (
-            <button type="button" className={BTN_OUTLINE} disabled={premium.busy} onClick={premium.ask}>
-              {premium.busy ? "Sender ..." : "Premium"}
-            </button>
-          ) : (
-            <PlansClosed />
-          )}
-          {premium.error ? (
-            <p role="alert" className={`w-full text-sm font-semibold ${ERROR_L}`}>
-              {premium.error}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
 
       {hiring.ring && !basis ? <RingToday ring={hiring.ring} send={send} onOpen={(orgnr) => setLead(orgnr)} /> : null}
 
       {hiring.prefs ? <MinSideHiringSettings prefs={hiring.prefs} send={send} sendData={sendData} premium={premium} /> : null}
 
-      <div role="tablist" aria-label="Visning" className="flex flex-wrap gap-2">
-        <button type="button" role="tab" aria-selected={tab === "direct"} className={chip(tab === "direct", true)} onClick={() => setTab("direct")}>
-          {`Bedrifter som ansetter (${hiring.rows.length})`}
-        </button>
-        <button type="button" role="tab" aria-selected={tab === "agency"} className={chip(tab === "agency", true)} onClick={() => setTab("agency")}>
-          {`Via bemanningsbyrå (${hiring.agency_rows.length})`}
-        </button>
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+        <div role="tablist" aria-label="Visning" className="flex flex-wrap gap-2">
+          <button type="button" role="tab" aria-selected={tab === "direct"} className={chip(tab === "direct", true)} onClick={() => setTab("direct")}>
+            {table ? `Bedrifter som ansetter (${table.all})` : "Bedrifter som ansetter"}
+          </button>
+          <button type="button" role="tab" aria-selected={tab === "agency"} className={chip(tab === "agency", true)} onClick={() => setTab("agency")}>
+            {`Via bemanningsbyrå (${hiring.agency_rows.length})`}
+          </button>
+        </div>
+        {tab === "direct" ? (
+          locks.includes("download") ? (
+            <LockedChip label="Last ned" lock="download" />
+          ) : (
+            <a href={hiringCsvHref(token, list.query)} download className={BTN_OUTLINE}>
+              Last ned
+            </a>
+          )
+        ) : null}
       </div>
 
       {tab === "agency" ? (
-        <AgencyTab rows={hiring.agency_rows} onOpen={(r) => (leadAction(subscription.tier) === "card" ? setAgencyOrg(r.orgnr) : setPremiumAsk(true))} />
+        <AgencyTab rows={hiring.agency_rows} onOpen={(r) => (leadAction(tier) === "card" ? setAgencyOrg(r.orgnr) : setPremiumAsk(true))} />
       ) : (
         <>
-      <div className="flex flex-wrap items-end gap-3" role="group" aria-label="Filtre">
-        <label className="flex min-w-[150px] flex-1 basis-[150px] flex-col gap-1 sm:flex-none">
-          <span className={`text-xs font-semibold ${MUTED_L}`}>Fylke</span>
-          <select className={FIELD_L} value={filter.county} onChange={(e) => set({ county: e.target.value })}>
-            <option value="">Alle</option>
-            {hiring.filters.counties.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex min-w-[150px] flex-1 basis-[150px] flex-col gap-1 sm:flex-none">
-          <span className={`text-xs font-semibold ${MUTED_L}`}>Yrke</span>
-          <select className={FIELD_L} value={filter.trade} onChange={(e) => set({ trade: e.target.value })}>
-            <option value="">Alle</option>
-            {hiring.filters.trades.map((t) => (
-              <option key={t.key} value={t.key}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        {basis ? (
-          <>
-            <LockedChip label="Aksepterer engelsk" />
-            <LockedChip label="Bare nye siden sist" />
-            <LockedChip label="Sannsynlig å ansette snart" />
-            <LockedChip label="Last ned" />
-          </>
-        ) : (
-          <>
-            <button type="button" aria-pressed={filter.english} className={chip(filter.english, true)} onClick={() => set({ english: !filter.english })}>
-              Aksepterer engelsk
-            </button>
-            <button type="button" aria-pressed={filter.onlyNew} className={chip(filter.onlyNew, true)} onClick={() => set({ onlyNew: !filter.onlyNew })}>
-              Bare nye siden sist
-            </button>
-            <button type="button" aria-pressed={filter.soon === true} className={chip(filter.soon === true, true)} onClick={() => set({ soon: !filter.soon })} title="Estimat, basert på firmaets egne annonser">
-              Sannsynlig å ansette snart
-            </button>
-            <a href={hiringCsvHref(token, filter)} download className={BTN_OUTLINE}>
-              Last ned
-            </a>
-          </>
-        )}
-      </div>
+          <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-4">
+            <Tile tile="newThisWeek" label="Nye denne uken" value={table?.tiles.newThisWeek ?? null} lock={null} locks={locks} phone />
+            <Tile tile="urgent" label="Haster" value={table?.tiles.urgent ?? null} lock="tile_urgent" locks={locks} phone />
+            <Tile tile="englishOk" label="Engelsk ok" value={table?.tiles.englishOk ?? null} lock="tile_english" locks={locks} phone={false} />
+            <Tile tile="recommended" label="Anbefalt av ArbeidMatch" value={table?.tiles.recommended ?? null} lock="tile_recommended" locks={locks} phone={false} />
+          </div>
 
-      <p className={`border-t ${RULE} pt-3.5 text-[15px] font-bold ${INK}`} aria-live="polite">
-        {rows.length === 1 ? "1 bedrift" : `${rows.length} bedrifter`}
-      </p>
+          <FilterBar list={list} locks={locks} counties={counties} occupations={occupations} />
 
-      {rows.length === 0 ? (
-        <p className={`text-sm ${MUTED_L}`}>{hiring.rows.length ? "Ingen bedrifter passer filteret." : "Ingen bedrifter ennå. Listen oppdateres fortløpende."}</p>
-      ) : (
-        <>
-          <table className="hidden w-full table-fixed border-collapse text-sm sm:table">
-            <thead>
-              <tr>
-                <th className={`${TH_L} w-[22%]`}>Bedrift</th>
-                <th className={TH_L}>Sted</th>
-                <th className={TH_L}>Fag</th>
-                <th className={TH_L}>Behov</th>
-                <th className={TH_L}>Publisert</th>
-                <th className={`${TH_L} w-[150px]`}>Status</th>
-                <th className={TH_L}>
-                  <span className="sr-only">Lead</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {page.map((r) => (
-                <tr key={r.orgnr} className={`border-b ${RULE} align-top`}>
-                  <td className={`break-words px-2 py-2.5 font-semibold ${INK}`}>
-                    {r.name}
-                    {r.label ? (
-                      <span className="mt-1 flex font-normal">
-                        <RowLabel label={r.label} />
-                      </span>
-                    ) : null}
-                    <RecommendedReason text={r.recommended} className={`mt-1 ${SOFT}`} />
-                    {r.ikke_fylt ? (
-                      <span className="mt-1 flex font-normal">
-                        <IkkeFylt text={r.ikke_fylt} />
-                      </span>
-                    ) : null}
-                    {r.indeed_link ? (
-                      <span className="mt-1 flex font-normal">
-                        <IndeedChip href={r.indeed_link} />
-                      </span>
-                    ) : null}
-                    {r.positions > 1 ? <span className={`block text-xs font-normal ${MUTED_L}`}>{r.positions} stillinger</span> : null}
-                    {hiring.prefs ? (
-                      <div className="mt-2 font-normal">
-                        <FirmActions row={r} send={send} />
-                      </div>
-                    ) : null}
-                  </td>
-                  <td className={`break-words px-2 py-2.5 ${SOFT}`}>{[r.town, r.county_name].filter(Boolean).join(", ")}</td>
-                  <td className={`break-words px-2 py-2.5 ${SOFT}`}>{r.trade_names.join(", ")}</td>
-                  <td className={`break-words px-2 py-2.5 ${SOFT}`}>{basis ? <Locked /> : (r.behov ?? "")}</td>
-                  <td className={`px-2 py-2.5 ${SOFT}`}>{dayNo(r.published)}</td>
-                  <td className="px-2 py-1.5">
-                    <StatusButton row={r} send={send} />
-                  </td>
-                  <td className="px-2 py-1.5 text-right">
-                    <button type="button" className={`${BTN_OUTLINE} px-3 text-sm`} aria-haspopup="dialog" onClick={() => openLead(r)}>
-                      Åpne lead
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <ul className={`flex flex-col sm:hidden ${DIVIDE_L}`}>
-            {page.map((r) => (
-              <li key={r.orgnr} className="flex min-w-0 flex-col gap-2 py-3 first:pt-0">
-                <div className="min-w-0">
-                  <p className={`break-words text-[15px] font-semibold ${INK}`}>{r.name}</p>
-                  {r.label ? (
-                    <p className="my-1 flex">
-                      <RowLabel label={r.label} />
-                    </p>
-                  ) : null}
-                  <RecommendedReason text={r.recommended} className={`mb-1 ${SOFT}`} />
-                  {r.ikke_fylt ? (
-                    <p className="my-1 flex">
-                      <IkkeFylt text={r.ikke_fylt} />
-                    </p>
-                  ) : null}
-                  {r.indeed_link ? (
-                    <p className="my-1 flex">
-                      <IndeedChip href={r.indeed_link} />
-                    </p>
-                  ) : null}
-                  <p className={`break-words text-sm ${MUTED_L}`}>{[[r.town, r.county_name].filter(Boolean).join(", "), r.trade_names.join(", "), r.published ? dayNo(r.published) : null].filter(Boolean).join(" · ")}</p>
-                  <p className={`break-words text-sm ${SOFT}`}>{basis ? <Locked label="Behov" /> : r.behov}</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusButton row={r} send={send} />
-                  <button type="button" className={BTN_OUTLINE} aria-haspopup="dialog" onClick={() => openLead(r)}>
-                    Åpne lead
-                  </button>
-                </div>
-                {hiring.prefs ? <FirmActions row={r} send={send} /> : null}
-              </li>
-            ))}
-          </ul>
-          {rows.length > shown ? (
-            <button type="button" className={`${BTN_OUTLINE} self-start`} onClick={() => setShown((n) => n + PAGE)}>
-              Vis flere ({rows.length - shown})
-            </button>
+          <p data-hiring-total="" className={`border-t ${RULE} pt-3.5 text-[15px] font-bold ${INK}`} aria-live="polite">
+            {table ? (table.total === 1 ? "1 bedrift" : `${table.total} bedrifter`) : " "}
+          </p>
+
+          {rowError ? (
+            <p role="alert" className={`text-sm font-semibold ${ERROR_L}`}>
+              {rowError}
+            </p>
           ) : null}
-        </>
-      )}
 
+          <FirmsView table={table} loading={list.loading} error={list.error} locks={locks} busyOrg={busyOrg} onOpen={openRow} onCycle={(r) => void cycle(r)} onPage={(page) => list.set({ page })} />
+
+          {basis ? (
+            <div data-premium-row="" data-hiring-premium-row="" className={`${GOLD_CARD} flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5`}>
+              <p className={`min-w-0 flex-1 basis-[220px] text-[15px] font-semibold ${INK}`}>{premium.sent ? "Vi har fått beskjed og sender dere et tilbud." : PREMIUM_OPENS}</p>
+              {premium.sent ? null : premium.open ? (
+                <button type="button" className={BTN_OUTLINE} disabled={premium.busy} onClick={premium.ask}>
+                  {premium.busy ? "Sender ..." : "Premium"}
+                </button>
+              ) : (
+                <PlansClosed />
+              )}
+              {premium.error ? (
+                <p role="alert" className={`w-full text-sm font-semibold ${ERROR_L}`}>
+                  {premium.error}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </>
       )}
 
@@ -1233,8 +1509,14 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
       <p className={FINE_PRINT}>{FOOTER_LINE}</p>
 
       {lead ? (
-        <PortalModal title="Bedriftskort" onClose={() => setLead(null)}>
-          <LeadCard orgnr={lead} send={send} sendData={sendData} />
+        <PortalModal
+          title="Bedriftskort"
+          onClose={() => {
+            setLead(null);
+            list.refresh();
+          }}
+        >
+          <LeadCard orgnr={lead} send={send} sendData={sendData} follow={hiring.prefs !== null} onChanged={list.refresh} onHidden={() => setLead(null)} />
         </PortalModal>
       ) : null}
       {agencyOrg ? (
@@ -1244,18 +1526,38 @@ export default function MinSideHiring({ token, hiring, since, send, sendData, tr
       ) : null}
       {premiumAsk ? (
         <PortalModal title="Bedriftskortet er Premium" size="narrow" onClose={() => setPremiumAsk(false)}>
-          {premium.open ? (
-            <ConfirmForm text="Med Premium ser dere hele bedriftskortet: behov, språk, bransje, ansatte og kontaktopplysninger." label="Premium" onConfirm={askPremium} onCancel={() => setPremiumAsk(false)} />
-          ) : (
-            <div className="flex flex-col gap-4">
-              <p className="text-[15px] leading-relaxed text-white">{PLANS_CLOSED_LINE}</p>
-              <div className="flex flex-wrap gap-3 pt-1">
-                <button type="button" className={SECONDARY} onClick={() => setPremiumAsk(false)}>
-                  Lukk
-                </button>
-              </div>
-            </div>
-          )}
+          <div className="flex flex-col gap-4">
+            {askRow ? (
+              <>
+                <p className="text-lg font-semibold text-white">{askRow.name}</p>
+                {hiring.prefs ? (
+                  <FirmActions
+                    orgnr={askRow.orgnr}
+                    watched={askRow.watched}
+                    send={send}
+                    onDone={(key) => {
+                      if (key === "hide") setPremiumAsk(false);
+                      else setPremiumAsk({ ...askRow, watched: key === "watch" });
+                      list.refresh();
+                    }}
+                  />
+                ) : null}
+              </>
+            ) : null}
+            <LockedContact />
+            {premium.open ? (
+              <ConfirmForm text="Med Premium ser dere hele bedriftskortet: behov, språk, bransje, ansatte og kontaktopplysninger." label="Premium" onConfirm={askPremium} onCancel={() => setPremiumAsk(false)} />
+            ) : (
+              <>
+                <p className="text-[15px] leading-relaxed text-white">{PLANS_CLOSED_LINE}</p>
+                <div className="flex flex-wrap gap-3 pt-1">
+                  <button type="button" className={SECONDARY} onClick={() => setPremiumAsk(false)}>
+                    Lukk
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </PortalModal>
       ) : null}
     </div>

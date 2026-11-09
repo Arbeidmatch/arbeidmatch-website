@@ -4,11 +4,12 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import MinSideHiring, { BetaNotice, type ProjectsTrial } from "@/components/min-side/MinSideHiring";
+import MinSideHiring, { BetaNotice, FirmsView, type ProjectsTrial } from "@/components/min-side/MinSideHiring";
 import { BillingFields, HiringBillingScreen } from "@/components/min-side/MinSideHiringBilling";
 import { ConfirmFields, matchesLine, type Matches } from "@/components/min-side/MinSideHiringConfirm";
 import {
   NO_BILLING,
+  clientTableFrom,
   PLANS_CLOSED_LINE,
   confirmMatchesFrom,
   hiringBillingBody,
@@ -315,7 +316,7 @@ describe("the beta notice", () => {
   it("is shown above the list with OK once the terms are accepted", () => {
     const html = renderToStaticMarkup(createElement(MinSideHiring, props(hiring({ terms: { ...terms, accepted: true }, beta_notice: "Tjenesten er i beta." }))));
     expect(html).toContain("Tjenesten er i beta.");
-    expect(html.indexOf("data-beta-notice")).toBeLessThan(html.indexOf("Annen Bygg AS"));
+    expect(html.indexOf("data-beta-notice")).toBeLessThan(html.indexOf("data-hiring-tile"));
     expect(renderToStaticMarkup(createElement(MinSideHiring, props(hiring({ terms: { ...terms, accepted: true } }))))).not.toContain("data-beta-notice");
   });
 
@@ -365,7 +366,8 @@ describe("the plans part of the ATS's answer", () => {
 describe("Premium while the plans are closed", () => {
   it("shows no Premium button on the Basis card, one quiet line instead", () => {
     const html = renderToStaticMarkup(createElement(MinSideHiring, props(basis({ open: false, opens_on: "2027-01-01", billing_needed: false, billing: null }))));
-    expect(html).toContain("Prøveperioden er over");
+    // ORDER 252: the Basis line toward Premium sits under the table, saying what Premium opens.
+    expect(html).toContain("data-hiring-premium-row");
     expect(html).toContain(PLANS_CLOSED_LINE);
     expect(html).not.toMatch(/<button[^>]*>Premium<\/button>/);
     expect(PLANS_CLOSED_LINE).toBe("Fra 1. januar velger dere abonnement.");
@@ -460,17 +462,12 @@ describe("Fakturering", () => {
 });
 
 describe("the label on each row of the list", () => {
+  // ORDER 252: the row's second line is the label from the list page, as a tag, in the table and on the phone.
   it("shows the label as a tag when there is one, in the table and on the phone", () => {
-    const h = hiring({
-      terms: { ...terms, accepted: true },
-      rows: [
-        { orgnr: "998877665", name: "Annen Bygg AS", status: "new", label: "Nye stillinger: Elektrikere (1), Tømrere (2)" },
-        { orgnr: "912345678", name: "Ny Bygg AS", status: "new", label: "Ny bedrift" },
-        { orgnr: "912345679", name: "Uten Bygg AS", status: "new", label: null },
-      ],
-    });
-    expect(h.rows.map((r) => r.label)).toEqual(["Nye stillinger: Elektrikere (1), Tømrere (2)", "Ny bedrift", null]);
-    const html = renderToStaticMarkup(createElement(MinSideHiring, props(h)));
+    const row = (orgnr: string, name: string, label: string | null) => ({ rank: 1, orgnr, name, town: null, county_name: null, trades: [], label, need: null, found_at: null, english_ok: null, recommended: null, status: "new", note: null, follow_up_on: null, watched: false });
+    const t = clientTableFrom({ tier: "premium", rows: [row("998877665", "Annen Bygg AS", "Nye stillinger: Elektrikere (1), Tømrere (2)"), row("912345678", "Ny Bygg AS", "Ny bedrift"), row("912345679", "Uten Bygg AS", null)], total: 3, all: 3, page: 1, size: 20, pages: 1, tiles: {}, locks: [], filters: {} })!;
+    expect(t.rows.map((r) => r.label)).toEqual(["Nye stillinger: Elektrikere (1), Tømrere (2)", "Ny bedrift", null]);
+    const html = renderToStaticMarkup(createElement(FirmsView, { table: t, loading: false, error: null, locks: [], busyOrg: null, onOpen: () => {}, onCycle: () => {}, onPage: () => {} }));
     expect(html.match(/>Nye stillinger: Elektrikere \(1\), Tømrere \(2\)</g)).toHaveLength(2);
     expect(html.match(/>Ny bedrift</g)).toHaveLength(2);
     expect(html.match(/rounded-full border border-\[#E9D9A6\] bg-\[#FBF6E8\] px-2\.5/g)).toHaveLength(4);

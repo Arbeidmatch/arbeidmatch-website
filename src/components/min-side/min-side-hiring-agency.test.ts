@@ -96,9 +96,10 @@ describe("the agency rows of the ATS's answer", () => {
 describe("the two tabs", () => {
   it("shows both with their counts, and the firms that hire directly by default, none of the agencies", () => {
     const html = renderToStaticMarkup(createElement(MinSideHiring, props(hiring())));
-    expect(html).toContain("Bedrifter som ansetter (1)");
+    // ORDER 252: the firms tab counts the list the ATS answers, fetched once the page is in a browser.
+    expect(html).toContain("Bedrifter som ansetter");
     expect(html).toContain("Via bemanningsbyrå (2)");
-    expect(html).toContain("Direktebygg AS");
+    expect(html).toContain("Nye denne uken");
     expect(html).not.toContain("WORKSHOP BEMANNING");
     expect(html).not.toContain("MANPOWER INDUSTRI");
   });
@@ -116,7 +117,7 @@ describe("the two tabs", () => {
     // The named agency carries no chip: one chip for the one anonymous advert, per layout (table and phone list).
     expect(html.match(/Bemanningsbyrå, kunden ikke oppgitt/g)).toHaveLength(2);
     expect(html).not.toContain("Direktebygg AS");
-    expect(html).not.toContain("Åpne lead");
+    expect(html).not.toContain("Nye denne uken");
     expect(html).not.toContain("Følg");
     expect(html).not.toMatch(/aria-label="Status/);
   });

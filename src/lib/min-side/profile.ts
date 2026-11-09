@@ -739,7 +739,10 @@ export type FirmCardRow = { label: string; value: string; tone: "danger" | null;
 export type FirmCardSection = { key: string; title: string; source: string; rows: FirmCardRow[]; bars: { month: string; adverts: number }[] };
 export type FirmCardNo = { sections: FirmCardSection[]; footer: string };
 
-export type HiringCard = HiringRow & { address: string | null; website: string | null; industry: string | null; employees: number | null; recruits: string | null; firm: FirmCardNo | null };
+/** ORDER 252: the firm's GENERAL contact from the public register, Premium only; a null field is not on file. Never a person. */
+export type HiringContact = { phone: string | null; email: string | null; website: string | null; address: string | null };
+
+export type HiringCard = HiringRow & { address: string | null; website: string | null; industry: string | null; employees: number | null; recruits: string | null; firm: FirmCardNo | null; contact: HiringContact | null };
 
 export type HiringProjectRow = { id: string; title: string; county: string | null; stage: string };
 export type HiringProjects = {
@@ -1311,7 +1314,21 @@ export function hiringCardFrom(raw: unknown): HiringCard | null {
   const row = r ? hiringRowFrom(r) : null;
   if (!r || !row) return null;
   const employees = typeof r.employees === "number" && Number.isFinite(r.employees) && r.employees >= 0 ? Math.round(r.employees) : null;
-  return { ...row, address: textOrNull(r.address, 300), website: websiteFrom(r.website), industry: textOrNull(r.industry, 200), employees, recruits: textOrNull(r.recruits, 40), firm: firmCardFrom(r.firm_no) };
+  return { ...row, address: textOrNull(r.address, 300), website: websiteFrom(r.website), industry: textOrNull(r.industry, 200), employees, recruits: textOrNull(r.recruits, 40), firm: firmCardFrom(r.firm_no), contact: hiringContactFrom(r.contact) };
+}
+
+/** The general contact inside hiring_card: a phone a tel: link takes, a plain e-mail address, a web address, a street address; nothing else is kept. */
+export function hiringContactFrom(raw: unknown): HiringContact | null {
+  const c = obj(raw);
+  if (!c) return null;
+  const phone = textOrNull(c.phone, 40);
+  const email = str(c.email, 254).trim();
+  return {
+    phone: phone && telHref(phone) ? phone : null,
+    email: CONFIRM_EMAIL.test(email) && !/[\s"<>,;:]/.test(email) ? email : null,
+    website: websiteFrom(c.website),
+    address: textOrNull(c.address, 300),
+  };
 }
 
 /** A link on the firm card: the firm's website, a phone number or an e-mail address, nothing else. */
@@ -1406,56 +1423,209 @@ export function hiringSubtitle(h: Hiring): string {
   return [s.counties.join(", "), s.trades.join(", "), trial].filter(Boolean).join(" · ");
 }
 
-/** `soon` (ORDER 244): only the firms likely to hire soon, high first. */
-export type HiringFilter = { county: string; trade: string; english: boolean; onlyNew: boolean; soon?: boolean };
-export const NO_HIRING_FILTER: HiringFilter = { county: "", trade: "", english: false, onlyNew: false, soon: false };
+// ---------------------------------------------------------------------------
+// ORDER 252: the firms list as a page the ATS cuts and sorts (search, filters,
+// pages). The list is fetched from /api/min-side/<token>/hiring, which passes
+// only these shapes on; Basis is limited by the ATS itself.
+// ---------------------------------------------------------------------------
 
-/**
- * The rows the list shows. `since` is last_viewed_at as it stood BEFORE this
- * visit told the ATS it was seen: "Bare nye siden sist" compares against that.
- * Never seen before means every dated row is new. In Basis the language, the
- * new-only and the hiring-soon filters are locked, so they never narrow the
- * list. Hiring soon also sorts: high before medium, otherwise as it came.
- */
-export function visibleHiringRows(rows: HiringRow[], f: HiringFilter, since: string | null, tier: HiringTier): HiringRow[] {
-  const sinceMs = since ? Date.parse(since) : Number.NEGATIVE_INFINITY;
-  const premium = tier === "premium";
-  const soon = premium && f.soon === true;
-  const shown = rows.filter((r) => {
-    if (soon && !r.hiring_soon) return false;
-    if (f.county && r.county !== f.county) return false;
-    if (f.trade && !r.trades.includes(f.trade)) return false;
-    if (premium && f.english && r.english_ok !== true) return false;
-    if (premium && f.onlyNew) {
-      const at = r.published ? Date.parse(r.published) : NaN;
-      if (!Number.isFinite(at) || !(at > sinceMs)) return false;
-    }
-    return true;
-  });
-  return soon ? [...shown.filter((r) => r.hiring_soon === "high"), ...shown.filter((r) => r.hiring_soon === "medium")] : shown;
+export type TableNeed = { urgent: boolean; adverts30: number; openDays: number | null; positions: number };
+export type ClientTableRow = {
+  rank: number;
+  orgnr: string;
+  name: string;
+  town: string | null;
+  county_name: string | null;
+  /** Trade names, Norwegian. */
+  trades: string[];
+  label: string | null;
+  /** Null on Basis. */
+  need: TableNeed | null;
+  found_at: string | null;
+  /** Null on Basis. */
+  english_ok: boolean | null;
+  recommended: { reason: string } | null;
+  status: HiringStatus;
+  note: string | null;
+  follow_up_on: string | null;
+  watched: boolean;
+};
+export const TABLE_LOCKS = ["tile_urgent", "tile_english", "tile_recommended", "filter_occupation", "filter_new", "filter_english", "download", "column_need", "contact"] as const;
+export type TableLock = (typeof TABLE_LOCKS)[number];
+export type ClientTable = {
+  tier: HiringTier;
+  rows: ClientTableRow[];
+  total: number;
+  all: number;
+  page: number;
+  size: number;
+  pages: number;
+  tiles: { newThisWeek: number; urgent: number | null; englishOk: number | null; recommended: number | null };
+  /** Empty on Premium. */
+  locks: TableLock[];
+  filters: { counties: { code: string; name: string }[]; occupations: { key: string; name: string }[] };
+};
+
+export const TABLE_SORTS = ["default", "newest", "name"] as const;
+export type TableSort = (typeof TABLE_SORTS)[number];
+export const TABLE_SIZES = [10, 20, 50] as const;
+export type TableSize = (typeof TABLE_SIZES)[number];
+
+/** What the client has chosen on the list. */
+export type HiringQuery = {
+  q: string;
+  county: string;
+  occupation: string;
+  onlyNew: boolean;
+  english: boolean;
+  status: HiringStatus | "";
+  sort: TableSort;
+  page: number;
+  size: TableSize;
+};
+export const NO_HIRING_QUERY: HiringQuery = { q: "", county: "", occupation: "", onlyNew: false, english: false, status: "", sort: "default", page: 1, size: 20 };
+
+/** Free text as the search carries it: up to 100 characters, nothing that could be markup or a control character. */
+const SEARCH_TEXT = /^[^<>\u0000-\u001f]{1,100}$/;
+const nonNegInt = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? Math.round(v) : null);
+
+/** The filters of a query as URL parameters, without page and size (the CSV takes these). */
+function filterParams(f: HiringQuery): URLSearchParams {
+  const q = new URLSearchParams();
+  const text = f.q.trim();
+  if (text && SEARCH_TEXT.test(text)) q.set("q", text);
+  if (COUNTY_CODE.test(f.county)) q.set("county", f.county);
+  if (TRADE_KEY.test(f.occupation)) q.set("occupation", f.occupation);
+  if (f.onlyNew) q.set("new", "1");
+  if (f.english) q.set("english", "1");
+  if (isHiringStatus(f.status)) q.set("status", f.status);
+  if (f.sort !== "default" && (TABLE_SORTS as readonly string[]).includes(f.sort)) q.set("sort", f.sort);
+  return q;
 }
 
-/** The CSV download with the filters on screen; the language and new-only filters are Premium. */
-export function hiringCsvHref(token: string, f: HiringFilter): string {
-  const q = new URLSearchParams();
-  if (COUNTY_CODE.test(f.county)) q.set("county", f.county);
-  if (TRADE_KEY.test(f.trade)) q.set("trade", f.trade);
-  if (f.english) q.set("english", "1");
-  if (f.onlyNew) q.set("new", "1");
+/** The list's own address on this site for the choice on screen. */
+export function hiringTableHref(token: string, f: HiringQuery): string {
+  const q = filterParams(f);
+  if (Number.isInteger(f.page) && f.page > 1) q.set("page", String(Math.min(f.page, 9999)));
+  if (f.size !== 20) q.set("size", String(f.size));
   const s = q.toString();
+  return `/api/min-side/${encodeURIComponent(token)}/hiring${s ? `?${s}` : ""}`;
+}
+
+/** The CSV download with the filters on screen; the ATS refuses it on Basis. */
+export function hiringCsvHref(token: string, f: HiringQuery): string {
+  const s = filterParams(f).toString();
   return `/api/min-side/${encodeURIComponent(token)}/hiring-csv${s ? `?${s}` : ""}`;
 }
 
-/** The CSV query as the proxy passes it on: only the four known values in their shapes, or null for anything else. */
-export function hiringCsvQuery(params: URLSearchParams): string | null {
+/** One known filter parameter in its shape, or false; the list and the CSV share these. */
+function filterParamOk(k: string, v: string): boolean {
+  if (k === "county") return COUNTY_CODE.test(v);
+  if (k === "occupation" || k === "trade") return TRADE_KEY.test(v);
+  if (k === "english" || k === "new") return v === "1";
+  if (k === "status") return isHiringStatus(v);
+  if (k === "sort") return (TABLE_SORTS as readonly string[]).includes(v);
+  if (k === "q") return SEARCH_TEXT.test(v);
+  return false;
+}
+
+/** The list query as the proxy passes it on: only the known values in their shapes, each once, or null for anything else. */
+export function hiringTableQuery(params: URLSearchParams): string | null {
   const out = new URLSearchParams();
   for (const [k, v] of params) {
-    if (k === "county" && COUNTY_CODE.test(v)) out.set(k, v);
-    else if (k === "trade" && TRADE_KEY.test(v)) out.set(k, v);
-    else if ((k === "english" || k === "new") && v === "1") out.set(k, v);
+    if (out.has(k)) return null;
+    if (k === "page" && /^[1-9][0-9]{0,3}$/.test(v)) out.set(k, v);
+    else if (k === "size" && (v === "10" || v === "20" || v === "50")) out.set(k, v);
+    else if (k !== "trade" && filterParamOk(k, v)) out.set(k, v);
     else return null;
   }
   return out.toString();
+}
+
+/** The CSV query as the proxy passes it on: the list's filters (and the older `trade`), or null for anything else. */
+export function hiringCsvQuery(params: URLSearchParams): string | null {
+  const out = new URLSearchParams();
+  for (const [k, v] of params) {
+    if (out.has(k) || !filterParamOk(k, v)) return null;
+    out.set(k, v);
+  }
+  return out.toString();
+}
+
+function tableNeedFrom(raw: unknown): TableNeed | null {
+  const n = obj(raw);
+  if (!n) return null;
+  return { urgent: n.urgent === true, adverts30: nonNegInt(n.adverts30) ?? 0, openDays: nonNegInt(n.openDays), positions: nonNegInt(n.positions) ?? 0 };
+}
+
+function tableRowFrom(r: Record<string, unknown>, i: number): ClientTableRow | null {
+  const orgnr = str(r.orgnr, 20).replace(/\s/g, "");
+  const name = str(r.name, 200).trim();
+  if (!ORGNR.test(orgnr) || !name) return null;
+  const rec = obj(r.recommended);
+  const reason = rec ? textOrNull(rec.reason, 160) : null;
+  return {
+    rank: nonNegInt(r.rank) ?? i + 1,
+    orgnr,
+    name,
+    town: textOrNull(r.town, 80),
+    county_name: textOrNull(r.county_name, 80),
+    trades: strings(r.trades, 20, 80),
+    label: textOrNull(r.label, 120),
+    need: tableNeedFrom(r.need),
+    found_at: isoOrNull(r.found_at),
+    english_ok: typeof r.english_ok === "boolean" ? r.english_ok : null,
+    recommended: reason ? { reason } : null,
+    status: isHiringStatus(r.status) ? r.status : "new",
+    note: textOrNull(r.note, 2000),
+    follow_up_on: day(r.follow_up_on)?.slice(0, 10) ?? null,
+    watched: r.watched === true,
+  };
+}
+
+/** The list page the ATS answers, or null when it is not shaped like one; recommended firms first, the rest as sent. */
+export function clientTableFrom(raw: unknown): ClientTable | null {
+  const r = obj(raw);
+  if (!r || !Array.isArray(r.rows)) return null;
+  const rows = objs(r.rows)
+    .map(tableRowFrom)
+    .filter((x): x is ClientTableRow => x !== null)
+    .slice(0, 50);
+  const t = obj(r.tiles) ?? {};
+  const f = obj(r.filters) ?? {};
+  return {
+    tier: r.tier === "basis" ? "basis" : "premium",
+    rows: [...rows.filter((x) => x.recommended), ...rows.filter((x) => !x.recommended)],
+    total: nonNegInt(r.total) ?? rows.length,
+    all: nonNegInt(r.all) ?? rows.length,
+    page: intIn(r.page, 1, 100000) ?? 1,
+    size: intIn(r.size, 1, 50) ?? 20,
+    pages: intIn(r.pages, 0, 100000) ?? 1,
+    tiles: { newThisWeek: nonNegInt(t.newThisWeek) ?? 0, urgent: nonNegInt(t.urgent), englishOk: nonNegInt(t.englishOk), recommended: nonNegInt(t.recommended) },
+    locks: [...new Set(strings(r.locks, 20, 30).filter((x): x is TableLock => (TABLE_LOCKS as readonly string[]).includes(x)))],
+    filters: { counties: countyOptions(f.counties), occupations: tradeOptions(f.occupations) },
+  };
+}
+
+/** The locks before the first page arrives: those the ATS sends on Basis, none on Premium. */
+export function defaultLocks(tier: HiringTier): TableLock[] {
+  return tier === "basis" ? [...TABLE_LOCKS] : [];
+}
+
+/** ORDER 252: "Behov" of a row in words beside the Haster chip: the adverts of 30 days, else how long it has been open. */
+export function needWords(n: TableNeed): string {
+  if (n.urgent || n.openDays === null) {
+    if (!n.adverts30) return "";
+    return n.adverts30 === 1 ? "1 utlysning på 30 dager" : `${n.adverts30} utlysninger på 30 dager`;
+  }
+  return n.openDays === 1 ? "Åpen i 1 dag" : `Åpen i ${n.openDays} dager`;
+}
+
+/** The status a click on the chip moves to: Ny, Ringt, Møte avtalt, Ny kunde, Ikke aktuell, and round; Kontaktet goes on to Ringt. */
+export function nextHiringStatus(s: HiringStatus): HiringStatus {
+  const order: HiringStatus[] = ["new", "called", "meeting", "won", "not_relevant"];
+  if (s === "contacted") return "called";
+  return order[(order.indexOf(s) + 1) % order.length];
 }
 
 /** What "Åpne lead" does: the card in Premium, the "Bedriftskortet er Premium" dialog in Basis. */
