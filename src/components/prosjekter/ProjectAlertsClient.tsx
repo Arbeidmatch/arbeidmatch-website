@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import ProjectPortal from "./ProjectPortal";
 import ProjectVersion from "./ProjectVersion";
+import portalStyles from "./portal.module.css";
 import PublicProjectExplorer from "./PublicProjectExplorer";
 
 import { CARD, EYEBROW, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
@@ -257,7 +258,7 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
   };
 
   return (
-    <div className="bg-[#0D1B2A] text-white">
+    <div className="overflow-x-clip bg-[#0D1B2A] text-white">
       <div className="container-site flex flex-col gap-8 pb-16 pt-10 md:pb-24 md:pt-14">
         <header className="flex flex-col gap-3">
           <p className={EYEBROW}>ArbeidMatch Norge AS</p>
@@ -324,9 +325,18 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
 
         {sub && sub.status === "active" ? (
           <>
-            <ProjectVersion modern={<PublicProjectExplorer subscriberProjects={projects} />}>
-              <ProjectPortal initial={null} initialFilters={PORTAL_FILTERS} subscriber={{ projects, company: sub.company_name }} />
-            </ProjectVersion>
+            {/*
+              The classic portal, exactly as on /prosjekter (his ask, 9 November 2026):
+              the portal's own theme wrapper and its 1440px width, breaking out of
+              the narrower site container; the classic view opens first.
+            */}
+            <div className={`${portalStyles.portal} relative left-1/2 w-screen -translate-x-1/2 rounded-2xl`}>
+              <div className="mx-auto w-full max-w-[1440px] px-4 md:px-8">
+                <ProjectVersion modern={<PublicProjectExplorer subscriberProjects={projects} />}>
+                  <ProjectPortal initial={null} initialFilters={PORTAL_FILTERS} subscriber={{ projects, company: sub.company_name }} />
+                </ProjectVersion>
+              </div>
+            </div>
 
             {sent.length ? (
               <section className={`${CARD} p-5 sm:p-6`} aria-labelledby="sent-h">

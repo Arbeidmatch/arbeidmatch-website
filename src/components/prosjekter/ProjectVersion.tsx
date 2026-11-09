@@ -7,7 +7,8 @@ export default function ProjectVersion({ modern, children, initialOld = true }: 
   const [old, setOld] = useState(initialOld);
   useEffect(() => {
     const sync = () => setOld(new URLSearchParams(location.search).get("view") !== "new");
-    sync(); window.addEventListener("popstate", sync);
+    // On entry the classic view, whatever the address says (his ask, 9 November 2026); back and forward follow the address.
+    window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
   }, []);
   const choose = (value: boolean) => {

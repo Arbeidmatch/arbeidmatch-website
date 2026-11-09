@@ -183,9 +183,9 @@ function Row({
           </span>
         </button>
         {description || documents ? (
-          <span className={styles.rowFoot}>
+          <span className={`${styles.rowFoot} ${styles.rowFootWide}`}>
             {description ? (
-              <span className={styles.where} style={{ display: "block", flex: "1 1 240px" }}>
+              <span className={styles.where} style={{ display: "block" }}>
                 {description}{" "}
                 {(detail.description ?? "").length > 180 ? (
                   <button type="button" className={styles.showAll} onClick={() => setOpen((o) => !o)}>

@@ -2149,6 +2149,29 @@
   padding: 0 14px 0 0;
 }
 
+/*
+ * A client's own row (9 November 2026): the description and the link to the
+ * competition sit under the project, across the whole row, never in the
+ * side column, which squeezed the title to one letter per line.
+ */
+.row .rowFootWide {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 0 14px 16px;
+}
+
+.rowFootWide > span {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.rowFootWide .rowCta {
+  flex: 0 0 auto;
+}
+
 .rowFoot .lockline {
   margin-top: 4px;
   align-items: center;
