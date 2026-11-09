@@ -473,6 +473,10 @@ export const SECTIONS: { key: SectionKey; group: SectionGroup; label: string; ab
   // The label carries a soft hyphen (written as its escape so it can be seen): on a phone the long word breaks at its joint.
   { key: "fakturaopplysninger", group: "firmaet", label: "Faktura­opplysninger", about: "Hvor og hvordan fakturaene fra oss sendes." },
   { key: "kontakter", group: "firmaet", label: "Kontaktpersoner", about: "Personene vi kan kontakte hos dere." },
+  // His order, 9 November 2026: Prosjektvarsler first under Samarbeidet med oss, Bedrifter som ansetter second.
+  { key: "varsler", group: "samarbeidet", label: "Prosjektvarsler", about: "Varslene om bygg- og anleggsprosjekter, og abonnementet." },
+  // ORDER 157: only in the list for a person with hiring alerts (visibleSections).
+  { key: "ansetter", group: "samarbeidet", label: "Bedrifter som ansetter", about: "Firmaer som ansetter i fylkene og fagene deres." },
   // ORDER 236: what our e-mails announce; the e-mail itself only says a message is waiting.
   { key: "meldinger", group: "samarbeidet", label: "Meldinger", about: "Meldingene fra ArbeidMatch til deg. Alt blir liggende her." },
   { key: "kandidater", group: "samarbeidet", label: "Kandidater", about: "Kandidatene vi har presentert for deg." },
@@ -480,9 +484,6 @@ export const SECTIONS: { key: SectionKey; group: SectionGroup; label: string; ab
   { key: "timelister", group: "samarbeidet", label: "Timelister", about: "Timelistene du skal signere, og de du har signert." },
   { key: "fakturaer", group: "samarbeidet", label: "Fakturaer", about: "Fakturaene fra oss til firmaet, med status." },
   { key: "dokumenter", group: "samarbeidet", label: "Signerte dokumenter", about: "Avtaler og tilbud du har signert hos oss, som PDF." },
-  { key: "varsler", group: "samarbeidet", label: "Prosjektvarsler", about: "Varslene om bygg- og anleggsprosjekter, og abonnementet." },
-  // ORDER 157: only in the list for a person with hiring alerts (visibleSections).
-  { key: "ansetter", group: "samarbeidet", label: "Bedrifter som ansetter", about: "Firmaer som ansetter i fylkene og fagene deres." },
 ];
 
 /** The sections this person's list shows: "Bedrifter som ansetter" only with hiring alerts. */
