@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import PortalMap, { type PortalMapHandle } from "@/components/prosjekter/PortalMap";
 import styles from "@/components/prosjekter/portal.module.css";
-import { domainChoices } from "@/lib/prosjekter/format";
+import { cleanDescription, domainChoices, keyDateNo, placeNo, valueNo, type AlertProject } from "@/lib/prosjekter/format";
+import { subscriberMap } from "@/lib/prosjekter/subscriber-map";
 import {
   COUNTIES,
   countyCounts,
@@ -34,6 +35,13 @@ import { isOverview, type Overview, type OverviewFilters } from "@/lib/prosjekte
  * Rendered on the server with the ATS's first answer, so the list is in the
  * HTML for a search engine; an ATS that does not yet send `map` gets the plain
  * list of `projects` instead of dots.
+ *
+ * With `subscriber`, the same screen is a client's own page (his ask, 9
+ * November 2026: "vreau ca clientii sa aiba ceea ce vad", by their
+ * subscription): the dots and rows are the client's projects, named, with
+ * buyer, place, exact value, date and the way to the competition; nothing is
+ * locked and nothing asks for an invitation. The open overview is still read,
+ * for the coordinates and the trade names only.
  */
 
 const PAGE = 60;
@@ -122,13 +130,80 @@ function Row({
   domainLabel,
   onHover,
   onPick,
+  detail,
+  approximate = false,
 }: {
   p: PlacedProject;
   hl: boolean;
   domainLabel: string | null;
   onHover: (no: number | null) => void;
   onPick: (no: number) => void;
+  /** The client's own project behind the row; absent on the open page. */
+  detail?: AlertProject;
+  approximate?: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+  if (detail) {
+    const value = valueNo(detail);
+    const date = keyDateNo(detail);
+    const place = placeNo(detail);
+    const description = cleanDescription(detail.description, open ? 2000 : 180);
+    const documents = detail.documents_url && /^https:\/\//i.test(detail.documents_url) ? detail.documents_url : null;
+    return (
+      <li className={`${styles.row} ${hl ? styles.rowHl : ""}`}>
+        <button
+          type="button"
+          id={`pp-${p.no}`}
+          className={styles.item}
+          onMouseEnter={() => onHover(p.no)}
+          onFocus={() => onHover(p.no)}
+          onClick={() => onPick(p.no)}
+        >
+          <span className={styles.topRow}>
+            <span className={styles.pill} style={{ "--c": STAGE_HEX[p.st] } as React.CSSProperties}>
+              {STAGE_LABEL[p.st]}
+            </span>
+            {domainLabel ? <span className={styles.tag}>{domainLabel}</span> : null}
+          </span>
+          <span>
+            <h3>{detail.title}</h3>
+            <span className={styles.where} style={{ display: "block" }}>
+              {[detail.buyer_name, place || (COUNTIES[p.r]?.n ?? "")].filter(Boolean).join(" · ")}
+              {approximate ? " · omtrentlig plassering" : ""}
+            </span>
+            {detail.winners.length ? (
+              <span className={styles.where} style={{ display: "block" }}>
+                {`Entreprenør: ${detail.winners.map((w) => w.name).join(", ")}`}
+              </span>
+            ) : null}
+          </span>
+          <span className={styles.val}>
+            {value ? <span className={`${styles.valBand} ${styles.num}`}>{value}</span> : null}
+            {date ? <span className={styles.where} style={{ display: "block" }}>{date}</span> : null}
+          </span>
+        </button>
+        {description || documents ? (
+          <span className={styles.rowFoot}>
+            {description ? (
+              <span className={styles.where} style={{ display: "block", flex: "1 1 240px" }}>
+                {description}{" "}
+                {(detail.description ?? "").length > 180 ? (
+                  <button type="button" className={styles.showAll} onClick={() => setOpen((o) => !o)}>
+                    {open ? "Vis mindre" : "Les mer"}
+                  </button>
+                ) : null}
+              </span>
+            ) : null}
+            {documents ? (
+              <a href={documents} target="_blank" rel="noopener noreferrer" className={styles.rowCta}>
+                Gå til konkurransen
+              </a>
+            ) : null}
+          </span>
+        ) : null}
+      </li>
+    );
+  }
   const value = valueBand(p.v);
   return (
     <li className={`${styles.row} ${hl ? styles.rowHl : ""}`}>
@@ -168,9 +243,12 @@ function Row({
 export default function ProjectPortal({
   initial,
   initialFilters,
+  subscriber,
 }: {
   initial: Overview | null;
   initialFilters: OverviewFilters;
+  /** A client's own page: their projects on the same map, named and complete. */
+  subscriber?: { projects: AlertProject[]; company: string };
 }) {
   const [data, setData] = useState<Overview | null>(initial);
   const [failed, setFailed] = useState(false);
@@ -192,9 +270,11 @@ export default function ProjectPortal({
     };
   }, [initial]);
 
-  const projects = useMemo(() => placeProjects(data?.map), [data]);
-  const hasMap = Array.isArray(data?.map);
-  const counts = useMemo(() => countyCounts(data?.county_counts, projects), [data, projects]);
+  const own = useMemo(() => (subscriber ? subscriberMap(subscriber.projects, data) : null), [subscriber, data]);
+  const projects = useMemo(() => own?.placed ?? placeProjects(data?.map), [own, data]);
+  const hasMap = own ? true : Array.isArray(data?.map);
+  const ready = own ? true : Boolean(data);
+  const counts = useMemo(() => countyCounts(own ? undefined : data?.county_counts, projects), [own, data, projects]);
 
   const [stages, setStages] = useState<Set<MapStage>>(() => stagesFrom(initialFilters.stage));
   const [domain, setDomain] = useState(initialFilters.domain);
@@ -230,6 +310,7 @@ export default function ProjectPortal({
   }, [projects, domain, county]);
 
   useEffect(() => {
+    if (own) return; // a client's page keeps its own address
     try {
       const query = new URLSearchParams(queryFor(stages, county, domain));
       query.set("view", "old");
@@ -237,7 +318,7 @@ export default function ProjectPortal({
     } catch {
       /* the address bar is a convenience */
     }
-  }, [stages, county, domain]);
+  }, [own, stages, county, domain]);
 
   const toggleStage = (s: MapStage) => {
     setLimit(PAGE);
@@ -300,6 +381,12 @@ export default function ProjectPortal({
   };
 
   const shown = listed.slice(0, limit);
+  const allCounts = useMemo(() => {
+    const out: Record<MapStage, number> = { planned: 0, tender: 0, closed: 0, awarded: 0 };
+    for (const p of projects) out[p.st]++;
+    return out;
+  }, [projects]);
+  const stat = (k: "planned" | "tender" | "awarded") => (own ? allCounts[k] : data ? data.counts[k] : null);
 
   return (
     <section className={styles.hero}>
@@ -314,22 +401,39 @@ export default function ProjectPortal({
               <span className={styles.brandSep} aria-hidden="true" />
               Bygg- og anleggsprosjekter
             </p>
-            <h1>
-              Se hvor Norge <em>bygger</em>, fylke for fylke.
-            </h1>
-            <p className={styles.lede}>
-              Planlagte prosjekter, åpne konkurranser og tildelte kontrakter på ett kart. Kartet er åpent for alle.
-              Kundene våre ser byggherre, entreprenør og frister, og får varsel når noe nytt dukker opp i deres område.
-            </p>
+            {own ? (
+              <>
+                <h1>
+                  Prosjektene til <em>{subscriber?.company}</em>, fylke for fylke.
+                </h1>
+                <p className={styles.lede}>
+                  Planlagte prosjekter, åpne konkurranser og tildelte kontrakter i deres fylker og fag, med byggherre,
+                  entreprenør, verdi og frister.
+                  {own.unplaced ? ` ${own.unplaced} ${own.unplaced === 1 ? "prosjekt mangler" : "prosjekter mangler"} sted og vises ikke på kartet.` : ""}
+                </p>
+              </>
+            ) : (
+              <>
+                <h1>
+                  Se hvor Norge <em>bygger</em>, fylke for fylke.
+                </h1>
+                <p className={styles.lede}>
+                  Planlagte prosjekter, åpne konkurranser og tildelte kontrakter på ett kart. Kartet er åpent for alle.
+                  Kundene våre ser byggherre, entreprenør og frister, og får varsel når noe nytt dukker opp i deres område.
+                </p>
+              </>
+            )}
           </div>
           <div className={styles.stats}>
-            <Stat stage="planned" label="Planlagt" value={data ? data.counts.planned : null} />
-            <Stat stage="tender" label="Åpen konkurranse" value={data ? data.counts.tender : null} />
-            <Stat stage="awarded" label="Tildelt" value={data ? data.counts.awarded : null} />
+            <Stat stage="planned" label="Planlagt" value={stat("planned")} />
+            <Stat stage="tender" label="Åpen konkurranse" value={stat("tender")} />
+            <Stat stage="awarded" label="Tildelt" value={stat("awarded")} />
           </div>
         </div>
 
-        <p style={{ color: "var(--text-2)", fontSize: 14, margin: "16px 0" }}><strong>Demo - kartbilde og detaljvisning.</strong> Forhåndsvisning av tjenesten. Fullstendige prosjektdetaljer krever invitasjon.</p>
+        {own ? null : (
+          <p style={{ color: "var(--text-2)", fontSize: 14, margin: "16px 0" }}><strong>Demo - kartbilde og detaljvisning.</strong> Forhåndsvisning av tjenesten. Fullstendige prosjektdetaljer krever invitasjon.</p>
+        )}
         <div className={styles.explorer} data-view={view}>
           <div className={styles.bar} role="toolbar" aria-label="Filtre">
             <div className={styles.viewToggle} role="group" aria-label="Visning">
@@ -400,6 +504,7 @@ export default function ProjectPortal({
               onSelect={onSelectDot}
               onCluster={onCluster}
               onLastGroup={onLastGroup}
+              subscriber={Boolean(own)}
             />
             {picked && view === "map" ? (
               <button type="button" className={styles.pickedBar} onClick={() => setView("list")}>
@@ -448,7 +553,7 @@ export default function ProjectPortal({
                 ) : null}
               </div>
               <ul ref={listRef} className={styles.list} onMouseLeave={() => setHover(null)}>
-                {!data ? (
+                {!ready ? (
                   <li className={styles.empty}>
                     {failed ? "Prosjektoversikten er ikke tilgjengelig akkurat nå. Prøv igjen om litt." : "Henter prosjekter ..."}
                   </li>
@@ -462,13 +567,17 @@ export default function ProjectPortal({
                         domainLabel={firstDomain(p)}
                         onHover={setHover}
                         onPick={onPickRow}
+                        detail={own?.details.get(p.no)}
+                        approximate={own?.approximate.has(p.no)}
                       />
                     ))
                   ) : (
-                    <li className={styles.empty}>Ingen prosjekter med disse filtrene. Slå på flere faser eller velg «Alle fag».</li>
+                    <li className={styles.empty}>
+                      {own ? "Ingen prosjekter i abonnementet passer disse filtrene. Slå på flere faser eller velg «Alle fag»." : "Ingen prosjekter med disse filtrene. Slå på flere faser eller velg «Alle fag»."}
+                    </li>
                   )
                 ) : (
-                  data.projects.map((p, i) => (
+                  (data?.projects ?? []).map((p, i) => (
                     <li key={`${p.project_no ?? "x"}-${i}`} className={styles.item} style={{ cursor: "default" }}>
                       <span className={styles.topRow}>
                         <span className={styles.pill} style={{ "--c": STAGE_HEX[p.stage] ?? STAGE_HEX.closed } as React.CSSProperties}>

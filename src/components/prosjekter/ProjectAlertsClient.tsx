@@ -1,27 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import ProjectPortal from "./ProjectPortal";
 import ProjectVersion from "./ProjectVersion";
 import PublicProjectExplorer from "./PublicProjectExplorer";
 
-import { CARD, EYEBROW, MUTED, PRIMARY, SECONDARY, STAGE_COLOR, tint } from "@/components/prosjekter/ui";
+import { CARD, EYEBROW, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import { isSentProjectPath } from "@/lib/prosjekter/access";
-import { domainsOf } from "@/lib/prosjekter/domains";
+import { filtersFrom } from "@/lib/prosjekter/types";
 import {
-  cleanDescription,
   domainChoices,
-  domainsNo,
   formatDateNo,
   FREQUENCIES,
   FREQUENCY_NO,
-  keyDateNo,
-  placeNo,
   regionChoices,
-  stageNo,
-  valueNo,
   type AlertProject,
   type Frequency,
 } from "@/lib/prosjekter/format";
@@ -29,11 +24,12 @@ import {
 /**
  * A client's own page of projects, ported from the ATS page of the same name.
  *
- * A heading with their company, three counts that filter, domain chips, a
- * sort, and one card per project with its owner, place, value, date and
- * contractor; a short description that opens; and "Gå til konkurransen" while
- * a tender is open. On a first visit it is the thank-you and the yes: how
- * often, which domains, which counties. The source is never named.
+ * A heading with their company, then the same map and list he sees on
+ * /prosjekter (his ask, 9 November 2026), with the client's own projects:
+ * named, with owner, place, value, date and contractor, a short description
+ * that opens, and "Gå til konkurransen" while a tender is open. "Ny" keeps the
+ * explorer. On a first visit it is the thank-you and the yes: how often, which
+ * domains, which counties. The source is never named.
  *
  * The choices open in a dialog, never on the page (the owner's decision of
  * 29 September 2026): "Velg og bekreft" for an invited client, opened by
@@ -93,8 +89,7 @@ function markChoicesSeen(token: string) {
   }
 }
 
-type SortKey = "new" | "value" | "deadline";
-type StageKey = "all" | "planned" | "tender" | "awarded";
+const PORTAL_FILTERS = filtersFrom({});
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -165,88 +160,6 @@ function Choices({
   );
 }
 
-function ProjectCard({ p }: { p: AlertProject }) {
-  const [open, setOpen] = useState(false);
-  const description = cleanDescription(p.description, open ? 2000 : 220);
-  const value = valueNo(p);
-  const date = keyDateNo(p);
-  const stage = stageNo(p);
-  const place = placeNo(p);
-  const color = STAGE_COLOR[p.stage] ?? "rgba(255,255,255,0.2)";
-  return (
-    <article className={`${CARD} flex flex-col overflow-hidden`}>
-      <div className="h-1" style={{ background: color }} aria-hidden />
-      <div className="flex flex-1 flex-col gap-3 p-5">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="rounded-full px-2.5 py-1 font-semibold" style={{ color, background: tint(color) }}>
-            {stage}
-          </span>
-          {domainsNo(p)
-            .slice(0, 2)
-            .map((d) => (
-              <span key={d} className="rounded-full border border-white/10 px-2.5 py-1 text-white/60">
-                {d}
-              </span>
-            ))}
-        </div>
-        <h3 className="text-base font-semibold leading-snug text-white">
-          {p.project_no !== null ? <span className="mr-1.5 font-mono text-[13px] font-normal text-white/45">#{p.project_no}</span> : null}
-          {p.title}
-        </h3>
-        <dl className="grid grid-cols-[92px_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[13px]">
-          {p.buyer_name ? (
-            <>
-              <dt className="text-white/55">Byggherre</dt>
-              <dd className="text-white">{p.buyer_name}</dd>
-            </>
-          ) : null}
-          {place ? (
-            <>
-              <dt className="text-white/55">Sted</dt>
-              <dd className="text-white">{place}</dd>
-            </>
-          ) : null}
-          {value ? (
-            <>
-              <dt className="text-white/55">Verdi</dt>
-              <dd className="font-semibold tabular-nums text-white">{value}</dd>
-            </>
-          ) : null}
-          {date ? (
-            <>
-              <dt className="text-white/55">Dato</dt>
-              <dd className="text-white">{date.replace(/^(Tilbudsfrist|Oppstart|Kunngjort) /, (m) => `${m.trim()}: `)}</dd>
-            </>
-          ) : null}
-          {p.winners.length ? (
-            <>
-              <dt className="text-white/55">Entreprenør</dt>
-              <dd className="font-medium text-white">{p.winners.map((w) => w.name).join(", ")}</dd>
-            </>
-          ) : null}
-        </dl>
-        {description ? (
-          <p className={`text-[13px] leading-relaxed ${MUTED}`}>
-            {description}{" "}
-            {(p.description ?? "").length > 220 ? (
-              <button type="button" onClick={() => setOpen((o) => !o)} className="font-semibold text-gold hover:underline">
-                {open ? "Vis mindre" : "Les mer"}
-              </button>
-            ) : null}
-          </p>
-        ) : null}
-        {p.documents_url && /^https?:\/\//i.test(p.documents_url) ? (
-          <div className="mt-auto pt-1">
-            <a href={p.documents_url} target="_blank" rel="noopener noreferrer" className={`${PRIMARY} min-h-[44px] px-5 text-sm`}>
-              Gå til konkurransen
-            </a>
-          </div>
-        ) : null}
-      </div>
-    </article>
-  );
-}
-
 export default function ProjectAlertsClient({ token }: { token: string }) {
   const [sub, setSub] = useState<Sub | null>(null);
   const [projects, setProjects] = useState<AlertProject[]>([]);
@@ -259,9 +172,6 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
   const [regions, setRegions] = useState<string[]>([]);
   const [choicesOpen, setChoicesOpen] = useState(false);
   const [confirmUnsub, setConfirmUnsub] = useState(false);
-  const [stage, setStage] = useState<StageKey>("all");
-  const [domain, setDomain] = useState<string>("all");
-  const [sort, setSort] = useState<SortKey>("new");
   const [daysLeft, setDaysLeft] = useState<number | null>(null);
   const [sent, setSent] = useState<SentProject[]>([]);
 
@@ -327,32 +237,6 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
       setBusy(false);
     }
   };
-
-  const counts = useMemo(
-    () => ({
-      planned: projects.filter((p) => p.stage === "planned").length,
-      tender: projects.filter((p) => p.stage === "tender").length,
-      awarded: projects.filter((p) => p.stage === "awarded").length,
-    }),
-    [projects],
-  );
-  const presentDomains = useMemo(() => {
-    const seen = new Set<string>();
-    for (const p of projects) for (const d of domainsOf(p.cpv_codes)) seen.add(d);
-    return domainChoices().filter((d) => seen.has(d.key));
-  }, [projects]);
-  const shown = useMemo(() => {
-    const list = projects.filter(
-      (p) =>
-        (stage === "all" || p.stage === stage) &&
-        (domain === "all" || domainsOf(p.cpv_codes).some((d) => d === domain)),
-    );
-    const v = (p: AlertProject) => p.awarded_value_nok ?? p.estimated_value_nok ?? -1;
-    const d = (p: AlertProject) => (p.deadline_at ? Date.parse(p.deadline_at) : Infinity);
-    if (sort === "value") return [...list].sort((a, b) => v(b) - v(a));
-    if (sort === "deadline") return [...list].filter((p) => p.stage === "tender").sort((a, b) => d(a) - d(b));
-    return list;
-  }, [projects, stage, domain, sort]);
 
   const freeMonths = sub ? Math.max(1, Math.round(sub.free_days / 30.44)) : 1;
 
@@ -441,73 +325,7 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
         {sub && sub.status === "active" ? (
           <>
             <ProjectVersion modern={<PublicProjectExplorer subscriberProjects={projects} />}>
-            <div className="flex flex-col gap-8">
-            <section className="grid grid-cols-3 gap-2 sm:gap-4" aria-label="Oversikt">
-              {(
-                [
-                  ["planned", "Planlagt", counts.planned],
-                  ["tender", "Åpne konkurranser", counts.tender],
-                  ["awarded", "Tildelt", counts.awarded],
-                ] as const
-              ).map(([key, label, n]) => {
-                const on = stage === key;
-                const color = STAGE_COLOR[key];
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => setStage(on ? "all" : key)}
-                    className={`${CARD} flex min-h-[88px] flex-col items-start justify-between gap-2 p-3 text-left transition-colors hover:border-white/25 sm:p-5 ${
-                      on ? "border-transparent ring-2" : ""
-                    }`}
-                    style={on ? ({ "--tw-ring-color": color } as React.CSSProperties) : undefined}
-                  >
-                    <span className="text-[26px] font-semibold leading-none tabular-nums sm:text-4xl" style={{ color }}>
-                      {n}
-                    </span>
-                    <span className="text-[12px] leading-tight text-white/70 sm:text-sm">{label}</span>
-                  </button>
-                );
-              })}
-            </section>
-
-            <section className="flex flex-col gap-3" aria-label="Filter">
-              <div className="flex flex-wrap gap-2">
-                <Chip on={domain === "all"} onClick={() => setDomain("all")}>
-                  Alle fagområder
-                </Chip>
-                {presentDomains.map((d) => (
-                  <Chip key={d.key} on={domain === d.key} onClick={() => setDomain(domain === d.key ? "all" : d.key)}>
-                    {d.label}
-                  </Chip>
-                ))}
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className={`text-xs ${MUTED}`}>Sorter:</span>
-                <Chip on={sort === "new"} onClick={() => setSort("new")}>
-                  Nyeste
-                </Chip>
-                <Chip on={sort === "value"} onClick={() => setSort("value")}>
-                  Høyest verdi
-                </Chip>
-                <Chip on={sort === "deadline"} onClick={() => setSort("deadline")}>
-                  Snarest frist
-                </Chip>
-              </div>
-            </section>
-
-            {shown.length === 0 ? (
-              <div className={`${CARD} p-6 text-sm ${MUTED}`}>Ingen prosjekter passer disse valgene akkurat nå.</div>
-            ) : (
-              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Prosjekter">
-                {shown.map((p) => (
-                  <ProjectCard key={p.id} p={p} />
-                ))}
-              </section>
-            )}
-
-            </div>
+              <ProjectPortal initial={null} initialFilters={PORTAL_FILTERS} subscriber={{ projects, company: sub.company_name }} />
             </ProjectVersion>
 
             {sent.length ? (

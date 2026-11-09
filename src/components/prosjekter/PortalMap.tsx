@@ -179,9 +179,11 @@ type Props = {
   onCluster?: (nos: number[]) => void;
   /** The last tap on a group: zooming would not split it any further, so its list can open. */
   onLastGroup?: (nos: number[]) => void;
+  /** A client's own map (9 November 2026): the tip names the project and its place; nothing is locked. */
+  subscriber?: boolean;
 };
 
-export default function PortalMap({ ref, visible, counts, county, onPickCounty, hover, onHover, onSelect, onCluster, onLastGroup }: Props) {
+export default function PortalMap({ ref, visible, counts, county, onPickCounty, hover, onHover, onSelect, onCluster, onLastGroup, subscriber = false }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
@@ -893,7 +895,7 @@ export default function PortalMap({ ref, visible, counts, county, onPickCounty, 
           style={{ left: -9999, top: 0 }}
           role="status"
         >
-          {tipCluster ? <TipBody c={tipCluster} /> : null}
+          {tipCluster ? <TipBody c={tipCluster} subscriber={subscriber} /> : null}
         </div>
       </div>
       <p className={styles.credit}>Kartdata: © Kartverket</p>
@@ -914,24 +916,26 @@ const tradeOf = (p: { d: string[] }) => {
   return null;
 };
 
-function TipBody({ c }: { c: Cluster }) {
+function TipBody({ c, subscriber = false }: { c: Cluster; subscriber?: boolean }) {
   if (c.members.length === 1) {
     const p = c.members[0];
     const band = valueBand(p.v);
     const trade = tradeOf(p);
+    const county = COUNTIES[p.r]?.n ?? "";
     return (
       <>
         <span className={styles.pill} style={{ "--c": STAGE_HEX[p.st] } as React.CSSProperties}>
           {STAGE_LABEL[p.st]}
         </span>
-        <h4>{COUNTIES[p.r]?.n ?? ""}</h4>
+        <h4>{subscriber && p.t ? p.t : county}</h4>
+        {subscriber && p.t ? <div className={styles.tipRow}><span style={{ color: "var(--text-2)" }}>{[p.c, county].filter(Boolean).join(", ")}</span></div> : null}
         {trade || band ? (
           <div className={styles.tipRow}>
             <span style={{ color: "var(--text-2)" }}>{trade ?? ""}</span>
             <span className={styles.num}>{band ?? ""}</span>
           </div>
         ) : null}
-        <LockLine />
+        {subscriber ? null : <LockLine />}
       </>
     );
   }
