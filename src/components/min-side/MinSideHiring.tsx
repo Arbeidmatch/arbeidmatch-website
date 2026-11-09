@@ -1111,16 +1111,16 @@ export function FirmsView({ table, loading, error, locks, busyOrg, onOpen, onCyc
   const rowTone = (r: ClientTableRow) => (r.recommended ? "bg-[#FBF6E8]" : "");
   return (
     <div className={`flex min-w-0 flex-col gap-4 ${loading ? "opacity-60" : ""}`} aria-busy={loading || undefined}>
-      <table className="hidden w-full table-fixed border-collapse text-sm sm:table" data-firms-table="" data-hiring-table="" data-tier={table.tier}>
+      <table className="hidden w-full table-auto border-collapse text-sm sm:table" data-firms-table="" data-hiring-table="" data-tier={table.tier}>
         <thead>
           <tr>
-            <th className={`${TH_L} w-[44px]`}>#</th>
-            <th className={`${TH_L} w-[26%]`}>Bedrift</th>
+            <th className={`${TH_L} w-8`}>#</th>
+            <th className={`${TH_L} min-w-[150px]`}>Bedrift</th>
             <th className={TH_L}>Sted</th>
             <th className={TH_L}>Fag</th>
             <th className={TH_L}>Behov</th>
-            <th className={`${TH_L} w-[110px]`}>Funnet</th>
-            <th className={`${TH_L} w-[128px]`}>Status</th>
+            <th className={TH_L}>Funnet</th>
+            <th className={TH_L}>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -1141,13 +1141,13 @@ export function FirmsView({ table, loading, error, locks, busyOrg, onOpen, onCyc
                 </button>
                 <SecondLine row={r} className={`mt-1 ${SOFT}`} />
               </td>
-              <td className={`break-words px-2 py-2.5 ${SOFT}`}>{place(r)}</td>
-              <td className={`break-words px-2 py-2.5 ${SOFT}`}>{r.trades.join(", ")}</td>
+              <td className={`px-2 py-2.5 ${SOFT}`}>{place(r)}</td>
+              <td className={`px-2 py-2.5 ${SOFT}`}>{r.trades.join(", ")}</td>
               <td className={`px-2 py-2.5 ${SOFT}`}>
                 <NeedCell need={r.need} locked={needLocked} />
               </td>
-              <td className={`px-2 py-2.5 ${SOFT}`}>{foundNo(r.found_at)}</td>
-              <td className="px-2 py-1.5">
+              <td className={`whitespace-nowrap px-2 py-2.5 text-xs ${SOFT}`}>{foundNo(r.found_at)}</td>
+              <td className="whitespace-nowrap px-2 py-1.5">
                 <StatusChip row={r} busy={busyOrg === r.orgnr} onCycle={() => onCycle(r)} />
               </td>
             </tr>
