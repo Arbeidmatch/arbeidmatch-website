@@ -87,7 +87,13 @@ export default function Footer() {
             className="text-[rgba(255,255,255,0.5)] no-underline hover:text-[rgba(255,255,255,0.85)]"
             loadingLabel=""
           />{" "}
-          · arbeidmatch.no
+          · arbeidmatch.no ·{" "}
+          <a
+            href="https://www.manom.no/invest/"
+            className="text-[rgba(255,255,255,0.5)] no-underline hover:text-[rgba(255,255,255,0.85)]"
+          >
+            Manom Invest
+          </a>
           {/* Company information (ehandelsloven section 8), the owner, 25 September 2026.
               Plain text, no link: see the note above about authority links. */}
           <p className="mt-1">
