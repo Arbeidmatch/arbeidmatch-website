@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: advert.titleNo,
     description: `${advert.titleEn}. ArbeidMatch recruits continuously for clients in our network in ${advert.countyName}. Register once and apply for jobs through us.`,
     alternates: { canonical: `/vi-soker/${advert.slug}` },
-    robots: { index: true, follow: true },
+    robots: advert.isTest ? { index: false, follow: false } : { index: true, follow: true },
     openGraph: { title: advert.titleNo, description: advert.titleEn, type: "website" },
   };
 }
@@ -50,13 +50,14 @@ function jsonLd(a: GeneralAdvert): string {
     title: a.titleEn,
     url: `${SITE}/vi-soker/${a.slug}`,
     identifier: { "@type": "PropertyValue", name: "ArbeidMatch", value: a.id },
-    description: `${a.bodyNo}\n\n${a.bodyEn}`.replace(/</g, "\\u003c"),
+    description: `${a.bodyNo}\n\n${a.bodyEn}`,
     datePosted: posted,
     validThrough: valid,
     hiringOrganization: { "@type": "Organization", name: "ArbeidMatch Norge AS", sameAs: SITE },
     jobLocation: { "@type": "Place", address: { "@type": "PostalAddress", addressRegion: a.countyName, addressCountry: "NO" } },
     directApply: false,
-  });
+    // Escaped whole, after stringify: no field can close the script tag.
+  }).replace(/</g, "\\u003c");
 }
 
 /** A paragraph with its address made a link: the registration line carries the department's link. */

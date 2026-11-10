@@ -11,6 +11,8 @@ import { atsBaseUrl } from "@/lib/jobs-fetch";
 
 export type GeneralAdvert = {
   id: string;
+  /** A TEST run's advert: shown so the check can read it back, never indexed. */
+  isTest?: boolean;
   slug: string;
   tradeKey: string;
   county: string;
