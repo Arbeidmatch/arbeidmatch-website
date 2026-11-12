@@ -1,0 +1,14 @@
+# Build outputs
+app/build/
+build/
+.gradle/
+*.aab
+*.apk
+*.idsig
+local.properties
+node_modules/
+# Keys and secrets never live here
+*.keystore
+*.jks
+*.dpapi
+*.env
