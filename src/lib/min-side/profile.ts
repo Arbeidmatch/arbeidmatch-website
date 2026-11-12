@@ -12,6 +12,7 @@
 import { domainLabel, isDomainKey } from "@/lib/prosjekter/domains";
 import { appStateFrom, type AppState } from "@/lib/min-side/app-prompt";
 import { NORWAY_REGIONS } from "@/lib/prosjekter/regions";
+import { alertSettingsFrom, type AlertSettings } from "@/lib/min-side/alert-settings";
 
 export type Company = {
   name: string;
@@ -28,6 +29,8 @@ export type Company = {
   invoice_email: string;
   invoice_ehf: boolean;
   invoice_reference: string;
+  /** ORDER 273: the firm's website, edited in place on Firma; "" from an ATS that does not send it. */
+  website: string;
 };
 
 export type Contact = { id: string; full_name: string; role: string; email: string; phone: string; mine: boolean };
@@ -61,6 +64,10 @@ export type MinSideProject = {
   winners: string[];
   /** ORDER 101: the project's town, the real one or one derived by the ATS; null shows "Sted ikke oppgitt". */
   place: string | null;
+  /** ORDER 273: when we first saw it (the "Ny" tag), the expected start, and its finishing trades; empty from an older ATS. */
+  first_seen_at?: string | null;
+  start_on?: string | null;
+  trades?: string[];
 };
 
 /** ORDER 100: the subscription's fields (domain keys) and counties (NUTS codes), to preset the staffing request. */
@@ -85,6 +92,10 @@ export type Alerts = {
   city_question?: CityQuestion | null;
   /** ORDER 101: YYYY-MM-DD, the last day of a free trial; null when the alerts are not a trial. */
   trial_until?: string | null;
+  /** ORDER 273: when the last letter went; a project first seen after it is "Ny". Null: no tag. */
+  last_sent_at?: string | null;
+  /** ORDER 273: what the client receives, set in Min side; null without an active subscription. */
+  settings?: AlertSettings | null;
 };
 
 /** ORDER 101: our contact person, shown at the side of Min side. */
@@ -129,6 +140,8 @@ export type Profile = {
   messages: Message[];
   /** ORDER 272: whether the Forsprang app may be offered; null from an older ATS, which offers nothing. */
   app: AppState | null;
+  /** ORDER 273: whether the access has a key, and until when "Senere" keeps the key dialog away; null from an older ATS. */
+  security: { has_passkey: boolean; prompt_dismissed_until: string | null } | null;
 };
 
 /** ORDER 236: one message, as it was approved, its buttons kept as buttons. */
@@ -237,6 +250,9 @@ function projectsFrom(raw: unknown): MinSideProject[] {
       documents_url: httpsLink(p.documents_url),
       winners: strings(p.winners, 10, 120),
       place: str(p.place, 80).trim() || null,
+      first_seen_at: typeof p.first_seen_at === "string" && Number.isFinite(Date.parse(p.first_seen_at)) ? p.first_seen_at.slice(0, 40) : null,
+      start_on: day(p.start_on),
+      trades: strings(p.trades, 10, 40),
     }))
     .slice(0, 200);
 }
@@ -290,6 +306,8 @@ function alertsFrom(a: Record<string, unknown>): Alerts {
     next_city_change: day(a.next_city_change),
     city_question: cityQuestionFrom(a.city_question),
     trial_until: day(a.trial_until),
+    last_sent_at: typeof a.last_sent_at === "string" && Number.isFinite(Date.parse(a.last_sent_at)) ? a.last_sent_at.slice(0, 40) : null,
+    settings: alertSettingsFrom(a.settings),
   };
 }
 
@@ -326,6 +344,7 @@ export function profileFrom(raw: unknown): Profile | null {
       invoice_email: str(c.invoice_email, 254),
       invoice_ehf: c.invoice_ehf === true,
       invoice_reference: str(c.invoice_reference, 120),
+      website: str(c.website, 200),
     },
     contacts: list(r.contacts)
       .filter((k) => typeof k.id === "string")
@@ -365,6 +384,7 @@ export function profileFrom(raw: unknown): Profile | null {
       .map((k) => ({ title: str(k.title, 200), sent_at: typeof k.sent_at === "string" ? k.sent_at : null, state: str(k.state, 60), url: ownLink(k.url) }))
       .slice(0, 50),
     app: appStateFrom(r.app),
+    security: securityFrom(r.security),
     messages: list(r.messages)
       .filter((m) => isMessageId(m.id) && typeof m.created_at === "string")
       .map((m) => ({
@@ -392,6 +412,14 @@ export function profileFrom(raw: unknown): Profile | null {
     contact_person: contactPersonFrom(r.contact_person),
     hiring: hiringFrom(r.hiring),
   };
+}
+
+/** ORDER 273: the key state, read strictly; anything else is "unknown" and opens no key dialog. */
+function securityFrom(raw: unknown): Profile["security"] {
+  const r = (raw && typeof raw === "object" ? raw : null) as Record<string, unknown> | null;
+  if (!r || typeof r.has_passkey !== "boolean") return null;
+  const until = typeof r.prompt_dismissed_until === "string" && Number.isFinite(Date.parse(r.prompt_dismissed_until)) ? r.prompt_dismissed_until.slice(0, 40) : null;
+  return { has_passkey: r.has_passkey, prompt_dismissed_until: until };
 }
 
 /** 912345678 as the register prints it: 912 345 678. */
@@ -464,30 +492,36 @@ export function addressLine(street: string, postcode: string, town: string): str
  * "Fakturaopplysninger" is where invoices are sent; "Fakturaer" is the
  * invoices themselves. They are two sections because they are two questions.
  */
-export type SectionKey = "firma" | "fakturaopplysninger" | "kontakter" | "meldinger" | "kandidater" | "tilbud" | "timelister" | "fakturaer" | "dokumenter" | "varsler" | "ansetter";
+export type SectionKey = "firma" | "fakturaopplysninger" | "kontakter" | "meldinger" | "kandidater" | "tilbud" | "timelister" | "fakturaer" | "dokumenter" | "varsler" | "ansetter" | "innlogging";
 
 export type SectionGroup = "firmaet" | "samarbeidet";
+// ORDER 273: what passes between us first, with Prosjektvarsler at its top; the firm under it.
 export const SECTION_GROUPS: { key: SectionGroup; label: string }[] = [
-  { key: "firmaet", label: "Firmaet" },
   { key: "samarbeidet", label: "Samarbeidet med oss" },
+  { key: "firmaet", label: "Firmaet" },
 ];
 
-export const SECTIONS: { key: SectionKey; group: SectionGroup; label: string; about: string }[] = [
-  { key: "firma", group: "firmaet", label: "Firma", about: "Opplysningene vi har om firmaet deres." },
-  // The label carries a soft hyphen (written as its escape so it can be seen): on a phone the long word breaks at its joint.
-  { key: "fakturaopplysninger", group: "firmaet", label: "Faktura­opplysninger", about: "Hvor og hvordan fakturaene fra oss sendes." },
-  { key: "kontakter", group: "firmaet", label: "Kontaktpersoner", about: "Personene vi kan kontakte hos dere." },
+/**
+ * ORDER 273 (12 November 2026): the order of the iOS Settings list. `rare`
+ * sections sit under "Mer" on a phone, so its home list stays one screen.
+ */
+export const SECTIONS: { key: SectionKey; group: SectionGroup; label: string; about: string; rare?: boolean }[] = [
   // His order, 9 November 2026: Prosjektvarsler first under Samarbeidet med oss, Bedrifter som ansetter second.
   { key: "varsler", group: "samarbeidet", label: "Prosjektvarsler", about: "Varslene om bygg- og anleggsprosjekter, og abonnementet." },
   // ORDER 157: only in the list for a person with hiring alerts (visibleSections).
   { key: "ansetter", group: "samarbeidet", label: "Bedrifter som ansetter", about: "Firmaer som ansetter i fylkene og fagene deres." },
-  // ORDER 236: what our e-mails announce; the e-mail itself only says a message is waiting.
-  { key: "meldinger", group: "samarbeidet", label: "Meldinger", about: "Meldingene fra ArbeidMatch til deg. Alt blir liggende her." },
-  { key: "kandidater", group: "samarbeidet", label: "Kandidater", about: "Kandidatene vi har presentert for deg." },
   { key: "tilbud", group: "samarbeidet", label: "Tilbud", about: "Tilbud fra oss til deg: de som venter på svar, og de som er besvart." },
-  { key: "timelister", group: "samarbeidet", label: "Timelister", about: "Timelistene du skal signere, og de du har signert." },
-  { key: "fakturaer", group: "samarbeidet", label: "Fakturaer", about: "Fakturaene fra oss til firmaet, med status." },
-  { key: "dokumenter", group: "samarbeidet", label: "Signerte dokumenter", about: "Avtaler og tilbud du har signert hos oss, som PDF." },
+  { key: "kandidater", group: "samarbeidet", label: "Kandidater", about: "Kandidatene vi har presentert for deg.", rare: true },
+  { key: "timelister", group: "samarbeidet", label: "Timelister", about: "Timelistene du skal signere, og de du har signert.", rare: true },
+  // ORDER 236: what our e-mails announce; the e-mail itself only says a message is waiting.
+  { key: "meldinger", group: "samarbeidet", label: "Meldinger", about: "Meldingene fra oss til deg. Alt blir liggende her." },
+  { key: "fakturaer", group: "samarbeidet", label: "Fakturaer", about: "Fakturaene fra oss til firmaet, med status.", rare: true },
+  { key: "firma", group: "firmaet", label: "Firma", about: "Opplysningene vi har om firmaet deres." },
+  { key: "fakturaopplysninger", group: "firmaet", label: "Faktura", about: "Hvor og hvordan fakturaene fra oss sendes.", rare: true },
+  { key: "kontakter", group: "firmaet", label: "Kontaktpersoner", about: "Personene vi kan kontakte hos dere.", rare: true },
+  { key: "dokumenter", group: "firmaet", label: "Signerte dokumenter", about: "Avtaler og tilbud du har signert hos oss, som PDF.", rare: true },
+  // ORDER 273: the passkeys, moved out of Firma.
+  { key: "innlogging", group: "firmaet", label: "Innlogging", about: "Logg inn med fingeravtrykk, ansikt eller PIN på denne enheten." },
 ];
 
 /** The sections this person's list shows: "Bedrifter som ansetter" only with hiring alerts. */
@@ -497,7 +531,8 @@ export function visibleSections(p: Pick<Profile, "hiring">): typeof SECTIONS {
 
 /** The section an address asks for (#fakturaer), or null for anything else, a dialog's hash included. */
 export function sectionFromHash(hash: string): SectionKey | null {
-  const key = hash.replace(/^#/, "");
+  // ORDER 273: "#varsler/<id>" and "#varsler/innstillinger" are still the alerts section.
+  const key = hash.replace(/^#/, "").split("/")[0];
   // A link made before the invoice details got their longer name.
   if (key === "faktura") return "fakturaopplysninger";
   return SECTIONS.some((s) => s.key === key) ? (key as SectionKey) : null;
@@ -510,6 +545,7 @@ export function sectionHint(key: SectionKey, p: Profile): string {
   if (key === "firma") return p.company.city || "Adresse og kontakt";
   if (key === "fakturaopplysninger") return p.company.invoice_ehf ? "EHF" : p.company.invoice_email ? "På e-post" : "Ikke oppgitt";
   if (key === "kontakter") return count(p.contacts.length, "person", "personer", "Ingen registrert");
+  if (key === "innlogging") return p.security?.has_passkey ? "Passkey aktivert" : "Passkey ikke aktivert";
   if (key === "meldinger") {
     const unread = unreadMessages(p);
     return unread ? count(unread, "ny melding", "nye meldinger", "") : count(p.messages.length, "melding", "meldinger", "Ingen ennå");
@@ -584,6 +620,9 @@ export function staffingPrefill(alerts: Alerts | null): { trade: string; place: 
 
 export type StaffingPrefill = { trade: string; place: string; note?: string };
 
+/** ORDER 273: the four finishing trades in Norwegian. */
+export const FINISHING_TRADE_NO: Record<string, string> = { painting: "Maling", carpentry: "Tømrer", floors: "Gulv og flis", glazing: "Glass" };
+
 /**
  * "Be om folk" on one project (ORDER 101): the request opens with the
  * project's own trades in Norwegian, its town, and its title in the note. What
@@ -591,7 +630,9 @@ export type StaffingPrefill = { trade: string; place: string; note?: string };
  */
 export function projectPrefill(p: MinSideProject, alerts: Alerts | null): Required<StaffingPrefill> {
   const base = staffingPrefill(alerts);
-  const trades = p.domains.filter(isDomainKey).map((d) => domainLabel(d, "no"));
+  // ORDER 273: a finishing project names its own trade (Maling, Tømrer ...), not the whole of finishing.
+  const own = (p.trades ?? []).map((t) => FINISHING_TRADE_NO[t]).filter((x): x is string => Boolean(x));
+  const trades = own.length ? own : p.domains.filter(isDomainKey).map((d) => domainLabel(d, "no"));
   return { trade: trades.length ? trades.slice(0, 3).join(", ") : base.trade, place: p.place ?? base.place, note: `Prosjekt: ${p.title}`.slice(0, 1000) };
 }
 

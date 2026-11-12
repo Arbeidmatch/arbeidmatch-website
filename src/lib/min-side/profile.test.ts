@@ -79,10 +79,10 @@ describe("Min side: the words on the page", () => {
 });
 
 describe("Min side: one section at a time", () => {
-  it("has eleven sections in two groups (the last only with hiring alerts), each with a name and a line that says what it is", async () => {
+  it("has twelve sections in two groups, Prosjektvarsler first (ORDER 273), each with a name and a line that says what it is", async () => {
     const { SECTIONS, SECTION_GROUPS } = await import("./profile");
-    expect(SECTIONS.map((s) => s.key)).toEqual(["firma", "fakturaopplysninger", "kontakter", "varsler", "ansetter", "meldinger", "kandidater", "tilbud", "timelister", "fakturaer", "dokumenter"]);
-    expect(SECTION_GROUPS.map((g) => g.key)).toEqual(["firmaet", "samarbeidet"]);
+    expect(SECTIONS.map((s) => s.key)).toEqual(["varsler", "ansetter", "tilbud", "kandidater", "timelister", "meldinger", "fakturaer", "firma", "fakturaopplysninger", "kontakter", "dokumenter", "innlogging"]);
+    expect(SECTION_GROUPS.map((g) => g.key)).toEqual(["samarbeidet", "firmaet"]);
     for (const s of SECTIONS) {
       expect(s.label.length).toBeGreaterThan(2);
       expect(s.about.endsWith(".")).toBe(true);

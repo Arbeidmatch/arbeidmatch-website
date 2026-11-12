@@ -99,6 +99,8 @@ export default function Navbar() {
   if (pathname?.startsWith("/flislegger")) return null;
   // The new front page under review carries its own header (29 October 2026).
   if (pathname === "/beta") return null;
+  // ORDER 273: Min side is the client's own app and carries its own header, never the site menu.
+  if (/^\/min-side\/[0-9a-f-]{36}/i.test(pathname ?? "")) return null;
   if (pathname === "/" || pathname === "/no") return <HomeNavigation key={pathname} lang="no" />;
 
   const navItemClass =

@@ -333,7 +333,7 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
             <div className={`${portalStyles.portal} relative left-1/2 w-screen -translate-x-1/2 rounded-2xl`}>
               <div className="mx-auto w-full max-w-[1440px] px-4 md:px-8">
                 <ProjectVersion modern={<PublicProjectExplorer subscriberProjects={projects} />}>
-                  <ProjectPortal initial={null} initialFilters={PORTAL_FILTERS} subscriber={{ projects, company: sub.company_name }} />
+                  <ProjectPortal initial={null} initialFilters={PORTAL_FILTERS} subscriber={{ projects, company: sub.company_name, token }} />
                 </ProjectVersion>
               </div>
             </div>
@@ -365,9 +365,12 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
                 Innstillinger: {sub.frequency ? FREQUENCY_NO[sub.frequency].toLowerCase() : ""}
                 {sub.domains.length ? `, ${sub.domains.length} fagområder` : ", alle fagområder"}
               </p>
-              <button type="button" className={SECONDARY} aria-haspopup="dialog" onClick={openChoices}>
+              {/* ORDER 273: the settings live in Min side now; an active subscription changes them there. */}
+              {/* A server redirect (route handler) to the person's own Min side, so a plain link and a full load. */}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a href="/min-side/innstillinger" className={SECONDARY}>
                 Endre valg
-              </button>
+              </a>
             </section>
           </>
         ) : null}

@@ -1,18 +1,45 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode, type TouchEvent } from "react";
 
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
-import MinSideProjects from "@/components/min-side/MinSideProjects";
-import MinSidePasskeys from "@/components/min-side/MinSidePasskeys";
+import {
+  Bell,
+  Briefcase,
+  Building2,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Contact as ContactIcon,
+  CreditCard,
+  FileSignature,
+  FileText,
+  KeyRound,
+  LogOut,
+  MessageSquare,
+  Phone,
+  Receipt,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+import MinSidePasskeys, { usePasskeysSupported } from "@/components/min-side/MinSidePasskeys";
 
 import { FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
+import { SupportButton } from "@/components/support/SupportRequest";
 import { MinSideWhatsNew } from "./MinSideWhatsNew";
 import { MinSideCityQuestion, MinSideContactCard } from "./MinSideCityQuestion";
 import MinSideHiring, { ConfirmForm, HiringStop, ProjectsTeaser, useProjectsTrial, type Fetched } from "./MinSideHiring";
 import { MinSideAppPrompt } from "./MinSideAppPrompt";
-import { BTN_GREEN, BTN_OUTLINE, CARD_L, GOLD_TEXT, INK, LINK_L, MUTED_L, RULE, SOFT } from "./ui";
+import MinSideAlerts from "./MinSideAlerts";
+import MinSideKeyDialog from "./MinSideKeyDialog";
+import { FakturaRows, FirmaRows, KontaktRows } from "./MinSideFirm";
+import { BODY, CARD, DANGER, GREY, GROUP, GROUP_HEAD, LARGE_TITLE, NAVY, NEW_BADGE, PAGE_BG, PILL, PILL_GREEN, ROW, ROW_BUTTON, SMALL } from "./ios";
+import { alertSettingsFrom } from "@/lib/min-side/alert-settings";
+import { VISIT_POPUP_KEY } from "@/lib/min-side/app-prompt";
+import { decideKeyDialog, keyPromptAsked, withoutKeyPrompt } from "@/lib/min-side/key-prompt";
+import { INITIAL_LIST, isNew, varslerHash, varslerRoute, type ListState, type VarslerRoute } from "@/lib/min-side/project-list";
 import {
   PLAN_CONFIRMATION,
   SECTIONS,
@@ -22,8 +49,6 @@ import {
   hiringSubtitle,
   showsProjectsTeaser,
   visibleSections,
-  addressLine,
-  alertCitiesRequest,
   alertsWords,
   cityQuestionRequest,
   dayNo,
@@ -31,12 +56,11 @@ import {
   projectPrefill,
   staffingPrefill,
   kronerNo,
-  orgNumberNo,
   profileFrom,
   sectionFromHash,
   sectionHint,
+  telHref,
   unreadMessages,
-  type Company,
   type Contact,
   type Profile,
   type SectionKey,
@@ -47,53 +71,47 @@ import {
  * "Min side": a client's own page (the owner's decision of 30 September 2026,
  * a client has a profile like a candidate, with the details we hold).
  *
- * ONE THING AT A TIME. His word the same day, on the first version that showed
- * everything as cards on one sheet: "sa nu fie amestecate toate ... sa fie bine
- * impartite ca sa nu creeze confuzie". So the page is sections with a list of
- * them at the side (above, on a phone), and only the chosen one is on screen.
- * Each says in one line what it is, and has one thing to do. The firm and its
- * invoice details are two sections with two forms, because they are two
- * questions.
+ * ONE THING AT A TIME. His word the same day: "sa nu fie amestecate toate ...
+ * sa fie bine impartite ca sa nu creeze confuzie". So the page is sections, and
+ * only the chosen one is on screen.
  *
- * Nine sections since the same evening, in two groups: what the firm is (the
- * firm, where invoices are sent, the contact persons) and what passes between
- * us (candidates, offers, timesheets, invoices, signed documents, project
- * alerts). The three that came last show what the ATS sends for this person:
- * the timelister they sign, the firm's invoices for its invoice address, the
- * candidate presentations addressed to them.
+ * ORDER 273 (12 November 2026) gave it the iOS / iPadOS Settings look, his
+ * words: "dar setarile vreau sa fie mai dinamice ca in meniul unui mobil ios",
+ * "putem face tot min side in directia asta? da". On a computer (1024px and
+ * up) two panes on #F2F2F7: the grouped list on the left with the firm on top,
+ * the open section on the right with a large title. On a phone the grouped
+ * list is the home and each row pushes its screen from the right, with
+ * "‹ Min side" and a swipe back. Prosjektvarsler comes first and is what opens
+ * when the address names no section. No site menu ("iar la minside ei nu
+ * trebuie sa vada meniul de la site"); the company's name only in the logo and
+ * the footer ("nu repeta arbeidmatch de multe ori pe o singura pagina").
  *
- * The firm's name and number are the register's and are not changed here; a
- * person changes their own entry among the contacts and asks us about a
- * colleague's. What is saved is saved with us at once.
- *
- * Every form opens in a dialog, never on the page (his decision of 29
- * September 2026). Every control is at least 44px tall.
+ * The address carries where the person is (#varsler, #varsler/<id>,
+ * #varsler/innstillinger, #firma, #hjem), so Back and a reload work.
  */
 
 const PortalModal = dynamic(() => import("@/components/prosjekter/PortalModal"), { ssr: false });
 
-const LABEL = `text-xs font-semibold uppercase tracking-[0.12em] ${MUTED_L}`;
-/** The green of the approved visual for "Planlegg bemanning med oss" (ORDER 100): asking us for people. */
-const PLAN_BUTTON = `${BTN_GREEN} min-h-[48px] px-[22px]`;
-const LINK = LINK_L;
-/** List rows on the white page. */
-const DIVIDE = "divide-y divide-[#EFEBE2]";
+/** The trust line of the footer. "Godkjent bemanningsforetak": Arbeidstilsynet's register reads Godkjent for org.nr 935 667 089 (checked 13 October 2026). */
+const FOOTER_LINE = "ArbeidMatch Norge AS · Godkjent bemanningsforetak · Org.nr 935 667 089";
 
-/**
- * The trust line of the final design. "Godkjent bemanningsforetak" is written
- * because Arbeidstilsynet's register reads Godkjent for org.nr 935 667 089
- * (checked 13 October 2026, data.arbeidstilsynet.no/bemanningsforetaksregisteret2).
- */
-const TRUST_LINE = ["Godkjent bemanningsforetak · Org.nr 935 667 089", "Fagfolk innen bygg og anlegg i Trøndelag"];
+/** Each row's 28px rounded icon and its colour, as in the iOS Settings list. */
+const ICONS: Record<SectionKey, { icon: LucideIcon; bg: string }> = {
+  varsler: { icon: Bell, bg: "#1B2B44" },
+  ansetter: { icon: Building2, bg: "#2F6FB0" },
+  tilbud: { icon: FileText, bg: "#7A5AB5" },
+  kandidater: { icon: Users, bg: "#2E9E6B" },
+  timelister: { icon: Clock, bg: "#D9822B" },
+  meldinger: { icon: MessageSquare, bg: "#3A8FD9" },
+  fakturaer: { icon: Receipt, bg: "#5A6B80" },
+  firma: { icon: Briefcase, bg: "#4A5A70" },
+  fakturaopplysninger: { icon: CreditCard, bg: "#3F8A8A" },
+  kontakter: { icon: ContactIcon, bg: "#8A6D3B" },
+  dokumenter: { icon: FileSignature, bg: "#6B6B70" },
+  innlogging: { icon: KeyRound, bg: "#4B5563" },
+};
 
-function Row({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-0.5 sm:grid sm:grid-cols-[170px_minmax(0,1fr)] sm:gap-4">
-      <dt className={LABEL}>{label}</dt>
-      <dd className={`min-w-0 break-words text-[15px] ${INK}`}>{children}</dd>
-    </div>
-  );
-}
+const LG = "(min-width: 1024px)";
 
 function Field({ id, label, children, error }: { id: string; label: string; children: ReactNode; error?: string | null }) {
   return (
@@ -111,16 +129,18 @@ function Field({ id, label, children, error }: { id: string; label: string; chil
   );
 }
 
-/** One section on screen: its name, the line that says what it is, its one action, and what it holds. */
-function Panel({ section, action, lead, about, children }: { section: SectionKey; action?: ReactNode; lead?: ReactNode; about?: ReactNode; children: ReactNode }) {
+/** One section on screen: the large title, the one line that says what it is, its one action, and what it holds. */
+function Screen({ section, action, lead, about, children }: { section: SectionKey; action?: ReactNode; lead?: ReactNode; about?: ReactNode; children: ReactNode }) {
   const meta = SECTIONS.find((s) => s.key === section)!;
   return (
-    <section id={`ms-panel-${section}`} role="tabpanel" aria-labelledby={`ms-tab-${section}`} className={`${CARD_L} flex min-w-0 flex-col gap-5 p-5 sm:p-6`}>
+    <section id={`ms-panel-${section}`} aria-labelledby={`ms-title-${section}`} className="flex min-w-0 flex-col gap-5">
       {lead}
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <h2 className={`text-xl font-semibold ${INK}`}>{meta.label}</h2>
-          <p className={`mt-1 text-sm ${MUTED_L}`}>{about ?? meta.about}</p>
+          <h2 id={`ms-title-${section}`} className={`${LARGE_TITLE} ${NAVY}`}>
+            {meta.label}
+          </h2>
+          <p className={`mt-1 ${BODY} ${GREY}`}>{about ?? meta.about}</p>
         </div>
         {action}
       </div>
@@ -129,26 +149,48 @@ function Panel({ section, action, lead, about, children }: { section: SectionKey
   );
 }
 
-type Saved = { ok: true } | { ok: false; message: string; field: string | null };
-type Details = Record<string, string | boolean>;
-
-/** Everything about the firm that can be saved, as it stands now: a form sends its own part over this. */
-function detailsOf(c: Company): Details {
-  const all: Details = { ...c };
-  // The name and the number are the register's: they are shown and never sent.
-  delete all.name;
-  delete all.org_number;
-  return all;
+/** A plain list of things on a white card: a title, a grey line, and its one link. */
+function ListCard({ empty, items }: { empty: string; items: { key: string; title: ReactNode; line?: ReactNode; link?: { href: string; label: string } | null }[] }) {
+  if (!items.length) return <p className={`${CARD} p-5 ${BODY} ${GREY}`}>{empty}</p>;
+  return (
+    <ul className={GROUP}>
+      {items.map((it) => (
+        <li key={it.key} className={`${ROW} flex-wrap justify-between py-3`}>
+          <div className="min-w-0 flex-1">
+            <p className={`break-words font-semibold ${BODY} ${NAVY}`}>{it.title}</p>
+            {it.line ? <p className={`${SMALL} ${GREY}`}>{it.line}</p> : null}
+          </div>
+          {it.link ? (
+            <a href={it.link.href} className={`${PILL} md:min-h-[2rem]`}>
+              {it.link.label}
+            </a>
+          ) : null}
+        </li>
+      ))}
+    </ul>
+  );
 }
+
+type Saved = { ok: true } | { ok: false; message: string; field: string | null };
+
+const initials = (name: string) =>
+  name
+    .replace(/\b(AS|ASA|ANS|DA|ENK|SA)\b/g, "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toLocaleUpperCase("nb") ?? "")
+    .join("") || "?";
 
 export default function MinSideClient({ token }: { token: string }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
-  const [chosen, setSection] = useState<SectionKey>("firma");
-  const [editFirm, setEditFirm] = useState(false);
-  const [editInvoice, setEditInvoice] = useState(false);
+  // The address after "#": the one place that says where the person is.
+  const [hash, setHash] = useState("");
+  // Where the page opens when the address names no section: Prosjektvarsler, unless the first load says otherwise.
+  const [fallback, setFallback] = useState<SectionKey>("varsler");
   const [editContact, setEditContact] = useState<Contact | "new" | null>(null);
   const [askRemove, setAskRemove] = useState<Contact | null>(null);
   // ORDER 100/101: the staffing request, open with what it starts from (the subscription, or one project).
@@ -161,11 +203,21 @@ export default function MinSideClient({ token }: { token: string }) {
   const [hiringAgencyTab, setHiringAgencyTab] = useState(false);
   const [hiringFirm, setHiringFirm] = useState<string | null>(null);
   const [askClose, setAskClose] = useState(false);
+  // ORDER 273: the project list's state, kept above the detail so "Alle prosjekter" comes back to it.
+  const [list, setList] = useState<ListState>(INITIAL_LIST);
+  const [lastOpened, setLastOpened] = useState<string | null>(null);
+  const [scrollBack, setScrollBack] = useState<number | null>(null);
+  const savedScroll = useRef(0);
+  const [keyDialog, setKeyDialog] = useState(false);
+  const [keyCount, setKeyCount] = useState<number | null>(null);
+  const supported = usePasskeysSupported();
   // Whether the address chose a section itself: then the first load does not move to the hiring terms.
   const addressChose = useRef(false);
   const firstLoad = useRef(true);
   const viewedSent = useRef(false);
   const readSent = useRef(false);
+  const keyAsked = useRef(false);
+  const touch = useRef<{ x: number; y: number } | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -182,12 +234,12 @@ export default function MinSideClient({ token }: { token: string }) {
       }
       setError(null);
       setProfile(parsed);
-      // ORDER 157: hiring alerts with terms not yet accepted open their section on the first load.
       if (firstLoad.current) {
         firstLoad.current = false;
-        if (parsed.hiring && !parsed.hiring.terms.accepted && !addressChose.current) setSection("ansetter");
+        // ORDER 157: hiring alerts with terms not yet accepted open their section on the first load.
+        if (parsed.hiring && !parsed.hiring.terms.accepted && !addressChose.current) setFallback("ansetter");
         // ORDER 236: our e-mail only said a message is waiting, so a new one is what opens first.
-        else if (unreadMessages(parsed) > 0 && !addressChose.current) setSection("meldinger");
+        else if (unreadMessages(parsed) > 0 && !addressChose.current) setFallback("meldinger");
       }
     } catch {
       setError("Siden kunne ikke hentes akkurat nå. Prøv igjen om litt.");
@@ -200,49 +252,55 @@ export default function MinSideClient({ token }: { token: string }) {
     void load();
   }, [load]);
 
+  /** Go somewhere on the page: a new entry in the history (Back returns), or in place of the current one. */
+  const navigate = useCallback((next: string, mode: "push" | "replace" = "push") => {
+    const { pathname, search } = window.location;
+    const url = `${pathname}${search}${next}`;
+    if (mode === "push") window.history.pushState(window.history.state, "", url);
+    else window.history.replaceState(window.history.state, "", url);
+    setHash(next);
+  }, []);
+
   // The address remembers the section, so a reload or a link from us opens the same one.
   useEffect(() => {
-    const fromHash = sectionFromHash(window.location.hash);
-    if (fromHash) {
-      setSection(fromHash);
-      addressChose.current = true;
-    }
+    const start = window.location.hash;
+    if (sectionFromHash(start) || start === "#hjem") addressChose.current = true;
+    // ORDER 273: ?nokkel=1 from the login link is read once and taken out of the address.
+    keyAsked.current = keyPromptAsked(window.location.search);
+    if (keyAsked.current) window.history.replaceState(window.history.state, "", `${window.location.pathname}${withoutKeyPrompt(window.location.search)}${start}`);
     // ORDER 157: "Prøv prosjektvarsler" in the weekly letter (?hiring=projects) opens the hiring section at the projects card.
     const hiringIntent = hiringIntentFromSearch(window.location.search);
     // ORDER 244: ?firm=<orgnr> (a letter's firm button, or a shared address) opens that firm's card; the address keeps it while open.
     const firm = firmFromSearch(window.location.search);
+    let first = start;
     if (hiringIntent || firm) {
-      setSection("ansetter");
       // ORDER 220: ?hiring=agency (the weekly letter's second button) opens the tab "Via bemanningsbyrå".
       if (hiringIntent === "agency") setHiringAgencyTab(true);
       else if (hiringIntent === "projects") setHiringFocus(true);
       if (firm) setHiringFirm(firm);
       addressChose.current = true;
+      first = "#ansetter";
       window.history.replaceState(window.history.state, "", `${window.location.pathname}${firm ? `?firm=${firm}` : ""}#ansetter`);
     }
     // ORDER 100: a link from the weekly letter opens the staffing request (?plan=1) or the alerts (?alerts=1).
     const intent = intentFromSearch(window.location.search);
     if (intent) {
       addressChose.current = true;
-      setSection("varsler");
+      first = "#varsler";
       if (intent === "plan") setPlanPrefill("alerts");
       // Said once: a reload does not open the form again.
       window.history.replaceState(window.history.state, "", `${window.location.pathname}#varsler`);
     }
-    // A link to another section on the page, or the browser's back and forward, moves the section too.
-    const onHash = () => {
-      const next = sectionFromHash(window.location.hash);
-      if (next) setSection(next);
+    setHash(first);
+    // The browser's back and forward, and a link to another section, move the page too.
+    const onMove = () => setHash(window.location.hash);
+    window.addEventListener("hashchange", onMove);
+    window.addEventListener("popstate", onMove);
+    return () => {
+      window.removeEventListener("hashchange", onMove);
+      window.removeEventListener("popstate", onMove);
     };
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
   }, []);
-  const choose = (key: SectionKey) => {
-    setSection(key);
-    setNotice(null);
-    const { pathname, search } = window.location;
-    window.history.replaceState(window.history.state, "", `${pathname}${search}#${key}`);
-  };
 
   const send = async (body: Record<string, unknown>): Promise<Saved> => {
     try {
@@ -257,7 +315,7 @@ export default function MinSideClient({ token }: { token: string }) {
     }
   };
 
-  /** A POST whose answer the page needs back (the lead card); the page is not reloaded. */
+  /** A POST whose answer the page needs back (the lead card, the settings); the page is not reloaded. */
   const sendData = useCallback(
     async (body: Record<string, unknown>): Promise<Fetched> => {
       try {
@@ -273,8 +331,61 @@ export default function MinSideClient({ token }: { token: string }) {
   );
 
   const hiring = profile?.hiring ?? null;
+  const phoneHome = hash === "#hjem";
+  const chosen: SectionKey = sectionFromHash(hash) ?? fallback;
   // A section the person cannot have (an old link to the hiring section) shows the firm.
   const section: SectionKey = chosen === "ansetter" && !hiring ? "firma" : chosen;
+  const route: VarslerRoute = useMemo(() => varslerRoute(hash) ?? { view: "list" }, [hash]);
+  // Whether the open project or settings level was pushed from the page below it in this visit: then going up is Back.
+  const pushedProject = useRef(false);
+  const pushedLevel = useRef(false);
+  const goVarsler = useCallback(
+    (next: VarslerRoute) => {
+      if (next.view === "project") {
+        setLastOpened(next.id);
+        if (route.view === "list") {
+          // Leaving the list: keep where it was scrolled.
+          savedScroll.current = window.scrollY;
+          pushedProject.current = true;
+          navigate(varslerHash(next), "push");
+        } else {
+          // Forrige / Neste replace the entry, so Back goes to the list and not through every project.
+          navigate(varslerHash(next), "replace");
+        }
+        return;
+      }
+      if (next.view === "list") {
+        if (route.view === "project") setScrollBack(savedScroll.current);
+        const back = route.view === "project" ? pushedProject : route.view === "settings" && !pushedLevel.current ? pushedProject : null;
+        if (back?.current) {
+          back.current = false;
+          window.history.back();
+          return;
+        }
+        navigate("#varsler", "replace");
+        return;
+      }
+      // Settings: from the list, or one level down, is a new screen; one level up is Back when it was pushed.
+      if (route.view === "list") {
+        pushedProject.current = true;
+        navigate(varslerHash(next), "push");
+      } else if (route.view === "settings" && route.level && !next.level && pushedLevel.current) {
+        pushedLevel.current = false;
+        window.history.back();
+      } else if (route.view === "settings" && !route.level && next.level) {
+        pushedLevel.current = true;
+        navigate(varslerHash(next), "push");
+      } else navigate(varslerHash(next), "replace");
+    },
+    [navigate, route],
+  );
+  // Back from a project with the browser's own button: the list comes back at its scroll too.
+  const prevView = useRef(route.view);
+  useEffect(() => {
+    if (prevView.current === "project" && route.view === "list" && scrollBack === null) setScrollBack(savedScroll.current);
+    prevView.current = route.view;
+  }, [route.view, scrollBack]);
+
   // ORDER 236: opening Meldinger marks what is there as read, once per visit.
   const unread = profile ? unreadMessages(profile) : 0;
   useEffect(() => {
@@ -293,6 +404,34 @@ export default function MinSideClient({ token }: { token: string }) {
     void sendData({ action: "hiring_viewed" });
   }, [section, hiring, sendData]);
 
+  // ORDER 273: the key dialog, once, after a login from the e-mail on an access with no key. It claims the visit
+  // before the install prompt can (app-prompt.ts ranks them), so only one window opens.
+  useEffect(() => {
+    if (!profile || !keyAsked.current) return;
+    keyAsked.current = false;
+    let shown: string | null = null;
+    try {
+      shown = window.sessionStorage.getItem(VISIT_POPUP_KEY);
+    } catch {
+      /* private window */
+    }
+    const open = decideKeyDialog({
+      asked: true,
+      hasPasskey: profile.security?.has_passkey ?? null,
+      supported,
+      dismissedUntil: profile.security?.prompt_dismissed_until ?? null,
+      now: Date.now(),
+      shownThisVisit: shown,
+    });
+    if (!open) return;
+    try {
+      window.sessionStorage.setItem(VISIT_POPUP_KEY, "key_dialog");
+    } catch {
+      /* it shows once all the same */
+    }
+    setKeyDialog(true);
+  }, [profile, supported]);
+
   const c = profile?.company ?? null;
   const words = alertsWords(profile?.alerts ?? null, profile?.free_alerts?.months ?? null);
   const [startingAlerts, setStartingAlerts] = useState(false);
@@ -303,17 +442,6 @@ export default function MinSideClient({ token }: { token: string }) {
     if (!done.ok) setNotice(done.message);
   };
   const plan = profile?.alerts?.plan ?? null;
-  const invoiceAddress = c ? (c.billing_same_as_address || !c.billing_address ? "Samme som firmaets adresse" : addressLine(c.billing_address, c.billing_postal_code, c.billing_city)) : "";
-  const editButton = (onClick: () => void) => (
-    <button type="button" className={BTN_OUTLINE} aria-haspopup="dialog" onClick={onClick}>
-      Endre
-    </button>
-  );
-  // ORDER 101: the towns of the alerts, saved with us; a refusal (409, too soon) comes back in the ATS's words.
-  const saveCities = async (cities: string[]) => {
-    const r = await send(alertCitiesRequest(cities));
-    return r.ok ? ({ ok: true } as const) : ({ ok: false, message: r.message } as const);
-  };
   const answerCityQuestion = async (answer: "yes" | "no") => {
     setAnswering(true);
     setQuestionError(null);
@@ -323,35 +451,142 @@ export default function MinSideClient({ token }: { token: string }) {
   };
   const prefill = planPrefill === "alerts" ? staffingPrefill(profile?.alerts ?? null) : planPrefill;
 
-  return (
-    <div className={`bg-white ${INK}`}>
-      <div className="container-site flex flex-col gap-6 pb-16 pt-10 md:pb-24 md:pt-10">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-5">
-          <div className="min-w-0">
-            <p className={`text-xs font-semibold uppercase tracking-[0.12em] ${GOLD_TEXT}`}>ArbeidMatch Norge AS</p>
-            <h1 className={`mb-1 mt-1.5 text-[32px] font-normal leading-tight sm:text-[40px] ${INK}`} style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
-              Min side
-            </h1>
-            <div className="mb-2.5 mt-1.5 h-[2px] w-14 bg-[#C9A84C]" aria-hidden />
-            {profile ? (
-              <p className={`break-words text-sm ${MUTED_L}`}>
-                For {profile.company.name} · innlogget som {profile.me.email}
-              </p>
-            ) : null}
-          </div>
-          <p className={`text-xs leading-relaxed sm:text-right ${MUTED_L}`}>
-            {TRUST_LINE[0]}
-            <br />
-            {TRUST_LINE[1]}
-          </p>
-        </header>
+  // ORDER 273: one setting per change; the ATS answers the settings as they now stand, and the page keeps them.
+  const saveSettings = async (part: Record<string, unknown>) => {
+    const r = await sendData({ action: "alert_settings", ...part });
+    if (!r.ok) return { ok: false as const, message: r.message };
+    const settings = alertSettingsFrom((r.data as { settings?: unknown } | null)?.settings);
+    if (settings) setProfile((p) => (p && p.alerts ? { ...p, alerts: { ...p.alerts, settings } } : p));
+    return { ok: true as const };
+  };
 
-        {loading && !profile ? <p className={MUTED_L}>Henter siden ...</p> : null}
+  const choose = (key: SectionKey) => {
+    setNotice(null);
+    navigate(`#${key}`, window.matchMedia(LG).matches ? "replace" : "push");
+  };
+  const backHome = () => navigate("#hjem", "push");
+  // A swipe from the left edge on a phone goes back, as on an iPhone.
+  const onTouchStart = (e: TouchEvent) => {
+    const t = e.touches[0];
+    touch.current = t && t.clientX < 28 ? { x: t.clientX, y: t.clientY } : null;
+  };
+  const onTouchEnd = (e: TouchEvent) => {
+    const from = touch.current;
+    touch.current = null;
+    const t = e.changedTouches[0];
+    if (!from || !t || window.matchMedia(LG).matches) return;
+    if (t.clientX - from.x > 80 && Math.abs(t.clientY - from.y) < 60) window.history.back();
+  };
+
+  const logout = async () => {
+    await fetch("/api/min-side/logout", { method: "POST" }).catch(() => undefined);
+    window.location.assign("/min-side");
+  };
+
+  const newCount = profile?.alerts ? profile.alerts.projects.filter((p) => isNew(p, profile.alerts?.last_sent_at ?? null)).length : 0;
+  const ringTel = profile?.contact_person?.phone ? telHref(profile.contact_person.phone) : null;
+  const sections = profile ? visibleSections(profile) : [];
+  const hint = (key: SectionKey) => (profile ? (key === "innlogging" && keyCount !== null ? (keyCount ? "Passkey aktivert" : "Passkey ikke aktivert") : sectionHint(key, profile)) : "");
+
+  const rail = (rows: typeof sections) =>
+    rows.map((x) => {
+      const on = x.key === section && !phoneHome;
+      const meta = ICONS[x.key];
+      const Icon = meta.icon;
+      return (
+        <button
+          key={x.key}
+          type="button"
+          aria-current={on ? "page" : undefined}
+          onClick={() => choose(x.key)}
+          className={`${ROW_BUTTON} ${on ? "lg:bg-[#EAF0F8]" : ""}`}
+          data-section={x.key}
+        >
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px]" style={{ background: meta.bg }} aria-hidden>
+            <Icon className="h-4 w-4 text-white" strokeWidth={2} />
+          </span>
+          <span className={`shrink-0 whitespace-nowrap ${BODY} ${NAVY} ${on ? "font-semibold" : ""}`}>{x.label}</span>
+          {x.key === "varsler" && newCount > 0 ? (
+            <span className="flex min-w-0 flex-1 justify-end">
+              <span className={NEW_BADGE}>{newCount} nye</span>
+            </span>
+          ) : (
+            <span className={`min-w-0 flex-1 truncate text-right ${SMALL} ${GREY}`}>{hint(x.key)}</span>
+          )}
+          <ChevronRight className="h-5 w-5 shrink-0 text-[#C7C7CC]" aria-hidden />
+        </button>
+      );
+    });
+
+  const header = (
+    <header className="border-b border-[#E5E5EA] bg-white/95 backdrop-blur">
+      <div className="mx-auto flex min-h-[3.5rem] max-w-[1280px] items-center justify-between gap-3 px-4 md:px-6">
+        <Link href={`/min-side/${encodeURIComponent(token)}`} className="flex min-h-[3rem] min-w-0 items-center gap-2.5" onClick={() => navigate("#varsler", "push")}>
+          <Image src="/brand/arbeidmatch-a-emblem.png" alt="ArbeidMatch" width={32} height={32} className="shrink-0 object-contain" priority />
+          <span className={`whitespace-nowrap text-[1.0625rem] font-bold ${NAVY}`}>Min side</span>
+        </Link>
+        <div className="flex items-center gap-1.5 md:gap-2">
+          {ringTel ? (
+            <a href={ringTel} className={`${PILL} px-3 md:px-4`} aria-label="Ring oss">
+              <Phone className="h-5 w-5 md:h-4 md:w-4" aria-hidden />
+              <span className="hidden md:inline">Ring oss</span>
+            </a>
+          ) : null}
+          <button type="button" className={`${PILL} px-3 md:px-4`} onClick={() => void logout()} aria-label="Logg ut">
+            <LogOut className="h-5 w-5 md:h-4 md:w-4" aria-hidden />
+            <span className="hidden md:inline">Logg ut</span>
+          </button>
+          {profile ? (
+            <button type="button" className={`${PILL_GREEN} hidden sm:inline-flex`} aria-haspopup="dialog" onClick={() => setPlanPrefill("alerts")}>
+              Planlegg bemanning
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </header>
+  );
+
+  const footer = (
+    <footer className="border-t border-[#E5E5EA] bg-[#F2F2F7]">
+      <div className={`mx-auto flex max-w-[1280px] flex-col gap-2 px-4 py-6 md:flex-row md:items-center md:justify-between md:px-6 ${SMALL} ${GREY}`}>
+        <p>{FOOTER_LINE}</p>
+        <p className="flex items-center gap-3">
+          <SupportButton lang="nb" showIcon={false} className="inline-flex min-h-[3rem] items-center underline-offset-4 hover:underline md:min-h-[2rem]">
+            Skriv til oss
+          </SupportButton>
+          <span aria-hidden>·</span>
+          <Link href="/privacy" className="inline-flex min-h-[3rem] items-center underline-offset-4 hover:underline md:min-h-[2rem]">
+            Personvern
+          </Link>
+        </p>
+      </div>
+    </footer>
+  );
+
+  const subscription = profile?.alerts ? (
+    <div className={`${CARD} flex flex-wrap items-center justify-between gap-3 p-4`}>
+      <div className="min-w-0 flex-1 basis-[240px]">
+        <p className={`font-semibold ${BODY} ${NAVY}`}>{words.title}</p>
+        <p className={`${SMALL} ${GREY}`}>{words.text}</p>
+      </div>
+      {plan?.offer_url ? (
+        <a href={plan.offer_url} className={PILL}>
+          {plan.status === "ended" || plan.freeOnly ? "Se avtalen" : plan.cancelled ? "Angre oppsigelsen" : "Abonnementet"}
+        </a>
+      ) : null}
+    </div>
+  ) : null;
+
+  return (
+    <div className={`${PAGE_BG} ${NAVY} -mb-[40px] flex min-h-screen flex-col`} lang="nb">
+      {header}
+      <div className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col gap-5 px-4 pb-16 pt-5 md:px-6 lg:pt-8">
+        {loading && !profile ? <p className={`${BODY} ${GREY}`}>Henter siden ...</p> : null}
         {error ? (
-          <div className={`${CARD_L} flex flex-col gap-4 p-6 text-sm`}>
+          <div className={`${CARD} flex flex-col gap-4 p-6 ${BODY}`}>
             <p>{error}</p>
             <p>
-              <Link href="#logg-inn" className={BTN_OUTLINE} aria-haspopup="dialog">
+              <Link href="#logg-inn" className={PILL} aria-haspopup="dialog">
                 Logg inn på nytt
               </Link>
             </p>
@@ -359,43 +594,52 @@ export default function MinSideClient({ token }: { token: string }) {
         ) : null}
 
         {profile && c ? (
-          <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
-            <div className="flex min-w-0 flex-col gap-5">
-              <nav aria-label="Deler av Min side">
-                <div role="tablist" aria-orientation="vertical" className="flex flex-col gap-5">
-                  {SECTION_GROUPS.map((g) => (
-                    <div key={g.key} className="flex flex-col gap-2">
-                      <p className={`text-xs font-semibold uppercase tracking-[0.12em] ${MUTED_L}`}>{g.label}</p>
-                      <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-                        {visibleSections(profile).filter((x) => x.group === g.key).map((x) => {
-                          const on = x.key === section;
-                          return (
-                            <button
-                              key={x.key}
-                              type="button"
-                              role="tab"
-                              id={`ms-tab-${x.key}`}
-                              aria-selected={on}
-                              aria-controls={`ms-panel-${x.key}`}
-                              onClick={() => choose(x.key)}
-                              className={`flex min-h-[52px] w-full min-w-0 flex-col items-start justify-center rounded-[10px] px-3.5 py-2 text-left transition-colors ${
-                                on ? "bg-[#1B2B44] text-white" : "border border-[#E6E1D6] bg-white text-[#1B2B44] hover:border-[#1B2B44]"
-                              }`}
-                            >
-                              <span className={`max-w-full break-words text-sm leading-tight ${on ? "font-bold" : "font-semibold"}`}>{x.label}</span>
-                              <span className={`text-xs ${on ? "text-[#E9D9A6]" : MUTED_L}`}>{sectionHint(x.key, profile)}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
+          <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
+            {/* The grouped list: the left pane on a computer, the home screen on a phone. */}
+            <div className={`flex min-w-0 flex-col gap-6 ${phoneHome ? "" : "hidden lg:flex"}`}>
+              <nav aria-label="Deler av Min side" className="flex flex-col gap-6">
+                <div className={`${CARD} flex items-center gap-3 p-4`}>
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#1B2B44] text-[1.0625rem] font-bold text-white" aria-hidden>
+                    {initials(c.name)}
+                  </span>
+                  <div className="min-w-0">
+                    <p className={`overflow-hidden text-ellipsis whitespace-nowrap font-semibold ${BODY} ${NAVY}`} title={c.name}>
+                      {c.name}
+                    </p>
+                    <p className={`truncate ${SMALL} ${GREY}`}>{profile.me.email}</p>
+                  </div>
+                </div>
+                <button type="button" className={`${PILL_GREEN} w-full sm:hidden`} aria-haspopup="dialog" onClick={() => setPlanPrefill("alerts")}>
+                  Planlegg bemanning
+                </button>
+                {SECTION_GROUPS.map((g) => {
+                  const inGroup = sections.filter((x) => x.group === g.key);
+                  const common = inGroup.filter((x) => !x.rare);
+                  return (
+                    <div key={g.key} className="flex flex-col">
+                      <p className={GROUP_HEAD}>{g.label}</p>
+                      {/* A computer lists them all; a phone keeps the rarely used ones under "Mer". */}
+                      <div className={`${GROUP} hidden lg:block`}>{rail(inGroup)}</div>
+                      <div className={`${GROUP} lg:hidden`}>{rail(common)}</div>
                     </div>
-                  ))}
+                  );
+                })}
+                <div className="flex flex-col lg:hidden">
+                  <p className={GROUP_HEAD}>Mer</p>
+                  <div className={GROUP}>{rail(sections.filter((x) => x.rare))}</div>
                 </div>
               </nav>
               <MinSideContactCard person={profile.contact_person} />
             </div>
 
-            <div className="flex min-w-0 flex-col gap-4">
+            <div className={`flex min-w-0 flex-col gap-4 ${phoneHome ? "hidden lg:flex" : ""}`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+              {/* The phone's way back to the list, at the top of every screen except a project's own. */}
+              {!(section === "varsler" && route.view !== "list") ? (
+                <button type="button" onClick={backHome} className={`inline-flex min-h-[3.25rem] items-center gap-1 self-start font-semibold lg:hidden ${BODY} ${NAVY}`}>
+                  <ChevronLeft className="h-5 w-5" aria-hidden />
+                  Min side
+                </button>
+              ) : null}
               {/* ORDER 101: What's new is a small notice above the section, never a window over the list. */}
               {profile.whats_new.length ? (
                 <MinSideWhatsNew
@@ -406,187 +650,136 @@ export default function MinSideClient({ token }: { token: string }) {
                 />
               ) : null}
               {notice ? (
-                <div className={`${CARD_L} border-l-[3px] border-l-[#2E9E6B] p-4 text-sm`} role="status">
+                <div className={`${CARD} border-l-[3px] border-l-[#2E9E6B] p-4 ${BODY}`} role="status">
                   {notice}
                 </div>
               ) : null}
 
               {section === "firma" ? (
-                <Panel section="firma" action={editButton(() => setEditFirm(true))}>
-                  <dl className="flex flex-col gap-3">
-                    <Row label="Navn">{c.name}</Row>
-                    <Row label="Org.nr.">
-                      <span className="tabular-nums">{orgNumberNo(c.org_number) || "Ikke registrert"}</span>
-                    </Row>
-                    <Row label="Adresse">{addressLine(c.address, c.postal_code, c.city) || "Ikke oppgitt"}</Row>
-                    <Row label="Telefon">{c.phone || "Ikke oppgitt"}</Row>
-                    <Row label="E-post">{c.email || "Ikke oppgitt"}</Row>
-                  </dl>
-                  <p className={`text-sm ${MUTED_L}`}>Navn og org.nr. følger Brønnøysundregistrene og endres ikke her.</p>
-                  {/* ORDER 228: a passkey of this device instead of the e-mail link. */}
-                  <MinSidePasskeys token={token} />
-                  {/* ORDER 157: the person asks us to close their login; the firm's papers stay. */}
-                  <div className={`flex flex-wrap items-center justify-between gap-3 border-t ${RULE} pt-4`}>
-                    <span className={`text-[15px] font-semibold ${INK}`}>Lukk kontoen</span>
-                    <button type="button" className={BTN_OUTLINE} aria-haspopup="dialog" onClick={() => setAskClose(true)}>
-                      Lukk
-                    </button>
-                  </div>
-                </Panel>
+                <Screen section="firma">
+                  <FirmaRows company={c} send={send} sendData={sendData} />
+                </Screen>
               ) : null}
 
               {section === "fakturaopplysninger" ? (
-                <Panel section="fakturaopplysninger" action={editButton(() => setEditInvoice(true))}>
-                  <dl className="flex flex-col gap-3">
-                    <Row label="Faktura-e-post">{c.invoice_email || "Ikke oppgitt"}</Row>
-                    <Row label="EHF">{c.invoice_ehf ? "Ja, vi tar imot EHF" : "Nei"}</Row>
-                    <Row label="Fakturaadresse">{invoiceAddress}</Row>
-                    <Row label="Deres referanse">{c.invoice_reference || "Ikke oppgitt"}</Row>
-                  </dl>
-                </Panel>
+                <Screen section="fakturaopplysninger">
+                  <FakturaRows company={c} send={send} />
+                </Screen>
               ) : null}
 
               {section === "kontakter" ? (
-                <Panel
+                <Screen
                   section="kontakter"
                   action={
-                    <button type="button" className={BTN_OUTLINE} aria-haspopup="dialog" onClick={() => setEditContact("new")}>
+                    <button type="button" className={PILL} aria-haspopup="dialog" onClick={() => setEditContact("new")}>
                       Legg til
                     </button>
                   }
                 >
-                  {profile.contacts.length === 0 ? <p className={`text-sm ${MUTED_L}`}>Vi har ingen kontaktpersoner registrert.</p> : null}
-                  <ul className={`flex flex-col ${DIVIDE}`}>
-                    {profile.contacts.map((k) => (
-                      <li key={k.id} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="min-w-0">
-                          <p className={`text-[15px] font-semibold ${INK}`}>
-                            {k.full_name}
-                            {k.mine ? <span className={`ml-2 rounded-full bg-[#FBF6E8] px-2 py-0.5 text-xs font-semibold ${GOLD_TEXT}`}>Deg</span> : null}
-                          </p>
-                          <p className={`break-words text-sm ${MUTED_L}`}>{[k.role, k.email, k.phone].filter(Boolean).join(" · ")}</p>
-                        </div>
-                        {k.mine ? (
-                          <button type="button" className={LINK} aria-haspopup="dialog" onClick={() => setEditContact(k)}>
-                            Endre
-                          </button>
-                        ) : (
-                          <button type="button" className={LINK} aria-haspopup="dialog" onClick={() => setAskRemove(k)}>
-                            Be om fjerning
-                          </button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </Panel>
+                  <KontaktRows contacts={profile.contacts} send={send} onRemove={setAskRemove} />
+                </Screen>
+              ) : null}
+
+              {section === "innlogging" ? (
+                <Screen section="innlogging">
+                  {/* ORDER 228, moved here by ORDER 273: a passkey of this device instead of the e-mail link. */}
+                  <MinSidePasskeys token={token} onCount={setKeyCount} />
+                  {/* ORDER 157: the person asks us to close their login; the firm's papers stay. */}
+                  <div className={GROUP}>
+                    <button type="button" className={`${ROW_BUTTON} justify-center font-semibold ${BODY} ${DANGER}`} aria-haspopup="dialog" onClick={() => setAskClose(true)}>
+                      Lukk kontoen
+                    </button>
+                  </div>
+                </Screen>
               ) : null}
 
               {section === "varsler" ? (
-                <>
-                  {/* ORDER 100: plan the workers with us, the request goes to us as a client request. */}
-                  <div className={`${CARD_L} flex flex-wrap items-center justify-between gap-5 border-t-[3px] border-t-[#2E9E6B] px-5 py-5 sm:px-6`}>
-                    <div className="min-w-0 flex-1 basis-[260px]">
-                      <p className={`text-[19px] font-bold ${INK}`}>Trenger dere folk de neste månedene?</p>
-                      <p className={`mt-1.5 text-sm leading-relaxed ${SOFT}`}>Fortell oss fag, antall og når. Vi setter sammen et lag som er klart når prosjektet starter.</p>
-                    </div>
-                    <button type="button" className={PLAN_BUTTON} aria-haspopup="dialog" onClick={() => setPlanPrefill("alerts")}>
-                      Planlegg bemanning med oss
-                    </button>
-                  </div>
-                  <Panel
-                    section="varsler"
-                    lead={<MinSideCityQuestion question={profile.alerts?.city_question} busy={answering} error={questionError} onAnswer={(a) => void answerCityQuestion(a)} />}
-                  >
-                    {/* ORDER 157: no project alerts, but hiring alerts: the real list as a teaser instead of the empty state. */}
-                    {showsProjectsTeaser(profile) && profile.hiring?.projects ? (
-                      <ProjectsTeaser projects={profile.hiring.projects} trades={profile.hiring.subscription.trades} trial={trial} />
-                    ) : (
-                    <>
-                    <div>
-                      <p className={`text-[15px] font-semibold ${INK}`}>{words.title}</p>
-                      <p className={`mt-1 text-sm leading-relaxed ${MUTED_L}`}>{words.text}</p>
-                    </div>
-                    <p className="flex flex-wrap gap-3">
-                      {!profile.alerts && profile.free_alerts ? (
-                        <button type="button" className={BTN_OUTLINE} disabled={startingAlerts} onClick={startFreeAlerts}>
-                          {startingAlerts ? "Slår på ..." : "Slå på gratis varsler"}
-                        </button>
-                      ) : null}
-                      {profile.alerts?.projects_url ? (
-                        <a href={profile.alerts.projects_url} className={BTN_OUTLINE}>
-                          Se prosjektene
-                        </a>
-                      ) : (
-                        <Link href="/prosjekter" className={BTN_OUTLINE}>
+                showsProjectsTeaser(profile) && profile.hiring?.projects ? (
+                  // ORDER 157: no project alerts, but hiring alerts: the real list as a teaser instead of the empty state.
+                  <Screen section="varsler">
+                    <ProjectsTeaser projects={profile.hiring.projects} trades={profile.hiring.subscription.trades} trial={trial} />
+                  </Screen>
+                ) : profile.alerts?.projects_url ? (
+                  <>
+                    {route.view === "list" ? <MinSideCityQuestion question={profile.alerts.city_question} busy={answering} error={questionError} onAnswer={(a) => void answerCityQuestion(a)} /> : null}
+                    <MinSideAlerts
+                      token={token}
+                      alerts={profile.alerts}
+                      route={route}
+                      go={goVarsler}
+                      list={list}
+                      setList={setList}
+                      lastOpened={lastOpened}
+                      scrollBack={scrollBack}
+                      onScrolledBack={() => setScrollBack(null)}
+                      onPlan={(p) => setPlanPrefill(projectPrefill(p, profile.alerts))}
+                      saveSettings={saveSettings}
+                      stopAlerts={() => send({ action: "alert_stop" })}
+                      onStopped={() => {
+                        setNotice("Prosjektvarslene er stoppet.");
+                        navigate("#varsler", "replace");
+                      }}
+                      footer={subscription}
+                    />
+                  </>
+                ) : (
+                  <Screen section="varsler" about={words.text}>
+                    <div className={`${CARD} flex flex-col gap-3 p-5`}>
+                      <p className={`font-semibold ${BODY} ${NAVY}`}>{words.title}</p>
+                      <p className="flex flex-wrap gap-2">
+                        {!profile.alerts && profile.free_alerts ? (
+                          <button type="button" className={PILL} disabled={startingAlerts} onClick={startFreeAlerts}>
+                            {startingAlerts ? "Slår på ..." : "Slå på gratis varsler"}
+                          </button>
+                        ) : null}
+                        <Link href="/prosjekter" className={PILL}>
                           Se prosjektkartet
                         </Link>
-                      )}
-                      {plan?.offer_url ? (
-                        <a href={plan.offer_url} className={BTN_OUTLINE}>
-                          {plan.status === "ended" || plan.freeOnly ? "Se avtalen" : plan.cancelled ? "Angre oppsigelsen" : "Se eller si opp abonnementet"}
-                        </a>
-                      ) : null}
-                    </p>
-                    </>
-                    )}
-                    {/* The projects themselves, here (his order, 12 October 2026); the projects page keeps the choices. */}
-                    {profile.alerts?.projects_url ? (
-                      <MinSideProjects
-                        projects={profile.alerts.projects}
-                        cities={profile.alerts.cities}
-                        cityOptions={profile.alerts.city_options}
-                        nextCityChange={profile.alerts.next_city_change}
-                        choices={profile.alerts.choices}
-                        onCities={saveCities}
-                        onAskPeople={(p) => setPlanPrefill(projectPrefill(p, profile.alerts))}
-                      />
-                    ) : null}
-                  </Panel>
-                </>
+                        {plan?.offer_url ? (
+                          <a href={plan.offer_url} className={PILL}>
+                            {plan.status === "ended" || plan.freeOnly ? "Se avtalen" : plan.cancelled ? "Angre oppsigelsen" : "Abonnementet"}
+                          </a>
+                        ) : null}
+                      </p>
+                    </div>
+                  </Screen>
+                )
               ) : null}
 
               {section === "tilbud" ? (
-                <Panel section="tilbud">
-                  {profile.offers.length === 0 ? <p className={`text-sm ${MUTED_L}`}>Dere har ingen tilbud fra oss.</p> : null}
-                  <ul className={`flex flex-col ${DIVIDE}`}>
-                    {profile.offers.map((o) => (
-                      <li key={o.number} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                        <div className="min-w-0">
-                          <p className={`text-[15px] font-semibold ${INK}`}>
-                            {o.title} <span className="tabular-nums">{o.number}</span>
-                          </p>
-                          <p className={`text-sm ${o.open ? `font-semibold ${GOLD_TEXT}` : MUTED_L}`}>
-                            {o.state}
-                            {o.sent_at ? <span className={`font-normal ${MUTED_L}`}> · sendt {dayNo(o.sent_at)}</span> : null}
-                          </p>
-                        </div>
-                        {o.url ? (
-                          <a href={o.url} className={LINK}>
-                            {o.open ? "Åpne og svar" : "Åpne"}
-                          </a>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                </Panel>
+                <Screen section="tilbud">
+                  <ListCard
+                    empty="Dere har ingen tilbud fra oss."
+                    items={profile.offers.map((o) => ({
+                      key: o.number,
+                      title: (
+                        <>
+                          {o.title} <span className="tabular-nums">{o.number}</span>
+                        </>
+                      ),
+                      line: [o.state, o.sent_at ? `sendt ${dayNo(o.sent_at)}` : null].filter(Boolean).join(" · "),
+                      link: o.url ? { href: o.url, label: o.open ? "Åpne og svar" : "Åpne" } : null,
+                    }))}
+                  />
+                </Screen>
               ) : null}
 
               {section === "meldinger" ? (
-                <Panel section="meldinger">
-                  {profile.messages.length === 0 ? <p className={`text-sm ${MUTED_L}`}>Du har ingen meldinger fra oss ennå.</p> : null}
-                  <ul className={`flex flex-col ${DIVIDE}`}>
+                <Screen section="meldinger">
+                  {profile.messages.length === 0 ? <p className={`${CARD} p-5 ${BODY} ${GREY}`}>Du har ingen meldinger fra oss ennå.</p> : null}
+                  <ul className="flex flex-col gap-3">
                     {profile.messages.map((m) => (
-                      <li key={m.id} id={`melding-${m.id}`} className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0">
+                      <li key={m.id} id={`melding-${m.id}`} className={`${CARD} flex flex-col gap-2 p-4`}>
                         <div className="flex flex-wrap items-start justify-between gap-2">
-                          <p className={`min-w-0 break-words text-[15px] font-semibold ${INK}`}>{m.subject}</p>
-                          {!m.read_at ? <span className="rounded-full bg-[#F3E9CF] px-2 py-0.5 text-xs font-bold text-[#1B2B44]">Ny</span> : null}
+                          <p className={`min-w-0 break-words font-semibold ${BODY} ${NAVY}`}>{m.subject}</p>
+                          {!m.read_at ? <span className="rounded-full bg-[#F3E9CF] px-2 py-0.5 text-[0.8125rem] font-bold text-[#1B2B44]">Ny</span> : null}
                         </div>
-                        <p className={`text-sm ${MUTED_L}`}>{dayNo(m.created_at)}</p>
-                        {m.text ? <p className={`whitespace-pre-line break-words text-[15px] leading-relaxed ${INK}`}>{m.text}</p> : null}
+                        <p className={`${SMALL} ${GREY}`}>{dayNo(m.created_at)}</p>
+                        {m.text ? <p className={`whitespace-pre-line break-words ${BODY} ${NAVY}`}>{m.text}</p> : null}
                         {m.links.length ? (
                           <div className="flex flex-wrap gap-2 pt-1">
                             {m.links.map((l) => (
-                              <a key={l.href} href={l.href} className={LINK}>
+                              <a key={l.href} href={l.href} className={PILL}>
                                 {l.label}
                               </a>
                             ))}
@@ -595,120 +788,83 @@ export default function MinSideClient({ token }: { token: string }) {
                       </li>
                     ))}
                   </ul>
-                </Panel>
+                </Screen>
               ) : null}
 
               {section === "kandidater" ? (
-                <Panel section="kandidater">
-                  {profile.candidates.length === 0 ? <p className={`text-sm ${MUTED_L}`}>Ingen kandidater er presentert for deg ennå.</p> : null}
-                  <ul className={`flex flex-col ${DIVIDE}`}>
-                    {profile.candidates.map((k, i) => (
-                      <li key={`${k.title}-${i}`} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                        <div className="min-w-0">
-                          <p className={`break-words text-[15px] font-semibold ${INK}`}>{k.title}</p>
-                          <p className={`text-sm ${MUTED_L}`}>
-                            {k.state}
-                            {k.sent_at ? ` · sendt ${dayNo(k.sent_at)}` : ""}
-                          </p>
-                        </div>
-                        {k.url ? (
-                          <a href={k.url} className={LINK}>
-                            Se kandidatene
-                          </a>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                </Panel>
+                <Screen section="kandidater">
+                  <ListCard
+                    empty="Ingen kandidater er presentert for deg ennå."
+                    items={profile.candidates.map((k, i) => ({
+                      key: `${k.title}-${i}`,
+                      title: k.title,
+                      line: [k.state, k.sent_at ? `sendt ${dayNo(k.sent_at)}` : null].filter(Boolean).join(" · "),
+                      link: k.url ? { href: k.url, label: "Se kandidatene" } : null,
+                    }))}
+                  />
+                </Screen>
               ) : null}
 
               {section === "timelister" ? (
-                <Panel section="timelister">
-                  <div className="flex flex-col gap-3">
-                    <h3 className={`text-base font-semibold ${INK}`}>Venter på din signatur</h3>
-                    {profile.timesheets.waiting.length === 0 ? <p className={`text-sm ${MUTED_L}`}>Ingen timelister venter på deg.</p> : null}
-                    <ul className={`flex flex-col ${DIVIDE}`}>
-                      {profile.timesheets.waiting.map((t, i) => (
-                        <li key={`${t.title}-${i}`} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                          <div className="min-w-0">
-                            <p className={`break-words text-[15px] font-semibold ${INK}`}>{t.title}</p>
-                            <p className={`text-sm font-semibold ${GOLD_TEXT}`}>
-                              Venter på signatur{t.sent_at ? <span className={`font-normal ${MUTED_L}`}> · sendt {dayNo(t.sent_at)}</span> : null}
-                            </p>
-                          </div>
-                          {t.url ? (
-                            <a href={t.url} className={LINK}>
-                              Åpne og signer
-                            </a>
-                          ) : null}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="flex flex-col gap-3 border-t border-[#EFEBE2] pt-5">
-                    <h3 className={`text-base font-semibold ${INK}`}>Signert</h3>
-                    {profile.timesheets.signed.length === 0 ? <p className={`text-sm ${MUTED_L}`}>Du har ikke signert noen timelister ennå.</p> : null}
-                    <ul className={`flex flex-col ${DIVIDE}`}>
-                      {profile.timesheets.signed.map((d, i) => (
-                        <li key={`${d.title}-${i}`} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                          <div className="min-w-0">
-                            <p className={`break-words text-[15px] font-semibold ${INK}`}>{d.title}</p>
-                            <p className={`text-sm ${MUTED_L}`}>{d.signed_at ? `Signert ${dayNo(d.signed_at)}` : "Signert"}</p>
-                          </div>
-                          {d.pdf_url ? (
-                            <a href={d.pdf_url} className={LINK}>
-                              Last ned PDF
-                            </a>
-                          ) : null}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </Panel>
+                <Screen section="timelister">
+                  <p className={GROUP_HEAD}>Venter på din signatur</p>
+                  <ListCard
+                    empty="Ingen timelister venter på deg."
+                    items={profile.timesheets.waiting.map((t, i) => ({
+                      key: `${t.title}-${i}`,
+                      title: t.title,
+                      line: ["Venter på signatur", t.sent_at ? `sendt ${dayNo(t.sent_at)}` : null].filter(Boolean).join(" · "),
+                      link: t.url ? { href: t.url, label: "Åpne og signer" } : null,
+                    }))}
+                  />
+                  <p className={GROUP_HEAD}>Signert</p>
+                  <ListCard
+                    empty="Du har ikke signert noen timelister ennå."
+                    items={profile.timesheets.signed.map((d, i) => ({
+                      key: `${d.title}-${i}`,
+                      title: d.title,
+                      line: d.signed_at ? `Signert ${dayNo(d.signed_at)}` : "Signert",
+                      link: d.pdf_url ? { href: d.pdf_url, label: "Last ned PDF" } : null,
+                    }))}
+                  />
+                </Screen>
               ) : null}
 
               {section === "fakturaer" ? (
-                <Panel section="fakturaer">
+                <Screen section="fakturaer">
                   {!profile.invoices.allowed ? (
-                    <p className={`text-sm leading-relaxed ${MUTED_L}`}>
-                      Fakturaene vises for den som logger inn med firmaets faktura-e-post eller firmaets egen e-postadresse. Adressene står under
-                      Fakturaopplysninger og Firma.
-                    </p>
-                  ) : profile.invoices.rows.length === 0 ? (
-                    <p className={`text-sm ${MUTED_L}`}>Vi har ikke sendt dere noen fakturaer ennå.</p>
+                    <p className={`${CARD} p-5 ${BODY} ${GREY}`}>Fakturaene vises for den som logger inn med firmaets faktura-e-post eller firmaets egen e-postadresse.</p>
                   ) : (
-                    <ul className={`flex flex-col ${DIVIDE}`}>
-                      {profile.invoices.rows.map((inv) => (
-                        <li key={inv.id} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                          <div className="min-w-0">
-                            <p className={`text-[15px] font-semibold ${INK}`}>
-                              Faktura <span className="tabular-nums">{inv.number || inv.id}</span> · <span className="tabular-nums">{kronerNo(inv.amount)}</span>
-                            </p>
-                            <p className={`text-sm ${MUTED_L}`}>
-                              <span className={inv.state_key === "overdue" ? "font-semibold text-[#B42318]" : inv.state_key === "open" ? `font-semibold ${GOLD_TEXT}` : ""}>{inv.state}</span>
-                              {inv.date ? ` · datert ${dayNo(inv.date)}` : ""}
-                              {inv.due && (inv.state_key === "open" || inv.state_key === "overdue") ? ` · forfall ${dayNo(inv.due)}` : ""}
-                            </p>
-                          </div>
-                          {profile.invoices.pdf_requires_sign_in ? null : (
-                            <a href={`/api/min-side/${encodeURIComponent(token)}/invoice/${inv.id}`} className={LINK}>
-                              Last ned PDF
-                            </a>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
+                    <ListCard
+                      empty="Vi har ikke sendt dere noen fakturaer ennå."
+                      items={profile.invoices.rows.map((inv) => ({
+                        key: String(inv.id),
+                        title: (
+                          <>
+                            Faktura <span className="tabular-nums">{inv.number || inv.id}</span> · <span className="tabular-nums">{kronerNo(inv.amount)}</span>
+                          </>
+                        ),
+                        line: (
+                          <>
+                            <span className={inv.state_key === "overdue" ? "font-semibold text-[#C4231A]" : inv.state_key === "open" ? `font-semibold ${NAVY}` : ""}>{inv.state}</span>
+                            {inv.date ? ` · datert ${dayNo(inv.date)}` : ""}
+                            {inv.due && (inv.state_key === "open" || inv.state_key === "overdue") ? ` · forfall ${dayNo(inv.due)}` : ""}
+                          </>
+                        ),
+                        link: profile.invoices.pdf_requires_sign_in ? null : { href: `/api/min-side/${encodeURIComponent(token)}/invoice/${inv.id}`, label: "Last ned PDF" },
+                      }))}
+                    />
                   )}
                   {profile.invoices.allowed ? (
-                    <p className={`text-sm ${MUTED_L}`}>
+                    <p className={`px-4 ${SMALL} ${GREY}`}>
                       Beløpene er med merverdiavgift.{profile.invoices.pdf_requires_sign_in && profile.invoices.rows.length ? " Trenger dere en kopi av en faktura, ta kontakt med oss." : ""}
                     </p>
                   ) : null}
-                </Panel>
+                </Screen>
               ) : null}
 
               {section === "ansetter" && hiring ? (
-                <Panel
+                <Screen
                   section="ansetter"
                   about={hiringSubtitle(hiring) || undefined}
                   action={hiring.terms.accepted ? <HiringStop send={send} onStopped={() => setNotice("Varslene om bedrifter som ansetter er stoppet.")} /> : undefined}
@@ -725,67 +881,27 @@ export default function MinSideClient({ token }: { token: string }) {
                     openFirm={hiringFirm}
                     onAskPeople={() => setPlanPrefill({ trade: hiring.subscription.trades.slice(0, 3).join(", "), place: hiring.subscription.counties.slice(0, 3).join(", ") })}
                   />
-                </Panel>
+                </Screen>
               ) : null}
 
               {section === "dokumenter" ? (
-                <Panel section="dokumenter">
-                  {profile.documents.length === 0 ? <p className={`text-sm ${MUTED_L}`}>Dere har ingen signerte dokumenter hos oss ennå.</p> : null}
-                  <ul className={`flex flex-col ${DIVIDE}`}>
-                    {profile.documents.map((d, i) => (
-                      <li key={`${d.title}-${i}`} className="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                        <div className="min-w-0">
-                          <p className={`break-words text-[15px] font-semibold ${INK}`}>{d.title}</p>
-                          <p className={`text-sm ${MUTED_L}`}>{d.signed_at ? `Signert ${dayNo(d.signed_at)}` : "Signert"}</p>
-                        </div>
-                        {d.pdf_url ? (
-                          <a href={d.pdf_url} className={LINK}>
-                            Last ned PDF
-                          </a>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                </Panel>
+                <Screen section="dokumenter">
+                  <ListCard
+                    empty="Dere har ingen signerte dokumenter hos oss ennå."
+                    items={profile.documents.map((d, i) => ({
+                      key: `${d.title}-${i}`,
+                      title: d.title,
+                      line: d.signed_at ? `Signert ${dayNo(d.signed_at)}` : "Signert",
+                      link: d.pdf_url ? { href: d.pdf_url, label: "Last ned PDF" } : null,
+                    }))}
+                  />
+                </Screen>
               ) : null}
             </div>
           </div>
         ) : null}
       </div>
-
-      {editFirm && c ? (
-        <PortalModal title="Endre firmaets opplysninger" onClose={() => setEditFirm(false)}>
-          <FirmForm
-            company={c}
-            onCancel={() => setEditFirm(false)}
-            onSave={async (part) => {
-              const r = await send({ action: "company", details: { ...detailsOf(c), ...part } });
-              if (r.ok) {
-                setEditFirm(false);
-                setNotice("Firmaets opplysninger er lagret.");
-              }
-              return r;
-            }}
-          />
-        </PortalModal>
-      ) : null}
-
-      {editInvoice && c ? (
-        <PortalModal title="Endre fakturaopplysninger" onClose={() => setEditInvoice(false)}>
-          <InvoiceForm
-            company={c}
-            onCancel={() => setEditInvoice(false)}
-            onSave={async (part) => {
-              const r = await send({ action: "company", details: { ...detailsOf(c), ...part } });
-              if (r.ok) {
-                setEditInvoice(false);
-                setNotice("Fakturaopplysningene er lagret.");
-              }
-              return r;
-            }}
-          />
-        </PortalModal>
-      ) : null}
+      {footer}
 
       {editContact ? (
         <PortalModal title={editContact === "new" ? "Legg til kontaktperson" : "Endre dine opplysninger"} size="narrow" onClose={() => setEditContact(null)}>
@@ -804,6 +920,7 @@ export default function MinSideClient({ token }: { token: string }) {
         </PortalModal>
       ) : null}
 
+      {/* ORDER 100, and "Planlegg bemanning" everywhere in Min side since ORDER 273: one form, prefilled by where it was pressed. */}
       {prefill && profile ? (
         <PortalModal title="Planlegg bemanning med oss" onClose={() => setPlanPrefill(null)}>
           <StaffingForm
@@ -823,8 +940,21 @@ export default function MinSideClient({ token }: { token: string }) {
 
       {trial.dialog}
 
-      {/* ORDER 272: the Forsprang app, offered once per visit on a phone that has not got it. */}
-      {profile ? <MinSideAppPrompt app={profile.app} onLater={() => void send({ action: "app_prompt_later" })} /> : null}
+      {keyDialog ? (
+        <MinSideKeyDialog
+          token={token}
+          onLater={() => void sendData({ action: "passkey_prompt_dismiss" })}
+          onDone={(saved) => {
+            setKeyDialog(false);
+            if (saved) setKeyCount((n) => Math.max(1, n ?? 0));
+            // Afterwards straight to the projects, or the project the link was for.
+            if (varslerRoute(window.location.hash)?.view !== "project") navigate("#varsler", "replace");
+          }}
+        />
+      ) : null}
+
+      {/* ORDER 272: the Forsprang app, offered once per visit on a phone that has not got it; never over the key dialog. */}
+      {profile && !keyDialog ? <MinSideAppPrompt app={profile.app} onLater={() => void send({ action: "app_prompt_later" })} /> : null}
 
       {askClose ? (
         <PortalModal title="Lukk kontoen" size="narrow" onClose={() => setAskClose(false)}>
@@ -885,112 +1015,6 @@ function FormError({ failed }: { failed: Failed }) {
       {failed.message}
     </p>
   ) : null;
-}
-
-/** The firm itself: where it is and how it is reached. */
-function FirmForm({ company, onSave, onCancel }: { company: Company; onSave: (part: Details) => Promise<Saved>; onCancel: () => void }) {
-  const [v, setV] = useState({ address: company.address, postal_code: company.postal_code, city: company.city, phone: company.phone, email: company.email });
-  const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState<Failed>(null);
-  const errorFor = (field: string) => (failed?.field === field ? failed.message : null);
-
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    setFailed(null);
-    const r = await onSave(v);
-    if (!r.ok) setFailed({ message: r.message, field: r.field });
-    setBusy(false);
-  };
-
-  return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
-      <Field id="ms-address" label="Adresse">
-        <input id="ms-address" data-autofocus className={FIELD} value={v.address} maxLength={200} autoComplete="street-address" onChange={(e) => setV({ ...v, address: e.target.value })} />
-      </Field>
-      <div className="grid gap-4 sm:grid-cols-[140px_minmax(0,1fr)]">
-        <Field id="ms-postal" label="Postnummer" error={errorFor("postal_code")}>
-          <input id="ms-postal" className={FIELD} value={v.postal_code} maxLength={12} inputMode="numeric" autoComplete="postal-code" onChange={(e) => setV({ ...v, postal_code: e.target.value })} />
-        </Field>
-        <Field id="ms-city" label="Sted">
-          <input id="ms-city" className={FIELD} value={v.city} maxLength={80} autoComplete="address-level2" onChange={(e) => setV({ ...v, city: e.target.value })} />
-        </Field>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field id="ms-phone" label="Telefon" error={errorFor("phone")}>
-          <input id="ms-phone" className={FIELD} type="tel" value={v.phone} maxLength={24} autoComplete="tel" onChange={(e) => setV({ ...v, phone: e.target.value })} />
-        </Field>
-        <Field id="ms-email" label="Firmaets e-post" error={errorFor("email")}>
-          <input id="ms-email" className={`${FIELD} cursor-default opacity-70`} type="email" value={v.email} maxLength={254} readOnly aria-readonly="true" title="Ta kontakt med oss for å endre e-postadressen." />
-        </Field>
-      </div>
-      <FormError failed={failed} />
-      <Buttons busy={busy} label="Lagre" onCancel={onCancel} />
-    </form>
-  );
-}
-
-/** Where and how the invoices go. */
-function InvoiceForm({ company, onSave, onCancel }: { company: Company; onSave: (part: Details) => Promise<Saved>; onCancel: () => void }) {
-  const [v, setV] = useState({
-    invoice_email: company.invoice_email,
-    invoice_reference: company.invoice_reference,
-    invoice_ehf: company.invoice_ehf,
-    billing_same_as_address: company.billing_same_as_address,
-    billing_address: company.billing_address,
-    billing_postal_code: company.billing_postal_code,
-    billing_city: company.billing_city,
-  });
-  const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState<Failed>(null);
-  const errorFor = (field: string) => (failed?.field === field ? failed.message : null);
-
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    setFailed(null);
-    const r = await onSave(v);
-    if (!r.ok) setFailed({ message: r.message, field: r.field });
-    setBusy(false);
-  };
-
-  return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field id="ms-inv-email" label="Faktura-e-post" error={errorFor("invoice_email")}>
-          <input id="ms-inv-email" className={`${FIELD} cursor-default opacity-70`} type="email" value={v.invoice_email} maxLength={254} readOnly aria-readonly="true" title="Ta kontakt med oss for å endre e-postadressen." />
-        </Field>
-        <Field id="ms-ref" label="Deres referanse">
-          <input id="ms-ref" data-autofocus className={FIELD} value={v.invoice_reference} maxLength={120} onChange={(e) => setV({ ...v, invoice_reference: e.target.value })} />
-        </Field>
-      </div>
-      <label htmlFor="ms-ehf" className="flex min-h-[44px] items-center gap-3 text-[15px] text-white">
-        <input id="ms-ehf" type="checkbox" className="h-5 w-5 accent-[#C9A84C]" checked={v.invoice_ehf} onChange={(e) => setV({ ...v, invoice_ehf: e.target.checked })} />
-        Vi tar imot EHF
-      </label>
-      <label htmlFor="ms-same" className="flex min-h-[44px] items-center gap-3 text-[15px] text-white">
-        <input id="ms-same" type="checkbox" className="h-5 w-5 accent-[#C9A84C]" checked={v.billing_same_as_address} onChange={(e) => setV({ ...v, billing_same_as_address: e.target.checked })} />
-        Fakturaadressen er den samme som firmaets adresse
-      </label>
-      {!v.billing_same_as_address ? (
-        <>
-          <Field id="ms-b-address" label="Fakturaadresse">
-            <input id="ms-b-address" className={FIELD} value={v.billing_address} maxLength={200} onChange={(e) => setV({ ...v, billing_address: e.target.value })} />
-          </Field>
-          <div className="grid gap-4 sm:grid-cols-[140px_minmax(0,1fr)]">
-            <Field id="ms-b-postal" label="Postnummer" error={errorFor("billing_postal_code")}>
-              <input id="ms-b-postal" className={FIELD} value={v.billing_postal_code} maxLength={12} inputMode="numeric" onChange={(e) => setV({ ...v, billing_postal_code: e.target.value })} />
-            </Field>
-            <Field id="ms-b-city" label="Sted">
-              <input id="ms-b-city" className={FIELD} value={v.billing_city} maxLength={80} onChange={(e) => setV({ ...v, billing_city: e.target.value })} />
-            </Field>
-          </div>
-        </>
-      ) : null}
-      <FormError failed={failed} />
-      <Buttons busy={busy} label="Lagre" onCancel={onCancel} />
-    </form>
-  );
 }
 
 function ContactForm({ contact, onSave, onCancel }: { contact: Contact | null; onSave: (details: Record<string, string>) => Promise<Saved>; onCancel: () => void }) {
@@ -1068,8 +1092,8 @@ function osloToday(): string {
 /**
  * "Planlegg bemanning med oss" (ORDER 100, 13 October 2026): trade, how many,
  * from when, for how long, where, and a note. The trade and the place open
- * with the alerts' own choices. The ATS checks every field and files it as a
- * client request.
+ * with the alerts' own choices, or the project's. The ATS checks every field
+ * and files it as a client request.
  */
 function StaffingForm({ prefill, onSend, onCancel }: { prefill: StaffingPrefill; onSend: (request: Record<string, string>) => Promise<Saved>; onCancel: () => void }) {
   const [v, setV] = useState({ trade: prefill.trade, count: "", from: "", duration: "", place: prefill.place, note: prefill.note ?? "" });
@@ -1119,7 +1143,7 @@ function StaffingForm({ prefill, onSend, onCancel }: { prefill: StaffingPrefill;
       </Field>
       <FormError failed={failed} />
       <div className="flex flex-wrap gap-3 pt-1">
-        <button type="submit" className={PLAN_BUTTON} disabled={busy}>
+        <button type="submit" className={PILL_GREEN} disabled={busy}>
           {busy ? "Sender ..." : "Send forespørselen"}
         </button>
         <button type="button" className={SECONDARY} disabled={busy} onClick={onCancel}>

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 
 import { getRateLimitResult, noStoreJson } from "@/lib/apiSecurity";
 import { alertCitiesRequest, cityQuestionRequest, hiringRequest, isCityName, isHiringAction, isHiringPrefsAction, isProfileToken, isWhatsNewId, messageReadRequest } from "@/lib/min-side/profile";
+import { alertSettingsRequest } from "@/lib/min-side/alert-settings";
 import { callAts } from "@/lib/prosjekter/ats";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +42,8 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   // ORDER 170: the hiring settings save on every change, so they count in a bucket of their own and
   // ordinary use of the settings never reaches the general limit of the page's other changes.
   // ORDER 181: so does the live count on "Bekreft og start", asked as the client picks.
-  const rate = isHiringPrefsAction(action) || action === "hiring_confirm_count"
+  // ORDER 273: so do the alert settings, one field per change.
+  const rate = isHiringPrefsAction(action) || action === "hiring_confirm_count" || action === "alert_settings"
     ? getRateLimitResult(request, "min-side-prefs", 120, 10 * 60 * 1000)
     : getRateLimitResult(request, "min-side-post", 30, 10 * 60 * 1000);
   if (rate.limited) return noStoreJson({ error: TOO_MANY }, { status: 429 });
@@ -59,8 +61,16 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
     return noStoreJson(answer.body, { status: answer.status });
   }
+  // ORDER 273: one alert setting, checked field by field; the ATS checks it against the plan and its 30-day rules.
+  if (action === "alert_settings") {
+    const body = alertSettingsRequest(raw);
+    if (!body) return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+    const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
+    return noStoreJson(answer.body, { status: answer.status });
+  }
+  // ORDER 273: Stopp varslene, "Senere" on the key dialog, and Sjekk firma: the action word alone.
   // ORDER 272: "Senere" on the Forsprang install prompt; the ATS keeps it away for thirty days.
-  if (action === "app_prompt_later") {
+  if (action === "alert_stop" || action === "passkey_prompt_dismiss" || action === "company_report" || action === "app_prompt_later") {
     const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body: { action } });
     return noStoreJson(answer.body, { status: answer.status });
   }

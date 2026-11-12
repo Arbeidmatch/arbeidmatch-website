@@ -68,6 +68,9 @@ export async function removePasskey(token: string, id: string): Promise<PasskeyR
   return r.ok ? { ok: true, value: passkeysFrom(r.json.passkeys) } : { ok: false, cancelled: false, error: String(r.json.error ?? "Kunne ikke fjerne nøkkelen.") };
 }
 
+/** ORDER 273: what the login dialog says when this device has no key saved with us. */
+export const NO_KEY_YET = "Har dere ikke lagret en nøkkel ennå? Logg inn med e-post, så kan dere lagre den.";
+
 /** Sign in with a passkey of this device; answers where Min side is. */
 export async function signInWithPasskey(): Promise<PasskeyResult<string>> {
   const start = await step("login-options", {});
@@ -76,12 +79,16 @@ export async function signInWithPasskey(): Promise<PasskeyResult<string>> {
   try {
     response = await startAuthentication({ optionsJSON: start.json.options as Parameters<typeof startAuthentication>[0]["optionsJSON"] });
   } catch (e) {
+    // ORDER 273: a device with no key of ours ends here (the browser's own "no passkey" sheet answers NotAllowedError).
+    if ((e as { name?: string } | null)?.name === "NotAllowedError") return { ok: false, cancelled: false, error: NO_KEY_YET };
     if (cancelled(e)) return { ok: false, cancelled: true, error: "" };
-    return { ok: false, cancelled: false, error: "Denne enheten kunne ikke bruke en nøkkel. Logg inn med e-post." };
+    return { ok: false, cancelled: false, error: NO_KEY_YET };
   }
   const done = await step("login-verify", { response });
   const redirect = done.json.redirect;
   if (!done.ok || typeof redirect !== "string" || !redirect.startsWith("/min-side/")) {
+    // A key the ATS does not know is a key not saved with us.
+    if (done.status === 400 || done.status === 404) return { ok: false, cancelled: false, error: NO_KEY_YET };
     return { ok: false, cancelled: false, error: String(done.json.error ?? "Innloggingen kunne ikke fullføres.") };
   }
   return { ok: true, value: redirect };

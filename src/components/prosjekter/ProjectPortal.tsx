@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import PortalMap, { type PortalMapHandle } from "@/components/prosjekter/PortalMap";
+import ProjectDetail from "@/components/prosjekter/ProjectDetail";
 import styles from "@/components/prosjekter/portal.module.css";
 import { cleanDescription, domainChoices, keyDateNo, placeNo, valueNo, type AlertProject } from "@/lib/prosjekter/format";
 import { subscriberMap } from "@/lib/prosjekter/subscriber-map";
@@ -42,6 +43,11 @@ import { isOverview, type Overview, type OverviewFilters } from "@/lib/prosjekte
  * buyer, place, exact value, date and the way to the competition; nothing is
  * locked and nothing asks for an invitation. The open overview is still read,
  * for the coordinates and the trade names only.
+ *
+ * ORDER 273: on a client's own page a row or a dot opens the project's full
+ * detail across the section, in place of the map and the list, and "Alle
+ * prosjekter" brings them back; on a phone a row never switches to the map.
+ * One detail at a time. The open page keeps its rows exactly as they were.
  */
 
 const PAGE = 60;
@@ -247,8 +253,8 @@ export default function ProjectPortal({
 }: {
   initial: Overview | null;
   initialFilters: OverviewFilters;
-  /** A client's own page: their projects on the same map, named and complete. */
-  subscriber?: { projects: AlertProject[]; company: string };
+  /** A client's own page: their projects on the same map, named and complete; `token` opens a project's detail. */
+  subscriber?: { projects: AlertProject[]; company: string; token?: string };
 }) {
   const [data, setData] = useState<Overview | null>(initial);
   const [failed, setFailed] = useState(false);
@@ -343,7 +349,15 @@ export default function ProjectPortal({
     }
   };
 
+  // ORDER 273: the one project open in full on a client's page, by its dot number; null shows the map and the list.
+  const [openNo, setOpenNo] = useState<number | null>(null);
+  const detailToken = own && subscriber?.token ? subscriber.token : null;
+
   const onPickRow = (no: number) => {
+    if (detailToken && own?.details.get(no)) {
+      setOpenNo(no);
+      return;
+    }
     if (isPhone()) setView("map");
     // After the map is shown again, so it has its size.
     requestAnimationFrame(() => mapRef.current?.focusProject(no));
@@ -364,13 +378,29 @@ export default function ProjectPortal({
 
   const onSelectDot = useCallback(
     (no: number) => {
+      if (detailToken && own?.details.get(no)) {
+        setOpenNo(no);
+        return;
+      }
       const i = listed.findIndex((p) => p.no === no);
       if (i >= limit) setLimit(Math.ceil((i + 1) / PAGE) * PAGE);
       if (isPhone()) return;
       requestAnimationFrame(() => document.getElementById(`pp-${no}`)?.scrollIntoView({ block: "nearest" }));
     },
-    [listed, limit],
+    [listed, limit, detailToken, own],
   );
+
+  // Back from a project: the list as it was, the row in view and lit.
+  const closeDetail = () => {
+    const no = openNo;
+    setOpenNo(null);
+    if (no === null) return;
+    setView("list");
+    setHover(no);
+    const i = listed.findIndex((p) => p.no === no);
+    if (i >= limit) setLimit(Math.ceil((i + 1) / PAGE) * PAGE);
+    requestAnimationFrame(() => document.getElementById(`pp-${no}`)?.scrollIntoView({ block: "center" }));
+  };
 
   const firstDomain = (p: PlacedProject) => {
     for (const d of p.d) {
@@ -434,6 +464,30 @@ export default function ProjectPortal({
         {own ? null : (
           <p style={{ color: "var(--text-2)", fontSize: 14, margin: "16px 0" }}><strong>Demo - kartbilde og detaljvisning.</strong> Forhåndsvisning av tjenesten. Fullstendige prosjektdetaljer krever invitasjon.</p>
         )}
+        {detailToken && openNo !== null && own?.details.get(openNo) ? (
+          (() => {
+            const project = own.details.get(openNo)!;
+            const i = listed.findIndex((p) => p.no === openNo);
+            const prev = i > 0 ? listed[i - 1].no : null;
+            const next = i >= 0 && i < listed.length - 1 ? listed[i + 1].no : null;
+            return (
+              <div className="mt-4 rounded-2xl bg-[#F2F2F7] p-4 text-[#1B2B44] md:p-6" lang="nb">
+                <ProjectDetail
+                  key={project.id}
+                  url={`/api/prosjekter/alerts/${encodeURIComponent(detailToken)}/project/${encodeURIComponent(project.id)}`}
+                  preview={{ title: project.title, stage: project.stage, buyer_name: project.buyer_name, place: placeNo(project) || null }}
+                  index={i + 1}
+                  total={listed.length}
+                  onBack={closeDetail}
+                  onPrev={prev !== null ? () => setOpenNo(prev) : null}
+                  onNext={next !== null ? () => setOpenNo(next) : null}
+                  phoneBackLabel="Alle prosjekter"
+                  ask={{ label: "Be om folk", href: "/request" }}
+                />
+              </div>
+            );
+          })()
+        ) : (
         <div className={styles.explorer} data-view={view}>
           <div className={styles.bar} role="toolbar" aria-label="Filtre">
             <div className={styles.viewToggle} role="group" aria-label="Visning">
@@ -605,6 +659,7 @@ export default function ProjectPortal({
             </div>
           </div>
         </div>
+        )}
       </div>
     </section>
   );

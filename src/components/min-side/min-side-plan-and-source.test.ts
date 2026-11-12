@@ -63,10 +63,11 @@ describe("Planlegg bemanning med oss", () => {
     expect(staffingPrefill(null)).toEqual({ trade: "", place: "" });
   });
 
-  it("the page has the card, the button and the Norwegian confirmation", () => {
+  it("the page has the header button, the form and the Norwegian confirmation (ORDER 273: no separate card under Prosjektvarsler)", () => {
     const client = readFileSync(path.join(__dirname, "MinSideClient.tsx"), "utf8");
-    expect(client).toContain("Trenger dere folk de neste månedene?");
-    expect(client).toContain("Fortell oss fag, antall og når. Vi setter sammen et lag som er klart når prosjektet starter.");
+    expect(client).not.toContain("Trenger dere folk de neste månedene?");
+    expect(client).toContain("Planlegg bemanning");
+    expect(client).not.toContain("Be om folk");
     expect(client).toContain("Planlegg bemanning med oss");
     expect(client).toContain('send({ action: "staffing_request", ...request })');
     expect(PLAN_CONFIRMATION).toBe("Takk. Vi har fått forespørselen og tar kontakt innen én arbeidsdag.");

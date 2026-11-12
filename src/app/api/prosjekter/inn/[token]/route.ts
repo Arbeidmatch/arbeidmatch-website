@@ -5,6 +5,7 @@ import { isLoginToken } from "@/lib/prosjekter/access";
 import { callAts } from "@/lib/prosjekter/ats";
 import { isProjectToken } from "@/lib/prosjekter/format";
 import { isProfileToken } from "@/lib/min-side/profile";
+import { withKeyPrompt } from "@/lib/min-side/key-prompt";
 import {
   PORTAL_SESSION_COOKIE,
   loginIntentFrom,
@@ -44,7 +45,8 @@ export async function GET(request: NextRequest, ctx: Ctx) {
   const target = loginTarget({ profile, projects }, intent);
   if (!target) return back(answer.status >= 500 ? "feil" : "utlopt");
 
-  const res = NextResponse.redirect(new URL(target, request.url), 303);
+  // ORDER 273: no key on this access and "Senere" not said lately: Min side asks once to save one.
+  const res = NextResponse.redirect(new URL(withKeyPrompt(target, answer.body.passkey_prompt === true), request.url), 303);
   const key = sessionKeyFrom({ profile, token: projects });
   if (key) res.cookies.set(PORTAL_SESSION_COOKIE, key, portalSessionCookieOptions());
   res.headers.set("Cache-Control", "no-store");

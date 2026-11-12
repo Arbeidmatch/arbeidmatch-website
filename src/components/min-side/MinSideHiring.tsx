@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, type FormEvent, type MouseEvent, type ReactNode } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import dynamic from "next/dynamic";
 
-import { FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
+import { MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import {
   HIRING_STATUSES,
   HIRING_STATUS_NO,
@@ -48,7 +49,6 @@ import {
   type TermsText,
 } from "@/lib/min-side/profile";
 import {
-  BTN_GREEN,
   BTN_OUTLINE,
   CARD_L,
   CHECK_D,
@@ -58,7 +58,6 @@ import {
   FIELD_L,
   FINE_PRINT,
   GOLD_CARD,
-  GOLD_TEXT,
   GREEN_CARD,
   GREEN_TEXT,
   INK,
@@ -71,6 +70,7 @@ import {
   TH_L,
   chip,
 } from "./ui";
+import { BODY as BODY_IOS, GREY as GREY_IOS, GROUP as GROUP_IOS, LARGE_TITLE, PILL as PILL_IOS, PILL_GREEN as PILL_GREEN_IOS, ROW as ROW_IOS, SMALL as SMALL_IOS, INPUT as INPUT_IOS } from "./ios";
 import { HiringBillingScreen } from "./MinSideHiringBilling";
 import HiringConfirmScreen from "./MinSideHiringConfirm";
 import MinSideHiringSettings, { type PremiumOffer } from "./MinSideHiringSettings";
@@ -369,7 +369,15 @@ export function ProjectsTeaser({ projects, trades, trial }: { projects: HiringPr
 // The lead card.
 // ---------------------------------------------------------------------------
 
-function CardRow({ label, children }: { label: string; children: ReactNode }) {
+function CardRow({ label, children, light = false }: { label: string; children: ReactNode; light?: boolean }) {
+  // ORDER 273: on the white firm card a row is label left, value right, as everywhere on Min side.
+  if (light)
+    return (
+      <div className={ROW_IOS}>
+        <dt className={`shrink-0 ${BODY_IOS} ${INK}`}>{label}</dt>
+        <dd className={`min-w-0 flex-1 break-words text-right ${BODY_IOS} ${GREY_IOS}`}>{children}</dd>
+      </div>
+    );
   return (
     <div className="flex flex-col gap-0.5 sm:grid sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-4">
       <dt className={`text-xs font-semibold uppercase tracking-[0.12em] ${MUTED}`}>{label}</dt>
@@ -383,7 +391,7 @@ function CardRow({ label, children }: { label: string; children: ReactNode }) {
  * Ansettelser, Prognose, each with its source. One section open at a time, so
  * a phone never scrolls through all of them.
  */
-function FirmSections({ firm }: { firm: FirmCardNo }) {
+function FirmSections({ firm, light = false }: { firm: FirmCardNo; light?: boolean }) {
   const [open, setOpen] = useState(firm.sections[0]?.key ?? "");
   return (
     <div className="flex flex-col gap-2" data-testid="ms-firm-card">
@@ -391,9 +399,9 @@ function FirmSections({ firm }: { firm: FirmCardNo }) {
         const isOpen = open === s.key;
         const max = Math.max(1, ...s.bars.map((b) => b.adverts));
         return (
-          <section key={s.key} className="rounded-xl border border-white/15">
-            <button type="button" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? "" : s.key)} className="flex min-h-11 w-full items-center justify-between gap-3 px-3.5 py-2 text-left">
-              <span className="font-semibold text-white">{s.title}</span>
+          <section key={s.key} className={light ? "overflow-hidden rounded-[12px] bg-white" : "rounded-xl border border-white/15"}>
+            <button type="button" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? "" : s.key)} className={`flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left ${light ? "min-h-[3.5rem] md:min-h-[2.75rem]" : "min-h-11"}`}>
+              <span className={`font-semibold ${light ? `${BODY_IOS} ${INK}` : "text-white"}`}>{s.title}</span>
               <span className={`text-xs ${MUTED}`}>{s.source}</span>
             </button>
             {isOpen ? (
@@ -405,15 +413,15 @@ function FirmSections({ firm }: { firm: FirmCardNo }) {
                     ))}
                   </div>
                 ) : null}
-                <dl className="flex flex-col gap-2">
+                <dl className={light ? "flex flex-col divide-y divide-[#E5E5EA]" : "flex flex-col gap-2"}>
                   {s.rows.map((r) => (
-                    <CardRow key={`${s.key}-${r.label}`} label={r.label}>
+                    <CardRow key={`${s.key}-${r.label}`} label={r.label} light={light}>
                       {r.href ? (
                         <a href={r.href} target={r.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer nofollow" className="underline underline-offset-4">
                           {r.value}
                         </a>
                       ) : (
-                        <span className={r.tone === "danger" ? "font-semibold text-[#F87171]" : undefined}>{r.value}</span>
+                        <span className={r.tone === "danger" ? `font-semibold ${light ? "text-[#C4231A]" : "text-[#F87171]"}` : undefined}>{r.value}</span>
                       )}
                     </CardRow>
                   ))}
@@ -423,7 +431,7 @@ function FirmSections({ firm }: { firm: FirmCardNo }) {
           </section>
         );
       })}
-      {firm.footer ? <p className={`text-xs ${MUTED}`}>{firm.footer}</p> : null}
+      {firm.footer ? <p className={light ? `px-4 ${SMALL_IOS} ${GREY_IOS}` : `text-xs ${MUTED}`}>{firm.footer}</p> : null}
     </div>
   );
 }
@@ -433,7 +441,8 @@ function FirmSections({ firm }: { firm: FirmCardNo }) {
  * "Ring" and "Skriv" ask first; the confirmed press opens the call or the
  * letter and sets the status Kontaktet through hiring_lead. Never a person.
  */
-export function ContactBlock({ name, contact, onContacted }: { name: string; contact: HiringContact | null; onContacted: () => Promise<void> }) {
+export function ContactBlock({ name, contact, onContacted, light = false }: { name: string; contact: HiringContact | null; onContacted: () => Promise<void>; light?: boolean }) {
+  const btn = light ? PILL_IOS : SECONDARY;
   const [ask, setAsk] = useState<{ href: string; label: "Ring" | "Skriv"; text: string } | null>(null);
   const phone = contact?.phone ?? null;
   const tel = phone ? telHref(phone) : null;
@@ -449,50 +458,50 @@ export function ContactBlock({ name, contact, onContacted }: { name: string; con
     setAsk(next);
   };
   return (
-    <section aria-labelledby="ms-lead-contact" data-contact="" data-hiring-contact="" className="flex flex-col gap-3 rounded-xl border border-white/15 p-3.5">
-      <p id="ms-lead-contact" className="font-semibold text-white">
+    <section aria-labelledby="ms-lead-contact" data-contact="" data-hiring-contact="" className={light ? `flex flex-col gap-3 rounded-[12px] bg-white p-4 ${INK}` : "flex flex-col gap-3 rounded-xl border border-white/15 p-3.5"}>
+      <p id="ms-lead-contact" className={light ? `font-semibold ${BODY_IOS}` : "font-semibold text-white"}>
         Kontakt
       </p>
       {!tel && !email ? (
-        <div className="flex flex-col gap-2 text-[15px] text-white">
+        <div className={light ? `flex flex-col gap-2 ${BODY_IOS}` : "flex flex-col gap-2 text-[15px] text-white"}>
           <p>Ingen kontaktinfo registrert</p>
           {site}
         </div>
       ) : (
-        <dl className="flex flex-col gap-3">
+        <dl className={light ? "flex flex-col divide-y divide-[#E5E5EA]" : "flex flex-col gap-3"}>
           {tel && phone ? (
-            <CardRow label="Telefon">
-              <span className="flex flex-wrap items-center gap-3">
+            <CardRow label="Telefon" light={light}>
+              <span className={`flex flex-wrap items-center gap-3 ${light ? "justify-end" : ""}`}>
                 <span className="tabular-nums">{phone}</span>
-                <a href={tel} className={SECONDARY} onClick={(e) => askFor(e, { href: tel, label: "Ring", text: `Ringe ${name}? Status blir Kontaktet.` })}>
+                <a href={tel} className={btn} onClick={(e) => askFor(e, { href: tel, label: "Ring", text: `Ringe ${name}? Status blir Kontaktet.` })}>
                   Ring
                 </a>
               </span>
             </CardRow>
           ) : null}
           {email ? (
-            <CardRow label="E-post">
-              <span className="flex flex-wrap items-center gap-3">
+            <CardRow label="E-post" light={light}>
+              <span className={`flex flex-wrap items-center gap-3 ${light ? "justify-end" : ""}`}>
                 <span className="break-all">{email}</span>
-                <a href={`mailto:${email}`} className={SECONDARY} onClick={(e) => askFor(e, { href: `mailto:${email}`, label: "Skriv", text: `Skrive til ${name}? Status blir Kontaktet.` })}>
+                <a href={`mailto:${email}`} className={btn} onClick={(e) => askFor(e, { href: `mailto:${email}`, label: "Skriv", text: `Skrive til ${name}? Status blir Kontaktet.` })}>
                   Skriv
                 </a>
               </span>
             </CardRow>
           ) : null}
-          {site ? <CardRow label="Nettsted">{site}</CardRow> : null}
-          {contact?.address ? <CardRow label="Besøksadresse">{contact.address}</CardRow> : null}
+          {site ? <CardRow label="Nettsted" light={light}>{site}</CardRow> : null}
+          {contact?.address ? <CardRow label="Besøksadresse" light={light}>{contact.address}</CardRow> : null}
         </dl>
       )}
       {ask ? (
-        <div role="alertdialog" aria-labelledby="ms-contact-ask" className="flex flex-col gap-3 rounded-lg border border-white/20 bg-white/[0.06] p-3">
-          <p id="ms-contact-ask" className="text-[15px] text-white">
+        <div role="alertdialog" aria-labelledby="ms-contact-ask" className={light ? "flex flex-col gap-3 rounded-[10px] border border-[#E5E5EA] bg-[#F7F7FA] p-3" : "flex flex-col gap-3 rounded-lg border border-white/20 bg-white/[0.06] p-3"}>
+          <p id="ms-contact-ask" className={light ? BODY_IOS : "text-[15px] text-white"}>
             {ask.text}
           </p>
           <div className="flex flex-wrap gap-3">
             <a
               href={ask.href}
-              className={SECONDARY}
+              className={btn}
               data-autofocus
               onClick={() => {
                 setAsk(null);
@@ -501,7 +510,7 @@ export function ContactBlock({ name, contact, onContacted }: { name: string; con
             >
               {ask.label}
             </a>
-            <button type="button" className={SECONDARY} onClick={() => setAsk(null)}>
+            <button type="button" className={btn} onClick={() => setAsk(null)}>
               Avbryt
             </button>
           </div>
@@ -523,17 +532,27 @@ function LockedContact() {
   );
 }
 
-/** Opening the card is the POST hiring_card (the ATS records that it was opened). */
-function LeadCard({ orgnr, send, sendData, follow, onChanged, onHidden }: { orgnr: string; send: Send; sendData: SendData; follow: boolean; onChanged: () => void; onHidden: () => void }) {
+type CardNav = { index: number; total: number; onBack: () => void; onPrev: (() => void) | null; onNext: (() => void) | null };
+
+/**
+ * The firm card. Opening it is the POST hiring_card (the ATS records that it
+ * was opened). ORDER 273: it replaces the table across the whole section (his
+ * words of 12 November 2026: "sa apara pe toata partea", also for the hiring
+ * firms), with "Alle bedrifter" and Forrige / Neste, instead of a dialog. Behov
+ * first; the status as chips, changed in place and shown in the list at once.
+ */
+function LeadCard({ orgnr, send, sendData, follow, nav, onStatus, onChanged, onHidden }: { orgnr: string; send: Send; sendData: SendData; follow: boolean; nav: CardNav; onStatus: (orgnr: string, status: HiringStatus) => void; onChanged: () => void; onHidden: () => void }) {
   const [card, setCard] = useState<HiringCard | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [followUp, setFollowUp] = useState("");
-  const [busy, setBusy] = useState<"save" | "contacted" | null>(null);
+  const [busy, setBusy] = useState<"save" | "contacted" | "status" | null>(null);
   const [said, setSaid] = useState<string | null>(null);
 
   useEffect(() => {
+    // A new firm is a new card (the caller keys it by org.nr), so there is nothing to clear here.
     let live = true;
+    window.scrollTo({ top: 0 });
     void sendData({ action: "hiring_card", orgnr }).then((r) => {
       if (!live) return;
       if (!r.ok) {
@@ -554,8 +573,41 @@ function LeadCard({ orgnr, send, sendData, follow, onChanged, onHidden }: { orgn
     };
   }, [orgnr, sendData]);
 
-  if (failed) return <Failure message={failed} />;
-  if (!card) return <p className={`text-sm ${MUTED}`}>Henter bedriftskortet ...</p>;
+  const top = (
+    <div className="flex items-center justify-between gap-3">
+      <button type="button" onClick={nav.onBack} className={`inline-flex min-h-[3.25rem] min-w-[3rem] items-center gap-1 pr-3 font-semibold md:min-h-[2.5rem] ${BODY_IOS} ${INK} hover:underline`}>
+        <ChevronLeft className="h-5 w-5" aria-hidden />
+        Alle bedrifter
+      </button>
+      <div className="flex items-center gap-2">
+        <button type="button" className={`${PILL_IOS} px-3 md:px-4`} disabled={!nav.onPrev} onClick={nav.onPrev ?? undefined} aria-label="Forrige bedrift">
+          <ChevronLeft className="h-5 w-5" aria-hidden />
+          <span className="hidden md:inline">Forrige</span>
+        </button>
+        <button type="button" className={`${PILL_IOS} px-3 md:px-4`} disabled={!nav.onNext} onClick={nav.onNext ?? undefined} aria-label="Neste bedrift">
+          <span className="hidden md:inline">Neste</span>
+          <ChevronRight className="h-5 w-5" aria-hidden />
+        </button>
+      </div>
+    </div>
+  );
+
+  if (failed)
+    return (
+      <div className="flex flex-col gap-4" data-firm-card="">
+        {top}
+        <p role="alert" className={`text-sm font-semibold ${ERROR_L}`}>
+          {failed}
+        </p>
+      </div>
+    );
+  if (!card)
+    return (
+      <div className="flex flex-col gap-4" data-firm-card="">
+        {top}
+        <p className={`${BODY_IOS} ${GREY_IOS}`}>Henter bedriftskortet ...</p>
+      </div>
+    );
 
   const contacted = async () => {
     setBusy("contacted");
@@ -564,8 +616,23 @@ function LeadCard({ orgnr, send, sendData, follow, onChanged, onHidden }: { orgn
     setBusy(null);
     if (r.ok) {
       setCard({ ...card, status: "contacted" });
-      onChanged();
+      onStatus(orgnr, "contacted");
     } else setFailed(r.message);
+  };
+  const mark = async (status: HiringStatus) => {
+    if (status === card.status) return;
+    const before = card.status;
+    setBusy("status");
+    setSaid(null);
+    setCard({ ...card, status });
+    onStatus(orgnr, status);
+    const r = await send({ action: "hiring_lead", orgnr, status });
+    setBusy(null);
+    if (!r.ok) {
+      setCard({ ...card, status: before });
+      onStatus(orgnr, before);
+      setSaid(r.message);
+    }
   };
   const save = async (e: FormEvent) => {
     e.preventDefault();
@@ -588,10 +655,15 @@ function LeadCard({ orgnr, send, sendData, follow, onChanged, onHidden }: { orgn
   };
 
   return (
-    <form onSubmit={save} className="flex flex-col gap-4">
-      <p className="text-lg font-semibold text-white">{card.name}</p>
+    <form onSubmit={save} className="flex min-w-0 flex-col gap-5" data-firm-card="">
+      {top}
+      <header className="flex flex-col gap-1">
+        <h2 className={`${LARGE_TITLE} ${INK} whitespace-nowrap`}>{card.name}</h2>
+        <p className={`${BODY_IOS} ${GREY_IOS}`}>{[[card.town, card.county_name].filter(Boolean).join(", "), nav.total ? `${nav.index} av ${nav.total}` : null].filter(Boolean).join(" · ")}</p>
+      </header>
       {follow ? (
         <FirmActions
+          light
           orgnr={card.orgnr}
           watched={card.watched}
           send={send}
@@ -602,52 +674,55 @@ function LeadCard({ orgnr, send, sendData, follow, onChanged, onHidden }: { orgn
           }}
         />
       ) : null}
-      <ContactBlock name={card.name} contact={card.contact ?? { phone: null, email: null, website: card.website, address: null }} onContacted={contacted} />
-      <dl className="flex flex-col gap-3">
-        <CardRow label="Org.nr">
+      <dl className={GROUP_IOS}>
+        <CardRow light label="Behov">{card.behov ?? "Ikke oppgitt"}</CardRow>
+        <CardRow light label="Org.nr">
           <span className="tabular-nums">{orgNumberNo(card.orgnr)}</span>
         </CardRow>
-        {card.firm ? null : (
-          <>
-            <CardRow label="Bransje">{card.industry ?? "Ikke oppgitt"}</CardRow>
-            <CardRow label="Ansatte">{card.employees ?? "Ikke oppgitt"}</CardRow>
-            <CardRow label="Adresse">{card.address ?? ([card.town, card.county_name].filter(Boolean).join(", ") || "Ikke oppgitt")}</CardRow>
-          </>
-        )}
-        <CardRow label="Behov">{card.behov ?? "Ikke oppgitt"}</CardRow>
-        <CardRow label="Byrå">{card.recruits ?? "Ikke oppgitt"}</CardRow>
-        <CardRow label="Språk">{card.english_ok ? "Aksepterer engelsk" : "Ikke oppgitt"}</CardRow>
-        {card.won ? <CardRow label="Offentlig kontrakt">{card.won}</CardRow> : null}
-        <CardRow label="Status">{HIRING_STATUS_NO[card.status]}</CardRow>
+        <CardRow light label="Bransje">{card.industry ?? "Ikke oppgitt"}</CardRow>
+        <CardRow light label="Ansatte">{card.employees ?? "Ikke oppgitt"}</CardRow>
+        <CardRow light label="Språk">{card.english_ok ? "Aksepterer engelsk" : "Ikke oppgitt"}</CardRow>
+        <CardRow light label="Byrå">{card.recruits ?? "Ikke oppgitt"}</CardRow>
+        {card.won ? <CardRow light label="Offentlig kontrakt">{card.won}</CardRow> : null}
+        <CardRow light label="Adresse">{card.address ?? ([card.town, card.county_name].filter(Boolean).join(", ") || "Ikke oppgitt")}</CardRow>
       </dl>
-      {card.firm ? <FirmSections firm={card.firm} /> : null}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="ms-lead-follow" className="text-sm font-medium text-white">
+      <ContactBlock light name={card.name} contact={card.contact ?? { phone: null, email: null, website: card.website, address: null }} onContacted={contacted} />
+      <div className="flex flex-col gap-2">
+        <p className="px-4 text-[0.8125rem] font-medium uppercase tracking-[0.04em] text-[#6D6D72]">Status</p>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Status">
+          {HIRING_STATUSES.map((st) => (
+            <button key={st} type="button" role="radio" aria-checked={card.status === st} disabled={busy !== null} className={chip(card.status === st, true)} onClick={() => void mark(st)}>
+              {HIRING_STATUS_NO[st]}
+            </button>
+          ))}
+        </div>
+      </div>
+      {card.firm ? <FirmSections light firm={card.firm} /> : null}
+      <div className="flex flex-col gap-3 rounded-[12px] bg-white p-4">
+        <label htmlFor="ms-lead-follow" className={`${SMALL_IOS} ${GREY_IOS}`}>
           Følg opp
         </label>
-        <input id="ms-lead-follow" type="date" className={FIELD} value={followUp} onChange={(e) => setFollowUp(e.target.value)} />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="ms-lead-note" className="text-sm font-medium text-white">
+        <input id="ms-lead-follow" type="date" className={INPUT_IOS} value={followUp} onChange={(e) => setFollowUp(e.target.value)} />
+        <label htmlFor="ms-lead-note" className={`${SMALL_IOS} ${GREY_IOS}`}>
           Notat
         </label>
-        <textarea id="ms-lead-note" className={`${FIELD} min-h-[96px] py-2`} value={note} maxLength={2000} onChange={(e) => setNote(e.target.value)} />
-      </div>
-      {said ? (
-        <p role="status" className={`text-sm ${MUTED}`}>
-          {said}
-        </p>
-      ) : null}
-      <div className="flex flex-wrap gap-3 pt-1">
-        <button type="submit" className={PRIMARY} disabled={busy !== null}>
-          {busy === "save" ? "Lagrer ..." : "Lagre"}
-        </button>
-        <button type="button" className={SECONDARY} onClick={() => void copy()}>
-          Kopier
-        </button>
-        <button type="button" className={SECONDARY} disabled={busy !== null || card.status === "contacted"} onClick={() => void contacted()}>
-          Kontaktet
-        </button>
+        <textarea id="ms-lead-note" className={`${INPUT_IOS} min-h-[96px] py-2`} value={note} maxLength={2000} onChange={(e) => setNote(e.target.value)} />
+        {said ? (
+          <p role="status" className={`${SMALL_IOS} ${GREY_IOS}`}>
+            {said}
+          </p>
+        ) : null}
+        <div className="flex flex-wrap gap-2">
+          <button type="submit" className={PILL_IOS} disabled={busy !== null}>
+            {busy === "save" ? "Lagrer ..." : "Lagre"}
+          </button>
+          <button type="button" className={PILL_IOS} onClick={() => void copy()}>
+            Kopier
+          </button>
+          <button type="button" className={PILL_IOS} disabled={busy !== null || card.status === "contacted"} onClick={() => void contacted()}>
+            Kontaktet
+          </button>
+        </div>
       </div>
     </form>
   );
@@ -849,7 +924,7 @@ export type MinSideHiringProps = {
   send: Send;
   sendData: SendData;
   trial: ProjectsTrial;
-  /** "Be om folk": the staffing request Min side already has. */
+  /** "Planlegg bemanning": the staffing request Min side already has. */
   onAskPeople: () => void;
   /** ?hiring=projects: scroll to the projects card once. */
   focusProjects?: boolean;
@@ -949,8 +1024,8 @@ function RingCardView({ card, send, onOpen }: { card: HiringRingCard; send: Send
         </div>
       ) : null}
       <div className="mt-auto flex flex-wrap items-center gap-2">
-        {nextMarks(card.status).map((s, i) => (
-          <button key={s} type="button" className={i === 0 ? BTN_GREEN : BTN_OUTLINE} disabled={busy} onClick={() => void mark(s)}>
+        {nextMarks(card.status).map((s) => (
+          <button key={s} type="button" className={BTN_OUTLINE} disabled={busy} onClick={() => void mark(s)}>
             {HIRING_STATUS_NO[s]}
           </button>
         ))}
@@ -995,7 +1070,7 @@ function RingToday({ ring, send, onOpen }: { ring: HiringRing; send: Send; onOpe
  * "Følger", pressing again stops following) and "Skjul". A hidden firm leaves
  * the list; it comes back with "Angre" under Mine bedrifter.
  */
-function FirmActions({ orgnr, watched, send, onDone }: { orgnr: string; watched: boolean; send: Send; onDone: (key: "watch" | "unwatch" | "hide") => void }) {
+function FirmActions({ orgnr, watched, send, onDone, light = false }: { orgnr: string; watched: boolean; send: Send; onDone: (key: "watch" | "unwatch" | "hide") => void; light?: boolean }) {
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const act = async (key: "watch" | "unwatch" | "hide") => {
@@ -1008,14 +1083,14 @@ function FirmActions({ orgnr, watched, send, onDone }: { orgnr: string; watched:
   };
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-3" data-firm-actions="">
-      <button type="button" aria-pressed={watched} className={SECONDARY} disabled={busy} onClick={() => void act(watched ? "unwatch" : "watch")}>
+      <button type="button" aria-pressed={watched} className={light ? PILL_IOS : SECONDARY} disabled={busy} onClick={() => void act(watched ? "unwatch" : "watch")}>
         {watched ? "Følger" : "Følg"}
       </button>
-      <button type="button" className={SECONDARY} disabled={busy} onClick={() => void act("hide")}>
+      <button type="button" className={light ? PILL_IOS : SECONDARY} disabled={busy} onClick={() => void act("hide")}>
         Skjul
       </button>
       {failed ? (
-        <p role="alert" className={`w-full text-xs font-semibold ${ERROR_D}`}>
+        <p role="alert" className={`w-full text-xs font-semibold ${light ? ERROR_L : ERROR_D}`}>
           {failed}
         </p>
       ) : null}
@@ -1252,7 +1327,7 @@ function useHiringTable(token: string, enabled: boolean) {
 function FilterBar({ list, locks, counties, occupations }: { list: ReturnType<typeof useHiringTable>; locks: TableLock[]; counties: { code: string; name: string }[]; occupations: { key: string; name: string }[] }) {
   const [more, setMore] = useState(false);
   const { query, set } = list;
-  const moreOn = query.english || query.status !== "";
+  const moreOn = query.english;
   return (
     <div className="flex min-w-0 flex-col gap-3">
       <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3" role="group" aria-label="Filtre">
@@ -1291,6 +1366,17 @@ function FilterBar({ list, locks, counties, occupations }: { list: ReturnType<ty
           Flere filtre
         </button>
       </div>
+      {/* ORDER 273: the status as chips, one press away. */}
+      <div className="flex min-w-0 flex-wrap gap-2" role="radiogroup" aria-label="Status">
+        <button type="button" role="radio" aria-checked={query.status === ""} className={chip(query.status === "", true)} onClick={() => set({ status: "" })}>
+          Alle
+        </button>
+        {HIRING_STATUSES.map((st) => (
+          <button key={st} type="button" role="radio" aria-checked={query.status === st} className={chip(query.status === st, true)} onClick={() => set({ status: isHiringStatus(st) ? st : "" })}>
+            {HIRING_STATUS_NO[st]}
+          </button>
+        ))}
+      </div>
       {more ? (
         <div id="ms-more-filters" className={`${CARD_L} flex min-w-0 flex-wrap items-center gap-3 p-3`}>
           {locks.includes("filter_english") ? (
@@ -1300,14 +1386,6 @@ function FilterBar({ list, locks, counties, occupations }: { list: ReturnType<ty
               Engelsk ok
             </button>
           )}
-          <select aria-label="Status" className={`${FIELD_L} min-w-0 flex-1 basis-[160px] sm:w-[180px] sm:flex-none`} value={query.status} onChange={(e) => set({ status: isHiringStatus(e.target.value) ? e.target.value : "" })}>
-            <option value="">Alle statuser</option>
-            {HIRING_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {HIRING_STATUS_NO[s]}
-              </option>
-            ))}
-          </select>
         </div>
       ) : null}
     </div>
@@ -1413,6 +1491,35 @@ export default function MinSideHiring({ token, hiring, send, sendData, trial, on
   const projects = hiring.projects;
   const askRow = premiumAsk && premiumAsk !== true ? premiumAsk : null;
 
+  // ORDER 273: the firm's card across the section, in place of the list; the list's page and filters stay as they were.
+  if (lead) {
+    const rows = table?.rows ?? [];
+    const i = rows.findIndex((r) => r.orgnr === lead);
+    const close = () => {
+      setLead(null);
+      list.refresh();
+    };
+    return (
+      <LeadCard
+        key={lead}
+        orgnr={lead}
+        send={send}
+        sendData={sendData}
+        follow={hiring.prefs !== null}
+        nav={{
+          index: i + 1,
+          total: i >= 0 ? (table?.total ?? rows.length) : 0,
+          onBack: close,
+          onPrev: i > 0 ? () => setLead(rows[i - 1].orgnr) : null,
+          onNext: i >= 0 && i < rows.length - 1 ? () => setLead(rows[i + 1].orgnr) : null,
+        }}
+        onStatus={(orgnr, status) => list.setTable((t) => (t ? { ...t, rows: t.rows.map((x) => (x.orgnr === orgnr ? { ...x, status } : x)) } : t))}
+        onChanged={list.refresh}
+        onHidden={close}
+      />
+    );
+  }
+
   return (
     <div className="flex min-w-0 flex-col gap-5">
       {hiring.beta_notice && !betaSeen ? <BetaNotice text={hiring.beta_notice} send={send} onSeen={() => setBetaSeen(true)} /> : null}
@@ -1499,8 +1606,9 @@ export default function MinSideHiring({ token, hiring, send, sendData, trial, on
 
       <div className={`${CARD_L} flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5`}>
         <p className={`min-w-0 flex-1 basis-[220px] text-[15px] font-semibold ${INK}`}>Trenger dere folk selv?</p>
-        <button type="button" className={BTN_GREEN} aria-haspopup="dialog" onClick={onAskPeople}>
-          Be om folk
+        {/* ORDER 273: inside Min side the ask for people is "Planlegg bemanning", the same prefilled form everywhere. */}
+        <button type="button" className={PILL_GREEN_IOS} aria-haspopup="dialog" onClick={onAskPeople}>
+          Planlegg bemanning
         </button>
       </div>
 
@@ -1508,17 +1616,6 @@ export default function MinSideHiring({ token, hiring, send, sendData, trial, on
 
       <p className={FINE_PRINT}>{FOOTER_LINE}</p>
 
-      {lead ? (
-        <PortalModal
-          title="Bedriftskort"
-          onClose={() => {
-            setLead(null);
-            list.refresh();
-          }}
-        >
-          <LeadCard orgnr={lead} send={send} sendData={sendData} follow={hiring.prefs !== null} onChanged={list.refresh} onHidden={() => setLead(null)} />
-        </PortalModal>
-      ) : null}
       {agencyOrg ? (
         <PortalModal title="Om bedriften" onClose={() => setAgencyOrg(null)}>
           <AgencyInfo orgnr={agencyOrg} sendData={sendData} />

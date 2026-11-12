@@ -39,6 +39,11 @@ export async function POST(request: NextRequest) {
   });
   if (answer.status === 429) return noStoreJson({ error: TOO_MANY }, { status: 429 });
   if (answer.status >= 500 || answer.status === 404) return noStoreJson({ error: UNAVAILABLE }, { status: 503 });
+  // ORDER 273: a private address (gmail and the like) is refused in the ATS's own sentence, shown under the field.
+  // It says nothing about whether the address is a client: every private address hears it.
+  if (answer.status === 400 && answer.body.field === "email" && typeof answer.body.error === "string") {
+    return noStoreJson({ error: answer.body.error.slice(0, 200), field: "email" }, { status: 400 });
+  }
   // Whatever else the ATS said, the visitor hears the same sentence.
   return noStoreJson({ ok: true });
 }
