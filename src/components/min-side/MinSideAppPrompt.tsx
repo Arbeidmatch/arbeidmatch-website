@@ -46,7 +46,8 @@ async function relatedAppInstalled(): Promise<boolean> {
 /** The site's cookie question is open: one window at a time, so the prompt waits for it to be answered. */
 function cookieQuestionOpen(): boolean {
   const el = document.querySelector('[aria-label="Cookies and privacy"]');
-  return el instanceof HTMLElement && el.offsetParent !== null;
+  // The banner is position: fixed, whose offsetParent is always null; its boxes say whether it is drawn.
+  return el instanceof HTMLElement && el.getClientRects().length > 0;
 }
 
 function readVisit(): string | null {
