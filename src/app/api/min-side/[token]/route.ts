@@ -59,6 +59,11 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
     return noStoreJson(answer.body, { status: answer.status });
   }
+  // ORDER 272: "Senere" on the Forsprang install prompt; the ATS keeps it away for thirty days.
+  if (action === "app_prompt_later") {
+    const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body: { action } });
+    return noStoreJson(answer.body, { status: answer.status });
+  }
   if (
     action !== "company" &&
     action !== "contact" &&

@@ -1,0 +1,23 @@
+{
+  "id": "/min-side",
+  "name": "Forsprang",
+  "short_name": "Forsprang",
+  "description": "Prosjektene deres, rett på telefonen.",
+  "lang": "nb-NO",
+  "start_url": "/min-side",
+  "scope": "/min-side",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0D1B2A",
+  "background_color": "#0D1B2A",
+  "icons": [
+    { "src": "/forsprang/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/forsprang/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/forsprang/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/forsprang/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "related_applications": [
+    { "platform": "play", "id": "no.arbeidmatch.forsprang", "url": "https://play.google.com/store/apps/details?id=no.arbeidmatch.forsprang" }
+  ],
+  "prefer_related_applications": false
+}

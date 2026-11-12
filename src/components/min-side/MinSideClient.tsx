@@ -11,6 +11,7 @@ import { FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import { MinSideWhatsNew } from "./MinSideWhatsNew";
 import { MinSideCityQuestion, MinSideContactCard } from "./MinSideCityQuestion";
 import MinSideHiring, { ConfirmForm, HiringStop, ProjectsTeaser, useProjectsTrial, type Fetched } from "./MinSideHiring";
+import { MinSideAppPrompt } from "./MinSideAppPrompt";
 import { BTN_GREEN, BTN_OUTLINE, CARD_L, GOLD_TEXT, INK, LINK_L, MUTED_L, RULE, SOFT } from "./ui";
 import {
   PLAN_CONFIRMATION,
@@ -821,6 +822,9 @@ export default function MinSideClient({ token }: { token: string }) {
       ) : null}
 
       {trial.dialog}
+
+      {/* ORDER 272: the Forsprang app, offered once per visit on a phone that has not got it. */}
+      {profile ? <MinSideAppPrompt app={profile.app} onLater={() => void send({ action: "app_prompt_later" })} /> : null}
 
       {askClose ? (
         <PortalModal title="Lukk kontoen" size="narrow" onClose={() => setAskClose(false)}>

@@ -10,6 +10,7 @@
  */
 
 import { domainLabel, isDomainKey } from "@/lib/prosjekter/domains";
+import { appStateFrom, type AppState } from "@/lib/min-side/app-prompt";
 import { NORWAY_REGIONS } from "@/lib/prosjekter/regions";
 
 export type Company = {
@@ -126,6 +127,8 @@ export type Profile = {
   hiring: Hiring | null;
   /** ORDER 236: the letters we wrote to this person; their e-mail only said one was waiting. Empty from an older ATS. */
   messages: Message[];
+  /** ORDER 272: whether the Forsprang app may be offered; null from an older ATS, which offers nothing. */
+  app: AppState | null;
 };
 
 /** ORDER 236: one message, as it was approved, its buttons kept as buttons. */
@@ -361,6 +364,7 @@ export function profileFrom(raw: unknown): Profile | null {
     candidates: list(r.candidates)
       .map((k) => ({ title: str(k.title, 200), sent_at: typeof k.sent_at === "string" ? k.sent_at : null, state: str(k.state, 60), url: ownLink(k.url) }))
       .slice(0, 50),
+    app: appStateFrom(r.app),
     messages: list(r.messages)
       .filter((m) => isMessageId(m.id) && typeof m.created_at === "string")
       .map((m) => ({
