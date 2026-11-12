@@ -43,6 +43,12 @@ async function relatedAppInstalled(): Promise<boolean> {
   }
 }
 
+/** The site's cookie question is open: one window at a time, so the prompt waits for it to be answered. */
+function cookieQuestionOpen(): boolean {
+  const el = document.querySelector('[aria-label="Cookies and privacy"]');
+  return el instanceof HTMLElement && el.offsetParent !== null;
+}
+
 function readVisit(): string | null {
   try {
     return window.sessionStorage.getItem(VISIT_POPUP_KEY);
@@ -87,7 +93,13 @@ export function MinSideAppPrompt({ app, onLater }: { app: AppState | null; onLat
   useEffect(() => {
     if (!app || app.prompt_hidden) return;
     let cancelled = false;
-    const timer = window.setTimeout(async () => {
+    let timer = 0;
+    const decide = async () => {
+      if (cancelled) return;
+      if (cookieQuestionOpen()) {
+        timer = window.setTimeout(() => void decide(), 1500);
+        return;
+      }
       const facts = {
         userAgent: navigator.userAgent,
         maxTouchPoints: navigator.maxTouchPoints ?? 0,
@@ -104,7 +116,8 @@ export function MinSideAppPrompt({ app, onLater }: { app: AppState | null; onLat
         claimVisit();
         setDecision(next);
       }
-    }, visitPopupDelay("install_app"));
+    };
+    timer = window.setTimeout(() => void decide(), visitPopupDelay("install_app"));
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
@@ -135,7 +148,7 @@ export function MinSideAppPrompt({ app, onLater }: { app: AppState | null; onLat
 
   // A tap beside the sheet closes it for this visit; only "Senere" keeps it away for thirty days.
   return (
-    <div className="fixed inset-0 z-[60] flex items-end bg-[rgba(13,27,42,0.45)]" onClick={() => setDecision(null)}>
+    <div className="fixed inset-0 z-[120] flex items-end bg-[rgba(13,27,42,0.45)]" onClick={() => setDecision(null)}>
       <div
         role="dialog"
         aria-modal="true"
