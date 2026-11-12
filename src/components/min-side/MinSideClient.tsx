@@ -209,6 +209,8 @@ export default function MinSideClient({ token }: { token: string }) {
   const [scrollBack, setScrollBack] = useState<number | null>(null);
   const savedScroll = useRef(0);
   const [keyDialog, setKeyDialog] = useState(false);
+  // One popup per visit: once the key dialog was shown, the app prompt waits for another visit.
+  const [keyShown, setKeyShown] = useState(false);
   const [keyCount, setKeyCount] = useState<number | null>(null);
   const supported = usePasskeysSupported();
   // Whether the address chose a section itself: then the first load does not move to the hiring terms.
@@ -429,6 +431,7 @@ export default function MinSideClient({ token }: { token: string }) {
     } catch {
       /* it shows once all the same */
     }
+    setKeyShown(true);
     setKeyDialog(true);
   }, [profile, supported]);
 
@@ -954,7 +957,7 @@ export default function MinSideClient({ token }: { token: string }) {
       ) : null}
 
       {/* ORDER 272: the Forsprang app, offered once per visit on a phone that has not got it; never over the key dialog. */}
-      {profile && !keyDialog ? <MinSideAppPrompt app={profile.app} onLater={() => void send({ action: "app_prompt_later" })} /> : null}
+      {profile && !keyDialog && !keyShown ? <MinSideAppPrompt app={profile.app} onLater={() => void send({ action: "app_prompt_later" })} /> : null}
 
       {askClose ? (
         <PortalModal title="Lukk kontoen" size="narrow" onClose={() => setAskClose(false)}>
