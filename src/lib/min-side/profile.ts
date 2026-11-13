@@ -11,6 +11,7 @@
 
 import { domainLabel, isDomainKey } from "@/lib/prosjekter/domains";
 import { appStateFrom, type AppState } from "@/lib/min-side/app-prompt";
+import { recommendFrom, type RecommendState } from "@/lib/min-side/recommend";
 import { NORWAY_REGIONS } from "@/lib/prosjekter/regions";
 import { alertSettingsFrom, type AlertSettings } from "@/lib/min-side/alert-settings";
 
@@ -142,6 +143,8 @@ export type Profile = {
   app: AppState | null;
   /** ORDER 273: whether the access has a key, and until when "Senere" keeps the key dialog away; null from an older ATS. */
   security: { has_passkey: boolean; prompt_dismissed_until: string | null } | null;
+  /** ORDER 274: "Anbefal Prosjektvarsler": the firm's count of five, this person's list, whether the popup is due; null from an older ATS. */
+  recommend: RecommendState | null;
 };
 
 /** ORDER 236: one message, as it was approved, its buttons kept as buttons. */
@@ -385,6 +388,7 @@ export function profileFrom(raw: unknown): Profile | null {
       .slice(0, 50),
     app: appStateFrom(r.app),
     security: securityFrom(r.security),
+    recommend: recommendFrom(r.recommend),
     messages: list(r.messages)
       .filter((m) => isMessageId(m.id) && typeof m.created_at === "string")
       .map((m) => ({

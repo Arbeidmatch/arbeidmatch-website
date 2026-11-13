@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { getRateLimitResult, noStoreJson } from "@/lib/apiSecurity";
 import { alertCitiesRequest, cityQuestionRequest, hiringRequest, isCityName, isHiringAction, isHiringPrefsAction, isProfileToken, isWhatsNewId, messageReadRequest } from "@/lib/min-side/profile";
 import { alertSettingsRequest } from "@/lib/min-side/alert-settings";
+import { isRecommendAction, recommendRequest } from "@/lib/min-side/recommend";
 import { callAts } from "@/lib/prosjekter/ats";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   // ordinary use of the settings never reaches the general limit of the page's other changes.
   // ORDER 181: so does the live count on "Bekreft og start", asked as the client picks.
   // ORDER 273: so do the alert settings, one field per change.
-  const rate = isHiringPrefsAction(action) || action === "hiring_confirm_count" || action === "alert_settings"
+  const rate = isHiringPrefsAction(action) || action === "hiring_confirm_count" || action === "alert_settings" || action === "recommend_check"
     ? getRateLimitResult(request, "min-side-prefs", 120, 10 * 60 * 1000)
     : getRateLimitResult(request, "min-side-post", 30, 10 * 60 * 1000);
   if (rate.limited) return noStoreJson({ error: TOO_MANY }, { status: 429 });
@@ -64,6 +65,13 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   // ORDER 273: one alert setting, checked field by field; the ATS checks it against the plan and its 30-day rules.
   if (action === "alert_settings") {
     const body = alertSettingsRequest(raw);
+    if (!body) return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+    const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
+    return noStoreJson(answer.body, { status: answer.status });
+  }
+  // ORDER 274: the recommendation popup; the addresses as plain text, at most five, the greeting at most 200 characters.
+  if (isRecommendAction(action)) {
+    const body = recommendRequest(raw);
     if (!body) return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
     const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
     return noStoreJson(answer.body, { status: answer.status });

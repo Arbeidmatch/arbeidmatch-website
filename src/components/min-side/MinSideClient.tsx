@@ -21,6 +21,7 @@ import {
   MessageSquare,
   Phone,
   Receipt,
+  Send,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -31,13 +32,15 @@ import { SupportButton } from "@/components/support/SupportRequest";
 import { MinSideWhatsNew } from "./MinSideWhatsNew";
 import { MinSideCityQuestion, MinSideContactCard } from "./MinSideCityQuestion";
 import MinSideHiring, { ConfirmForm, HiringStop, ProjectsTeaser, useProjectsTrial, type Fetched } from "./MinSideHiring";
-import { MinSideAppPrompt } from "./MinSideAppPrompt";
+import { cookieQuestionOpen, MinSideAppPrompt } from "./MinSideAppPrompt";
 import MinSideAlerts from "./MinSideAlerts";
 import MinSideKeyDialog from "./MinSideKeyDialog";
+import MinSideRecommend from "./MinSideRecommend";
 import { FakturaRows, FirmaRows, KontaktRows } from "./MinSideFirm";
 import { BODY, CARD, DANGER, GREY, GROUP, GROUP_HEAD, LARGE_TITLE, NAVY, NEW_BADGE, PAGE_BG, PILL, PILL_GREEN, ROW, ROW_BUTTON, SMALL } from "./ios";
 import { alertSettingsFrom } from "@/lib/min-side/alert-settings";
-import { VISIT_POPUP_KEY } from "@/lib/min-side/app-prompt";
+import { visitPopupDelay, VISIT_POPUP_KEY } from "@/lib/min-side/app-prompt";
+import { counterWords, decideRecommendPopup, RECOMMEND_NO } from "@/lib/min-side/recommend";
 import { decideKeyDialog, keyPromptAsked, withoutKeyPrompt } from "@/lib/min-side/key-prompt";
 import { INITIAL_LIST, isNew, varslerHash, varslerRoute, type ListState, type VarslerRoute } from "@/lib/min-side/project-list";
 import {
@@ -212,6 +215,9 @@ export default function MinSideClient({ token }: { token: string }) {
   // One popup per visit: once the key dialog was shown, the app prompt waits for another visit.
   const [keyShown, setKeyShown] = useState(false);
   const [keyCount, setKeyCount] = useState<number | null>(null);
+  // ORDER 274: "Anbefal Prosjektvarsler", opened by itself once a login (auto) or from its row.
+  const [recommendOpen, setRecommendOpen] = useState<"auto" | "row" | null>(null);
+  const recommendTried = useRef(false);
   const supported = usePasskeysSupported();
   // Whether the address chose a section itself: then the first load does not move to the hiring terms.
   const addressChose = useRef(false);
@@ -435,6 +441,40 @@ export default function MinSideClient({ token }: { token: string }) {
     setKeyDialog(true);
   }, [profile, supported]);
 
+  // ORDER 274: the recommendation popup, last in rank: it waits its turn after the key dialog and the install
+  // prompt (app-prompt.ts), and opens only if neither claimed the visit and the ATS says it is due.
+  useEffect(() => {
+    if (!profile || recommendTried.current) return;
+    recommendTried.current = true;
+    if (!profile.recommend?.due) return;
+    let timer = 0;
+    const decide = () => {
+      if (cookieQuestionOpen()) {
+        timer = window.setTimeout(decide, 1500);
+        return;
+      }
+      let shown: string | null = null;
+      try {
+        shown = window.sessionStorage.getItem(VISIT_POPUP_KEY);
+      } catch {
+        /* private window */
+      }
+      if (!decideRecommendPopup({ state: profile.recommend, readOnly: profile.app?.read_only === true, keyDialogThisVisit: keyShown, shownThisVisit: shown })) return;
+      try {
+        window.sessionStorage.setItem(VISIT_POPUP_KEY, "recommendation");
+      } catch {
+        /* it shows once all the same */
+      }
+      void sendData({ action: "recommend_prompt_seen" });
+      setRecommendOpen("auto");
+    };
+    // The install prompt may wait up to 1.5s more on the phone's list of apps before it claims the visit: so this waits that too.
+    timer = window.setTimeout(decide, visitPopupDelay("recommendation") + 1600);
+    return () => window.clearTimeout(timer);
+    // Decided once, on the first load; keyShown is read as it stands when the timer fires.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile]);
+
   const c = profile?.company ?? null;
   const words = alertsWords(profile?.alerts ?? null, profile?.free_alerts?.months ?? null);
   const [startingAlerts, setStartingAlerts] = useState(false);
@@ -627,6 +667,19 @@ export default function MinSideClient({ token }: { token: string }) {
                     </div>
                   );
                 })}
+                {/* ORDER 274: always reachable, whatever the popup did; never on a read-only key. */}
+                {profile.recommend && profile.app?.read_only !== true ? (
+                  <div className={GROUP}>
+                    <button type="button" className={ROW_BUTTON} aria-haspopup="dialog" onClick={() => setRecommendOpen("row")}>
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px] bg-[#C2457A]" aria-hidden>
+                        <Send className="h-4 w-4 text-white" strokeWidth={2} />
+                      </span>
+                      <span className={`shrink-0 whitespace-nowrap ${BODY} ${NAVY}`}>{RECOMMEND_NO.row}</span>
+                      <span className={`min-w-0 flex-1 truncate text-right ${SMALL} ${GREY}`}>{counterWords(profile.recommend.used, profile.recommend.limit)}</span>
+                      <ChevronRight className="h-5 w-5 shrink-0 text-[#C7C7CC]" aria-hidden />
+                    </button>
+                  </div>
+                ) : null}
                 <div className="flex flex-col lg:hidden">
                   <p className={GROUP_HEAD}>Mer</p>
                   <div className={GROUP}>{rail(sections.filter((x) => x.rare))}</div>
@@ -958,6 +1011,17 @@ export default function MinSideClient({ token }: { token: string }) {
 
       {/* ORDER 272: the Forsprang app, offered once per visit on a phone that has not got it; never over the key dialog. */}
       {profile && !keyDialog && !keyShown ? <MinSideAppPrompt app={profile.app} onLater={() => void send({ action: "app_prompt_later" })} /> : null}
+
+      {recommendOpen && profile?.recommend ? (
+        <MinSideRecommend
+          state={profile.recommend}
+          auto={recommendOpen === "auto"}
+          sendData={sendData}
+          onLater={() => void sendData({ action: "recommend_prompt_later" })}
+          onClose={() => setRecommendOpen(null)}
+          onSent={() => void load()}
+        />
+      ) : null}
 
       {askClose ? (
         <PortalModal title="Lukk kontoen" size="narrow" onClose={() => setAskClose(false)}>

@@ -199,7 +199,7 @@ describe("the key dialog: one window per visit (ORDER 273)", () => {
     expect(decideKeyDialog({ ...base, shownThisVisit: "install_app" })).toBe(false);
     const client = readFileSync(path.join(__dirname, "MinSideClient.tsx"), "utf8");
     expect(client).toContain('window.sessionStorage.setItem(VISIT_POPUP_KEY, "key_dialog")');
-    expect(client).toContain("{profile && !keyDialog ? <MinSideAppPrompt");
+    expect(client).toContain("{profile && !keyDialog && !keyShown ? <MinSideAppPrompt");
   });
 
   it("is asked for by the login link only, and the question leaves the address", () => {
