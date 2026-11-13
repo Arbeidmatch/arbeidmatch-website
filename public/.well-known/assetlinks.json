@@ -1,10 +1,14 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls", "delegate_permission/common.get_login_creds"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "no.arbeidmatch.forsprang",
       "sha256_cert_fingerprints": [
+        "C1:68:6A:C9:40:61:56:DD:39:A9:50:B8:BB:41:32:37:28:CC:E9:EF:42:C3:9A:8D:B8:7E:B9:E9:48:14:C9:9E",
         "D5:EF:29:F5:BF:0A:4A:26:42:C4:86:A6:E6:D6:30:E8:EF:D2:FF:E6:C9:BD:7A:35:19:81:EC:74:A5:19:9B:43"
       ]
     }
