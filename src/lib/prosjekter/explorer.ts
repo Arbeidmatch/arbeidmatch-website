@@ -1,5 +1,5 @@
 import { domainsNo, cleanDescription, keyDateNo, placeNo, stageNo, type AlertProject } from "./format";
-import { COUNTIES, placeProjects, STAGE_LABEL, valueBand } from "./map";
+import { COUNTIES, ownPoint, placeProjects, STAGE_LABEL, valueBand } from "./map";
 import { domainChoices } from "./format";
 import type { Overview } from "./types";
 import { NORWAY_REGIONS } from "./regions";
@@ -32,6 +32,30 @@ export function publicValue(value: number | null): number | null {
   return value < 1e7 ? 5e6 : value < 1e8 ? 5e7 : value < 5e8 ? 2e8 : value < 1e9 ? 7e8 : 1e9;
 }
 
+/**
+ * The middle of each current county (2024), by NUTS 3 code: the label points
+ * of norway-map.json projected back to latitude and longitude. The same table
+ * as the ATS (src/lib/future-projects/places.ts, COUNTY_CENTROIDS), so the
+ * open answer from either side puts a dot in the same place.
+ */
+export const COUNTY_MIDDLES: Record<string, { lat: number; lon: number }> = {
+  NO081: { lat: 59.98, lon: 10.74 },
+  NO084: { lat: 60.04, lon: 11.17 },
+  NO083: { lat: 59.36, lon: 11.3 },
+  NO085: { lat: 60.3, lon: 9.09 },
+  NO093: { lat: 59.32, lon: 10.11 },
+  NO094: { lat: 59.52, lon: 8.52 },
+  NO020: { lat: 61.44, lon: 10.44 },
+  NO092: { lat: 58.7, lon: 7.62 },
+  NO0A1: { lat: 59.1, lon: 6.25 },
+  NO0A2: { lat: 60.96, lon: 6.54 },
+  NO0A3: { lat: 62.5, lon: 7.59 },
+  NO060: { lat: 63.72, lon: 11.38 },
+  NO071: { lat: 66.66, lon: 14.69 },
+  NO072: { lat: 69.22, lon: 19.9 },
+  NO073: { lat: 69.91, lon: 25.92 },
+};
+
 // PROJ-SEC (17 October 2026): the public payload carries no list and the
 // unfiltered total; the page lists projects from the catalog and the map.
 export function publicOverview(data: Overview): Overview {
@@ -47,12 +71,16 @@ export function publicOverview(data: Overview): Overview {
       d: Array.isArray(p.d) ? p.d.filter(d => labels.has(d)) : [], v: publicValue(p.v ?? p.band ?? null),
     })) } : {}),
     projects: [],
-    ...(Array.isArray(data.map) ? { map: placeProjects(data.map).map(p => ({
-      // The source is already a town/municipality reference, not a site address.
-      // Further rounding can move that reference several kilometres into a fjord.
-      no: p.no, st: p.st, lat: p.lat, lon: p.lon,
-      v: publicValue(p.v), r: p.r, d: p.d, t: "Prosjektdetaljer for abonnenter", c: null, k: null,
-    })) } : {}),
+    ...(Array.isArray(data.map) ? { map: placeProjects(data.map).flatMap(p => {
+      // County level only without a subscription (his rule, 13 November 2026):
+      // every open dot sits at the middle of its county, never at its town.
+      const at = COUNTY_MIDDLES[p.r];
+      if (!at) return [];
+      return [{
+        no: p.no, st: p.st, lat: at.lat, lon: at.lon,
+        v: publicValue(p.v), r: p.r, d: p.d, t: "Prosjektdetaljer for abonnenter", c: null, k: null,
+      }];
+    }) } : {}),
   };
 }
 
@@ -99,7 +127,7 @@ export function safeDocumentLink(value: string | null): string | null {
 export function subscriberExplorer(projects: AlertProject[], overview: Overview | null): ExplorerProject[] {
   const locations = new Map(placeProjects(overview?.map).map(p => [p.no, p]));
   return projects.map(p => {
-    const point = p.project_no === null ? undefined : locations.get(p.project_no);
+    const point = ownPoint(p) ?? (p.project_no === null ? undefined : locations.get(p.project_no));
     const amount = p.awarded_value_nok ?? p.estimated_value_nok;
     return {
       id: p.id, title: p.title, stage: p.stage, stageLabel: stageNo(p), region: p.regions[0] ?? "",

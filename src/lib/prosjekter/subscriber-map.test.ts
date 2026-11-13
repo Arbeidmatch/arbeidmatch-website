@@ -29,6 +29,13 @@ describe("a client's projects on the classic map", () => {
     expect(m.unplaced).toBe(0);
   });
 
+  it("takes the project's own point from the token page before the open map, which is county level (13 November 2026)", () => {
+    const countyLevel: Overview = { ...overview, map: [{ no: 42, st: "tender", t: "", c: null, k: null, r: "NO060", d: ["buildings"], band: 50_000_000, lat: 63.72, lon: 11.38 }] };
+    const m = subscriberMap([{ ...base, lat: 63.43123, lon: 10.39567 }], countyLevel, NOW);
+    expect(m.placed[0]).toMatchObject({ no: 42, lat: 63.43123, lon: 10.39567, r: "NO060" });
+    expect(m.approximate.size).toBe(0);
+  });
+
   it("puts a project the map does not know on its county's centre, marked approximate, and counts one with no county at all", () => {
     const noMap: AlertProject = { ...base, id: "p-7", project_no: 7, regions: ["NO081"] };
     const nowhere: AlertProject = { ...base, id: "p-x", project_no: null, regions: [] };

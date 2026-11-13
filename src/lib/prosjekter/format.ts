@@ -28,6 +28,9 @@ export type AlertProject = {
   buyer_name: string | null;
   regions: string[];
   city: string | null;
+  /** The project's own point, on the subscriber's page only: the open overview is county level (13 November 2026). */
+  lat?: number | null;
+  lon?: number | null;
   cpv_codes: string[];
   estimated_value_nok: number | null;
   awarded_value_nok: number | null;

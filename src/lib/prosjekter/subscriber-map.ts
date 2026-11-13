@@ -1,6 +1,6 @@
 import { domainsOf } from "./domains";
 import type { AlertProject } from "./format";
-import { COUNTIES, placeProjects, type MapStage, type PlacedProject } from "./map";
+import { COUNTIES, ownPoint, placeProjects, type MapStage, type PlacedProject } from "./map";
 import type { Overview } from "./types";
 
 /**
@@ -45,8 +45,10 @@ export function subscriberMap(projects: readonly AlertProject[], overview: Overv
     const st = mapStageOf(p, now);
     if (!st) return;
     const no = dotNumber(p, i);
-    const point = p.project_no !== null ? located.get(p.project_no) : undefined;
-    const county = p.regions.find((code) => COUNTIES[code]) ?? point?.r ?? p.regions[0] ?? "";
+    // Its own point first; the open overview is county level only (13 November 2026).
+    const onMap = p.project_no !== null ? located.get(p.project_no) : undefined;
+    const point = ownPoint(p) ?? onMap;
+    const county: string = p.regions.find((code) => COUNTIES[code]) ?? onMap?.r ?? p.regions[0] ?? "";
     const value = p.awarded_value_nok ?? p.estimated_value_nok;
     const base = {
       no,

@@ -33,7 +33,9 @@ describe("project explorer access boundary", () => {
     const output = publicOverview(publicData);
     const json = JSON.stringify(output);
     for (const secret of ["Private project name", "Exact place", "123456789", "Exact deadline", "never forwarded"]) expect(json).not.toContain(secret);
-    expect(output.map?.[0]).toMatchObject({ lat: 63.43123, lon: 10.39567 });
+    // County level only without a subscription (13 November 2026): the dot sits at its county's middle.
+    expect(output.map?.[0]).toMatchObject({ lat: 63.72, lon: 11.38, r: "NO060" });
+    expect(json).not.toContain("63.43123");
     expect(publicOverview(output)).toEqual(output);
     expect(publicData.projects[0].title).toBe("Private project name");
     expect(publicExplorer(output)[0]).toMatchObject({ title: "Bygg", value: "100-500 MNOK", buyer: null, documents: null });
@@ -47,7 +49,10 @@ describe("project explorer access boundary", () => {
     expect(p.buyer).toBe("Test Buyer AS");
     expect(p.value.replace(/\s/g, "")).toBe("123456789kr");
     expect(p.coordinates).toBeNull();
-    expect(subscriberExplorer([privateProject], publicOverview(publicData))[0].coordinates).toEqual([10.39567,63.43123]);
+    // Without its own point a subscriber's project sits where the open map has it (its county's middle);
+    // with its own point from the token page, exactly there.
+    expect(subscriberExplorer([privateProject], publicOverview(publicData))[0].coordinates).toEqual([11.38, 63.72]);
+    expect(subscriberExplorer([{ ...privateProject, lat: 63.43123, lon: 10.39567 }], publicOverview(publicData))[0].coordinates).toEqual([10.39567, 63.43123]);
   });
   it("blocks executable and non-HTTPS document links", () => {
     expect(safeDocumentLink("javascript:alert(1)")).toBeNull();
@@ -78,9 +83,9 @@ describe("project explorer access boundary", () => {
     };
     const output = publicOverview(open);
     expect(output.map).toHaveLength(1);
-    expect(output.map?.[0]).toMatchObject({ no: 42, lat: 63.43123, lon: 10.39567, v: 2e8 });
+    expect(output.map?.[0]).toMatchObject({ no: 42, lat: 63.72, lon: 11.38, v: 2e8 });
     const [p] = publicExplorer(output);
-    expect(p).toMatchObject({ id: "42", value: "100-500 MNOK", coordinates: [10.39567, 63.43123] });
+    expect(p).toMatchObject({ id: "42", value: "100-500 MNOK", coordinates: [11.38, 63.72] });
   });
   it("suggests only other projects in the same known region", () => {
     const [p] = subscriberExplorer([privateProject], null);

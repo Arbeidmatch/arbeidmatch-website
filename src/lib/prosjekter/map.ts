@@ -82,6 +82,19 @@ const round1 = (v: number) => Math.round(v * 10) / 10;
 /** What a dot is called when the answer carries no title: the open page names no project. */
 export const PUBLIC_DOT_TITLE = "Prosjektdetaljer for abonnenter";
 
+/**
+ * A subscriber's own project point, from the token page (13 November 2026: the
+ * open overview is county level only, so a client's exact places come with
+ * their own projects). Null when the project has none or it is outside Norway.
+ */
+export function ownPoint(p: { lat?: number | null; lon?: number | null }): { lat: number; lon: number; x: number; y: number } | null {
+  const { lat, lon } = p;
+  if (typeof lat !== "number" || typeof lon !== "number" || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  if (lat < 57 || lat > 72 || lon < 3 || lon > 33) return null;
+  const [x, y] = project(lon, lat);
+  return { lat, lon, x: round1(x), y: round1(y) };
+}
+
 export function placeProjects(raw: unknown): PlacedProject[] {
   if (!Array.isArray(raw)) return [];
   const out: PlacedProject[] = [];
