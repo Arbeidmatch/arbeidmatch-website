@@ -158,8 +158,9 @@ export default async function RegisterPage({ params }: Props) {
             ))}
           </ol>
           <div className="mt-8 flex flex-col items-stretch gap-3 md:flex-row md:items-center md:gap-6">
+            {/* The register door, so the name and the consent are asked before a profile exists (ORDER 281). */}
             <a
-              href={`${atsBaseUrl()}/candidate/login?invite=${encodeURIComponent(invitation.token)}`}
+              href={`${atsBaseUrl()}/candidate/login/register?invite=${encodeURIComponent(invitation.token)}`}
               className="inline-flex min-h-[52px] items-center justify-center rounded-xl bg-navy px-7 py-3 text-base font-semibold text-white transition hover:bg-navy/90"
             >
               Create my profile
