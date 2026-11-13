@@ -49,9 +49,14 @@ export type DeviceFacts = {
   relatedAppInstalled: boolean;
 };
 
+/** Inside the Forsprang Android app itself: since 13 Nov 2026 a native WebView, which names itself in the user agent. */
+export function insideForsprangApp(userAgent: string): boolean {
+  return /\bForsprangApp\//.test(userAgent);
+}
+
 /** The app, or a home-screen icon, is what opened this page. */
 export function alreadyInstalled(f: DeviceFacts): boolean {
-  return f.standalone || f.navigatorStandalone === true || f.referrer.startsWith("android-app://") || f.relatedAppInstalled;
+  return insideForsprangApp(f.userAgent) || f.standalone || f.navigatorStandalone === true || f.referrer.startsWith("android-app://") || f.relatedAppInstalled;
 }
 
 export function isPhone(f: Pick<DeviceFacts, "coarsePointer" | "width">): boolean {

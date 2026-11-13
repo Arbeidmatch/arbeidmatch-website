@@ -39,6 +39,7 @@ describe("the Forsprang install prompt (ORDER 272)", () => {
     expect(decideAppPrompt(phone(ANDROID, { referrer: "android-app://no.arbeidmatch.forsprang/" }), app, null)).toBeNull();
     expect(decideAppPrompt(phone(ANDROID, { relatedAppInstalled: true }), app, null)).toBeNull();
     expect(decideAppPrompt(phone(IPHONE, { navigatorStandalone: true }), app, null)).toBeNull();
+    expect(decideAppPrompt(phone(`${ANDROID} ForsprangApp/1.0.1`), { ...app, play_live: true }, null)).toBeNull();
   });
 
   it("not within thirty days of Senere (the ATS says so), and not from an older ATS", () => {

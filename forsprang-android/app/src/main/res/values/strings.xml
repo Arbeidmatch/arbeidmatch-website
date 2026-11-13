@@ -1,42 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    Copyright 2021 Google Inc. All Rights Reserved.
-
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-         http://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
--->
 <resources>
-  
-
-  <!--
-    The "fullscreen" and "fullscreen-sticky" TWA manifest values correspond to "immersive" and "sticky-immersive"
-    AndroidManifest values.
-  -->
-  
-
-  <!--
-    This variable below expresses the relationship between the app and the site,
-    as documented in the TWA documentation at
-    https://developers.google.com/web/updates/2017/10/using-twa#set_up_digital_asset_links_in_an_android_app
-    and is injected into the AndroidManifest.xml
-  -->
-  <string name="assetStatements">
-    [{
-        \"relation\": [\"delegate_permission/common.handle_all_urls\"],
-        \"target\": {
-            \"namespace\": \"web\",
-            \"site\": \"https://www.arbeidmatch.no\"
-        }
-    }]
-    
-  </string>  
+    <string name="app_name">Forsprang</string>
+    <string name="offline_title">Ingen forbindelse</string>
+    <string name="offline_body">Sjekk internett og prøv igjen.</string>
+    <string name="retry">Prøv igjen</string>
+    <string name="reader_title">Slå av %1$s</string>
+    <string name="reader_body">Denne appen leser innholdet på skjermen. Slå den av under Innstillinger og Tilgjengelighet for å se prosjektene.</string>
+    <string name="open_settings">Åpne innstillinger</string>
+    <string name="debug_title">Slå av USB-feilsøking</string>
+    <string name="debug_body">Prosjektene vises ikke mens telefonen kan styres fra en datamaskin. Slå av USB-feilsøking og trådløs feilsøking under Utvikleralternativer.</string>
 </resources>
