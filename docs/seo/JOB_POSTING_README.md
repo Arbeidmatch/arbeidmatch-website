@@ -20,7 +20,7 @@ Anbefales sterkt for kvalitet og visning:
 - `baseSalary` (valuta + intervall + `unitText` som `HOUR`, `MONTH`, `YEAR`)
 - `validThrough`
 - `identifier` (unik jobb-ID fra Recman)
-- `url` (kanonisk URL til stillingsannonse, gjerne på `jobs.arbeidmatch.no`)
+- `url` (kanonisk URL til stillingsannonse, på `www.arbeidmatch.no/stilling/<slug>`)
 - `directApply` når søknad skjer på samme URL
 
 ## Anbefalte felt
@@ -38,7 +38,7 @@ Anbefales sterkt for kvalitet og visning:
 ## Dynamisk generering i Recman / ATS
 
 1. **Webhook eller eksport**: Når en annonse publiseres/endres, hent feltene `title`, `description`, `city`, `employmentType`, `salaryMin/Max`, `postedAt`, `deadline`, `jobId`, `applyUrl`.
-2. **Server-side rendering**: Generer JSON-LD i HTML `<head>` eller rett før `</body>` på stillingssiden på `jobs.arbeidmatch.no` - ikke kun i klientbundle.
+2. **Server-side rendering**: Generer JSON-LD i HTML `<head>` eller rett før `</body>` på stillingssiden på `www.arbeidmatch.no/stilling/<slug>` - ikke kun i klientbundle.
 3. **Synk med synlig innhold**: `description` i JSON-LD skal matche synlig stillingstekst (Google sammenligner).
 4. **Validering**: Kjør URL i [Rich Results Test](https://search.google.com/test/rich-results) etter deploy.
 5. **Expiry**: Oppdater `validThrough` eller fjern blokken når stillingen stenges, for å unngå «utløpt»-feil i Search Console.

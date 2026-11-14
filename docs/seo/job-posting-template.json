@@ -34,7 +34,7 @@
     "logo": "https://www.arbeidmatch.no/logo.png"
   },
   "directApply": true,
-  "url": "https://jobs.arbeidmatch.no/jobs/REPLACE_SLUG",
+  "url": "https://www.arbeidmatch.no/stilling/REPLACE_SLUG",
   "baseSalary": {
     "@type": "MonetaryAmount",
     "currency": "NOK",

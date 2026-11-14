@@ -3,9 +3,8 @@ import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { hasHoneypotValue } from "@/lib/requestProtection";
 import { isRateLimited } from "@/lib/requestProtection";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
-import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { createSmtpTransporter, signedInMailHeaders } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
-import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { appWaitlistLetter } from "@/lib/emails/letters";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 
@@ -58,7 +57,7 @@ export async function POST(request: NextRequest) {
           unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
         });
         await transporter.sendMail({
-          ...mailHeaders(),
+          ...signedInMailHeaders(),
           to: email,
           subject: letter.subject,
           text: `Hi there,

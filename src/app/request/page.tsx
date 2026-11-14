@@ -555,11 +555,8 @@ export default function RequestPage() {
   const [resultAction, setResultAction] = useState<"none" | "partner">("none");
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [pendingLeaveAction, setPendingLeaveAction] = useState<null | { type: "link"; href: string } | { type: "history" }>(null);
-  const [partnerIssueStatus, setPartnerIssueStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [isLoadingExit, setIsLoadingExit] = useState(false);
-  const [partnerModalView, setPartnerModalView] = useState<"not_found" | "feedback_form" | "feedback_success">("not_found");
-  const [feedbackEmail, setFeedbackEmail] = useState("");
-  const [partnerIssueMessage, setPartnerIssueMessage] = useState("");
+  const [, setPartnerModalView] = useState<"not_found">("not_found");
   const [notFoundExiting, setNotFoundExiting] = useState(false);
   const [showPartnerApplicationModal, setShowPartnerApplicationModal] = useState(false);
   const [partnerApplicationEmail, setPartnerApplicationEmail] = useState("");
@@ -1123,9 +1120,6 @@ export default function RequestPage() {
     setCompanyName("");
     setResultAction("none");
     setPartnerModalView("not_found");
-    setPartnerIssueStatus("idle");
-    setPartnerIssueMessage("");
-    setFeedbackEmail("");
     setNotFoundExiting(false);
     setShowPartnerApplicationModal(false);
     setPartnerApplicationEmail("");
@@ -1139,29 +1133,6 @@ export default function RequestPage() {
     clearPartnerRequestContext();
     clearPartnerWizardSession();
     setPartnerWizardToken(null);
-  };
-
-  const reportPartnerIssue = async () => {
-    if (!feedbackEmail.includes("@") || partnerIssueStatus === "submitting") return;
-    setPartnerIssueStatus("submitting");
-    try {
-      const response = await fetch("/api/partner-issue", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: feedbackEmail.trim().toLowerCase(),
-          message: partnerIssueMessage.trim(),
-        }),
-      });
-      if (response.ok) {
-        setPartnerIssueStatus("success");
-        setPartnerModalView("feedback_success");
-      } else {
-        setPartnerIssueStatus("error");
-      }
-    } catch {
-      setPartnerIssueStatus("error");
-    }
   };
 
   const startPartnerApplication = async (event: FormEvent<HTMLFormElement>) => {

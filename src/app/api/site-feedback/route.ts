@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { createSmtpTransporter, sendMailWithRetry, signedInMailHeaders } from "@/lib/createSmtpTransporter";
+import { isPlausibleEmail, isRecipientRefused } from "@/lib/visitorMail";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
-import { formatEmailTimestampCet, mailHeaders } from "@/lib/emailPremiumTemplate";
+import { formatEmailTimestampCet } from "@/lib/emailPremiumTemplate";
 import { notifyError } from "@/lib/errorNotifier";
 import { siteFeedbackNoticeLetter, siteFeedbackReceiptLetter } from "@/lib/emails/letters";
 import { unsubscribeUrlFor } from "@/lib/emailSubscription";
@@ -37,19 +38,14 @@ export async function POST(request: NextRequest) {
     if (!Number.isFinite(rating) || rating < 1 || rating > 10) {
       return NextResponse.json({ success: false, error: "Rating must be between 1 and 10." }, { status: 400 });
     }
-    if (!emailRaw || !emailRaw.includes("@")) {
+    if (!isPlausibleEmail(emailRaw)) {
       return NextResponse.json({ success: false, error: "A valid email is required." }, { status: 400 });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: "send.one.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: "no-reply@arbeidmatch.no",
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    const transporter = createSmtpTransporter();
+    if (!transporter) {
+      return NextResponse.json({ success: false, error: "Email service is not configured." }, { status: 500 });
+    }
 
     const submittedAt = formatEmailTimestampCet();
 
@@ -63,24 +59,32 @@ export async function POST(request: NextRequest) {
       note: noteRaw,
       issueDetails: issueDetailsRaw,
     });
-    await transporter.sendMail({
-      ...mailHeaders(),
+    await sendMailWithRetry(transporter, {
+      ...signedInMailHeaders(),
       to: "post@arbeidmatch.no",
       subject: notice.subject,
       html: notice.html,
     });
 
-    const receipt = siteFeedbackReceiptLetter({
-      rating,
-      to: emailRaw,
-      unsubscribeUrl: await unsubscribeUrlFor(emailRaw, "site-feedback"),
-    });
-    await transporter.sendMail({
-      ...mailHeaders(),
-      to: emailRaw,
-      subject: receipt.subject,
-      html: receipt.html,
-    });
+    // The notice above is the feedback. The receipt goes to the address typed, and
+    // a refusal of it must not turn a received message into an error (the visitor
+    // would send it again): it is told to #errors only when it is not the visitor's
+    // address that was refused.
+    try {
+      const receipt = siteFeedbackReceiptLetter({
+        rating,
+        to: emailRaw,
+        unsubscribeUrl: await unsubscribeUrlFor(emailRaw, "site-feedback"),
+      });
+      await sendMailWithRetry(transporter, {
+        ...signedInMailHeaders(),
+        to: emailRaw,
+        subject: receipt.subject,
+        html: receipt.html,
+      });
+    } catch (error) {
+      if (!isRecipientRefused(error)) await notifyError({ route: "/api/site-feedback (receipt)", error });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

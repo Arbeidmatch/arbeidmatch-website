@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { createSmtpTransporter, signedInMailHeaders } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
-import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { partnerApplicationLinkLetter } from "@/lib/emails/letters";
 import { unsubscribeUrlFor } from "@/lib/emailSubscription";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
@@ -63,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (transporter) {
       const letter = partnerApplicationLinkLetter({ applicationUrl, to: email, unsubscribeUrl: unsubscribeResolved });
       await transporter.sendMail({
-        ...mailHeaders(),
+        ...signedInMailHeaders(),
         to: email,
         subject: letter.subject,
         text:

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { ATS_BASE_URL_VARS } from "@/lib/cv/mailer";
+import { atsBase } from "@/lib/prosjekter/ats";
 import { logApiError } from "@/lib/secureLogger";
 import type { AdPackage, AdvertDraft, PaymentMethod, PostingRules, PublicOrderView } from "./types";
 import { isOrderToken } from "./types";
@@ -13,7 +13,8 @@ import { isOrderToken } from "./types";
  * which call these functions.
  *
  * The address is found the same way the CV mailer finds it (ATS_BASE_URL_VARS),
- * so the feature works under whichever name the deployment already carries.
+ * so the feature works under whichever name the deployment already carries, and
+ * falls back to the ATS itself like atsBase() does.
  */
 
 export type AtsResult<T> = { ok: true; data: T } | { ok: false; status: number; error: string };
@@ -22,12 +23,8 @@ export type AtsResult<T> = { ok: true; data: T } | { ok: false; status: number; 
 export const REVIEW_TIMEOUT_MS = 110_000;
 const DEFAULT_TIMEOUT_MS = 30_000;
 
-export function atsJobAdsBase(): string | null {
-  for (const name of ATS_BASE_URL_VARS) {
-    const base = process.env[name]?.trim();
-    if (base) return `${base.replace(/\/+$/, "")}/api/public/job-ads`;
-  }
-  return null;
+export function atsJobAdsBase(): string {
+  return `${atsBase()}/api/public/job-ads`;
 }
 
 async function call<T>(
@@ -36,7 +33,7 @@ async function call<T>(
 ): Promise<AtsResult<T>> {
   const base = atsJobAdsBase();
   const secret = process.env.ATS_EMAIL_SECRET?.trim();
-  if (!base || !secret) return { ok: false, status: 503, error: "ats_not_configured" };
+  if (!secret) return { ok: false, status: 503, error: "ats_not_configured" };
 
   try {
     const response = await fetch(`${base}${path}`, {

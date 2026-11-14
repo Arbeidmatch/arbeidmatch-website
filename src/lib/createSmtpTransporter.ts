@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { mailHeaders } from "@/lib/emailPremiumTemplate";
 
 /** Shared SMTP config from env. */
 export function createSmtpTransporter() {
@@ -62,4 +63,13 @@ export function authenticatedFrom(from: string, smtpUser = process.env.SMTP_USER
   if (address === user.toLowerCase()) return from;
   const name = m ? m[1].trim() : "";
   return name ? `${name} <${user}>` : user;
+}
+
+/**
+ * mailHeaders() with the From that the SMTP account may send as. Every route that
+ * signs in through createSmtpTransporter (or SMTP_USER) uses this one.
+ */
+export function signedInMailHeaders() {
+  const base = mailHeaders();
+  return { ...base, from: authenticatedFrom(base.from) };
 }

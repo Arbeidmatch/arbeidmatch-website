@@ -1,9 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
-import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { createSmtpTransporter, signedInMailHeaders } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
-import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { unsubscribeUrlFor } from "@/lib/emailSubscription";
 import { partnerApprovedLetter, partnerContactedLetter, partnerRejectedLetter } from "@/lib/emails/letters";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
@@ -106,7 +105,7 @@ export async function POST(request: NextRequest) {
           unsubscribeUrl: await unsubscribeUrlFor(email, "partner-request"),
         });
         await transporter.sendMail({
-          ...mailHeaders(),
+          ...signedInMailHeaders(),
           to: email,
           subject: letter.subject,
           text: `Your partner account has been approved. Access Platform: ${accessUrl}\n\nThis link is valid for 24 hours.`,
@@ -134,7 +133,7 @@ export async function POST(request: NextRequest) {
           unsubscribeUrl: await unsubscribeUrlFor(email, "partner-request"),
         });
         await transporter.sendMail({
-          ...mailHeaders(),
+          ...signedInMailHeaders(),
           to: email,
           subject: letter.subject,
           text: "Thank you for your interest in becoming an ArbeidMatch partner. Our team will review your request and contact you within 1 to 2 business days.",
@@ -162,7 +161,7 @@ export async function POST(request: NextRequest) {
           unsubscribeUrl: await unsubscribeUrlFor(email, "partner-request"),
         });
         await transporter.sendMail({
-          ...mailHeaders(),
+          ...signedInMailHeaders(),
           to: email,
           subject: letter.subject,
           text: `After reviewing your request, we are unable to offer partner access at this time. You are welcome to reapply in the future, or ask ${SUPPORT_LABEL.en} at ${SUPPORT_PAGE_URL} if you would like to know more.`,

@@ -6,7 +6,8 @@ import { filledTooFast } from "@/lib/humanCheck";
 import { sanitizeStringRecord } from "@/lib/htmlSanitizer";
 import { notifyError } from "@/lib/errorNotifier";
 import { notifySlack } from "@/lib/slackNotifier";
-import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { signedInMailHeaders } from "@/lib/createSmtpTransporter";
+import { isPlausibleEmail, isRecipientRefused } from "@/lib/visitorMail";
 import { contactNoticeLetter, contactReceiptLang, contactReceiptLetter } from "@/lib/emails/letters";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
 import { lookupBrregCompany } from "@/lib/brreg";
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
     const foreign = need === EMPLOYER_NEED && typed("foreign") === "1";
     let message = typed("message");
 
-    if (!name || !email || !email.includes("@") || !message) {
+    if (!name || !isPlausibleEmail(email) || !message) {
       return NextResponse.json({ success: false, error: "Please fill in all required fields." }, { status: 400 });
     }
 
@@ -191,28 +192,34 @@ export async function POST(request: NextRequest) {
     // Read back by the ATS intake: see contactNoticeLetter before changing a label.
     const notice = contactNoticeLetter({ name, company: companyLine, email, need, message, isSupport: isSupportRequest, to: recipient });
     await transporter.sendMail({
-      ...mailHeaders(),
+      ...signedInMailHeaders(),
       to: recipient,
       subject: notice.subject,
       html: notice.html,
       ...(attachment ? { attachments: [attachment] } : {}),
     });
 
-    if (!(await isUnsubscribed(email))) {
-      const unsubToken = await getOrCreateSubscription(email, "contact");
-      const receipt = contactReceiptLetter({
-        name,
-        need,
-        lang: contactReceiptLang(rawBody.lang, need === EMPLOYER_NEED && !foreign ? "nb" : "en"),
-        to: email,
-        unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
-      });
-      await transporter.sendMail({
-        ...mailHeaders(),
-        to: email,
-        subject: receipt.subject,
-        html: receipt.html,
-      });
+    // The notice above is the message. A refused receipt (the visitor mistyped the
+    // address) must not turn a received message into an error (ORDER 284).
+    try {
+      if (!(await isUnsubscribed(email))) {
+        const unsubToken = await getOrCreateSubscription(email, "contact");
+        const receipt = contactReceiptLetter({
+          name,
+          need,
+          lang: contactReceiptLang(rawBody.lang, need === EMPLOYER_NEED && !foreign ? "nb" : "en"),
+          to: email,
+          unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
+        });
+        await transporter.sendMail({
+          ...signedInMailHeaders(),
+          to: email,
+          subject: receipt.subject,
+          html: receipt.html,
+        });
+      }
+    } catch (error) {
+      if (!isRecipientRefused(error)) await notifyError({ route: "/api/contact (receipt)", error });
     }
 
     void notifySlack("contacts", {

@@ -40,7 +40,12 @@ describe("job ads ATS client", () => {
     });
   }
 
-  it("does not call out when the address or the secret is missing", async () => {
+  it("falls back to the ATS itself when no address is set, like the project portal", () => {
+    for (const n of NAMES) vi.stubEnv(n, "");
+    expect(atsJobAdsBase()).toBe("https://ats.arbeidmatch.no/api/public/job-ads");
+  });
+
+  it("does not call out when the secret is missing", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
     vi.stubEnv("ATS_EMAIL_SECRET", "");

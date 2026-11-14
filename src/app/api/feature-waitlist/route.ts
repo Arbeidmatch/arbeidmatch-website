@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { createSmtpTransporter } from "@/lib/createSmtpTransporter";
+import { createSmtpTransporter, signedInMailHeaders } from "@/lib/createSmtpTransporter";
 import { hasHoneypotValue, isRateLimited } from "@/lib/requestProtection";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
 import { notifyError } from "@/lib/errorNotifier";
-import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { isUnsubscribed, unsubscribeUrlFor } from "@/lib/emailSubscription";
 import { featureWaitlistLetter } from "@/lib/emails/letters";
 
@@ -97,7 +96,7 @@ export async function POST(request: NextRequest) {
           unsubscribeUrl: await unsubscribeUrlFor(email, "feature-waitlist"),
         });
         await transporter.sendMail({
-          ...mailHeaders(),
+          ...signedInMailHeaders(),
           to: email,
           subject: letter.subject,
           text: `Hi, you have been added to the waitlist for ${feature} on ArbeidMatch. We will notify you at this email when it becomes available. Unsubscribe anytime by replying to this email.
