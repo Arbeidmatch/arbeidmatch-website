@@ -38,3 +38,10 @@ whose "Step n" paragraphs take the template's numbered steps). The mockup's six 
 site shows the five articles that exist, with their own sources and dates. Lengths, header and footer included: the
 list 2.0 screens at 1440 and 2.9 at 390, a guide 2.6 to 2.8 at 1440 and 3.6 to 3.8 at 390. /premium, /premium/browse
 and /premium/article/<slug> answer 308 to the guides; /blog to /for-employers, /download to /, /partners to /about.
+
+Stage 6a (Recruiter Network and its invitation sheet, About, the 404 page; commit 9849c34), pairs in `stage-6.json`:
+network, sheet-invite, about, not-found (the mockup has no 404 screen, so its twin is the mockup's front page). The
+invitation sheet keeps every field of the live form, the optional experience summary included, which the mockup leaves
+out; a chosen partner type is sent at the head of that summary. Lengths, header and footer included: the network 2.5
+screens at 1440 and 3.6 at 390, About 2.0 and 2.9. Stage 6 continues: For bemanningsbyråer, the industry and town
+pages, welding, electricians, privacy, terms, cookies.
