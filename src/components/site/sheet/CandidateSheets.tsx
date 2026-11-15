@@ -6,7 +6,7 @@ import { SITE_PATHS } from "@/components/site/siteNav";
 import { candidateJoinPayload } from "@/lib/candidateJoinConsent";
 import { TRADES } from "@/lib/trades";
 
-import { AreaRow, ConsentSwitch, Done, Group, Hint, InputRow, NavRow, OptionRow, PrivacySwitch, Segmented, SwitchRow } from "./rows";
+import { AreaRow, ConsentSwitch, Done, Group, Hint, InputRow, NavRow, OptionRow, PrivacySwitch, Segmented } from "./rows";
 import type { SheetProps } from "./SheetHost";
 import { SheetFrame } from "./SheetFrame";
 
@@ -122,7 +122,9 @@ export function AlertsSheet({ open, close }: SheetProps) {
           </Group>
           <Group>
             <InputRow id="am-alerts-email" icon="mail" label="E-mail" type="email" inputMode="email" autoComplete="email" maxLength={200} placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            <SwitchRow label="E-mail me new jobs in my trade. I can unsubscribe at any time." checked={notifyConsent} onChange={setNotifyConsent} />
+            <ConsentSwitch label="E-mail me new jobs in my trade" checked={notifyConsent} onChange={setNotifyConsent}>
+              E-mail me new jobs in my trade. I can unsubscribe at any time.
+            </ConsentSwitch>
             <ConsentSwitch label="I agree that ArbeidMatch stores my e-mail and trade to provide these alerts" checked={dataConsent} onChange={setDataConsent}>
               I agree that ArbeidMatch stores my e-mail and trade to provide these alerts. Read the <a className="plink" href={SITE_PATHS.privacy} target="_blank" rel="noopener">privacy notice</a>.
             </ConsentSwitch>
@@ -269,12 +271,12 @@ export function RegisterSheet({ open, close }: SheetProps) {
             <InputRow id="am-register-email" icon="mail" label="E-mail" type="email" inputMode="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </Group>
           <Group>
-            <SwitchRow
-              label="I consent to ArbeidMatch processing this request and my e-mail address, so that ArbeidMatch can create my candidate profile and contact me about opportunities."
-              checked={gdpr}
-              onChange={setGdpr}
-            />
-            <SwitchRow label="I confirm that I am an EU/EEA citizen (passport or national ID card)." checked={citizen} onChange={setCitizen} />
+            <ConsentSwitch label="I consent to ArbeidMatch processing this request and my e-mail address" checked={gdpr} onChange={setGdpr}>
+              I consent to ArbeidMatch processing this request and my e-mail address, so that ArbeidMatch can create my candidate profile and contact me about opportunities.
+            </ConsentSwitch>
+            <ConsentSwitch label="I confirm that I am an EU/EEA citizen" checked={citizen} onChange={setCitizen}>
+              I confirm that I am an EU/EEA citizen (passport or national ID card).
+            </ConsentSwitch>
           </Group>
           <Hint>
             Read how we handle your data in our <a className="plink" href={SITE_PATHS.privacy} target="_blank" rel="noopener">privacy notice</a>. When you send, your e-mail address and these confirmations are recorded as your consent, so we can create your candidate profile and contact you about opportunities.

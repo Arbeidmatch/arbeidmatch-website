@@ -294,15 +294,17 @@ export default async function StillingPage({ params }: Props) {
               sanitised once, in the ATS; `.am-prose` styles it.
             */}
             {halves ? (
-              ([
-                ["no", LANGUAGE_LABELS.no, halves.no],
-                ["en", LANGUAGE_LABELS.en, halves.en],
-              ] as const).map(([code, label, body]) => (
-                <section key={code} id={`advert-${code}`} lang={code === "no" ? "nb" : "en"} className="card" style={{ scrollMarginTop: 96 }}>
-                  <span className="lab">{label}</span>
-                  <div className="am-prose" dangerouslySetInnerHTML={{ __html: body }} />
-                </section>
-              ))
+              <div className="halves">
+                {([
+                  ["no", LANGUAGE_LABELS.no, halves.no],
+                  ["en", LANGUAGE_LABELS.en, halves.en],
+                ] as const).map(([code, label, body]) => (
+                  <section key={code} id={`advert-${code}`} lang={code === "no" ? "nb" : "en"} className="card" style={{ scrollMarginTop: 96 }}>
+                    <span className="lab">{label}</span>
+                    <div className="am-prose" dangerouslySetInnerHTML={{ __html: body }} />
+                  </section>
+                ))}
+              </div>
             ) : job.description_html ? (
               <div className="card">
                 <div className="am-prose" dangerouslySetInnerHTML={{ __html: job.description_html }} />

@@ -1,5 +1,6 @@
 // Paired screenshots: the approved mockup beside the site, at 1440 and 390.
-// node shots.cjs <base-url> <out-dir> <pairs-json>   pairs: [{name, route, page, sheet?, open?}]
+// node shots.cjs <base-url> <out-dir> <pairs-json>   pairs: [{name, route, page, sheet?, mockOpen?, open?, open390?}]
+// mockOpen: a selector clicked inside the mockup for a sheet that has no chip in its strip (the candidate message).
 const { chromium } = require(process.env.PW || 'playwright');
 const path = require('path'); const fs = require('fs');
 const [,, base, out, pairsJson] = process.argv;
@@ -17,7 +18,8 @@ const MOCK = 'file:///' + path.resolve(process.env.MOCK).split(String.fromCharCo
     await mp.click(`[data-dev="${dev}"]`); await mp.waitForTimeout(300);
     for (const p of pairs) {
       if (p.page) { await mp.click(`#pgs [data-go="${p.page}"]`); await mp.waitForTimeout(400); }
-      if (p.sheet) { await mp.click(`#shs [data-sheet="${p.sheet}"]`); await mp.waitForTimeout(700); }
+      if (p.sheet && p.mockOpen) { await mp.click(`#vp ${p.mockOpen}`); await mp.waitForTimeout(700); }
+      else if (p.sheet) { await mp.click(`#shs [data-sheet="${p.sheet}"]`); await mp.waitForTimeout(700); }
       if (!p.sheet) await mp.evaluate(() => { const s = document.getElementById('scroll'); const vp = document.getElementById('vp'); const st = document.getElementById('stage'); const ck = document.getElementById('ck'); if (ck) ck.style.display = 'none'; const h = s.scrollHeight; vp.style.setProperty('height', h + 'px'); st.style.setProperty('height', 'auto'); for (const el of [vp, st]) Object.defineProperty(el.style, 'height', { configurable: true, get() { return el.style.getPropertyValue('height'); }, set() {} }); }); await mp.waitForTimeout(200);
       await mp.locator('#stage').screenshot({ path: path.join(out, `${p.name}-mockup-${w}.png`) });
       if (!p.sheet) await mp.evaluate(() => { for (const id of ['vp', 'stage']) { const el = document.getElementById(id); delete el.style.height; } const vp = document.getElementById('vp'); vp.style.height = '800px'; });

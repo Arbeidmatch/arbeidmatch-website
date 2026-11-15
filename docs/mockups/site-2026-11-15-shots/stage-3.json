@@ -1,0 +1,11 @@
+[
+  { "name": "for-candidates", "route": "/for-candidates", "page": "cand" },
+  { "name": "questions", "route": "/for-candidates/questions", "page": "faq" },
+  { "name": "support", "route": "/for-candidates/support", "page": "support" },
+  { "name": "jobs", "route": "/jobs", "page": "jobs" },
+  { "name": "job", "route": "/stilling/murer-trondheim-am-j-2026-f3f46", "page": "job" },
+  { "name": "sheet-apply", "route": "/stilling/murer-trondheim-am-j-2026-f3f46", "page": "job", "sheet": "apply", "open": ".apply-row button.btn", "open390": ".jobbar button.btn" },
+  { "name": "sheet-alerts", "route": "/for-candidates", "page": "cand", "sheet": "alerts", "open": "button.card[data-sheet=\"alerts\"]" },
+  { "name": "sheet-register", "route": "/for-candidates", "page": "cand", "sheet": "register", "open": "button.card[data-sheet=\"register\"]" },
+  { "name": "sheet-message", "route": "/for-candidates/support", "page": "support", "sheet": "message", "mockOpen": "main[data-page=\"support\"] [data-sheet=\"message\"]", "open": "button.prow[data-sheet=\"message\"]" }
+]

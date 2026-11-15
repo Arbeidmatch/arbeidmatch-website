@@ -467,12 +467,14 @@
 .ams a.jc{color:inherit;text-decoration:none}
 .ams .jc-b .jc-m{font-size:14px;color:var(--soft)}
 .ams .band h1{color:var(--white)}
-.ams .jobpage .fgrid b{color:var(--white)}
-.ams .jobpage .fgrid b.gold{color:var(--gold)}
-.ams .jobpage .apply-row{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-top:26px}
-.ams .jobpage .apply-row .btn{height:52px;padding:0 26px;font-size:16px}
-.ams .jobpage .apply-row p{color:var(--dim);font-size:14px;max-width:420px}
-.ams .advert{max-width:760px;display:flex;flex-direction:column;gap:20px}
+.ams.jobpage .fgrid b{color:var(--white)}
+.ams.jobpage .fgrid b.gold{color:var(--gold)}
+.ams.jobpage .apply-row{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-top:26px}
+.ams.jobpage .apply-row .btn{height:52px;padding:0 26px;font-size:16px}
+.ams.jobpage .apply-row p{color:var(--dim);font-size:14px;max-width:420px}
+.ams .advert{display:flex;flex-direction:column;gap:20px}
+.ams .halves{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+@media (max-width:1000px){ .ams .halves{grid-template-columns:1fr} }
 .ams .advert .card{padding:24px 26px}
 .ams .advert .lab{display:inline-flex;height:28px;align-items:center;padding:0 12px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--rule);font-size:13px;font-weight:700;color:var(--soft);letter-spacing:.06em;text-transform:uppercase}
 .ams .advert .am-prose{margin-top:14px}
@@ -487,7 +489,7 @@
 .ams .jobbar small{font-size:13px;color:var(--soft);font-weight:500}
 @media (max-width:760px){
   .ams .jobbar{display:flex}
-  .ams .jobpage .apply-row .btn{width:100%}
+  .ams.jobpage .apply-row .btn{width:100%}
 }
 .ams .steps .h4{font:700 17px/1.4 var(--font-sans),"Plus Jakarta Sans",system-ui,sans-serif}
 .ams .fg h2.h3{font:800 26px/1.2 var(--font-sans),"Plus Jakarta Sans",system-ui,sans-serif;letter-spacing:-.02em}
@@ -500,9 +502,9 @@
 .ams .jl-more .pills{margin-top:16px}
 .ams .jl-search{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-top:16px;padding-bottom:8px;color:var(--soft);font-size:15px}
 @media (max-width:760px){ .ams .close-acts{width:100%} .ams .close-acts .btn{flex:1 1 100%} }
-.ams .jobpage .fgrid dt,.ams .jobpage .fgrid dd{margin:0}
-.ams .jobpage .apply-row.foot{margin-top:8px;padding-top:24px;border-top:1px solid var(--rule)}
-.ams .jobpage .apply-row.foot p{color:var(--soft)}
+.ams.jobpage .fgrid dt,.ams.jobpage .fgrid dd{margin:0}
+.ams.jobpage .apply-row.foot{margin-top:8px;padding-top:24px;border-top:1px solid var(--rule)}
+.ams.jobpage .apply-row.foot p{color:var(--soft)}
 .ams .kv{display:flex;flex-direction:column;gap:8px;margin:12px 0 0}
 .ams .kv div{display:flex;justify-content:space-between;gap:16px;font-size:15px}
 .ams .kv dt{color:var(--soft)}
