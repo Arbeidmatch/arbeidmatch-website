@@ -215,6 +215,9 @@ button.prow:hover{background:var(--paper)}
 .rl2 b{font-weight:600}
 .rl2 small{font-size:13px;color:var(--soft);font-weight:500}
 .src{font:700 10px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--goldink);white-space:nowrap}
+.vp .plink{color:var(--goldink);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.plwrap{flex:1;font-weight:600}
+.swb{margin-left:auto;min-height:44px;display:flex;align-items:center}
 .hint{font-size:13px;line-height:1.5;color:var(--soft);padding:0 14px}
 .ri.alt{background:rgba(201,168,76,.22);color:var(--goldink);box-shadow:none}
 :root{--st1:#6C9BF2;--st2:#E3B341;--st3:#45B98E}
@@ -306,6 +309,7 @@ button.prow:hover{background:var(--paper)}
 .row:first-child{border-radius:18px 18px 0 0}.row:last-child{border-radius:0 0 18px 18px}.row:only-child{border-radius:18px}
 button.row:active{background:rgba(13,27,42,.06)}
 .row .rl{flex:none;font-weight:600}
+.row .rl.plwrap{flex:1}
 .row .rv{margin-left:auto;color:var(--soft);text-align:right;min-width:0}
 .row > svg.i:last-child{color:rgba(13,27,42,.35);width:18px;height:18px}
 .row.opt .rl{flex:1;font-weight:500}
@@ -845,7 +849,7 @@ var CAP={
  contact:'<b>Contact, refăcută.</b> În loc de un formular pentru toți, pagina întreabă „Hva trenger du?” (De ce ai nevoie?) și trimite fiecare om direct unde trebuie. Firmele, în norvegiană: cerere de oameni, o întrebare, colaborare ca agenție. Candidații, în engleză: joburi, întrebări înainte de aplicare, ce se întâmplă după aplicare, mesaj către un recrutor. <em>Jos: rețeaua de recrutori, suport, confidențialitate și adresa. Fără e-mail public.</em>',
  s_request:'<b>Pop-up: cerere de candidați.</b> Primul rând e firma: o caută după nume sau org.nr în Brønnøysund. După ce o alege, registrul spune ce fel de firmă e, „Bemanningsforetak” (agenție de staffing) sau „Egen drift” (firmă care angajează pentru ea), după codul ei de activitate. Butoanele „Egen drift / Byrå” au dispărut, deci nu mai poate alege greșit. Apar doar dacă firma nu e găsită în registru și o scrie de mână. <em>În machetă sunt patru firme reale din registru, ca exemplu: încearcă Veidekke și Manpower. Pe site căutarea merge în tot registrul. Apoi rolurile, mai multe odată, și orice rol scris de mână.</em>',
  s_contact:'<b>Pop-up: mesaj de contact.</b> „Bedrift / Kandidat” (Firmă / Candidat) sus, apoi nume, firmă, e-mail și mesaj.',
- s_apply:'<b>Pop-up: aplicare la job.</b> Se aplică doar cu profil, ca azi. Pop-up-ul cere întâi bifa de confidențialitate, apoi oferă două căi: „Log in” pentru cine are profil și „Create your profile” pentru cine nu are. Nu există formular de aplicare fără profil.',
+ s_apply:'<b>Pop-up: aplicare la job.</b> Se aplică doar cu profil, ca azi. Pop-up-ul cere întâi bifa de confidențialitate, în care „privacy notice” e link spre pagina de confidențialitate, apoi oferă două căi: „Log in” pentru cine are profil și „Create your profile” pentru cine nu are. <em>În machetă linkul e doar desenat; pe site deschide pagina Privacy.</em>',
  s_alerts:'<b>Pop-up: alerte de joburi.</b> Meseria, zona și e-mailul. Atât.',
  s_register:'<b>Pop-up: profil nou.</b> Trei rânduri și două comutatoare. <em>Sub buton: „Crearea profilului nu te înscrie la un job.”</em>',
  s_invite:'<b>Pop-up: invitație pentru recrutori.</b> Dacă ai apăsat un card de partener, tipul e deja ales.',
@@ -918,6 +922,7 @@ function rowHTML(r){ var v=vals(), i=r.ic?'<span class="ri">'+ic(r.ic)+'</span>'
   if(r.t==='in') return '<label class="row" for="f-'+st.sheet+'-'+r.k+'">'+i+'<span class="rl">'+r.l+'</span><input id="f-'+st.sheet+'-'+r.k+'" data-k="'+r.k+'" type="'+(r.type||'text')+'" placeholder="'+esc(r.ph)+'" value="'+esc(v[r.k]||'')+'" autocomplete="off"></label>';
   if(r.t==='area') return '<label class="row area" for="f-'+st.sheet+'-'+r.k+'"><span class="rl">'+r.l+'</span><textarea id="f-'+st.sheet+'-'+r.k+'" data-k="'+r.k+'" placeholder="'+esc(r.ph)+'">'+esc(v[r.k]||'')+'</textarea></label>';
   if(r.t==='step') return '<div class="row">'+i+'<span class="rl">'+r.l+'</span><span class="stepper"><button data-step="-1" data-k="'+r.k+'" aria-label="-">'+ic('minus')+'</button><b>'+v[r.k]+'</b><button data-step="1" data-k="'+r.k+'" aria-label="+">'+ic('plus')+'</button></span></div>';
+  if(r.t==='tog'&&/privacy notice/.test(r.l)) return '<div class="row">'+i+'<span class="rl plwrap">I have read the <button class="plink" data-plink>privacy notice</button></span><button class="swb" role="switch" aria-label="I have read the privacy notice" aria-checked="'+(!!v[r.k])+'" data-tog="'+r.k+'"><span class="sw"></span></button></div>';
   if(r.t==='tog') return '<button class="row" role="switch" aria-checked="'+(!!v[r.k])+'" data-tog="'+r.k+'"'+(r.lock?' disabled':'')+'>'+i+'<span class="rl">'+r.l+'</span><span class="sw"></span></button>';
   if(r.t==='firm'){ var f=v[r.k], fh='<button class="row" data-sub="'+r.k+'">'+i+'<span class="rl">'+r.l+'</span><span class="rv">'+esc(f?f.n:r.ph)+'</span>'+ic('chev')+'</button>'; if(f&&f.o) fh+='<div class="row info"><span class="ri alt">'+ic('check')+'</span><span class="rl2"><b>'+(f.a?'Bemanningsforetak':'Egen drift')+'</b><small>Org.nr '+f.o+' · '+esc(f.k)+'</small></span><span class="src">Brønnøysund</span></div>'; return fh; }
   if(r.t==='roles') return v[r.k].map(function(it,n){return '<div class="row"><span class="ri">'+ic('wrench')+'</span><span class="rl">'+esc(it.r)+'</span><span class="stepper"><button data-rstep="-1" data-i="'+n+'" data-k="'+r.k+'" aria-label="-">'+ic('minus')+'</button><b>'+it.n+'</b><button data-rstep="1" data-i="'+n+'" data-k="'+r.k+'" aria-label="+">'+ic('plus')+'</button></span></div>';}).join('')+'<button class="row" data-sub="'+r.k+'"><span class="ri alt">'+ic('plus')+'</span><span class="rl">'+r.l+'</span><span class="rv">'+esc(r.ph||'')+'</span>'+ic('chev')+'</button>';
@@ -939,7 +944,7 @@ function renderSub(){ var r=findRow(st.sub), v=vals(), opts=r.by?(r.map[v[r.by]]
   if(r.hint) h+='<p class="hint">'+r.hint+'</p>';
   $('#sh-sub').innerHTML=h; }
 function paint(){ sheetEl.classList.toggle('insub',!!st.sub); $('#sh-back').hidden=!st.sub; $('#sh-sp').hidden=!!st.sub; $('#sh-title').textContent=st.sub?findRow(st.sub).l:cur.title;
-  var foot=$('#sh-foot'); foot.hidden=!!st.sub; $('#sh-cta').textContent=st.done?(cur.lang==='no'?'Lukk':'Close'):cur.cta; $('#sh-note').textContent=st.done?'':(cur.note||''); $('#sh-note').hidden=st.done||!cur.note;
+  var foot=$('#sh-foot'); foot.hidden=!!st.sub; $('#sh-cta').textContent=st.done?(cur.lang==='no'?'Lukk':'Close'):cur.cta; $('#sh-note').innerHTML=st.done?'':esc(cur.note||'')+(cur.lang==='no'&&!cur.plain?' Les hvordan vi behandler opplysningene i <button class="plink" data-plink>personvernerklæringen</button>.':''); $('#sh-note').hidden=st.done||!cur.note;
   if(st.done){ $('#sh-main').innerHTML='<div class="done sh-p" style="position:static;transform:none">'+'<span class="disc">'+ic('check')+'</span><h4>'+(cur.lang==='no'?'Takk.':'Thank you.')+'</h4><p>'+(cur.lang==='no'?'Dette er en prototype, så ingenting ble sendt.':'This is a prototype, so nothing was sent.')+'</p></div>'; }
   else renderMain(); if(st.sub) renderSub(); caption(); marks(); }
 function openSheet(id,preset){ if(SHOME[id]&&PLANG[st.page]!==SHEET(id,st.lang).lang) go(SHOME[id]); else if(id==='apply'&&st.page!=='job') go('job');
