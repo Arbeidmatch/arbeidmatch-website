@@ -554,3 +554,24 @@
 @media (max-width:760px){ .ams .seo-intro{font-size:16px} }
 .ams .stepc .h4{font:700 18px/1.3 var(--font-sans),"Plus Jakarta Sans",system-ui,sans-serif}
 .ams p.fine{font-size:14px;line-height:1.6;color:var(--soft)}
+
+/* The legal documents (AtsLegalDocumentPage, ORDER 295 stage 6b): the published text in one card, read at 16px. */
+.ams .ldoc{gap:0;color:var(--text)}
+.ams .ldoc :is(p,li,td){font-size:16px;line-height:1.7;color:var(--text)}
+.ams .ldoc p{margin:0 0 14px}
+.ams .ldoc h2{font:700 22px/1.3 var(--font-sans),"Plus Jakarta Sans",system-ui,sans-serif;letter-spacing:-.01em;margin:32px 0 12px}
+.ams .ldoc h3{font:700 18px/1.35 var(--font-sans),"Plus Jakarta Sans",system-ui,sans-serif;margin:22px 0 8px}
+.ams .ldoc h4{font:700 16px/1.4 var(--font-sans),"Plus Jakarta Sans",system-ui,sans-serif;margin:16px 0 6px}
+.ams .ldoc ul{list-style:disc;padding-left:22px;margin:6px 0 14px}
+.ams .ldoc ol{list-style:decimal;padding-left:22px;margin:6px 0 14px}
+.ams .ldoc li{margin:4px 0}
+.ams .ldoc a{color:var(--goldink);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.ams .ldoc strong{font-weight:700}
+.ams .ldoc hr{border:0;border-top:1px solid var(--rule);margin:24px 0}
+.ams .ldoc table{display:block;overflow-x:auto;border-collapse:collapse;margin:8px 0 16px}
+.ams .ldoc :is(th,td){border:1px solid var(--rule);padding:8px 12px;text-align:left;vertical-align:top}
+.ams .ldoc th{background:var(--paper);font-weight:700}
+.ams .ldoc blockquote{border-left:3px solid var(--gold);padding-left:16px;margin:12px 0;color:var(--soft)}
+.ams .ldoc .btn{white-space:normal;height:auto;min-height:48px;padding:12px 20px;text-align:center;line-height:1.3}
+.ams a.pill[aria-current]{background:var(--navy);color:var(--white)}
+.ams .note p:only-child{margin:0}

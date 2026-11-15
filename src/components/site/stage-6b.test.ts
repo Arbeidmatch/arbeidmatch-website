@@ -67,6 +67,16 @@ describe("industry and city pages on the site template", () => {
     expect(pageAction("/electricians-norway")).toMatchObject({ href: "/jobs" });
   });
 
+  it("shows the legal documents on the template with the published text untouched", () => {
+    const legal = read("src/components/legal/AtsLegalDocumentPage.tsx");
+    expect(legal).toContain('className="ams page" lang={lang}');
+    expect(legal.match(/<h1[ >]/g)).toHaveLength(1);
+    expect(legal).toContain("sanitizeLegalHtml(lead.body)");
+    expect(legal).toContain("dangerouslySetInnerHTML={{ __html: safeHtml }}");
+    expect(legal).toContain("legalLanguageHref(language.path, l)");
+    expect(legal).toContain("Norsk versjon kommer");
+  });
+
   it("offers the request pop-up in the header, the city addresses encoded or not", () => {
     const want = { kind: "link", href: "/request", label: "Be om kandidater", rask: true };
     expect(pageAction("/bemanning-logistikk")).toEqual(want);
