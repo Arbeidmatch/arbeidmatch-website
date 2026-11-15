@@ -1,0 +1,6 @@
+[
+  { "name": "network", "route": "/recruiter-network", "page": "net" },
+  { "name": "sheet-invite", "route": "/recruiter-network", "page": "net", "sheet": "invite", "open": ".three button:nth-child(2)" },
+  { "name": "about", "route": "/about", "page": "about" },
+  { "name": "not-found", "route": "/this-page-does-not-exist", "page": "home" }
+]

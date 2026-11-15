@@ -105,6 +105,7 @@ export function pageAction(rawPath: string | null | undefined): PageAction | nul
   // The guide list has no action of its own (its closing band offers the alerts); a guide offers them in the header.
   if (p.startsWith(`${SITE_PATHS.lifeInNorway}/`)) return { kind: "sheet", sheet: "alerts", label: "Job alerts" };
   if (p === "/about") return { kind: "link", href: SITE_PATHS.contact, label: "Contact us" };
+  if (p === SITE_PATHS.network) return { kind: "sheet", sheet: "invite", label: "Request invitation" };
   return null;
 }
 
