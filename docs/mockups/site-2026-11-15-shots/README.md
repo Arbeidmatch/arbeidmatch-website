@@ -27,3 +27,8 @@ Stage 3 (For candidates, questions, candidate support, open jobs, the job page, 
 sheet-register, sheet-message. The message sheet has no chip in the mockup's strip, so `mockOpen` opens it from the
 mockup's support page. Phone lengths at 390, header and footer included: For candidates 4.8 screens, questions 3.5,
 support 2.2, open jobs 5.2, the job page 6.1 (the advert's own text in both languages is most of it).
+
+Stage 4 (Forsprang at /prosjekter, the invitation sheet; commit c6bd311), pairs in `stage-4.json`: forsprang, sheet-access.
+The map, the panel's counts and the list are live data, so they differ from the mockup's fixed numbers by design. The
+county panel takes the same per-county figures as the map. Lengths, header and footer included: 4.1 screens at 1440
+(the live project list sits in the band), 6.2 at 390. /prosjektvarsler answers 308 to /prosjekter.
