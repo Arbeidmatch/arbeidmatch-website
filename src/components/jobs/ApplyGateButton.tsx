@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+
+import { Icon } from "@/components/site/Icon";
+import { ConsentSwitch, Group } from "@/components/site/sheet/rows";
+import { SheetFrame } from "@/components/site/sheet/SheetFrame";
 
 /**
  * The Apply button on an advert (17 September 2026).
@@ -46,15 +50,16 @@ type Lang = "no" | "en";
 
 const WORDS: Record<
   Lang,
-  { title: string; intro: string; readThe: string; notice: string; consent: string; login: string; register: string; adults: string; hint: string; close: string }
+  { title: string; intro: string; readThe: string; notice: string; consent: string; continueWith: string; login: string; register: string; adults: string; hint: string; close: string }
 > = {
   en: {
-    title: "Sign in to apply",
+    title: "Apply",
     intro:
       "To apply for this job, sign in to your candidate profile or create one. It takes a few minutes, and you apply to the next job with one press.",
     readThe: "I have read the",
     notice: "privacy notice",
     consent: "and consent to ArbeidMatch processing my personal data to handle my application and find work for me.",
+    continueWith: "Continue with your profile",
     login: "I have a profile",
     register: "Create my profile",
     adults: "18+ only: you must be 18 or older to register.",
@@ -62,15 +67,16 @@ const WORDS: Record<
     close: "Close",
   },
   no: {
-    title: "Logg inn for å søke",
+    title: "Søk",
     intro:
       "For å søke på denne stillingen logger du inn på kandidatprofilen din eller oppretter en. Det tar noen minutter, og neste gang søker du med ett trykk.",
     readThe: "Jeg har lest",
     notice: "personvernerklæringen",
     consent: "og samtykker til at ArbeidMatch behandler personopplysningene mine for å behandle søknaden min og finne arbeid til meg.",
+    continueWith: "Fortsett med profilen din",
     login: "Jeg har en profil",
     register: "Opprett profil",
-    adults: "Kun 18+: du mÃ¥ vÃ¦re 18 Ã¥r eller eldre for Ã¥ registrere deg.",
+    adults: "Kun 18+: du må være 18 år eller eldre for å registrere deg.",
     hint: "Kryss av i boksen for å gå videre.",
     close: "Lukk",
   },
@@ -129,16 +135,22 @@ export function ApplyGateButton(props: {
   label?: string;
   /** The job's slug, so the funnel is counted per job. */
   slug?: string;
+  /** The job's title, for the sheet's title bar. */
+  jobTitle?: string;
 }) {
-  const { className, loginHref, registerHref, label = "Apply for this job", slug } = props;
+  const { className, loginHref, registerHref, label = "Apply for this job", slug, jobTitle } = props;
   const [open, setOpen] = useState(false);
+  // True only in the browser, so the sheet is portalled to <body> after hydration and never on the server.
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   // One tick, two facts. `accepted` is both of them, because there is no
   // longer a state in which a person has done one and not the other.
   const [accepted, setAccepted] = useState(false);
   const [lang, setLang] = useState<string | null>(null);
   const [fid, setFid] = useState("");
-  const titleId = useId();
-  const closeRef = useRef<HTMLButtonElement>(null);
 
   // Read in the browser, so the page itself stays the same static page for
   // every language and every crawler.
@@ -154,29 +166,13 @@ export function ApplyGateButton(props: {
     );
   }, []);
 
-  useEffect(() => {
-    if (!open) return;
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = overflow;
-    };
-  }, [open]);
-
+  const sheetLang = lang === "no" ? "no" : "en";
   const w = WORDS[lang === "no" ? "no" : "en"];
-  const door =
-    "inline-flex min-h-12 w-full items-center justify-center rounded-full px-6 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy";
-  // Grey and inert until the tick, gold the moment it is there.
-  const doorState = accepted
-    ? "bg-gold text-navy hover:bg-gold-hover"
-    : "pointer-events-none border-2 border-border bg-surface text-text-secondary";
 
+  // ORDER 295, stage 3: the window is the site's sheet now (the approved
+  // mockup of 15 November 2026). What it asks and where its two doors lead
+  // are unchanged: the tick first, then signing in or creating a profile in
+  // the candidate portal, with the same query and the same counts.
   return (
     <>
       <button
@@ -189,74 +185,65 @@ export function ApplyGateButton(props: {
       >
         {label}
       </button>
-      {open && typeof document !== "undefined"
+      {mounted && typeof document !== "undefined"
         ? createPortal(
-        <div
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-navy/60 p-4 sm:items-center"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setOpen(false);
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-            lang={lang === "no" ? "no" : "en"}
-            className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl bg-white p-6 shadow-2xl md:p-7"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <h2 id={titleId} className="text-xl font-bold text-navy">
-                {w.title}
-              </h2>
-              <button
-                ref={closeRef}
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label={w.close}
-                className="-mr-2 -mt-2 inline-flex h-11 w-11 items-center justify-center rounded-full text-2xl leading-none text-text-secondary hover:bg-surface"
-              >
-                ×
-              </button>
-            </div>
-            <p className="mt-2 leading-relaxed text-text-secondary">{w.intro}</p>
-
-            <label className="mt-5 flex items-start gap-3 rounded-xl border border-border p-4 text-sm leading-relaxed text-navy">
-              <input
-                type="checkbox"
-                checked={accepted}
-                onChange={(e) => {
-                  setAccepted(e.target.checked);
-                  if (e.target.checked) countStep(slug, "ticked", fid);
-                }}
-                className="mt-0.5 h-5 w-5 shrink-0 accent-[#C9A84C]"
-              />
-              <span>
-                {w.readThe}{" "}
-                <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold underline decoration-gold decoration-2 underline-offset-4">
-                  {w.notice}
-                </a>{" "}
-                {w.consent}
-              </span>
-            </label>
-
-            <div className="mt-5 flex flex-col gap-3">
-              <a href={withLanguageAndVisit(loginHref, lang, fid)} aria-disabled={!accepted} tabIndex={accepted ? undefined : -1} className={`${door} ${doorState}`}>
-                {w.login}
-              </a>
-              <a
-                href={withLanguageAndVisit(registerHref, lang, fid)}
-                aria-disabled={!accepted}
-                tabIndex={accepted ? undefined : -1}
-                className={`${door} ${doorState}`}
-              >
-                {w.register}
-              </a>
-            </div>
-            {/* Only people aged 18 or older can register (ORDER 189); the profile screen asks the date of birth. */}
-            <p className="mt-3 text-center text-[13px] font-semibold text-text-secondary">{w.adults}</p>
-            {!accepted ? <p className="mt-3 text-center text-[13px] text-text-secondary">{w.hint}</p> : null}
-          </div>
-        </div>,
+            <SheetFrame
+              open={open}
+              lang={sheetLang}
+              title={jobTitle ? `${w.title}: ${jobTitle}` : w.title}
+              sub={null}
+              onBack={() => {}}
+              onClose={() => setOpen(false)}
+              footer={
+                <>
+                  <button type="button" className="btn ghost" onClick={() => setOpen(false)}>
+                    {w.close}
+                  </button>
+                  {/* Only people aged 18 or older can register (ORDER 189); the profile screen asks the date of birth. */}
+                  <p>
+                    <b>{w.adults}</b> {accepted ? "" : w.hint}
+                  </p>
+                </>
+              }
+            >
+              <div className="sh-text">
+                <p>{w.intro}</p>
+              </div>
+              <Group>
+                <ConsentSwitch
+                  label={`${w.readThe} ${w.notice} ${w.consent}`}
+                  checked={accepted}
+                  onChange={(next) => {
+                    setAccepted(next);
+                    if (next) countStep(slug, "ticked", fid);
+                  }}
+                >
+                  {w.readThe}{" "}
+                  <a className="plink" href="/privacy" target="_blank" rel="noreferrer">
+                    {w.notice}
+                  </a>{" "}
+                  {w.consent}
+                </ConsentSwitch>
+              </Group>
+              <Group label={w.continueWith}>
+                <a className="row" href={withLanguageAndVisit(loginHref, lang, fid)} aria-disabled={!accepted} tabIndex={accepted ? undefined : -1} data-apply-door="login">
+                  <span className="ri">
+                    <Icon name="lock" />
+                  </span>
+                  <span className="rl">{w.login}</span>
+                  <span className="rv" />
+                  <Icon name="chev" />
+                </a>
+                <a className="row" href={withLanguageAndVisit(registerHref, lang, fid)} aria-disabled={!accepted} tabIndex={accepted ? undefined : -1} data-apply-door="register">
+                  <span className="ri">
+                    <Icon name="user" />
+                  </span>
+                  <span className="rl">{w.register}</span>
+                  <span className="rv" />
+                  <Icon name="chev" />
+                </a>
+              </Group>
+            </SheetFrame>,
             document.body,
           )
         : null}

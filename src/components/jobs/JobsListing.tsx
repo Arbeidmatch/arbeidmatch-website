@@ -1,56 +1,88 @@
 import Link from "next/link";
-import { ForsidenJobCard } from "@/components/home/ForsidenJobCard";
+
+import { Icon } from "@/components/site/Icon";
 import { JobPostingJsonLd } from "@/components/seo/JobPostingJsonLd";
-import { CANDIDATE_PORTAL_SIGNUP_URL } from "@/lib/candidatePortal";
-import type { PublicJob } from "@/lib/jobs-fetch";
+import { jobCardImage, jobUrl, rateLine, type PublicJob } from "@/lib/jobs-fetch";
 import { signupPlacement } from "@/lib/jobs-signup-placement";
 
-/** The way in for somebody whose job is not on the board yet. */
-function SignupSection({ className = "" }: { className?: string }) {
+/**
+ * The way in for somebody whose job is not on the board yet: the closing band
+ * of the approved mockup (ORDER 295, stage 3). The profile and the alerts open
+ * as sheets over the page; the profile sheet sends the same request the
+ * /candidate-register page sends.
+ */
+function SignupBand() {
   return (
-    <section
-      aria-labelledby="jobs-signup-heading"
-      className={`flex flex-col gap-4 rounded-xl border border-border bg-surface p-6 sm:flex-row sm:items-center sm:justify-between md:p-8 ${className}`}
-    >
-      <div>
-        <h2 id="jobs-signup-heading" className="text-xl font-bold text-navy">
-          Sign up for the next job
-        </h2>
-        <p className="mt-2 max-w-2xl leading-relaxed text-text-secondary">
-          Tell us about your trade once, and we contact you when a job that fits you opens.
-        </p>
+    <section className="sec" style={{ background: "var(--sage)" }} aria-labelledby="jobs-signup-heading">
+      <div className="w close">
+        <div>
+          <h2 id="jobs-signup-heading" className="h3">
+            Sign up for the next job
+          </h2>
+          <p>Tell us about your trade once, and we contact you when a job that fits you opens.</p>
+        </div>
+        <div className="close-acts">
+          <button type="button" className="btn ghost" data-sheet="register">
+            Create your profile
+          </button>
+          <button type="button" className="btn gold" data-sheet="alerts">
+            Choose your job alerts
+          </button>
+        </div>
       </div>
-      <a
-        href={CANDIDATE_PORTAL_SIGNUP_URL}
-        className="inline-flex min-h-[44px] shrink-0 items-center justify-center self-start rounded-[6px] bg-gold px-5 py-2 text-[14px] font-semibold text-navy transition-colors hover:bg-gold-hover sm:self-center"
-      >
-        Register
-      </a>
     </section>
   );
 }
 
 /**
- * One list of adverts, drawn the same way wherever it appears.
- *
- * The front page, /jobs and every trade-and-town page show the same cards, and
- * that is deliberate rather than lazy: a person who lands on "Carpenter jobs in
- * Bergen" from a search and then presses through to the whole board should not
- * feel they have arrived somewhere else. The card is `ForsidenJobCard`, so the
- * mark on the photograph, the reference and the line about who employs are the
- * same on all of them.
- *
- * The markup travels with the list. A page listing four carpenter adverts
- * carries those four as JobPosting, which is what makes it citable on its own
- * rather than only as a route into the front page.
- *
- * THE SURFACE, corrected 6 September 2026. The heading was `text-navy` and the
- * lede `#555`, both written for a light page - but nothing here supplied one,
- * so they landed on the site's own `#0D1B2A` body. "Open jobs in Norway" was
- * navy on navy at 1.00:1 on /jobs and on every trade-and-town page under it,
- * which is where the search traffic arrives. Same fault as the advert page had,
- * and it takes the same shape now: a navy band that carries on from the navbar,
- * then the white sheet the cards were always drawn for.
+ * One job card of the approved mockup: the advert's own photo filling the
+ * frame, the trade, the title, where and who employs, the pay, and the whole
+ * card one link to the advert.
+ */
+export function JobCard({ job }: { job: PublicJob }) {
+  const href = jobUrl(job);
+  const where = (job.location ?? "").trim() || (job.country ?? "").trim() || "Norway";
+  const rate = rateLine(job);
+  // HIS WORDS, 4 October 2026: the card never names the client, so it says what the reader can know.
+  const employs = job.engagement === "staffing" ? "Employed by ArbeidMatch" : job.engagement === "recruitment" ? "Network partner" : null;
+  const dsb = job.public_requires_dsb || job.industry === "electrical";
+  const body = (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="jc-ph" src={jobCardImage(job)} alt="" loading="lazy" />
+      <span className="jc-b">
+        <span className="eb">{job.category || "Open position"}</span>
+        <h3>{job.title}</h3>
+        <p>{[where, employs].filter(Boolean).join(" · ")}</p>
+        <span className="jc-m">EU/EEA{dsb ? " · DSB certified" : ""}</span>
+        <span className="jc-f">
+          <span>{rate ?? "Pay in the advert"}</span>
+          <Icon name="arrow" />
+        </span>
+      </span>
+    </>
+  );
+  return href ? (
+    <a className="jc" href={href}>
+      {body}
+    </a>
+  ) : (
+    <div className="jc">{body}</div>
+  );
+}
+
+type Pill = { href: string; label: string; count: number };
+
+/** How many neighbouring lists sit in the filter row; the rest stay linked under the list. */
+const FILTER_PILLS = 5;
+
+/**
+ * One list of adverts, drawn the same way wherever it appears: /jobs and every
+ * trade-and-town page under it (ORDER 295, stage 3, from the approved mockup).
+ * The list comes first, with the filters as pills that are links to the
+ * trade-and-town pages, so a filtered list keeps its own address. The markup
+ * travels with the list: a page listing four carpenter adverts carries those
+ * four as JobPosting.
  */
 export function JobsListing({
   jobs,
@@ -58,6 +90,8 @@ export function JobsListing({
   heading,
   lede,
   related,
+  current,
+  total,
   signup = false,
 }: {
   jobs: PublicJob[];
@@ -65,70 +99,82 @@ export function JobsListing({
   heading: string;
   lede: string;
   /** Neighbouring pages that also have adverts on them. Never a dead link. */
-  related?: Array<{ href: string; label: string; count: number }>;
-  /** Show the Sign Up section, above or after the list by `signupPlacement`. */
+  related?: Pill[];
+  /** The trade-and-town page this list is, shown as the chosen pill. */
+  current?: Pill;
+  /** Every open job, for the "All" pill. */
+  total?: number;
+  /** Show the sign-up band, above or after the list by `signupPlacement`. */
   signup?: boolean;
 }) {
   const placement = signup ? signupPlacement(jobs.length) : null;
+  const pills = (related ?? []).slice(0, FILTER_PILLS);
+  const more = (related ?? []).slice(FILTER_PILLS);
   return (
-    <main>
+    <main className="ams page" lang="en">
       <JobPostingJsonLd jobs={jobs} />
 
-      <header className="bg-navy">
-        <div className="mx-auto w-full max-w-content px-6 py-10 md:px-12 md:py-14 lg:px-20">
-          <p className="am-eyebrow font-semibold uppercase tracking-[0.14em] text-gold">Open jobs</p>
-          <h1 className="am-h-advert mt-3 max-w-[760px] font-extrabold text-white">{heading}</h1>
-          <p className="mt-4 max-w-3xl leading-relaxed text-white/70">{lede}</p>
+      <section className="dark band">
+        <div className="w">
+          <span className="eb">Open jobs</span>
+          <h1>{heading}</h1>
+          <p className="lede" style={{ maxWidth: 640 }}>
+            {lede}
+          </p>
         </div>
-      </header>
+      </section>
 
-      <div className="bg-white">
-        <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20">
-          {placement === "above" ? <SignupSection className="mb-10" /> : null}
+      {placement === "above" ? <SignupBand /> : null}
+
+      <section className="sec">
+        <div className="w">
+          <nav className="pills" style={{ marginTop: 0 }} aria-label="Filter jobs">
+            <Link className={`pill${current ? "" : " on"}`} href="/jobs" aria-current={current ? undefined : "page"}>
+              All{typeof total === "number" && total > 0 ? <b>{total}</b> : null}
+            </Link>
+            {current ? (
+              <Link className="pill on" href={current.href} aria-current="page">
+                {current.label} <b>{current.count}</b>
+              </Link>
+            ) : null}
+            {pills.map((p) => (
+              <Link key={p.href} className="pill" href={p.href}>
+                {p.label} <b>{p.count}</b>
+              </Link>
+            ))}
+          </nav>
           {/* An empty board and an unreachable ATS look identical to a visitor,
               and they are not the same thing to whoever has to fix it. */}
           {!ok ? (
-            <p className="text-text-secondary">The jobs could not be loaded just now. Please try again shortly.</p>
+            <p className="jl-note">The jobs could not be loaded just now. Please try again shortly.</p>
           ) : jobs.length === 0 ? (
-            <p className="text-text-secondary">
-              Nothing open here at the moment.{" "}
-              <Link
-                href="/jobs"
-                className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4"
-              >
-                See every open job
-              </Link>
-              .
+            <p className="jl-note">
+              Nothing open here at the moment. <Link href="/jobs">See every open job</Link>.
             </p>
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="jgrid">
               {jobs.map((job) => (
-                <ForsidenJobCard key={job.id} job={job} />
+                <JobCard key={job.id} job={job} />
               ))}
             </div>
           )}
 
-          {placement === "below" ? <SignupSection className="mt-12" /> : null}
-
-          {related && related.length > 0 ? (
-            <nav className="mt-12 border-t border-border pt-6" aria-label="Other open lists">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-text-secondary">Also open</h2>
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {related.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className="inline-flex rounded-full border border-border px-3 py-1.5 text-sm text-navy transition hover:border-gold"
-                    >
-                      {item.label} <span className="ml-1 font-semibold text-gold-ink">{item.count}</span>
-                    </Link>
-                  </li>
+          {more.length > 0 ? (
+            <nav className="jl-more" aria-label="Other open lists">
+              <h2 className="eb">Also open</h2>
+              <div className="pills">
+                {more.map((item) => (
+                  <Link key={item.href} className="pill" href={item.href}>
+                    {item.label} <b>{item.count}</b>
+                  </Link>
                 ))}
-              </ul>
+              </div>
             </nav>
           ) : null}
         </div>
-      </div>
+      </section>
+
+      {placement === "below" ? <SignupBand /> : null}
     </main>
   );
 }

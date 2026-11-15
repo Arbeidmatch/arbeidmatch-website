@@ -93,7 +93,7 @@ export const CANDIDATE_FAQ: CandidateFaqItem[] = [
   {
     question: "How do I talk to a recruiter?",
     answer:
-      "A recruiter contacts you from your profile, where you leave your phone number safely. For a specific question, write to our support from the Contact page on arbeidmatch.no.",
+      "A recruiter contacts you from your profile, where you leave your phone number safely. For a specific question, write to us from the candidate support page.",
   },
   {
     question: "Do I pay anything?",

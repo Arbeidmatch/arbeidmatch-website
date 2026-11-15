@@ -76,16 +76,17 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
   return (
     <>
-    {searching && <div className="bg-navy px-6 py-4 text-center text-sm text-white/80">
+    {searching && <div className="ams"><div className="w jl-search">
       {search && <span>Trade: {search}. </span>}{location && <span>Location: {location}. </span>}
-      <Link href="/jobs" className="ml-2 inline-flex min-h-11 items-center text-gold underline">Clear filters</Link>
-    </div>}
+      <Link href="/jobs" className="pill">Clear filters</Link>
+    </div></div>}
     <JobsListing
       jobs={filtered}
       ok={ok}
       heading={searching ? (ok ? `${filtered.length} matching ${filtered.length === 1 ? "job" : "jobs"}` : "Search results") : totalOpen > 0 ? `${totalOpen} open jobs in Norway` : "Open jobs in Norway"}
       lede="Work for people with a trade. What each job runs on, and for how long, is written in the advert itself. EU or EEA citizenship (passport or national ID card) is required on every one of them, and we do not sponsor visas."
       related={related}
+      total={totalOpen}
       signup
     />
     </>

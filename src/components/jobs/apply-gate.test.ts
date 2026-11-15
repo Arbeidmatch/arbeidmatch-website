@@ -16,8 +16,10 @@ import { readFileSync } from "node:fs";
 const source = readFileSync("src/components/jobs/ApplyGateButton.tsx", "utf8");
 
 describe("the Apply dialog's consent", () => {
-  it("has exactly one checkbox", () => {
-    expect(source.match(/type="checkbox"/g)?.length).toBe(1);
+  it("has exactly one tick", () => {
+    // ORDER 295: the tick is the site sheet's switch now, still one of it.
+    expect(source.match(/<ConsentSwitch/g)?.length).toBe(1);
+    expect(source).not.toContain('type="checkbox"');
   });
 
   it("says both facts in the one sentence, with the notice still a link", () => {
@@ -79,6 +81,7 @@ describe("the Apply dialog carries the advert's language on", () => {
 
   it("speaks only Norwegian or English on the page", () => {
     expect(source).toContain('WORDS[lang === "no" ? "no" : "en"]');
-    expect(source).toContain("max-h-[calc(100dvh-2rem)]");
+    // The site's sheet keeps itself inside a phone's screen with its own scroll (ORDER 295).
+    expect(source).toContain("<SheetFrame");
   });
 });

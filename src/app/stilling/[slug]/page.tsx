@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BadgeCheck } from "lucide-react";
 import { JobPostingJsonLd } from "@/components/seo/JobPostingJsonLd";
 import { ApplyGateButton } from "@/components/jobs/ApplyGateButton";
-import { JobEngagement } from "@/components/jobs/JobEngagement";
+import { Icon } from "@/components/site/Icon";
 import {
   atsBaseUrl,
   fetchPublicJob,
@@ -184,278 +183,162 @@ export default async function StillingPage({ params }: Props) {
   const travelValue = job.travel?.label?.trim();
   if (travelValue) terms.push({ label: "Travel", value: travelValue });
 
-  // The strip under the photograph (ORDER 57): the four a tradesman decides on, in both languages.
-  const facts: Array<{ label: string; value: string; gold?: boolean }> = [
-    { label: "Lønn · Pay", value: rate ?? "Agreed at interview", gold: true },
-    { label: "Sted · Where", value: where },
-    { label: "Timer · Hours", value: job.hours_per_week ? `${job.hours_per_week} / uke` : "Not stated" },
-    { label: "Oppstart · Start", value: job.start_date_text?.trim() || "Not stated" },
-  ];
-  // The four numbers as the board last saw them; the component reads them live.
-  const counters = {
-    views: job.public_views ?? 0,
-    likes: job.public_likes ?? 0,
-    shares: job.public_shares ?? 0,
-    saves: job.public_saves ?? 0,
-  };
+  // ORDER 295, stage 3 (the approved mockup of 15 November 2026): the title,
+  // the facts as a grid under it and the advert's own photo beside them, then
+  // what the job asks and the advert. No view, like, share or save counters.
+  const gridOrder = ["Pay", "Where", "Hours", "Start", "Contract", "Employer"];
+  const ordered = [...terms].sort((a, b) => {
+    const ia = gridOrder.indexOf(a.label);
+    const ib = gridOrder.indexOf(b.label);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+  });
+  const facts = ordered.slice(0, 6);
+  const moreFacts = ordered.slice(6);
+  const applyClass = "btn gold";
 
   return (
-    <article>
+    <article className="ams page jobpage" lang="en">
       <JobPostingJsonLd jobs={[job]} />
 
-      {/* ORDER 57, his approved design (5 October 2026, "asa imi place foarte
-          tare"): the job's own photograph full width, the title and the chips
-          on a dark band over its foot, then a strip of the four facts a
-          tradesman decides on, bilingual. */}
-      <header className="relative bg-navy">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={jobCardImage(job)} alt="" className="h-[240px] w-full object-cover sm:h-[340px] lg:h-[420px]" />
-        <div className="bg-navy lg:absolute lg:inset-x-0 lg:bottom-0 lg:bg-navy/90">
-          <div className="mx-auto w-full max-w-content px-4 py-5 md:px-12 lg:px-20 lg:py-7">
-            <nav aria-label="Breadcrumb" className="text-sm text-white/70">
-              <Link href="/" className="transition hover:text-gold">
-                Open jobs
-              </Link>
-              {company || trade ? (
-                <>
-                  <span aria-hidden className="mx-2 text-white/55">
-                    /
-                  </span>
-                  <span className="text-white/85">{[company, trade].filter(Boolean).join(" · ")}</span>
-                </>
-              ) : null}
-            </nav>
-            <h1 className="am-h-advert mt-2 max-w-[900px] font-extrabold text-white">{job.title}</h1>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {contract ? <span className="rounded-full bg-gold px-3 py-1 text-xs font-bold text-navy">{contract}</span> : null}
-              <span className="rounded-full border border-white/40 px-3 py-1 text-xs font-semibold text-white">{certificate}</span>
-              <span
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/40 px-3 py-1 text-xs font-semibold text-white"
-                title="EU/EEA citizenship required, no visa sponsorship"
-              >
-                <BadgeCheck aria-hidden className="h-3.5 w-3.5 text-gold" />
-                EU/EØS · EU/EEA
-              </span>
-              {reference ? <span className="px-1 text-xs font-semibold text-white/75">{reference}</span> : null}
+      <section className="dark band">
+        <div className="w">
+          <Link className="crumb" href="/jobs">
+            <Icon name="back" />
+            Open jobs
+          </Link>
+          <div className="band-g">
+            <div>
+              <span className="eb">{[company, trade].filter(Boolean).join(" · ") || "Open position"}</span>
+              <h1>{job.title}</h1>
+              <dl className="fgrid">
+                {facts.map((f) => (
+                  <div key={f.label}>
+                    <dt>
+                      <span>{f.label}</span>
+                    </dt>
+                    <dd>
+                      <b className={f.label === "Pay" ? "gold" : undefined}>{f.value}</b>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="fref">
+                {reference ? `Reference ${reference}. ` : ""}
+                {certificate}. EU/EEA citizenship required (passport or national ID card). No visa sponsorship. The advert says whether travel is included.
+              </p>
+              <div className="apply-row">
+                <ApplyGateButton loginHref={loginHref} registerHref={registerHref} slug={slug} jobTitle={job.title} className={applyClass} />
+                <p>{nextStep}</p>
+              </div>
             </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="ph" style={{ aspectRatio: "4 / 3", objectPosition: "50% 28%" }} src={jobCardImage(job)} alt="" />
           </div>
         </div>
-      </header>
-
-      {/* Phone: the counters line and the three buttons right under the title. */}
-      <div className="border-b border-border bg-white lg:hidden">
-        <div className="mx-auto w-full max-w-content px-4 py-4">
-          <JobEngagement jobId={job.id} slug={slug} title={job.title} atsBaseUrl={atsBaseUrl()} initial={counters} layout="inline" />
-        </div>
-      </div>
-
-      <section aria-label="Facts" className="border-b border-border bg-surface">
-        <dl className="mx-auto grid w-full max-w-content grid-cols-2 gap-3 px-4 py-5 md:px-12 lg:grid-cols-4 lg:gap-6 lg:px-20">
-          {facts.map((f) => (
-            <div key={f.label} className="rounded-xl bg-white p-3 lg:bg-transparent lg:p-0">
-              <dt className="text-[11px] font-bold uppercase tracking-[0.08em] text-text-secondary">{f.label}</dt>
-              <dd className={`mt-1 text-lg font-extrabold leading-tight lg:text-[22px] ${f.gold ? "text-[#8A6A22]" : "text-navy"}`}>{f.value}</dd>
-            </div>
-          ))}
-        </dl>
       </section>
 
-      {/* The sheet. Everything below is #0D1B2A and #555 on white, which is
-          where those two colours were always meant to be read. */}
-      <div className="bg-white">
-        <div className="mx-auto w-full max-w-content px-6 py-12 md:px-12 md:py-16 lg:px-20">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-14">
-            {/* The button and the terms come first on a phone, where a column
-                of prose would otherwise stand between the title and the one
-                thing the page is for. On a desktop they move to the right and
-                stay in view the whole way down the advert. */}
-            <aside className="hidden lg:order-last lg:block">
-              <div className="lg:sticky lg:top-24">
-                {/* The card from his design: pay, Apply, the terms, and the
-                    three buttons with the four numbers (ORDER 57). */}
-                <div className="flex flex-col gap-4 rounded-2xl border border-border bg-white p-6 shadow-[0_8px_24px_rgba(15,27,45,0.08)]">
-                  <p className="text-[26px] font-extrabold leading-tight text-[#8A6A22]">{rate ?? "Agreed at interview"}</p>
-                  <ApplyGateButton
-                    loginHref={loginHref}
-                    registerHref={registerHref}
-                    slug={slug}
-                    className="inline-flex min-h-[54px] w-full items-center justify-center rounded-xl bg-gold px-6 text-[17px] font-extrabold text-navy transition hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-                  />
-                  <dl className="flex flex-col gap-2.5 border-t border-border pt-4 text-sm">
-                    {terms.map((term) => (
-                      <div key={term.label} className="flex justify-between gap-3">
-                        <dt className="text-text-secondary">{term.label}</dt>
-                        <dd className="text-right font-bold text-navy">{term.value}</dd>
-                      </div>
-                    ))}
-                    {reference ? (
-                      <div className="flex justify-between gap-3">
-                        <dt className="text-text-secondary">Referanse</dt>
-                        <dd className="text-right font-bold text-navy">{reference}</dd>
-                      </div>
-                    ) : null}
-                  </dl>
-                  <JobEngagement jobId={job.id} slug={slug} title={job.title} atsBaseUrl={atsBaseUrl()} initial={counters} />
-                  <p className="text-[13px] leading-relaxed text-text-secondary">
-                    EU/EEA citizenship required (passport or national ID card). No visa sponsorship. The advert says whether travel is included.
-                  </p>
-                </div>
-
-                <p className="mt-4 text-sm text-text-secondary">
-                  Not the right one?{" "}
-                  <Link href="/" className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">
-                    See every open job
-                  </Link>
-                  .
-                </p>
+      <section className="sec">
+        <div className="w">
+          <div className="advert">
+            {moreFacts.length > 0 ? (
+              <div className="card">
+                <h2 className="h4">More about the job</h2>
+                <dl className="kv">
+                  {moreFacts.map((term) => (
+                    <div key={term.label}>
+                      <dt>{term.label}</dt>
+                      <dd>{term.value}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
-            </aside>
+            ) : null}
 
-            <div className="min-w-0">
-              {/* What the job asks of the reader, before they spend twenty
-                  minutes on a form. The questions are set on the advert in the
-                  ATS; this is the one place a candidate can read them, because
-                  the application itself is taken on the board. */}
-              {required.length > 0 || preferred.length > 0 ? (
-                <section className="rounded-2xl border border-border p-6 md:p-7">
-                  <h2 className="text-lg font-bold text-navy">What you need for this job</h2>
-                  {required.length > 0 ? (
-                    <ul className="mt-5 space-y-3">
-                      {required.map((r) => (
-                        <li key={r.prompt} className="flex gap-3 leading-relaxed text-navy">
-                          <span
-                            aria-hidden
-                            className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold/25 text-[11px] font-bold text-navy"
-                          >
-                            &#10003;
-                          </span>
+            {/* What the job asks of the reader, before they spend twenty
+                minutes on a form. The questions are set on the advert in the
+                ATS; this is the one place a candidate can read them. */}
+            {required.length > 0 || preferred.length > 0 ? (
+              <div className="card">
+                <h2 className="h4">What you need for this job</h2>
+                {required.length > 0 ? (
+                  <ul className="req">
+                    {required.map((r) => (
+                      <li key={r.prompt}>
+                        <Icon name="check" />
+                        <span>{r.prompt}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                {preferred.length > 0 ? (
+                  <>
+                    <h3 className="eb" style={{ marginTop: 18 }}>
+                      Helps, but not required
+                    </h3>
+                    <ul className="req">
+                      {preferred.map((r) => (
+                        <li key={r.prompt} className="opt">
+                          <Icon name="plus" />
                           <span>{r.prompt}</span>
                         </li>
                       ))}
                     </ul>
-                  ) : null}
-                  {preferred.length > 0 ? (
-                    <>
-                      <h3 className="mt-7 border-t border-border pt-5 text-xs font-semibold uppercase tracking-[0.14em] text-text-secondary">
-                        Helps, but not required
-                      </h3>
-                      <ul className="mt-4 space-y-2.5">
-                        {preferred.map((r) => (
-                          <li key={r.prompt} className="flex gap-3 leading-relaxed text-text-secondary">
-                            <span aria-hidden className="mt-[0.6em] h-1.5 w-1.5 shrink-0 rounded-full bg-border" />
-                            <span>{r.prompt}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : null}
-                </section>
-              ) : null}
-
-              {/*
-                HIS DECISION, 4 October 2026: "vreau sa fie distinctie in anunt
-                intre limba norvegiana si engleza ca pe finn, fara comutator".
-                Both halves are always on the page, Norwegian first, with
-                nothing to press. An advert that does not carry both - every
-                imported posting, and every job written before this - renders
-                as it always did.
-
-                The HTML is sanitised once, in the ATS, by the same functions
-                its own job page uses. Doing it again here would mean two
-                allowlists, and the day they drift is the day one of them is
-                wrong. What it is not is styled: that is `.am-prose`.
-              */}
-              {halves ? (
-                <div className={`${required.length > 0 || preferred.length > 0 ? "mt-10" : ""} max-w-[68ch] space-y-10`}>
-                  {/* HIS WORDS, 4 October 2026: "sa fie delimitare bine intre
-                      limbi si specificat ca English version". Two links, never
-                      a toggle: both halves stay on the page, and these only
-                      carry the reader to one of them. */}
-                  {([
-                    ["no", LANGUAGE_LABELS.no, halves.no],
-                    ["en", LANGUAGE_LABELS.en, halves.en],
-                  ] as const).map(([code, label, body], index) => (
-                    <section
-                      key={code}
-                      id={`advert-${code}`}
-                      lang={code === "no" ? "nb" : "en"}
-                      className={`scroll-mt-24 rounded-2xl border border-border p-6 sm:p-7 ${index === 0 ? "bg-surface" : ""}`}
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <span className="inline-flex items-center rounded-full border border-border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
-                          {label}
-                        </span>
-                        {/* The two links sit in the first block's header, so the advert's
-                            first block starts where the terms card does. */}
-                        {index === 0 ? (
-                          <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary">
-                            {([
-                              ["no", LANGUAGE_LABELS.no],
-                              ["en", LANGUAGE_LABELS.en],
-                            ] as const).map(([linkCode, linkLabel], linkIndex) => (
-                              <span key={linkCode} className="inline-flex items-center gap-3">
-                                {linkIndex > 0 ? <span aria-hidden>&middot;</span> : null}
-                                <a href={`#advert-${linkCode}`} className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">
-                                  {linkLabel}
-                                </a>
-                              </span>
-                            ))}
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="am-prose mt-4" dangerouslySetInnerHTML={{ __html: body }} />
-                    </section>
-                  ))}
-                </div>
-              ) : job.description_html ? (
-                <div className="am-prose mt-10 max-w-[68ch]" dangerouslySetInnerHTML={{ __html: job.description_html }} />
-              ) : null}
-
-              {certificates.length > 0 || skills.length > 0 ? (
-                <section className="mt-10 border-t border-border pt-8">
-                  <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-text-secondary">
-                    {certificates.length > 0 ? "Certificates and skills" : "Skills"}
-                  </h2>
-                  <ul className="mt-4 flex flex-wrap gap-2">
-                    {[...certificates, ...skills].map((item) => (
-                      <li
-                        key={item}
-                        className="inline-flex rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-navy"
-                      >
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
-
-              {/* The button again at the foot of the advert, for the reader who
-                  got here by reading rather than by deciding at the top. */}
-              <div className="mt-10 flex flex-wrap items-center gap-4 border-t border-border pt-8">
-                <ApplyGateButton
-                  loginHref={loginHref}
-                  registerHref={registerHref}
-                  slug={slug}
-                  className="inline-flex min-h-12 items-center rounded-full bg-gold px-7 font-semibold text-navy transition hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-                />
-                <p className="text-sm text-text-secondary">{nextStep}</p>
+                  </>
+                ) : null}
               </div>
+            ) : null}
+
+            {/*
+              HIS DECISION, 4 October 2026: both languages of the advert on the
+              page, Norwegian first, with nothing to press. The HTML is
+              sanitised once, in the ATS; `.am-prose` styles it.
+            */}
+            {halves ? (
+              ([
+                ["no", LANGUAGE_LABELS.no, halves.no],
+                ["en", LANGUAGE_LABELS.en, halves.en],
+              ] as const).map(([code, label, body]) => (
+                <section key={code} id={`advert-${code}`} lang={code === "no" ? "nb" : "en"} className="card" style={{ scrollMarginTop: 96 }}>
+                  <span className="lab">{label}</span>
+                  <div className="am-prose" dangerouslySetInnerHTML={{ __html: body }} />
+                </section>
+              ))
+            ) : job.description_html ? (
+              <div className="card">
+                <div className="am-prose" dangerouslySetInnerHTML={{ __html: job.description_html }} />
+              </div>
+            ) : null}
+
+            {certificates.length > 0 || skills.length > 0 ? (
+              <div className="card">
+                <h2 className="h4">{certificates.length > 0 ? "Certificates and skills" : "Skills"}</h2>
+                <ul className="chips">
+                  {[...certificates, ...skills].map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {/* The button again at the foot of the advert, for the reader who
+                got here by reading rather than by deciding at the top. */}
+            <div className="apply-row foot">
+              <ApplyGateButton loginHref={loginHref} registerHref={registerHref} slug={slug} jobTitle={job.title} className={applyClass} />
+              <p>
+                Not the right one? <Link href="/jobs">See every open job</Link>.
+              </p>
             </div>
           </div>
         </div>
-      </div>
-      {/* Phone: pay and Apply always in reach (ORDER 57). */}
-      <div className="sticky bottom-0 z-30 flex items-center gap-3 border-t border-border bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 lg:hidden">
-        <div className="flex min-w-0 flex-col">
-          <span className="truncate text-[17px] font-extrabold text-[#8A6A22]">{rate ?? "Agreed at interview"}</span>
-          <span className="truncate text-xs text-text-secondary">{where}</span>
-        </div>
-        <ApplyGateButton
-          loginHref={loginHref}
-          registerHref={registerHref}
-          slug={slug}
-          className="inline-flex min-h-[52px] flex-1 items-center justify-center rounded-xl bg-gold px-5 text-base font-extrabold text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-navy"
-        />
+      </section>
+
+      {/* Phone: pay and Apply always in reach. */}
+      <div className="jobbar">
+        <span>
+          {rate ?? "Agreed at interview"}
+          <small>{where}</small>
+        </span>
+        <ApplyGateButton loginHref={loginHref} registerHref={registerHref} slug={slug} jobTitle={job.title} className={applyClass} />
       </div>
     </article>
   );

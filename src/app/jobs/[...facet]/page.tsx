@@ -121,6 +121,8 @@ export default async function FacetJobsPage({ params }: { params: Promise<{ face
       heading={copy.h1}
       lede={copy.description}
       related={related}
+      current={{ href: facetPath(facet), label: facetLabel(facet), count: mine.length }}
+      total={jobs.length}
     />
   );
 }

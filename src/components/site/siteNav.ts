@@ -18,8 +18,10 @@ export const SITE_PATHS = {
   candidates: "/for-candidates",
   jobs: "/jobs",
   lifeInNorway: "/premium",
-  questions: "/for-candidates#faq",
-  support: SUPPORT_PAGE_PATH,
+  questions: "/for-candidates/questions",
+  /** The candidates' own support page (ORDER 295, stage 3); /contact?support=1 stays the support door for everyone else. */
+  support: "/for-candidates/support",
+  supportAll: SUPPORT_PAGE_PATH,
   contact: "/contact",
   about: "/about",
   network: "/recruiter-network",
@@ -59,6 +61,7 @@ export function isCandidatePath(rawPath: string | null | undefined): boolean {
   const p = clean(rawPath);
   return (
     p === "/for-candidates" ||
+    p.startsWith("/for-candidates/") ||
     p === "/jobs" ||
     p.startsWith("/jobs/") ||
     p.startsWith("/stilling/") ||
@@ -68,11 +71,12 @@ export function isCandidatePath(rawPath: string | null | undefined): boolean {
 }
 
 /** Which tab of the candidate row is the page the visitor is on. */
-export function activeCandidateTab(rawPath: string | null | undefined, search = ""): string | null {
+export function activeCandidateTab(rawPath: string | null | undefined, _search = ""): string | null {
   const p = clean(rawPath);
   if (p === "/jobs" || p.startsWith("/jobs/") || p.startsWith("/stilling/")) return SITE_PATHS.jobs;
   if (p === "/premium" || p.startsWith("/premium/")) return SITE_PATHS.lifeInNorway;
-  if (p === "/contact" && /(^|[?&])support=1/.test(search)) return SITE_PATHS.support;
+  if (p === "/for-candidates/questions") return SITE_PATHS.questions;
+  if (p === "/for-candidates/support") return SITE_PATHS.support;
   if (p === "/for-candidates") return SITE_PATHS.candidates;
   return null;
 }
@@ -91,8 +95,8 @@ export function pageAction(rawPath: string | null | undefined): PageAction | nul
   const p = clean(rawPath);
   if (p === "/for-employers") return { kind: "link", href: SITE_PATHS.request, label: "Be om kandidater", rask: true };
   if (p === "/prosjekter") return { kind: "link", href: SITE_PATHS.forsprangAccess, label: "Be om invitasjon" };
-  if (p === "/for-candidates" || p === "/jobs" || p === "/premium" || p.startsWith("/premium/")) {
-    return p === "/jobs" ? null : { kind: "link", href: SITE_PATHS.jobs, label: "View open jobs" };
+  if (p === "/for-candidates" || p === "/for-candidates/questions" || p === "/premium" || p.startsWith("/premium/")) {
+    return { kind: "link", href: SITE_PATHS.jobs, label: "View open jobs" };
   }
   if (p === "/about") return { kind: "link", href: SITE_PATHS.contact, label: "Contact us" };
   return null;
