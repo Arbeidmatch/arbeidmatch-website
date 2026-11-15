@@ -32,3 +32,9 @@ Stage 4 (Forsprang at /prosjekter, the invitation sheet; commit c6bd311), pairs 
 The map, the panel's counts and the list are live data, so they differ from the mockup's fixed numbers by design. The
 county panel takes the same per-county figures as the map. Lengths, header and footer included: 4.1 screens at 1440
 (the live project list sits in the band), 6.2 at 390. /prosjektvarsler answers 308 to /prosjekter.
+
+Stage 5 (Life in Norway; commit 4d00615), pairs in `stage-5.json`: guides, guide, guide-steps (the checklist guide,
+whose "Step n" paragraphs take the template's numbered steps). The mockup's six titles were examples of subjects; the
+site shows the five articles that exist, with their own sources and dates. Lengths, header and footer included: the
+list 2.0 screens at 1440 and 2.9 at 390, a guide 2.6 to 2.8 at 1440 and 3.6 to 3.8 at 390. /premium, /premium/browse
+and /premium/article/<slug> answer 308 to the guides; /blog to /for-employers, /download to /, /partners to /about.
