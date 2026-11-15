@@ -526,3 +526,21 @@
 }
 .ams .stepc h3{font:700 18px/1.3 var(--font-sans),"Plus Jakarta Sans",system-ui,sans-serif}
 .ams .fmapbox [class*="credit"]{text-align:right}
+/* Stage 5: Life in Norway. Cards are links; the guide's own paragraphs read at 760px; the source box names the official sites. */
+.ams a.card{color:inherit}
+.ams .guide-card .more>span{line-height:1.35}
+.ams a.card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 var(--white),0 0 0 1px rgba(13,27,42,.08),0 4px 8px rgba(13,27,42,.05),0 26px 48px rgba(13,27,42,.13)}
+.ams .band .crumb{margin-bottom:8px}
+.ams .guide{max-width:760px;display:flex;flex-direction:column;gap:18px}
+.ams .guide>p{font-size:17px;line-height:1.75;color:var(--text)}
+.ams .guide .steps{margin:4px 0}
+.ams .guide .steps p{color:var(--text);font-size:16px}
+.ams .guide .note{margin-top:22px}
+.ams .note .h4{font:700 18px/1.3 var(--font-sans),"Plus Jakarta Sans",system-ui,sans-serif}
+.ams .note .srcs{display:flex;flex-wrap:wrap;gap:6px 18px}
+.ams .note .srcs a{display:inline-flex;align-items:center;gap:6px;min-height:44px;text-decoration:underline;text-underline-offset:3px}
+.ams .note .srcs svg{width:16px;height:16px;color:var(--goldink)}
+.ams .guide .fine{font-size:14px;line-height:1.6;color:var(--soft)}
+@media (max-width:760px){
+  .ams .guide>p{font-size:16px}
+}

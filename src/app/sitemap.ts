@@ -96,7 +96,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       "/newsletter",
       "/for-staffing-agencies",
       "/recruiter-network",
-      "/partners",
       "/bemanning-bygg-anlegg",
       "/bemanning-logistikk",
       "/bemanning-industri",
@@ -141,25 +140,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${SITE}/blog`,
-      lastModified: primaryLastMod,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
       url: `${SITE}/blog/ansette-utenlandske-arbeidere-lovlig`,
       lastModified: primaryLastMod,
       changeFrequency: "monthly",
       priority: 0.68,
     },
+    // ORDER 295, stage 5: the Life in Norway guides, at their own addresses (the old /premium ones redirect here).
     {
-      url: `${SITE}/premium`,
+      url: `${SITE}/for-candidates/life-in-norway`,
       lastModified: primaryLastMod,
       changeFrequency: "weekly",
       priority: 0.75,
     },
     ...PREMIUM_ARTICLE_SLUGS.map((slug) => ({
-      url: `${SITE}/premium/article/${slug}`,
+      url: `${SITE}/for-candidates/life-in-norway/${slug}`,
       lastModified: primaryLastMod,
       changeFrequency: "monthly" as const,
       priority: 0.6,

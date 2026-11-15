@@ -44,6 +44,16 @@ const nextConfig: NextConfig = {
       // ORDER 295, stage 4: the old project-alerts address answered 404; Forsprang lives at /prosjekter. Only the bare
       // address: the recommendation links under /prosjektvarsler/anbefalt/ stay pages of their own.
       { source: "/prosjektvarsler", destination: "/prosjekter", permanent: true },
+      // ORDER 295, stage 5: the five /premium articles are the Life in Norway guides for candidates. Each old
+      // address goes to its guide; /premium/success stays, it is where a payment returns.
+      { source: "/premium", destination: "/for-candidates/life-in-norway", permanent: true },
+      { source: "/premium/browse", destination: "/for-candidates/life-in-norway", permanent: true },
+      { source: "/premium/article/:slug", destination: "/for-candidates/life-in-norway/:slug", permanent: true },
+      // Pages that left the site and the sitemap go to the closest live page. The one blog article for firms keeps
+      // its own address, out of the menu.
+      { source: "/blog", destination: "/for-employers", permanent: true },
+      { source: "/download", destination: "/", permanent: true },
+      { source: "/partners", destination: "/about", permanent: true },
     ];
   },
   async headers() {

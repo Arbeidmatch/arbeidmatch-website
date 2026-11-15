@@ -12,7 +12,8 @@ export interface PremiumArticle {
   bodyMarkdown: string;
 }
 
-const DISCLAIMER = `ArbeidMatch is a recruitment company, not a legal, tax or benefits adviser. These guides describe what to do and where to go; they do not state what the rules are. Procedures, rates and conditions change, and only the authority named above can tell you what applies to your own case.`;
+/** The closing note of every guide; the guide page shows it under the source box. */
+export const GUIDE_DISCLAIMER = `ArbeidMatch is a recruitment company, not a legal, tax or benefits adviser. These guides describe what to do and where to go; they do not state what the rules are. Procedures, rates and conditions change, and only the authority named above can tell you what applies to your own case.`;
 
 const A1 = `Most problems foreign workers run into in Norway are not dramatic. They are small things left unchecked: a payslip nobody read, an hourly rate nobody compared, an agreement made verbally. This guide is about what to keep an eye on yourself.
 
@@ -28,7 +29,7 @@ If something on site is unsafe, report it through the channel your employer prov
 
 Where to check: Arbeidstilsynet for pay rates, working conditions and safety at work.
 
-${DISCLAIMER}`;
+${GUIDE_DISCLAIMER}`;
 
 const A2 = `Getting your tax affairs in order early prevents surprises on payday and at year end. This guide is the practical sequence, not an explanation of the tax rules.
 
@@ -46,7 +47,7 @@ If your situation involves more than one country, it is worth asking a qualified
 
 Where to check: Skatteetaten for registration, tax cards and deductions. Politiet for registration appointments where these are required.
 
-${DISCLAIMER}`;
+${GUIDE_DISCLAIMER}`;
 
 const A3 = `A contract you have read carefully is worth more than one you signed quickly. Before you sign, go through the document and make sure you can point to each of the following.
 
@@ -62,7 +63,7 @@ Keep evidence as you go: the signed document, schedules, messages and pay docume
 
 Where to check: Arbeidstilsynet for guidance on contracts and working conditions.
 
-${DISCLAIMER}`;
+${GUIDE_DISCLAIMER}`;
 
 const A4 = `NAV handles sickness benefits, unemployment benefits and family benefits in Norway. Working here normally connects you to the national insurance system, but each benefit has its own conditions, and NAV is the one that decides whether you meet them. This guide is about getting to the right place with the right papers, not about what you are owed.
 
@@ -78,7 +79,7 @@ Have these ready before you contact NAV: your identification number, your employ
 
 Where to check: NAV for benefit conditions, application steps and cases involving more than one country.
 
-${DISCLAIMER}`;
+${GUIDE_DISCLAIMER}`;
 
 const A5 = `Use this checklist during your first weeks in Norway. Work through it in order, because several steps depend on the one before.
 
@@ -100,7 +101,7 @@ If any step gets blocked, contact the relevant authority early. Waiting until a 
 
 Where to check: Politiet, Skatteetaten, NAV and Arbeidstilsynet.
 
-${DISCLAIMER}`;
+${GUIDE_DISCLAIMER}`;
 
 export const PREMIUM_ARTICLES: PremiumArticle[] = [
   {

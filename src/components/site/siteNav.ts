@@ -17,7 +17,8 @@ export const SITE_PATHS = {
   forsprang: "/prosjekter",
   candidates: "/for-candidates",
   jobs: "/jobs",
-  lifeInNorway: "/premium",
+  /** The guides for candidates (ORDER 295, stage 5); the old /premium addresses redirect here permanently. */
+  lifeInNorway: "/for-candidates/life-in-norway",
   questions: "/for-candidates/questions",
   /** The candidates' own support page (ORDER 295, stage 3); /contact?support=1 stays the support door for everyone else. */
   support: "/for-candidates/support",
@@ -43,6 +44,11 @@ export const SITE_PATHS = {
 
 export type CandidateTab = { href: string; label: string; short: string };
 
+/** Where one Life in Norway guide lives. */
+export function guidePath(slug: string): string {
+  return `${SITE_PATHS.lifeInNorway}/${slug}`;
+}
+
 /** The five entries of the "For candidates" drop-down and of the tab row on every candidate page. */
 export const CANDIDATE_TABS: readonly CandidateTab[] = [
   { href: SITE_PATHS.candidates, label: "Overview", short: "Overview" },
@@ -64,9 +70,7 @@ export function isCandidatePath(rawPath: string | null | undefined): boolean {
     p.startsWith("/for-candidates/") ||
     p === "/jobs" ||
     p.startsWith("/jobs/") ||
-    p.startsWith("/stilling/") ||
-    p === "/premium" ||
-    p.startsWith("/premium/")
+    p.startsWith("/stilling/")
   );
 }
 
@@ -74,7 +78,7 @@ export function isCandidatePath(rawPath: string | null | undefined): boolean {
 export function activeCandidateTab(rawPath: string | null | undefined, _search = ""): string | null {
   const p = clean(rawPath);
   if (p === "/jobs" || p.startsWith("/jobs/") || p.startsWith("/stilling/")) return SITE_PATHS.jobs;
-  if (p === "/premium" || p.startsWith("/premium/")) return SITE_PATHS.lifeInNorway;
+  if (p === SITE_PATHS.lifeInNorway || p.startsWith(`${SITE_PATHS.lifeInNorway}/`)) return SITE_PATHS.lifeInNorway;
   if (p === "/for-candidates/questions") return SITE_PATHS.questions;
   if (p === "/for-candidates/support") return SITE_PATHS.support;
   if (p === "/for-candidates") return SITE_PATHS.candidates;
@@ -95,9 +99,11 @@ export function pageAction(rawPath: string | null | undefined): PageAction | nul
   const p = clean(rawPath);
   if (p === "/for-employers") return { kind: "link", href: SITE_PATHS.request, label: "Be om kandidater", rask: true };
   if (p === "/prosjekter") return { kind: "link", href: SITE_PATHS.forsprangAccess, label: "Be om invitasjon" };
-  if (p === "/for-candidates" || p === "/for-candidates/questions" || p === "/premium" || p.startsWith("/premium/")) {
+  if (p === "/for-candidates" || p === "/for-candidates/questions") {
     return { kind: "link", href: SITE_PATHS.jobs, label: "View open jobs" };
   }
+  // The guide list has no action of its own (its closing band offers the alerts); a guide offers them in the header.
+  if (p.startsWith(`${SITE_PATHS.lifeInNorway}/`)) return { kind: "sheet", sheet: "alerts", label: "Job alerts" };
   if (p === "/about") return { kind: "link", href: SITE_PATHS.contact, label: "Contact us" };
   return null;
 }

@@ -49,7 +49,7 @@ export const FAQ_LINKS: Record<string, FaqLink> = {
   "I need help writing a CV.": { label: "Open the CV guide", href: "/cv" },
   "We are a couple or a team. Can we come together?": { label: "Create your profile", sheet: "register" },
   "When can I start?": { label: "See the open jobs", href: SITE_PATHS.jobs },
-  "Do I need a D-number?": { label: "Read the tax registration guide", href: "/premium/article/tax-registration-norway-foreign-workers" },
+  "Do I need a D-number?": { label: "Read the tax registration guide", href: `${SITE_PATHS.lifeInNorway}/tax-registration-norway-foreign-workers` },
   "I applied earlier. What happens now?": { label: "Ask about my application", sheet: "message", set: "about=My application" },
   "How do I talk to a recruiter?": { label: "Candidate support", href: SITE_PATHS.support },
   "Do I pay anything?": { label: "Candidate support", href: SITE_PATHS.support },

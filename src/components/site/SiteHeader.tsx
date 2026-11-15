@@ -160,6 +160,10 @@ export default function SiteHeader() {
                     {action.label}
                   </Link>
                 )
+              ) : action?.kind === "sheet" ? (
+                <button type="button" className="btn gold" style={{ height: 42 }} data-sheet={action.sheet}>
+                  {action.label}
+                </button>
               ) : null}
             </>
           )}

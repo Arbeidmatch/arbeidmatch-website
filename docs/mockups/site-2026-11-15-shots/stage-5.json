@@ -1,0 +1,5 @@
+[
+  { "name": "guides", "route": "/for-candidates/life-in-norway", "page": "guides" },
+  { "name": "guide", "route": "/for-candidates/life-in-norway/tax-registration-norway-foreign-workers", "page": "guide" },
+  { "name": "guide-steps", "route": "/for-candidates/life-in-norway/registering-as-worker-norway-eu-eea-checklist", "page": "guide" }
+]
