@@ -130,7 +130,7 @@ function buildDescription(job: PublicJob): string {
   else if (where) parts.push(`Work in ${where}, Norway.`);
   else parts.push("Work in Norway.");
 
-  parts.push("EU/EEA citizenship required (passport or national ID card); we do not sponsor visas and we do not cover travel costs.");
+  parts.push("EU/EEA citizenship required (passport or national ID card); we do not sponsor visas. The advert says whether travel is included.");
   parts.push("Trade certificate or documented equivalent experience.");
   const benefitLine = job.accommodation?.label?.trim();
   if (benefitLine) parts.push(`${benefitLine}.`);

@@ -297,7 +297,7 @@ export default async function StillingPage({ params }: Props) {
                   </dl>
                   <JobEngagement jobId={job.id} slug={slug} title={job.title} atsBaseUrl={atsBaseUrl()} initial={counters} />
                   <p className="text-[13px] leading-relaxed text-text-secondary">
-                    EU/EEA citizenship required (passport or national ID card). No visa sponsorship, and we do not cover travel.
+                    EU/EEA citizenship required (passport or national ID card). No visa sponsorship. The advert says whether travel is included.
                   </p>
                 </div>
 

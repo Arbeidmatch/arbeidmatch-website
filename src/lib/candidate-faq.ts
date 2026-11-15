@@ -42,7 +42,7 @@ export const CANDIDATE_FAQ: CandidateFaqItem[] = [
   },
   {
     question: "Do you pay for the trip to Norway?",
-    answer: "You organise and pay your own trip to Norway. Some positions include accommodation once you are there.",
+    answer: "It depends on the position. Some include free international travel, and some include accommodation once you are there. Each advert says what the position includes.",
   },
   {
     question: "Where are the jobs?",
@@ -93,7 +93,7 @@ export const CANDIDATE_FAQ: CandidateFaqItem[] = [
   {
     question: "How do I talk to a recruiter?",
     answer:
-      "A recruiter contacts you from your profile, where you leave your phone number safely. For a specific question, message us on our Facebook page.",
+      "A recruiter contacts you from your profile, where you leave your phone number safely. For a specific question, write to our support from the Contact page on arbeidmatch.no.",
   },
   {
     question: "Do I pay anything?",
