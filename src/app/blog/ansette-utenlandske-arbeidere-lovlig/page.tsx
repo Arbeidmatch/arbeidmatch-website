@@ -25,7 +25,7 @@ const ARTICLE_LD = {
 
 export default function BlogPostAnsatteLovligPage() {
   return (
-    <article className="bg-surface">
+    <article className="bg-surface text-navy">
       {/* Our own fixed text, not user input. */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ARTICLE_LD) }} />
       <BlogPostFromMarkdown filename="blog-ansette-utenlandske-arbeidere-lovlig.md" />

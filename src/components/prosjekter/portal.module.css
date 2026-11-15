@@ -2286,3 +2286,17 @@
     max-height: 70vh;
   }
 }
+
+/* ORDER 295 stage 7: the filters and the map tools are 44px tall on a phone. */
+@media (max-width: 760px) {
+  .chip,
+  .select,
+  .tool {
+    min-height: 44px;
+  }
+
+  .zoomPair button {
+    width: 44px;
+    height: 44px;
+  }
+}

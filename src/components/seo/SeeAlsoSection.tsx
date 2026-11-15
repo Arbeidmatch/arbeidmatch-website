@@ -34,7 +34,7 @@ export default function SeeAlsoSection({ items, variant = "surface" }: Props) {
               <li key={item.href} className="w-[min(280px,85vw)] shrink-0 snap-start">
                 <Link
                   href={item.href}
-                  className="flex min-h-[48px] items-center rounded-lg border border-border bg-white px-4 py-3 text-sm font-medium text-gold shadow-sm"
+                  className="flex min-h-[48px] items-center rounded-lg border border-border bg-white px-4 py-3 text-sm font-medium text-gold-ink shadow-sm"
                 >
                   {item.label}
                 </Link>

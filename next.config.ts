@@ -10,8 +10,8 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "frame-src https://challenges.cloudflare.com",
   `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""} https://challenges.cloudflare.com`,
-  // The pageview beacon is same-origin now (/api/track). ats.arbeidmatch.no stays listed only
-  // because src/components/home/BeforeYouGo.tsx still posts there from the browser.
+  // The pageview beacon is same-origin now (/api/track). ats.arbeidmatch.no was listed for
+  // BeforeYouGo.tsx, removed with the orphan components (ORDER 295 stage 7); it stays until no browser call is left.
   "connect-src 'self' https://data.brreg.no https://challenges.cloudflare.com https://ats.arbeidmatch.no",
   "form-action 'self'",
 ].join("; ");

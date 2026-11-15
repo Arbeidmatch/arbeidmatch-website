@@ -47,7 +47,7 @@ describe("Be om invitasjon", () => {
   });
 
   it("names every call-to-action an invitation", () => {
-    for (const f of ["./AccessBand.tsx", "./ProjectPortal.tsx", "./LoginForm.tsx", "./PortalSteps.tsx"]) {
+    for (const f of ["./ProjectPortal.tsx", "./LoginForm.tsx"]) {
       const s = source(f);
       expect(s).toContain("Be om invitasjon");
       expect(s).not.toMatch(/>\s*(Få tilgang|Be om tilgang)\s*</);

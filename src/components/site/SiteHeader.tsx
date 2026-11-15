@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { Icon } from "@/components/site/Icon";
 import { useSheets } from "@/components/site/sheet/SheetHost";
@@ -29,6 +29,29 @@ function current(pathname: string, href: string): boolean {
   const base = href.split(/[?#]/)[0] || "/";
   if (base === "/") return pathname === "/";
   return pathname === base || pathname.startsWith(`${base}/`);
+}
+
+/** The page's one action: in the header on a computer, in the bar at the foot of the window on a phone. */
+function ActionButton({ action, style }: { action: NonNullable<ReturnType<typeof pageAction>>; style?: CSSProperties }) {
+  if (action.kind === "sheet") {
+    return (
+      <button type="button" className="btn gold" style={style} data-sheet={action.sheet}>
+        {action.label}
+      </button>
+    );
+  }
+  if (action.href.startsWith("#")) {
+    return (
+      <a href={action.href} className="btn gold" style={style}>
+        {action.label}
+      </a>
+    );
+  }
+  return (
+    <Link href={action.href} className="btn gold" style={style} {...(action.rask ? { "data-rask-foresporsel": "" } : {})}>
+      {action.label}
+    </Link>
+  );
 }
 
 function CandidateTabs({ pathname }: { pathname: string }) {
@@ -150,21 +173,7 @@ export default function SiteHeader() {
                 <Icon name="user" />
                 {no ? "Logg inn" : "Log in"}
               </button>
-              {action?.kind === "link" ? (
-                action.href.startsWith("#") ? (
-                  <a href={action.href} className="btn gold" style={{ height: 42 }}>
-                    {action.label}
-                  </a>
-                ) : (
-                  <Link href={action.href} className="btn gold" style={{ height: 42 }} {...(action.rask ? { "data-rask-foresporsel": "" } : {})}>
-                    {action.label}
-                  </Link>
-                )
-              ) : action?.kind === "sheet" ? (
-                <button type="button" className="btn gold" style={{ height: 42 }} data-sheet={action.sheet}>
-                  {action.label}
-                </button>
-              ) : null}
+              {action ? <ActionButton action={action} style={{ height: 42 }} /> : null}
             </>
           )}
           <button type="button" className="burger" aria-label={no ? "Meny" : "Menu"} onClick={() => open("menu")}>
@@ -176,6 +185,11 @@ export default function SiteHeader() {
         <Suspense fallback={null}>
           <CandidateTabs pathname={pathname} />
         </Suspense>
+      ) : null}
+      {action && !portal ? (
+        <div className="fab show">
+          <ActionButton action={action} />
+        </div>
       ) : null}
     </div>
   );

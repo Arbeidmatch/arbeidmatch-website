@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { Accordion } from "@/components/site/Accordion";
 import { Icon, type IconName } from "@/components/site/Icon";
 import { SITE_PATHS } from "@/components/site/siteNav";
 
@@ -77,6 +78,22 @@ const AUTHORIZATIONS: readonly { icon: IconName; title: string; body: string; li
   },
 ];
 
+/** A certificate's text and its source, the same in the card on a computer and the accordion on a phone. */
+function AuthorizationBody({ a }: { a: (typeof AUTHORIZATIONS)[number] }) {
+  return (
+    <>
+      <p>{a.body}</p>
+      {a.link ? (
+        <p className="plink-row">
+          <a className="plink" href={a.link.href} target="_blank" rel="noopener noreferrer">
+            {a.link.label}
+          </a>
+        </p>
+      ) : null}
+    </>
+  );
+}
+
 const MIN_WAGE_URL =
   "https://www.arbeidstilsynet.no/en/pay-and-engagement-of-employees/pay-and-minimum-rates-of-pay/minimum-wage/";
 
@@ -120,13 +137,16 @@ export default function WeldingSpecialistsPage() {
         <div className="w">
           <span className="eb">Certification coverage</span>
           <h2 className="h2">Every major welding standard, checked in screening.</h2>
-          <div className="four">
+          <div className="four wide-only">
             {WELDING_CERT_ITEMS.map((c) => (
               <div key={c.title} className="stepc">
                 <h3 className="h4">{c.title}</h3>
                 <p>{c.body}</p>
               </div>
             ))}
+          </div>
+          <div className="phone-only">
+            <Accordion numbered={false} items={WELDING_CERT_ITEMS.map((c) => ({ title: c.title, body: <p>{c.body}</p> }))} />
           </div>
         </div>
       </section>
@@ -166,7 +186,7 @@ export default function WeldingSpecialistsPage() {
               you before we start. We are recruiters rather than legal advisers, so for the rules themselves use
               Arbeidstilsynet or your own adviser.
             </p>
-            <p>
+            <p className="plink-row">
               <a className="plink" href="https://www.arbeidstilsynet.no" target="_blank" rel="noopener noreferrer">
                 Read Norwegian staffing regulations at Arbeidstilsynet.no
               </a>
@@ -179,21 +199,17 @@ export default function WeldingSpecialistsPage() {
         <div className="w">
           <span className="eb">Required certifications</span>
           <h2 className="h2">What authorizations do welders need for Norwegian shipyards?</h2>
-          <div className="two">
+          <div className="phone-only">
+            <Accordion numbered={false} items={AUTHORIZATIONS.map((a) => ({ title: a.title, body: <AuthorizationBody a={a} /> }))} />
+          </div>
+          <div className="two wide-only">
             {AUTHORIZATIONS.map((a) => (
               <div key={a.title} className="card">
                 <span className="ri">
                   <Icon name={a.icon} />
                 </span>
                 <h3 className="h4">{a.title}</h3>
-                <p>{a.body}</p>
-                {a.link ? (
-                  <p>
-                    <a className="plink" href={a.link.href} target="_blank" rel="noopener noreferrer">
-                      {a.link.label}
-                    </a>
-                  </p>
-                ) : null}
+                <AuthorizationBody a={a} />
               </div>
             ))}
           </div>

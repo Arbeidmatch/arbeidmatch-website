@@ -46,7 +46,6 @@ describe("the support page is where questions go", () => {
     for (const rel of [
       "src/app/newsletter/page.tsx",
       "src/components/about/AboutJsonLd.tsx",
-      "src/components/about/AboutUnderConstruction.tsx",
       "src/app/api/slack/interactions/route.ts",
       "src/lib/cv/emails.ts",
       "src/lib/cv/org.ts",

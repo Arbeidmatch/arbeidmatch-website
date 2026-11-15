@@ -1,23 +1,16 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const HEADER_FILES = [
-  "src/components/BrandMark.tsx",
-  "src/components/Navbar.tsx",
-  "src/components/home/HomeNavigation.tsx",
-  "src/components/MobileDrawerContent.tsx",
-];
+// The old Navbar, HomeNavigation, MobileDrawerContent and BrandMark gave way to the site header (ORDER 295).
+const HEADER_FILES = ["src/components/site/SiteHeader.tsx"];
 
 function source(path: string) {
   return readFileSync(path, "utf8");
 }
 
 describe("site header brand", () => {
-  it("uses the same transparent A emblem in every header", () => {
-    expect(source("src/components/BrandMark.tsx")).toContain("/brand/arbeidmatch-a-emblem.png");
-    expect(source("src/components/Navbar.tsx")).toContain(`<BrandMark href="/" logoSize={34}`);
-    expect(source("src/components/home/HomeNavigation.tsx")).toContain(`<BrandMark href={no ? "/no" : "/"} logoSize={34} />`);
-    expect(source("src/components/MobileDrawerContent.tsx")).toContain(`<BrandMark href="/" logoSize={36}`);
+  it("uses the transparent A emblem in the header", () => {
+    expect(source("src/components/site/SiteHeader.tsx")).toContain("/brand/arbeidmatch-a-emblem.png");
   });
 
   it("does not put Norge back in the navigation brand", () => {
