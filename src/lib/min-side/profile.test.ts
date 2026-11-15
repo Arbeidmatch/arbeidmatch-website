@@ -115,6 +115,23 @@ describe("Min side: one section at a time", () => {
     expect(sectionHint("fakturaer", p)).toBe("For fakturaadressen");
   });
 
+  it("keeps an invoice's PDF grant only when it has the shape the ATS mints, otherwise draws no link (ORDER 284)", () => {
+    const grant = `${"1abc2d"}.${"a".repeat(40)}`;
+    const p = profileFrom({
+      ...answer,
+      invoices: {
+        allowed: true,
+        pdf_requires_sign_in: false,
+        rows: [
+          { id: 1, number: "1", amount: 1, outstanding: 0, state: "Betalt", state_key: "paid", pdf_grant: grant },
+          { id: 2, number: "2", amount: 1, outstanding: 0, state: "Betalt", state_key: "paid", pdf_grant: "../x?y" },
+          { id: 3, number: "3", amount: 1, outstanding: 0, state: "Betalt", state_key: "paid" },
+        ],
+      },
+    })!;
+    expect(p.invoices.rows.map((r) => r.pdf_grant)).toEqual([grant, null, null]);
+  });
+
   it("reads timesheets, invoices and candidates, and counts what waits", async () => {
     const { sectionHint, kronerNo } = await import("./profile");
     const p = profileFrom({

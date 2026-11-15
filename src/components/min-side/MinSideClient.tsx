@@ -907,7 +907,7 @@ export default function MinSideClient({ token }: { token: string }) {
                             {inv.due && (inv.state_key === "open" || inv.state_key === "overdue") ? ` · forfall ${dayNo(inv.due)}` : ""}
                           </>
                         ),
-                        link: profile.invoices.pdf_requires_sign_in ? null : { href: `/api/min-side/${encodeURIComponent(token)}/invoice/${inv.id}`, label: "Last ned PDF" },
+                        link: inv.pdf_grant ? { href: `/api/min-side/${encodeURIComponent(token)}/invoice/${inv.id}?ms=${encodeURIComponent(inv.pdf_grant)}`, label: "Last ned PDF" } : null,
                       }))}
                     />
                   )}

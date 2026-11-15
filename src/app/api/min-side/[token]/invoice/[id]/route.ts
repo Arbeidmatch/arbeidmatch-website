@@ -23,13 +23,17 @@ export async function GET(request: NextRequest, ctx: { params: Promise<{ token: 
   if (rate.limited) return noStoreJson({ error: "For mange forespørsler. Prøv igjen litt senere." }, { status: 429 });
 
   try {
-    const res = await fetch(`${atsBase()}/api/public/client-profile/${token}/invoice/${id}`, {
+    // ORDER 284: the page's grant for this one invoice travels with the request; the ATS checks it.
+    const grant = request.nextUrl.searchParams.get("ms");
+    const query = grant && /^[0-9a-z]{1,12}\.[0-9a-f]{40}$/.test(grant) ? `?ms=${encodeURIComponent(grant)}` : "";
+    const res = await fetch(`${atsBase()}/api/public/client-profile/${token}/invoice/${id}${query}`, {
       method: "GET",
       headers: { Accept: "application/pdf", ...vouchingHeaders(request.headers) },
       cache: "no-store",
       signal: AbortSignal.timeout(30_000),
     });
     if (!res.ok || !String(res.headers.get("content-type") ?? "").includes("application/pdf")) {
+      if (res.status === 403) return noStoreJson({ error: "Lenken til fakturaen har gått ut. Last inn siden på nytt." }, { status: 403 });
       return noStoreJson({ error: res.status === 404 ? NOT_FOUND : UNAVAILABLE }, { status: res.status === 404 ? 404 : 503 });
     }
     return new Response(await res.arrayBuffer(), {

@@ -108,12 +108,12 @@ export type SignedDocument = { title: string; signed_at: string | null; pdf_url:
 export type WaitingTimesheet = { title: string; sent_at: string | null; url: string | null };
 export type Timesheets = { waiting: WaitingTimesheet[]; signed: SignedDocument[] };
 
-export type Invoice = { id: number; number: string; date: string | null; due: string | null; amount: number; outstanding: number; state: string; state_key: "paid" | "open" | "overdue" | "credit" };
+export type Invoice = { id: number; number: string; date: string | null; due: string | null; amount: number; outstanding: number; state: string; state_key: "paid" | "open" | "overdue" | "credit"; /** ORDER 284: the two-hour grant for this one invoice's PDF; null from an older ATS. */ pdf_grant: string | null };
 /** The firm's invoices, for the person at its invoice address; `allowed` false for anybody else. */
 export type Invoices = {
   allowed: boolean;
   rows: Invoice[];
-  /** The ATS hands the PDF only to a signed-in session (ORDER G2), so the page draws no link that cannot work. */
+  /** True when a row came without its grant (an older ATS, or no key on the server), so the page draws no link that cannot work (ORDER G2, ORDER 284). */
   pdf_requires_sign_in: boolean;
 };
 
@@ -380,6 +380,7 @@ export function profileFrom(raw: unknown): Profile | null {
           outstanding: num(i.outstanding),
           state: str(i.state, 40),
           state_key: (i.state_key === "paid" || i.state_key === "overdue" || i.state_key === "credit" ? i.state_key : "open") as Invoice["state_key"],
+          pdf_grant: typeof i.pdf_grant === "string" && /^[0-9a-z]{1,12}\.[0-9a-f]{40}$/.test(i.pdf_grant) ? i.pdf_grant : null,
         }))
         .slice(0, 200),
     },
