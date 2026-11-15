@@ -21,3 +21,9 @@ for-bedrifter, contact, sheet-request, sheet-contact. Site-only shots of the she
 sheet-request-filled (a firm found in the register, two roles with their own numbers), sheet-request-pay
 (the pay and conditions sub-panel), sheet-contact-candidate and sheet-contact-foreign (the other doors of the
 contact sheet). Phone lengths at 390: For bedrifter 4.5 screens (11.8 before), Kontakt 2.9.
+
+Stage 3 (For candidates, questions, candidate support, open jobs, the job page, the candidate sheets; commits 548f426,
+37037ee, e8b5211), pairs in `stage-3.json`: for-candidates, questions, support, jobs, job, sheet-apply, sheet-alerts,
+sheet-register, sheet-message. The message sheet has no chip in the mockup's strip, so `mockOpen` opens it from the
+mockup's support page. Phone lengths at 390, header and footer included: For candidates 4.8 screens, questions 3.5,
+support 2.2, open jobs 5.2, the job page 6.1 (the advert's own text in both languages is most of it).
