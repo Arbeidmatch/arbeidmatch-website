@@ -110,6 +110,9 @@ export function pageAction(rawPath: string | null | undefined): PageAction | nul
   if (p.startsWith("/bemanning-") || p.startsWith("/bemanningsbyr")) {
     return { kind: "link", href: SITE_PATHS.request, label: "Be om kandidater", rask: true };
   }
+  if (p === "/for-staffing-agencies") return { kind: "link", href: SITE_PATHS.contact, label: "Ta kontakt" };
+  if (p === "/welding-specialists") return { kind: "link", href: SITE_PATHS.request, label: "Request welders", rask: true };
+  if (p === "/electricians-norway") return { kind: "link", href: SITE_PATHS.jobs, label: "View open jobs" };
   return null;
 }
 

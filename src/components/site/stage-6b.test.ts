@@ -50,6 +50,23 @@ describe("industry and city pages on the site template", () => {
     expect(landing).toMatch(/className="btn gold" href=\{SITE_PATHS\.request\} data-rask-foresporsel/);
   });
 
+  it("puts staffing agencies, welding and electricians on the template with one h1, canonical and hreflang", () => {
+    for (const [component, route, lang] of [
+      ["src/components/staffing-agencies/StaffingAgenciesPage.tsx", "src/app/for-staffing-agencies/page.tsx", "nb"],
+      ["src/components/welding/WeldingSpecialistsPage.tsx", "src/app/welding-specialists/page.tsx", "en"],
+      ["src/components/candidates/ElectriciansNorwayPage.tsx", "src/app/electricians-norway/page.tsx", "en"],
+    ] as const) {
+      const src = read(component);
+      expect(src, component).toContain(`className="ams page" lang="${lang}"`);
+      expect(src.match(/<h1[ >]/g), component).toHaveLength(1);
+      expect(src, component).not.toContain('"use client"');
+      expect(read(route), route).toMatch(new RegExp(`languages: \\{ ${lang}: `));
+    }
+    expect(pageAction("/for-staffing-agencies")).toEqual({ kind: "link", href: "/contact", label: "Ta kontakt" });
+    expect(pageAction("/welding-specialists")).toMatchObject({ href: "/request", rask: true });
+    expect(pageAction("/electricians-norway")).toMatchObject({ href: "/jobs" });
+  });
+
   it("offers the request pop-up in the header, the city addresses encoded or not", () => {
     const want = { kind: "link", href: "/request", label: "Be om kandidater", rask: true };
     expect(pageAction("/bemanning-logistikk")).toEqual(want);

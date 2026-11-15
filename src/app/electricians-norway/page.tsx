@@ -10,10 +10,11 @@ export const metadata: Metadata = {
   title: { absolute: "Work as an Electrician in Norway | EU/EEA Guide | ArbeidMatch" },
   description:
     "Electrician jobs in Norway for EU/EEA tradespeople: what the work involves, what to have ready before you apply, pay expectations, and open roles.",
-  // No hreflang alternates: this page exists only in English. The previous map pointed the
-  // Romanian and Polish alternates at the site's language home pages, which are different pages.
+  // Only its own English address as hreflang: this page exists only in English. The previous map pointed
+  // the Romanian and Polish alternates at the site's language home pages, which are different pages.
   alternates: {
     canonical: `${SITE}/electricians-norway`,
+    languages: { en: `${SITE}/electricians-norway`, "x-default": `${SITE}/electricians-norway` },
   },
   openGraph: {
     title: "Work as an Electrician in Norway | EU/EEA Guide | ArbeidMatch",
