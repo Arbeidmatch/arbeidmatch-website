@@ -1,0 +1,6 @@
+[
+  { "name": "for-bedrifter", "route": "/for-employers", "page": "firme" },
+  { "name": "contact", "route": "/contact", "page": "contact" },
+  { "name": "sheet-request", "route": "/for-employers", "page": "firme", "sheet": "request", "open": "a.prow[data-sheet=\"request\"]" },
+  { "name": "sheet-contact", "route": "/contact", "page": "contact", "sheet": "contact", "open": "a.prow[data-sheet=\"contact\"]" }
+]

@@ -15,3 +15,9 @@ chip ids (`data-go`, `data-sheet`), `open` the selector that opens the sheet on 
 
 Stage 1 (shell and front page, commit 449bca1): home, sheet-login, sheet-notify, sheet-cookies, sheet-menu (phone only:
 on a computer the four entries are in the header).
+
+Stage 2 (For bedrifter, the request sheet, Kontakt as a router, the contact sheet), pairs in `stage-2.json`:
+for-bedrifter, contact, sheet-request, sheet-contact. Site-only shots of the sheets in use (no mockup twin):
+sheet-request-filled (a firm found in the register, two roles with their own numbers), sheet-request-pay
+(the pay and conditions sub-panel), sheet-contact-candidate and sheet-contact-foreign (the other doors of the
+contact sheet). Phone lengths at 390: For bedrifter 4.5 screens (11.8 before), Kontakt 2.9.

@@ -54,26 +54,32 @@ describe("the shared shell (ORDER 295)", () => {
 describe("every sheet that collects anything about a person links the privacy notice", () => {
   // The row kinds themselves (rows.tsx) are building blocks, not sheets.
   const sheetFiles = files(join(SITE_DIR, "sheet")).filter((f) => !/rows.tsx$|SheetFrame|SheetHost/.test(f));
-  // Split into one block per exported sheet component.
+  // One block per top-level function; the sheets are the ones named ...Sheet.
   const sheets = sheetFiles.flatMap((file) =>
     readFileSync(file, "utf8")
-      .split(/\nexport function /)
+      .split(/\r?\n(?:export )?function /)
       .slice(1)
-      .map((body) => ({ name: body.slice(0, body.indexOf("(")), body })),
+      .map((body) => ({ name: body.slice(0, body.search(/[(<]/)), body }))
+      .filter((s) => /Sheet$/.test(s.name)),
   );
 
   it("finds the sheets", () => {
-    expect(sheets.map((s) => s.name)).toEqual(expect.arrayContaining(["LoginSheet", "MenuSheet", "CookiesSheet", "NotifySheet"]));
+    expect(sheets.map((s) => s.name)).toEqual(expect.arrayContaining(["LoginSheet", "MenuSheet", "CookiesSheet", "NotifySheet", "RequestSheet", "ContactSheet"]));
   });
 
   for (const sheet of sheets) {
     const collects = /<InputRow|<AreaRow|<input|<textarea/.test(sheet.body);
     if (!collects) continue;
-    it(`${sheet.name} has the privacy switch and a link to /privacy`, () => {
-      expect(sheet.body).toMatch(/<PrivacySwitch/);
-      expect(sheet.body).toMatch(/SITE_PATHS\.privacy|href="\/privacy"/);
+    it(`${sheet.name} links /privacy in a new tab`, () => {
+      expect(sheet.body).toMatch(/href=\{SITE_PATHS\.privacy\} target="_blank"|<PrivacySwitch/);
     });
   }
+
+  it("a sheet with a privacy tick puts the link in the tick's own words", () => {
+    for (const sheet of sheets.filter((s) => /<PrivacySwitch|<ConsentSwitch/.test(s.body))) {
+      expect(sheet.body, sheet.name).toMatch(/<PrivacySwitch|<ConsentSwitch[^>]*>\s*[^<]*\s*<a className="plink" href=\{SITE_PATHS\.privacy\} target="_blank"/);
+    }
+  });
 
   it("the privacy switch's words are a link to /privacy in a new tab", () => {
     const rows = readFileSync(join(SITE_DIR, "sheet", "rows.tsx"), "utf8");
@@ -87,7 +93,7 @@ describe("every sheet that collects anything about a person links the privacy no
 describe("no public shell component gives an e-mail address for questions", () => {
   it("contains no written e-mail address", () => {
     for (const file of files(SITE_DIR)) {
-      const text = readFileSync(file, "utf8").replace(/placeholder="[^"]*"/g, "");
+      const text = readFileSync(file, "utf8").replace(/placeholder="[^"]*"|placeholder=\{[^}]*\}/g, "");
       expect(text, file).not.toMatch(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-z]{2,}/);
       expect(text, file).not.toMatch(/mailto:/);
     }

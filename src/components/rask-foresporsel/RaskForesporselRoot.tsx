@@ -48,8 +48,9 @@ export default function RaskForesporselRoot() {
       const a = shouldOpenRask(e);
       if (!a) return;
       e.preventDefault();
-      opener.current = a;
-      setOpen(true);
+      // Since ORDER 295 stage 2 the request rises in the site's sheet, which sends exactly what this popup sends.
+      // The popup itself stays for a warm-request letter's ticket, opened on arrival above.
+      window.dispatchEvent(new CustomEvent("am:open-sheet", { detail: { id: "request", preset: {} } }));
     };
     // Capture: before the link's own navigation runs.
     document.addEventListener("click", onClick, true);

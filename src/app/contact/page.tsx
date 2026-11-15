@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import ContactPageClient from "@/components/ContactPageClient";
+import ContactRouter from "@/components/site/contact/ContactRouter";
 
 const TITLE = "Kontakt oss | ArbeidMatch";
 const DESCRIPTION =
@@ -13,7 +13,7 @@ const OG_IMAGE = {
 } as const;
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/contact" },
+  alternates: { canonical: "/contact", languages: { "nb-NO": "https://www.arbeidmatch.no/contact", "x-default": "https://www.arbeidmatch.no/contact" } },
   title: { absolute: TITLE },
   description: DESCRIPTION,
   openGraph: {
@@ -33,6 +33,7 @@ export const metadata: Metadata = {
   },
 };
 
+/** Kontakt as a router, from the mockup approved on 15 November 2026 (ORDER 295, stage 2). */
 export default function ContactPage() {
-  return <ContactPageClient />;
+  return <ContactRouter />;
 }

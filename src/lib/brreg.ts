@@ -4,14 +4,18 @@ import { normalizeOrgNumber } from "@/lib/orgNumber";
 
 const ENHETER = "https://data.brreg.no/enhetsregisteret/api/enheter";
 
-/** city: the town of the business address, so two firms with the same name can be told apart in a list. */
-export type BrregCompany = { name: string; orgNumber: string; city?: string };
+/**
+ * city: the town of the business address, so two firms with the same name can be told apart in a list.
+ * industryCode: the unit's main industry code (NACE, e.g. "78.200"), which tells a staffing agency (78) from a firm hiring for itself.
+ */
+export type BrregCompany = { name: string; orgNumber: string; city?: string; industryCode?: string };
 
-type BrregEnhet = { navn?: string; organisasjonsnummer?: string; forretningsadresse?: { poststed?: string } };
+type BrregEnhet = { navn?: string; organisasjonsnummer?: string; forretningsadresse?: { poststed?: string }; naeringskode1?: { kode?: string } };
 
 function toCompany(item: BrregEnhet): BrregCompany {
   const city = item.forretningsadresse?.poststed?.trim();
-  return { name: item.navn || "", orgNumber: item.organisasjonsnummer || "", ...(city ? { city } : {}) };
+  const industryCode = item.naeringskode1?.kode?.trim();
+  return { name: item.navn || "", orgNumber: item.organisasjonsnummer || "", ...(city ? { city } : {}), ...(industryCode ? { industryCode } : {}) };
 }
 
 /**

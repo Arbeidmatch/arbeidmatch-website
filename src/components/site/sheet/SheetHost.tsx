@@ -6,6 +6,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { siteLang, type SiteLang } from "@/components/site/siteNav";
 import { MARKETING_COOKIE_SETTINGS_EVENT } from "@/lib/marketing-cookie-consent";
 
+import { ContactSheet } from "./ContactSheet";
+import { RequestSheet } from "./RequestSheet";
 import { CookiesSheet, LoginSheet, MenuSheet, NotifySheet } from "./sheets";
 
 /**
@@ -15,7 +17,10 @@ import { CookiesSheet, LoginSheet, MenuSheet, NotifySheet } from "./sheets";
  * to preset its rows. Only one sheet is open at a time.
  */
 
-export type SheetId = "login" | "menu" | "cookies" | "notify";
+export type SheetId = "login" | "menu" | "cookies" | "notify" | "request" | "contact";
+
+/** Opens a sheet from code outside the host's tree (the request links of ORDER 224): detail { id, preset }. */
+export const OPEN_SHEET_EVENT = "am:open-sheet";
 export type SheetPreset = Record<string, string>;
 export type SheetProps = { lang: SiteLang; preset: SheetPreset; open: boolean; close: () => void; openSheet: (id: SheetId, preset?: SheetPreset) => void };
 
@@ -24,6 +29,8 @@ const SHEETS: Record<SheetId, (p: SheetProps) => ReactNode> = {
   menu: MenuSheet,
   cookies: CookiesSheet,
   notify: NotifySheet,
+  request: RequestSheet,
+  contact: ContactSheet,
 };
 
 type Ctx = { open: (id: SheetId, preset?: SheetPreset) => void; close: () => void };
@@ -64,11 +71,17 @@ export function SheetHost({ children }: { children?: ReactNode }) {
       open(id, parsePreset(el.getAttribute("data-sheet-set")));
     };
     const onCookieSettings = () => open("cookies");
+    const onOpenSheet = (e: Event) => {
+      const detail = (e as CustomEvent<{ id?: string; preset?: SheetPreset }>).detail;
+      if (detail?.id && detail.id in SHEETS) open(detail.id as SheetId, detail.preset ?? {});
+    };
     document.addEventListener("click", onClick);
     window.addEventListener(MARKETING_COOKIE_SETTINGS_EVENT, onCookieSettings);
+    window.addEventListener(OPEN_SHEET_EVENT, onOpenSheet);
     return () => {
       document.removeEventListener("click", onClick);
       window.removeEventListener(MARKETING_COOKIE_SETTINGS_EVENT, onCookieSettings);
+      window.removeEventListener(OPEN_SHEET_EVENT, onOpenSheet);
     };
   }, [open]);
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from "react";
+import type { InputHTMLAttributes, ReactNode, Ref, TextareaHTMLAttributes } from "react";
 
 import { Icon, type IconName } from "@/components/site/Icon";
 import { SITE_PATHS, type SiteLang } from "@/components/site/siteNav";
@@ -77,12 +77,12 @@ export function OptionRow({ label, chosen, onPick }: { label: string; chosen: bo
   );
 }
 
-export function InputRow({ id, icon, label, ...input }: { id: string; icon?: IconName; label: string } & InputHTMLAttributes<HTMLInputElement>) {
+export function InputRow({ id, icon, label, ref, ...input }: { id: string; icon?: IconName; label: string; ref?: Ref<HTMLInputElement> } & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="row" htmlFor={id}>
       <RowIcon icon={icon} />
       <span className="rl">{label}</span>
-      <input id={id} autoComplete="off" {...input} />
+      <input ref={ref} id={id} autoComplete="off" {...input} />
     </label>
   );
 }
@@ -121,6 +121,22 @@ export function PrivacySwitch({ lang, checked, onChange }: { lang: SiteLang; che
           {lang === "no" ? "personvernerklæringen" : "privacy notice"}
         </a>
       </span>
+      <button type="button" className="swb" role="switch" aria-label={label} aria-checked={checked} onClick={() => onChange(!checked)}>
+        <span className="sw" />
+      </button>
+    </div>
+  );
+}
+
+/**
+ * A confirmation whose own words carry links (the authority and privacy line,
+ * the terms): the words read as text, the links open in a new tab, the switch
+ * beside them is the tick.
+ */
+export function ConsentSwitch({ label, checked, onChange, children }: { label: string; checked: boolean; onChange: (next: boolean) => void; children: ReactNode }) {
+  return (
+    <div className="row">
+      <span className="rl plwrap">{children}</span>
       <button type="button" className="swb" role="switch" aria-label={label} aria-checked={checked} onClick={() => onChange(!checked)}>
         <span className="sw" />
       </button>
