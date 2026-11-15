@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import ConditionalFooter from "@/components/ConditionalFooter";
-import BetaBanner from "@/components/BetaBanner";
+import "./site.css";
+import SiteHeader from "@/components/site/SiteHeader";
+import SiteFooter from "@/components/site/SiteFooter";
+import { SheetHost } from "@/components/site/sheet/SheetHost";
 import ScrollProgressBar from "@/components/ScrollProgressBar";
 import NavigationProgressBar from "@/components/NavigationProgressBar";
 import CookieConsent from "@/components/CookieConsent";
@@ -113,10 +114,12 @@ export default function RootLayout({
         <HtmlLang />
         <NavigationProgressBar />
         <ScrollProgressBar />
-        <Navbar />
-        <main className="flex min-w-0 flex-1 flex-col overflow-x-clip pb-[40px]">{children}</main>
-        <BetaBanner />
-        <ConditionalFooter />
+        <SheetHost>
+          {/* ORDER 295: one shell on every public page, from the mockup approved on 15 November 2026. */}
+          <SiteHeader />
+          <main id="main" className="flex min-w-0 flex-1 flex-col overflow-x-clip">{children}</main>
+          <SiteFooter />
+        </SheetHost>
         <DeferredAppOverlays />
         {/* #tilgang and #logg-inn open the project portal's forms over any page. */}
         <PortalDialogs />

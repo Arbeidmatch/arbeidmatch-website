@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Presentation from "@/components/home/Presentation";
+import SiteHome from "@/components/site/home/SiteHome";
 
 const TITLE = "Bemanning og rekruttering i Norge | ArbeidMatch";
 const DESCRIPTION =
@@ -36,5 +36,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <Presentation />;
+  return <SiteHome />;
 }

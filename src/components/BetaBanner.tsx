@@ -13,14 +13,9 @@ function normalizePathname(pathname: string | null): string {
   return trimmed === "" ? "/" : trimmed;
 }
 
-export default function BetaBanner() {
-  const pathname = usePathname();
-  // The new front page under review says beta in its own way (29 October 2026).
-  if (pathname === "/beta") return null;
-  // ORDER 273: Min side ends with its own footer line.
-  if (/^\/min-side\/[0-9a-f-]{36}/i.test(pathname ?? "")) return null;
-  const no = pathname === "/" || langForPath(pathname) === "nb";
-  const copy = no ? {
+/** The beta notice's words, also folded into the site footer (ORDER 295). */
+export function betaCopy(no: boolean) {
+  return no ? {
     heading: "Under utvikling. Bedre sammen med deg.",
     intro: "Nettsiden er i betaversjon. Vi forbedrer funksjoner, innhold og design fortløpende. Dine tilbakemeldinger hjelper oss å forstå behovene dine og gjøre tjenesten bedre.",
     details: "Om betaversjonen og forventninger",
@@ -37,6 +32,16 @@ export default function BetaBanner() {
     rights: "This notice does not limit mandatory legal rights or our obligations under existing agreements. Please contact us if anything is unclear or does not work as expected.",
     feedback: "Share your feedback", support: "Contact support", terms: "Terms of service",
   };
+}
+
+export default function BetaBanner() {
+  const pathname = usePathname();
+  // The new front page under review says beta in its own way (29 October 2026).
+  if (pathname === "/beta") return null;
+  // ORDER 273: Min side ends with its own footer line.
+  if (/^\/min-side\/[0-9a-f-]{36}/i.test(pathname ?? "")) return null;
+  const no = pathname === "/" || langForPath(pathname) === "nb";
+  const copy = betaCopy(no);
 
   return (
     <section lang={no ? "nb" : "en"} aria-label={copy.heading} className="border-t border-[#C9A84C]/20 bg-[#132333] px-6 py-8 text-white">

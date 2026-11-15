@@ -1,22 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
+import { saveChoice, storedChoice } from "@/components/site/cookieChoice";
+import { SITE_PATHS, siteLang } from "@/components/site/siteNav";
 import { isWelcomeOpen, WELCOME_CLOSED_EVENT, WELCOME_OPEN_EVENT, welcomeLikelyPending } from "@/lib/welcomeOverlay";
 
-import { MARKETING_COOKIE_CONSENT_STORAGE_KEY, ANALYTICS_CONSENT_EVENT,
-  parseStoredMarketingConsent, acceptAllConsent, defaultNecessaryOnlyConsent } from "@/lib/marketing-cookie-consent";
-
-function hasAcknowledged(): boolean {
-  try { return parseStoredMarketingConsent(localStorage.getItem(MARKETING_COOKIE_CONSENT_STORAGE_KEY)) !== null; }
-  catch { return false; }
-}
-
+/**
+ * The cookie bar (ORDER 295): one slim bar in the page's language, the same
+ * two choices and the same stored record as before. Changing the choice later
+ * is the footer's "Informasjonskapsler" / "Cookies", which opens the sheet.
+ */
 export default function CookieConsent() {
+  const no = siteLang(usePathname()) === "no";
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (hasAcknowledged()) return;
+    if (storedChoice()) return;
 
     // Never on top of the front page's "Welcome" picker: on a phone the banner
     // covered its buttons. Wait while it is open, show once it closes, and on a
@@ -24,7 +25,7 @@ export default function CookieConsent() {
     let timer: number | undefined;
     const show = () => {
       window.clearTimeout(timer);
-      if (!isWelcomeOpen() && !hasAcknowledged()) setVisible(true);
+      if (!isWelcomeOpen() && !storedChoice()) setVisible(true);
     };
     const hide = () => {
       window.clearTimeout(timer);
@@ -40,46 +41,28 @@ export default function CookieConsent() {
     };
   }, []);
 
-  const choose = useCallback((analytics: boolean) => {
-    const choice = analytics ? acceptAllConsent() : defaultNecessaryOnlyConsent();
-    try { localStorage.setItem(MARKETING_COOKIE_CONSENT_STORAGE_KEY, JSON.stringify(choice)); }
-    catch { /* No stored permission means no statistics. */ }
-    window.dispatchEvent(new Event(ANALYTICS_CONSENT_EVENT));
-    void fetch("/api/cookie-consent", { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ analytics }), keepalive: true }).catch(() => {});
-    setVisible(false);
-  }, []);
+  if (!visible) return null;
 
-  if (!visible) return <button type="button" onClick={() => setVisible(true)}
-    className="fixed bottom-3 left-3 z-[90] min-h-11 rounded-lg border border-gold/40 bg-navy px-3 text-xs text-white">
-    Cookie settings
-  </button>;
+  const choose = (analytics: boolean) => {
+    saveChoice(analytics);
+    setVisible(false);
+  };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="false"
-      aria-label="Cookies and privacy"
-      className="fixed inset-x-3 bottom-3 z-[100] rounded-xl border border-gold/25 bg-navy p-3 shadow-xl sm:left-auto sm:max-w-md"
-    >
-      <div className="flex flex-col gap-3">
-        <p className="min-w-0 flex-1 text-xs leading-relaxed text-white/90">
-          Essential storage keeps requested features working. Allow our own visit statistics? We record page categories, referring websites, approximate location and a daily visitor pseudonym only with your permission.{" "}
-          <a href="/cookies" className="text-gold underline underline-offset-2">Cookie policy</a>
+    <div className="ams">
+      <div className="ck" role="region" aria-label={no ? "Informasjonskapsler" : "Cookies"} lang={no ? "nb" : "en"}>
+        <p>
+          {no
+            ? "Vi lagrer bare det som trengs for at siden skal virke. Vil du også tillate vår egen besøksstatistikk? "
+            : "We store only what the site needs to work. Do you also allow our own visit statistics? "}
+          <a href={SITE_PATHS.cookies}>{no ? "Les mer" : "Read more"}</a>
         </p>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => choose(false)}
-            className="min-h-11 rounded-lg bg-gold px-4 py-2 text-sm font-bold text-navy hover:bg-gold-hover"
-          >
-            Necessary only
-          </button>
-          <button type="button" onClick={() => choose(true)}
-            className="min-h-11 rounded-lg bg-gold px-4 py-2 text-sm font-bold text-navy hover:bg-gold-hover">
-            Accept all
-          </button>
-        </div>
+        <button type="button" className="btn line" onClick={() => choose(false)}>
+          {no ? "Kun nødvendige" : "Necessary only"}
+        </button>
+        <button type="button" className="btn gold" onClick={() => choose(true)}>
+          {no ? "Tillat" : "Allow"}
+        </button>
       </div>
     </div>
   );
