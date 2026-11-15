@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 
-import AccessBand from "@/components/prosjekter/AccessBand";
-import PortalSteps from "@/components/prosjekter/PortalSteps";
+import Link from "next/link";
+
 import { publicOverview } from "@/lib/prosjekter/explorer";
 import ProjectPortal from "@/components/prosjekter/ProjectPortal";
-import styles from "@/components/prosjekter/portal.module.css";
+import { Icon } from "@/components/site/Icon";
+import { SITE_PATHS } from "@/components/site/siteNav";
 import { callAts } from "@/lib/prosjekter/ats";
-import { placeProjects } from "@/lib/prosjekter/map";
 import { filtersFrom, filtersQuery, isOverview, type Overview } from "@/lib/prosjekter/types";
 
 export const dynamic = "force-dynamic";
@@ -60,15 +60,112 @@ export default async function ProsjekterPage({
   });
   const initial: Overview | null = answer.status === 200 && isOverview(answer.body) ? publicOverview(answer.body) : null;
 
+  // ORDER 295, stage 4: the page in the design approved on 15 November 2026. The map, the counts and the list
+  // are the live explorer and live data; the steps, what each side sees, the invitation note and the bridge to
+  // staffing are the mockup's.
   return (
-    <div className={styles.portal}>
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-8">
-        <h1 className="text-2xl font-semibold text-white">Forsprang · Prosjekter i Norge</h1>
-        {/* The classic view only, whatever ?view= says: the "Ny" explorer is for signed-in clients on their own page (his rule, 17 October 2026). */}
-        <ProjectPortal initial={initial} initialFilters={filters} />
-        <PortalSteps projects={placeProjects(initial?.map)} />
-      </div>
-      <AccessBand />
+    <div className="ams page" lang="nb">
+      {/* The classic view only, whatever ?view= says: the "Ny" explorer is for signed-in clients on their own page (his rule, 17 October 2026). */}
+      <ProjectPortal initial={initial} initialFilters={filters} layout="site" />
+
+      <section className="sec">
+        <div className="w">
+          <span className="eb">Slik fungerer det</span>
+          <h2 className="h2">Fra kartet til riktig konkurranse</h2>
+          <ol className="four">
+            {STEPS.map((s, i) => (
+              <li key={s.title} className="stepc">
+                <b>{i + 1}</b>
+                <h3 className="h4">{s.title}</h3>
+                <p>{s.body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className="sec tight">
+        <div className="w">
+          <span className="eb">Hva dere ser</span>
+          <h2 className="h2">Åpent kart, hele bildet med invitasjon</h2>
+          <div className="two">
+            <div className="card">
+              <span className="eb">Åpent for alle</span>
+              <h3 className="h3">Kartet</h3>
+              <ul className="chk">
+                <li>
+                  <Icon name="check" />
+                  Alle fylker i Norge
+                </li>
+                <li>
+                  <Icon name="check" />
+                  Fase, fag og verdiområde
+                </li>
+                <li>
+                  <Icon name="check" />
+                  Antall prosjekter der dere jobber
+                </li>
+              </ul>
+            </div>
+            <div className="card night">
+              <span className="eb">
+                Med invitasjon<i className="bt">Beta</i>
+              </span>
+              <h3 className="h3">Prosjektet</h3>
+              <ul className="chk">
+                <li>
+                  <Icon name="check" />
+                  Byggherre og entreprenør
+                </li>
+                <li>
+                  <Icon name="check" />
+                  Frister og krav
+                </li>
+                <li>
+                  <Icon name="check" />
+                  Varsel når noe nytt dukker opp i deres område
+                </li>
+                <li>
+                  <Icon name="check" />
+                  Lenke rett til konkurransen
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="note" style={{ marginTop: 24 }}>
+            <span className="eb">Kun med invitasjon</span>
+            <h3>Be om en invitasjon, så vurderer vi forespørselen</h3>
+            <p>Forsprang er i beta, og vi tester med et begrenset antall firmaer. Den som får invitasjon, får en personlig lenke.</p>
+            <div className="close-acts" style={{ marginTop: 8 }}>
+              <button type="button" className="btn gold" data-sheet="access">
+                Be om invitasjon
+              </button>
+              <a className="btn ghost" href={SITE_PATHS.forsprangLogin} aria-haspopup="dialog">
+                Har dere tilgang? Logg inn
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="sec" style={{ background: "var(--sage)" }}>
+        <div className="w close">
+          <div>
+            <h2 className="h3">Trenger dere folk til prosjektet?</h2>
+            <p>Vi leverer fagfolk gjennom bemanning og rekruttering.</p>
+          </div>
+          <Link className="btn ghost" href={SITE_PATHS.firms}>
+            Se hvordan vi jobber
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
+
+const STEPS = [
+  { title: "Se prosjektene i ditt område", body: "Kartet er åpent. Filtrer på fylke, fag og fase, uten konto." },
+  { title: "Be om invitasjon", body: "Et kort skjema: firma, org.nr., e-post, fylker og fag." },
+  { title: "Få din personlige lenke", body: "Når forespørselen er godkjent, åpner lenken prosjektene dere følger." },
+  { title: "Se hele prosjektet", body: "Gå rett til konkurransen, eller be oss om folk til jobben." },
+] as const;

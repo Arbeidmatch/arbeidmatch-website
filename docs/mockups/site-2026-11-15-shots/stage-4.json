@@ -1,0 +1,4 @@
+[
+  { "name": "forsprang", "route": "/prosjekter", "page": "forsprang" },
+  { "name": "sheet-access", "route": "/prosjekter", "page": "forsprang", "sheet": "access", "open": ".fp-row button.lock" }
+]

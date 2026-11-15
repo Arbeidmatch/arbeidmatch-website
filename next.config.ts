@@ -41,6 +41,9 @@ const nextConfig: NextConfig = {
       { source: "/sign-in/:path*", destination: "https://ats.arbeidmatch.no/candidate/login/:path*", permanent: false },
       { source: "/logg-inn", destination: "https://ats.arbeidmatch.no/candidate/login", permanent: false },
       { source: "/logg-inn/:path*", destination: "https://ats.arbeidmatch.no/candidate/login/:path*", permanent: false },
+      // ORDER 295, stage 4: the old project-alerts address answered 404; Forsprang lives at /prosjekter. Only the bare
+      // address: the recommendation links under /prosjektvarsler/anbefalt/ stay pages of their own.
+      { source: "/prosjektvarsler", destination: "/prosjekter", permanent: true },
     ];
   },
   async headers() {

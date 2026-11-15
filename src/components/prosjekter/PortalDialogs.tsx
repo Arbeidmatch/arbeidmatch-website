@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 
+import { OPEN_SHEET_EVENT } from "@/components/site/sheet/SheetHost";
 import { DIALOG_META, dialogForLink, dialogFromHash, hashFor, type PortalDialog } from "@/lib/prosjekter/dialogs";
 
 /**
@@ -18,7 +19,6 @@ import { DIALOG_META, dialogForLink, dialogFromHash, hashFor, type PortalDialog 
 
 const Loading = () => <p style={{ margin: 0, color: "#8792a6", fontSize: 14 }}>Laster ...</p>;
 const PortalModal = dynamic(() => import("@/components/prosjekter/PortalModal"), { ssr: false });
-const AccessForm = dynamic(() => import("@/components/prosjekter/AccessForm"), { ssr: false, loading: Loading });
 const LoginForm = dynamic(() => import("@/components/prosjekter/LoginForm"), { ssr: false, loading: Loading });
 
 const CHANGED = "am-portal-dialog";
@@ -69,11 +69,18 @@ export default function PortalDialogs() {
     return () => document.removeEventListener("click", onClick, true);
   }, [open]);
 
-  if (!dialog) return null;
+  // ORDER 295, stage 4: "Be om invitasjon" is the site's sheet now. The hash still opens it, from any link or e-mail.
+  useEffect(() => {
+    if (dialog !== "tilgang") return;
+    setHash("");
+    window.dispatchEvent(new CustomEvent(OPEN_SHEET_EVENT, { detail: { id: "access" } }));
+  }, [dialog]);
+
+  if (!dialog || dialog === "tilgang") return null;
   const meta = DIALOG_META[dialog];
   return (
     <PortalModal title={meta.title} badge={meta.badge} size={meta.size} onClose={close}>
-      {dialog === "tilgang" ? <AccessForm onClose={close} /> : <LoginForm />}
+      <LoginForm />
     </PortalModal>
   );
 }

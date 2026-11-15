@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PortalMap, { type PortalMapHandle } from "@/components/prosjekter/PortalMap";
 import ProjectDetail from "@/components/prosjekter/ProjectDetail";
 import styles from "@/components/prosjekter/portal.module.css";
+import { Icon } from "@/components/site/Icon";
 import { cleanDescription, domainChoices, keyDateNo, placeNo, valueNo, type AlertProject } from "@/lib/prosjekter/format";
 import { subscriberMap } from "@/lib/prosjekter/subscriber-map";
 import {
@@ -250,9 +251,16 @@ export default function ProjectPortal({
   initial,
   initialFilters,
   subscriber,
+  layout,
 }: {
   initial: Overview | null;
   initialFilters: OverviewFilters;
+  /**
+   * ORDER 295, stage 4: the open page in the site's design. The headline and the
+   * county panel on the left, the map on the right, the list under them. The
+   * same state, data and behaviour; a client's own page never passes it.
+   */
+  layout?: "site";
   /** A client's own page: their projects on the same map, named and complete; `token` opens a project's detail. */
   subscriber?: { projects: AlertProject[]; company: string; token?: string };
 }) {
@@ -373,8 +381,11 @@ export default function ProjectPortal({
   // The last tap on a group, where the map cannot split it further: the phone opens the list at once.
   const onLastGroup = useCallback((nos: number[]) => {
     onCluster(nos);
-    if (isPhone()) setView("list");
-  }, [onCluster]);
+    if (!isPhone()) return;
+    // On the site's page the map and the list are both on screen: scroll to the list instead of switching view.
+    if (layout === "site" && !subscriber) document.getElementById("pp-list")?.scrollIntoView({ block: "start", behavior: "smooth" });
+    else setView("list");
+  }, [onCluster, layout, subscriber]);
 
   const onSelectDot = useCallback(
     (no: number) => {
@@ -417,6 +428,240 @@ export default function ProjectPortal({
     return out;
   }, [projects]);
   const stat = (k: "planned" | "tender" | "awarded") => (own ? allCounts[k] : data ? data.counts[k] : null);
+
+  const filterBar = (
+    <>
+      {hasMap
+        ? STAGES.filter((s) => s !== "closed" || stageCounts.closed > 0).map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={styles.chip}
+              aria-pressed={stages.has(s)}
+              style={{ "--c": STAGE_HEX[s] } as React.CSSProperties}
+              onClick={() => toggleStage(s)}
+            >
+              <span className={styles.dot} />
+              {STAGE_LABEL[s]} <span className={styles.chipN}>{nf.format(stageCounts[s])}</span>
+            </button>
+          ))
+        : null}
+      <label className={styles.sr} htmlFor="pp-fag">
+        Fag
+      </label>
+      <select
+        id="pp-fag"
+        className={styles.select}
+        value={domain}
+        onChange={(e) => {
+          setLimit(PAGE);
+          setDomain(e.target.value);
+        }}
+        disabled={!hasMap}
+      >
+        <option value="">Alle fag</option>
+        {domainOptions.map((d) => (
+          <option key={d.key} value={d.key}>
+            {d.label}
+          </option>
+        ))}
+      </select>
+    </>
+  );
+
+  const map = (
+    <PortalMap
+      ref={mapRef}
+      visible={visible}
+      counts={counts}
+      county={county}
+      onPickCounty={pickCounty}
+      hover={hover}
+      onHover={setHover}
+      onSelect={onSelectDot}
+      onCluster={onCluster}
+      onLastGroup={onLastGroup}
+      subscriber={Boolean(own)}
+    />
+  );
+
+  const listCard = (
+    <div className={styles.listcard}>
+      <div className={styles.listHead}>
+        <div className={styles.listCount} aria-live="polite">
+          {hasMap && picked ? (
+            <>
+              <strong className={styles.num}>{nf.format(listed.length)}</strong>{" "}
+              {listed.length === 1 ? "prosjekt" : "prosjekter"} valgt på kartet{" "}
+              <button type="button" className={styles.showAll} onClick={() => setPicked(null)}>
+                Vis alle
+              </button>
+            </>
+          ) : hasMap ? (
+            <>
+              <strong className={styles.num}>{nf.format(listed.length)}</strong>{" "}
+              {listed.length === 1 ? "prosjekt" : "prosjekter"}
+              {county ? ` i ${COUNTIES[county]?.n ?? ""}` : " i utvalget"}
+            </>
+          ) : data ? (
+            <>
+              <strong className={styles.num}>{nf.format(data.total)}</strong> prosjekter
+            </>
+          ) : null}
+        </div>
+        {hasMap ? (
+          <>
+            <label className={styles.sr} htmlFor="pp-sort">
+              Sorter
+            </label>
+            <select
+              id="pp-sort"
+              className={styles.select}
+              value={sort}
+              onChange={(e) => setSort(e.target.value === "val" ? "val" : "rel")}
+            >
+              <option value="rel">Åpne konkurranser først</option>
+              <option value="val">Høyest verdi</option>
+            </select>
+          </>
+        ) : null}
+      </div>
+      <ul ref={listRef} className={styles.list} onMouseLeave={() => setHover(null)}>
+        {!ready ? (
+          <li className={styles.empty}>
+            {failed ? "Prosjektoversikten er ikke tilgjengelig akkurat nå. Prøv igjen om litt." : "Henter prosjekter ..."}
+          </li>
+        ) : hasMap ? (
+          shown.length ? (
+            shown.map((p) => (
+              <Row
+                key={p.no}
+                p={p}
+                hl={hover === p.no}
+                domainLabel={firstDomain(p)}
+                onHover={setHover}
+                onPick={onPickRow}
+                detail={own?.details.get(p.no)}
+                approximate={own?.approximate.has(p.no)}
+              />
+            ))
+          ) : (
+            <li className={styles.empty}>
+              {own ? "Ingen prosjekter i abonnementet passer disse filtrene. Slå på flere faser eller velg «Alle fag»." : "Ingen prosjekter med disse filtrene. Slå på flere faser eller velg «Alle fag»."}
+            </li>
+          )
+        ) : (
+          (data?.projects ?? []).map((p, i) => (
+            <li key={`${p.project_no ?? "x"}-${i}`} className={styles.item} style={{ cursor: "default" }}>
+              <span className={styles.topRow}>
+                <span className={styles.pill} style={{ "--c": STAGE_HEX[p.stage] ?? STAGE_HEX.closed } as React.CSSProperties}>
+                  {p.stage_label}
+                </span>
+              </span>
+              <span>
+                <MaskedTitle seed={p.project_no ?? i} />
+              </span>
+              <span className={styles.val} />
+              <a href="#tilgang" aria-haspopup="dialog" className={styles.rowCta}>
+                Be om invitasjon
+              </a>
+            </li>
+          ))
+        )}
+        {hasMap && listed.length > shown.length ? (
+          <li className={styles.more}>
+            <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={() => setLimit((n) => n + PAGE)}>
+              Vis flere ({nf.format(listed.length - shown.length)} til)
+            </button>
+          </li>
+        ) : null}
+      </ul>
+    </div>
+  );
+
+  if (!own && layout === "site") {
+    const scope = county ? (COUNTIES[county]?.n ?? "") : "Hele Norge";
+    // The same figures the map counts per county, so the panel and the map never disagree.
+    const triple = county
+      ? (counts[county] ?? [0, 0, 0])
+      : Object.values(counts).reduce<[number, number, number]>((t, c) => [t[0] + c[0], t[1] + c[1], t[2] + c[2]], [0, 0, 0]);
+    const n = (k: "planned" | "tender" | "awarded") => triple[k === "planned" ? 0 : k === "tender" ? 1 : 2];
+    const barMax = Math.max(1, n("planned"), n("tender"), n("awarded"));
+    // The largest open competition in the panel's scope, as the list shows it: trade, county, value band.
+    const top = hasMap ? sortProjects(filterProjects(projects, { stages: new Set<MapStage>(["tender"]), domain, county }), "val")[0] : undefined;
+    return (
+      <section className="fors">
+        <div className="w fors-g">
+          <div className="fors-t">
+            <span className="eb">
+              Forsprang<i className="bt">Beta</i>
+              <i className="inv">Kun med invitasjon</i>
+            </span>
+            <h1>
+              Se hvor Norge <em>bygger</em>, fylke for fylke.
+            </h1>
+            <p className="lede">Planlagte prosjekter, åpne konkurranser og tildelte kontrakter på ett kart.</p>
+            <div className="fpanel" aria-live="polite">
+              <div className="fp-h">
+                <div>
+                  <h2>{scope}</h2>
+                  <p>
+                    <b>{ready ? nf.format(n("planned") + n("tender") + n("awarded")) : "-"}</b> prosjekter
+                  </p>
+                </div>
+                {county ? (
+                  <button type="button" className="fp-all" onClick={() => mapRef.current?.pickCounty(null)}>
+                    Hele Norge
+                  </button>
+                ) : null}
+              </div>
+              <div className="fp-bars">
+                {(["planned", "tender", "awarded"] as const).map((k, i) => (
+                  <div key={k} className={`fp-bar b${i + 1}`}>
+                    <span>{STAGE_LABEL[k]}</span>
+                    <b>{ready ? nf.format(n(k)) : "-"}</b>
+                    <i>
+                      <u style={{ width: `${Math.round((n(k) / barMax) * 100)}%` }} />
+                    </i>
+                  </div>
+                ))}
+              </div>
+              <div className="fp-row">
+                {top ? (
+                  <>
+                    <span className="tag">Åpen konkurranse nå</span>
+                    <span>
+                      <b>{firstDomain(top) ?? "Prosjekt"}</b>
+                      <br />
+                      {COUNTIES[top.r]?.n ?? ""}
+                    </span>
+                    <span className="v">{valueBand(top.v) ?? ""}</span>
+                  </>
+                ) : null}
+                {/* The lock row is the invitation button itself, with the county on the map already chosen. */}
+                <button type="button" className="lock" data-sheet="access" data-sheet-set={county ? `fylke=${county}` : ""}>
+                  <Icon name="lock" />
+                  <span>Byggherre og frist</span>
+                  <s />
+                  <b>Be om invitasjon</b>
+                  <Icon name="arrow" />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className={`fmapbox ${styles.portal} ${styles.siteMap}`}>
+            <div className={styles.bar} role="toolbar" aria-label="Filtre">
+              {filterBar}
+            </div>
+            {map}
+          </div>
+        </div>
+        <div className={`w ${styles.portal} ${styles.siteList}`} id="pp-list" style={{ marginTop: 40 }}>
+          {listCard}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className={styles.hero}>
@@ -498,41 +743,7 @@ export default function ProjectPortal({
                 Liste
               </button>
             </div>
-            {hasMap
-              ? STAGES.filter((s) => s !== "closed" || stageCounts.closed > 0).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className={styles.chip}
-                    aria-pressed={stages.has(s)}
-                    style={{ "--c": STAGE_HEX[s] } as React.CSSProperties}
-                    onClick={() => toggleStage(s)}
-                  >
-                    <span className={styles.dot} />
-                    {STAGE_LABEL[s]} <span className={styles.chipN}>{nf.format(stageCounts[s])}</span>
-                  </button>
-                ))
-              : null}
-            <label className={styles.sr} htmlFor="pp-fag">
-              Fag
-            </label>
-            <select
-              id="pp-fag"
-              className={styles.select}
-              value={domain}
-              onChange={(e) => {
-                setLimit(PAGE);
-                setDomain(e.target.value);
-              }}
-              disabled={!hasMap}
-            >
-              <option value="">Alle fag</option>
-              {domainOptions.map((d) => (
-                <option key={d.key} value={d.key}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
+            {filterBar}
             {county ? (
               <button
                 type="button"
@@ -547,116 +758,14 @@ export default function ProjectPortal({
           </div>
 
           <div className={styles.split}>
-            <PortalMap
-              ref={mapRef}
-              visible={visible}
-              counts={counts}
-              county={county}
-              onPickCounty={pickCounty}
-              hover={hover}
-              onHover={setHover}
-              onSelect={onSelectDot}
-              onCluster={onCluster}
-              onLastGroup={onLastGroup}
-              subscriber={Boolean(own)}
-            />
+            {map}
             {picked && view === "map" ? (
               <button type="button" className={styles.pickedBar} onClick={() => setView("list")}>
                 {picked.length === 1 ? "Vis prosjektet i listen" : `Vis ${picked.length} prosjekter i listen`}
               </button>
             ) : null}
 
-            <div className={styles.listcard}>
-              <div className={styles.listHead}>
-                <div className={styles.listCount} aria-live="polite">
-                  {hasMap && picked ? (
-                    <>
-                      <strong className={styles.num}>{nf.format(listed.length)}</strong>{" "}
-                      {listed.length === 1 ? "prosjekt" : "prosjekter"} valgt på kartet{" "}
-                      <button type="button" className={styles.showAll} onClick={() => setPicked(null)}>
-                        Vis alle
-                      </button>
-                    </>
-                  ) : hasMap ? (
-                    <>
-                      <strong className={styles.num}>{nf.format(listed.length)}</strong>{" "}
-                      {listed.length === 1 ? "prosjekt" : "prosjekter"}
-                      {county ? ` i ${COUNTIES[county]?.n ?? ""}` : " i utvalget"}
-                    </>
-                  ) : data ? (
-                    <>
-                      <strong className={styles.num}>{nf.format(data.total)}</strong> prosjekter
-                    </>
-                  ) : null}
-                </div>
-                {hasMap ? (
-                  <>
-                    <label className={styles.sr} htmlFor="pp-sort">
-                      Sorter
-                    </label>
-                    <select
-                      id="pp-sort"
-                      className={styles.select}
-                      value={sort}
-                      onChange={(e) => setSort(e.target.value === "val" ? "val" : "rel")}
-                    >
-                      <option value="rel">Åpne konkurranser først</option>
-                      <option value="val">Høyest verdi</option>
-                    </select>
-                  </>
-                ) : null}
-              </div>
-              <ul ref={listRef} className={styles.list} onMouseLeave={() => setHover(null)}>
-                {!ready ? (
-                  <li className={styles.empty}>
-                    {failed ? "Prosjektoversikten er ikke tilgjengelig akkurat nå. Prøv igjen om litt." : "Henter prosjekter ..."}
-                  </li>
-                ) : hasMap ? (
-                  shown.length ? (
-                    shown.map((p) => (
-                      <Row
-                        key={p.no}
-                        p={p}
-                        hl={hover === p.no}
-                        domainLabel={firstDomain(p)}
-                        onHover={setHover}
-                        onPick={onPickRow}
-                        detail={own?.details.get(p.no)}
-                        approximate={own?.approximate.has(p.no)}
-                      />
-                    ))
-                  ) : (
-                    <li className={styles.empty}>
-                      {own ? "Ingen prosjekter i abonnementet passer disse filtrene. Slå på flere faser eller velg «Alle fag»." : "Ingen prosjekter med disse filtrene. Slå på flere faser eller velg «Alle fag»."}
-                    </li>
-                  )
-                ) : (
-                  (data?.projects ?? []).map((p, i) => (
-                    <li key={`${p.project_no ?? "x"}-${i}`} className={styles.item} style={{ cursor: "default" }}>
-                      <span className={styles.topRow}>
-                        <span className={styles.pill} style={{ "--c": STAGE_HEX[p.stage] ?? STAGE_HEX.closed } as React.CSSProperties}>
-                          {p.stage_label}
-                        </span>
-                      </span>
-                      <span>
-                        <MaskedTitle seed={p.project_no ?? i} />
-                      </span>
-                      <span className={styles.val} />
-                      <a href="#tilgang" aria-haspopup="dialog" className={styles.rowCta}>
-                        Be om invitasjon
-                      </a>
-                    </li>
-                  ))
-                )}
-                {hasMap && listed.length > shown.length ? (
-                  <li className={styles.more}>
-                    <button type="button" className={`${styles.btn} ${styles.btnGhost}`} onClick={() => setLimit((n) => n + PAGE)}>
-                      Vis flere ({nf.format(listed.length - shown.length)} til)
-                    </button>
-                  </li>
-                ) : null}
-              </ul>
-            </div>
+            {listCard}
           </div>
         </div>
         )}

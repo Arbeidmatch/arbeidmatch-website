@@ -2238,3 +2238,51 @@
     cursor: pointer;
   }
 }
+
+/* ORDER 295, stage 4: the map and the list inside the site's Forsprang band. */
+.siteMap {
+  background: transparent;
+  overflow: visible;
+}
+
+/* The county panel is the band's own, beside the map. */
+.siteMap .panelCounty {
+  display: none;
+}
+
+.siteMap .mapBlock {
+  flex: 1;
+}
+
+.siteMap .mapcard {
+  height: 600px;
+  flex: none;
+}
+
+.siteList {
+  background: transparent;
+  position: relative;
+  margin-top: 40px;
+}
+
+.siteList .listcard {
+  max-height: 560px;
+}
+
+.siteList .list {
+  overflow: auto;
+}
+
+@media (max-width: 760px) {
+  .siteMap .mapcard {
+    height: min(70vh, 520px);
+  }
+
+  .siteList {
+    margin-top: 28px;
+  }
+
+  .siteList .listcard {
+    max-height: 70vh;
+  }
+}

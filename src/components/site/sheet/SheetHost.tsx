@@ -6,6 +6,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { siteLang, type SiteLang } from "@/components/site/siteNav";
 import { MARKETING_COOKIE_SETTINGS_EVENT } from "@/lib/marketing-cookie-consent";
 
+import { AccessSheet } from "./AccessSheet";
 import { AlertsSheet, MessageSheet, RegisterSheet } from "./CandidateSheets";
 import { ContactSheet } from "./ContactSheet";
 import { RequestSheet } from "./RequestSheet";
@@ -18,7 +19,7 @@ import { CookiesSheet, LoginSheet, MenuSheet, NotifySheet } from "./sheets";
  * to preset its rows. Only one sheet is open at a time.
  */
 
-export type SheetId = "login" | "menu" | "cookies" | "notify" | "request" | "contact" | "alerts" | "register" | "message";
+export type SheetId = "login" | "menu" | "cookies" | "notify" | "request" | "contact" | "alerts" | "register" | "message" | "access";
 
 /** Opens a sheet from code outside the host's tree (the request links of ORDER 224): detail { id, preset }. */
 export const OPEN_SHEET_EVENT = "am:open-sheet";
@@ -35,6 +36,7 @@ const SHEETS: Record<SheetId, (p: SheetProps) => ReactNode> = {
   alerts: AlertsSheet,
   register: RegisterSheet,
   message: MessageSheet,
+  access: AccessSheet,
 };
 
 type Ctx = { open: (id: SheetId, preset?: SheetPreset) => void; close: () => void };

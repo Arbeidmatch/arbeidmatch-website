@@ -510,3 +510,19 @@
 .ams .kv dt{color:var(--soft)}
 .ams .kv dd{margin:0;font-weight:700;text-align:right}
 .ams .advert .req{margin-top:12px}
+/* Stage 4: Forsprang. The mockup's h2 is the page's h1 here; the county name is the panel's h2. The live map and list sit in the band. */
+.ams .fors h1{font:800 52px/1.05 var(--font-sans),"Plus Jakarta Sans",system-ui,sans-serif;letter-spacing:-.035em;margin:20px 0 18px;text-wrap:balance;color:var(--white)}
+.ams .fors h1 em{font-style:normal;color:var(--gold)}
+.ams .fors .lede{color:var(--dim)}
+.ams .fp-h h2{font:800 24px/1.2 var(--font-sans),"Plus Jakarta Sans",system-ui,sans-serif;letter-spacing:-.02em}
+.ams .fp-bar.b1{--c:var(--st1)} .ams .fp-bar.b2{--c:var(--st2)} .ams .fp-bar.b3{--c:var(--st3)}
+.ams .fp-row .lock{cursor:pointer;text-align:left}
+.ams .fmapbox{position:relative;align-self:stretch;display:flex;flex-direction:column}
+.ams .fcredit{margin-top:10px;color:var(--dim);text-align:right}
+@media (max-width:760px){
+  .ams .fors h1{font-size:34px}
+  .ams .fmapbox{order:2;margin-top:24px}
+  .ams .fcredit{text-align:left}
+}
+.ams .stepc h3{font:700 18px/1.3 var(--font-sans),"Plus Jakarta Sans",system-ui,sans-serif}
+.ams .fmapbox [class*="credit"]{text-align:right}
