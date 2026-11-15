@@ -7,7 +7,7 @@ const DESCRIPTION =
   "Bemanning til bygg og anlegg i Norge med kvalifiserte arbeidstakere fra EU/EØS. Be om kontrollerte kandidater til bygge- og anleggsprosjekter.";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/bemanning-bygg-anlegg" },
+  alternates: { canonical: "/bemanning-bygg-anlegg", languages: { nb: "/bemanning-bygg-anlegg", "x-default": "/bemanning-bygg-anlegg" } },
   title: { absolute: TITLE },
   description: DESCRIPTION,
   openGraph: {

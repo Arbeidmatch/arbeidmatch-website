@@ -106,6 +106,10 @@ export function pageAction(rawPath: string | null | undefined): PageAction | nul
   if (p.startsWith(`${SITE_PATHS.lifeInNorway}/`)) return { kind: "sheet", sheet: "alerts", label: "Job alerts" };
   if (p === "/about") return { kind: "link", href: SITE_PATHS.contact, label: "Contact us" };
   if (p === SITE_PATHS.network) return { kind: "sheet", sheet: "invite", label: "Request invitation" };
+  // The industry and city pages (stage 6b); the city addresses may arrive with the å percent-encoded.
+  if (p.startsWith("/bemanning-") || p.startsWith("/bemanningsbyr")) {
+    return { kind: "link", href: SITE_PATHS.request, label: "Be om kandidater", rask: true };
+  }
   return null;
 }
 
