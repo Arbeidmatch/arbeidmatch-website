@@ -272,14 +272,14 @@ export function RegisterSheet({ open, close }: SheetProps) {
           </Group>
           <Group>
             <ConsentSwitch label="I consent to ArbeidMatch processing this request and my e-mail address" checked={gdpr} onChange={setGdpr}>
-              I consent to ArbeidMatch processing this request and my e-mail address, so that ArbeidMatch can create my candidate profile and contact me about opportunities.
+              I consent to ArbeidMatch processing this request and my e-mail address, so that ArbeidMatch can create my candidate profile and contact me about opportunities. Read how we handle your data in our <a className="plink" href={SITE_PATHS.privacy} target="_blank" rel="noopener">privacy notice</a>.
             </ConsentSwitch>
             <ConsentSwitch label="I confirm that I am an EU/EEA citizen" checked={citizen} onChange={setCitizen}>
               I confirm that I am an EU/EEA citizen (passport or national ID card).
             </ConsentSwitch>
           </Group>
           <Hint>
-            Read how we handle your data in our <a className="plink" href={SITE_PATHS.privacy} target="_blank" rel="noopener">privacy notice</a>. When you send, your e-mail address and these confirmations are recorded as your consent, so we can create your candidate profile and contact you about opportunities.
+            When you send, your e-mail address and these confirmations are recorded as your consent, so we can create your candidate profile and contact you about opportunities.
           </Hint>
           <div className="hp" aria-hidden="true">
             <label>
