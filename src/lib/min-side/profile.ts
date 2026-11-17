@@ -1514,6 +1514,8 @@ export type ClientTable = {
   /** Empty on Premium. */
   locks: TableLock[];
   filters: { counties: { code: string; name: string }[]; occupations: { key: string; name: string }[] };
+  /** ORDER 243: "Listen oppdateres" while ArbeidMatch reviews the new firms and none is on the list yet; else null. */
+  updating: string | null;
 };
 
 export const TABLE_SORTS = ["default", "newest", "name"] as const;
@@ -1654,6 +1656,7 @@ export function clientTableFrom(raw: unknown): ClientTable | null {
     tiles: { newThisWeek: nonNegInt(t.newThisWeek) ?? 0, urgent: nonNegInt(t.urgent), englishOk: nonNegInt(t.englishOk), recommended: nonNegInt(t.recommended) },
     locks: [...new Set(strings(r.locks, 20, 30).filter((x): x is TableLock => (TABLE_LOCKS as readonly string[]).includes(x)))],
     filters: { counties: countyOptions(f.counties), occupations: tradeOptions(f.occupations) },
+    updating: typeof r.updating === "string" && r.updating.trim() && r.updating.length <= 80 ? r.updating.trim() : null,
   };
 }
 

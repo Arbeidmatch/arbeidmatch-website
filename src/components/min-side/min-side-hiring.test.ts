@@ -642,3 +642,13 @@ describe("the live-check marks", () => {
     expect(source("MinSideHiring.tsx")).toMatch(/data-contact-locked="" data-hiring-contact=""[\s\S]{0,400}lock="contact"/);
   });
 });
+
+// ORDER 243: while ArbeidMatch reviews the new firms, an empty list says "Listen oppdateres" instead of nothing.
+describe("the list while ArbeidMatch reviews new firms", () => {
+  it("shows the ATS's sentence on an empty list, and the old line when there is none", () => {
+    expect(view(table({ rows: [], total: 0, all: 0, updating: "Listen oppdateres" }))).toContain("Listen oppdateres");
+    expect(view(table({ rows: [], total: 0, all: 0 }))).toContain("Ingen bedrifter ennå.");
+    expect(table({ updating: "x".repeat(81) }).updating).toBeNull();
+    expect(table({ updating: 3 }).updating).toBeNull();
+  });
+});

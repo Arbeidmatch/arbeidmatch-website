@@ -1181,7 +1181,7 @@ export function FirmsView({ table, loading, error, locks, busyOrg, onOpen, onCyc
   }
   if (!table) return <p className={`text-sm ${MUTED_L}`}>{loading ? "Henter bedriftene ..." : ""}</p>;
   if (table.rows.length === 0) {
-    return <p className={`text-sm ${MUTED_L}`}>{table.all ? "Ingen bedrifter passer filteret." : "Ingen bedrifter ennå."}</p>;
+    return <p className={`text-sm ${MUTED_L}`}>{table.all ? "Ingen bedrifter passer filteret." : (table.updating ?? "Ingen bedrifter ennå.")}</p>;
   }
   const rowTone = (r: ClientTableRow) => (r.recommended ? "bg-[#FBF6E8]" : "");
   return (
