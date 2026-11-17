@@ -88,7 +88,6 @@ export default function SiteFooter() {
           <div className="legal">
             © 2026 ArbeidMatch Norge AS · Org.nr 935 667 089 MVA · Sverre Svendsens veg 38, 7056 Ranheim ·{" "}
             <ProtectedEmail username="post" domain="arbeidmatch.no" className="" loadingLabel="" /> ·{" "}
-            <a href="https://www.manom.no/invest/">Manom Invest</a> ·{" "}
             {no ? "Godkjent bemanningsforetak, registrert hos Arbeidstilsynet." : "Approved staffing agency, registered with Arbeidstilsynet."}
           </div>
         </div>
