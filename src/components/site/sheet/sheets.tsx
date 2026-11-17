@@ -3,9 +3,10 @@
 import { useEffect, useState, type FormEvent } from "react";
 
 import { COOKIE_SHEET_EVENT, saveChoice, storedChoice } from "@/components/site/cookieChoice";
+import { Icon, type IconName } from "@/components/site/Icon";
 import { SITE_PATHS } from "@/components/site/siteNav";
 
-import { Done, Group, InputRow, LinkRow, NavRow, OptionRow, PrivacySwitch, SwitchRow } from "./rows";
+import { Done, Group, Hint, InputRow, LinkRow, NavRow, OptionRow, PrivacySwitch, SwitchRow } from "./rows";
 import type { SheetProps } from "./SheetHost";
 import { SheetFrame } from "./SheetFrame";
 
@@ -243,6 +244,40 @@ export function NotifySheet({ open, close, preset }: SheetProps) {
           </div>
         </form>
       )}
+    </SheetFrame>
+  );
+}
+
+/** A row that opens another sheet, with its line under it. */
+function SheetChoice({ icon, label, line, onClick }: { icon: IconName; label: string; line: string; onClick: () => void }) {
+  return (
+    <button type="button" className="row" onClick={onClick}>
+      <span className="ri">
+        <Icon name={icon} />
+      </span>
+      <span className="rl2">
+        <b>{label}</b>
+        <small>{line}</small>
+      </span>
+      <Icon name="chev" />
+    </button>
+  );
+}
+
+/**
+ * "Pris og vilkår" (ORDER 296), from the contact page. Clients ask for the
+ * price and the terms by e-mail, so the site prints no price: the two ways to
+ * ask are a message, with the subject already chosen, or a request, which is
+ * answered with an offer.
+ */
+export function PricesSheet({ open, close, openSheet }: SheetProps) {
+  return (
+    <SheetFrame open={open} lang="no" title="Pris og vilkår" sub={null} onBack={() => {}} onClose={close} footer={<CloseFoot label="Lukk" onClick={close} />}>
+      <Group>
+        <SheetChoice icon="msg" label="Skriv til oss" line="Vi svarer innen én virkedag." onClick={() => openSheet("contact", { gjelder: "Pris og vilkår" })} />
+        <SheetChoice icon="users" label="Send en forespørsel" line="Gratis. Dere får et tilbud med pris." onClick={() => openSheet("request")} />
+      </Group>
+      <Hint>Prisen følger rollen og står i tilbudet.</Hint>
     </SheetFrame>
   );
 }

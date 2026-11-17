@@ -30,7 +30,20 @@ import { SheetFrame } from "./SheetFrame";
 type Audience = "employer" | "candidate";
 type Origin = "norway" | "foreign";
 type Company = { name: string; orgNumber: string; city?: string };
-type Sub = { kind: "who" } | { kind: "policy" } | { kind: "error"; title: string; body: string } | { kind: "country" } | null;
+type Sub = { kind: "who" } | { kind: "policy" } | { kind: "error"; title: string; body: string } | { kind: "country" } | { kind: "subject" } | null;
+
+/** What a Norwegian firm writes about (ORDER 296); "Pris og vilkår" comes chosen from the contact page's row. */
+export const CONTACT_SUBJECTS = ["Pris og vilkår", "Et oppdrag", "Noe annet"] as const;
+
+/**
+ * The message as it travels to /api/contact: the chosen subject as its first
+ * line, so the office reads it where it always read the message. No subject
+ * chosen leaves the message as typed.
+ */
+export function messageWithSubject(subject: string, message: string): string {
+  const s = (CONTACT_SUBJECTS as readonly string[]).includes(subject) ? subject : "";
+  return s ? `Gjelder: ${s}\n\n${message}` : message;
+}
 
 const CANDIDATE_OPTIONS = [
   { href: JOBS_PORTAL_URL, label: "Browse open jobs", icon: "brief" as const },
@@ -77,6 +90,7 @@ export function ContactSheet({ open, close, preset }: SheetProps) {
   const [audience, setAudience] = useState<Audience>(preset.who === "candidate" ? "candidate" : "employer");
   const [origin, setOrigin] = useState<Origin>(preset.origin === "foreign" ? "foreign" : "norway");
   const [sub, setSub] = useState<Sub>(null);
+  const [subject, setSubject] = useState<string>((CONTACT_SUBJECTS as readonly string[]).includes(preset.gjelder ?? "") ? preset.gjelder! : "");
   const [status, setStatus] = useState<"idle" | "submitting" | "error" | "done">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const renderedAt = useRef(0);
@@ -157,7 +171,7 @@ export function ContactSheet({ open, close, preset }: SheetProps) {
       email: email.trim(),
       need: isEmployer ? EMPLOYER_NEED : CANDIDATE_NEED,
       lang,
-      message: message.trim(),
+      message: isEmployer && !isForeign ? messageWithSubject(subject, message.trim()) : message.trim(),
       website,
       formRenderedAt: String(renderedAt.current),
       ...(isForeign ? { foreign: "1", country, vatNumber: vatNumber.trim(), phone: phone.trim() } : {}),
@@ -260,6 +274,25 @@ export function ContactSheet({ open, close, preset }: SheetProps) {
         </>
       ),
     };
+  } else if (sub?.kind === "subject") {
+    subPanel = {
+      title: "Gjelder",
+      content: (
+        <Group>
+          {CONTACT_SUBJECTS.map((s) => (
+            <OptionRow
+              key={s}
+              label={s}
+              chosen={subject === s}
+              onPick={() => {
+                setSubject(s);
+                setSub(null);
+              }}
+            />
+          ))}
+        </Group>
+      ),
+    };
   } else if (sub?.kind === "country") {
     subPanel = {
       title: copy.country,
@@ -344,6 +377,7 @@ export function ContactSheet({ open, close, preset }: SheetProps) {
             </Group>
           )}
           <Group>
+            {isEmployer && !isForeign ? <NavRow icon="help" label="Gjelder" value={subject || "Velg"} onClick={() => setSub({ kind: "subject" })} /> : null}
             <InputRow id="am-ct-name" icon="user" label={copy.name} placeholder={copy.namePlaceholder} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} required />
             {isEmployer && !isForeign ? (
               company ? (

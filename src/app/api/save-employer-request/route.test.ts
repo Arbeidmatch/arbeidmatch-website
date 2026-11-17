@@ -11,15 +11,23 @@ const mocks = vi.hoisted(() => ({
   limit: vi.fn(),
   ticket: { data: null as Record<string, unknown> | null, error: null as unknown },
   inserted: [] as Record<string, unknown>[],
+  letters: vi.fn(async (_data: Record<string, unknown>) => undefined),
 }));
 
 vi.mock("@/lib/supabaseAdmin", () => ({ getSupabaseAdminClient: mocks.admin }));
 vi.mock("@/lib/errorNotifier", () => ({ notifyError: vi.fn(async () => undefined) }));
+// The letters themselves are tested in src/lib/request-letters.test.ts; here only whether they are asked for.
+vi.mock("@/lib/request-letters", async (original) => ({
+  ...(await original<typeof import("@/lib/request-letters")>()),
+  sendRequestLetters: mocks.letters,
+}));
 vi.mock("@/lib/secureLogger", () => ({ logApiError: vi.fn() }));
 vi.mock("@/lib/apiSecurity", async (original) => ({
   ...(await original<typeof import("@/lib/apiSecurity")>()),
   getRateLimitResult: mocks.limit,
 }));
+
+import { notifyError } from "@/lib/errorNotifier";
 
 import { POST } from "./route";
 
@@ -301,6 +309,54 @@ describe("save-employer-request from the popup (sourceVariant rask)", () => {
   it("marks the trade Annet as outside our trades whatever the browser said", async () => {
     await POST(request({ ...rask, trade: "annet", category: "Other", position: "Smed", payFloorAtSubmit: null }));
     expect((mocks.inserted[0].form_answers as Record<string, unknown>).outsideOurTrades).toBe(true);
+  });
+
+  // ORDER 296: the pop-up's request gets the detailed form's letters, and the person's name.
+  it("sends the receipt and the office copy once, with the reference and what the pop-up collected", async () => {
+    const response = await POST(request({ ...rask, full_name: "Test Person" }));
+    expect(response.status).toBe(200);
+    expect(mocks.letters).toHaveBeenCalledTimes(1);
+    expect(mocks.letters.mock.calls[0][0]).toMatchObject({
+      company: "Test Bygg AS",
+      orgNumber: "999999999",
+      email: "post@testbygg.invalid",
+      full_name: "Test Person",
+      position: "Betongarbeider",
+      numberOfPositions: "3",
+      startDate: "Så snart som mulig",
+      city: "Trondheim, Trøndelag",
+      salary: "260-300",
+      salaryPeriod: "Per hour",
+      notes: "We Offer\n- Bolig uten trekk\n- Kost",
+      referenceId: "AM-ER-2026-00042",
+    });
+  });
+
+  it("keeps the request when the letters fail, and reports the failure", async () => {
+    mocks.letters.mockRejectedValueOnce(new Error("smtp down"));
+    const response = await POST(request({ ...rask, full_name: "Test Person" }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ success: true, referenceId: "AM-ER-2026-00042" });
+    expect(mocks.inserted).toHaveLength(1);
+    expect(notifyError).toHaveBeenCalledWith(expect.objectContaining({ route: "/api/save-employer-request (letters)" }));
+  });
+
+  it("mails no one for a ticket the code step never made", async () => {
+    mocks.ticket = { data: null, error: null };
+    await POST(request({ ...rask, full_name: "Test Person" }));
+    expect(mocks.letters).not.toHaveBeenCalled();
+  });
+
+  it("stores the person's name in the row's name column", async () => {
+    await POST(request({ ...rask, full_name: "  Test Person " }));
+    expect(mocks.inserted[0]).toMatchObject({ full_name: "Test Person" });
+  });
+
+  it("sends no letters for a request it refuses", async () => {
+    await POST(request({ ...rask, equalTreatmentConfirmed: false }));
+    await POST(request({ ...rask, full_name: "<b>x</b>" }));
+    expect(mocks.letters).not.toHaveBeenCalled();
+    expect(mocks.inserted).toHaveLength(0);
   });
 });
 

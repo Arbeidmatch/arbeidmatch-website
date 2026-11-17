@@ -62,18 +62,19 @@ const STORE = "am-request-sheet-v1";
 /** The trades in the order the sheet lists them: health care last (the owner, 14 November 2026). */
 export const SHEET_TRADES = [...TRADES.filter((t) => t.key !== "helse"), ...TRADES.filter((t) => t.key === "helse")];
 
-type Answers = RaskAnswers & { roleCounts: Record<string, number> };
+/** The pop-up's answers: the quick request's, each role's number, and the person's name (ORDER 296). */
+type Answers = RaskAnswers & { roleCounts: Record<string, number>; fullName: string };
 type Sub = "company" | "trade" | "roles" | "when" | "county" | "town" | "pay" | null;
 type Phase = "rows" | "code" | "done";
 
-const EMPTY: Answers = { ...EMPTY_ANSWERS, answerMode: "rolle", roleCounts: {} };
+const EMPTY: Answers = { ...EMPTY_ANSWERS, answerMode: "rolle", roleCounts: {}, fullName: "" };
 
 function readStore(): Answers {
   try {
     const raw = window.sessionStorage.getItem(STORE);
     if (!raw) return EMPTY;
     const parsed = JSON.parse(raw) as Partial<Answers>;
-    return { ...EMPTY, ...parsed, answerMode: "rolle", roleCounts: { ...(parsed.roleCounts ?? {}) } };
+    return { ...EMPTY, ...parsed, answerMode: "rolle", roleCounts: { ...(parsed.roleCounts ?? {}) }, fullName: typeof parsed.fullName === "string" ? parsed.fullName : "" };
   } catch {
     return EMPTY;
   }
@@ -115,6 +116,7 @@ export function requestProblem(a: Answers, floor: number | null): string | null 
     payFloorAtSubmit: floor,
   });
   if (pay || fieldErrors.from || fieldErrors.to) return pay ?? "Sjekk lønn og vilkår.";
+  if (a.fullName.trim().length < 2) return "Skriv inn navnet ditt.";
   return contactProblem(a);
 }
 
@@ -369,7 +371,7 @@ export function RequestSheet({ open, close, preset, openSheet }: SheetProps) {
     const body = buildRaskPayload(payloadAnswers, token, floor);
     const pay = a.payFrom.trim() ? `${a.payFrom.trim()}${a.payTo.trim() && a.payTo.trim() !== a.payFrom.trim() ? `-${a.payTo.trim()}` : ""} kr/t` : "";
     const summary = [rolesLine(a), placeLine(a), whenLine(a).toLowerCase(), pay].filter(Boolean).join(", ");
-    return { ...body, job_summary: summary.slice(0, 1000) };
+    return { ...body, full_name: a.fullName.trim().replace(/\s+/g, " ").slice(0, 120), job_summary: summary.slice(0, 1000) };
   };
 
   const sendCode = async () => {
@@ -706,6 +708,16 @@ export function RequestSheet({ open, close, preset, openSheet }: SheetProps) {
             <NavRow icon="chart" label="Lønn og vilkår" value={payValue} onClick={() => setSub("pay")} />
           </Group>
           <Group label="Kontakt">
+            <InputRow
+              id="am-req-name"
+              icon="user"
+              label="Navn"
+              autoComplete="name"
+              maxLength={120}
+              placeholder="Fullt navn"
+              value={a.fullName}
+              onChange={(e) => update({ fullName: e.target.value.replace(/[<>]/g, "") })}
+            />
             <InputRow
               id="am-req-email"
               icon="mail"

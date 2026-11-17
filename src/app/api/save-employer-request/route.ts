@@ -12,6 +12,7 @@ import { contractTypeForService, isRequesterKind, isServiceAllowedFor, REQUESTER
 import { isPresentationTicket, PRESENTATION_SOURCE } from "@/lib/presentation-request-ticket";
 import { isWarmTicket, WARM_SOURCE } from "@/lib/warm-request";
 import { tellAtsAboutRequest } from "@/lib/ats-request-notify";
+import { raskLetterData, sendRequestLetters } from "@/lib/request-letters";
 import { ANSWER_MODES, BENEFITS, checkPayConditions, parseKroner, TRADE_KEYS } from "@/lib/pay-conditions";
 
 /**
@@ -44,6 +45,8 @@ const raskSchema = z
     company: z.string().trim().min(2).max(160).refine((v) => realContactValue(v) !== "", "company is required"),
     orgNumber: z.string().trim().regex(/^\d{9}$/),
     email: z.string().trim().email().max(200),
+    // The person asking (ORDER 296): the sheet requires it; the older pop-up never asked.
+    full_name: z.string().trim().max(120).refine((v) => !/[<>]/.test(v), "full_name must be plain text").optional(),
     trade: z.enum(TRADE_KEYS).optional(),
     category: z.string().trim().min(1).max(120),
     position: z.string().trim().min(1).max(300),
@@ -292,8 +295,8 @@ async function saveRaskRequest(parsedJson: unknown, noteCompany: (company: strin
       company:             data.company,
       org_number:          data.orgNumber,
       email:               data.email,
-      // Not asked on the popup; the columns are NOT NULL.
-      full_name:           "",
+      // The sheet asks the name (ORDER 296); the phone is not asked, and the columns are NOT NULL.
+      full_name:           realContactValue(data.full_name ?? ""),
       phone:               "",
       job_summary:         data.job_summary || `${data.numberOfPositions} x ${data.position}, ${data.city}`,
       // Not asked: the ATS shows "Not stated".
@@ -324,6 +327,19 @@ async function saveRaskRequest(parsedJson: unknown, noteCompany: (company: strin
   const rawId = insertedRow?.id;
   const referenceId = referenceIdFor(rawId);
   if (typeof rawId === "string" && rawId) await tellAtsAboutRequest(rawId);
+
+  // The client's receipt and the office copy, the same letters the detailed
+  // form sends (ORDER 296). The request is saved whatever happens to them: a
+  // failure is logged and reported as the detailed form's is, never refused.
+  // Only for a ticket the code step made: a post with an invented one mails no one.
+  if (ticket) {
+    try {
+      await sendRequestLetters(raskLetterData({ ...data, full_name: realContactValue(data.full_name ?? "") }, referenceId, salary));
+    } catch (error) {
+      logApiError("save-employer-request (letters)", error);
+      await notifyError({ route: "/api/save-employer-request (letters)", error, context: { referenceId: referenceId ?? "" } });
+    }
+  }
   return noStoreJson({ success: true, ...(referenceId ? { referenceId } : {}) });
 }
 

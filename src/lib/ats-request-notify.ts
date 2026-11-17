@@ -5,7 +5,10 @@
  * the row from the database the two share, and makes one proposal per row.
  *
  * Never throws and never holds the client up for long: the ATS answers before
- * it does the work, and the office mail to the inbox stays the backstop.
+ * it does the work. The office copy to post@ stays the backstop for both
+ * forms: the detailed form sends it through /api/send-request-email, and the
+ * pop-up's save route sends the same letter itself (ORDER 296), see
+ * src/lib/request-letters.ts.
  */
 const ATS_BASE_URL = (process.env.ATS_BASE_URL || "https://ats.arbeidmatch.no").replace(/\/$/, "");
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

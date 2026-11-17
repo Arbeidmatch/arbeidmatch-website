@@ -35,7 +35,7 @@ describe("the request sheet's company row (ORDER 295, stage 2)", () => {
 });
 
 describe("the request sheet's roles and order", () => {
-  const base = { ...EMPTY_ANSWERS, answerMode: "rolle" as const, roleCounts: {} as Record<string, number> };
+  const base = { ...EMPTY_ANSWERS, answerMode: "rolle" as const, roleCounts: {} as Record<string, number>, fullName: "" };
 
   it("lists health care last", () => {
     expect(SHEET_TRADES.at(-1)?.key).toBe("helse");
@@ -59,5 +59,40 @@ describe("the request sheet's roles and order", () => {
     const withFirm = { ...base, company: { name: "Test AS", orgNumber: "123456789" } };
     expect(requestProblem(withFirm, null)).toBe("Velg bransje.");
     expect(requestProblem({ ...withFirm, trade: "bygg" }, null)).toBe("Legg til minst én rolle.");
+  });
+});
+
+describe("the request sheet asks who is asking (ORDER 296)", () => {
+  const ready = {
+    ...EMPTY_ANSWERS,
+    answerMode: "rolle" as const,
+    roleCounts: { Murer: 2 } as Record<string, number>,
+    fullName: "",
+    company: { name: "Test AS", orgNumber: "123456789" },
+    trade: "bygg" as const,
+    roles: ["Murer"],
+    when: "Så snart som mulig",
+    county: "Trøndelag",
+    town: "Trondheim",
+    equalTreatment: true,
+    payFrom: "260",
+    email: "test@test.invalid",
+    privacyAccepted: true,
+    termsAccepted: true,
+  };
+
+  it("refuses to send without a name", () => {
+    expect(requestProblem(ready, 250)).toBe("Skriv inn navnet ditt.");
+    expect(requestProblem({ ...ready, fullName: " A " }, 250)).toBe("Skriv inn navnet ditt.");
+  });
+
+  it("sends once the name is there", () => {
+    expect(requestProblem({ ...ready, fullName: "Test Person" }, 250)).toBeNull();
+  });
+
+  it("puts the name in the request it saves, and the row in the Kontakt group", () => {
+    const src = readFileSync(join(process.cwd(), "src", "components", "site", "sheet", "RequestSheet.tsx"), "utf8");
+    expect(src).toMatch(/full_name: a\.fullName\.trim\(\)/);
+    expect(src).toMatch(/<Group label="Kontakt">\s*<InputRow\s+id="am-req-name"/);
   });
 });

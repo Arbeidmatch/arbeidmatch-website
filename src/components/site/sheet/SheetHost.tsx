@@ -11,7 +11,7 @@ import { AlertsSheet, MessageSheet, RegisterSheet } from "./CandidateSheets";
 import { ContactSheet } from "./ContactSheet";
 import { InviteSheet } from "./InviteSheet";
 import { RequestSheet } from "./RequestSheet";
-import { CookiesSheet, LoginSheet, MenuSheet, NotifySheet } from "./sheets";
+import { CookiesSheet, LoginSheet, MenuSheet, NotifySheet, PricesSheet } from "./sheets";
 
 /**
  * Opens the site's sheets over any page (ORDER 295). A page asks for one with
@@ -20,7 +20,7 @@ import { CookiesSheet, LoginSheet, MenuSheet, NotifySheet } from "./sheets";
  * to preset its rows. Only one sheet is open at a time.
  */
 
-export type SheetId = "login" | "menu" | "cookies" | "notify" | "request" | "contact" | "alerts" | "register" | "message" | "access" | "invite";
+export type SheetId = "login" | "menu" | "cookies" | "notify" | "request" | "contact" | "alerts" | "register" | "message" | "access" | "invite" | "prices";
 
 /** Opens a sheet from code outside the host's tree (the request links of ORDER 224): detail { id, preset }. */
 export const OPEN_SHEET_EVENT = "am:open-sheet";
@@ -39,6 +39,7 @@ const SHEETS: Record<SheetId, (p: SheetProps) => ReactNode> = {
   message: MessageSheet,
   access: AccessSheet,
   invite: InviteSheet,
+  prices: PricesSheet,
 };
 
 type Ctx = { open: (id: SheetId, preset?: SheetPreset) => void; close: () => void };

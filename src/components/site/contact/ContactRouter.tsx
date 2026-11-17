@@ -86,8 +86,8 @@ export default function ContactRouter() {
               <SheetRow sheet="request" href={SITE_PATHS.request}>
                 <Body icon="users" title="Vi trenger folk" sub="Send en gratis forespørsel" />
               </SheetRow>
-              <SheetRow sheet="contact" href={SITE_PATHS.contact}>
-                <Body icon="msg" title="Vi har et spørsmål" sub="Om bemanning, rekruttering eller et oppdrag" />
+              <SheetRow sheet="prices" href={SITE_PATHS.contact}>
+                <Body icon="msg" title="Pris og vilkår" sub="Skriv til oss, eller send en forespørsel" />
               </SheetRow>
               <SheetRow sheet="request" href={SITE_PATHS.request}>
                 <Body icon="building" title="Vi er et bemanningsbyrå" sub="Samarbeid om kandidater fra EU/EØS" />
