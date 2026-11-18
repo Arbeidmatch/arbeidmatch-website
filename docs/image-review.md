@@ -88,3 +88,20 @@ library quarantine record are stored locally under
 `C:/Cursor test/ats-worktrees/codex-artifacts/photo-audit/`.
 Future additions must be inspected individually before deployment, not approved
 from a thumbnail or a generated-image prompt alone.
+
+## For bedrifter hero replaced - 2026-11-18
+
+Owner correction: the concrete worker on /for-employers was not a suitable
+photograph. Removed `public/images/home/concrete.webp`
+(SHA256 `2cdf5d78659b413a46bdd03029c555643eff2405298ecddb71fe596c1eeffe74`), and
+its source-library twin `af0949b6-5166-4972-bc11-00f48ca22635` archived (same
+picture by dHash, distance 0); the saved status was read back. Do not reuse.
+
+Replacement: `public/images/home/painter-reviewed.webp`
+(SHA256 `c3b8e63c4d02f3c3f9e0156c582bf0e8d095b3758e7f16f487b70d513f4e15eb`), a crop of
+the existing reviewed `painter.webp` (712 x 534 from the top left) that leaves out
+its footer band, per the owner's no-footer rule. No new image generation.
+Inspected at source size: the raised right arm runs shoulder, elbow, wrist to the
+gloved hand on the roller handle; the left arm hangs at his side to a hand at the
+belt. Two arms, no additional limb. No background people. The clothing carries the
+ArbeidMatch mark only.

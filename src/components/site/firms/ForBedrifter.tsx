@@ -62,10 +62,10 @@ export default function ForBedrifter() {
           <Image
             className="ph"
             style={{ objectPosition: "center top" }}
-            src="/images/home/concrete.webp"
-            alt="Fagarbeider på byggeplass"
-            width={800}
-            height={600}
+            src="/images/home/painter-reviewed.webp"
+            alt="Maler i arbeid"
+            width={712}
+            height={534}
             sizes="(max-width: 760px) 100vw, 480px"
             priority
           />
@@ -92,8 +92,8 @@ export default function ForBedrifter() {
             <a className="prow" href={SITE_PATHS.request} data-sheet="request">
               <RowIcon name="users" />
               <span className="rl">
-                <b>For bemanningsbyråer</b>
-                <small>Dere har kunden. Vi finner kandidatene.</small>
+                <b>For bedrift</b>
+                <small>Dere trenger folk. Vi finner kandidatene.</small>
               </span>
               <Chev />
             </a>
