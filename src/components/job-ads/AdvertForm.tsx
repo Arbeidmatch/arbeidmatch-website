@@ -258,6 +258,17 @@ function LanguagePicker({ value, onChange }: { value: string[]; onChange: (next:
   );
 }
 
+/**
+ * The rules version is the day the rules were written (2026-09-11), kept so on
+ * the order; the client reads it as that day, not as a code.
+ */
+function rulesVersionLabel(version: string): string {
+  const m = /^(d{4})-(d{2})-(d{2})$/.exec(version);
+  if (!m) return version;
+  const months = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
+  return `${Number(m[3])}. ${months[Number(m[2]) - 1] ?? m[2]} ${m[1]}`;
+}
+
 /** Errors and reviewer notes by field name, read by every Field without threading props through each one. */
 const FieldStateContext = createContext<{ errors: Record<string, string>; notes?: Record<string, string> }>({ errors: {} });
 
@@ -952,7 +963,7 @@ export default function AdvertForm({
                         onChange={(e) => setAccepted(e.target.checked)}
                         className="mt-0.5 h-4 w-4 shrink-0 accent-[#C9A84C]"
                       />
-                      <span className="text-sm text-white">Vi har lest og godtar annonsereglene (versjon {rules.version})</span>
+                      <span className="text-sm text-white">Vi har lest og godtar annonsereglene (versjon av {rulesVersionLabel(rules.version)})</span>
                     </label>
                   </>
                 ) : null}
@@ -960,7 +971,7 @@ export default function AdvertForm({
             ) : null}
 
             <p className="text-[13px] text-white/50">
-              Kontrollen tar vanligvis under ett minutt. Dere betaler ikke noe før annonsen er godkjent og dere har valgt pakke.
+              Kontrollen tar vanligvis noen minutter. Dere betaler ikke noe før annonsen er godkjent og dere har valgt pakke.
             </p>
           </div>
         ) : null}
@@ -1008,7 +1019,7 @@ export default function AdvertForm({
           <div className="max-w-sm text-center">
             <span className={bigSpinnerClass} />
             <p className="mt-6 text-lg font-bold text-white">Vi kontrollerer annonsen...</p>
-            <p className="mt-2 text-sm text-white/60">Det tar vanligvis under ett minutt. Ikke lukk siden.</p>
+            <p className="mt-2 text-sm text-white/60">Det kan ta noen minutter. Ikke lukk siden.</p>
           </div>
         </div>
       ) : null}
