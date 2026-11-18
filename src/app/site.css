@@ -23,6 +23,7 @@
 .ams .dd > button svg{width:15px;height:15px;transition:transform .2s}
 .ams .dd > button[aria-expanded="true"] svg{transform:rotate(180deg)}
 .ams .ddp{position:absolute;top:50px;left:-6px;min-width:230px;padding:6px;border-radius:18px;display:flex;flex-direction:column;background:rgba(19,36,58,.97);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 0 0 1px rgba(255,255,255,.08),0 6px 12px rgba(4,8,13,.3),0 30px 60px rgba(4,8,13,.5)}
+.ams .ddp::before{content:"";position:absolute;left:0;right:0;top:-12px;height:12px}
 .ams .ddp button{height:46px;padding:0 14px;border-radius:12px;text-align:left;font-size:15px}
 .ams .s-nav button[aria-current="page"]{color:var(--gold)}
 .ams .burger{display:none;margin-left:auto;width:44px;height:44px;border-radius:14px;align-items:center;justify-content:center;color:var(--gold);background:rgba(255,255,255,.07);box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}

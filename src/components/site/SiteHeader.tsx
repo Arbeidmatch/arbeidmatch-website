@@ -84,6 +84,22 @@ export default function SiteHeader() {
   const ddRef = useRef<HTMLSpanElement>(null);
   // A pointer that opened the list by hovering must not close it again with the click that follows.
   const hoverOpenedAt = useRef(0);
+  /*
+   * The pointer crosses a gap between the button and the list; leaving the
+   * button for it closed the list before it could be reached (his find, 18
+   * November 2026). Leaving now closes after a short wait, entering again keeps
+   * it open, and the list carries an invisible bridge over the gap (site.css).
+   */
+  const closeTimer = useRef<number | null>(null);
+  const keepOpen = () => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+  };
+  const closeSoon = () => {
+    keepOpen();
+    closeTimer.current = window.setTimeout(() => setDd(false), 300);
+  };
+  useEffect(() => () => keepOpen(), []);
 
   useEffect(() => setDd(false), [pathname]);
   useEffect(() => {
@@ -129,13 +145,17 @@ export default function SiteHeader() {
             <Link href={SITE_PATHS.forsprang} aria-current={current(pathname, SITE_PATHS.forsprang) ? "page" : undefined}>
               Forsprang
             </Link>
-            <span className="dd" ref={ddRef} onMouseLeave={() => setDd(false)}>
+            <span className="dd" ref={ddRef} onMouseLeave={closeSoon} onMouseEnter={keepOpen}>
               <button
                 type="button"
                 aria-expanded={dd}
                 aria-haspopup="true"
                 aria-controls="am-cand-menu"
-                onClick={() => setDd((v) => (Date.now() - hoverOpenedAt.current < 600 ? true : !v))}
+                // A mouse already opened it by hovering, so its click keeps it open; touch and keyboard toggle.
+                onClick={(e) => {
+                  const pointer = (e.nativeEvent as PointerEvent).pointerType;
+                  setDd((v) => (pointer === "mouse" || Date.now() - hoverOpenedAt.current < 600 ? true : !v));
+                }}
                 onMouseEnter={() => {
                   if (!dd) hoverOpenedAt.current = Date.now();
                   setDd(true);
