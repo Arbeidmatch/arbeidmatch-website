@@ -8,7 +8,6 @@ import {
   EMPLOYMENT_TYPES,
   INDUSTRIES,
   REMOTE_LABELS,
-  WORK_LANGUAGE_OPTIONS,
   validateAdvert,
   type AdvertDraft,
   type EmploymentType,
@@ -160,6 +159,105 @@ function TagInput({
   );
 }
 
+/**
+ * WORKING LANGUAGES (his ask, 18 November 2026): Norwegian or English to choose
+ * at once, any other added with "+ Legg til språk", and for each the level it
+ * must be spoken at. Kept as the list of strings the order already carries,
+ * "Norsk - flytende", so the ATS reads it unchanged.
+ */
+const LANGUAGE_LEVELS = ["grunnleggende", "godt", "flytende", "morsmål"] as const;
+const LANGUAGE_SEP = " - ";
+
+function splitLanguage(entry: string): { name: string; level: string } {
+  const i = entry.lastIndexOf(LANGUAGE_SEP);
+  if (i > 0 && (LANGUAGE_LEVELS as readonly string[]).includes(entry.slice(i + LANGUAGE_SEP.length))) {
+    return { name: entry.slice(0, i), level: entry.slice(i + LANGUAGE_SEP.length) };
+  }
+  return { name: entry, level: "" };
+}
+
+function joinLanguage(name: string, level: string): string {
+  return level ? `${name}${LANGUAGE_SEP}${level}` : name;
+}
+
+function LanguagePicker({ value, onChange }: { value: string[]; onChange: (next: string[]) => void }) {
+  const rows = value.map(splitLanguage);
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState("");
+  const has = (name: string) => rows.some((r) => r.name.toLowerCase() === name.toLowerCase());
+  const toggle = (name: string) => onChange(has(name) ? value.filter((_, i) => rows[i]!.name.toLowerCase() !== name.toLowerCase()) : [...value, name]);
+  const setLevel = (index: number, level: string) => onChange(value.map((v, i) => (i === index ? joinLanguage(rows[i]!.name, level) : v)));
+  const remove = (index: number) => onChange(value.filter((_, i) => i !== index));
+  const add = () => {
+    const name = newName.trim().slice(0, 40);
+    if (name && !has(name) && value.length < 10) onChange([...value, name.charAt(0).toUpperCase() + name.slice(1)]);
+    setNewName("");
+    setAdding(false);
+  };
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        {["Norsk", "Engelsk"].map((lang) => (
+          <button key={lang} type="button" aria-pressed={has(lang)} onClick={() => toggle(lang)} className={choiceClass(has(lang), "px-3 py-2")}>
+            {lang}
+          </button>
+        ))}
+        {!adding && value.length < 10 ? (
+          <button type="button" onClick={() => setAdding(true)} className={secondaryButtonClass}>
+            + Legg til språk
+          </button>
+        ) : null}
+      </div>
+      {adding ? (
+        <div className="flex gap-2">
+          <input
+            autoFocus
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                add();
+              } else if (e.key === "Escape") setAdding(false);
+            }}
+            placeholder="For eksempel polsk"
+            aria-label="Språk"
+            className={inputClass(false, "min-w-0 flex-1")}
+          />
+          <button type="button" onClick={add} disabled={!newName.trim()} className={secondaryButtonClass}>
+            Legg til
+          </button>
+        </div>
+      ) : null}
+      {rows.length > 0 ? (
+        <ul className="space-y-2">
+          {rows.map((r, i) => (
+            <li key={r.name} className="flex flex-wrap items-center gap-2">
+              <span className="min-w-24 text-sm font-semibold text-white">{r.name}</span>
+              <select
+                value={r.level}
+                onChange={(e) => setLevel(i, e.target.value)}
+                aria-label={`Nivå i ${r.name}`}
+                className={inputClass(false, "w-auto min-w-44")}
+              >
+                <option value="">Nivå (valgfritt)</option>
+                {LANGUAGE_LEVELS.map((l) => (
+                  <option key={l} value={l}>
+                    {l.charAt(0).toUpperCase() + l.slice(1)}
+                  </option>
+                ))}
+              </select>
+              <button type="button" onClick={() => remove(i)} aria-label={`Fjern ${r.name}`} className="min-h-11 px-2 text-sm text-white/60 hover:text-white">
+                Fjern
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
 /** Errors and reviewer notes by field name, read by every Field without threading props through each one. */
 const FieldStateContext = createContext<{ errors: Record<string, string>; notes?: Record<string, string> }>({ errors: {} });
 
@@ -253,9 +351,58 @@ export default function AdvertForm({
     if (step === LAST_STEP && !rules && !rulesLoading && !rulesError) void loadRules();
   }, [step, rules, rulesLoading, rulesError, loadRules]);
 
-  const set = <K extends keyof AdvertDraft>(key: K, value: AdvertDraft[K]) => setAd((prev) => ({ ...prev, [key]: value }));
-  const setNested = <K extends "salary" | "location" | "employer" | "contact">(key: K, patch: Partial<AdvertDraft[K]>) =>
+  /**
+   * A field that is corrected loses its error at once (18 November 2026: the
+   * form kept "Skriv firmanavnet." under a filled-in name until the next press).
+   */
+  const clearErrors = (names: string[]) =>
+    setErrors((prev) => (names.some((n) => prev[n]) ? Object.fromEntries(Object.entries(prev).filter(([k]) => !names.includes(k))) : prev));
+  const set = <K extends keyof AdvertDraft>(key: K, value: AdvertDraft[K]) => {
+    clearErrors([String(key)]);
+    setAd((prev) => ({ ...prev, [key]: value }));
+  };
+  const setNested = <K extends "salary" | "location" | "employer" | "contact">(key: K, patch: Partial<AdvertDraft[K]>) => {
+    clearErrors([...Object.keys(patch).map((f) => `${key}.${f}`), ...(key === "contact" ? ["contact", "contact.email", "contact.phone"] : [])]);
     setAd((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
+  };
+
+  /**
+   * THE FIRM IS FOUND IN THE REGISTER (his ask, 18 November 2026): typing the
+   * name asks Enhetsregisteret, and choosing a firm fills the name, the
+   * organisation number and the home page the firm registered, when it has one.
+   * Nothing is guessed: a firm without a registered home page leaves the field
+   * as it was.
+   */
+  type RegisterHit = { name: string; orgNumber: string; city?: string; website?: string };
+  const [registerHits, setRegisterHits] = useState<RegisterHit[] | null>(null);
+  const [registerQuery, setRegisterQuery] = useState("");
+  useEffect(() => {
+    if (mode !== "create") return;
+    const q = registerQuery.trim();
+    if (q.length < 2) {
+      setRegisterHits(null);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = window.setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/brreg/search?q=${encodeURIComponent(q)}`, { signal: ctrl.signal });
+        const body = (await res.json().catch(() => ({}))) as { companies?: RegisterHit[] };
+        if (!ctrl.signal.aborted) setRegisterHits(Array.isArray(body.companies) ? body.companies.filter((c) => c.name && c.orgNumber) : []);
+      } catch {
+        if (!ctrl.signal.aborted) setRegisterHits(null);
+      }
+    }, 300);
+    return () => {
+      window.clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [mode, registerQuery]);
+  const pickFirm = (c: RegisterHit) => {
+    setNested("employer", { name: c.name, orgNumber: c.orgNumber, ...(c.website ? { website: c.website } : {}) });
+    setRegisterQuery("");
+    setRegisterHits(null);
+  };
 
   const scrollTop = () => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -363,10 +510,42 @@ export default function AdvertForm({
                 <input
                   id="f-employer.name"
                   value={ad.employer.name}
-                  onChange={(e) => setNested("employer", { name: e.target.value })}
-                  autoComplete="organization"
+                  onChange={(e) => {
+                    setNested("employer", { name: e.target.value });
+                    setRegisterQuery(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setRegisterHits(null);
+                  }}
+                  autoComplete="off"
+                  aria-autocomplete="list"
+                  aria-controls="firm-register-hits"
                   className={inputClass(!!err("employer.name"))}
                 />
+                {registerHits && registerHits.length > 0 ? (
+                  <ul
+                    id="firm-register-hits"
+                    role="listbox"
+                    aria-label="Treff i Enhetsregisteret"
+                    className="mt-2 max-h-64 overflow-y-auto rounded-lg border border-white/15 bg-[#0D1B2A]"
+                  >
+                    {registerHits.map((c) => (
+                      <li key={c.orgNumber} role="option" aria-selected={false}>
+                        <button
+                          type="button"
+                          onClick={() => pickFirm(c)}
+                          className="flex min-h-11 w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-white/5"
+                        >
+                          <span className="font-semibold text-white">{c.name}</span>
+                          <span className="text-[12px] text-white/55">
+                            {c.orgNumber}
+                            {c.city ? ` - ${c.city}` : ""}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </Field>
               <Field
                 name="employer.orgNumber"
@@ -564,24 +743,7 @@ export default function AdvertForm({
               <p className={labelClass}>
                 Arbeidsspråk <span className="ml-1 font-normal normal-case tracking-normal text-white/45">(valgfritt)</span>
               </p>
-              <div className="flex flex-wrap gap-2">
-                {WORK_LANGUAGE_OPTIONS.map((lang) => {
-                  const on = (ad.workLanguages ?? []).includes(lang);
-                  return (
-                    <button
-                      key={lang}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() =>
-                        set("workLanguages", on ? (ad.workLanguages ?? []).filter((l) => l !== lang) : [...(ad.workLanguages ?? []), lang])
-                      }
-                      className={choiceClass(on, "px-3 py-2")}
-                    >
-                      {lang}
-                    </button>
-                  );
-                })}
-              </div>
+              <LanguagePicker value={ad.workLanguages ?? []} onChange={(next) => set("workLanguages", next)} />
             </div>
           </div>
         ) : null}

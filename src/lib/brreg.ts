@@ -6,16 +6,19 @@ const ENHETER = "https://data.brreg.no/enhetsregisteret/api/enheter";
 
 /**
  * city: the town of the business address, so two firms with the same name can be told apart in a list.
+ * website: the unit's registered home page, when there is one.
  * industryCode: the unit's main industry code (NACE, e.g. "78.200"), which tells a staffing agency (78) from a firm hiring for itself.
  */
-export type BrregCompany = { name: string; orgNumber: string; city?: string; industryCode?: string };
+export type BrregCompany = { name: string; orgNumber: string; city?: string; industryCode?: string; website?: string };
 
-type BrregEnhet = { navn?: string; organisasjonsnummer?: string; forretningsadresse?: { poststed?: string }; naeringskode1?: { kode?: string } };
+type BrregEnhet = { navn?: string; organisasjonsnummer?: string; forretningsadresse?: { poststed?: string }; naeringskode1?: { kode?: string }; hjemmeside?: string };
 
 function toCompany(item: BrregEnhet): BrregCompany {
   const city = item.forretningsadresse?.poststed?.trim();
   const industryCode = item.naeringskode1?.kode?.trim();
-  return { name: item.navn || "", orgNumber: item.organisasjonsnummer || "", ...(city ? { city } : {}), ...(industryCode ? { industryCode } : {}) };
+  // website: the home page the firm registered, when it registered one (18 November 2026, the advert form fills it in).
+  const website = item.hjemmeside?.trim();
+  return { name: item.navn || "", orgNumber: item.organisasjonsnummer || "", ...(city ? { city } : {}), ...(industryCode ? { industryCode } : {}), ...(website ? { website } : {}) };
 }
 
 /**
