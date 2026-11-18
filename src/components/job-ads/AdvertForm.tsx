@@ -137,7 +137,8 @@ function TagInput({
           ))}
         </div>
       ) : null}
-      <div className="flex gap-2">
+      {/* On a phone the button goes under the field, so the example in it is read whole. */}
+      <div className="flex flex-col gap-2 sm:flex-row">
         <input
           id={id}
           value={text}
@@ -232,13 +233,13 @@ function LanguagePicker({ value, onChange }: { value: string[]; onChange: (next:
       {rows.length > 0 ? (
         <ul className="space-y-2">
           {rows.map((r, i) => (
-            <li key={r.name} className="flex flex-wrap items-center gap-2">
-              <span className="min-w-24 text-sm font-semibold text-white">{r.name}</span>
+            <li key={r.name} className="grid grid-cols-[1fr_auto] items-center gap-x-2 gap-y-1 sm:grid-cols-[8rem_1fr_auto]">
+              <span className="text-sm font-semibold text-white">{r.name}</span>
               <select
                 value={r.level}
                 onChange={(e) => setLevel(i, e.target.value)}
                 aria-label={`Nivå i ${r.name}`}
-                className={inputClass(false, "w-auto min-w-44")}
+                className={inputClass(false, "order-3 col-span-2 sm:order-none sm:col-span-1")}
               >
                 <option value="">Nivå (valgfritt)</option>
                 {LANGUAGE_LEVELS.map((l) => (
@@ -263,7 +264,7 @@ function LanguagePicker({ value, onChange }: { value: string[]; onChange: (next:
  * the order; the client reads it as that day, not as a code.
  */
 function rulesVersionLabel(version: string): string {
-  const m = /^(d{4})-(d{2})-(d{2})$/.exec(version);
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(version);
   if (!m) return version;
   const months = ["januar", "februar", "mars", "april", "mai", "juni", "juli", "august", "september", "oktober", "november", "desember"];
   return `${Number(m[3])}. ${months[Number(m[2]) - 1] ?? m[2]} ${m[1]}`;
