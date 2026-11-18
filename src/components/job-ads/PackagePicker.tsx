@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { CARD_PAYMENTS_ON } from "@/lib/job-ads/payments";
+
 import {
   ADDONS,
   ADDONS_INCLUDED_IN,
@@ -43,7 +45,7 @@ export default function PackagePicker({ token, order, onOrder }: Props) {
   const chosen = order.chosen;
   const [pkg, setPkg] = useState<AdPackage>(chosen?.package ?? "synlig");
   const [addons, setAddons] = useState<AdAddon[]>((chosen?.addons ?? []).filter(isAdAddon));
-  const [method, setMethod] = useState<PaymentMethod>(chosen?.method ?? "card");
+  const [method, setMethod] = useState<PaymentMethod>(CARD_PAYMENTS_ON ? (chosen?.method ?? "card") : "invoice");
   const [invoiceReference, setInvoiceReference] = useState("");
   const [invoiceEmail, setInvoiceEmail] = useState(order.advert?.contact?.email ?? "");
   const [quoted, setQuoted] = useState<{ key: string; quote: AdQuote } | null>(
@@ -222,10 +224,12 @@ export default function PackagePicker({ token, order, onOrder }: Props) {
       <div>
         <h3 className="text-base font-bold">Betaling</h3>
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <button type="button" onClick={() => setMethod("card")} className={choiceClass(method === "card")} aria-pressed={method === "card"}>
-            <span className="block font-semibold text-white">Betal med kort</span>
-            <span className="block text-[12px] text-white/55">Annonsen publiseres når betalingen er gjennomført.</span>
-          </button>
+          {CARD_PAYMENTS_ON ? (
+            <button type="button" onClick={() => setMethod("card")} className={choiceClass(method === "card")} aria-pressed={method === "card"}>
+              <span className="block font-semibold text-white">Betal med kort</span>
+              <span className="block text-[12px] text-white/55">Annonsen publiseres når betalingen er gjennomført.</span>
+            </button>
+          ) : null}
           <button type="button" onClick={() => setMethod("invoice")} className={choiceClass(method === "invoice")} aria-pressed={method === "invoice"}>
             <span className="block font-semibold text-white">Faktura (14 dager)</span>
             <span className="block text-[12px] text-white/55">Annonsen publiseres med en gang, fakturaen kommer på e-post.</span>

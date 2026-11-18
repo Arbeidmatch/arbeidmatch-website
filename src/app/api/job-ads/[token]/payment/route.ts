@@ -8,6 +8,7 @@ import { norwegianError } from "@/lib/job-ads/errors";
 import { expireOpenJobAdSessions, jobAdCheckoutParams } from "@/lib/job-ads/stripe";
 import { isAdAddon, isAdPackage, isOrderToken, type AdPackage, type PaymentMethod } from "@/lib/job-ads/types";
 import { getPublicBaseUrl } from "@/lib/premium/stripeEnv";
+import { CARD_PAYMENTS_ON } from "@/lib/job-ads/payments";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -62,6 +63,9 @@ export async function POST(request: NextRequest, ctx: Ctx) {
 
   const method: PaymentMethod | null = body.method === "card" || body.method === "invoice" ? body.method : null;
   if (!method) return noStoreJson({ ok: false, error: "Velg betalingsmåte." }, { status: 400 });
+  if (method === "card" && !CARD_PAYMENTS_ON) {
+    return noStoreJson({ ok: false, error: "Kortbetaling er ikke tilgjengelig. Velg faktura." }, { status: 409 });
+  }
   if (order.status !== "awaiting_payment" || !order.chosen?.quote) {
     return noStoreJson({ ok: true, order });
   }

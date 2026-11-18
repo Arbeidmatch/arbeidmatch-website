@@ -122,7 +122,7 @@ export default function NewAdvertClient({ prefill }: { prefill: AdvertPrefill })
         <h1 className="mt-2 text-3xl font-extrabold md:text-4xl">Publiser en stillingsannonse</h1>
         <p className="mt-3 text-[15px] leading-relaxed text-white/70">
           Skriv annonsen og godta annonsereglene. Vi kontrollerer den før dere betaler noe. Når den er godkjent, velger dere pakke og
-          betaler med kort eller faktura, og annonsen publiseres på arbeidmatch.no.
+          betaler med faktura, og annonsen publiseres på arbeidmatch.no.
         </p>
         <ol className="mt-5 grid grid-cols-1 gap-2 text-sm text-white/75 sm:grid-cols-3">
           {["Dere skriver annonsen", "Vi kontrollerer den", "Dere velger pakke og betaler"].map((t, i) => (

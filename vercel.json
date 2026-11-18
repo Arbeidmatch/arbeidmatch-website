@@ -16,10 +16,6 @@
     {
       "path": "/api/cv/retention",
       "schedule": "30 3 * * *"
-    },
-    {
-      "path": "/api/cron/job-ads-reconcile",
-      "schedule": "15 6 * * *"
     }
   ]
 }

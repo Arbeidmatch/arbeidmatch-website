@@ -6,8 +6,10 @@ import { pageShellClass } from "@/components/job-ads/ui";
 export const metadata: Metadata = {
   title: { absolute: "Publiser stillingsannonse | ArbeidMatch" },
   description:
-    "Skriv stillingsannonsen deres, vi kontrollerer den før dere betaler, og den publiseres på arbeidmatch.no. Betal med kort eller faktura.",
+    "Skriv stillingsannonsen deres, vi kontrollerer den før dere betaler, og den publiseres på arbeidmatch.no. Betaling med faktura.",
   alternates: { canonical: "/annonse/ny" },
+  // Not offered yet (the request form says "Kommer snart"): kept out of search engines, 18 November 2026.
+  robots: { index: false, follow: false },
 };
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };

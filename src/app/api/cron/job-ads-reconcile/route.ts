@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { noStoreJson } from "@/lib/apiSecurity";
 import { notifyError } from "@/lib/errorNotifier";
 import { markOrderPaid } from "@/lib/job-ads/atsClient";
+import { CARD_PAYMENTS_ON } from "@/lib/job-ads/payments";
 import { jobAdPaidFromSession } from "@/lib/job-ads/stripe";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,8 @@ export async function GET(request: NextRequest) {
   if (request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
     return noStoreJson({ error: "Unauthorized" }, { status: 401 });
   }
+  // Card payment paused: nothing to reconcile, and no error for his bell.
+  if (!CARD_PAYMENTS_ON) return noStoreJson({ success: true, paused: true });
   const secret = process.env.STRIPE_SECRET_KEY;
   if (!secret) return noStoreJson({ error: "Service unavailable" }, { status: 503 });
 
