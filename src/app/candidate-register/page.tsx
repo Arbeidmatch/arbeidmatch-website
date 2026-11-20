@@ -1,71 +1,48 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect } from "react";
 
-import { candidateJoinPayload } from "@/lib/candidateJoinConsent";
+import { useSheets } from "@/components/site/sheet/SheetHost";
+import { gateSourceFrom } from "@/lib/candidateGate";
+import { CANDIDATE_PORTAL_LOGIN_URL } from "@/lib/candidatePortal";
 
-const COOLDOWN_MS = 60_000;
-const COOLDOWN_KEY = "arbeidmatch-candidate-request-cooldown";
-
-export default function CandidateRequestPage() {
-  const [email, setEmail] = useState("");
-  const [eligibility, setEligibility] = useState<"yes" | "no" | null>(null);
-  const [gdpr, setGdpr] = useState(false);
-  const [citizen, setCitizen] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [remaining, setRemaining] = useState(0);
-  // Honeypot: people never see it; a bot that fills every field is dropped by the route.
-  const [website, setWebsite] = useState("");
+/**
+ * THE ONE ENTRY GATE FOR NEW CANDIDATES (ORDER 396, 20 November 2026). His
+ * words: "sa fie o singura poarta de intrare si aia sa fie prin site nu prin
+ * ats". Every door that makes a profile leads here: a job's Register, a
+ * recruiter's /register/<handle>, a referral, the Messenger bot, and RecOS's
+ * own "Create my profile". The page opens the "Create your profile" sheet at
+ * once, carrying the source the address names; behind it, one line and a
+ * button to open it again.
+ */
+export default function CandidateRegisterPage() {
+  const { open } = useSheets();
+  const openGate = () => open("register", { source: gateSourceFrom(new URLSearchParams(window.location.search)) });
 
   useEffect(() => {
-    const refresh = () => {
-      const until = Number(window.localStorage.getItem(COOLDOWN_KEY) || 0);
-      setRemaining(Math.max(0, Math.ceil((until - Date.now()) / 1000)));
-    };
-    refresh();
-    const timer = window.setInterval(refresh, 500);
-    return () => window.clearInterval(timer);
-  }, []);
+    open("register", { source: gateSourceFrom(new URLSearchParams(window.location.search)) });
+  }, [open]);
 
-  async function submit() {
-    setBusy(true);
-    setError("");
-    const res = await fetch("/api/candidate-join-network", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...candidateJoinPayload({ email, consent: gdpr, euEeaCitizen: citizen }), website }),
-    });
-    const data = await res.json().catch(() => ({}));
-    setBusy(false);
-    if (!res.ok) return setError(data.error || "Please try again.");
-    window.localStorage.setItem(COOLDOWN_KEY, String(Date.now() + COOLDOWN_MS));
-    setRemaining(60);
-    setConfirmOpen(false);
-    setSent(true);
-  }
-
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (remaining > 0) return;
-    if (!gdpr || !citizen) return setError("Please complete both confirmations.");
-    setError("");
-    setConfirmOpen(true);
-  }
-
-  const counter = `You can send another request in ${remaining}s.`;
   return (
-    <main className="min-h-[calc(100vh-72px)] bg-[#0D1B2A] px-6 py-14 text-white">
-      <form onSubmit={onSubmit} className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-white/[0.04] p-7">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#C9A84C]">Candidate profile request</p>
-        <h1 className="mt-3 text-3xl font-bold">Request to create your profile</h1>
-        {eligibility === null ? <section className="mt-6"><h2 className="text-lg font-semibold">Are you an EU/EEA citizen?</h2><p className="mt-2 text-sm text-white/70">We can accept candidate profiles only from EU/EEA citizens. A valid passport or national ID card shows it.</p><div className="mt-5 flex gap-3"><button type="button" onClick={() => setEligibility("yes")} className="rounded-lg bg-[#C9A84C] px-5 py-3 font-semibold text-[#0D1B2A]">Yes, I do</button><button type="button" onClick={() => setEligibility("no")} className="rounded-lg border border-white/20 px-5 py-3 font-semibold text-white">No, I do not</button></div></section> : null}
-        {eligibility === "no" ? <section className="mt-6 rounded-lg border border-white/10 bg-black/10 p-5"><h2 className="text-lg font-semibold">Profile creation is not available</h2><p className="mt-2 text-sm leading-relaxed text-white/70">At this time, ArbeidMatch accepts candidate profiles only from EU/EEA citizens (passport or national ID card).</p><button type="button" onClick={() => setEligibility(null)} className="mt-4 text-sm font-semibold text-[#C9A84C]">Go back</button></section> : null}
-        {eligibility === "yes" ? <><p className="mt-3 text-white/70">Confirm your email address and GDPR consent before we send your continuation link.</p>{sent ? <p className="mt-5 rounded-lg border border-[#C9A84C]/30 bg-[#C9A84C]/10 p-3 text-sm text-white/85">Check your email for the profile link. {remaining > 0 ? counter : "You may send another request if you entered the wrong email."}</p> : null}<input type="text" name="website" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 opacity-0" /><label className="mt-6 block text-sm font-semibold">Email address<input required value={email} onChange={(e) => setEmail(e.target.value)} type="email" inputMode="email" autoComplete="email" className="mt-2 w-full rounded-lg border border-white/20 bg-[#0D1B2A] px-3 py-3 text-white" /></label><label className="mt-5 flex gap-3 text-sm text-white/80"><input type="checkbox" checked={gdpr} onChange={(e) => setGdpr(e.target.checked)} /><span>I consent to ArbeidMatch processing this request and my email address, so that ArbeidMatch can create my candidate profile and contact me about opportunities.</span></label><label className="mt-4 flex gap-3 text-sm text-white/80"><input type="checkbox" checked={citizen} onChange={(e) => setCitizen(e.target.checked)} />I confirm that I am an EU/EEA citizen (passport or national ID card).</label><p className="mt-4 text-sm text-white/70">Read how we handle your data in our <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#C9A84C] underline underline-offset-2 hover:opacity-80">privacy notice</a>.</p><p className="mt-4 text-xs leading-relaxed text-white/50">When you submit, your email address and these confirmations are sent to ArbeidMatch and recorded as your consent, so we can create your candidate profile and contact you about opportunities.</p>{error ? <p className="mt-4 text-sm text-red-300">{error}</p> : null}<button disabled={busy || remaining > 0} className="mt-7 rounded-lg bg-[#C9A84C] px-5 py-3 font-semibold text-[#0D1B2A] disabled:cursor-not-allowed disabled:opacity-55">{busy ? "Sending..." : remaining > 0 ? counter : sent ? "Send another request" : "Request profile creation"}</button></> : null}
-      </form>
-      {confirmOpen ? <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-6"><div className="max-w-md rounded-2xl bg-[#0D1B2A] p-6"><h2 className="text-xl font-bold">Final citizenship confirmation</h2><p className="mt-3 text-white/75">Only EU/EEA citizens can be accepted, shown by a valid passport or national ID card. If this cannot be confirmed, the profile will not be accepted in our recruitment system.</p><div className="mt-6 flex gap-3"><button type="button" onClick={() => setConfirmOpen(false)} className="rounded-lg border border-white/20 px-4 py-2">Go back</button><button type="button" onClick={submit} disabled={busy} className="rounded-lg bg-[#C9A84C] px-4 py-2 font-semibold text-[#0D1B2A]">I confirm</button></div></div></div> : null}
+    <main className="min-h-[calc(100vh-72px)] bg-surface px-5 py-14 md:px-12">
+      <div className="mx-auto max-w-xl rounded-2xl border border-border bg-white p-7">
+        <h1 className="text-2xl font-extrabold text-navy md:text-3xl">Create your candidate profile</h1>
+        <p className="mt-3 leading-relaxed text-text-secondary">
+          Free for you. Answer three questions and we e-mail you a link that opens your profile. Only people aged 18 or older can register.
+        </p>
+        <div className="mt-6 flex flex-col gap-3 md:flex-row md:items-center">
+          <button
+            type="button"
+            onClick={openGate}
+            className="inline-flex min-h-[52px] items-center justify-center rounded-xl bg-navy px-7 py-3 text-base font-semibold text-white transition hover:bg-navy/90"
+          >
+            Create my profile
+          </button>
+          <a href={CANDIDATE_PORTAL_LOGIN_URL} className="inline-flex min-h-[44px] items-center justify-center font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">
+            I already have a profile: sign in
+          </a>
+        </div>
+      </div>
     </main>
   );
 }

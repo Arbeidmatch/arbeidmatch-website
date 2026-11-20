@@ -236,7 +236,8 @@ export function verifiedProfileNoticeLetter(args: { email: string; timestamp: st
 export const CANDIDATE_REGISTER_URL: string = CANDIDATE_PORTAL_REGISTER_URL;
 
 /** The link that was in the text is the button now: one way to the platform, not a link in a sentence. */
-export function profileRequestLetter(args: { to: string; unsubscribeUrl: string }): Letter {
+/** registerUrl: the register page with the gate's single-use token (ORDER 396). */
+export function profileRequestLetter(args: { to: string; unsubscribeUrl: string; registerUrl?: string }): Letter {
   return {
     subject: "Continue your ArbeidMatch profile request",
     html: buildArbeidmatchLetter({
@@ -250,7 +251,7 @@ export function profileRequestLetter(args: { to: string; unsubscribeUrl: string 
           "This confirmation step helps us reduce false accounts and make sure we handle personal data in accordance with GDPR. If you did not make this request, you can safely ignore this email.",
         ),
       ].join(""),
-      cta: { href: CANDIDATE_REGISTER_URL, label: "Create your profile" },
+      cta: { href: args.registerUrl ?? CANDIDATE_REGISTER_URL, label: "Create your profile" },
       lang: EN,
       audience: "candidate",
       recipient: args.to,

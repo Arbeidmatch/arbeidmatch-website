@@ -6,9 +6,8 @@ import { logApiError } from "@/lib/secureLogger";
 import { notifySlack } from "@/lib/slackNotifier";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { MAX_PUSH_ATTEMPTS, backoffMs, pushToAtsEnabled, verifyHandoffSignature } from "@/lib/cv/handoff";
-import { upsertRecmanCandidate, uploadRecmanFile } from "@/lib/cv/recman";
 import { cvDocumentSchema } from "@/lib/cv/schema";
-import { downloadPdf, signedUrl } from "@/lib/cv/storage";
+import { signedUrl } from "@/lib/cv/storage";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -49,8 +48,11 @@ async function pushToOwnAts(payload: unknown, pdfUrl: string | null): Promise<{ 
 
 /**
  * Internal only. Called by the consent verify route behind the CV_PUSH_TO_ATS flag and
- * authenticated with an HMAC over the document id. Idempotent: a document that already
- * shows both push timestamps is a no-op.
+ * authenticated with an HMAC over the document id. Idempotent: a document already in
+ * RecOS is a no-op.
+ *
+ * ORDER 396, 20 November 2026: a CV goes to RecOS and nowhere else. The second push, to
+ * the external system, is gone; it sent people's CVs outside our own.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
     if (!record) {
       return noStoreJson({ success: false, error: "Not found." }, { status: 404 });
     }
-    if (record.ats_pushed_at && record.recman_pushed_at) {
+    if (record.ats_pushed_at) {
       return noStoreJson({ success: true, skipped: "already_pushed" });
     }
 
@@ -98,27 +100,10 @@ export async function POST(request: NextRequest) {
       else if (result.error) errors.push(result.error);
     }
 
-    let recmanPushedAt = record.recman_pushed_at as string | null;
-    if (!recmanPushedAt) {
-      const candidate = await withRetry(() => upsertRecmanCandidate(doc));
-      if (candidate.ok && candidate.candidateId) {
-        const pdf = path ? await downloadPdf(supabase, path) : null;
-        const fileName = path?.split("/").pop() ?? "CV.pdf";
-        const upload = pdf
-          ? await withRetry(() => uploadRecmanFile(candidate.candidateId as string, fileName, pdf))
-          : { ok: false, error: "pdf_missing" };
-        if (upload.ok) recmanPushedAt = new Date().toISOString();
-        else if (upload.error) errors.push(upload.error);
-      } else if (candidate.error) {
-        errors.push(candidate.error);
-      }
-    }
-
     await supabase
       .from("cv_documents")
       .update({
         ats_pushed_at: atsPushedAt,
-        recman_pushed_at: recmanPushedAt,
         push_attempts: (record.push_attempts ?? 0) + 1,
         push_last_error: errors.length > 0 ? errors.join("; ").slice(0, 500) : null,
       })
@@ -132,7 +117,6 @@ export async function POST(request: NextRequest) {
           Document: documentId,
           Erori: errors.join("; ").slice(0, 300),
           ATS: atsPushedAt ? "trimis" : "în așteptare",
-          RecMan: recmanPushedAt ? "trimis" : "în așteptare",
         },
       });
     }
@@ -140,7 +124,6 @@ export async function POST(request: NextRequest) {
     return noStoreJson({
       success: errors.length === 0,
       atsPushed: Boolean(atsPushedAt),
-      recmanPushed: Boolean(recmanPushedAt),
     });
   } catch (error) {
     logApiError("cv/push-to-ats", error);

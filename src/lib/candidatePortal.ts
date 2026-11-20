@@ -36,3 +36,12 @@ export const CANDIDATE_PORTAL_SIGNUP_URL = "/candidate-register" as const;
  * the constant above so there is still exactly one place naming the host.
  */
 export const CANDIDATE_PORTAL_REGISTER_URL = `${CANDIDATE_PORTAL_LOGIN_URL}/register` as const;
+
+/**
+ * ORDER 396: the letter of the one entry gate opens the register page with the
+ * single-use token RecOS handed out for the answers given on /candidate-register.
+ * The register page makes no profile without it.
+ */
+export function candidateRegisterUrlWithGate(token: string): string {
+  return `${CANDIDATE_PORTAL_REGISTER_URL}?gate=${encodeURIComponent(token)}`;
+}

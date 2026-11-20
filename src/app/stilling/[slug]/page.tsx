@@ -16,6 +16,7 @@ import {
 import { applyNextStep, contractLabel, hiringModelLabel, type HiringModel } from "@/lib/job-contract";
 import { LANGUAGE_LABELS, splitJobAdvertLanguages } from "@/lib/job-advert-languages";
 import { roleWithoutCity } from "@/lib/job-title";
+import { candidateRegisterHref } from "@/lib/candidateGate";
 
 /**
  * The advert itself, on our own site.
@@ -158,7 +159,8 @@ export default async function StillingPage({ params }: Props) {
     source: `job:${slug}`,
   }).toString();
   const loginHref = `${atsBaseUrl()}/candidate/login?${portalQuery}`;
-  const registerHref = `${atsBaseUrl()}/candidate/login/register?${portalQuery}`;
+  // A new profile is made only on the one entry gate (ORDER 396), carrying the advert it came from.
+  const registerHref = candidateRegisterHref(`job:${slug}`);
 
   // The bar on every posting: a diploma or documented equivalent experience,
   // never a beginner. The electricians say DSB instead, because for them the

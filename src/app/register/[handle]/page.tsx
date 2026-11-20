@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { atsBaseUrl } from "@/lib/jobs-fetch";
+import { candidateRegisterHref } from "@/lib/candidateGate";
 
 /**
  * Somebody joining, on the invitation of a person who has a name.
@@ -89,7 +90,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function RegisterPage({ params }: Props) {
   const { handle } = await params;
   const invitation = await resolveInvitation(handle);
-  if (!invitation) notFound();
+  // A name or token that resolves to nothing opens the one entry gate (ORDER 396), not a 404.
+  if (!invitation) redirect("/candidate-register");
 
   const who = invitation.recruiter_name;
   const initials = who
@@ -158,9 +160,9 @@ export default async function RegisterPage({ params }: Props) {
             ))}
           </ol>
           <div className="mt-8 flex flex-col items-stretch gap-3 md:flex-row md:items-center md:gap-6">
-            {/* The register door, so the name and the consent are asked before a profile exists (ORDER 281). */}
+            {/* The one entry gate (ORDER 396), carrying the invitation so the profile is this recruiter's. */}
             <a
-              href={`${atsBaseUrl()}/candidate/login/register?invite=${encodeURIComponent(invitation.token)}`}
+              href={candidateRegisterHref(`invite:${invitation.token}`)}
               className="inline-flex min-h-[52px] items-center justify-center rounded-xl bg-navy px-7 py-3 text-base font-semibold text-white transition hover:bg-navy/90"
             >
               Create my profile

@@ -3,7 +3,17 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { SITE_PATHS } from "@/components/site/siteNav";
-import { candidateJoinPayload } from "@/lib/candidateJoinConsent";
+import {
+  DEFAULT_CITIZENSHIP_RULE,
+  GATE_CONSENT_TEXT_LEAD,
+  GATE_CONSENT_TEXT_VERSION,
+  citizenshipAccepted,
+  gateSourceFrom,
+  isAdult,
+  parseCitizenshipRule,
+  type GateCitizenship,
+  type GateCitizenshipRule,
+} from "@/lib/candidateGate";
 import { TRADES } from "@/lib/trades";
 
 import { AreaRow, ConsentSwitch, Done, Group, Hint, InputRow, NavRow, OptionRow, PrivacySwitch, Segmented } from "./rows";
@@ -145,23 +155,28 @@ const COOLDOWN_MS = 60_000;
 const COOLDOWN_KEY = "arbeidmatch-candidate-request-cooldown";
 
 /**
- * "Create your profile": the live request of /candidate-register. The EU/EEA
- * question, the e-mail, the consent and the citizenship confirmation, the
- * final citizenship confirmation as a sub-panel, the one-minute pause between
- * requests (the same key as the page) and the honeypot, posted to
- * /api/candidate-join-network. The link it sends continues in the profile.
+ * "Create your profile": the one entry gate for new candidates (ORDER 396).
+ * In his order, as one sheet: citizenship, date of birth (18 or older),
+ * e-mail, and one consent that says exactly what is accepted, with the privacy
+ * link in it. The source it was opened with (a job, a recruiter's link, a
+ * referral, the bot's click) travels with the answers. Posted to
+ * /api/candidate-join-network, which asks RecOS for a single-use token; the
+ * letter's button carries it to the profile. The one-minute pause between
+ * requests and the honeypot stay.
  */
-export function RegisterSheet({ open, close }: SheetProps) {
-  const [eligible, setEligible] = useState<"yes" | "no">("yes");
+export function RegisterSheet({ open, close, preset }: SheetProps) {
+  const [rule, setRule] = useState<GateCitizenshipRule>(DEFAULT_CITIZENSHIP_RULE);
+  const [citizenship, setCitizenship] = useState<GateCitizenship>("eu_eea");
+  const [birth, setBirth] = useState("");
   const [email, setEmail] = useState("");
-  const [gdpr, setGdpr] = useState(false);
-  const [citizen, setCitizen] = useState(false);
+  const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState("");
-  const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [remaining, setRemaining] = useState(0);
+  // Opened from a door that named itself, or from the address bar of the page it sits on (sheets open only in the browser).
+  const [source] = useState(() => preset.source ?? (typeof window === "undefined" ? "site" : gateSourceFrom(new URLSearchParams(window.location.search))));
 
   useEffect(() => {
     const refresh = () => {
@@ -173,27 +188,40 @@ export function RegisterSheet({ open, close }: SheetProps) {
     return () => window.clearInterval(timer);
   }, []);
 
-  function ask() {
-    if (sent && remaining <= 0) setSent(false);
-    if (remaining > 0) return;
-    if (eligible === "no") return;
-    if (!EMAIL.test(email.trim())) return setError("Enter a valid e-mail address.");
-    if (!gdpr || !citizen) return setError("Please complete both confirmations.");
-    setError("");
-    setConfirming(true);
-  }
+  useEffect(() => {
+    // Which citizenship answers RecOS takes today; until it says, the EU/EEA rule this sheet always showed.
+    void fetch("/api/candidate-join-network")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { citizenship_rule?: unknown } | null) => setRule(parseCitizenshipRule(j?.citizenship_rule)))
+      .catch(() => undefined);
+  }, []);
+
+  const refused = !citizenshipAccepted(citizenship, rule);
 
   async function submit() {
+    if (sent && remaining <= 0) setSent(false);
+    if (remaining > 0 || refused) return;
+    if (!birth) return setError("Give your date of birth.");
+    if (!isAdult(birth)) return setError("You must be 18 or older to create a profile.");
+    if (!EMAIL.test(email.trim())) return setError("Enter a valid e-mail address.");
+    if (!consent) return setError("Turn on the consent to continue.");
     setBusy(true);
     setError("");
     const res = await fetch("/api/candidate-join-network", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...candidateJoinPayload({ email, consent: gdpr, euEeaCitizen: citizen }), website }),
+      body: JSON.stringify({
+        email: email.trim(),
+        citizenship,
+        date_of_birth: birth,
+        consent: true,
+        consent_text_version: GATE_CONSENT_TEXT_VERSION,
+        source,
+        website,
+      }),
     }).catch(() => null);
     const data = (await res?.json().catch(() => ({}))) as { error?: string } | undefined;
     setBusy(false);
-    setConfirming(false);
     if (!res || !res.ok) return setError(data?.error || "Please try again.");
     window.localStorage.setItem(COOLDOWN_KEY, String(Date.now() + COOLDOWN_MS));
     setRemaining(60);
@@ -202,62 +230,50 @@ export function RegisterSheet({ open, close }: SheetProps) {
 
   const counter = `You can send another request in ${remaining}s.`;
   const label = busy ? "Sending..." : remaining > 0 ? counter : sent ? "Send another request" : "Create profile";
+  const options: readonly { value: GateCitizenship; label: string }[] =
+    rule === "eu_eea_or_work_permit"
+      ? [
+          { value: "eu_eea", label: "EU/EEA" },
+          { value: "work_permit", label: "Work permit" },
+          { value: "other", label: "Neither" },
+        ]
+      : [
+          { value: "eu_eea", label: "Yes, I am" },
+          { value: "other", label: "No, I am not" },
+        ];
 
   return (
     <SheetFrame
       open={open}
       lang="en"
       title="Create your profile"
-      sub={
-        confirming
-          ? {
-              title: "Citizenship",
-              content: (
-                <>
-                  <Hint>
-                    Only EU/EEA citizens can be accepted, shown by a valid passport or national ID card. If this cannot be confirmed, the profile will not be accepted in our recruitment system.
-                  </Hint>
-                  <button type="button" className="btn gold" style={{ width: "100%" }} onClick={() => void submit()} disabled={busy}>
-                    {busy ? "Sending..." : "I confirm"}
-                  </button>
-                  <button type="button" className="btn ghost" style={{ width: "100%" }} onClick={() => setConfirming(false)}>
-                    Go back
-                  </button>
-                </>
-              ),
-            }
-          : null
-      }
-      onBack={() => setConfirming(false)}
+      sub={null}
+      onBack={close}
       onClose={close}
       footer={
-        eligible === "no" ? (
+        refused ? (
           <Foot error="" label="Close" onClick={close} />
         ) : (
-          <Foot error={error} busy={busy || remaining > 0} onClick={ask} label={label} note="Creating a profile does not apply you for a job. We e-mail you a link to continue." />
+          <Foot error={error} busy={busy || remaining > 0} onClick={() => void submit()} label={label} note="Creating a profile does not apply you for a job. We e-mail you a link to continue." />
         )
       }
     >
-      <Group label="Are you an EU/EEA citizen?">
+      <Group label={rule === "eu_eea_or_work_permit" ? "Are you an EU/EEA citizen, or do you hold a Norwegian work permit?" : "Are you an EU/EEA citizen?"}>
         <div className="row">
-          <Segmented
-            label="Are you an EU/EEA citizen?"
-            options={[
-              { value: "yes", label: "Yes, I am" },
-              { value: "no", label: "No, I am not" },
-            ]}
-            value={eligible}
-            onChange={setEligible}
-          />
+          <Segmented label="Citizenship" options={options} value={citizenship} onChange={setCitizenship} />
         </div>
       </Group>
-      {eligible === "no" ? (
-        <Hint>At this time, ArbeidMatch accepts candidate profiles only from EU/EEA citizens (passport or national ID card).</Hint>
+      {refused ? (
+        <Hint>
+          {rule === "eu_eea_or_work_permit"
+            ? "At this time, ArbeidMatch accepts candidate profiles only from EU/EEA citizens and holders of a Norwegian work permit."
+            : "At this time, ArbeidMatch accepts candidate profiles only from EU/EEA citizens (passport or national ID card)."}
+        </Hint>
       ) : (
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            ask();
+            void submit();
           }}
           noValidate
           style={{ display: "contents" }}
@@ -267,20 +283,22 @@ export function RegisterSheet({ open, close }: SheetProps) {
               Check your e-mail for the profile link. {remaining > 0 ? counter : "You may send another request if you entered the wrong e-mail."}
             </p>
           ) : null}
+          <Group label="Date of birth">
+            <InputRow id="am-register-birth" label="Born" type="date" autoComplete="bday" max={new Date().toISOString().slice(0, 10)} value={birth} onChange={(e) => setBirth(e.target.value)} required />
+          </Group>
           <Group>
             <InputRow id="am-register-email" icon="mail" label="E-mail" type="email" inputMode="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </Group>
           <Group>
-            <ConsentSwitch label="I consent to ArbeidMatch processing this request and my e-mail address" checked={gdpr} onChange={setGdpr}>
-              I consent to ArbeidMatch processing this request and my e-mail address, so that ArbeidMatch can create my candidate profile and contact me about opportunities. Read how we handle your data in our <a className="plink" href={SITE_PATHS.privacy} target="_blank" rel="noopener">privacy notice</a>.
-            </ConsentSwitch>
-            <ConsentSwitch label="I confirm that I am an EU/EEA citizen" checked={citizen} onChange={setCitizen}>
-              I confirm that I am an EU/EEA citizen (passport or national ID card).
+            <ConsentSwitch label="I agree to how ArbeidMatch handles my data" checked={consent} onChange={setConsent}>
+              {GATE_CONSENT_TEXT_LEAD}{" "}
+              <a className="plink" href={SITE_PATHS.privacy} target="_blank" rel="noopener">
+                privacy notice
+              </a>
+              .
             </ConsentSwitch>
           </Group>
-          <Hint>
-            When you send, your e-mail address and these confirmations are recorded as your consent, so we can create your candidate profile and contact you about opportunities.
-          </Hint>
+          <Hint>You must be 18 or older.</Hint>
           <div className="hp" aria-hidden="true">
             <label>
               Website

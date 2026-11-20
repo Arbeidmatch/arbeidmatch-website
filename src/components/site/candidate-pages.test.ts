@@ -62,17 +62,21 @@ describe("the candidate sheets keep every field, consent and check of the live f
     expect(block).toContain('href={SITE_PATHS.privacy} target="_blank"');
   });
 
-  it("create profile: the EU/EEA question, both confirmations, the final confirmation, the pause, the same route", () => {
+  // ORDER 396: the one entry gate. Citizenship, date of birth, e-mail and one consent, in that order, on the sheet the page opens.
+  it("create profile: citizenship, date of birth, e-mail and one consent, the pause, the same route", () => {
     const block = sheets.slice(sheets.indexOf("export function RegisterSheet"), sheets.indexOf("export function MessageSheet"));
     const page = read("src/app/candidate-register/page.tsx");
     expect(block).toContain('fetch("/api/candidate-join-network"');
-    expect(block).toContain("candidateJoinPayload({ email, consent: gdpr, euEeaCitizen: citizen })");
-    expect(block).toContain("if (!gdpr || !citizen)");
-    expect(block).toContain("Only EU/EEA citizens can be accepted");
-    // The same one-minute pause as the page, under the same key, so the two cannot be used to double-send.
-    expect(page).toContain('const COOLDOWN_KEY = "arbeidmatch-candidate-request-cooldown"');
+    const order = ['label="Citizenship"', 'id="am-register-birth"', 'id="am-register-email"', "GATE_CONSENT_TEXT_LEAD"].map((m) => block.indexOf(m));
+    expect(order.every((i) => i > 0)).toBe(true);
+    expect([...order].sort((x, y) => x - y)).toEqual(order);
+    expect(block).toContain("consent_text_version: GATE_CONSENT_TEXT_VERSION");
+    expect(block).toContain("source,");
+    // The one-minute pause between requests stays, under the same key.
     expect(sheets).toContain('const COOLDOWN_KEY = "arbeidmatch-candidate-request-cooldown"');
     expect(block).toContain('href={SITE_PATHS.privacy} target="_blank"');
+    // The page is the sheet: it opens it at once with the source its address names.
+    expect(page).toContain('open("register", { source: gateSourceFrom(new URLSearchParams(window.location.search)) })');
   });
 
   it("candidate message: the support route with its minimums, honeypot and human check, and the privacy notice linked", () => {
@@ -92,7 +96,8 @@ describe("the job page", () => {
     expect(page).toContain("next: `/candidate/apply/${slug}`");
     expect(page).toContain('consent: "1"');
     expect(page).toContain("`${atsBaseUrl()}/candidate/login?${portalQuery}`");
-    expect(page).toContain("`${atsBaseUrl()}/candidate/login/register?${portalQuery}`");
+    // A new profile only through the one entry gate (ORDER 396), carrying the advert.
+    expect(page).toContain("candidateRegisterHref(`job:${slug}`)");
     expect(page).not.toMatch(/<form/);
   });
 
