@@ -75,8 +75,20 @@ describe("the candidate sheets keep every field, consent and check of the live f
     // The one-minute pause between requests stays, under the same key.
     expect(sheets).toContain('const COOLDOWN_KEY = "arbeidmatch-candidate-request-cooldown"');
     expect(block).toContain('href={SITE_PATHS.privacy} target="_blank"');
-    // The page is the sheet: it opens it at once with the source its address names.
-    expect(page).toContain('open("register", { source: gateSourceFrom(new URLSearchParams(window.location.search)) })');
+    // ORDER 426: the page is the create face of the candidate sign-in screen, with the same fields and route.
+    expect(page).toContain('<CandidateLoginScreen initialView="create" />');
+  });
+
+  // ORDER 426: the sign-in screen's create face asks the gate's questions in the same order, to the same route.
+  it("the sign-in screen's create face keeps the gate's fields, order, consent version and pause", () => {
+    const screen = read("src/components/candidate-login/CandidateLoginScreen.tsx");
+    const block = screen.slice(screen.indexOf("function CreateProfile"));
+    expect(block).toContain('fetch("/api/candidate-join-network"');
+    const order = ['name="cl-citizenship"', 'id="cl-gate-birth"', 'id="cl-gate-email"', "GATE_CONSENT_TEXT_LEAD"].map((m) => block.indexOf(m));
+    expect(order.every((i) => i > 0)).toBe(true);
+    expect([...order].sort((x, y) => x - y)).toEqual(order);
+    expect(block).toContain("consent_text_version: GATE_CONSENT_TEXT_VERSION");
+    expect(screen).toContain('const GATE_COOLDOWN_KEY = "arbeidmatch-candidate-request-cooldown"');
   });
 
   it("candidate message: the support route with its minimums, honeypot and human check, and the privacy notice linked", () => {
@@ -95,7 +107,7 @@ describe("the job page", () => {
   it("applies only with a profile, through the same two doors and query", () => {
     expect(page).toContain("next: `/candidate/apply/${slug}`");
     expect(page).toContain('consent: "1"');
-    expect(page).toContain("`${atsBaseUrl()}/candidate/login?${portalQuery}`");
+    expect(page).toContain("`${CANDIDATE_PORTAL_LOGIN_ABSOLUTE_URL}?${portalQuery}`");
     // A new profile only through the one entry gate (ORDER 396), carrying the advert.
     expect(page).toContain("candidateRegisterHref(`job:${slug}`)");
     expect(page).not.toMatch(/<form/);

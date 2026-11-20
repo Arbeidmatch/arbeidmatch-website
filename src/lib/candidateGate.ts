@@ -28,11 +28,15 @@ export const GATE_CONSENT_TEXT_VERSION = "candidate-register-2026-11-20";
 
 export type GateCitizenship = "eu_eea" | "work_permit" | "other";
 export type GateCitizenshipRule = "eu_eea_only" | "eu_eea_or_work_permit";
-/** Until RecOS says otherwise: his rule A (card APR-DD1C18A0), the one this page always showed. */
-export const DEFAULT_CITIZENSHIP_RULE: GateCitizenshipRule = "eu_eea_only";
+/**
+ * His answer to card APR-DD1C18A0, 20 November 2026: rule B, EU/EEA citizens or
+ * holders of a Norwegian work permit (ORDER 426). RecOS says the rule in force;
+ * this is what the sheet asks when RecOS cannot be reached.
+ */
+export const DEFAULT_CITIZENSHIP_RULE: GateCitizenshipRule = "eu_eea_or_work_permit";
 
 export function parseCitizenshipRule(value: unknown): GateCitizenshipRule {
-  return value === "eu_eea_or_work_permit" ? "eu_eea_or_work_permit" : DEFAULT_CITIZENSHIP_RULE;
+  return value === "eu_eea_or_work_permit" || value === "eu_eea_only" ? value : DEFAULT_CITIZENSHIP_RULE;
 }
 
 export function citizenshipAccepted(answer: GateCitizenship, rule: GateCitizenshipRule): boolean {

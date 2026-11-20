@@ -23,7 +23,7 @@ describe("the letter that invites somebody to make a profile", () => {
   });
 
   it("sends them to our own registration", () => {
-    expect(CANDIDATE_REGISTER_URL).toBe("https://ats.arbeidmatch.no/candidate/login/register");
+    expect(CANDIDATE_REGISTER_URL).toBe("https://www.arbeidmatch.no/candidate-register");
     expect(letter.html).toContain(CANDIDATE_REGISTER_URL);
   });
 

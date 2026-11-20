@@ -20,28 +20,31 @@
  *
  * Do not point this at the board again, and do not point it at
  * `ats.arbeidmatch.no/login` either: that one is the staff door, with 2FA.
+ *
+ * HIS CORRECTION, 20 November 2026 (ORDER 426): "inregistrarea si logarea se
+ * fac prin site nu prin ats". The candidate signs in on this site, at
+ * /candidate-login, drawn like RecOS's staff sign-in; RecOS opens the session
+ * behind it and its old /candidate/login only sends people here.
  */
-export const CANDIDATE_PORTAL_LOGIN_URL = "https://ats.arbeidmatch.no/candidate/login" as const;
+export const CANDIDATE_PORTAL_LOGIN_URL = "/candidate-login" as const;
+
+/** The same page with the site's host, for letters and anything read outside the site. */
+export const CANDIDATE_PORTAL_LOGIN_ABSOLUTE_URL = "https://www.arbeidmatch.no/candidate-login" as const;
 
 /** Where a candidate with no profile yet goes. The ATS points at this same page. */
 export const CANDIDATE_PORTAL_SIGNUP_URL = "/candidate-register" as const;
 
 /**
- * Where a letter sends somebody who asked us for a profile.
- *
- * REPAIR R20, 4 October 2026. The register letter's button pointed at a sign-up
- * page on the old board, so everything that person typed about themselves went
- * into another system and the profile we had invited them to make did not exist
- * here at all. It is the registration tab of our own candidate door, built from
- * the constant above so there is still exactly one place naming the host.
+ * Where a letter sends somebody who asked us for a profile: the one entry gate
+ * (ORDER 396), with the site's host because a letter is read outside the site.
  */
-export const CANDIDATE_PORTAL_REGISTER_URL = `${CANDIDATE_PORTAL_LOGIN_URL}/register` as const;
+export const CANDIDATE_PORTAL_REGISTER_URL = "https://www.arbeidmatch.no/candidate-register" as const;
 
 /**
- * ORDER 396: the letter of the one entry gate opens the register page with the
- * single-use token RecOS handed out for the answers given on /candidate-register.
- * The register page makes no profile without it.
+ * ORDER 396: the letter of the one entry gate carries the single-use token
+ * RecOS handed out for the answers given on /candidate-register. Since ORDER
+ * 426 it opens the site's sign-in, which finishes the profile with it.
  */
 export function candidateRegisterUrlWithGate(token: string): string {
-  return `${CANDIDATE_PORTAL_REGISTER_URL}?gate=${encodeURIComponent(token)}`;
+  return `${CANDIDATE_PORTAL_LOGIN_ABSOLUTE_URL}?gate=${encodeURIComponent(token)}`;
 }

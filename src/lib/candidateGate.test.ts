@@ -34,9 +34,17 @@ describe("the rest of the gate", () => {
   });
 
   it("asks the work permit question only under rule B", () => {
-    expect(parseCitizenshipRule(undefined)).toBe("eu_eea_only");
     expect(citizenshipAccepted("work_permit", "eu_eea_only")).toBe(false);
     expect(citizenshipAccepted("work_permit", "eu_eea_or_work_permit")).toBe(true);
+  });
+
+  it("holds his rule B when RecOS says nothing (ORDER 426): a work permit passes, neither-nor does not", () => {
+    const rule = parseCitizenshipRule(undefined);
+    expect(rule).toBe("eu_eea_or_work_permit");
+    expect(parseCitizenshipRule("eu_eea_only")).toBe("eu_eea_only");
+    expect(citizenshipAccepted("work_permit", rule)).toBe(true);
+    expect(citizenshipAccepted("eu_eea", rule)).toBe(true);
+    expect(citizenshipAccepted("other", rule)).toBe(false);
   });
 
   it("builds the gate's address for the other doors", () => {

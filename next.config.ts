@@ -13,7 +13,8 @@ const contentSecurityPolicy = [
   // The pageview beacon is same-origin now (/api/track). ats.arbeidmatch.no was listed for
   // BeforeYouGo.tsx, removed with the orphan components (ORDER 295 stage 7); it stays until no browser call is left.
   "connect-src 'self' https://data.brreg.no https://challenges.cloudflare.com https://ats.arbeidmatch.no",
-  "form-action 'self'",
+  // ORDER 426: the candidate's sign-in posts its one-time handover to RecOS, which opens the session there.
+  "form-action 'self' https://www.arbeidmatch.no https://ats.arbeidmatch.no",
 ].join("; ");
 
 const projectMapPolicy = contentSecurityPolicy.replace("connect-src 'self'", "connect-src 'self' https://tiles.maps.eox.at https://cache.kartverket.no") + "; worker-src 'self' blob:";
@@ -37,10 +38,11 @@ const nextConfig: NextConfig = {
       // arbeidmatch.no/sign-in (and /logg-inn); it forwards to the candidate login in
       // the ATS, query string included, so the ATS keeps the session and the codes.
       // Temporary (307) on purpose: a browser must not cache where the door leads.
-      { source: "/sign-in", destination: "https://ats.arbeidmatch.no/candidate/login", permanent: false },
-      { source: "/sign-in/:path*", destination: "https://ats.arbeidmatch.no/candidate/login/:path*", permanent: false },
-      { source: "/logg-inn", destination: "https://ats.arbeidmatch.no/candidate/login", permanent: false },
-      { source: "/logg-inn/:path*", destination: "https://ats.arbeidmatch.no/candidate/login/:path*", permanent: false },
+      // ORDER 426: the sign-in itself is on the site now, /candidate-login.
+      { source: "/sign-in", destination: "/candidate-login", permanent: false },
+      { source: "/sign-in/:path*", destination: "/candidate-login", permanent: false },
+      { source: "/logg-inn", destination: "/candidate-login", permanent: false },
+      { source: "/logg-inn/:path*", destination: "/candidate-login", permanent: false },
       // ORDER 295, stage 4: the old project-alerts address answered 404; Forsprang lives at /prosjekter. Only the bare
       // address: the recommendation links under /prosjektvarsler/anbefalt/ stay pages of their own.
       { source: "/prosjektvarsler", destination: "/prosjekter", permanent: true },

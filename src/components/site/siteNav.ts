@@ -121,6 +121,8 @@ export function hasOwnShell(rawPath: string | null | undefined): boolean {
   const p = clean(rawPath);
   if (p.startsWith("/flislegger")) return true;
   if (p === "/beta") return true;
+  // ORDER 426: the candidate's sign-in and the gate are full screens, drawn like RecOS's staff sign-in.
+  if (p === "/candidate-login" || p === "/candidate-register") return true;
   // ORDER 273: Min side is the client's own app and carries its own header.
   if (/^\/min-side\/[0-9a-f-]{36}/i.test(p)) return true;
   return false;

@@ -5,7 +5,6 @@ import { JobPostingJsonLd } from "@/components/seo/JobPostingJsonLd";
 import { ApplyGateButton } from "@/components/jobs/ApplyGateButton";
 import { Icon } from "@/components/site/Icon";
 import {
-  atsBaseUrl,
   fetchPublicJob,
   jobCardImage,
   jobImage,
@@ -17,6 +16,7 @@ import { applyNextStep, contractLabel, hiringModelLabel, type HiringModel } from
 import { LANGUAGE_LABELS, splitJobAdvertLanguages } from "@/lib/job-advert-languages";
 import { roleWithoutCity } from "@/lib/job-title";
 import { candidateRegisterHref } from "@/lib/candidateGate";
+import { CANDIDATE_PORTAL_LOGIN_ABSOLUTE_URL } from "@/lib/candidatePortal";
 
 /**
  * The advert itself, on our own site.
@@ -158,7 +158,8 @@ export default async function StillingPage({ params }: Props) {
     consent: "1",
     source: `job:${slug}`,
   }).toString();
-  const loginHref = `${atsBaseUrl()}/candidate/login?${portalQuery}`;
+  // The sign-in is on this site since ORDER 426; RecOS opens the session behind it.
+  const loginHref = `${CANDIDATE_PORTAL_LOGIN_ABSOLUTE_URL}?${portalQuery}`;
   // A new profile is made only on the one entry gate (ORDER 396), carrying the advert it came from.
   const registerHref = candidateRegisterHref(`job:${slug}`);
 

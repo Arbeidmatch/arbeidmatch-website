@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { atsBaseUrl } from "@/lib/jobs-fetch";
+import { CANDIDATE_PORTAL_LOGIN_URL } from "@/lib/candidatePortal";
 import { candidateRegisterHref } from "@/lib/candidateGate";
 
 /**
@@ -219,7 +220,7 @@ export default async function RegisterPage({ params }: Props) {
             </p>
             {/* No invitation token: a returning person signs in to the profile they already have. */}
             <a
-              href={`${atsBaseUrl()}/candidate/login`}
+              href={CANDIDATE_PORTAL_LOGIN_URL}
               className="mt-1 flex min-h-[48px] items-center justify-center rounded-xl border-2 border-navy px-5 text-[15px] font-bold text-navy transition hover:bg-surface md:inline-flex md:min-h-[44px] md:border-0 md:px-0 md:underline md:decoration-gold md:decoration-2 md:underline-offset-4"
             >
               I already have a profile: sign in

@@ -37,8 +37,8 @@ function sourceFiles(dir: string): string[] {
 }
 
 describe("candidate portal doors", () => {
-  it("points the login at the ATS candidate portal", () => {
-    expect(CANDIDATE_PORTAL_LOGIN_URL).toBe("https://ats.arbeidmatch.no/candidate/login");
+  it("points the login at the site's own sign-in (ORDER 426)", () => {
+    expect(CANDIDATE_PORTAL_LOGIN_URL).toBe("/candidate-login");
   });
 
   it("never points a candidate at the external board's login", () => {

@@ -61,7 +61,7 @@ describe("the one entry gate (ORDER 396)", () => {
   it("puts the token in the letter's link to the RecOS register page", async () => {
     await POST(request(valid));
     const letter = mocks.send.mock.calls.find((c) => c[1].to === "kari@example.invalid")?.[1];
-    expect(letter.text).toContain(`https://ats.arbeidmatch.no/candidate/login/register?gate=${encodeURIComponent(TOKEN)}`);
+    expect(letter.text).toContain(`https://www.arbeidmatch.no/candidate-login?gate=${encodeURIComponent(TOKEN)}`);
     expect(letter.html).toContain("gate=");
   });
 
