@@ -4,11 +4,12 @@ import LegalHtmlLang from "@/components/legal/LegalHtmlLang";
 import { LegalLanguageSwitch } from "@/components/legal/LegalLanguageSwitch";
 import { parseLegalLanguage } from "@/lib/legalPageLanguage";
 import { legalPageMetadata } from "@/lib/legalPageMetadata";
+import { legalRequestPrefill } from "@/lib/legalRequestPrefill";
 import LegalRequestForm from "./LegalRequestForm";
 
 const PATH = "/legal-request";
 
-type Props = { searchParams: Promise<{ lang?: string | string[] }> };
+type Props = { searchParams: Promise<{ lang?: string | string[]; kind?: string | string[]; name?: string | string[]; email?: string | string[] }> };
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   return legalPageMetadata(PATH, parseLegalLanguage((await searchParams).lang), {
@@ -24,14 +25,17 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function LegalRequestPage({ searchParams }: Props) {
-  const language = parseLegalLanguage((await searchParams).lang);
+  const params = await searchParams;
+  const language = parseLegalLanguage(params.lang);
+  // ORDER 360: RecOS opens this form with the kind and the person's name and e-mail filled in.
+  const prefill = legalRequestPrefill(params);
   return (
     <section className="min-h-[60vh] bg-white text-[#0D1B2A]">
       <LegalHtmlLang lang={language === "no" ? "nb" : "en"} />
       <div className="mx-auto w-full max-w-[640px] px-6 py-12 md:px-12">
         <LegalLanguageSwitch path={PATH} current={language} />
         {/* Keyed by language so the first request type follows the switch. */}
-        <LegalRequestForm key={language} language={language} />
+        <LegalRequestForm key={language} language={language} prefill={prefill} />
       </div>
     </section>
   );

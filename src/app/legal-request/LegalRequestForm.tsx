@@ -4,16 +4,17 @@ import { useState } from "react";
 
 import type { LegalLanguage } from "@/lib/legalPageLanguage";
 import { LEGAL_REQUEST_WORDS } from "@/lib/legalRequestWords";
+import type { LegalRequestPrefill } from "@/lib/legalRequestPrefill";
 
 const FIELD =
   "rounded-[4px] border border-[#0D1B2A]/20 px-3 py-2.5 text-[#0D1B2A] focus:border-[#C9A84C] focus:outline-none focus:ring-1 focus:ring-[#C9A84C]";
 const SELECT = `select-light ${FIELD} bg-white`;
 
-export default function LegalRequestForm({ language }: { language: LegalLanguage }) {
+export default function LegalRequestForm({ language, prefill }: { language: LegalLanguage; prefill?: LegalRequestPrefill }) {
   const w = LEGAL_REQUEST_WORDS[language];
-  const [requestType, setRequestType] = useState<string>(w.requestTypes[0].value);
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [requestType, setRequestType] = useState<string>(prefill?.requestType ?? w.requestTypes[0].value);
+  const [fullName, setFullName] = useState(prefill?.fullName ?? "");
+  const [email, setEmail] = useState(prefill?.email ?? "");
   const [identityMethod, setIdentityMethod] = useState("");
   const [message, setMessage] = useState("");
   const [confirmed, setConfirmed] = useState(false);
