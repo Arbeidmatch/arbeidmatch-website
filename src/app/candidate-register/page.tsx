@@ -20,7 +20,9 @@ export default function CandidateRegisterPage() {
   const openGate = () => open("register", { source: gateSourceFrom(new URLSearchParams(window.location.search)) });
 
   useEffect(() => {
-    open("register", { source: gateSourceFrom(new URLSearchParams(window.location.search)) });
+    // After the host's own effect, which closes any sheet when the page changes and would close this one too.
+    const t = window.setTimeout(() => open("register", { source: gateSourceFrom(new URLSearchParams(window.location.search)) }), 0);
+    return () => window.clearTimeout(t);
   }, [open]);
 
   return (
