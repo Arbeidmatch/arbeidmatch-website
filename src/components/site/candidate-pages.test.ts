@@ -118,3 +118,12 @@ describe("the job page", () => {
     expect(page).not.toContain("JobEngagement");
   });
 });
+
+// ORDER 395: consent is never taken from the address bar; consent=1 records nothing without the person's own tick.
+describe("the sign-in screen sends a consent only from the tick", () => {
+  it("does not turn consent=1 into a consent", () => {
+    const screen = read("src/components/candidate-login/CandidateLoginScreen.tsx");
+    expect(screen).not.toMatch(/get\("consent"\)/);
+    expect(screen).toContain("const consentNow = onProfile && needs.consent && accepted;");
+  });
+});

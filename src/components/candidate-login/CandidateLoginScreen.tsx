@@ -215,7 +215,6 @@ function SignIn(props: { lang: LoginLang; params: URLSearchParams | null; gate: 
   const [birth, setBirth] = useState("");
 
   const carried = useMemo(() => ({ get: (k: string) => params?.get(k) ?? null }), [params]);
-  const consentFromPopup = params?.get("consent") === "1";
   const consentSource = params?.get("source") ?? "";
   const invite = params?.get("invite") ?? "";
 
@@ -272,7 +271,9 @@ function SignIn(props: { lang: LoginLang; params: URLSearchParams | null; gate: 
     }
     setMsg(null);
     setBusy(true);
-    const consentNow = consentFromPopup || (onProfile && needs.consent && accepted);
+    // Only the person's own tick on this screen (ORDER 395): consent=1 in the address
+    // bar records nothing, since a shared link could carry it for somebody who never ticked.
+    const consentNow = onProfile && needs.consent && accepted;
     const { status, data } = await ask({
       action: "verify",
       email: email.trim(),
