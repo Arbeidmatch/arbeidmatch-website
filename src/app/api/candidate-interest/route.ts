@@ -2,31 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { z } from "zod";
 
+import { isKeyRateLimited } from "@/lib/apiSecurity";
 import { candidateInterestNoticeLetter } from "@/lib/emails/letters";
-import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { partnerSessionFor } from "@/lib/partnerSession";
+import { isRateLimited } from "@/lib/requestProtection";
 
+// The partner comes from the session row, never from the browser (ORDER 415).
 const bodySchema = z.object({
-  candidateId: z.string().min(1),
-  role: z.string().min(1),
-  partnerDomain: z.string().min(1),
+  candidateId: z.string().min(1).max(64),
+  role: z.string().min(1).max(120),
 });
-
-async function validateSessionToken(sessionToken: string): Promise<boolean> {
-  const supabase = getSupabaseAdminClient();
-  if (!supabase) return false;
-
-  const nowIso = new Date().toISOString();
-  const { data, error } = await supabase
-    .from("partner_sessions")
-    .select("id")
-    .eq("session_token", sessionToken)
-    .eq("used", false)
-    .gt("expires_at", nowIso)
-    .maybeSingle();
-
-  if (error || !data) return false;
-  return true;
-}
 
 async function sendSlackMessage(text: string): Promise<void> {
   const webhook = process.env.SLACK_WEBHOOK_EMPLOYERS;
@@ -63,8 +48,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const isValid = await validateSessionToken(sessionToken);
-  if (!isValid) {
+  if (isRateLimited(request, "partner-interest", 20, 10 * 60 * 1000) || isKeyRateLimited("partner-interest", sessionToken, 20, 10 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many requests." }, { status: 429 });
+  }
+
+  const session = await partnerSessionFor(sessionToken);
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -73,7 +62,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const { candidateId, role, partnerDomain } = parsedBody.data;
+  const { candidateId, role } = parsedBody.data;
+  const partnerDomain = session.domain;
   const timestamp = new Date().toISOString();
   const slackText = `Partner interest expressed. Candidate ID: ${candidateId}. Role: ${role}. Partner: ${partnerDomain}.`;
 

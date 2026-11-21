@@ -1,6 +1,7 @@
+import { createHash } from "node:crypto";
 import nodemailer from "nodemailer";
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
-import { notifyOwnerBell, reportWebsiteIncident } from "@/lib/odinIncidentBridge";
+import { reportWebsiteIncident } from "@/lib/odinIncidentBridge";
 import { errorAlertLetter } from "@/lib/emails/letters";
 
 function createTransporter() {
@@ -138,9 +139,9 @@ This is an automated error notification from arbeidmatch.no
 
   // His rule, 13 October 2026: "nu vreau sa mai primesc mailuri pentru asta ci sa primesc notificari la support".
   // The bell is the alert; e-mail only when the ATS cannot be reached at all, so an error is never invisible.
-  const belled = await notifyOwnerBell({ route, message: errorMessage, incidentRef: incident?.incident_ref ?? null }).catch(() => false);
-  if (belled) {
-    await createGitHubIssue({ route, errorMessage, errorStack, context });
+  // The ATS rings the bell itself when it files a new incident (ORDER 415).
+  if (incident?.belled) {
+    await createGitHubIssue({ route, error });
     return;
   }
 
@@ -148,7 +149,7 @@ This is an automated error notification from arbeidmatch.no
     const transporter = createTransporter();
     if (!transporter) {
       console.error("[errorNotifier] SMTP_PASS or transporter missing; cannot send alert.");
-      await createGitHubIssue({ route, errorMessage, errorStack, context });
+      await createGitHubIssue({ route, error });
       return;
     }
 
@@ -170,49 +171,44 @@ This is an automated error notification from arbeidmatch.no
     console.error("Failed to send error notification:", notifyErr);
   }
 
-  await createGitHubIssue({ route, errorMessage, errorStack, context });
+  await createGitHubIssue({ route, error });
 }
 
-async function createGitHubIssue({
-  route,
-  errorMessage,
-  errorStack,
-  context,
-}: {
-  route: string;
-  errorMessage: string;
-  errorStack: string;
-  context: Record<string, unknown>;
-}): Promise<string | null> {
+/**
+ * A short code for an error, the same for every repeat of it: the error's class and
+ * eight characters of a hash of its message. Enough to find the full row in error_log
+ * (and the incident in the ATS), and nothing a stranger could read.
+ */
+export function errorCode(error: unknown): string {
+  const name = error instanceof Error ? error.name.replace(/[^A-Za-z0-9]/g, "").slice(0, 40) || "Error" : typeof error;
+  const hash = createHash("sha256").update(serializeUnknownError(error)).digest("hex").slice(0, 8);
+  return `${name}-${hash}`;
+}
+
+/**
+ * The GitHub issue for an error (ORDER 415, 21 November 2026): the route and a short code,
+ * never the message, stack or context. Those can carry a company's or a person's name, and
+ * this repository's issues are read outside the company. The full detail stays in error_log
+ * and the alert. No model reads these issues any more: the auto-fix workflow is gone.
+ */
+async function createGitHubIssue({ route, error }: { route: string; error: unknown }): Promise<string | null> {
   const token = process.env.GITHUB_TOKEN;
   const repo = process.env.GITHUB_REPO || "Arbeidmatch/arbeidmatch-website";
 
   if (!token) return null;
 
+  const code = errorCode(error);
   const body = `## Auto-detected error
 
 **Route:** ${route}
+**Code:** ${code}
 **Time:** ${new Date().toISOString()}
 **Environment:** Production
 
-## Error message
-\`\`\`
-${errorMessage}
-\`\`\`
-
-## Stack trace
-\`\`\`
-${errorStack}
-\`\`\`
-
-## Context
-\`\`\`json
-${JSON.stringify(context, null, 2)}
-\`\`\`
+The message, stack and context are in the error_log table, never here.
 
 ---
-_This issue was created automatically by errorNotifier.ts_
-_Label: auto-fix-pending_`;
+_This issue was created automatically by errorNotifier.ts_`;
 
   try {
     const res = await fetch(`https://api.github.com/repos/${repo}/issues`, {
@@ -223,9 +219,9 @@ _Label: auto-fix-pending_`;
         Accept: "application/vnd.github+json",
       },
       body: JSON.stringify({
-        title: `[AUTO] ${route}: ${errorMessage.slice(0, 80)}`,
+        title: `[AUTO] ${route}: ${code}`,
         body,
-        labels: ["auto-fix-pending"],
+        labels: ["website-error"],
       }),
     });
     const data = (await res.json()) as { number?: number };

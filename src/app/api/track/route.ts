@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { buildPageviewRow } from "@/lib/analytics/pageview";
-import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
-import { getSupabaseAtsClient } from "@/lib/supabaseAts";
+import { atsRelay } from "@/lib/atsRelay";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,9 +10,10 @@ export const dynamic = "force-dynamic";
  * The first-party pageview beacon, same origin.
  *
  * The browser posts here instead of to ats.arbeidmatch.no (which refuses it:
- * the public never talks to the ATS host from a browser), and this route writes
- * the row into ats_web_pageviews itself, built by the same rules as the ATS
- * sink. See src/lib/analytics/pageview.ts for why it is not forwarded.
+ * the public never talks to the ATS host from a browser), and this route builds
+ * the row by the same rules as the ATS sink and hands it to the ATS's
+ * website-relay, server to server (ORDER 415: the site holds no ATS database key).
+ * See src/lib/analytics/pageview.ts for why the row is built here.
  *
  * Always 204, whatever happens: analytics must never surface an error to a visitor.
  */
@@ -45,16 +45,7 @@ export async function POST(request: NextRequest) {
       body,
     });
     if (row) {
-      const supabase = getSupabaseAtsClient() ?? getSupabaseAdminClient();
-      if (supabase) {
-        await supabase
-          .from("ats_web_pageviews")
-          .insert({ ...row, path: row.path.split(/[?#]/)[0].split("/").slice(0, 2).join("/") })
-          .then(
-            () => undefined,
-            () => undefined,
-          );
-      }
+      await atsRelay("pageview", { ...row, path: row.path.split(/[?#]/)[0].split("/").slice(0, 2).join("/") });
     }
   } catch {
     /* best-effort */

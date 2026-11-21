@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { isKeyRateLimited } from "@/lib/apiSecurity";
+import { partnerSessionFor } from "@/lib/partnerSession";
+import { safeIlikePattern } from "@/lib/postgrestSafe";
+import { isRateLimited } from "@/lib/requestProtection";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
 type CandidateRow = {
@@ -14,13 +18,13 @@ type CandidateRow = {
   hasDrivingLicense: boolean | null;
   salaryExpectations: string | number | null;
   salaryExpectationsCurrency: string | null;
-  qualificationOtherText: string | null;
-  preferenceTags: unknown;
   rating: number | null;
-  cvText: string | null;
 };
 
-type CandidateOut = Omit<CandidateRow, "cvText"> & { compatibilityScore: number };
+/** Only what the partner page shows (ORDER 415); the rating is used for the score and not sent. */
+type CandidateOut = Omit<CandidateRow, "rating"> & { compatibilityScore: number };
+
+const MAX_PAGE = 50;
 
 function parsePositiveInt(value: string | null, fallback: number): number {
   if (!value) return fallback;
@@ -35,31 +39,18 @@ function computeCompatibilityScore(role: string, rating: number | null): number 
   return Math.min(99, Math.max(0, Math.round(70 + safeRating * 5)));
 }
 
-async function validateSessionToken(sessionToken: string): Promise<boolean> {
-  const supabase = getSupabaseAdminClient();
-  if (!supabase) return false;
-
-  const nowIso = new Date().toISOString();
-  const { data, error } = await supabase
-    .from("partner_sessions")
-    .select("id")
-    .eq("session_token", sessionToken)
-    .eq("used", false)
-    .gt("expires_at", nowIso)
-    .maybeSingle();
-
-  if (error || !data) return false;
-  return true;
-}
-
 export async function GET(request: NextRequest) {
   const sessionToken = request.headers.get("x-session-token")?.trim() || "";
   if (!sessionToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const validSession = await validateSessionToken(sessionToken);
-  if (!validSession) {
+  if (isRateLimited(request, "partner-candidates", 30, 10 * 60 * 1000) || isKeyRateLimited("partner-candidates", sessionToken, 30, 10 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many requests." }, { status: 429 });
+  }
+
+  const session = await partnerSessionFor(sessionToken, { startWindow: true });
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -68,8 +59,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ candidates: [], total: 0 }, { status: 500 });
   }
 
-  const role = (request.nextUrl.searchParams.get("role") || "").trim();
-  const limit = parsePositiveInt(request.nextUrl.searchParams.get("limit"), 20);
+  const role = (request.nextUrl.searchParams.get("role") || "").trim().slice(0, 120);
+  const limit = Math.min(MAX_PAGE, parsePositiveInt(request.nextUrl.searchParams.get("limit"), 20));
   const offset = parsePositiveInt(request.nextUrl.searchParams.get("offset"), 0);
 
   let countQuery = supabase
@@ -80,13 +71,13 @@ export async function GET(request: NextRequest) {
   let dataQuery = supabase
     .from("Candidate")
     .select(
-      "id,nationality,city,country,availableFrom,englishLevel,norwegianLevel,yearsOfExperience,hasDrivingLicense,salaryExpectations,salaryExpectationsCurrency,qualificationOtherText,preferenceTags,rating,cvText",
+      "id,nationality,city,country,availableFrom,englishLevel,norwegianLevel,yearsOfExperience,hasDrivingLicense,salaryExpectations,salaryExpectationsCurrency,rating",
     )
     .is("deletedAt", null)
     .range(offset, offset + Math.max(1, limit) - 1);
 
-  if (role) {
-    const rolePattern = `%${role}%`;
+  const rolePattern = role ? safeIlikePattern(role, 80) : null;
+  if (rolePattern) {
     countQuery = countQuery.ilike("cvText", rolePattern);
     dataQuery = dataQuery.ilike("cvText", rolePattern);
   }
@@ -108,9 +99,6 @@ export async function GET(request: NextRequest) {
     hasDrivingLicense: candidate.hasDrivingLicense,
     salaryExpectations: candidate.salaryExpectations,
     salaryExpectationsCurrency: candidate.salaryExpectationsCurrency,
-    qualificationOtherText: candidate.qualificationOtherText,
-    preferenceTags: candidate.preferenceTags,
-    rating: candidate.rating,
     compatibilityScore: computeCompatibilityScore(role, candidate.rating),
   }));
 

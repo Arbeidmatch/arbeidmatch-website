@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { atsRelay } from "@/lib/atsRelay";
 import {
   INDUSTRY_MAP,
   REQUEST_INDUSTRY_ROLE_GROUPS,
@@ -8,24 +8,9 @@ import {
   industrySlugForLabel,
   roleSearchKeywords,
 } from "@/lib/industry-roles";
+import { isRateLimited } from "@/lib/requestProtection";
 
 export const dynamic = "force-dynamic";
-
-const QUERY_LIMIT = 2000;
-
-let cachedAtsClient: SupabaseClient | null = null;
-
-/** ATS service client (same env resolution as src/lib/supabaseAts.ts); kept here so this route is self-contained on all branches. */
-function getAtsSupabaseClient(): SupabaseClient | null {
-  if (cachedAtsClient) return cachedAtsClient;
-  const url = process.env.SUPABASE_ATS_URL?.trim() || process.env.ATS_SUPABASE_URL?.trim();
-  const key = process.env.SUPABASE_ATS_SERVICE_KEY?.trim() || process.env.ATS_SUPABASE_SERVICE_ROLE_KEY?.trim();
-  if (!url || !key) return null;
-  cachedAtsClient = createClient(url, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  return cachedAtsClient;
-}
 
 /** Industry → role labels (aligned with REQUEST_INDUSTRY_ROLE_GROUPS on /request). */
 const ROLE_GROUPS: Record<string, string[]> = Object.fromEntries(
@@ -55,46 +40,29 @@ function allKeywordsForIndustry(industry: string): string[] {
   return [...terms];
 }
 
-/** OR filter for role matching against current_job_title. */
-function buildCurrentTitleOrFilter(keywords: string[]): string {
-  const parts: string[] = [];
-  for (const kw of keywords) {
-    const safe = kw.replace(/%/g, "").replace(/,/g, "").trim();
-    if (safe.length < 2) continue;
-    const pattern = `%${safe}%`;
-    parts.push(`current_job_title.ilike.${pattern}`);
-  }
-  return parts.join(",");
-}
-
-async function countWithCurrentTitleOr(supabase: SupabaseClient, orFilter: string): Promise<number> {
-  if (!orFilter) return 0;
-  const { data, error } = await supabase
-    .from("ats_candidates")
-    .select("id")
-    .eq("status", "active")
-    .eq("availability_status", "available")
-    .or(orFilter)
-    .limit(QUERY_LIMIT);
-  return error ? 0 : (data?.length ?? 0);
+/**
+ * How many active, available ATS candidates have one of these words in their current title.
+ * Counted by the ATS's website-relay (ORDER 415): the site holds no ATS database key, and the
+ * ATS reduces each word to letters, digits, spaces and hyphens before it becomes a filter.
+ */
+async function countForKeywords(keywords: string[]): Promise<number> {
+  const words = keywords.map((kw) => kw.replace(/[%,]/g, "").trim()).filter((kw) => kw.length >= 2);
+  if (!words.length) return 0;
+  const answer = await atsRelay<{ count?: unknown }>("candidate-count", { keywords: words });
+  return typeof answer?.count === "number" ? answer.count : 0;
 }
 
 export async function GET(request: NextRequest) {
   const industry = (request.nextUrl.searchParams.get("industry") || "").trim();
   const roleParam = (request.nextUrl.searchParams.get("role") || "").trim();
 
-  const supabase = getAtsSupabaseClient();
-  if (!supabase) {
-    return NextResponse.json({ count: 0, industry: industry || null });
+  if (isRateLimited(request, "candidate-count", 60, 10 * 60 * 1000)) {
+    return NextResponse.json({ count: 0, industry: industry || null }, { status: 429 });
   }
 
   try {
     if (roleParam.length >= 2) {
-      const orFilter = buildCurrentTitleOrFilter(roleSearchKeywords(roleParam));
-      if (!orFilter) {
-        return NextResponse.json({ count: 0, industry: industry || null });
-      }
-      const count = await countWithCurrentTitleOr(supabase, orFilter);
+      const count = await countForKeywords(roleSearchKeywords(roleParam));
       return NextResponse.json({ count, industry });
     }
 
@@ -103,12 +71,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ count: 0, industry: industry || null });
     }
 
-    const keywords = allKeywordsForIndustry(industry);
-    const orFilter = buildCurrentTitleOrFilter(keywords);
-    if (!orFilter) {
-      return NextResponse.json({ count: 0, industry: industry || null });
-    }
-    const count = await countWithCurrentTitleOr(supabase, orFilter);
+    const count = await countForKeywords(allKeywordsForIndustry(industry));
     return NextResponse.json({ count, industry });
   } catch {
     return NextResponse.json({ count: 0, industry: industry || null });
