@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { getRateLimitResult, noStoreJson } from "@/lib/apiSecurity";
 import { alertCitiesRequest, cityQuestionRequest, hiringRequest, isCityName, isHiringAction, isHiringPrefsAction, isProfileToken, isWhatsNewId, messageReadRequest } from "@/lib/min-side/profile";
 import { alertSettingsRequest } from "@/lib/min-side/alert-settings";
+import { annonserFor, orgOf } from "@/lib/min-side/annonser-server";
 import { isRecommendAction, recommendRequest } from "@/lib/min-side/recommend";
 import { callAts } from "@/lib/prosjekter/ats";
 
@@ -21,7 +22,10 @@ export async function GET(request: NextRequest, ctx: Ctx) {
   const rate = getRateLimitResult(request, "min-side-get", 120, 10 * 60 * 1000);
   if (rate.limited) return noStoreJson({ error: TOO_MANY }, { status: 429 });
   const answer = await callAts(`/api/public/client-profile/${token}`, { method: "GET", visitorHeaders: request.headers });
-  return noStoreJson(answer.body, { status: answer.status });
+  if (answer.status !== 200) return noStoreJson(answer.body, { status: answer.status });
+  // ORDER 276: the firm's adverts on JobbOS, for the number the ATS gave for this key; absent while the owner switch is off.
+  const annonser = await annonserFor(orgOf(answer.body));
+  return noStoreJson({ ...answer.body, annonser }, { status: answer.status });
 }
 
 /**

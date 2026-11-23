@@ -14,6 +14,7 @@ import { appStateFrom, type AppState } from "@/lib/min-side/app-prompt";
 import { recommendFrom, type RecommendState } from "@/lib/min-side/recommend";
 import { NORWAY_REGIONS } from "@/lib/prosjekter/regions";
 import { alertSettingsFrom, type AlertSettings } from "@/lib/min-side/alert-settings";
+import { annonserFrom, annonserHint, type Annonser } from "@/lib/min-side/annonser";
 
 export type Company = {
   name: string;
@@ -145,6 +146,8 @@ export type Profile = {
   security: { has_passkey: boolean; prompt_dismissed_until: string | null } | null;
   /** ORDER 274: "Anbefal Prosjektvarsler": the firm's count of five, this person's list, whether the popup is due; null from an older ATS. */
   recommend: RecommendState | null;
+  /** ORDER 276: the firm's adverts on JobbOS; null while the owner switch is off or the firm has none there. */
+  annonser: Annonser | null;
 };
 
 /** ORDER 236: one message, as it was approved, its buttons kept as buttons. */
@@ -390,6 +393,7 @@ export function profileFrom(raw: unknown): Profile | null {
     app: appStateFrom(r.app),
     security: securityFrom(r.security),
     recommend: recommendFrom(r.recommend),
+    annonser: annonserFrom(r.annonser),
     messages: list(r.messages)
       .filter((m) => isMessageId(m.id) && typeof m.created_at === "string")
       .map((m) => ({
@@ -497,7 +501,7 @@ export function addressLine(street: string, postcode: string, town: string): str
  * "Fakturaopplysninger" is where invoices are sent; "Fakturaer" is the
  * invoices themselves. They are two sections because they are two questions.
  */
-export type SectionKey = "firma" | "fakturaopplysninger" | "kontakter" | "meldinger" | "kandidater" | "tilbud" | "timelister" | "fakturaer" | "dokumenter" | "varsler" | "ansetter" | "innlogging";
+export type SectionKey = "annonser" | "firma" | "fakturaopplysninger" | "kontakter" | "meldinger" | "kandidater" | "tilbud" | "timelister" | "fakturaer" | "dokumenter" | "varsler" | "ansetter" | "innlogging";
 
 export type SectionGroup = "firmaet" | "samarbeidet";
 // ORDER 273: what passes between us first, with Prosjektvarsler at its top; the firm under it.
@@ -511,6 +515,8 @@ export const SECTION_GROUPS: { key: SectionGroup; label: string }[] = [
  * sections sit under "Mer" on a phone, so its home list stays one screen.
  */
 export const SECTIONS: { key: SectionKey; group: SectionGroup; label: string; about: string; rare?: boolean }[] = [
+  // ORDER 276: first, as on the board "Min side - Annonser"; only in the list for a firm with adverts on JobbOS (visibleSections).
+  { key: "annonser", group: "samarbeidet", label: "Annonser", about: "Stillingsannonsene firmaet har på jobbtavlen vår." },
   // His order, 9 November 2026: Prosjektvarsler first under Samarbeidet med oss, Bedrifter som ansetter second.
   { key: "varsler", group: "samarbeidet", label: "Prosjektvarsler", about: "Varslene om bygg- og anleggsprosjekter, og abonnementet." },
   // ORDER 157: only in the list for a person with hiring alerts (visibleSections).
@@ -529,9 +535,9 @@ export const SECTIONS: { key: SectionKey; group: SectionGroup; label: string; ab
   { key: "innlogging", group: "firmaet", label: "Innlogging", about: "Logg inn med fingeravtrykk, ansikt eller PIN på denne enheten." },
 ];
 
-/** The sections this person's list shows: "Bedrifter som ansetter" only with hiring alerts. */
-export function visibleSections(p: Pick<Profile, "hiring">): typeof SECTIONS {
-  return SECTIONS.filter((s) => s.key !== "ansetter" || p.hiring !== null);
+/** The sections this person's list shows: "Bedrifter som ansetter" only with hiring alerts, "Annonser" only with adverts on JobbOS. */
+export function visibleSections(p: Pick<Profile, "hiring"> & Partial<Pick<Profile, "annonser">>): typeof SECTIONS {
+  return SECTIONS.filter((s) => (s.key !== "ansetter" || p.hiring !== null) && (s.key !== "annonser" || (p.annonser ?? null) !== null));
 }
 
 /** The section an address asks for (#fakturaer), or null for anything else, a dialog's hash included. */
@@ -547,6 +553,7 @@ const count = (n: number, one: string, many: string, none: string) => (n === 0 ?
 
 /** A few words under a section's name in the list, so the list already says where things stand. */
 export function sectionHint(key: SectionKey, p: Profile): string {
+  if (key === "annonser") return p.annonser ? annonserHint(p.annonser) : "";
   if (key === "firma") return p.company.city || "Adresse og kontakt";
   if (key === "fakturaopplysninger") return p.company.invoice_ehf ? "EHF" : p.company.invoice_email ? "På e-post" : "Ikke oppgitt";
   if (key === "kontakter") return count(p.contacts.length, "person", "personer", "Ingen registrert");

@@ -18,6 +18,7 @@ import {
   FileText,
   KeyRound,
   LogOut,
+  Megaphone,
   MessageSquare,
   Phone,
   Receipt,
@@ -34,6 +35,7 @@ import { MinSideCityQuestion, MinSideContactCard } from "./MinSideCityQuestion";
 import MinSideHiring, { ConfirmForm, HiringStop, ProjectsTeaser, useProjectsTrial, type Fetched } from "./MinSideHiring";
 import { cookieQuestionOpen, MinSideAppPrompt } from "./MinSideAppPrompt";
 import MinSideAlerts from "./MinSideAlerts";
+import MinSideAnnonser from "./MinSideAnnonser";
 import MinSideKeyDialog from "./MinSideKeyDialog";
 import MinSideRecommend from "./MinSideRecommend";
 import { FakturaRows, FirmaRows, KontaktRows } from "./MinSideFirm";
@@ -100,6 +102,7 @@ const FOOTER_LINE = "ArbeidMatch Norge AS · Godkjent bemanningsforetak · Org.n
 
 /** Each row's 28px rounded icon and its colour, as in the iOS Settings list. */
 const ICONS: Record<SectionKey, { icon: LucideIcon; bg: string }> = {
+  annonser: { icon: Megaphone, bg: "#B5452F" },
   varsler: { icon: Bell, bg: "#1B2B44" },
   ansetter: { icon: Building2, bg: "#2F6FB0" },
   tilbud: { icon: FileText, bg: "#7A5AB5" },
@@ -342,7 +345,9 @@ export default function MinSideClient({ token }: { token: string }) {
   const phoneHome = hash === "#hjem";
   const chosen: SectionKey = sectionFromHash(hash) ?? fallback;
   // A section the person cannot have (an old link to the hiring section) shows the firm.
-  const section: SectionKey = chosen === "ansetter" && !hiring ? "firma" : chosen;
+  const reachable: SectionKey = chosen === "ansetter" && !hiring ? "firma" : chosen;
+  // ORDER 276: likewise a link to Annonser for a firm with no adverts there, or while the owner switch is off.
+  const section: SectionKey = reachable === "annonser" && !profile?.annonser ? "firma" : reachable;
   const route: VarslerRoute = useMemo(() => varslerRoute(hash) ?? { view: "list" }, [hash]);
   // Whether the open project or settings level was pushed from the page below it in this visit: then going up is Back.
   const pushedProject = useRef(false);
@@ -709,6 +714,25 @@ export default function MinSideClient({ token }: { token: string }) {
                 <div className={`${CARD} border-l-[3px] border-l-[#2E9E6B] p-4 ${BODY}`} role="status">
                   {notice}
                 </div>
+              ) : null}
+
+              {section === "annonser" && profile.annonser ? (
+                <Screen
+                  section="annonser"
+                  action={
+                    profile.annonser.state === "ok" ? (
+                      <a href={profile.annonser.newAdvertUrl} className={PILL} target="_blank" rel="noopener noreferrer">
+                        Ny annonse
+                      </a>
+                    ) : undefined
+                  }
+                >
+                  {/* A new list (an advert went live or ended) starts again at its first filter. */}
+                  <MinSideAnnonser
+                    key={profile.annonser.state === "ok" ? profile.annonser.adverts.map((a) => `${a.id}:${a.group}`).join(",") : "unavailable"}
+                    annonser={profile.annonser}
+                  />
+                </Screen>
               ) : null}
 
               {section === "firma" ? (
