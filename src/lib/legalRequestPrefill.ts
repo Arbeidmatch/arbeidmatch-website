@@ -8,6 +8,11 @@
 const KIND_TO_REQUEST_TYPE: Record<string, string> = {
   deletion: "GDPR Erasure (Art. 17)",
   access: "GDPR Access (Art. 15)",
+  // ORDER 424: the policy pages and the legal hub open the form on their own kind.
+  complaint: "Complaint",
+  transparency: "Transparency Act information request",
+  ai: "AI question or human review",
+  whistleblowing: "Whistleblowing",
 };
 
 export type LegalRequestPrefill = { requestType: string | null; fullName: string; email: string };

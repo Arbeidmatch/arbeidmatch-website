@@ -4,6 +4,7 @@ import { AtsLegalDocumentPage } from "@/components/legal/AtsLegalDocumentPage";
 import { fetchAtsLegalDocument } from "@/lib/atsLegalDocument";
 import { resolveLegalDocument } from "@/lib/legalDocumentFallback";
 import { nbPageMetadata } from "@/lib/nbPageMetadata";
+import { fillPublicDpa } from "@/lib/publicDpaFill";
 
 // Rendered per request: the Vercel build cannot reach the platform (see resolveLegalDocument).
 export const dynamic = "force-dynamic";
@@ -43,5 +44,6 @@ export default async function DpaPage() {
   // "Document not currently available" for the whole of that time.
   // Never an old local text: see resolveLegalDocument (legal review, 25 September 2026).
   const doc = resolveLegalDocument(await fetchAtsLegalDocument("dpa-recruiter-partner"), "dpa-recruiter-partner", "Data Processing Agreement");
-  return <AtsLegalDocumentPage doc={doc} />;
+  // ORDER 424: our own details filled from the register, the partner's fields as labels.
+  return <AtsLegalDocumentPage doc={fillPublicDpa(doc)} />;
 }

@@ -29,6 +29,8 @@ export const SITE_PATHS = {
   privacy: "/privacy",
   terms: "/terms",
   cookies: "/cookies",
+  /** Every policy on one page (ORDER 424). */
+  legal: "/legal",
   flislegger: "/flislegger",
   minSide: "/min-side",
   /** Opens the project portal's own log-in dialog over any page (PortalDialogs). */
@@ -41,6 +43,9 @@ export const SITE_PATHS = {
   request: "/request",
   feedback: "/feedback",
 } as const;
+
+/** Arbeidstilsynet's register of approved staffing agencies, searched for our org number (ORDER 424). */
+export const STAFFING_REGISTER_URL = "https://www.arbeidstilsynet.no/bemanningsvirksomhet/?query=935667089";
 
 export type CandidateTab = { href: string; label: string; short: string };
 

@@ -55,6 +55,10 @@ export const LEGAL_REQUEST_WORDS: Record<LegalLanguage, Words> = {
       { value: "GDPR Objection (Art. 21)", label: "Innsigelse (art. 21)" },
       { value: "Withdraw consent", label: "Trekke tilbake samtykke" },
       { value: "Privacy Policy question", label: "Spørsmål om personvernerklæringen" },
+      { value: "Complaint", label: "Klage" },
+      { value: "Transparency Act information request", label: "Informasjonskrav etter åpenhetsloven" },
+      { value: "AI question or human review", label: "Spørsmål om KI eller krav om menneskelig vurdering" },
+      { value: "Whistleblowing", label: "Varsling om kritikkverdige forhold" },
       { value: "Other legal matter", label: "Annen juridisk sak" },
     ],
     identityMethods: [
@@ -89,6 +93,10 @@ export const LEGAL_REQUEST_WORDS: Record<LegalLanguage, Words> = {
       { value: "GDPR Objection (Art. 21)", label: "GDPR Objection (Art. 21)" },
       { value: "Withdraw consent", label: "Withdraw consent" },
       { value: "Privacy Policy question", label: "Privacy Policy question" },
+      { value: "Complaint", label: "Complaint" },
+      { value: "Transparency Act information request", label: "Transparency Act information request" },
+      { value: "AI question or human review", label: "Question about AI or request for human review" },
+      { value: "Whistleblowing", label: "Whistleblowing report" },
       { value: "Other legal matter", label: "Other legal matter" },
     ],
     identityMethods: [

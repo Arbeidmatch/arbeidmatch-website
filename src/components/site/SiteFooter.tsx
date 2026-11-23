@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { betaCopy } from "@/components/BetaBanner";
 import { ProtectedEmail } from "@/components/ProtectedEmail";
 import { SupportButton } from "@/components/support/SupportRequest";
-import { SITE_PATHS, hidesFooter, siteLang } from "@/components/site/siteNav";
+import { SITE_PATHS, STAFFING_REGISTER_URL, hidesFooter, siteLang } from "@/components/site/siteNav";
 
 /**
  * The footer of every public page (ORDER 295): the same five columns
@@ -67,6 +67,7 @@ export default function SiteFooter() {
                 <li><Link href={SITE_PATHS.privacy}>{no ? "Personvern" : "Privacy"}</Link></li>
                 <li><Link href={SITE_PATHS.terms}>{no ? "Vilkår" : "Terms"}</Link></li>
                 <li><button type="button" data-sheet="cookies">{no ? "Informasjonskapsler" : "Cookies"}</button></li>
+                <li><Link href={no ? SITE_PATHS.legal : `${SITE_PATHS.legal}?lang=en`}>{no ? "Alle retningslinjer" : "All policies"}</Link></li>
               </ul>
             </div>
           </div>
@@ -88,7 +89,10 @@ export default function SiteFooter() {
           <div className="legal">
             © 2026 ArbeidMatch Norge AS · Org.nr 935 667 089 MVA · Sverre Svendsens veg 38, 7056 Ranheim ·{" "}
             <ProtectedEmail username="post" domain="arbeidmatch.no" className="" loadingLabel="" /> ·{" "}
-            {no ? "Godkjent bemanningsforetak, registrert hos Arbeidstilsynet." : "Approved staffing agency, registered with Arbeidstilsynet."}
+            {/* ORDER 424: the claim opens its proof, Arbeidstilsynet's register searched for our org number. */}
+            <a href={STAFFING_REGISTER_URL} target="_blank" rel="noopener noreferrer">
+              {no ? "Godkjent bemanningsforetak, registrert hos Arbeidstilsynet." : "Approved staffing agency, registered with Arbeidstilsynet."}
+            </a>
           </div>
         </div>
       </footer>

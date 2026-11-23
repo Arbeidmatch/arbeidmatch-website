@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 import { PREMIUM_ARTICLE_SLUGS } from "@/lib/premium/articleSlugs";
 import { facetPath, getBoard, listFacets } from "@/lib/jobs-facets";
 import { jobUrl } from "@/lib/jobs-fetch";
+import { SITE_POLICIES } from "@/lib/sitePolicies";
 
 const SITE = "https://www.arbeidmatch.no";
 
@@ -182,5 +183,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "yearly",
       priority: 0.5,
     },
+    // ORDER 424: the legal hub and the policies written on this site, dated by their own last change.
+    { url: `${SITE}/legal`, lastModified: new Date("2026-11-23"), changeFrequency: "yearly", priority: 0.5 },
+    ...Object.values(SITE_POLICIES).map((p) => ({
+      url: `${SITE}${p.path}`,
+      lastModified: new Date(p.updated),
+      changeFrequency: "yearly" as const,
+      priority: 0.5,
+    })),
   ];
 }
