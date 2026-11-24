@@ -6,6 +6,7 @@ import { logApiError } from "@/lib/secureLogger";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { CONSENT_TEXT_SHA256, getPolicyVersion } from "@/lib/cv/consent";
 import { buildCvEmail, cvEmailSubject, resolveLang } from "@/lib/cv/emails";
+import { getSiteNumbers } from "@/lib/numbers";
 import { siteOrigin } from "@/lib/cv/org";
 import {
   DOWNLOAD_TOKEN_TTL_MS,
@@ -209,7 +210,7 @@ export async function POST(request: NextRequest) {
     const sent = await sendCvEmail({
       to: email,
       subject: cvEmailSubject(lang),
-      html: buildCvEmail(myDataUrl, lang),
+      html: buildCvEmail(myDataUrl, lang, await getSiteNumbers()),
       attachments,
     });
     if (!sent.ok) {

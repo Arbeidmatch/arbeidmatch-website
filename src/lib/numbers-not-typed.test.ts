@@ -37,16 +37,8 @@ const EXEMPT = [
   /[\\/]lib[\\/]numbers\.ts$/,
   // FOUND, not in ORDER 302's list: the card checkout's line description. A payment path, left for its own order.
   /[\\/]lib[\\/]job-ads[\\/]stripe\.ts$/,
-  // Left by ORDER 302 attempt 2, each named in its report: the e-mail shell is built synchronously by 30
-  // letters; the CV documents, policy texts, legal seed and DPA fill are documents rather than page lines;
-  // the register link searches by the number; orgNumber.ts only formats one in a comment.
-  /[\\/]lib[\\/]arbeidmatchEmailShell\.ts$/,
-  /[\\/]lib[\\/]cv[\\/]org\.ts$/,
-  /[\\/]lib[\\/]sitePolicies\.ts$/,
-  /[\\/]lib[\\/]legal-seed-documents-data\.ts$/,
-  /[\\/]lib[\\/]publicDpaFill\.ts$/,
+  // orgNumber.ts only shows the format of an org number in a comment; it prints none.
   /[\\/]lib[\\/]orgNumber\.ts$/,
-  /[\\/]components[\\/]site[\\/]siteNav\.ts$/,
 ];
 
 function files(dir: string): string[] {

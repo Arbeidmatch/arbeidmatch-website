@@ -11,16 +11,26 @@
  * last good version stays up (see resolveLegalDocument).
  */
 
+import { cachedSiteNumbers, text, type SiteNumbers } from "@/lib/numbers";
+
 export const LEGAL_CONTACT_EMAIL = "post@arbeidmatch.no";
 
-export const LEGAL_COMPANY_IDENTITY =
-  "ArbeidMatch Norge AS, organisation number 935 667 089 MVA, Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway.";
+/**
+ * Who we are, with the org number and the street from RecOS (ORDER 302). The
+ * stand-in is built synchronously, so it reads the numbers the server last
+ * fetched; a missing one leaves its piece of the sentence out.
+ */
+export function legalCompanyIdentity(numbers: SiteNumbers = cachedSiteNumbers()): string {
+  const org = text(numbers, "company_org_number");
+  const street = text(numbers, "company_street_address");
+  return `ArbeidMatch Norge AS${org ? `, organisation number ${org} MVA` : ""}${street ? `, ${street}, 7056 Ranheim` : ""}, Trondheim, Norway.`;
+}
 
 /** The neutral stand-in for any legal document, under its own title. */
-export function legalSeedMarkdown(title: string): string {
+export function legalSeedMarkdown(title: string, numbers?: SiteNumbers): string {
   return `# ${title}
 
-${LEGAL_COMPANY_IDENTITY}
+${legalCompanyIdentity(numbers)}
 
 This document is temporarily unavailable. Please contact ${LEGAL_CONTACT_EMAIL} and we will send it to you.
 `;

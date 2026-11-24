@@ -1,4 +1,5 @@
 import { escapeHtml } from "@/lib/htmlSanitizer";
+import { cachedSiteNumbers, text, type SiteNumbers } from "@/lib/numbers";
 import { SUPPORT_PAGE_URL } from "@/lib/supportPage";
 
 /**
@@ -53,10 +54,38 @@ export type EmailAudience = "candidate" | "client" | "support";
 
 const COMPANY_LEGAL = {
   name: "ArbeidMatch Norge AS",
-  orgNr: "935 667 089",
-  address: "Sverre Svendsens veg 38, 7056 Ranheim, Norway",
+  postcodeTownCountry: "7056 Ranheim, Norway",
   site: "arbeidmatch.no",
 } as const;
+
+/**
+ * The org number and the street at the foot are RecOS's (company_org_number,
+ * company_street_address; ORDER 302). A letter is built synchronously by some
+ * thirty callers, so the shell prints what this server last read; when it has
+ * read nothing yet, it marks the place and createSmtpTransporter fills it from
+ * RecOS when the letter is sent. A value RecOS does not give is left out.
+ */
+const FACTS_OPEN = "<!--am:company-facts-->";
+const FACTS_CLOSE = "<!--/am:company-facts-->";
+const FACTS_RANGE = /<!--am:company-facts-->[\s\S]*?<!--\/am:company-facts-->/g;
+
+function companyFactsHtml(numbers: SiteNumbers): string {
+  const org = text(numbers, "company_org_number");
+  const street = text(numbers, "company_street_address");
+  const first = `${COMPANY_LEGAL.name}${org ? ` &middot; Org.nr ${escapeHtml(org)}` : ""}<br/>`;
+  return street ? `${first}
+      ${escapeHtml(street)}, ${COMPANY_LEGAL.postcodeTownCountry}<br/>` : first;
+}
+
+/** True when a letter still carries the place for the company facts. */
+export function letterNeedsCompanyFacts(html: string): boolean {
+  return html.includes(FACTS_OPEN);
+}
+
+/** The letter with the company facts written in from these numbers. */
+export function fillLetterCompanyFacts(html: string, numbers: SiteNumbers): string {
+  return html.replace(FACTS_RANGE, () => companyFactsHtml(numbers));
+}
 
 export type EmailLang = "no" | "en";
 
@@ -261,8 +290,12 @@ export function buildArbeidmatchLetter(args: {
       </table>
     </td></tr>`;
 
-  const legal = `${COMPANY_LEGAL.name} &middot; Org.nr ${COMPANY_LEGAL.orgNr}<br/>
-      ${COMPANY_LEGAL.address}<br/>
+  const known = cachedSiteNumbers();
+  const facts =
+    text(known, "company_org_number") || text(known, "company_street_address")
+      ? companyFactsHtml(known)
+      : `${FACTS_OPEN}${COMPANY_LEGAL.name}<br/>${FACTS_CLOSE}`;
+  const legal = `${facts}
       <a href="https://${COMPANY_LEGAL.site}" style="color:${BRAND.goldMuted};text-decoration:none;">${COMPANY_LEGAL.site}</a>`;
 
   // No alt text: the wordmark at the top already names the company, and with

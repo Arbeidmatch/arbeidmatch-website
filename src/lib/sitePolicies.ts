@@ -1,7 +1,7 @@
-import { STAFFING_REGISTER_URL } from "@/components/site/siteNav";
+import { STAFFING_REGISTER_HREF } from "@/components/site/siteNav";
 import type { LegalLanguage } from "@/lib/legalPageLanguage";
 
-export { STAFFING_REGISTER_URL };
+export { STAFFING_REGISTER_HREF };
 
 /**
  * The public policies written on this site, not on the platform (ORDER 424,
@@ -33,10 +33,10 @@ export type SitePolicy = {
   text: Record<LegalLanguage, PolicyText>;
 };
 
+/** The org number and the street are RecOS's (company_org_number, company_street_address; ORDER 302). */
 export const COMPANY = {
   name: "ArbeidMatch Norge AS",
-  orgNumber: "935 667 089",
-  address: "Sverre Svendsens veg 38, 7056 Ranheim",
+  postcodeTown: "7056 Ranheim",
 } as const;
 
 
@@ -70,7 +70,7 @@ const transparencyAct: SitePolicy = {
             {
               list: [
                 "Kandidater får skriftlig informasjon om stilling, arbeidssted og lønn før de takker ja.",
-                "Vi er et godkjent bemanningsforetak, registrert hos Arbeidstilsynet. [Se oppføringen i registeret](" + STAFFING_REGISTER_URL + ").",
+                "Vi er et godkjent bemanningsforetak, registrert hos Arbeidstilsynet. [Se oppføringen i registeret](" + STAFFING_REGISTER_HREF + ").",
                 "Ved utleie er vi bundet av reglene om likebehandling av innleide arbeidstakere i [arbeidsmiljøloven § 14-12 a](https://lovdata.no/lov/2005-06-17-62/§14-12a).",
                 "Vi vurderer kandidater uten forskjellsbehandling, se [likestilling og ikke-diskriminering](/equality).",
                 "Alle som jobber med eller for oss kan varsle om kritikkverdige forhold, se [varsling](/whistleblowing).",
@@ -107,7 +107,7 @@ const transparencyAct: SitePolicy = {
             {
               list: [
                 "Candidates receive written information about the position, workplace and pay before they accept.",
-                "We are an approved staffing agency, registered with the Norwegian Labour Inspection Authority. [See our entry in the register](" + STAFFING_REGISTER_URL + ").",
+                "We are an approved staffing agency, registered with the Norwegian Labour Inspection Authority. [See our entry in the register](" + STAFFING_REGISTER_HREF + ").",
                 "When we hire out workers, we are bound by the equal treatment rules for hired workers in [section 14-12 a of the Working Environment Act](https://lovdata.no/lov/2005-06-17-62/§14-12a).",
                 "We assess candidates without discrimination, see [equality and non-discrimination](/equality?lang=en).",
                 "Anyone working with or for us can report concerns, see [whistleblowing](/whistleblowing?lang=en).",

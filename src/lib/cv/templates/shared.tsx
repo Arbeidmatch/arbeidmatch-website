@@ -2,7 +2,7 @@ import path from "node:path";
 import React from "react";
 import { Font, Image, Link, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { Style } from "@react-pdf/stylesheet";
-import { CV_CONTROLLER } from "@/lib/cv/org";
+import { cvController } from "@/lib/cv/org";
 import {
   SECTION_HEADINGS,
   dateRange,
@@ -244,19 +244,21 @@ const EMBLEM = path.join(process.cwd(), "public", "brand", "arbeidmatch-emblem.p
  * letterhead.
  */
 export function PageNumber() {
+  // ORDER 302: the street and the org number are RecOS's; a missing one is left out.
+  const controller = cvController();
   return (
     <View style={base.pageFoot} fixed>
       <Image style={base.pageFootEmblem} src={EMBLEM} />
       <Text render={({ pageNumber, totalPages }) => (totalPages > 1 ? `${pageNumber} / ${totalPages}` : "")} />
       <Text>
-        {CV_CONTROLLER.name} &middot; {CV_CONTROLLER.address}, {CV_CONTROLLER.country}
+        {controller.name} &middot; {controller.address ? `${controller.address}, ` : ""}{controller.country}
       </Text>
       <Text>
         Created with ArbeidMatch{" "}
         <Link src={CV_BUILDER_URL} style={base.pageFootLink}>
           arbeidmatch.no/cv
-        </Link>{" "}
-        &middot; Org.nr {CV_CONTROLLER.orgNumber} MVA
+        </Link>
+        {controller.orgNumber ? <> &middot; Org.nr {controller.orgNumber} MVA</> : null}
       </Text>
     </View>
   );

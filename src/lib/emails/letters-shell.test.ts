@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { buildArbeidmatchLetter, emailPreheaderText, letterParagraph } from "@/lib/arbeidmatchEmailShell";
+import { buildArbeidmatchLetter, emailPreheaderText, fillLetterCompanyFacts, letterParagraph } from "@/lib/arbeidmatchEmailShell";
 import { contactReceiptLang, contactReceiptLetter, requestOtpLetter } from "@/lib/emails/letters";
+import { TODAY_NUMBERS } from "@/test/numbers";
 
 const visible = (html: string) => html.replace(/<!--AM_PREHEADER-->[\s\S]*?<!--\/AM_PREHEADER-->/g, "");
 const count = (haystack: string, needle: string) => haystack.split(needle).length - 1;
@@ -20,8 +21,10 @@ describe("the website letter, aligned with the ATS", () => {
   });
 
   it("gives the address as Ranheim, Norway", () => {
-    expect(html).toContain("7056 Ranheim, Norway");
-    expect(html).not.toContain("Ranheim, Trondheim");
+    // ORDER 302: the street is RecOS's, written in as the letter is sent.
+    const sent = fillLetterCompanyFacts(html, TODAY_NUMBERS);
+    expect(sent).toContain("7056 Ranheim, Norway");
+    expect(sent).not.toContain("Ranheim, Trondheim");
   });
 
   it("asks for a reply once, in the body, not again in the footer", () => {

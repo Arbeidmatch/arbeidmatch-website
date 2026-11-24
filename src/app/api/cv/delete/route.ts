@@ -5,6 +5,7 @@ import { noStoreJson, parseJsonBodyWithSchema } from "@/lib/apiSecurity";
 import { logApiError } from "@/lib/secureLogger";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { buildOtpEmail, otpEmailSubject, resolveLang } from "@/lib/cv/emails";
+import { getSiteNumbers } from "@/lib/numbers";
 import {
   OTP_EXPIRY_MS,
   OTP_MAX_ATTEMPTS,
@@ -97,7 +98,7 @@ export async function POST(request: NextRequest) {
       const sent = await sendCvEmail({
         to: email,
         subject: otpEmailSubject(lang),
-        html: buildOtpEmail(code, lang),
+        html: buildOtpEmail(code, lang, await getSiteNumbers()),
       });
 
       if (!sent.ok) {

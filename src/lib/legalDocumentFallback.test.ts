@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { TODAY_NUMBERS } from "@/test/numbers";
 import { LEGAL_CONTACT_EMAIL, SEED_PRIVACY_MD, SEED_TERMS_MD, legalSeedMarkdown } from "./legal-seed-documents-data";
 import { resolveLegalDocument } from "./legalDocumentFallback";
 
@@ -26,8 +27,10 @@ describe("legal document fallback", () => {
   });
 
   it("keeps the stand-in free of policy: identity, unavailable, and where to write", () => {
-    for (const md of [SEED_PRIVACY_MD, SEED_TERMS_MD, legalSeedMarkdown("Cookie Policy")]) {
-      expect(md).toMatch(/ArbeidMatch Norge AS, organisation number 935 667 089 MVA/);
+    // ORDER 302: the org number is RecOS's; the constants are built before any number is read.
+    expect(legalSeedMarkdown("Cookie Policy", TODAY_NUMBERS)).toMatch(/ArbeidMatch Norge AS, organisation number 935 667 089 MVA/);
+    for (const md of [SEED_PRIVACY_MD, SEED_TERMS_MD, legalSeedMarkdown("Cookie Policy", TODAY_NUMBERS)]) {
+      expect(md).toMatch(/^# .+\n\nArbeidMatch Norge AS, /);
       expect(md).toMatch(/temporarily unavailable/);
       expect(md).toContain(LEGAL_CONTACT_EMAIL);
       expect(md).not.toMatch(/Last updated|retain|retention|permanent|Supabase|Vercel|Google|Stripe|legal@|support@/i);

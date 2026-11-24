@@ -12,9 +12,10 @@ import {
   partnerRejectedLetter,
   requestOtpLetter,
 } from "@/lib/emails/letters";
-import { buildArbeidmatchLetter, type EmailAudience } from "@/lib/arbeidmatchEmailShell";
+import { buildArbeidmatchLetter, fillLetterCompanyFacts, type EmailAudience } from "@/lib/arbeidmatchEmailShell";
 import { legalSeedMarkdown } from "@/lib/legal-seed-documents-data";
 import { SUPPORT_LABEL, SUPPORT_PAGE_PATH, SUPPORT_PAGE_URL } from "@/lib/supportPage";
+import { TODAY_NUMBERS } from "@/test/numbers";
 
 /**
  * The owner's standing rule, 6 October 2026: no public e-mail address or phone is
@@ -104,7 +105,8 @@ describe("R106d: the foot of every mail the website sends", () => {
     for (const lang of ["no", "en"] as const) {
       it(`${audience}, ${lang}: the support link and the legal identity, no telephone, no office address`, () => {
         const html = buildArbeidmatchLetter({ title: "T", innerHtml: "<p>x</p>", audience, lang, recipient: "reader@example.com", unsubscribeUrl: "https://example.com/u" });
-        const foot = footerOf(html);
+        // ORDER 302: the org number and the street are RecOS's, written in as the letter is sent.
+        const foot = footerOf(fillLetterCompanyFacts(html, TODAY_NUMBERS));
         expect(foot).not.toMatch(FOOT_PHONE);
         expect(foot).not.toMatch(FOOT_ADDRESS);
         expect(foot).not.toContain("Kontoret");
@@ -179,8 +181,10 @@ describe("the kept exceptions remain", () => {
     // ORDER 302: the number itself is RecOS's (company_org_number), printed in the same words.
     expect(footer).toContain("`Org.nr ${orgNumber} MVA · `");
     expect(footer).toContain('username="post"');
-    expect(legalSeedMarkdown("Terms of Service")).toContain("935 667 089");
-    expect(legalSeedMarkdown("Terms of Service")).toContain("Sverre Svendsens veg 38");
+    // ORDER 302: the stand-in's org number and street are RecOS's.
+    expect(legalSeedMarkdown("Terms of Service", TODAY_NUMBERS)).toContain(
+      "organisation number 935 667 089 MVA, Sverre Svendsens veg 38, 7056 Ranheim",
+    );
   });
 
   it("cv@ stays the address candidates send CVs to", () => {

@@ -1,4 +1,5 @@
 import { controllerFooter } from "@/lib/cv/org";
+import type { SiteNumbers } from "@/lib/numbers";
 import { SUPPORT_LABEL, SUPPORT_PAGE_URL } from "@/lib/supportPage";
 
 const SUPPORT_LINK_STYLE = "color: #0D1B2A; font-weight: 700;";
@@ -40,11 +41,11 @@ export function resolveLang(raw: string | null | undefined): CvEmailLang {
   return raw === "ro" ? "ro" : "en";
 }
 
-function shell(inner: string): string {
+function shell(inner: string, numbers?: SiteNumbers): string {
   return `<div style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; color: #0D1B2A;">
 ${inner}
   <hr style="border: none; border-top: 1px solid #E2E5EA; margin: 32px 0;">
-  <p style="color: #55616D; font-size: 12px; line-height: 1.5;">${controllerFooter()}</p>
+  <p style="color: #55616D; font-size: 12px; line-height: 1.5;">${controllerFooter(numbers)}</p>
 </div>`;
 }
 
@@ -52,20 +53,21 @@ export function otpEmailSubject(lang: CvEmailLang): string {
   return COPY[lang].otpSubject;
 }
 
-export function buildOtpEmail(code: string, lang: CvEmailLang): string {
+/** numbers: RecOS's, for the controller line (ORDER 302); without them, what the server last read. */
+export function buildOtpEmail(code: string, lang: CvEmailLang, numbers?: SiteNumbers): string {
   const t = COPY[lang];
   const safeCode = code.replace(/\D/g, "");
   return shell(`  <h2 style="margin: 0 0 12px;">${t.otpHeading}</h2>
   <p style="line-height: 1.6;">${t.otpIntro}</p>
   <p style="font-size: 32px; font-weight: 700; letter-spacing: 0.25em; margin: 24px 0;">${safeCode}</p>
-  <p style="color: #55616D; font-size: 14px; line-height: 1.6;">${t.otpExpiry}</p>`);
+  <p style="color: #55616D; font-size: 14px; line-height: 1.6;">${t.otpExpiry}</p>`, numbers);
 }
 
 export function cvEmailSubject(lang: CvEmailLang): string {
   return COPY[lang].cvSubject;
 }
 
-export function buildCvEmail(myDataUrl: string, lang: CvEmailLang): string {
+export function buildCvEmail(myDataUrl: string, lang: CvEmailLang, numbers?: SiteNumbers): string {
   const t = COPY[lang];
   return shell(`  <h2 style="margin: 0 0 12px;">${t.cvHeading}</h2>
   <p style="line-height: 1.6;">${t.cvIntro}</p>
@@ -74,5 +76,5 @@ export function buildCvEmail(myDataUrl: string, lang: CvEmailLang): string {
   <p style="margin: 20px 0;">
     <a href="${myDataUrl}" style="background: #C9A84C; color: #0D1B2A; text-decoration: none; padding: 12px 20px; border-radius: 4px; font-weight: 700; display: inline-block;">${t.cvDataLink}</a>
   </p>
-  <p style="color: #55616D; font-size: 14px; line-height: 1.6;">${t.cvQuestions}</p>`);
+  <p style="color: #55616D; font-size: 14px; line-height: 1.6;">${t.cvQuestions}</p>`, numbers);
 }

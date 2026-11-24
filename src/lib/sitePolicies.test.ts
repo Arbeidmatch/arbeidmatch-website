@@ -6,7 +6,9 @@ import { describe, expect, it } from "vitest";
 import { legalRequestPrefill } from "@/lib/legalRequestPrefill";
 import { LEGAL_REQUEST_WORDS } from "@/lib/legalRequestWords";
 import { fillPublicDpaText } from "@/lib/publicDpaFill";
-import { LEGAL_HUB_ENTRIES, SITE_POLICIES, STAFFING_REGISTER_URL } from "@/lib/sitePolicies";
+import { staffingRegisterUrl } from "@/lib/numbers";
+import { LEGAL_HUB_ENTRIES, SITE_POLICIES } from "@/lib/sitePolicies";
+import { TODAY_NUMBERS } from "@/test/numbers";
 
 const root = path.resolve(__dirname, "..", "..");
 const source = (rel: string) => readFileSync(path.join(root, rel), "utf8");
@@ -49,8 +51,10 @@ describe("the public policies written on the site (ORDER 424)", () => {
     for (const old of ["/privacy", "/terms", "/cookies", "/dpa"]) expect(hrefs).toContain(old);
     const footer = source("src/components/site/SiteFooter.tsx");
     expect(footer).toContain("SITE_PATHS.legal");
-    expect(footer).toContain("href={STAFFING_REGISTER_URL}");
-    expect(STAFFING_REGISTER_URL).toMatch(/^https:\/\/www\.arbeidstilsynet\.no\/.*935667089$/);
+    // ORDER 302: the register is searched for the org number RecOS holds.
+    expect(footer).toContain("href={registerUrl}");
+    expect(staffingRegisterUrl("935 667 089")).toBe("https://www.arbeidstilsynet.no/bemanningsvirksomhet/?query=935667089");
+    expect(staffingRegisterUrl(null)).toBeNull();
   });
 
   it("every kind a policy opens the form on is a request type of the form", () => {
@@ -73,6 +77,7 @@ describe("the public DPA", () => {
   it("fills our own details from the register and shows the partner's fields as labels", () => {
     const out = fillPublicDpaText(
       "Processor: ArbeidMatch Norge AS, org. nr. {{PROCESSOR_ORG_NUMBER}}, {{PROCESSOR_REGISTERED_ADDRESS}}. Controller: {{PARTNER_COMPANY_LEGAL_NAME}}",
+      TODAY_NUMBERS,
     );
     expect(out).toContain("org. nr. 935 667 089, Sverre Svendsens veg 38, 7056 Ranheim, Norway");
     expect(out).toContain("[partner company legal name]");

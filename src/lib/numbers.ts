@@ -105,6 +105,15 @@ export async function getSiteNumbers(): Promise<SiteNumbers> {
   }
 }
 
+/**
+ * The last answer this server read, without a request: for code that builds its
+ * text synchronously (the CV documents and their letters). Its async caller reads
+ * getSiteNumbers() first so this is warm; cold, it is empty and the facts are left out.
+ */
+export function cachedSiteNumbers(): SiteNumbers {
+  return lastGood ?? {};
+}
+
 export function num(n: SiteNumbers, key: SiteNumberKey): number | null {
   const v = n[key];
   return typeof v === "number" ? v : null;
@@ -169,6 +178,12 @@ export function dayMonthNo(iso: string | null): string | null {
 export function orgDigits(org: string | null): string | null {
   const d = org ? org.replace(/\D/g, "") : "";
   return d.length === 9 ? d : null;
+}
+
+/** Arbeidstilsynet's register of approved staffing agencies, searched for our org number; null with no number. */
+export function staffingRegisterUrl(org: string | null): string | null {
+  const digits = orgDigits(org);
+  return digits ? `https://www.arbeidstilsynet.no/bemanningsvirksomhet/?query=${digits}` : null;
 }
 
 const DAY_NAMES: Record<string, string> = { Mo: "Monday", Tu: "Tuesday", We: "Wednesday", Th: "Thursday", Fr: "Friday", Sa: "Saturday", Su: "Sunday" };

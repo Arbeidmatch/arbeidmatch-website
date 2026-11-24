@@ -44,8 +44,12 @@ export const SITE_PATHS = {
   feedback: "/feedback",
 } as const;
 
-/** Arbeidstilsynet's register of approved staffing agencies, searched for our org number (ORDER 424). */
-export const STAFFING_REGISTER_URL = "https://www.arbeidstilsynet.no/bemanningsvirksomhet/?query=935667089";
+/**
+ * The href a policy's [text](href) link uses for Arbeidstilsynet's register of
+ * approved staffing agencies (ORDER 424). The address itself is built from the
+ * org number in RecOS (staffingRegisterUrl in lib/numbers.ts, ORDER 302).
+ */
+export const STAFFING_REGISTER_HREF = "register:staffing";
 
 export type CandidateTab = { href: string; label: string; short: string };
 

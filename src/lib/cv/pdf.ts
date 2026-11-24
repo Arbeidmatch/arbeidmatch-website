@@ -16,6 +16,7 @@ import {
 import { cvDocumentSchema, cvFileName, fullName, type CvDocument } from "@/lib/cv/schema";
 import { CV_TEMPLATES, CoverLetter } from "@/lib/cv/templates";
 import { registerCvFonts } from "@/lib/cv/templates/shared";
+import { getSiteNumbers } from "@/lib/numbers";
 
 export const CV_JSON_ATTACHMENT_NAME = "arbeidmatch-cv.json";
 const XMP_NAMESPACE = "https://www.arbeidmatch.no/ns/cv/1.0/";
@@ -110,6 +111,8 @@ function asPdfDocument(element: React.ReactElement): React.ReactElement<Document
 export async function renderCvPdf(input: CvDocument): Promise<RenderedPdf> {
   const doc = assertValid(input);
   registerCvFonts();
+  // ORDER 302: the page foot prints RecOS's org number and street, read synchronously (cvController).
+  await getSiteNumbers();
   const Template = CV_TEMPLATES[doc.templateId];
   const raw = await renderToBuffer(asPdfDocument(React.createElement(Template, { doc })));
   return {
@@ -123,6 +126,7 @@ export async function renderCoverLetterPdf(input: CvDocument): Promise<RenderedP
   const doc = assertValid(input);
   if (!doc.coverLetter) return null;
   registerCvFonts();
+  await getSiteNumbers();
   const raw = await renderToBuffer(asPdfDocument(React.createElement(CoverLetter, { doc })));
   return {
     bytes: await finalise(new Uint8Array(raw), doc, "cover_letter"),

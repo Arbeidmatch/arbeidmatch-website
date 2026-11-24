@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation";
 import { betaCopy } from "@/components/BetaBanner";
 import { ProtectedEmail } from "@/components/ProtectedEmail";
 import { SupportButton } from "@/components/support/SupportRequest";
-import { SITE_PATHS, STAFFING_REGISTER_URL, hidesFooter, siteLang } from "@/components/site/siteNav";
+import { SITE_PATHS, hidesFooter, siteLang } from "@/components/site/siteNav";
 import { useSiteNumbers } from "@/components/NumbersProvider";
-import { text } from "@/lib/numbers";
+import { staffingRegisterUrl, text } from "@/lib/numbers";
 
 /**
  * The footer of every public page (ORDER 295): the same five columns
@@ -22,9 +22,11 @@ export default function SiteFooter() {
   const siteNumbers = useSiteNumbers();
   const orgNumber = text(siteNumbers, "company_org_number");
   const street = text(siteNumbers, "company_street_address");
+  const registerUrl = staffingRegisterUrl(orgNumber);
   if (hidesFooter(pathname)) return null;
   const no = siteLang(pathname) === "no";
   const beta = betaCopy(no);
+  const registerClaim = no ? "Godkjent bemanningsforetak, registrert hos Arbeidstilsynet." : "Approved staffing agency, registered with Arbeidstilsynet.";
 
   return (
     <div className="ams">
@@ -95,10 +97,14 @@ export default function SiteFooter() {
           <div className="legal">
             © 2026 ArbeidMatch Norge AS · {orgNumber ? `Org.nr ${orgNumber} MVA · ` : ""}{street ? `${street}, 7056 Ranheim · ` : ""}
             <ProtectedEmail username="post" domain="arbeidmatch.no" className="" loadingLabel="" /> ·{" "}
-            {/* ORDER 424: the claim opens its proof, Arbeidstilsynet's register searched for our org number. */}
-            <a href={STAFFING_REGISTER_URL} target="_blank" rel="noopener noreferrer">
-              {no ? "Godkjent bemanningsforetak, registrert hos Arbeidstilsynet." : "Approved staffing agency, registered with Arbeidstilsynet."}
-            </a>
+            {/* ORDER 424: the claim opens its proof, Arbeidstilsynet's register searched for our org number. With no number from RecOS the claim stands without the link. */}
+            {registerUrl ? (
+              <a href={registerUrl} target="_blank" rel="noopener noreferrer">
+                {registerClaim}
+              </a>
+            ) : (
+              registerClaim
+            )}
           </div>
         </div>
       </footer>

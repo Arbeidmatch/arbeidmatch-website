@@ -5,7 +5,8 @@ import LegalHtmlLang from "@/components/legal/LegalHtmlLang";
 import { PolicyLanguagePills } from "@/components/legal/SitePolicyPage";
 import { parseLegalLanguage } from "@/lib/legalPageLanguage";
 import { legalPageMetadata } from "@/lib/legalPageMetadata";
-import { COMPANY, LEGAL_HUB_ENTRIES, STAFFING_REGISTER_URL, legalRequestHref } from "@/lib/sitePolicies";
+import { getSiteNumbers, staffingRegisterUrl, text } from "@/lib/numbers";
+import { COMPANY, LEGAL_HUB_ENTRIES, legalRequestHref } from "@/lib/sitePolicies";
 
 const PATH = "/legal";
 
@@ -34,6 +35,11 @@ export default async function LegalHubPage({ searchParams }: Props) {
   const no = language === "no";
   const lang = no ? "nb" : "en";
   const q = no ? "" : "?lang=en";
+  // ORDER 302: the org number and the street are RecOS's; a missing one leaves its piece out, and the register link needs the number.
+  const numbers = await getSiteNumbers();
+  const orgNumber = text(numbers, "company_org_number");
+  const street = text(numbers, "company_street_address");
+  const registerUrl = staffingRegisterUrl(orgNumber);
   const routes = [
     { kind: "complaint", label: no ? "Klage" : "Complaint" },
     { kind: "transparency", label: no ? "Informasjonskrav (åpenhetsloven)" : "Transparency Act request" },
@@ -48,7 +54,9 @@ export default async function LegalHubPage({ searchParams }: Props) {
           <span className="eb">{no ? "Juridisk" : "Legal"}</span>
           <h1>{no ? "Juridisk og retningslinjer" : "Legal and policies"}</h1>
           <p className="lede">
-            {COMPANY.name} · Org.nr {COMPANY.orgNumber} · {COMPANY.address}
+            {COMPANY.name}
+            {orgNumber ? ` · Org.nr ${orgNumber}` : ""}
+            {street ? ` · ${street}, ${COMPANY.postcodeTown}` : ""}
           </p>
         </div>
       </section>
@@ -71,10 +79,14 @@ export default async function LegalHubPage({ searchParams }: Props) {
               {no
                 ? "ArbeidMatch Norge AS er registrert i Arbeidstilsynets register over godkjente bemanningsforetak. "
                 : "ArbeidMatch Norge AS is listed in the Norwegian Labour Inspection Authority's register of approved staffing agencies. "}
-              <a href={STAFFING_REGISTER_URL} target="_blank" rel="noopener noreferrer">
-                {no ? "Se oppføringen i registeret" : "See our entry in the register"}
-              </a>
-              .
+              {registerUrl ? (
+                <>
+                  <a href={registerUrl} target="_blank" rel="noopener noreferrer">
+                    {no ? "Se oppføringen i registeret" : "See our entry in the register"}
+                  </a>
+                  .
+                </>
+              ) : null}
             </p>
             <h2>{no ? "Kontakt oss" : "Contact us"}</h2>
             <p>

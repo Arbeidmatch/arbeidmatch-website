@@ -7,6 +7,7 @@ import { logApiError } from "@/lib/secureLogger";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { CONSENT_TEXT_SHA256, getPolicyVersion } from "@/lib/cv/consent";
 import { buildOtpEmail, otpEmailSubject, resolveLang } from "@/lib/cv/emails";
+import { getSiteNumbers } from "@/lib/numbers";
 import {
   OTP_EXPIRY_MS,
   OTP_MAX_SENDS_PER_EMAIL_PER_HOUR,
@@ -155,7 +156,7 @@ export async function POST(request: NextRequest) {
     const sent = await sendCvEmail({
       to: normalizeEmail(body.email),
       subject: otpEmailSubject(lang),
-      html: buildOtpEmail(code, lang),
+      html: buildOtpEmail(code, lang, await getSiteNumbers()),
     });
 
     if (!sent.ok) {

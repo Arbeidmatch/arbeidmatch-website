@@ -1,13 +1,29 @@
-/** Controller details, used in consent copy, emails and the privacy section. */
-export const CV_CONTROLLER = {
-  name: "ArbeidMatch Norge AS",
-  orgNumber: "935 667 089",
-  address: "Sverre Svendsens veg 38, 7056 Ranheim",
-  country: "Norway",
-} as const;
+import { cachedSiteNumbers, text, type SiteNumbers } from "@/lib/numbers";
 
-export function controllerFooter(): string {
-  return `${CV_CONTROLLER.name}, org.nr. ${CV_CONTROLLER.orgNumber}, ${CV_CONTROLLER.address}, ${CV_CONTROLLER.country}`;
+/**
+ * Controller details, used in consent copy, emails and the privacy section.
+ * The org number and the street are RecOS's (company_org_number,
+ * company_street_address; ORDER 302). The CV documents and letters are built
+ * synchronously, so they read what the server last fetched: the routes that
+ * build them call getSiteNumbers() first. A missing one is left out.
+ */
+export const CV_CONTROLLER_NAME = "ArbeidMatch Norge AS";
+
+export type CvController = { name: string; orgNumber: string | null; address: string | null; country: string };
+
+export function cvController(numbers: SiteNumbers = cachedSiteNumbers()): CvController {
+  const street = text(numbers, "company_street_address");
+  return {
+    name: CV_CONTROLLER_NAME,
+    orgNumber: text(numbers, "company_org_number"),
+    address: street ? `${street}, 7056 Ranheim` : null,
+    country: "Norway",
+  };
+}
+
+export function controllerFooter(numbers?: SiteNumbers): string {
+  const c = cvController(numbers);
+  return [c.name, c.orgNumber ? `org.nr. ${c.orgNumber}` : null, c.address, c.country].filter(Boolean).join(", ");
 }
 
 export function siteOrigin(): string {

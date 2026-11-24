@@ -5,20 +5,28 @@ import type { ReactNode } from "react";
 import LegalHtmlLang from "@/components/legal/LegalHtmlLang";
 import { LEGAL_LANGUAGES, LEGAL_LANGUAGE_LABEL, legalLanguageHref, type LegalLanguage } from "@/lib/legalPageLanguage";
 import { legalPageMetadata } from "@/lib/legalPageMetadata";
-import type { SitePolicy } from "@/lib/sitePolicies";
+import { getSiteNumbers, staffingRegisterUrl, text as numberText } from "@/lib/numbers";
+import { STAFFING_REGISTER_HREF, type SitePolicy } from "@/lib/sitePolicies";
 
 const LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
 
-/** A sentence with [text](href) links in it; outside links open in a new tab. */
-export function PolicyInline({ text }: { text: string }): ReactNode {
+/**
+ * A sentence with [text](href) links in it; outside links open in a new tab.
+ * The register link takes its address from registerUrl (built from RecOS's org
+ * number, ORDER 302); with none, its words stay as plain text.
+ */
+export function PolicyInline({ text, registerUrl = null }: { text: string; registerUrl?: string | null }): ReactNode {
   const out: ReactNode[] = [];
   let last = 0;
   for (const m of text.matchAll(LINK)) {
     const at = m.index ?? 0;
     if (at > last) out.push(text.slice(last, at));
-    const [, label, href] = m;
+    const [, label, rawHref] = m;
+    const href = rawHref === STAFFING_REGISTER_HREF ? registerUrl : rawHref;
     out.push(
-      href.startsWith("/") ? (
+      !href ? (
+        label
+      ) : href.startsWith("/") ? (
         <Link key={at} href={href}>
           {label}
         </Link>
@@ -62,7 +70,8 @@ export function PolicyLanguagePills({ path, current }: { path: string; current: 
  * English pills, the text in one card, and the legal request form as the
  * one way to reach us.
  */
-export function SitePolicyPage({ policy, language }: { policy: SitePolicy; language: LegalLanguage }) {
+export async function SitePolicyPage({ policy, language }: { policy: SitePolicy; language: LegalLanguage }) {
+  const registerUrl = staffingRegisterUrl(numberText(await getSiteNumbers(), "company_org_number"));
   const t = policy.text[language];
   const no = language === "no";
   const lang = no ? "nb" : "en";
@@ -89,13 +98,13 @@ export function SitePolicyPage({ policy, language }: { policy: SitePolicy; langu
                 {section.blocks.map((block, i) =>
                   typeof block === "string" ? (
                     <p key={i}>
-                      <PolicyInline text={block} />
+                      <PolicyInline text={block} registerUrl={registerUrl} />
                     </p>
                   ) : (
                     <ul key={i}>
                       {block.list.map((item) => (
                         <li key={item}>
-                          <PolicyInline text={item} />
+                          <PolicyInline text={item} registerUrl={registerUrl} />
                         </li>
                       ))}
                     </ul>

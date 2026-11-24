@@ -1,5 +1,7 @@
 import nodemailer from "nodemailer";
+import { fillLetterCompanyFacts, letterNeedsCompanyFacts } from "@/lib/arbeidmatchEmailShell";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
+import { getSiteNumbers } from "@/lib/numbers";
 
 /** Shared SMTP config from env. */
 export function createSmtpTransporter() {
@@ -9,7 +11,7 @@ export function createSmtpTransporter() {
   const pass = process.env.SMTP_PASS;
   if (!host || !Number.isFinite(port) || !user || !pass) return null;
 
-  return nodemailer.createTransport({
+  const transporter = nodemailer.createTransport({
     host,
     port,
     secure: port === 465,
@@ -23,6 +25,20 @@ export function createSmtpTransporter() {
     greetingTimeout: 10_000,
     socketTimeout: 20_000,
   });
+  // ORDER 302: a letter built before this server had read RecOS's numbers gets
+  // the org number and the street at its foot here, as it is sent.
+  transporter.use("compile", (mail, done) => {
+    const html = mail.data.html;
+    if (typeof html !== "string" || !letterNeedsCompanyFacts(html)) return done();
+    getSiteNumbers().then(
+      (numbers) => {
+        mail.data.html = fillLetterCompanyFacts(html, numbers);
+        done();
+      },
+      () => done(),
+    );
+  });
+  return transporter;
 }
 
 type SmtpTransporter = NonNullable<ReturnType<typeof createSmtpTransporter>>;
