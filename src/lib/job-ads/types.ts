@@ -90,6 +90,8 @@ export type PublicOrderView = {
   findings: ReviewFinding[];
   advert: AdvertDraft;
   company: string;
+  /** What each package contains; null before approval and from an ATS that does not send it yet. */
+  packageContents?: PackageContents | null;
   quotes: Record<AdPackage, AdQuote> | null;
   chosen: { package: AdPackage; addons: string[]; method: PaymentMethod | null; quote: AdQuote | null } | null;
   publishedSlug: string | null;
@@ -143,61 +145,112 @@ export const WORK_LANGUAGE_OPTIONS = ["Norsk", "Engelsk", "Skandinavisk", "Polsk
 // No price before review (his decision, 11 September 2026: prices are asked
 // for through a request). The ATS quotes the packages once the advert is approved.
 
-export const PACKAGES: readonly { id: AdPackage; name: string; gives: string[]; recommended?: boolean }[] = [
-  {
-    id: "basis",
-    name: "Basis",
-    gives: [
-      "Annonsen på arbeidmatch.no til søknadsfristen, høyst 42 dager",
-      "Kontrollert mot annonsereglene",
-      "Søkerne rett inn i deres egen RecOS-konto",
-    ],
-  },
-  {
-    id: "synlig",
-    name: "Synlig",
-    recommended: true,
-    gives: [
-      "Alt i Basis",
-      "Innlegg på vår Facebook-side",
-      "Fremhevet på forsiden i 7 dager",
-      "Anbefalt av vår chat-assistent",
-      "Oversatt til ett språk (rumensk, polsk eller litauisk)",
-    ],
-  },
-  {
-    id: "maks",
-    name: "Maks",
-    gives: [
-      "Alt i Synlig",
-      "Opptil fem anonyme kandidatprofiler fra vår database den første uken",
-      "Søkerne sortert etter hvor godt de passer",
-      "Oversatt til to språk",
-      "30 dager ekstra",
-    ],
-  },
+/**
+ * What each package contains comes from the ATS with the quotes
+ * (PublicOrderView.packageContents, ats-recruitment pricing.ts
+ * adPackageContents): the days, the translations, the profiles and the add-ons
+ * a package already holds. This file keeps only the sentences (ORDER 302); it
+ * used to mirror the ATS's facts, and a mirror drifts.
+ */
+export type PackageFacts = {
+  includedAddons: AdAddon[];
+  translations: number;
+  anonymousProfiles: number;
+  facebook: boolean;
+  chatAssistant: boolean;
+  ranked: boolean;
+};
+
+export type PackageContents = {
+  maxDays: number;
+  extendDays: number;
+  featuredDays: number;
+  packages: Record<AdPackage, PackageFacts>;
+};
+
+export const PACKAGES: readonly { id: AdPackage; name: string; recommended?: boolean }[] = [
+  { id: "basis", name: "Basis" },
+  { id: "synlig", name: "Synlig", recommended: true },
+  { id: "maks", name: "Maks" },
 ];
 
 export const PACKAGE_NAMES: Record<AdPackage, string> = { basis: "Basis", synlig: "Synlig", maks: "Maks" };
 
-export const ADDONS: readonly { id: AdAddon; label: string }[] = [
-  { id: "featured_7d", label: "Fremhevet på forsiden i 7 dager" },
-  { id: "extend_30d", label: "30 dager ekstra" },
-  { id: "translation", label: "Oversettelse til ett språk" },
-  { id: "written_by_us", label: "Vi skriver annonsen for dere" },
-  { id: "urgent_label", label: "Merket «Haster»" },
-];
+const NUMBER_WORDS_NO = ["null", "ett", "to", "tre", "fire", "fem", "seks", "sju", "åtte", "ni", "ti"];
 
-/** Add-ons a package already contains (pricing.ts INCLUDED): never offered twice. */
-export const ADDONS_INCLUDED_IN: Record<AdPackage, readonly AdAddon[]> = {
-  basis: [],
-  synlig: ["featured_7d", "translation"],
-  maks: ["featured_7d", "translation", "extend_30d"],
-};
+function inWords(n: number): string {
+  return Number.isInteger(n) && n >= 0 && n <= 10 ? NUMBER_WORDS_NO[n] : String(n);
+}
 
-export function addonsOfferedFor(pkg: AdPackage): AdAddon[] {
-  const included = new Set(ADDONS_INCLUDED_IN[pkg]);
-  return ADDONS.map((a) => a.id).filter((id) => !included.has(id));
+/** "fem" for profiles: the common-gender word for one is "én", not "ett". */
+function profilesInWords(n: number): string {
+  return n === 1 ? "én" : inWords(n);
+}
+
+/**
+ * The lines under a package, built from the ATS's facts. Each package after the
+ * first opens with "Alt i <the one before>" and lists only what it adds.
+ * Without the facts there are no lines: the card shows its name and price.
+ */
+export function packageGives(contents: PackageContents | null, pkg: AdPackage): string[] {
+  if (!contents) return [];
+  const index = PACKAGES.findIndex((p) => p.id === pkg);
+  const facts = contents.packages[pkg];
+  if (index < 0 || !facts) return [];
+  if (index === 0) {
+    return [
+      `Annonsen på arbeidmatch.no til søknadsfristen, høyst ${contents.maxDays} dager`,
+      "Kontrollert mot annonsereglene",
+      "Søkerne rett inn i deres egen RecOS-konto",
+    ];
+  }
+  const prevPkg = PACKAGES[index - 1];
+  const prev = contents.packages[prevPkg.id];
+  const has = (a: AdAddon) => facts.includedAddons.includes(a) && !(prev?.includedAddons ?? []).includes(a);
+  const lines = [`Alt i ${prevPkg.name}`];
+  if (facts.facebook && !prev?.facebook) lines.push("Innlegg på vår Facebook-side");
+  if (has("featured_7d")) lines.push(`Fremhevet på forsiden i ${contents.featuredDays} dager`);
+  if (facts.chatAssistant && !prev?.chatAssistant) lines.push("Anbefalt av vår chat-assistent");
+  if (facts.anonymousProfiles > (prev?.anonymousProfiles ?? 0)) {
+    lines.push(`Opptil ${profilesInWords(facts.anonymousProfiles)} anonyme kandidatprofiler fra vår database den første uken`);
+  }
+  if (facts.ranked && !prev?.ranked) lines.push("Søkerne sortert etter hvor godt de passer");
+  if (facts.translations > (prev?.translations ?? 0)) {
+    lines.push(facts.translations === 1 ? "Oversatt til ett språk (rumensk, polsk eller litauisk)" : `Oversatt til ${inWords(facts.translations)} språk`);
+  }
+  if (has("extend_30d")) lines.push(`${contents.extendDays} dager ekstra`);
+  return lines;
+}
+
+const ADDON_IDS: readonly AdAddon[] = ["featured_7d", "extend_30d", "translation", "written_by_us", "urgent_label"];
+
+/**
+ * The add-ons with their labels. The two that carry a number of days take it
+ * from the ATS's facts; without the facts they are not offered, since their
+ * label would have no number to say.
+ */
+export function addonChoices(contents: PackageContents | null): { id: AdAddon; label: string }[] {
+  const out: { id: AdAddon; label: string }[] = [];
+  for (const id of ADDON_IDS) {
+    if (id === "featured_7d") {
+      if (contents) out.push({ id, label: `Fremhevet på forsiden i ${contents.featuredDays} dager` });
+    } else if (id === "extend_30d") {
+      if (contents) out.push({ id, label: `${contents.extendDays} dager ekstra` });
+    } else if (id === "translation") out.push({ id, label: "Oversettelse til ett språk" });
+    else if (id === "written_by_us") out.push({ id, label: "Vi skriver annonsen for dere" });
+    else out.push({ id, label: "Merket «Haster»" });
+  }
+  return out;
+}
+
+/** Add-ons the package already contains, as the ATS says: never offered twice. */
+export function addonsIncludedIn(contents: PackageContents | null, pkg: AdPackage): AdAddon[] {
+  return [...(contents?.packages[pkg]?.includedAddons ?? [])];
+}
+
+export function addonsOfferedFor(contents: PackageContents | null, pkg: AdPackage): AdAddon[] {
+  const included = new Set(addonsIncludedIn(contents, pkg));
+  return addonChoices(contents).map((a) => a.id).filter((id) => !included.has(id));
 }
 
 export function isAdPackage(value: unknown): value is AdPackage {
@@ -205,7 +258,7 @@ export function isAdPackage(value: unknown): value is AdPackage {
 }
 
 export function isAdAddon(value: unknown): value is AdAddon {
-  return ADDONS.some((a) => a.id === value);
+  return (ADDON_IDS as readonly unknown[]).includes(value);
 }
 
 export function formatNok(n: number): string {

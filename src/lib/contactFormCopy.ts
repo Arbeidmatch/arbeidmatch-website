@@ -26,7 +26,8 @@ export const CONTACT_FORM_COPY = {
     companyField: "Bedrift",
     addressHeading: "Adresse",
     basedIn: "Vi holder til i Trondheim",
-    address: "Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norge",
+    // ORDER 302: the street before this is company_street_address in RecOS (lib/numbers.ts).
+    addressAfterStreet: "7056 Ranheim, Trondheim, Norge",
     originGroupLabel: "Hvor er bedriften registrert?",
     // The reply promise after it comes from RecOS (ORDER 302): replySentence in lib/numbers.ts.
     intro: "Har dere spørsmål, eller er dere klare til å finne arbeidskraft til bedriften?",
@@ -69,7 +70,7 @@ export const CONTACT_FORM_COPY = {
     companyField: "Company",
     addressHeading: "Address",
     basedIn: "We are based in Trondheim",
-    address: "Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway",
+    addressAfterStreet: "7056 Ranheim, Trondheim, Norway",
     originGroupLabel: "Where is the company registered?",
     // The reply promise after it comes from RecOS (ORDER 302): replySentence in lib/numbers.ts.
     intro: "Do you have questions, or are you ready to find workers for your company?",

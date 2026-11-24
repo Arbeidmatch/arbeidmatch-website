@@ -7,6 +7,8 @@ import { langForPath } from "@/lib/pageLang";
 import { ProtectedEmail } from "@/components/ProtectedEmail";
 import { SupportButton } from "@/components/support/SupportRequest";
 import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { text } from "@/lib/numbers";
 
 function FooterColumnTitle({ children }: { children: string }) {
   return (
@@ -29,6 +31,10 @@ function FooterNavLink({ href, label }: { href: string; label: string }) {
 
 export default function Footer() {
   const no = langForPath(usePathname()) === "nb";
+  // ORDER 302: the org number and the street are RecOS's; a missing one leaves its piece of the line out.
+  const siteNumbers = useSiteNumbers();
+  const orgNumber = text(siteNumbers, "company_org_number");
+  const street = text(siteNumbers, "company_street_address");
   return (
     <footer className="overflow-x-clip border-t border-[rgba(255,255,255,0.08)] bg-[#0D1B2A] text-[rgba(255,255,255,0.5)]">
       <div className="mx-auto w-full max-w-[1280px] px-6 py-10 md:px-10 md:py-12 lg:px-12 lg:py-16">
@@ -80,7 +86,7 @@ export default function Footer() {
 
       <div className="border-t border-[rgba(255,255,255,0.08)]">
         <div className="mx-auto max-w-[1280px] px-6 py-4 text-center text-xs leading-relaxed text-[rgba(255,255,255,0.5)] md:px-10 lg:px-12">
-          © 2026 ArbeidMatch Norge AS · Org.nr 935 667 089 MVA · Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway ·{" "}
+          © 2026 ArbeidMatch Norge AS · {orgNumber ? `Org.nr ${orgNumber} MVA · ` : ""}{street ? `${street}, 7056 Ranheim, Trondheim, Norway · ` : ""}
           <ProtectedEmail
             username="post"
             domain="arbeidmatch.no"

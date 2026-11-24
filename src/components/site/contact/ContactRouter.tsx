@@ -8,7 +8,7 @@ import { useSheets } from "@/components/site/sheet/SheetHost";
 import { SITE_PATHS } from "@/components/site/siteNav";
 import { SupportButton } from "@/components/support/SupportRequest";
 import { useSiteNumbers } from "@/components/NumbersProvider";
-import { replySentence } from "@/lib/numbers";
+import { replySentence, text } from "@/lib/numbers";
 
 /**
  * Kontakt as a router (ORDER 295, stage 2): instead of one form for everyone
@@ -60,7 +60,10 @@ function PageRow({ href, children, lang }: { href: string; children: ReactNode; 
 
 export default function ContactRouter() {
   // ORDER 302: the reply promise is RecOS's; with no value the line ends at its first sentence.
-  const reply = replySentence(useSiteNumbers(), "no");
+  const siteNumbers = useSiteNumbers();
+  const reply = replySentence(siteNumbers, "no");
+  // ORDER 302: the street is RecOS's; with none read yet the visiting-address row is left out.
+  const street = text(siteNumbers, "company_street_address");
   const sheets = useSheets();
   const [supportOnArrival, setSupportOnArrival] = useState(false);
 
@@ -136,9 +139,11 @@ export default function ContactRouter() {
             <PageRow href={SITE_PATHS.privacy}>
               <Body icon="lock" title="Personvern og dine rettigheter" sub="Innsyn, retting og sletting" />
             </PageRow>
-            <div className="prow">
-              <Body icon="pin" title="Besøksadresse" sub="Sverre Svendsens veg 38, 7056 Ranheim, Trondheim" />
-            </div>
+            {street ? (
+              <div className="prow">
+                <Body icon="pin" title="Besøksadresse" sub={`${street}, 7056 Ranheim, Trondheim`} />
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

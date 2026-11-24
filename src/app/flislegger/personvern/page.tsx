@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Mail, Phone, ShieldCheck } from "lucide-react";
 import { FlisleggerBrand } from "../FlisleggerBrand";
+import { getSiteNumbers, text } from "@/lib/numbers";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/flislegger/personvern" },
@@ -9,10 +10,12 @@ export const metadata: Metadata = {
   description: "Slik behandler ArbeidMatch personopplysninger fra prosjektforespørsler og nyhetsbrev.",
 };
 
-const sections = [
+// ORDER 302: the org number and the street are RecOS's. Without the number the
+// sentence names the company alone; without the street the address line is left out.
+const sections = (orgNumber: string | null, street: string | null) => [
   {
     title: "1. Hvem er behandlingsansvarlig?",
-    content: <><p>ArbeidMatch Norge AS, org.nr. 935 667 089 MVA, er behandlingsansvarlig for opplysningene som samles inn gjennom Flislegger-avdelingen.</p><p>Adresse: Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norge.</p></>,
+    content: <><p>ArbeidMatch Norge AS{orgNumber ? `, org.nr. ${orgNumber} MVA,` : ""} er behandlingsansvarlig for opplysningene som samles inn gjennom Flislegger-avdelingen.</p>{street ? <p>Adresse: {street}, 7056 Ranheim, Trondheim, Norge.</p> : null}</>,
   },
   {
     title: "2. Hvilke opplysninger samler vi inn?",
@@ -48,7 +51,10 @@ const sections = [
   },
 ];
 
-export default function FlisleggerPrivacyPage() {
+export default async function FlisleggerPrivacyPage() {
+  const siteNumbers = await getSiteNumbers();
+  const orgNumber = text(siteNumbers, "company_org_number");
+  const street = text(siteNumbers, "company_street_address");
   return (
     <div className="min-h-screen bg-white text-[#0f1923]">
       <style>{`.ats-route-progress{background-color:#1d9e75!important}`}</style>
@@ -69,12 +75,12 @@ export default function FlisleggerPrivacyPage() {
 
         <section className="py-16 sm:py-24">
           <div className="mx-auto grid max-w-5xl gap-12 px-5 sm:px-8 lg:grid-cols-[1fr_280px]">
-            <div className="space-y-12">{sections.map(section => <article key={section.title} className="border-b border-[#0f1923]/10 pb-10"><h2 className="text-2xl font-semibold tracking-[-0.02em]">{section.title}</h2><div className="mt-4 space-y-4 leading-relaxed text-[#0f1923]/70">{section.content}</div></article>)}</div>
+            <div className="space-y-12">{sections(orgNumber, street).map(section => <article key={section.title} className="border-b border-[#0f1923]/10 pb-10"><h2 className="text-2xl font-semibold tracking-[-0.02em]">{section.title}</h2><div className="mt-4 space-y-4 leading-relaxed text-[#0f1923]/70">{section.content}</div></article>)}</div>
             <aside className="lg:sticky lg:top-8 lg:self-start"><div className="rounded-[20px] bg-[#0f1923] p-6 text-white"><h2 className="text-lg font-semibold">Kontakt om personvern</h2><p className="mt-3 text-sm leading-relaxed text-white/60">Skriv til oss hvis du vil bruke rettighetene dine eller trekke tilbake samtykke.</p><a href="mailto:flislegger@arbeidmatch.no" className="mt-6 flex min-h-11 items-center gap-3 text-sm font-semibold hover:text-[#1d9e75]"><Mail className="h-4 w-4" /> flislegger@arbeidmatch.no</a><a href="tel:+4741063773" className="flex min-h-11 items-center gap-3 text-sm font-semibold hover:text-[#1d9e75]"><Phone className="h-4 w-4" /> +47 410 63 773</a></div></aside>
           </div>
         </section>
       </main>
-      <footer className="border-t border-[#0f1923]/10 py-8"><div className="mx-auto flex max-w-5xl flex-col gap-3 px-5 text-sm text-[#0f1923]/55 sm:flex-row sm:justify-between sm:px-8"><p>© {new Date().getFullYear()} ArbeidMatch Norge AS</p><p>Org.nr. 935 667 089 MVA</p></div></footer>
+      <footer className="border-t border-[#0f1923]/10 py-8"><div className="mx-auto flex max-w-5xl flex-col gap-3 px-5 text-sm text-[#0f1923]/55 sm:flex-row sm:justify-between sm:px-8"><p>© {new Date().getFullYear()} ArbeidMatch Norge AS</p>{orgNumber ? <p>Org.nr. {orgNumber} MVA</p> : null}</div></footer>
     </div>
   );
 }

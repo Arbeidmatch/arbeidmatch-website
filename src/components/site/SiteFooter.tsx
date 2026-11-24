@@ -7,6 +7,8 @@ import { betaCopy } from "@/components/BetaBanner";
 import { ProtectedEmail } from "@/components/ProtectedEmail";
 import { SupportButton } from "@/components/support/SupportRequest";
 import { SITE_PATHS, STAFFING_REGISTER_URL, hidesFooter, siteLang } from "@/components/site/siteNav";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { text } from "@/lib/numbers";
 
 /**
  * The footer of every public page (ORDER 295): the same five columns
@@ -16,6 +18,10 @@ import { SITE_PATHS, STAFFING_REGISTER_URL, hidesFooter, siteLang } from "@/comp
  */
 export default function SiteFooter() {
   const pathname = usePathname() ?? "/";
+  // ORDER 302: the org number and the street are RecOS's; a missing one leaves its piece of the line out.
+  const siteNumbers = useSiteNumbers();
+  const orgNumber = text(siteNumbers, "company_org_number");
+  const street = text(siteNumbers, "company_street_address");
   if (hidesFooter(pathname)) return null;
   const no = siteLang(pathname) === "no";
   const beta = betaCopy(no);
@@ -87,7 +93,7 @@ export default function SiteFooter() {
             <p>{beta.rights}</p>
           </details>
           <div className="legal">
-            © 2026 ArbeidMatch Norge AS · Org.nr 935 667 089 MVA · Sverre Svendsens veg 38, 7056 Ranheim ·{" "}
+            © 2026 ArbeidMatch Norge AS · {orgNumber ? `Org.nr ${orgNumber} MVA · ` : ""}{street ? `${street}, 7056 Ranheim · ` : ""}
             <ProtectedEmail username="post" domain="arbeidmatch.no" className="" loadingLabel="" /> ·{" "}
             {/* ORDER 424: the claim opens its proof, Arbeidstilsynet's register searched for our org number. */}
             <a href={STAFFING_REGISTER_URL} target="_blank" rel="noopener noreferrer">

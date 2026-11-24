@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Award, Bath, Building2, Check, ChevronRight, FileCheck2, Grid3X3, Hammer, House, Ruler, ShieldCheck, Sparkles } from "lucide-react";
 import { FlisleggerProjectForm } from "./FlisleggerProjectForm";
 import { FlisleggerBrand } from "./FlisleggerBrand";
+import { getSiteNumbers, text } from "@/lib/numbers";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/flislegger" },
@@ -25,7 +26,11 @@ const services = [
   { icon: Building2, title: "Næring og større prosjekt", text: "Ett kontaktpunkt, forutsigbar fremdrift og kapasitet når du trenger det.", href: "/flislegger/prosjekter" },
 ];
 
-export default function FlisleggerPage() {
+export default async function FlisleggerPage() {
+  // ORDER 302: the org number and the street in the footer are RecOS's; a missing one leaves its piece out.
+  const siteNumbers = await getSiteNumbers();
+  const orgNumber = text(siteNumbers, "company_org_number");
+  const street = text(siteNumbers, "company_street_address");
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#0f1923] text-white">
       <style>{`.ats-route-progress{background-color:#1d9e75!important}`}</style>
@@ -103,7 +108,7 @@ export default function FlisleggerPage() {
         </section>
       </main>
 
-      <footer className="border-t border-white/10 bg-[#0f1923] py-10"><div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 text-sm text-white/50 sm:flex-row sm:items-center sm:justify-between sm:px-8"><p>© {new Date().getFullYear()} ArbeidMatch Norge AS · Org.nr. 935 667 089 MVA · Sverre Svendsens veg 38, 7056 Ranheim, Trondheim</p><div className="flex flex-wrap gap-6"><Link href="/flislegger/prosjekter" className="inline-flex min-h-11 items-center hover:text-white">Prosjekter</Link><Link href="/flislegger/personvern" className="inline-flex min-h-11 items-center hover:text-white">Personvern for Flislegger</Link><a href="mailto:flislegger@arbeidmatch.no" className="inline-flex min-h-11 items-center hover:text-white">flislegger@arbeidmatch.no</a></div></div></footer>
+      <footer className="border-t border-white/10 bg-[#0f1923] py-10"><div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 text-sm text-white/50 sm:flex-row sm:items-center sm:justify-between sm:px-8"><p>© {new Date().getFullYear()} ArbeidMatch Norge AS{orgNumber ? ` · Org.nr. ${orgNumber} MVA` : ""}{street ? ` · ${street}, 7056 Ranheim, Trondheim` : ""}</p><div className="flex flex-wrap gap-6"><Link href="/flislegger/prosjekter" className="inline-flex min-h-11 items-center hover:text-white">Prosjekter</Link><Link href="/flislegger/personvern" className="inline-flex min-h-11 items-center hover:text-white">Personvern for Flislegger</Link><a href="mailto:flislegger@arbeidmatch.no" className="inline-flex min-h-11 items-center hover:text-white">flislegger@arbeidmatch.no</a></div></div></footer>
     </div>
   );
 }

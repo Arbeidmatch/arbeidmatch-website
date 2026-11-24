@@ -72,7 +72,7 @@ import {
   type StaffingPrefill,
 } from "@/lib/min-side/profile";
 import { useSiteNumbers } from "@/components/NumbersProvider";
-import { num } from "@/lib/numbers";
+import { num, text } from "@/lib/numbers";
 
 /**
  * "Min side": a client's own page (the owner's decision of 30 September 2026,
@@ -99,8 +99,14 @@ import { num } from "@/lib/numbers";
 
 const PortalModal = dynamic(() => import("@/components/prosjekter/PortalModal"), { ssr: false });
 
-/** The trust line of the footer. "Godkjent bemanningsforetak": Arbeidstilsynet's register reads Godkjent for org.nr 935 667 089 (checked 13 October 2026). */
-const FOOTER_LINE = "ArbeidMatch Norge AS · Godkjent bemanningsforetak · Org.nr 935 667 089";
+/**
+ * The trust line of the footer. "Godkjent bemanningsforetak": Arbeidstilsynet's
+ * register reads Godkjent for our org number (checked 13 October 2026). The
+ * number is RecOS's (ORDER 302); without it the line ends at the claim.
+ */
+function footerLine(orgNumber: string | null): string {
+  return `ArbeidMatch Norge AS · Godkjent bemanningsforetak${orgNumber ? ` · Org.nr ${orgNumber}` : ""}`;
+}
 
 /** Each row's 28px rounded icon and its colour, as in the iOS Settings list. */
 const ICONS: Record<SectionKey, { icon: LucideIcon; bg: string }> = {
@@ -601,7 +607,7 @@ export default function MinSideClient({ token }: { token: string }) {
   const footer = (
     <footer className="border-t border-[#E5E5EA] bg-[#F2F2F7]">
       <div className={`mx-auto flex max-w-[1280px] flex-col gap-2 px-4 py-6 md:flex-row md:items-center md:justify-between md:px-6 ${SMALL} ${GREY}`}>
-        <p>{FOOTER_LINE}</p>
+        <p>{footerLine(text(siteNumbers, "company_org_number"))}</p>
         <p className="flex items-center gap-3">
           <SupportButton lang="nb" showIcon={false} className="inline-flex min-h-[3rem] items-center underline-offset-4 hover:underline md:min-h-[2rem]">
             Skriv til oss

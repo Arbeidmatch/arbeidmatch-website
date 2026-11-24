@@ -1,4 +1,5 @@
 import { jobCardImage, jobUrl, rateLine, type PublicJob } from "@/lib/jobs-fetch";
+import { orgDigits, text, type SiteNumbers } from "@/lib/numbers";
 
 /**
  * The six tags that turn a company page into a source something can cite.
@@ -158,7 +159,10 @@ function industryLabel(job: PublicJob): string {
  * An organisation record with a real organisasjonsnummer and a real address is
  * the difference between a claim and a fact, and a fact is what gets cited.
  */
-export function OrganizationJsonLd({ openJobs }: { openJobs: number }) {
+export function OrganizationJsonLd({ openJobs, numbers }: { openJobs: number; numbers: SiteNumbers }) {
+  // ORDER 302: the org number and the street are RecOS's; a missing one is left out of the record.
+  const orgNumber = orgDigits(text(numbers, "company_org_number"));
+  const street = text(numbers, "company_street_address");
   const organization = {
     "@context": "https://schema.org",
     "@type": ["Organization", "EmploymentAgency"],
@@ -173,14 +177,14 @@ export function OrganizationJsonLd({ openJobs }: { openJobs: number }) {
      *
      * CORRECTED 3 September 2026. It shipped the day before as 934 592 776,
      * which is not us. Checked against the Enhetsregisteret: ARBEIDMATCH NORGE
-     * AS is 935667089, Sverre Svendsens veg 38, 7056 Ranheim, registered
+     * AS is the number now held in RecOS (company_org_number), registered
      * 12 June 2025. A wrong number in an Organization block is worse than none:
      * it is an invitation to look us up and find somebody else.
      */
-    identifier: { "@type": "PropertyValue", name: "Organisasjonsnummer", value: "935667089" },
+    ...(orgNumber ? { identifier: { "@type": "PropertyValue", name: "Organisasjonsnummer", value: orgNumber } } : {}),
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Sverre Svendsens veg 38",
+      ...(street ? { streetAddress: street } : {}),
       addressLocality: "Ranheim",
       postalCode: "7056",
       addressCountry: "NO",

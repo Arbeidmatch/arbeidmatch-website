@@ -15,7 +15,7 @@ import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 import { EEA_COUNTRIES, POLICY_REFUSAL, RECRUITER_NETWORK_URL, judgeForeignCompany } from "@/lib/foreignCompany";
 import { formatOrgNumber } from "@/lib/orgNumber";
 import { useSiteNumbers } from "@/components/NumbersProvider";
-import { replySentence } from "@/lib/numbers";
+import { replySentence, text } from "@/lib/numbers";
 
 const inputClass =
   "w-full rounded-lg border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.05)] px-4 py-3 text-[15px] text-white placeholder:text-white/55 focus:border-[#C9A84C] focus:outline-none";
@@ -121,7 +121,11 @@ export default function ContactPageClient({
   const lang: ContactFormLang = isEmployer && !isForeign ? "nb" : "en";
   const copy = CONTACT_FORM_COPY[lang];
   // ORDER 302: the reply promise is RecOS's; with no value the intro ends at its question.
-  const reply = replySentence(useSiteNumbers(), lang === "nb" ? "no" : "en");
+  const siteNumbers = useSiteNumbers();
+  const reply = replySentence(siteNumbers, lang === "nb" ? "no" : "en");
+  // ORDER 302: the street and the org number are RecOS's; a missing one leaves its words out.
+  const street = text(siteNumbers, "company_street_address");
+  const orgNumber = text(siteNumbers, "company_org_number");
   const { suggestions, lookup } = useCompanySearch(companyQuery, isEmployer && !isForeign && !company);
 
   // /contact?for=candidate opens on the candidate's side; /contact?support=1 opens the support request.
@@ -540,7 +544,7 @@ export default function ContactPageClient({
               <div className="mt-8 flex flex-col gap-3 rounded-xl border border-[rgba(201,168,76,0.12)] bg-[rgba(255,255,255,0.02)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                 <p className="flex items-center gap-2 text-sm text-[rgba(255,255,255,0.5)]">
                   <Shield className="h-4 w-4 shrink-0 text-[#C9A84C]" strokeWidth={1.75} aria-hidden />
-                  <span>Org.nr: 935 667 089 MVA</span>
+                  {orgNumber ? <span>Org.nr: {orgNumber} MVA</span> : null}
                 </p>
                 <p lang={lang} className="text-sm text-[rgba(255,255,255,0.5)]">
                   {copy.registered}
@@ -564,7 +568,7 @@ export default function ContactPageClient({
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">{copy.addressHeading}</p>
                 <p className="mt-2 flex items-start gap-2 text-[15px] leading-relaxed text-[rgba(255,255,255,0.55)]">
                   <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-[#C9A84C]" strokeWidth={1.75} aria-hidden />
-                  <span>{copy.address}</span>
+                  <span>{street ? `${street}, ${copy.addressAfterStreet}` : copy.addressAfterStreet}</span>
                 </p>
               </div>
               <div className="border-t border-[rgba(255,255,255,0.08)] pt-8">

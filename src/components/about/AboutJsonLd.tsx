@@ -1,6 +1,7 @@
+import { getSiteNumbers, text } from "@/lib/numbers";
 import { SUPPORT_PAGE_URL } from "@/lib/supportPage";
 
-const schema = {
+const schema = (street: string | null) => ({
   "@context": "https://schema.org",
   "@type": "AboutPage",
   name: "About ArbeidMatch Norge AS",
@@ -25,19 +26,21 @@ const schema = {
     },
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Sverre Svendsens veg 38",
+      // ORDER 302: the street is RecOS's; without it the address goes without one.
+      ...(street ? { streetAddress: street } : {}),
       addressLocality: "Ranheim",
       postalCode: "7056",
       addressCountry: "NO",
     },
   },
-};
+});
 
-export default function AboutJsonLd() {
+export default async function AboutJsonLd() {
+  const street = text(await getSiteNumbers(), "company_street_address");
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema(street)) }}
     />
   );
 }

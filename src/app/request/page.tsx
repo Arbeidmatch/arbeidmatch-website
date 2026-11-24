@@ -41,6 +41,8 @@ import {
   type SelectableRequestService,
 } from "@/lib/request-service";
 import { useToast } from "@/lib/toast-context";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { text } from "@/lib/numbers";
 import AnswerModeStep from "@/components/rask-foresporsel/AnswerModeStep";
 import { ANSWER_MODE_STORAGE_KEY, isAnswerMode, type AnswerMode } from "@/lib/pay-conditions";
 
@@ -491,6 +493,8 @@ function withAnswerMode(redirectUrl: string, mode: AnswerMode | ""): string {
 export default function RequestPage() {
   const router = useRouter();
   const toast = useToast();
+  // ORDER 302: the org number in the privacy fallback is RecOS's; without it the sentence names the company alone.
+  const orgNumber = text(useSiteNumbers(), "company_org_number");
   /**
    * Step 1 of both request variants (the owner, 5 November 2026): a candidate
    * on the role (faster) or on the details (slower). Preselected from
@@ -2167,7 +2171,7 @@ export default function RequestPage() {
                 ) : (
                   <div className="space-y-4 text-sm leading-relaxed text-white/80">
                     <p>
-                      <strong className="text-white">Behandlingsansvarlig:</strong> ArbeidMatch Norge AS, org.nr. 935 667 089
+                      <strong className="text-white">Behandlingsansvarlig:</strong> ArbeidMatch Norge AS{orgNumber ? `, org.nr. ${orgNumber}` : ""}
                     </p>
                     <p>
                       Vi samler inn og behandler personopplysninger (navn, e-post, CV og arbeidserfaring) for å matche kandidater med arbeidsgivere og levere rekrutteringstjenester i Norge.

@@ -176,7 +176,8 @@ describe("the kept exceptions remain", () => {
 
   it("the company identity in the footer and the stand-in stays", () => {
     const footer = source("src/components/Footer.tsx");
-    expect(footer).toContain("Org.nr 935 667 089 MVA");
+    // ORDER 302: the number itself is RecOS's (company_org_number), printed in the same words.
+    expect(footer).toContain("`Org.nr ${orgNumber} MVA · `");
     expect(footer).toContain('username="post"');
     expect(legalSeedMarkdown("Terms of Service")).toContain("935 667 089");
     expect(legalSeedMarkdown("Terms of Service")).toContain("Sverre Svendsens veg 38");

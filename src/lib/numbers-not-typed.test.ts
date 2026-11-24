@@ -25,6 +25,9 @@ const TYPED: ReadonlyArray<{ what: string; re: RegExp }> = [
   { what: "trial users and firms", re: /opptil 3 (personer|brukere)|opptil 5 firmaer|RECOMMEND_LIMIT = 5/ },
   { what: "premium trial hours", re: /trialEnds = new Date\(Date\.now\(\) \+ 24 \* 60/ },
   { what: "opening hours", re: /opens: "08:00"/ },
+  { what: "advert package days and contents", re: /høyst 42 dager|i 7 dager"|"30 dager ekstra|Opptil fem anonyme|ADDONS_INCLUDED_IN/ },
+  { what: "organisation number", re: /935[ .]?667[ .]?089/ },
+  { what: "street address", re: /Sverre Svendsens veg/ },
 ];
 
 const ROOT = path.resolve(__dirname, "..");
@@ -34,6 +37,16 @@ const EXEMPT = [
   /[\\/]lib[\\/]numbers\.ts$/,
   // FOUND, not in ORDER 302's list: the card checkout's line description. A payment path, left for its own order.
   /[\\/]lib[\\/]job-ads[\\/]stripe\.ts$/,
+  // Left by ORDER 302 attempt 2, each named in its report: the e-mail shell is built synchronously by 30
+  // letters; the CV documents, policy texts, legal seed and DPA fill are documents rather than page lines;
+  // the register link searches by the number; orgNumber.ts only formats one in a comment.
+  /[\\/]lib[\\/]arbeidmatchEmailShell\.ts$/,
+  /[\\/]lib[\\/]cv[\\/]org\.ts$/,
+  /[\\/]lib[\\/]sitePolicies\.ts$/,
+  /[\\/]lib[\\/]legal-seed-documents-data\.ts$/,
+  /[\\/]lib[\\/]publicDpaFill\.ts$/,
+  /[\\/]lib[\\/]orgNumber\.ts$/,
+  /[\\/]components[\\/]site[\\/]siteNav\.ts$/,
 ];
 
 function files(dir: string): string[] {

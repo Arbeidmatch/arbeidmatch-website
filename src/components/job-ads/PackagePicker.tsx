@@ -5,11 +5,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CARD_PAYMENTS_ON } from "@/lib/job-ads/payments";
 
 import {
-  ADDONS,
-  ADDONS_INCLUDED_IN,
   PACKAGES,
   PACKAGE_NAMES,
+  addonChoices,
+  addonsIncludedIn,
   addonsOfferedFor,
+  packageGives,
   formatNok,
   isAdAddon,
   type AdAddon,
@@ -63,7 +64,11 @@ export default function PackagePicker({ token, order, onOrder }: Props) {
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
 
-  const offered = useMemo(() => addonsOfferedFor(pkg), [pkg]);
+  // ORDER 302: what each package holds is the ATS's answer, sent with the quotes.
+  const contents = order.packageContents ?? null;
+  const addonList = useMemo(() => addonChoices(contents), [contents]);
+  const included = useMemo(() => addonsIncludedIn(contents, pkg), [contents, pkg]);
+  const offered = useMemo(() => addonsOfferedFor(contents, pkg), [contents, pkg]);
   const effectiveAddons = useMemo(() => addons.filter((a) => offered.includes(a)), [addons, offered]);
   const key = selectionKey(pkg, effectiveAddons);
   const latestKey = useRef(key);
@@ -192,7 +197,7 @@ export default function PackagePicker({ token, order, onOrder }: Props) {
                   </span>
                 ) : null}
                 <ul className="mt-4 space-y-2 text-[13px] leading-snug text-white/75">
-                  {p.gives.map((g) => (
+                  {packageGives(contents, p.id).map((g) => (
                     <li key={g} className="flex gap-2">
                       <span className="mt-[3px] text-[#C9A84C]" aria-hidden>
                         +
@@ -211,7 +216,7 @@ export default function PackagePicker({ token, order, onOrder }: Props) {
         <h3 className="text-base font-bold">Tillegg</h3>
         <p className={hintTextClass}>Valgfritt. Det som allerede er med i pakken {PACKAGE_NAMES[pkg]}, vises ikke.</p>
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {ADDONS.filter((a) => offered.includes(a.id)).map((a) => {
+          {addonList.filter((a) => offered.includes(a.id)).map((a) => {
             const on = addons.includes(a.id);
             return (
               <label key={a.id} className={`flex cursor-pointer items-center gap-3 ${choiceClass(on)}`}>
@@ -221,9 +226,9 @@ export default function PackagePicker({ token, order, onOrder }: Props) {
             );
           })}
         </div>
-        {ADDONS_INCLUDED_IN[pkg].length > 0 ? (
+        {included.length > 0 ? (
           <p className="mt-2 text-[12px] text-white/45">
-            Med i {PACKAGE_NAMES[pkg]}: {ADDONS.filter((a) => ADDONS_INCLUDED_IN[pkg].includes(a.id)).map((a) => a.label.toLowerCase()).join(", ")}.
+            Med i {PACKAGE_NAMES[pkg]}: {addonList.filter((a) => included.includes(a.id)).map((a) => a.label.toLowerCase()).join(", ")}.
           </p>
         ) : null}
       </div>
