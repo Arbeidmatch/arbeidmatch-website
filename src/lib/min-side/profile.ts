@@ -15,6 +15,7 @@ import { recommendFrom, type RecommendState } from "@/lib/min-side/recommend";
 import { NORWAY_REGIONS } from "@/lib/prosjekter/regions";
 import { alertSettingsFrom, type AlertSettings } from "@/lib/min-side/alert-settings";
 import { annonserFrom, annonserHint, type Annonser } from "@/lib/min-side/annonser";
+import { arbeidsdager, dayMonthNo } from "@/lib/numbers";
 
 export type Company = {
   name: string;
@@ -613,7 +614,11 @@ export function kronerNo(amount: number): string {
 export const PROJECT_SOURCE_LINE =
   "Oversikten er ment som et hjelpemiddel og kan inneholde feil eller mangler. Prosjektene er offentlige kunngjøringer hentet fra Doffin, og oppdragsgiver kan endre dem etter at de vises her. Kontroller alltid frister og vilkår i selve konkurransen før dere gir tilbud. ArbeidMatch Norge AS er ikke part i konkurransene.";
 
-export const PLAN_CONFIRMATION = "Takk. Vi har fått forespørselen og tar kontakt innen én arbeidsdag.";
+/** ORDER 302: the contact time is RecOS's; without it the line ends at "tar kontakt". */
+export function planConfirmation(days: number | null): string {
+  const when = arbeidsdager(days);
+  return when ? `Takk. Vi har fått forespørselen og tar kontakt innen ${when}.` : "Takk. Vi har fått forespørselen og tar kontakt.";
+}
 
 /** What a link asks Min side to open: ?plan=1 the staffing request, ?alerts=1 the project alerts. */
 export function intentFromSearch(search: string): "plan" | "alerts" | null {
@@ -1000,7 +1005,11 @@ export type HiringPlans = {
 
 /** The plans closed, as an ATS that says nothing about them is read. */
 export const PLANS_CLOSED: HiringPlans = { open: false, opens_on: null, billing_needed: false, billing: null };
-export const PLANS_CLOSED_LINE = "Fra 1. januar velger dere abonnement.";
+/** ORDER 302: the day is RecOS's hiring_plans_from; with no value the line is not shown (null). */
+export function plansClosedLine(iso: string | null): string | null {
+  const day = dayMonthNo(iso);
+  return day ? `Fra ${day} velger dere abonnement.` : null;
+}
 
 export const NO_BILLING: HiringBilling = {
   name: "",

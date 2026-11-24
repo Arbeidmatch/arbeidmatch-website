@@ -7,6 +7,9 @@ import {
   addressProblem,
   checkedFrom,
   counterWords,
+  landingPending,
+  recommendText,
+  recommendThanks,
   decideRecommendPopup,
   fieldsAllowed,
   filledAddresses,
@@ -44,12 +47,25 @@ describe("the recommend block (ORDER 274)", () => {
     expect(profileFrom({ me: { email: "x@firma.no" }, company: { id: TOKEN, name: "Firma AS" } })?.recommend).toBeNull();
   });
 
-  it("counts five segments and never more than the limit", () => {
-    expect(counterWords(2)).toBe("2 av 5 firmaer anbefalt");
-    expect(counterWords(9)).toBe("5 av 5 firmaer anbefalt");
-    expect(fieldsAllowed(0)).toBe(5);
-    expect(fieldsAllowed(3)).toBe(2);
-    expect(fieldsAllowed(5)).toBe(0);
+  it("counts the ATS's limit and never more (ORDER 302: no typed five)", () => {
+    expect(counterWords(2, 5)).toBe("2 av 5 firmaer anbefalt");
+    expect(counterWords(9, 5)).toBe("5 av 5 firmaer anbefalt");
+    expect(counterWords(1, 7)).toBe("1 av 7 firmaer anbefalt");
+    expect(fieldsAllowed(0, 5)).toBe(5);
+    expect(fieldsAllowed(3, 5)).toBe(2);
+    expect(fieldsAllowed(5, 5)).toBe(0);
+    expect(fieldsAllowed(0, 7)).toBe(7);
+  });
+
+  it("ORDER 302: the popup's counts and reply time come from RecOS, and a missing one drops its words", () => {
+    expect(recommendText(5, 3)).toBe("Anbefal Prosjektvarsler til opptil 5 firmaer. De får prøve gratis mens tjenesten er under utvikling. Hvert firma kan ha opptil 3 brukere. Vi sender anbefalingen i deres navn.");
+    expect(recommendText(8, 4)).toContain("opptil 8 firmaer");
+    expect(recommendText(8, 4)).toContain("opptil 4 brukere");
+    expect(recommendText(5, null)).not.toContain("brukere");
+    expect(recommendThanks(1)).toBe("Takk. Vi sender anbefalingen innen én arbeidsdag.");
+    expect(recommendThanks(2)).toBe("Takk. Vi sender anbefalingen innen 2 arbeidsdager.");
+    expect(recommendThanks(null)).toBe("Takk. Vi sender anbefalingen.");
+    expect(landingPending(null)).toBe("Vi aktiverer prøveperioden når den er godkjent.");
   });
 });
 
@@ -78,7 +94,8 @@ describe("what is passed on", () => {
     expect(recommendRequest({ action: "recommend_check", emails: ["a@firma.no"], note: "x", extra: 1 })).toEqual({ action: "recommend_check", emails: ["a@firma.no"] });
     expect(recommendRequest({ action: "recommend_send", emails: ["a@firma.no"], note: "Hei" })).toEqual({ action: "recommend_send", emails: ["a@firma.no"], note: "Hei" });
     expect(recommendRequest({ action: "recommend_send", emails: ["a@firma.no"], note: "x".repeat(201) })).toBeNull();
-    expect(recommendRequest({ action: "recommend_send", emails: Array(6).fill("a@firma.no") })).toBeNull();
+    // ORDER 302: the firm count is the ATS's; the site refuses only an answer past its bound.
+    expect(recommendRequest({ action: "recommend_send", emails: Array(21).fill("a@firma.no") })).toBeNull();
     expect(recommendRequest({ action: "recommend_send", emails: [] })).toBeNull();
     expect(recommendRequest({ action: "recommend_send", emails: [{ a: 1 }] })).toBeNull();
     expect(recommendRequest({ action: "recommend_prompt_later", emails: ["x"] })).toEqual({ action: "recommend_prompt_later" });
@@ -135,7 +152,7 @@ describe("the proxies", () => {
     const res = await POST(req(`https://x.no/api/min-side/${TOKEN}`, { action: "recommend_send", emails: ["a@firma.no"], note: "Hei", from_company_id: "z" }), { params: Promise.resolve({ token: TOKEN }) });
     expect(res.status).toBe(200);
     expect(callAts).toHaveBeenCalledWith(`/api/public/client-profile/${TOKEN}`, expect.objectContaining({ body: { action: "recommend_send", emails: ["a@firma.no"], note: "Hei" } }));
-    const bad = await POST(req(`https://x.no/api/min-side/${TOKEN}`, { action: "recommend_send", emails: Array(6).fill("a@firma.no") }), { params: Promise.resolve({ token: TOKEN }) });
+    const bad = await POST(req(`https://x.no/api/min-side/${TOKEN}`, { action: "recommend_send", emails: Array(21).fill("a@firma.no") }), { params: Promise.resolve({ token: TOKEN }) });
     expect(bad.status).toBe(400);
   });
 

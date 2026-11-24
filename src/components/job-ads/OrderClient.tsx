@@ -18,6 +18,8 @@ import PackagePicker from "./PackagePicker";
 import QuoteLines from "./QuoteLines";
 import { rememberOrder } from "./storage";
 import { bigSpinnerClass, cardClass, cardHairline, primaryButtonClass, secondaryButtonClass } from "./ui";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { num } from "@/lib/numbers";
 
 const POLL_MS = 8_000;
 /** About three minutes of polling, then a calm message instead of an endless spinner. */
@@ -82,6 +84,8 @@ function Findings({ findings, ruleTitles }: { findings: ReviewFinding[]; ruleTit
 }
 
 export default function OrderClient({ token, sessionId }: { token: string; sessionId: string | null }) {
+  // ORDER 302: the payment term is RecOS's; without it the invoice line ends at "e-post".
+  const termDays = num(useSiteNumbers(), "payment_term_days_default");
   const router = useRouter();
   const [order, setOrder] = useState<PublicOrderView | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -455,7 +459,7 @@ export default function OrderClient({ token, sessionId }: { token: string; sessi
                 {pollingDone ? " Last inn siden på nytt om litt for å se lenken." : " Siden oppdaterer seg selv."}
               </p>
             )}
-            {order.chosen?.method === "invoice" ? <p>Fakturaen kommer på e-post, med 14 dagers betalingsfrist.</p> : null}
+            {order.chosen?.method === "invoice" ? <p>{termDays == null ? "Fakturaen kommer på e-post." : `Fakturaen kommer på e-post, med ${termDays} dagers betalingsfrist.`}</p> : null}
             {order.chosen?.method === "card" && status === "published" ? <p>Betalingen er mottatt.</p> : null}
           </div>
           {status === "published" && order.publishedSlug ? (

@@ -9,6 +9,8 @@ import { SITE_PATHS } from "@/components/site/siteNav";
 import { Done, Group, Hint, InputRow, LinkRow, NavRow, OptionRow, PrivacySwitch, SwitchRow } from "./rows";
 import type { SheetProps } from "./SheetHost";
 import { SheetFrame } from "./SheetFrame";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { replySentence } from "@/lib/numbers";
 
 function CloseFoot({ label, onClick }: { label: string; onClick: () => void }) {
   return (
@@ -249,7 +251,7 @@ export function NotifySheet({ open, close, preset }: SheetProps) {
 }
 
 /** A row that opens another sheet, with its line under it. */
-function SheetChoice({ icon, label, line, onClick }: { icon: IconName; label: string; line: string; onClick: () => void }) {
+function SheetChoice({ icon, label, line, onClick }: { icon: IconName; label: string; line?: string; onClick: () => void }) {
   return (
     <button type="button" className="row" onClick={onClick}>
       <span className="ri">
@@ -257,7 +259,7 @@ function SheetChoice({ icon, label, line, onClick }: { icon: IconName; label: st
       </span>
       <span className="rl2">
         <b>{label}</b>
-        <small>{line}</small>
+        {line ? <small>{line}</small> : null}
       </span>
       <Icon name="chev" />
     </button>
@@ -271,10 +273,12 @@ function SheetChoice({ icon, label, line, onClick }: { icon: IconName; label: st
  * answered with an offer.
  */
 export function PricesSheet({ open, close, openSheet }: SheetProps) {
+  // ORDER 302: the reply promise is RecOS's; with no value the choice shows its label alone.
+  const reply = replySentence(useSiteNumbers(), "no");
   return (
     <SheetFrame open={open} lang="no" title="Pris og vilkår" sub={null} onBack={() => {}} onClose={close} footer={<CloseFoot label="Lukk" onClick={close} />}>
       <Group>
-        <SheetChoice icon="msg" label="Skriv til oss" line="Vi svarer innen én virkedag." onClick={() => openSheet("contact", { gjelder: "Pris og vilkår" })} />
+        <SheetChoice icon="msg" label="Skriv til oss" line={reply ?? undefined} onClick={() => openSheet("contact", { gjelder: "Pris og vilkår" })} />
         <SheetChoice icon="users" label="Send en forespørsel" line="Gratis. Dere får et tilbud med pris." onClick={() => openSheet("request")} />
       </Group>
       <Hint>Prisen følger rollen og står i tilbudet.</Hint>

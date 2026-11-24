@@ -11,6 +11,8 @@ import { hiringFrom, hiringLetterFrom, hiringPrefsFrom, hiringRequest, isHiringP
 /** ORDER 170: the client sets on Min side what the hiring alerts bring, when and to whom, and his own firms. */
 
 const callAts = vi.fn();
+// ORDER 302: the numbers RecOS answers, without reaching it.
+vi.mock("@/components/NumbersProvider", async () => (await import("@/test/numbers")).mockedNumbersProvider);
 vi.mock("@/lib/prosjekter/ats", () => ({ callAts: (...args: unknown[]) => callAts(...args), callAtsRaw: vi.fn() }));
 
 const source = (file: string) => readFileSync(path.resolve(__dirname, file), "utf8");

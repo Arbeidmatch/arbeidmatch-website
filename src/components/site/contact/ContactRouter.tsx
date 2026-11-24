@@ -7,6 +7,8 @@ import { Icon, type IconName } from "@/components/site/Icon";
 import { useSheets } from "@/components/site/sheet/SheetHost";
 import { SITE_PATHS } from "@/components/site/siteNav";
 import { SupportButton } from "@/components/support/SupportRequest";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { replySentence } from "@/lib/numbers";
 
 /**
  * Kontakt as a router (ORDER 295, stage 2): instead of one form for everyone
@@ -57,6 +59,8 @@ function PageRow({ href, children, lang }: { href: string; children: ReactNode; 
 }
 
 export default function ContactRouter() {
+  // ORDER 302: the reply promise is RecOS's; with no value the line ends at its first sentence.
+  const reply = replySentence(useSiteNumbers(), "no");
   const sheets = useSheets();
   const [supportOnArrival, setSupportOnArrival] = useState(false);
 
@@ -73,7 +77,7 @@ export default function ContactRouter() {
           <span className="eb">Kontakt</span>
           <h1>Hva trenger du?</h1>
           <p className="lede" style={{ maxWidth: 640 }}>
-            Velg det som passer, så kommer du rett til riktig sted. Vi svarer innen én virkedag.
+            Velg det som passer, så kommer du rett til riktig sted.{reply ? ` ${reply}` : null}
           </p>
         </div>
       </section>

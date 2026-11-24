@@ -12,8 +12,14 @@
 
 import { isFreeMail } from "@/lib/foreignCompany";
 import { visitPopupFree } from "@/lib/min-side/app-prompt";
+import { arbeidsdager } from "@/lib/numbers";
 
-export const RECOMMEND_LIMIT = 5;
+/**
+ * ORDER 302: how many firms may be recommended is RecOS's (recommend_limit_firms,
+ * and the ATS answers it per firm as state.limit). This is only the largest
+ * answer this file believes, against a malformed one.
+ */
+const LIMIT_BOUND = 20;
 export const RECOMMEND_NOTE_MAX = 200;
 const EMAIL_MAX = 254;
 
@@ -21,11 +27,9 @@ const EMAIL_MAX = 254;
 export const RECOMMEND_NO = {
   tag: "Under utvikling · gratis å prøve",
   title: "Kjenner dere firmaer som også burde se disse prosjektene?",
-  text: "Anbefal Prosjektvarsler til opptil 5 firmaer. De får prøve gratis mens tjenesten er under utvikling. Hvert firma kan ha opptil 3 brukere. Vi sender anbefalingen i deres navn.",
   addMore: "+ Legg til en til",
   later: "Senere",
   send: "Send anbefalingene",
-  thanks: "Takk. Vi sender anbefalingen innen én arbeidsdag.",
   row: "Anbefal til andre",
   companyOnly: "Bruk e-postadressen i firmaet deres, ikke en privat adresse.",
   invalid: "Skriv en gyldig e-postadresse.",
@@ -33,7 +37,22 @@ export const RECOMMEND_NO = {
   noteTooLong: `Hilsenen kan være opptil ${RECOMMEND_NOTE_MAX} tegn.`,
 } as const;
 
-export function counterWords(used: number, limit: number = RECOMMEND_LIMIT): string {
+/**
+ * The popup's lead (ORDER 302): the firm count and the users per firm come from
+ * RecOS. Without a users value its sentence is left out; the firm count always
+ * has the ATS's own answer for this firm to fall back on.
+ */
+export function recommendText(firms: number, users: number | null): string {
+  return `Anbefal Prosjektvarsler til opptil ${firms} firmaer. De får prøve gratis mens tjenesten er under utvikling.${users == null ? "" : ` Hvert firma kan ha opptil ${users} brukere.`} Vi sender anbefalingen i deres navn.`;
+}
+
+/** The thanks after a send; the time is RecOS's and without it the line ends at the send. */
+export function recommendThanks(days: number | null): string {
+  const when = arbeidsdager(days);
+  return when ? `Takk. Vi sender anbefalingen innen ${when}.` : "Takk. Vi sender anbefalingen.";
+}
+
+export function counterWords(used: number, limit: number): string {
   return `${Math.min(used, limit)} av ${limit} firmaer anbefalt`;
 }
 
@@ -48,7 +67,7 @@ const text = (v: unknown, max: number): string | null => (typeof v === "string" 
 export function recommendFrom(raw: unknown): RecommendState | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const r = raw as Record<string, unknown>;
-  const limit = typeof r.limit === "number" && Number.isInteger(r.limit) && r.limit > 0 && r.limit <= 20 ? r.limit : null;
+  const limit = typeof r.limit === "number" && Number.isInteger(r.limit) && r.limit > 0 && r.limit <= LIMIT_BOUND ? r.limit : null;
   const used = typeof r.used === "number" && Number.isInteger(r.used) && r.used >= 0 ? r.used : null;
   if (limit === null || used === null) return null;
   const rows = (Array.isArray(r.rows) ? r.rows : [])
@@ -87,9 +106,9 @@ export function filledAddresses(fields: readonly string[]): string[] {
   return out;
 }
 
-/** How many address fields the popup may show: the firms still free, at least one, at most five. */
-export function fieldsAllowed(used: number, limit: number = RECOMMEND_LIMIT): number {
-  return Math.max(0, Math.min(RECOMMEND_LIMIT, limit - used));
+/** How many address fields the popup may show: the firms still free under the ATS's limit. */
+export function fieldsAllowed(used: number, limit: number): number {
+  return Math.max(0, Math.min(LIMIT_BOUND, limit - used));
 }
 
 /** What the ATS answers for one checked address. */
@@ -100,21 +119,21 @@ export function checkedFrom(raw: unknown): { rows: CheckedAddress[]; used: numbe
   const rows = (Array.isArray(r.rows) ? r.rows : [])
     .filter((x): x is Record<string, unknown> => Boolean(x) && typeof x === "object" && typeof (x as Record<string, unknown>).email === "string")
     .map((x) => ({ email: String(x.email).slice(0, EMAIL_MAX).toLowerCase(), company_name: text(x.company_name, 160), mark_no: text(x.mark_no, 60) }))
-    .slice(0, RECOMMEND_LIMIT);
+    .slice(0, LIMIT_BOUND);
   const used = typeof r.used === "number" && Number.isInteger(r.used) && r.used >= 0 ? r.used : null;
   return { rows, used };
 }
 
 /**
  * The body passed on to the ATS for a recommend action, or null for anything
- * else: the action word, at most five plain addresses, and a greeting of at
+ * else: the action word, at most LIMIT_BOUND plain addresses (the ATS holds the firm count), and a greeting of at
  * most 200 characters for the send.
  */
 export function recommendRequest(raw: Record<string, unknown>): Record<string, unknown> | null {
   const action = raw.action;
   if (action === "recommend_prompt_seen" || action === "recommend_prompt_later") return { action };
   if (action !== "recommend_check" && action !== "recommend_send") return null;
-  if (!Array.isArray(raw.emails) || raw.emails.length === 0 || raw.emails.length > RECOMMEND_LIMIT) return null;
+  if (!Array.isArray(raw.emails) || raw.emails.length === 0 || raw.emails.length > LIMIT_BOUND) return null;
   if (!raw.emails.every((e) => typeof e === "string" && e.length > 0 && e.length <= EMAIL_MAX)) return null;
   const emails = raw.emails as string[];
   if (action === "recommend_check") return { action, emails };
@@ -143,9 +162,14 @@ export function isRecommendationToken(value: unknown): value is string {
   return typeof value === "string" && ID.test(value);
 }
 
+/** After a trial request on the landing page; the time is RecOS's and without it the line ends at "godkjent". */
+export function landingPending(days: number | null): string {
+  const when = arbeidsdager(days);
+  return when ? `Vi aktiverer prøveperioden når den er godkjent, vanligvis innen ${when}.` : "Vi aktiverer prøveperioden når den er godkjent.";
+}
+
 export const LANDING_NO = {
   invalid: "Lenken er ikke gyldig lenger.",
-  pending: "Vi aktiverer prøveperioden når den er godkjent, vanligvis innen én arbeidsdag.",
   stopTitle: "Ikke send meg anbefalinger",
   stopped: "Vi sender ikke flere anbefalinger til denne adressen.",
 } as const;

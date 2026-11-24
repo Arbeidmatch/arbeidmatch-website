@@ -15,6 +15,8 @@ import HtmlLang from "@/components/HtmlLang";
 import PortalDialogs from "@/components/prosjekter/PortalDialogs";
 import RaskForesporselRoot from "@/components/rask-foresporsel/RaskForesporselRoot";
 import { pageLangInlineScript } from "@/lib/pageLang";
+import { NumbersProvider } from "@/components/NumbersProvider";
+import { getSiteNumbers } from "@/lib/numbers";
 
 const DeferredAppOverlays = dynamic(() => import("@/components/client/DeferredAppOverlays"), { loading: () => null });
 
@@ -97,11 +99,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // ORDER 302: the numbers set in RecOS, read once per render (cached 60 s, tag "numbers").
+  const numbers = await getSiteNumbers();
   return (
     // "en" as rendered, corrected per page before first paint: most pages are
     // English and the employer side is Norwegian. See src/lib/pageLang.ts.
@@ -111,23 +115,25 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: pageLangInlineScript() }} />
       </head>
       <body className="flex min-h-full flex-col overflow-x-hidden bg-[#0D1B2A] font-sans text-white">
-        <HtmlLang />
-        <NavigationProgressBar />
-        <ScrollProgressBar />
-        <SheetHost>
-          {/* ORDER 295: one shell on every public page, from the mockup approved on 15 November 2026. */}
-          <SiteHeader />
-          <main id="main" className="flex min-w-0 flex-1 flex-col overflow-x-clip">{children}</main>
-          <SiteFooter />
-        </SheetHost>
-        <DeferredAppOverlays />
-        {/* #tilgang and #logg-inn open the project portal's forms over any page. */}
-        <PortalDialogs />
-        {/* Every link with data-rask-foresporsel ("Be om folk") opens the request popup over the page. */}
-        <RaskForesporselRoot />
-        <CookieConsent />
-        <TrafficBeacon />
-        <HomeJsonLd />
+        <NumbersProvider numbers={numbers}>
+          <HtmlLang />
+          <NavigationProgressBar />
+          <ScrollProgressBar />
+          <SheetHost>
+            {/* ORDER 295: one shell on every public page, from the mockup approved on 15 November 2026. */}
+            <SiteHeader />
+            <main id="main" className="flex min-w-0 flex-1 flex-col overflow-x-clip">{children}</main>
+            <SiteFooter />
+          </SheetHost>
+          <DeferredAppOverlays />
+          {/* #tilgang and #logg-inn open the project portal's forms over any page. */}
+          <PortalDialogs />
+          {/* Every link with data-rask-foresporsel ("Be om folk") opens the request popup over the page. */}
+          <RaskForesporselRoot />
+          <CookieConsent />
+          <TrafficBeacon />
+          <HomeJsonLd numbers={numbers} />
+        </NumbersProvider>
       </body>
     </html>
   );

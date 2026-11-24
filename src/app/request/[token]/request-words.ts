@@ -51,7 +51,8 @@ const en = {
   detailedOfferNote:
     "Thank you for your request. We will confirm by email as soon as possible whether we can take it on.",
   yourReference: "Your reference: {ref}",
-  respondTime: "We typically respond within 1-2 business days.",
+  // {span} is the reply window set in RecOS (ORDER 302).
+  respondTime: "We typically respond within {span} business days.",
   backHome: "Back to homepage",
   submitNoticeEmail: "Request saved, but we could not send the confirmation email right now.",
   submitError: "Could not submit request. Please try again.",
@@ -278,7 +279,7 @@ const no: Record<WordKey, string> = {
   detailedOfferNote:
     "Takk for forespørselen. Vi bekrefter på e-post så snart som mulig om vi kan ta oss av den.",
   yourReference: "Deres referanse: {ref}",
-  respondTime: "Vi svarer vanligvis innen 1-2 virkedager.",
+  respondTime: "Vi svarer vanligvis innen {span} virkedager.",
   backHome: "Tilbake til forsiden",
   submitNoticeEmail: "Forespørselen er lagret, men vi kunne ikke sende bekreftelsen på e-post akkurat nå.",
   submitError: "Vi kunne ikke sende forespørselen. Prøv igjen.",

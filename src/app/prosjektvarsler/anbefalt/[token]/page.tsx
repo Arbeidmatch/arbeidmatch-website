@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import styles from "@/components/prosjekter/portal.module.css";
 import { TrialRequestForm } from "@/components/prosjektvarsler/RecommendationForms";
 import { isRecommendationToken, LANDING_NO, landingFrom, recommenderWords } from "@/lib/min-side/recommend";
+import { getSiteNumbers, num } from "@/lib/numbers";
 import { callAts } from "@/lib/prosjekter/ats";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 /**
  * ORDER 274: where "Se prosjektene" in a recommendation mail lands. Says who
  * recommended, and asks for a free trial: never a trial by itself, a request
- * the owner gives or not, usually within one working day.
+ * the owner gives or not, usually within the reply time set in RecOS (ORDER 302).
  */
 export default async function RecommendationPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -27,6 +28,8 @@ export default async function RecommendationPage({ params }: { params: Promise<{
     : null;
   const by = answer?.status === 200 ? landingFrom(answer.body) : null;
   const unreachable = answer !== null && answer.status >= 500;
+  // ORDER 302: the people per firm are RecOS's; without a value the sentence ends at "gratis å prøve".
+  const users = num(await getSiteNumbers(), "alerts_trial_max_users");
 
   return (
     <div className={styles.portal} style={{ minHeight: "70vh" }}>
@@ -37,7 +40,7 @@ export default async function RecommendationPage({ params }: { params: Promise<{
             <h1>{recommenderWords(by)} anbefaler dere å prøve Prosjektvarsler</h1>
             <p className={styles.lede}>
               Prosjektvarsler sender dere byggeprosjekter i planlegging og i anbud, i fylkene og fagene dere velger. Tjenesten er under utvikling og gratis å
-              prøve, for opptil 3 personer i firmaet.
+              prøve{users == null ? "" : `, for opptil ${users} personer i firmaet`}.
             </p>
             <TrialRequestForm token={token} />
             <p className={styles.small} style={{ marginTop: 32 }}>

@@ -46,7 +46,7 @@ import { counterWords, decideRecommendPopup, RECOMMEND_NO } from "@/lib/min-side
 import { decideKeyDialog, keyPromptAsked, withoutKeyPrompt } from "@/lib/min-side/key-prompt";
 import { INITIAL_LIST, isNew, varslerHash, varslerRoute, type ListState, type VarslerRoute } from "@/lib/min-side/project-list";
 import {
-  PLAN_CONFIRMATION,
+  planConfirmation,
   SECTIONS,
   SECTION_GROUPS,
   hiringIntentFromSearch,
@@ -71,6 +71,8 @@ import {
   type SectionKey,
   type StaffingPrefill,
 } from "@/lib/min-side/profile";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { num } from "@/lib/numbers";
 
 /**
  * "Min side": a client's own page (the owner's decision of 30 September 2026,
@@ -189,6 +191,8 @@ const initials = (name: string) =>
     .join("") || "?";
 
 export default function MinSideClient({ token }: { token: string }) {
+  // ORDER 302: the contact time after a staffing request is RecOS's.
+  const siteNumbers = useSiteNumbers();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1010,7 +1014,7 @@ export default function MinSideClient({ token }: { token: string }) {
               const r = await send({ action: "staffing_request", ...request });
               if (r.ok) {
                 setPlanPrefill(null);
-                setNotice(PLAN_CONFIRMATION);
+                setNotice(planConfirmation(num(siteNumbers, "reply_promise_contact")));
               }
               return r;
             }}

@@ -1,6 +1,8 @@
 import type { CityQuestion, ContactPerson } from "@/lib/min-side/profile";
 import { telHref } from "@/lib/min-side/profile";
 import { BTN_NAVY, BTN_OUTLINE, CARD_L, GOLD_TEXT, INK, MUTED_L, SOFT } from "./ui";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { arbeidsdager, num } from "@/lib/numbers";
 
 /**
  * ORDER 101, the one-time question (13 October 2026): a client who asked us
@@ -41,6 +43,8 @@ export function MinSideCityQuestion({ question, busy, error, onAnswer }: { quest
 
 /** "Din kontakt hos oss": our contact person for this client, under the menu. Left out when there is none. */
 export function MinSideContactCard({ person }: { person: ContactPerson | null }) {
+  // ORDER 302: the reply time is RecOS's; with no value the line is left out.
+  const replyWhen = arbeidsdager(num(useSiteNumbers(), "reply_promise_contact"));
   if (!person) return null;
   const tel = person.phone ? telHref(person.phone) : null;
   return (
@@ -57,7 +61,7 @@ export function MinSideContactCard({ person }: { person: ContactPerson | null })
         </div>
       </div>
       {person.phone ? <p className={`text-sm tabular-nums ${INK}`}>{person.phone}</p> : null}
-      <p className={`text-[13px] ${SOFT}`}>Vi svarer innen én arbeidsdag.</p>
+      {replyWhen ? <p className={`text-[13px] ${SOFT}`}>Vi svarer innen {replyWhen}.</p> : null}
       {tel ? (
         <a href={tel} className={`${BTN_OUTLINE} text-sm`}>
           Ring meg

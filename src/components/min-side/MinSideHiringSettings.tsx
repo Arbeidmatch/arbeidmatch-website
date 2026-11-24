@@ -4,8 +4,10 @@ import { useId, useMemo, useState, type FocusEvent, type FormEvent, type Keyboar
 
 import dynamic from "next/dynamic";
 
-import { PLANS_CLOSED_LINE, dayNo, hiringLetterFrom, type HiringAreaOption, type HiringFrequency, type HiringLetter, type HiringPrefs, type HiringSignal, type HiringTradeOption } from "@/lib/min-side/profile";
+import { plansClosedLine, dayNo, hiringLetterFrom, type HiringAreaOption, type HiringFrequency, type HiringLetter, type HiringPrefs, type HiringSignal, type HiringTradeOption } from "@/lib/min-side/profile";
 import type { Fetched, Saved } from "./MinSideHiring";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { text as numberText } from "@/lib/numbers";
 import { BTN_OUTLINE, CARD_L, DIVIDE_L, ERROR_L, FIELD_L, GOLD_CARD, GREEN_TEXT, INK, MUTED_L, RULE, SOFT, chip } from "./ui";
 
 /**
@@ -251,12 +253,14 @@ function EmployeesFields({ min, max, onSave }: { min: number | null; max: number
 }
 
 function PremiumBox({ message, premium }: { message: string; premium: PremiumOffer }) {
+  // ORDER 302: the day the plans open is RecOS's; with no value the quiet line is left out.
+  const plansLine = plansClosedLine(numberText(useSiteNumbers(), "hiring_plans_from"));
   if (!premium.open) {
     // ORDER 181: no plan before 1 January; the refusal and one quiet line, no button.
     return (
       <div className={`${CARD_L} flex min-w-0 flex-col gap-1 p-3`}>
         <p className={`text-sm ${INK}`}>{message}</p>
-        <p className={`text-sm ${MUTED_L}`}>{PLANS_CLOSED_LINE}</p>
+        {plansLine ? <p className={`text-sm ${MUTED_L}`}>{plansLine}</p> : null}
       </div>
     );
   }

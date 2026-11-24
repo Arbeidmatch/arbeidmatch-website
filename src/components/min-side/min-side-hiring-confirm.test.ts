@@ -10,7 +10,7 @@ import { ConfirmFields, matchesLine, type Matches } from "@/components/min-side/
 import {
   NO_BILLING,
   clientTableFrom,
-  PLANS_CLOSED_LINE,
+  plansClosedLine,
   confirmMatchesFrom,
   hiringBillingBody,
   hiringBillingReady,
@@ -34,6 +34,8 @@ import {
 /** ORDER 171 and 181: "Bekreft og start", the one screen before the hiring list, the beta notice, and billing at the first paid plan. */
 
 const callAts = vi.fn();
+// ORDER 302: the numbers RecOS answers, without reaching it.
+vi.mock("@/components/NumbersProvider", async () => (await import("@/test/numbers")).mockedNumbersProvider);
 vi.mock("@/lib/prosjekter/ats", () => ({ callAts: (...args: unknown[]) => callAts(...args), callAtsRaw: vi.fn() }));
 
 const source = (file: string) => readFileSync(path.resolve(__dirname, file), "utf8");
@@ -368,21 +370,24 @@ describe("Premium while the plans are closed", () => {
     const html = renderToStaticMarkup(createElement(MinSideHiring, props(basis({ open: false, opens_on: "2027-01-01", billing_needed: false, billing: null }))));
     // ORDER 252: the Basis line toward Premium sits under the table, saying what Premium opens.
     expect(html).toContain("data-hiring-premium-row");
-    expect(html).toContain(PLANS_CLOSED_LINE);
+    expect(html).toContain("Fra 1. januar velger dere abonnement.");
     expect(html).not.toMatch(/<button[^>]*>Premium<\/button>/);
-    expect(PLANS_CLOSED_LINE).toBe("Fra 1. januar velger dere abonnement.");
+    // ORDER 302: the day is RecOS's hiring_plans_from; with no value the line is not shown.
+    expect(plansClosedLine("2027-01-01")).toBe("Fra 1. januar velger dere abonnement.");
+    expect(plansClosedLine("2027-02-15")).toBe("Fra 15. februar velger dere abonnement.");
+    expect(plansClosedLine(null)).toBeNull();
   });
 
   it("shows the Premium button once the plans are open", () => {
     const html = renderToStaticMarkup(createElement(MinSideHiring, props(basis({ open: true, billing_needed: false }))));
     expect(html).toMatch(/<button type="button"[^>]*>Premium<\/button>/);
-    expect(html).not.toContain(PLANS_CLOSED_LINE);
+    expect(html).not.toContain("velger dere abonnement");
   });
 
   it("the lead dialog and the settings offer have no Premium button while closed", () => {
     const src = source("MinSideHiring.tsx");
     expect(src).toContain("{premium.open ? (");
-    expect(src).toContain("{PLANS_CLOSED_LINE}");
+    expect(src).toContain("{plansLine}");
     const settings = source("MinSideHiringSettings.tsx");
     expect(settings).toContain("if (!premium.open) {");
     // One Premium path for the section: the settings no longer send hiring_premium themselves.

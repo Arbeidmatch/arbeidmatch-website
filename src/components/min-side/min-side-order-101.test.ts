@@ -21,6 +21,8 @@ import {
 /** ORDER 101 (13 October 2026): towns, the unknown-place toggle, the count, the trial text, the one-time question, What's new in the page. */
 
 const callAts = vi.fn();
+// ORDER 302: the numbers RecOS answers, without reaching it.
+vi.mock("@/components/NumbersProvider", async () => (await import("@/test/numbers")).mockedNumbersProvider);
 vi.mock("@/lib/prosjekter/ats", () => ({ callAts: (...args: unknown[]) => callAts(...args) }));
 
 const FAR = "2999-01-01T00:00:00Z";

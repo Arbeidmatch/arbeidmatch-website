@@ -14,6 +14,8 @@ import { CONTACT_FORM_COPY, ORIGIN_LABELS, type ContactFormLang } from "@/lib/co
 import { JOBS_PORTAL_URL } from "@/lib/featureFlags";
 import { EEA_COUNTRIES, POLICY_REFUSAL, RECRUITER_NETWORK_URL, judgeForeignCompany } from "@/lib/foreignCompany";
 import { formatOrgNumber } from "@/lib/orgNumber";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { replySentence } from "@/lib/numbers";
 
 const inputClass =
   "w-full rounded-lg border border-[rgba(201,168,76,0.2)] bg-[rgba(255,255,255,0.05)] px-4 py-3 text-[15px] text-white placeholder:text-white/55 focus:border-[#C9A84C] focus:outline-none";
@@ -118,6 +120,8 @@ export default function ContactPageClient({
   // Norwegian for a Norwegian company only; a foreign company and a candidate read English throughout.
   const lang: ContactFormLang = isEmployer && !isForeign ? "nb" : "en";
   const copy = CONTACT_FORM_COPY[lang];
+  // ORDER 302: the reply promise is RecOS's; with no value the intro ends at its question.
+  const reply = replySentence(useSiteNumbers(), lang === "nb" ? "no" : "en");
   const { suggestions, lookup } = useCompanySearch(companyQuery, isEmployer && !isForeign && !company);
 
   // /contact?for=candidate opens on the candidate's side; /contact?support=1 opens the support request.
@@ -278,7 +282,8 @@ export default function ContactPageClient({
               {copy.title}
             </h1>
             <p lang={lang} className="mt-4 text-base leading-relaxed text-[rgba(255,255,255,0.65)] md:text-lg">
-              {isEmployer ? copy.intro : "Questions about working in Norway with us? We reply within one working day."}
+              {isEmployer ? copy.intro : "Questions about working in Norway with us?"}
+              {reply ? ` ${reply}` : null}
             </p>
           </header>
         </ScrollReveal>

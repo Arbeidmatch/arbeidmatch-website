@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { getSupabaseServiceClient } from "@/lib/supabaseService";
+import { getSiteNumbers, num } from "@/lib/numbers";
 
 export type PremiumPlan = "monthly" | "annual";
 export type PremiumStatus = "trialing" | "active" | "canceled" | "past_due";
@@ -50,7 +51,10 @@ export async function insertTrialSubscriber(email: string): Promise<PremiumSubsc
   const supabase = getSupabaseServiceClient();
   if (!supabase) return null;
   const e = normalizeEmail(email);
-  const trialEnds = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  // ORDER 302: the trial length is RecOS's premium_trial_hours; with no value no trial is started.
+  const trialHours = num(await getSiteNumbers(), "premium_trial_hours");
+  if (trialHours == null) return null;
+  const trialEnds = new Date(Date.now() + trialHours * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from("premium_subscribers")
     .insert({

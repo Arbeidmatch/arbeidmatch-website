@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { startTransition, useCallback, useEffect, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { num, weeksInWords, type SiteNumbers } from "@/lib/numbers";
 
 const IDLE_MS = 8000;
 const SCROLL_DELTA = 100;
@@ -14,7 +16,8 @@ const DISMISS_UNTIL_KEY = "am_helper_dismissed_until";
 type HelperConfig = {
   icon: string;
   title: string;
-  text: string;
+  /** A function when the sentence holds a number from RecOS (ORDER 302); null hides the tip. */
+  text: string | ((n: SiteNumbers) => string | null);
   cta: { label: string; href: string } | null;
 };
 
@@ -34,7 +37,10 @@ const HELPERS: Record<string, HelperConfig> = {
   "/for-employers": {
     icon: "🤝",
     title: "Need workers fast?",
-    text: "First candidate profiles are often ready within approximately two weeks, depending on role, location, and current capacity.",
+    text: (n) => {
+      const weeks = weeksInWords(num(n, "first_profiles_weeks"), "en");
+      return weeks ? `First candidate profiles are often ready within approximately ${weeks}, depending on role, location, and current capacity.` : null;
+    },
     cta: { label: "Request now →", href: "/request" },
   },
   "/partners": {
@@ -46,13 +52,19 @@ const HELPERS: Record<string, HelperConfig> = {
   "/about": {
     icon: "📬",
     title: "Get in touch",
-    text: "Have questions about our services? We respond within 24 hours.",
+    text: (n) => {
+      const hours = num(n, "reply_hours_helper");
+      return hours == null ? null : `Have questions about our services? We respond within ${hours} hours.`;
+    },
     cta: { label: "Contact →", href: "/contact" },
   },
   "/contact": {
     icon: "⏱️",
     title: "We respond fast",
-    text: "Most inquiries receive a response within 24 hours on business days.",
+    text: (n) => {
+      const hours = num(n, "reply_hours_helper");
+      return hours == null ? null : `Most inquiries receive a response within ${hours} hours on business days.`;
+    },
     cta: null,
   },
 };
@@ -101,7 +113,10 @@ function setDismiss24h() {
 export default function ContextualHelper() {
   const pathname = usePathname();
   const path = normalizePath(pathname ?? "/");
-  const config = HELPERS[path];
+  const numbers = useSiteNumbers();
+  const entry = HELPERS[path];
+  const tipText = entry ? (typeof entry.text === "function" ? entry.text(numbers) : entry.text) : null;
+  const config = useMemo(() => (entry && tipText ? { ...entry, text: tipText } : undefined), [entry, tipText]);
 
   const [visible, setVisible] = useState(false);
   const visibleRef = useRef(false);

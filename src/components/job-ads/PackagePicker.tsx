@@ -20,6 +20,8 @@ import {
 } from "@/lib/job-ads/types";
 import QuoteLines from "./QuoteLines";
 import { choiceClass, hintTextClass, inputClass, labelClass, primaryButtonClass, spinnerClass } from "./ui";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { num } from "@/lib/numbers";
 
 type Props = {
   token: string;
@@ -42,6 +44,11 @@ type PaymentResponse = { ok?: boolean; order?: PublicOrderView; checkoutUrl?: st
  * and refuses if it moved, so the client never pays a number they did not see.
  */
 export default function PackagePicker({ token, order, onOrder }: Props) {
+  // ORDER 302: the payment term and the VAT rate printed here are RecOS's; a missing one leaves its words out.
+  const siteNumbers = useSiteNumbers();
+  const termDays = num(siteNumbers, "payment_term_days_default");
+  const vatPct = num(siteNumbers, "vat_pct_shown");
+  const vatWords = vatPct == null ? "Prisen er inkl. mva." : `Prisen er inkl. ${vatPct} % mva.`;
   const chosen = order.chosen;
   const [pkg, setPkg] = useState<AdPackage>(chosen?.package ?? "synlig");
   const [addons, setAddons] = useState<AdAddon[]>((chosen?.addons ?? []).filter(isAdAddon));
@@ -231,7 +238,7 @@ export default function PackagePicker({ token, order, onOrder }: Props) {
             </button>
           ) : null}
           <button type="button" onClick={() => setMethod("invoice")} className={choiceClass(method === "invoice")} aria-pressed={method === "invoice"}>
-            <span className="block font-semibold text-white">Faktura (14 dager)</span>
+            <span className="block font-semibold text-white">{termDays == null ? "Faktura" : `Faktura (${termDays} dager)`}</span>
             <span className="block text-[12px] text-white/55">Annonsen publiseres med en gang, fakturaen kommer på e-post.</span>
           </button>
         </div>
@@ -301,8 +308,8 @@ export default function PackagePicker({ token, order, onOrder }: Props) {
         </button>
         <p className="mt-3 text-center text-[12px] text-white/45">
           {method === "card"
-            ? "Kortbetalingen skjer på en sikker betalingsside. Prisen er inkl. 25 % mva."
-            : "Fakturaen har 14 dagers betalingsfrist. Prisen er inkl. 25 % mva."}
+            ? `Kortbetalingen skjer på en sikker betalingsside. ${vatWords}`
+            : `${termDays == null ? "" : `Fakturaen har ${termDays} dagers betalingsfrist. `}${vatWords}`}
         </p>
       </div>
     </div>

@@ -9,6 +9,7 @@ import { notifySlack } from "@/lib/slackNotifier";
 import { mailHeaders } from "@/lib/emailPremiumTemplate";
 import { recruiterApplicationNoticeLetter, recruiterApplicationReceiptLetter } from "@/lib/emails/letters";
 import { getOrCreateSubscription, isUnsubscribed } from "@/lib/emailSubscription";
+import { getSiteNumbers } from "@/lib/numbers";
 
 const PARTNER_TYPES = new Set(["influencer", "recruiter", "learner"]);
 const HAS_COMPANY = new Set(["yes", "want_setup", "not_yet"]);
@@ -139,6 +140,7 @@ export async function POST(request: NextRequest) {
         monthlyReach: String(monthly_reach),
         to: email,
         unsubscribeUrl: `https://arbeidmatch.no/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`,
+        numbers: await getSiteNumbers(),
       });
       await transporter.sendMail({
         ...mailHeaders(),

@@ -41,6 +41,8 @@ import { COMPANY_KIND_LABEL_NB, companyKind } from "./companyKind";
 import { ConsentSwitch, Done, Group, Hint, InputRow, LinkRow, NavRow, OptionRow, StepperRow } from "./rows";
 import type { SheetProps } from "./SheetHost";
 import { SheetFrame } from "./SheetFrame";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { num, workingDays } from "@/lib/numbers";
 
 /**
  * "Be om kandidater" (ORDER 295, stage 2): the request as one sheet, in the
@@ -303,6 +305,8 @@ function RolesPanel({ a, update, onAdded }: { a: Answers; update: (p: Partial<An
 }
 
 export function RequestSheet({ open, close, preset, openSheet }: SheetProps) {
+  // ORDER 302: the reply promise is RecOS's; with no value the footer line ends at the code.
+  const replyDays = workingDays(num(useSiteNumbers(), "reply_promise_contact"), "no");
   const router = useRouter();
   const [a, setA] = useState<Answers>(EMPTY);
   const [hydrated, setHydrated] = useState(false);
@@ -657,7 +661,7 @@ export function RequestSheet({ open, close, preset, openSheet }: SheetProps) {
         <button type="button" className="btn gold" onClick={() => void onSend()} disabled={busy}>
           {busy ? "Sender ..." : "Send forespørsel"}
         </button>
-        <p>Gratis forespørsel. Vi sender en kode til e-posten for å bekrefte den, og svarer innen én virkedag.</p>
+        <p>Gratis forespørsel. Vi sender en kode til e-posten for å bekrefte den{replyDays ? `, og svarer innen ${replyDays}` : ""}.</p>
       </>
     );
   }

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Icon, type IconName } from "@/components/site/Icon";
 import { SITE_PATHS } from "@/components/site/siteNav";
+import { getSiteNumbers, num, numberSpan } from "@/lib/numbers";
 
 /**
  * Electricians in Norway on the site template (ORDER 295, stage 6b), with its
@@ -34,14 +35,21 @@ const BASICS: readonly { icon: IconName; title: string; body: string; badge: str
   },
 ];
 
-const PAY_ROWS = [
-  { l: "Sector minimum (qualified workers)", v: "See current rate", n: "Set centrally and updated periodically, check the link below" },
-  { l: "Typical market rate (certified)", v: "approx. 290 to 330 NOK/hour", n: "Estimate only, varies by employer and project" },
-  { l: "Accommodation", v: "Often provided", n: "For away-from-home assignments, employer typically covers costs" },
-  { l: "Overtime", v: "Paid on top", n: "The supplement is stated in your contract before you sign" },
-] as const;
+/** The certified range is RecOS's (ORDER 302); with no value its row is left out. */
+function payRows(certified: string | null) {
+  return [
+    { l: "Sector minimum (qualified workers)", v: "See current rate", n: "Set centrally and updated periodically, check the link below" },
+    ...(certified ? [{ l: "Typical market rate (certified)", v: `approx. ${certified} NOK/hour`, n: "Estimate only, varies by employer and project" }] : []),
+    { l: "Accommodation", v: "Often provided", n: "For away-from-home assignments, employer typically covers costs" },
+    { l: "Overtime", v: "Paid on top", n: "The supplement is stated in your contract before you sign" },
+  ];
+}
 
-export default function ElectriciansNorwayPage() {
+export default async function ElectriciansNorwayPage() {
+  // ORDER 302: the wage ranges are set in RecOS; a missing range hides its line.
+  const n = await getSiteNumbers();
+  const range = numberSpan(num(n, "wage_electrician_min"), num(n, "wage_electrician_max"), " to ");
+  const PAY_ROWS = payRows(numberSpan(num(n, "wage_electrician_certified_min"), num(n, "wage_electrician_max"), " to "));
   return (
     <div className="ams page" lang="en">
       <section className="dark band">
@@ -133,9 +141,11 @@ export default function ElectriciansNorwayPage() {
           <h2 className="h2">Salary ranges for electricians in Norway</h2>
           <div className="two">
             <div className="card night">
-              <p className="stat">
-                <b>260 to 330 NOK per hour</b>
-              </p>
+              {range ? (
+                <p className="stat">
+                  <b>{range} NOK per hour</b>
+                </p>
+              ) : null}
               <p>
                 There is a minimum hourly rate for the electrical trade in Norway, and it is updated from time to time. We
                 tell you the rate that applies to your assignment before you accept it, and you can check the current figure

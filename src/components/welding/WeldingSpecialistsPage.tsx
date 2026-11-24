@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Accordion } from "@/components/site/Accordion";
 import { Icon, type IconName } from "@/components/site/Icon";
 import { SITE_PATHS } from "@/components/site/siteNav";
+import { getSiteNumbers, num, numberSpan, weeksInWords, type SiteNumbers } from "@/lib/numbers";
 
 import { WELDING_CERT_ITEMS } from "./weldingCertItems";
 
@@ -22,35 +23,41 @@ const INDUSTRIES = [
   "Construction and Infrastructure",
 ] as const;
 
-const FACTS = [
-  {
-    title: "Primary certification",
-    body: "ISO 9606-1 is the primary standard required for welding positions at Norwegian shipyards and offshore facilities.",
-  },
-  {
-    title: "Candidate sourcing",
-    body: "We source certified welders from EU and EEA countries and ask candidates to provide current certification documents as part of screening.",
-  },
-  {
-    title: "Timeline",
-    body: "Our goal is to present qualified candidate profiles within approximately two weeks of receiving a request, depending on role and availability.",
-  },
-] as const;
+/** The timeline is RecOS's (ORDER 302); with no value that fact is left out. */
+function facts(weeks: string | null) {
+  return [
+    {
+      title: "Primary certification",
+      body: "ISO 9606-1 is the primary standard required for welding positions at Norwegian shipyards and offshore facilities.",
+    },
+    {
+      title: "Candidate sourcing",
+      body: "We source certified welders from EU and EEA countries and ask candidates to provide current certification documents as part of screening.",
+    },
+    ...(weeks
+      ? [{ title: "Timeline", body: `Our goal is to present qualified candidate profiles within approximately ${weeks} of receiving a request, depending on role and availability.` }]
+      : []),
+  ];
+}
 
-const STEPS = [
-  {
-    t: "Tell us your project requirements",
-    b: "Submit your request with details on certification standard required, welding process, material type, and project location. We assess your needs within 24 hours.",
-  },
-  {
-    t: "We source and review",
-    b: "Our recruiters identify candidates from our EU/EEA network. We ask for current ISO and EN certificates and check basic validity and expiry as part of screening. Only pre-screened candidates are presented.",
-  },
-  {
-    t: "Candidate arrives prepared",
-    b: "The selected welder arrives with documentation you have reviewed. We assist with employment contracts, payroll compliance with Norwegian law, and pre-arrival logistics support.",
-  },
-] as const;
+/** The assessment time is RecOS's (ORDER 302); with no value the first step ends at what to send. */
+function steps(n: SiteNumbers) {
+  const hours = num(n, "reply_hours_helper");
+  return [
+    {
+      t: "Tell us your project requirements",
+      b: `Submit your request with details on certification standard required, welding process, material type, and project location.${hours == null ? "" : ` We assess your needs within ${hours} hours.`}`,
+    },
+    {
+      t: "We source and review",
+      b: "Our recruiters identify candidates from our EU/EEA network. We ask for current ISO and EN certificates and check basic validity and expiry as part of screening. Only pre-screened candidates are presented.",
+    },
+    {
+      t: "Candidate arrives prepared",
+      b: "The selected welder arrives with documentation you have reviewed. We assist with employment contracts, payroll compliance with Norwegian law, and pre-arrival logistics support.",
+    },
+  ];
+}
 
 const AUTHORIZATIONS: readonly { icon: IconName; title: string; body: string; link?: { href: string; label: string } }[] = [
   {
@@ -97,7 +104,13 @@ function AuthorizationBody({ a }: { a: (typeof AUTHORIZATIONS)[number] }) {
 const MIN_WAGE_URL =
   "https://www.arbeidstilsynet.no/en/pay-and-engagement-of-employees/pay-and-minimum-rates-of-pay/minimum-wage/";
 
-export default function WeldingSpecialistsPage() {
+export default async function WeldingSpecialistsPage() {
+  // ORDER 302: the timeline, the assessment time and the wage range are set in RecOS; a missing one hides its line.
+  const n = await getSiteNumbers();
+  const weeks = weeksInWords(num(n, "first_profiles_weeks"), "en");
+  const range = numberSpan(num(n, "wage_welder_min"), num(n, "wage_welder_max"), " to ");
+  const FACTS = facts(weeks);
+  const STEPS = steps(n);
   return (
     <div className="ams page" lang="en">
       <section className="dark band">
@@ -221,9 +234,11 @@ export default function WeldingSpecialistsPage() {
           <div className="two">
             <div className="card night">
               <h3 className="h4">Salary and working conditions</h3>
-              <p className="stat">
-                <b>280 to 330 NOK per hour</b>
-              </p>
+              {range ? (
+                <p className="stat">
+                  <b>{range} NOK per hour</b>
+                </p>
+              ) : null}
               <p>
                 Salary for ISO-certified welders at Norwegian shipyards varies based on certifications held, welding
                 processes mastered, years of experience, and references from previous Norwegian employers. Welders with
@@ -268,7 +283,7 @@ export default function WeldingSpecialistsPage() {
         <div className="w close">
           <div>
             <h2 className="h3">Ready to find your certified welder?</h2>
-            <p>Tell us your project requirements. Our goal is to present pre-screened candidates within about two weeks.</p>
+            <p>Tell us your project requirements.{weeks ? ` Our goal is to present pre-screened candidates within about ${weeks}.` : null}</p>
           </div>
           <div className="close-acts">
             <Link className="btn gold" href={SITE_PATHS.request} data-rask-foresporsel>

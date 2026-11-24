@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { BOARD_TAG, jobTag } from "@/lib/jobs-fetch";
+import { NUMBERS_TAG } from "@/lib/numbers";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = (await request.json().catch(() => ({}))) as { slug?: unknown };
+  const body = (await request.json().catch(() => ({}))) as { slug?: unknown; numbers?: unknown };
   const slug = typeof body.slug === "string" ? body.slug.trim().toLowerCase() : "";
 
   /**
@@ -52,6 +53,17 @@ export async function POST(request: NextRequest) {
    * next reader sees the new text.
    */
   const now = { expire: 0 };
+
+  /**
+   * ORDER 302: a number saved on Settings, Numbers in RecOS arrives here as
+   * { numbers: [keys] } (src/lib/numbers/public-revalidate.ts in the ATS). Only
+   * the "numbers" tag is dropped then: the job board has nothing to do with it.
+   */
+  if (Array.isArray(body.numbers) && body.numbers.length > 0) {
+    revalidateTag(NUMBERS_TAG, now);
+    return NextResponse.json({ ok: true, revalidated: [NUMBERS_TAG] });
+  }
+
   revalidateTag(BOARD_TAG, now);
   if (slug) revalidateTag(jobTag(slug), now);
 

@@ -10,6 +10,7 @@ import {
 import { CANDIDATE_PORTAL_REGISTER_URL } from "@/lib/candidatePortal";
 import { escapeHtml } from "@/lib/htmlSanitizer";
 import { SUPPORT_LABEL, SUPPORT_PAGE_URL } from "@/lib/supportPage";
+import { num, numberSpan, type SiteNumbers } from "@/lib/numbers";
 
 /**
  * Every letter the website sends, apart from the request form (send-request-email),
@@ -557,14 +558,18 @@ export function partnerApprovedLetter(args: { accessUrl: string; to: string; uns
   };
 }
 
-export function partnerContactedLetter(args: { to: string; unsubscribeUrl: string }): Letter {
+/** The partner reply, with its window from RecOS (ORDER 302); without one it ends at "contact you". */
+export function partnerContactedText(numbers: SiteNumbers): string {
+  const span = numberSpan(num(numbers, "reply_days_employer_request_min"), num(numbers, "reply_days_employer_request_max"), " to ");
+  return `Thank you for your interest in becoming an ArbeidMatch partner. Our team will review your request and contact you${span ? ` within ${span} business days` : ""}.`;
+}
+
+export function partnerContactedLetter(args: { to: string; unsubscribeUrl: string; numbers: SiteNumbers }): Letter {
   return {
     subject: "We received your ArbeidMatch partner request",
     html: buildArbeidmatchLetter({
       title: "We will be in touch",
-      innerHtml: letterParagraph(
-        "Thank you for your interest in becoming an ArbeidMatch partner. Our team will review your request and contact you within 1 to 2 business days.",
-      ),
+      innerHtml: letterParagraph(partnerContactedText(args.numbers)),
       lang: EN,
       recipient: args.to,
       unsubscribeUrl: args.unsubscribeUrl,
@@ -599,7 +604,10 @@ export function recruiterApplicationReceiptLetter(args: {
   monthlyReach: string;
   to: string;
   unsubscribeUrl: string;
+  numbers: SiteNumbers;
 }): Letter {
+  // ORDER 302: the answer time is RecOS's; without one the line ends at "contact you".
+  const hours = num(args.numbers, "reply_hours_partner");
   return {
     subject: "We received your application - ArbeidMatch Recruiter Network",
     html: buildArbeidmatchLetter({
@@ -614,7 +622,7 @@ export function recruiterApplicationReceiptLetter(args: {
           { label: "Partner type", value: args.partnerType },
           { label: "Monthly reach", value: args.monthlyReach },
         ]),
-        letterParagraph("Our team will review your application and contact you within 48 hours."),
+        letterParagraph(`Our team will review your application and contact you${hours == null ? "" : ` within ${hours} hours`}.`),
         letterParagraph("We look forward to potentially building together."),
       ].join(""),
       cta: { href: "https://arbeidmatch.no", label: "Visit ArbeidMatch" },

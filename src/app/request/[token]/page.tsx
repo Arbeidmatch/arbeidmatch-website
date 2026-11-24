@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { nok, num, numberSpan } from "@/lib/numbers";
 import {
   Anchor,
   Bolt,
@@ -918,6 +920,11 @@ export default function RequestTokenPage() {
     deck: searchParams.get("deck"),
   });
   const t = REQUEST_WORDS[lang];
+  // ORDER 302: the reply window and the early-bird prices are RecOS's; a missing value hides its line or badge.
+  const numbers = useSiteNumbers();
+  const respondSpan = numberSpan(num(numbers, "reply_days_employer_request_min"), num(numbers, "reply_days_employer_request_max"));
+  const earlyProfiles = nok(num(numbers, "early_bird_profiles_nok"));
+  const earlyHire = nok(num(numbers, "early_bird_hire_nok"));
   const langAttr = lang === "no" ? "nb" : undefined;
   const opt = (value: string) => optionLabel(lang, value);
   /** A title inside a Norwegian sentence starts small ("en tømrer"); "CNC-operatør" keeps its capitals. English is left as written. */
@@ -1939,9 +1946,11 @@ export default function RequestTokenPage() {
             {submitSuccessReference ? (
               <p className="text-sm font-medium text-[#C9A84C]">{fill(t.yourReference, { ref: submitSuccessReference })}</p>
             ) : null}
-            <p className="text-sm text-[rgba(255,255,255,0.7)]">
-              {t.respondTime}
-            </p>
+            {respondSpan ? (
+              <p className="text-sm text-[rgba(255,255,255,0.7)]">
+                {fill(t.respondTime, { span: respondSpan })}
+              </p>
+            ) : null}
             {submitNotice ? <p className="text-xs text-amber-300">{submitNotice}</p> : null}
             <div className="pt-2">
               <Link
@@ -2352,15 +2361,17 @@ export default function RequestTokenPage() {
                           </button>
                         </div>
                         <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
-                          <span className="inline-flex rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-3 py-1 text-xs text-[#C9A84C]">
-                            100 NOK early bird
-                          </span>
+                          {earlyProfiles ? (
+                            <span className="inline-flex rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-3 py-1 text-xs text-[#C9A84C]">
+                              {earlyProfiles} NOK early bird
+                            </span>
+                          ) : null}
                           <p className="mt-3 text-base font-bold text-white">Candidate Profiles</p>
                           <p className="mt-2 text-sm text-white/70">Receive a curated presentation of selected candidates for your role.</p>
                           <button
                             type="button"
                             onClick={() => {
-                              trackEvent("pricing_profiles_click", { price: "100 NOK" });
+                              trackEvent("pricing_profiles_click", { price: earlyProfiles ? `${num(numbers, "early_bird_profiles_nok")} NOK` : "" });
                               setSelectedOffer("candidate-profiles");
                               setNotifyStatus("idle");
                             }}
@@ -2370,15 +2381,17 @@ export default function RequestTokenPage() {
                           </button>
                         </div>
                         <div className="rounded-[16px] border border-[rgba(201,168,76,0.15)] bg-[rgba(255,255,255,0.04)] p-6 animate-[panelIn_.3s_ease]">
-                          <span className="inline-flex rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-3 py-1 text-xs text-[#C9A84C]">
-                            1.000 NOK early bird
-                          </span>
+                          {earlyHire ? (
+                            <span className="inline-flex rounded-[20px] border border-[rgba(201,168,76,0.3)] bg-[rgba(201,168,76,0.12)] px-3 py-1 text-xs text-[#C9A84C]">
+                              {earlyHire} NOK early bird
+                            </span>
+                          ) : null}
                           <p className="mt-3 text-base font-bold text-white">Hire through ArbeidMatch</p>
                           <p className="mt-2 text-sm text-white/70">Pay only when you hire. We handle sourcing, screening, and presentation.</p>
                           <button
                             type="button"
                             onClick={() => {
-                              trackEvent("pricing_hire_click", { price: "1000 NOK" });
+                              trackEvent("pricing_hire_click", { price: earlyHire ? `${num(numbers, "early_bird_hire_nok")} NOK` : "" });
                               setSelectedOffer("hire-through-arbeidmatch");
                               setNotifyStatus("idle");
                             }}

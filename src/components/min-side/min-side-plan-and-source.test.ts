@@ -2,10 +2,13 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import MinSideProjects from "@/components/min-side/MinSideProjects";
-import { PLAN_CONFIRMATION, PROJECT_SOURCE_LINE, intentFromSearch, profileFrom, staffingPrefill, type MinSideProject } from "@/lib/min-side/profile";
+import { planConfirmation, PROJECT_SOURCE_LINE, intentFromSearch, profileFrom, staffingPrefill, type MinSideProject } from "@/lib/min-side/profile";
+
+// ORDER 302: the numbers RecOS answers, without reaching it.
+vi.mock("@/components/NumbersProvider", async () => (await import("@/test/numbers")).mockedNumbersProvider);
 
 /** ORDER 100 (13 October 2026): the source under the projects in small print, and "Planlegg bemanning med oss". */
 
@@ -70,6 +73,8 @@ describe("Planlegg bemanning med oss", () => {
     expect(client).not.toContain("Be om folk");
     expect(client).toContain("Planlegg bemanning med oss");
     expect(client).toContain('send({ action: "staffing_request", ...request })');
-    expect(PLAN_CONFIRMATION).toBe("Takk. Vi har fått forespørselen og tar kontakt innen én arbeidsdag.");
+    expect(planConfirmation(1)).toBe("Takk. Vi har fått forespørselen og tar kontakt innen én arbeidsdag.");
+    // ORDER 302: the time is RecOS's; without it the sentence ends at "tar kontakt".
+    expect(planConfirmation(null)).toBe("Takk. Vi har fått forespørselen og tar kontakt.");
   });
 });

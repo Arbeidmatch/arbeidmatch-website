@@ -7,6 +7,8 @@ import { SITE_PATHS } from "@/components/site/siteNav";
 import { AreaRow, Done, Group, InputRow, NavRow, OptionRow, PrivacySwitch } from "./rows";
 import type { SheetProps } from "./SheetHost";
 import { SheetFrame } from "./SheetFrame";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { num } from "@/lib/numbers";
 
 /**
  * "Request invitation" for the Recruiter Network, as in the approved mockup
@@ -26,6 +28,8 @@ export function inviteSummary(track: string, summary: string): string | undefine
 }
 
 export function InviteSheet({ open, close, preset }: SheetProps) {
+  // ORDER 302: the answer time is RecOS's; with no value the thanks ends at the review.
+  const inviteDays = num(useSiteNumbers(), "reply_days_invite");
   const [track, setTrack] = useState<string>(PARTNER_TRACKS.find((t) => t === preset.track) ?? "");
   const [inSub, setInSub] = useState(false);
   const [name, setName] = useState("");
@@ -115,7 +119,7 @@ export function InviteSheet({ open, close, preset }: SheetProps) {
       }
     >
       {status === "done" ? (
-        <Done title="Thank you." text="We will review your request and respond within 7 days." />
+        <Done title="Thank you." text={inviteDays == null ? "We will review your request." : `We will review your request and respond within ${inviteDays} days.`} />
       ) : (
         <form onSubmit={submit} noValidate style={{ display: "contents" }}>
           <Group>

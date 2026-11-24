@@ -11,7 +11,7 @@ import {
   HIRING_STATUS_NO,
   NO_BILLING,
   NO_HIRING_QUERY,
-  PLANS_CLOSED_LINE,
+  plansClosedLine,
   clientTableFrom,
   dayNo,
   defaultLocks,
@@ -74,6 +74,8 @@ import { BODY as BODY_IOS, GREY as GREY_IOS, GROUP as GROUP_IOS, LARGE_TITLE, PI
 import { HiringBillingScreen } from "./MinSideHiringBilling";
 import HiringConfirmScreen from "./MinSideHiringConfirm";
 import MinSideHiringSettings, { type PremiumOffer } from "./MinSideHiringSettings";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { monthNo, text as numberText } from "@/lib/numbers";
 
 /**
  * ORDER 157: "Bedrifter som ansetter", the firms that hire in the client's
@@ -301,7 +303,9 @@ function TrialBanner({ projects, trades, trial, text }: { projects: HiringProjec
  */
 export function ProjectsTeaser({ projects, trades, trial }: { projects: HiringProjects; trades: string[]; trial: ProjectsTrial }) {
   const [shown, setShown] = useState(PAGE);
-  const banner = `${projects.count} prosjekter i deres fylker og fag akkurat nå. Listen er ekte og oppdateres daglig. Prøv gratis ut desember, så bestemmer dere etterpå.`;
+  // ORDER 302: the trial month is RecOS's project_alerts_trial_until; without it the trial sentence is left out.
+  const trialMonth = monthNo(numberText(useSiteNumbers(), "project_alerts_trial_until"));
+  const banner = `${projects.count} prosjekter i deres fylker og fag akkurat nå. Listen er ekte og oppdateres daglig.${trialMonth ? ` Prøv gratis ut ${trialMonth}, så bestemmer dere etterpå.` : ""}`;
   const rows = projects.rows.slice(0, shown);
   return (
     <div className="flex min-w-0 flex-col gap-4">
@@ -906,9 +910,12 @@ export function usePremium(plans: HiringPlans, send: Send): PremiumOffer & { bil
 
 /** Where a Premium button would be while the plans are closed: one quiet line. */
 function PlansClosed() {
+  // ORDER 302: the day is RecOS's; with no value the quiet line is left out.
+  const line = plansClosedLine(numberText(useSiteNumbers(), "hiring_plans_from"));
+  if (!line) return null;
   return (
     <p data-plans-closed="" className={`min-w-0 text-sm ${MUTED_L}`}>
-      {PLANS_CLOSED_LINE}
+      {line}
     </p>
   );
 }
@@ -1395,6 +1402,10 @@ function FilterBar({ list, locks, counties, occupations }: { list: ReturnType<ty
 export default function MinSideHiring({ token, hiring, send, sendData, trial, onAskPeople, focusProjects = false, openAgencyTab = false, openFirm = null }: MinSideHiringProps) {
   const { terms, subscription } = hiring;
   const basis = subscription.tier === "basis";
+  // ORDER 302: the trial month and the day the plans open are RecOS's; a missing one leaves its sentence out.
+  const siteNumbers = useSiteNumbers();
+  const trialMonth = monthNo(numberText(siteNumbers, "project_alerts_trial_until"));
+  const plansLine = plansClosedLine(numberText(siteNumbers, "hiring_plans_from"));
   const [termsOpen, setTermsOpen] = useState(!terms.accepted && terms.ready);
   const [lead, setLead] = useState<string | null>(null);
   // Basis: the row that asked for Premium (its Følg and Skjul stay usable there), or true from elsewhere.
@@ -1599,7 +1610,7 @@ export default function MinSideHiring({ token, hiring, send, sendData, trial, on
             projects={projects}
             trades={subscription.trades}
             trial={trial}
-            text={`${projects.count} offentlige byggeprosjekter i ${projects.counties.join(", ")} akkurat nå. ${projects.won_count} av bedriftene som ansetter her har nettopp vunnet ett av dem. Prøv prosjektvarsler gratis ut desember.`}
+            text={`${projects.count} offentlige byggeprosjekter i ${projects.counties.join(", ")} akkurat nå. ${projects.won_count} av bedriftene som ansetter her har nettopp vunnet ett av dem.${trialMonth ? ` Prøv prosjektvarsler gratis ut ${trialMonth}.` : ""}`}
           />
         </div>
       ) : null}
@@ -1646,7 +1657,7 @@ export default function MinSideHiring({ token, hiring, send, sendData, trial, on
               <ConfirmForm text="Med Premium ser dere hele bedriftskortet: behov, språk, bransje, ansatte og kontaktopplysninger." label="Premium" onConfirm={askPremium} onCancel={() => setPremiumAsk(false)} />
             ) : (
               <>
-                <p className="text-[15px] leading-relaxed text-white">{PLANS_CLOSED_LINE}</p>
+                {plansLine ? <p className="text-[15px] leading-relaxed text-white">{plansLine}</p> : null}
                 <div className="flex flex-wrap gap-3 pt-1">
                   <button type="button" className={SECONDARY} onClick={() => setPremiumAsk(false)}>
                     Lukk

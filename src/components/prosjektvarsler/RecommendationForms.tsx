@@ -4,7 +4,9 @@ import { useState, type FormEvent } from "react";
 
 import styles from "@/components/prosjekter/portal.module.css";
 import { isFreeMail } from "@/lib/foreignCompany";
-import { LANDING_NO, RECOMMEND_NO } from "@/lib/min-side/recommend";
+import { LANDING_NO, landingPending, RECOMMEND_NO } from "@/lib/min-side/recommend";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { num } from "@/lib/numbers";
 
 /**
  * ORDER 274: the two forms behind a recommendation mail's buttons. "Se
@@ -40,6 +42,8 @@ const LABELS: Record<Field, string> = {
 };
 
 export function TrialRequestForm({ token }: { token: string }) {
+  // ORDER 302: the activation time is RecOS's.
+  const replyDays = num(useSiteNumbers(), "reply_promise_contact");
   const [v, setV] = useState<Record<Field, string>>({ name: "", email: "", phone: "", org_number: "", company_name: "" });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ message: string; field: string | null } | null>(null);
@@ -55,7 +59,7 @@ export function TrialRequestForm({ token }: { token: string }) {
     setError(null);
     const r = await post(token, { action: "trial_request", ...v });
     setBusy(false);
-    if (r.ok) setDone(r.message ?? LANDING_NO.pending);
+    if (r.ok) setDone(r.message ?? landingPending(replyDays));
     else setError({ message: r.message, field: r.field });
   };
 

@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSmtpTransporter, signedInMailHeaders } from "@/lib/createSmtpTransporter";
 import { notifyError } from "@/lib/errorNotifier";
 import { unsubscribeUrlFor } from "@/lib/emailSubscription";
-import { partnerApprovedLetter, partnerContactedLetter, partnerRejectedLetter } from "@/lib/emails/letters";
+import { partnerApprovedLetter, partnerContactedLetter, partnerContactedText, partnerRejectedLetter } from "@/lib/emails/letters";
+import { getSiteNumbers } from "@/lib/numbers";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { SUPPORT_LABEL, SUPPORT_PAGE_URL } from "@/lib/supportPage";
 
@@ -128,15 +129,17 @@ export async function POST(request: NextRequest) {
       }
 
       if (transporter) {
+        const numbers = await getSiteNumbers();
         const letter = partnerContactedLetter({
           to: email,
           unsubscribeUrl: await unsubscribeUrlFor(email, "partner-request"),
+          numbers,
         });
         await transporter.sendMail({
           ...signedInMailHeaders(),
           to: email,
           subject: letter.subject,
-          text: "Thank you for your interest in becoming an ArbeidMatch partner. Our team will review your request and contact you within 1 to 2 business days.",
+          text: partnerContactedText(numbers),
           html: letter.html,
         });
       }

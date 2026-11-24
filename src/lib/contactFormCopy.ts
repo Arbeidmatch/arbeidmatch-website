@@ -28,7 +28,8 @@ export const CONTACT_FORM_COPY = {
     basedIn: "Vi holder til i Trondheim",
     address: "Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norge",
     originGroupLabel: "Hvor er bedriften registrert?",
-    intro: "Har dere spørsmål, eller er dere klare til å finne arbeidskraft til bedriften? Vi svarer innen én virkedag.",
+    // The reply promise after it comes from RecOS (ORDER 302): replySentence in lib/numbers.ts.
+    intro: "Har dere spørsmål, eller er dere klare til å finne arbeidskraft til bedriften?",
     name: "Navn",
     namePlaceholder: "Fullt navn",
     companyName: "Bedriftens navn",
@@ -70,7 +71,8 @@ export const CONTACT_FORM_COPY = {
     basedIn: "We are based in Trondheim",
     address: "Sverre Svendsens veg 38, 7056 Ranheim, Trondheim, Norway",
     originGroupLabel: "Where is the company registered?",
-    intro: "Do you have questions, or are you ready to find workers for your company? We reply within one working day.",
+    // The reply promise after it comes from RecOS (ORDER 302): replySentence in lib/numbers.ts.
+    intro: "Do you have questions, or are you ready to find workers for your company?",
     name: "Name",
     namePlaceholder: "Full name",
     companyName: "Company name",

@@ -19,6 +19,8 @@ import { TRADES } from "@/lib/trades";
 import { AreaRow, ConsentSwitch, Done, Group, Hint, InputRow, NavRow, OptionRow, PrivacySwitch, Segmented } from "./rows";
 import type { SheetProps } from "./SheetHost";
 import { SheetFrame } from "./SheetFrame";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { num, replySentence, workingDays } from "@/lib/numbers";
 
 /**
  * The candidate sheets of the approved mockup (ORDER 295, stage 3), in English.
@@ -320,6 +322,10 @@ const MESSAGE_SUBJECTS = ["A job I saw", "My application", "My profile or CV", "
  * human check by the time the form was drawn.
  */
 export function MessageSheet({ open, close, preset }: SheetProps) {
+  // ORDER 302: the reply promise is RecOS's; with no value the note goes and the thanks ends at its first sentence.
+  const numbers = useSiteNumbers();
+  const reply = replySentence(numbers, "en");
+  const replyDays = workingDays(num(numbers, "reply_promise_contact"), "en");
   const initial = MESSAGE_SUBJECTS.find((s) => s === preset.about) ?? "";
   const [about, setAbout] = useState<string>(initial);
   const [name, setName] = useState("");
@@ -403,12 +409,12 @@ export function MessageSheet({ open, close, preset }: SheetProps) {
           busy={status === "sending"}
           onClick={() => void submit()}
           label={status === "done" ? "Close" : status === "sending" ? "Sending..." : "Send message"}
-          note={status === "done" ? undefined : "We reply within one working day."}
+          note={status === "done" ? undefined : reply ?? undefined}
         />
       }
     >
       {status === "done" ? (
-        <Done title="Thank you." text={`We have your message and reply within one working day.${reference ? ` Reference: ${reference}.` : ""}`} />
+        <Done title="Thank you." text={`${replyDays ? `We have your message and reply within ${replyDays}.` : "We have your message."}${reference ? ` Reference: ${reference}.` : ""}`} />
       ) : (
         <form onSubmit={submit} noValidate style={{ display: "contents" }}>
           <Group>

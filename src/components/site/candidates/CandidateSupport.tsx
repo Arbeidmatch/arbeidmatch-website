@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Icon, type IconName } from "@/components/site/Icon";
 import { SITE_PATHS } from "@/components/site/siteNav";
+import { getSiteNumbers, replySentence } from "@/lib/numbers";
 
 /**
  * Candidate support, as in the approved mockup (ORDER 295, stage 3): on the
@@ -34,7 +35,9 @@ function Row({ icon, title, hint }: { icon: IconName; title: string; hint: strin
   );
 }
 
-export default function CandidateSupport() {
+export default async function CandidateSupport() {
+  // ORDER 302: the reply promise is RecOS's; with no value the line ends at its first sentence.
+  const reply = replySentence(await getSiteNumbers(), "en");
   return (
     <div className="ams page" lang="en">
       <section className="dark band">
@@ -42,7 +45,7 @@ export default function CandidateSupport() {
           <span className="eb">Candidate support</span>
           <h1>How can we help?</h1>
           <p className="lede" style={{ maxWidth: 640 }}>
-            Pick the subject and write to us. We reply within one working day.
+            Pick the subject and write to us.{reply ? ` ${reply}` : null}
           </p>
         </div>
       </section>

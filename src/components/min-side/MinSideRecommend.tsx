@@ -12,9 +12,13 @@ import {
   filledAddresses,
   RECOMMEND_NO,
   RECOMMEND_NOTE_MAX,
+  recommendText,
+  recommendThanks,
   type CheckedAddress,
   type RecommendState,
 } from "@/lib/min-side/recommend";
+import { useSiteNumbers } from "@/components/NumbersProvider";
+import { num } from "@/lib/numbers";
 import type { Fetched } from "./MinSideHiring";
 import { BODY, GREY, GROUP, INPUT, NAVY, PILL, PILL_NAVY, SMALL } from "./ios";
 
@@ -58,6 +62,9 @@ export default function MinSideRecommend({
   const lastChecked = useRef("");
 
   const allowed = fieldsAllowed(used, state.limit);
+  // ORDER 302: the counts and the reply time in the popup's words are RecOS's.
+  const numbers = useSiteNumbers();
+  const leadText = recommendText(num(numbers, "recommend_limit_firms") ?? state.limit, num(numbers, "alerts_trial_max_users"));
 
   useEffect(() => {
     first.current?.focus();
@@ -134,7 +141,7 @@ export default function MinSideRecommend({
     const got = checkedFrom(r.data);
     if (got.used !== null) setUsed(Math.min(got.used, state.limit));
     const message = (r.data as { message?: unknown } | null)?.message;
-    setThanks(typeof message === "string" && message.trim() ? message.trim() : RECOMMEND_NO.thanks);
+    setThanks(typeof message === "string" && message.trim() ? message.trim() : recommendThanks(num(numbers, "reply_promise_contact")));
     onSent();
   };
 
@@ -166,7 +173,7 @@ export default function MinSideRecommend({
             <h2 id="ms-rec-title" className={`text-[1.375rem] font-bold leading-tight ${NAVY}`}>
               {RECOMMEND_NO.title}
             </h2>
-            <p className={`${BODY} ${NAVY}`}>{RECOMMEND_NO.text}</p>
+            <p className={`${BODY} ${NAVY}`}>{leadText}</p>
 
             <div className="flex flex-col gap-2">
               <div className="grid grid-cols-5 gap-1.5" aria-hidden>
