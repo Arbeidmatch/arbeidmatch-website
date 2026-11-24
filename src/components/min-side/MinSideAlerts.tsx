@@ -52,6 +52,8 @@ type Props = {
   scrollBack: number | null;
   onScrolledBack: () => void;
   onPlan: (p: MinSideProject) => void;
+  /** ORDER 476: the ask's label, "Be om kandidater" for a recruitment or staffing firm. */
+  planLabel?: string;
   saveSettings: SaveSettings;
   stopAlerts: () => Promise<{ ok: true } | { ok: false; message: string; field: string | null }>;
   onStopped: () => void;
@@ -71,7 +73,7 @@ function SortHead({ label, active, dir, onClick, align = "left" }: { label: stri
   );
 }
 
-export default function MinSideAlerts({ token, alerts, route, go, list, setList, lastOpened, scrollBack, onScrolledBack, onPlan, saveSettings, stopAlerts, onStopped, footer }: Props) {
+export default function MinSideAlerts({ token, alerts, route, go, list, setList, lastOpened, scrollBack, onScrolledBack, onPlan, planLabel = "Planlegg bemanning", saveSettings, stopAlerts, onStopped, footer }: Props) {
   const [now] = useState(() => Date.now());
   const projects = alerts.projects;
   const rows = useMemo(() => listRows(projects, list, now), [projects, list, now]);
@@ -110,7 +112,7 @@ export default function MinSideAlerts({ token, alerts, route, go, list, setList,
         onBack={() => go({ view: "list" })}
         onPrev={n.prev ? () => open(n.prev) : null}
         onNext={n.next ? () => open(n.next) : null}
-        ask={{ label: "Planlegg bemanning", onClick: () => item && onPlan(item) }}
+        ask={{ label: planLabel, onClick: () => item && onPlan(item) }}
       />
     );
   }

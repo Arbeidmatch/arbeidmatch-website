@@ -933,6 +933,8 @@ export type MinSideHiringProps = {
   trial: ProjectsTrial;
   /** "Planlegg bemanning": the staffing request Min side already has. */
   onAskPeople: () => void;
+  /** ORDER 476: the ask's label, "Be om kandidater" for a recruitment or staffing firm. */
+  askLabel?: string;
   /** ?hiring=projects: scroll to the projects card once. */
   focusProjects?: boolean;
   /** ?hiring=agency (ORDER 220): open the tab "Via bemanningsbyrå". */
@@ -1399,7 +1401,7 @@ function FilterBar({ list, locks, counties, occupations }: { list: ReturnType<ty
   );
 }
 
-export default function MinSideHiring({ token, hiring, send, sendData, trial, onAskPeople, focusProjects = false, openAgencyTab = false, openFirm = null }: MinSideHiringProps) {
+export default function MinSideHiring({ token, hiring, send, sendData, trial, onAskPeople, askLabel = "Planlegg bemanning", focusProjects = false, openAgencyTab = false, openFirm = null }: MinSideHiringProps) {
   const { terms, subscription } = hiring;
   const basis = subscription.tier === "basis";
   // ORDER 302: the trial month and the day the plans open are RecOS's; a missing one leaves its sentence out.
@@ -1619,7 +1621,7 @@ export default function MinSideHiring({ token, hiring, send, sendData, trial, on
         <p className={`min-w-0 flex-1 basis-[220px] text-[15px] font-semibold ${INK}`}>Trenger dere folk selv?</p>
         {/* ORDER 273: inside Min side the ask for people is "Planlegg bemanning", the same prefilled form everywhere. */}
         <button type="button" className={PILL_GREEN_IOS} aria-haspopup="dialog" onClick={onAskPeople}>
-          Planlegg bemanning
+          {askLabel}
         </button>
       </div>
 

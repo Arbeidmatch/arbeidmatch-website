@@ -59,6 +59,7 @@ import {
   dayNo,
   intentFromSearch,
   projectPrefill,
+  planWords,
   staffingPrefill,
   kronerNo,
   profileFrom,
@@ -508,6 +509,8 @@ export default function MinSideClient({ token }: { token: string }) {
     if (!r.ok) setQuestionError(r.message);
   };
   const prefill = planPrefill === "alerts" ? staffingPrefill(profile?.alerts ?? null) : planPrefill;
+  // ORDER 476: a recruitment or staffing firm is offered "Be om kandidater" (sourcing) wherever the page asks for people.
+  const ask = planWords(profile?.service ?? "staffing");
 
   // ORDER 273: one setting per change; the ATS answers the settings as they now stand, and the page keeps them.
   const saveSettings = async (part: Record<string, unknown>) => {
@@ -596,7 +599,7 @@ export default function MinSideClient({ token }: { token: string }) {
           </button>
           {profile ? (
             <button type="button" className={`${PILL_GREEN} hidden sm:inline-flex`} aria-haspopup="dialog" onClick={() => setPlanPrefill("alerts")}>
-              Planlegg bemanning
+              {ask.button}
             </button>
           ) : null}
         </div>
@@ -668,7 +671,7 @@ export default function MinSideClient({ token }: { token: string }) {
                   </div>
                 </div>
                 <button type="button" className={`${PILL_GREEN} w-full sm:hidden`} aria-haspopup="dialog" onClick={() => setPlanPrefill("alerts")}>
-                  Planlegg bemanning
+                  {ask.button}
                 </button>
                 {SECTION_GROUPS.map((g) => {
                   const inGroup = sections.filter((x) => x.group === g.key);
@@ -803,6 +806,7 @@ export default function MinSideClient({ token }: { token: string }) {
                       scrollBack={scrollBack}
                       onScrolledBack={() => setScrollBack(null)}
                       onPlan={(p) => setPlanPrefill(projectPrefill(p, profile.alerts))}
+                      planLabel={ask.button}
                       saveSettings={saveSettings}
                       stopAlerts={() => send({ action: "alert_stop" })}
                       onStopped={() => {
@@ -970,6 +974,7 @@ export default function MinSideClient({ token }: { token: string }) {
                     openAgencyTab={hiringAgencyTab}
                     openFirm={hiringFirm}
                     onAskPeople={() => setPlanPrefill({ trade: hiring.subscription.trades.slice(0, 3).join(", "), place: hiring.subscription.counties.slice(0, 3).join(", ") })}
+                    askLabel={ask.button}
                   />
                 </Screen>
               ) : null}
@@ -1012,12 +1017,13 @@ export default function MinSideClient({ token }: { token: string }) {
 
       {/* ORDER 100, and "Planlegg bemanning" everywhere in Min side since ORDER 273: one form, prefilled by where it was pressed. */}
       {prefill && profile ? (
-        <PortalModal title="Planlegg bemanning med oss" onClose={() => setPlanPrefill(null)}>
+        <PortalModal title={ask.title} onClose={() => setPlanPrefill(null)}>
+          {ask.intro ? <p className="mb-4 text-[15px] leading-relaxed text-white">{ask.intro}</p> : null}
           <StaffingForm
             prefill={prefill}
             onCancel={() => setPlanPrefill(null)}
             onSend={async (request) => {
-              const r = await send({ action: "staffing_request", ...request });
+              const r = await send({ action: ask.action, ...request });
               if (r.ok) {
                 setPlanPrefill(null);
                 setNotice(planConfirmation(num(siteNumbers, "reply_promise_contact")));

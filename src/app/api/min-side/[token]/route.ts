@@ -93,6 +93,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     action !== "start_free_alerts" &&
     action !== "whats_new" &&
     action !== "staffing_request" &&
+    action !== "sourcing_request" &&
     action !== "alert_cities" &&
     action !== "city_question"
   )
@@ -110,7 +111,8 @@ export async function POST(request: NextRequest, ctx: Ctx) {
     return noStoreJson(answer.body, { status: answer.status });
   }
   // ORDER 100: "Planlegg bemanning med oss", passed on as plain short text; the ATS checks every field.
-  if (action === "staffing_request") {
+  // ORDER 476: "Be om kandidater", the same form for a recruitment or staffing firm, filed as sourcing.
+  if (action === "staffing_request" || action === "sourcing_request") {
     const text = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : typeof v === "number" && Number.isFinite(v) ? String(v) : "");
     const body = { action, trade: text(raw.trade, 120), count: text(raw.count, 6), from: text(raw.from, 10), duration: text(raw.duration, 80), place: text(raw.place, 120), note: text(raw.note, 1000) };
     const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });

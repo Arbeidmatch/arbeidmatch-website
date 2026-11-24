@@ -149,7 +149,27 @@ export type Profile = {
   recommend: RecommendState | null;
   /** ORDER 276: the firm's adverts on JobbOS; null while the owner switch is off or the firm has none there. */
   annonser: Annonser | null;
+  /** ORDER 476: "sourcing" for a recruitment or staffing firm, which is offered "Be om kandidater", never staffing; "staffing" from an older ATS. */
+  service: MinSideService;
 };
+
+export type MinSideService = "staffing" | "sourcing";
+
+/** ORDER 476: the sourcing offer's words, as the project alert letter has them. */
+export const SOURCING_TEXT_NO = "Trenger dere flere folk til prosjektet, finner og presenterer vi kandidater for dere. Dere intervjuer og ansetter dem selv.";
+export const SOURCING_BUTTON_NO = "Be om kandidater";
+
+/**
+ * What the green ask for people says and files, by the firm's service (ORDER
+ * 476): "Planlegg bemanning" and a staffing request for a client, "Be om
+ * kandidater" with the sourcing text and a sourcing request for an agency. The
+ * ATS refuses a staffing request from an agency whatever the page sends.
+ */
+export function planWords(service: MinSideService): { button: string; title: string; intro: string | null; action: "staffing_request" | "sourcing_request" } {
+  return service === "sourcing"
+    ? { button: SOURCING_BUTTON_NO, title: SOURCING_BUTTON_NO, intro: SOURCING_TEXT_NO, action: "sourcing_request" }
+    : { button: "Planlegg bemanning", title: "Planlegg bemanning med oss", intro: null, action: "staffing_request" };
+}
 
 /** ORDER 236: one message, as it was approved, its buttons kept as buttons. */
 export type Message = { id: string; subject: string; text: string; links: { label: string; href: string }[]; created_at: string; read_at: string | null };
@@ -395,6 +415,7 @@ export function profileFrom(raw: unknown): Profile | null {
     security: securityFrom(r.security),
     recommend: recommendFrom(r.recommend),
     annonser: annonserFrom(r.annonser),
+    service: r.forsprang_service === "sourcing" ? "sourcing" : "staffing",
     messages: list(r.messages)
       .filter((m) => isMessageId(m.id) && typeof m.created_at === "string")
       .map((m) => ({

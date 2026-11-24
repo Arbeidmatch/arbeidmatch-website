@@ -5,7 +5,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import MinSideProjects from "@/components/min-side/MinSideProjects";
-import { planConfirmation, PROJECT_SOURCE_LINE, intentFromSearch, profileFrom, staffingPrefill, type MinSideProject } from "@/lib/min-side/profile";
+import { planConfirmation, planWords, PROJECT_SOURCE_LINE, SOURCING_TEXT_NO, intentFromSearch, profileFrom, staffingPrefill, type MinSideProject } from "@/lib/min-side/profile";
+import MinSideAlerts from "@/components/min-side/MinSideAlerts";
 
 // ORDER 302: the numbers RecOS answers, without reaching it.
 vi.mock("@/components/NumbersProvider", async () => (await import("@/test/numbers")).mockedNumbersProvider);
@@ -69,12 +70,43 @@ describe("Planlegg bemanning med oss", () => {
   it("the page has the header button, the form and the Norwegian confirmation (ORDER 273: no separate card under Prosjektvarsler)", () => {
     const client = readFileSync(path.join(__dirname, "MinSideClient.tsx"), "utf8");
     expect(client).not.toContain("Trenger dere folk de neste månedene?");
-    expect(client).toContain("Planlegg bemanning");
     expect(client).not.toContain("Be om folk");
-    expect(client).toContain("Planlegg bemanning med oss");
-    expect(client).toContain('send({ action: "staffing_request", ...request })');
+    // ORDER 476: the words and the request come from the firm's service, never written into the page twice.
+    expect(client).toContain('planWords(profile?.service ?? "staffing")');
+    expect(client).toContain("send({ action: ask.action, ...request })");
+    expect(planWords("staffing")).toEqual({ button: "Planlegg bemanning", title: "Planlegg bemanning med oss", intro: null, action: "staffing_request" });
     expect(planConfirmation(1)).toBe("Takk. Vi har fått forespørselen og tar kontakt innen én arbeidsdag.");
     // ORDER 302: the time is RecOS's; without it the sentence ends at "tar kontakt".
     expect(planConfirmation(null)).toBe("Takk. Vi har fått forespørselen og tar kontakt.");
+  });
+});
+
+describe("a recruitment or staffing firm is offered sourcing (ORDER 476)", () => {
+  const minimal = { me: { email: "test@eksempel.invalid", contact_id: null }, company: { name: "Test Bemanning AS" } };
+
+  it("reads the firm's service from the ATS, staffing when an older ATS says nothing", () => {
+    expect(profileFrom({ ...minimal, forsprang_service: "sourcing" })!.service).toBe("sourcing");
+    expect(profileFrom({ ...minimal, forsprang_service: "staffing" })!.service).toBe("staffing");
+    expect(profileFrom({ ...minimal, forsprang_service: "<script>" })!.service).toBe("staffing");
+    expect(profileFrom(minimal)!.service).toBe("staffing");
+  });
+
+  it("Be om kandidater with the sourcing text and a sourcing request, never Planlegg bemanning", () => {
+    const w = planWords("sourcing");
+    expect(w).toEqual({ button: "Be om kandidater", title: "Be om kandidater", intro: SOURCING_TEXT_NO, action: "sourcing_request" });
+    expect(SOURCING_TEXT_NO).toBe("Trenger dere flere folk til prosjektet, finner og presenterer vi kandidater for dere. Dere intervjuer og ansetter dem selv.");
+    expect(JSON.stringify(w)).not.toMatch(/bemanning/i);
+  });
+
+  it("the route passes the sourcing request on to the ATS", () => {
+    const route = readFileSync(path.join(__dirname, "../../app/api/min-side/[token]/route.ts"), "utf8");
+    expect(route).toContain('action !== "sourcing_request"');
+    expect(route).toContain('action === "staffing_request" || action === "sourcing_request"');
+  });
+
+  it("the project detail's ask and the hiring card take the firm's label", () => {
+    expect(readFileSync(path.join(__dirname, "MinSideClient.tsx"), "utf8")).toContain("planLabel={ask.button}");
+    expect(readFileSync(path.join(__dirname, "MinSideClient.tsx"), "utf8")).toContain("askLabel={ask.button}");
+    expect(typeof MinSideAlerts).toBe("function");
   });
 });
