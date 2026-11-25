@@ -42,10 +42,29 @@ function project(n: number, part: Partial<MinSideProject> = {}): MinSideProject 
 
 describe("the Prosjektvarsler list (ORDER 273)", () => {
   it("shows the date each stage cares about", () => {
-    expect(dateCell(project(1, { stage: "tender", deadline_at: "2026-11-14T10:00:00Z" }))).toBe("Frist 14.11.");
-    expect(dateCell(project(1, { stage: "awarded", published_on: "2026-10-02" }))).toBe("Tildelt 02.10.");
-    expect(dateCell({ ...project(1, { stage: "planned", published_on: null }), start_on: "2027-03-01" })).toBe("Ventes mars");
-    expect(dateCell(project(1, { published_on: null }))).toBe("");
+    expect(dateCell(project(1, { stage: "tender", deadline_at: "2026-11-14T10:00:00Z" }), NOW)).toBe("Frist 14.11.");
+    expect(dateCell(project(1, { stage: "awarded", published_on: "2026-10-02" }), NOW)).toBe("Tildelt 02.10.");
+    expect(dateCell({ ...project(1, { stage: "planned", published_on: null }), start_on: "2027-03-01" }, Date.parse("2027-01-10T12:00:00Z"))).toBe("Ventes mars");
+    expect(dateCell(project(1, { published_on: null }), NOW)).toBe("");
+  });
+
+  it("never shows a date that has gone stale (ORDER 505)", () => {
+    const today = Date.parse("2026-11-25T12:00:00Z");
+    const planned = (start_on: string | null, published_on: string | null = "2026-10-14") => ({ ...project(1, { stage: "planned", published_on }), start_on });
+    // The expected month has passed: said plainly, never "Ventes oktober" in November.
+    expect(dateCell(planned("2026-10-01"), today)).toBe("Ventet i oktober, ikke utlyst ennå");
+    expect(dateCell(planned("2025-12-01"), today)).toBe("Ventet i desember 2025, ikke utlyst ennå");
+    // This month and later still lie ahead; another year says its year.
+    expect(dateCell(planned("2026-11-30"), today)).toBe("Ventes november");
+    expect(dateCell(planned("2026-12-01"), today)).toBe("Ventes desember");
+    expect(dateCell(planned("2027-03-01"), today)).toBe("Ventes mars 2027");
+    // No expected month: the notice's date, not "Ventes <the month it came out>".
+    expect(dateCell(planned(null), today)).toBe("Kunngjort 14.10.");
+    expect(dateCell(planned(null, null), today)).toBe("");
+    // A tender whose deadline passed is not shown as a deadline still to meet.
+    expect(dateCell(project(1, { stage: "tender", deadline_at: "2026-11-14T10:00:00Z" }), today)).toBe("Fristen gikk ut 14.11.");
+    expect(dateCell(project(1, { stage: "tender", deadline_at: "2026-12-04T10:00:00Z" }), today)).toBe("Frist 04.12.");
+    for (const p of [planned("2026-10-01"), planned("2026-09-01"), planned("2025-01-01")]) expect(dateCell(p, today)).not.toMatch(/^Ventes /);
   });
 
   it("marks Ny only after the last letter, and nothing without one", () => {

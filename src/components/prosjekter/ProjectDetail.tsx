@@ -7,9 +7,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BODY, CARD, GREY, LARGE_TITLE, NAVY, NY_TAG, PILL, PILL_GREEN, SMALL, STAGE_DOT } from "@/components/min-side/ios";
 import { orgNumberNo } from "@/lib/min-side/profile";
 import { dateCell } from "@/lib/min-side/project-list";
-import { lotsOf, projectDetailFrom, timelineOf, type Firm, type SubscriberProjectDetail } from "@/lib/min-side/project-detail";
+import { lotsOf, projectDetailFrom, timelineOf, valueFactsOf, type Firm, type SubscriberProjectDetail } from "@/lib/min-side/project-detail";
 import { domainLabel, isDomainKey } from "@/lib/prosjekter/domains";
-import { formatDateNo, readableText, regionNo, valueNo } from "@/lib/prosjekter/format";
+import { formatDateNo, readableText, regionNo } from "@/lib/prosjekter/format";
 
 /**
  * ORDER 273: one project of a client's alerts, across the whole section. His
@@ -145,14 +145,14 @@ export default function ProjectDetail({ url, preview, index, total, isNew = fals
   const timeline = project ? timelineOf(project) : [];
   const lots = project ? lotsOf(project.details) : [];
   const procedure = project?.details.find((d) => d.label === "Om prosedyren")?.value ?? null;
-  const value = project ? valueNo(project) : null;
-  const estimated = project?.awarded_value_nok && project.estimated_value_nok && project.estimated_value_nok !== project.awarded_value_nok ? valueNo({ awarded_value_nok: null, estimated_value_nok: project.estimated_value_nok }) : null;
+  const values = project ? valueFactsOf(project) : [];
   const start = project ? formatDateNo(project.start_on) : null;
   const end = project ? formatDateNo(project.end_on) : null;
   const startEnd = start && end ? `${start} til ${end}` : start ? `Fra ${start}` : end ? `Til ${end}` : "";
   const competition = project
     ? (
         [
+          ["Prosjektnr.", project.project_no !== null ? String(project.project_no) : null],
           ["Prosedyre", procedure],
           ["Tilbud mottatt", project.tenders_received !== null ? String(project.tenders_received) : null],
           ["Kontrakt signert", formatDateNo(project.contract_signed_on)],
@@ -272,12 +272,11 @@ export default function ProjectDetail({ url, preview, index, total, isNew = fals
                     {project.buyer ? <FirmFact firm={project.buyer} /> : <span className="block whitespace-nowrap">{buyer}</span>}
                   </Fact>
                 ) : null}
-                {value ? (
-                  <Fact label="Kontraktsverdi">
-                    <span className="tabular-nums">{value}</span>
-                    {estimated ? <span className={`font-normal ${GREY}`}> (anslått {estimated})</span> : null}
+                {values.map((v) => (
+                  <Fact key={v.label} label={v.label}>
+                    <span className="tabular-nums">{v.value}</span>
                   </Fact>
-                ) : null}
+                ))}
                 {startEnd ? <Fact label="Byggestart og slutt">{startEnd}</Fact> : null}
               </dl>
             </section>

@@ -12,6 +12,7 @@ import {
   neighbours,
   pageOf,
   pageForId,
+  townChips,
   withList,
   type ListState,
   type SettingsLevel,
@@ -78,7 +79,7 @@ export default function MinSideAlerts({ token, alerts, route, go, list, setList,
   const projects = alerts.projects;
   const rows = useMemo(() => listRows(projects, list, now), [projects, list, now]);
   const shown = pageOf(rows, list.page);
-  const towns = useMemo(() => [...new Set(projects.map((p) => p.place).filter((x): x is string => Boolean(x)))].sort((a, b) => a.localeCompare(b, "nb")).slice(0, 12), [projects]);
+  const towns = useMemo(() => townChips(projects), [projects]);
   const stageChoices = STAGES.filter((s) => s.key === "all" || projects.some((p) => projectStage(p, now) === s.key));
   const newCount = projects.filter((p) => isNew(p, alerts.last_sent_at ?? null)).length;
   const set = (part: Partial<ListState>) => setList(withList(list, part));
@@ -242,7 +243,7 @@ export default function MinSideAlerts({ token, alerts, route, go, list, setList,
                         {STAGE_WORD[st]}
                       </td>
                       <td className={`whitespace-nowrap px-3 py-2.5 text-right tabular-nums ${SMALL} ${NAVY}`}>{valueNo(p) ?? ""}</td>
-                      <td className={`whitespace-nowrap px-3 py-2.5 tabular-nums ${SMALL} ${NAVY}`}>{dateCell(p)}</td>
+                      <td className={`whitespace-nowrap px-3 py-2.5 tabular-nums ${SMALL} ${NAVY}`}>{dateCell(p, now)}</td>
                       <td className={`whitespace-nowrap px-3 py-2.5 ${SMALL}`}>{p.winners.length ? <span className={NAVY}>{p.winners.join(", ")}</span> : <span className={GREY}>Ikke tildelt</span>}</td>
                       <td className="px-2 py-2.5 align-middle">
                         <ChevronRight className="h-5 w-5 text-[#C7C7CC]" aria-hidden />
@@ -259,7 +260,7 @@ export default function MinSideAlerts({ token, alerts, route, go, list, setList,
             {shown.rows.map((p) => {
               const st = projectStage(p, now);
               const who = p.winners.length ? p.winners.join(", ") : p.buyer_name;
-              const rest = [valueNo(p), dateCell(p)].filter(Boolean).join(" · ");
+              const rest = [valueNo(p), dateCell(p, now)].filter(Boolean).join(" · ");
               return (
                 <li key={p.id}>
                   <button

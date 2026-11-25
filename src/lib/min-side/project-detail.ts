@@ -119,6 +119,27 @@ export function timelineOf(p: Pick<SubscriberProjectDetail, "published_on" | "de
   return out;
 }
 
+const nokNo = new Intl.NumberFormat("nb-NO", { maximumFractionDigits: 0 });
+const kr = (v: number) => {
+  if (v >= 1_000_000) {
+    const m = v / 1_000_000;
+    return `${m >= 10 ? nokNo.format(Math.round(m)) : String(Math.round(m * 10) / 10).replace(".", ",")} mill. kr`;
+  }
+  return `${nokNo.format(Math.round(v))} kr`;
+};
+
+/**
+ * The values as the owner's own table has them (ORDER 505): the awarded value
+ * and the estimated value, each under its own name, never an estimate called a
+ * contract value. The estimate stays beside the awarded value when they differ.
+ */
+export function valueFactsOf(p: Pick<SubscriberProjectDetail, "awarded_value_nok" | "estimated_value_nok">): { label: string; value: string }[] {
+  const out: { label: string; value: string }[] = [];
+  if (p.awarded_value_nok) out.push({ label: "Kontraktsverdi", value: kr(p.awarded_value_nok) });
+  if (p.estimated_value_nok && p.estimated_value_nok !== p.awarded_value_nok) out.push({ label: "Anslått verdi", value: kr(p.estimated_value_nok) });
+  return out;
+}
+
 /** "Delkontrakt" details as small cards: the name, then a value and a winner when the line says them ("Navn · 2 mill. kr · Firma AS"). */
 export function lotsOf(details: { label: string; value: string }[]): { name: string; value: string | null; winner: string | null }[] {
   return details

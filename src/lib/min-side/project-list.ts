@@ -45,14 +45,39 @@ const ddmm = (ms: number) => {
   return `${day.padStart(2, "0")}.${month.padStart(2, "0")}.`;
 };
 
-/** "Frist 14.11." for a tender, "Tildelt 02.10." for an awarded one, "Ventes mars" for a planned one; "" without a date. */
-export function dateCell(p: Dated): string {
+/** Year and month (0-11) of a moment, as read in Oslo. */
+const osloMonth = (ms: number) => {
+  const parts = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "numeric", timeZone: "Europe/Oslo" }).formatToParts(new Date(ms));
+  return { year: Number(parts.find((x) => x.type === "year")?.value), month: Number(parts.find((x) => x.type === "month")?.value) - 1 };
+};
+
+/**
+ * The date a row shows, never one that has gone stale (ORDER 505, 25 November
+ * 2026: "ce se intampla cu datele?" over "Ventes oktober" in November).
+ * A tender: "Frist 14.11.", or "Fristen gikk ut 14.11." once it has passed.
+ * Awarded: "Tildelt 02.10.". Planned: "Ventes mars" while the expected month is
+ * ahead (the year added when it is not this one), "Ventet i oktober, ikke
+ * utlyst ennå" once it has passed, and "Kunngjort 14.10." when no month is
+ * expected at all (the month a notice came out is not a month anything is
+ * expected). "" without a date.
+ */
+export function dateCell(p: Dated, now = Date.now()): string {
+  if (p.stage === "planned") {
+    const start = p.start_on ? Date.parse(p.start_on.length === 10 ? `${p.start_on}T12:00:00Z` : p.start_on) : NaN;
+    if (!Number.isFinite(start)) {
+      const pub = p.published_on ? Date.parse(p.published_on.length === 10 ? `${p.published_on}T12:00:00Z` : p.published_on) : NaN;
+      return Number.isFinite(pub) ? `Kunngjort ${ddmm(pub)}` : "";
+    }
+    const at = osloMonth(start);
+    const today = osloMonth(now);
+    const month = `${MONTHS_NO[at.month]}${at.year !== today.year ? ` ${at.year}` : ""}`;
+    const passed = at.year < today.year || (at.year === today.year && at.month < today.month);
+    return passed ? `Ventet i ${month}, ikke utlyst ennå` : `Ventes ${month}`;
+  }
   const ms = dateKey(p);
   if (ms === null) return "";
-  if (p.stage === "tender") return `Frist ${ddmm(ms)}`;
-  if (p.stage === "awarded") return `Tildelt ${ddmm(ms)}`;
-  const month = MONTHS_NO[Number(new Intl.DateTimeFormat("en-US", { month: "numeric", timeZone: "Europe/Oslo" }).format(new Date(ms))) - 1];
-  return `Ventes ${month}`;
+  if (p.stage === "tender") return ms < now ? `Fristen gikk ut ${ddmm(ms)}` : `Frist ${ddmm(ms)}`;
+  return `Tildelt ${ddmm(ms)}`;
 }
 
 /** Published after the last letter: the "Ny" tag. Without a last letter nothing is new. */
@@ -89,11 +114,39 @@ export function sortRows<T extends MinSideProject>(rows: T[], sort: ListSort): T
   });
 }
 
+/**
+ * A row's place as a town chip names it (ORDER 505): a real place name, never a
+ * postal code. "1640 Råde" is Råde; "1640" alone, or anything without a
+ * letter, is no town.
+ */
+export function townOf(place: string | null | undefined): string | null {
+  const t = String(place ?? "").replace(/^\d{4}\s+/, "").replace(/\s+/g, " ").trim();
+  return t && /\p{L}/u.test(t) && !/\d/.test(t) ? t : null;
+}
+
+export const TOWN_CHIPS = 12;
+
+/** The town chips: the places of his projects, the one with most projects first (then by name), at most 12. */
+export function townChips(rows: Pick<MinSideProject, "place">[], max = TOWN_CHIPS): string[] {
+  const counts = new Map<string, { name: string; count: number }>();
+  for (const r of rows) {
+    const t = townOf(r.place);
+    if (!t) continue;
+    const c = counts.get(norm(t)) ?? { name: t, count: 0 };
+    c.count += 1;
+    counts.set(norm(t), c);
+  }
+  return [...counts.values()]
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "nb"))
+    .slice(0, max)
+    .map((c) => c.name);
+}
+
 /** The filtered, sorted list the table and Forrige/Neste both read. */
 export function listRows<T extends MinSideProject>(rows: T[], s: Pick<ListState, "q" | "stage" | "town" | "sort">, now: number): T[] {
   const town = s.town ? norm(s.town) : null;
   return sortRows(
-    rows.filter((p) => (s.stage === "all" || projectStage(p, now) === s.stage) && (!town || norm(p.place ?? "") === town) && matchesSearch(p, s.q)),
+    rows.filter((p) => (s.stage === "all" || projectStage(p, now) === s.stage) && (!town || norm(townOf(p.place) ?? "") === town) && matchesSearch(p, s.q)),
     s.sort,
   );
 }
