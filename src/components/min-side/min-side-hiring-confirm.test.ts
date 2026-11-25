@@ -143,13 +143,15 @@ describe("Bekreft og start", () => {
     expect(html).toContain("Bekreft og start");
     expect(html).toContain("Dine opplysninger");
     expect(html).toContain("Hva vil du motta");
-    expect(html).toContain("Vilkår");
-    expect(html).toContain("Første avsnitt.");
-    expect(html).toContain("Versjon 2");
-    expect(html).toContain("Jeg godtar vilkårene");
-    expect(html).toContain("Jeg forstår at tjenesten er i beta og kan endre seg");
-    expect(html).not.toContain("Les vilkår");
+    // 25 November 2026: one box and "Les vilkårene"; the text opens in a dialog, never on the page.
+    expect(html).toContain("Jeg godtar vilkårene for betatesten");
+    expect(html).toMatch(/aria-haspopup="dialog"[^>]*>Les vilkårene</);
+    expect(html).not.toContain("Første avsnitt.");
+    expect(html).not.toContain("Versjon 2");
+    expect(html).not.toContain("Jeg forstår at tjenesten er i beta og kan endre seg");
     expect(html).not.toContain("Annen Bygg AS");
+    // No scroll box inside the page.
+    expect(source("MinSideHiringConfirm.tsx")).not.toContain("overflow-y-auto");
   });
 
   it("asks no billing: no Firma og fakturering, no address, no E-post or EHF", () => {
@@ -165,9 +167,9 @@ describe("Bekreft og start", () => {
   it("puts Hva vil du motta before the terms, with exactly trades, counties, how often and only new", () => {
     const c = confirmOf();
     const html = fields(c, hiringConfirmValues(c));
-    expect(Object.keys(controlsPerBlock(html))).toEqual(["person", "receive", "terms"]);
-    expect(controlsPerBlock(html)).toEqual({ person: 3, receive: 4, terms: 2 });
-    const receive = html.slice(html.indexOf('data-block="receive"'), html.indexOf('data-block="terms"'));
+    expect(Object.keys(controlsPerBlock(html))).toEqual(["person", "receive"]);
+    expect(controlsPerBlock(html)).toEqual({ person: 3, receive: 4 });
+    const receive = html.slice(html.indexOf('data-block="receive"'), html.indexOf("data-terms"));
     for (const word of ["Yrker", "Fylker", "Hvor ofte", "Elektriker", "Tømrer", "Trøndelag", "Oslo", "Daglig", "Ukentlig", "Månedlig", "Bare nye stillinger siden sist"]) expect(receive).toContain(word);
     // His rule P4: nothing else on this screen.
     for (const gone of ["Steder", "Bedriftsstørrelse", "Type signal", "Mottakere", "Språk", "Pause", "Klokkeslett"]) expect(html).not.toContain(gone);
@@ -209,6 +211,8 @@ describe("Bekreft og start", () => {
     expect(hiringConfirmMissing({ ...valid(c), accept_terms: false })?.field).toBe("accept_terms");
     expect(hiringConfirmMissing({ ...valid(c), accept_beta: false })?.field).toBe("accept_beta");
     expect(hiringConfirmMissing(valid(c))).toBeNull();
+    // The one box answers both: ticking it sets the terms and the beta together.
+    expect(source("./MinSideHiringConfirm.tsx")).toContain("onChange({ accept_terms: e.target.checked, accept_beta: e.target.checked })");
     expect(hiringConfirmReady({ ...valid(c), trades: [] })).toBe(false);
     expect(hiringConfirmReady({ ...valid(c), counties: [] })).toBe(false);
     // The missing thing has a place to scroll to.

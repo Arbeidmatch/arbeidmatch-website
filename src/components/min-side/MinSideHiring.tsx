@@ -168,7 +168,7 @@ export function TermsForm({ terms, onAccept, onCancel }: { terms: TermsText; onA
   };
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
-      <div className="flex max-h-[50vh] flex-col gap-3 overflow-y-auto pr-1 text-[15px] leading-relaxed text-white">
+      <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-white">
         {terms.paragraphs.map((p, i) => (
           <p key={i}>{p}</p>
         ))}

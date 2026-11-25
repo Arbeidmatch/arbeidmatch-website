@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import dynamic from "next/dynamic";
 
 import {
   RECEIVE_MAX,
@@ -15,16 +16,18 @@ import {
   type TermsText,
 } from "@/lib/min-side/profile";
 import type { Fetched, Saved } from "./MinSideHiring";
+import { PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import { Block, CHECK, CHOICE, FieldError, ReadOnlyLine, TextField, type Failed } from "./MinSideHiringBilling";
 import { Chips, Control, FREQUENCIES, OccupationChips, firmsWord, toggled } from "./MinSideHiringSettings";
-import { BTN_GREEN, FIELD_L, INK, MUTED_L, SOFT, chip } from "./ui";
+import { BTN_GREEN, FIELD_L, INK, LINK_L, MUTED_L, SOFT, chip } from "./ui";
 
 /**
  * ORDER 171: "Bekreft og start", the one screen an invited client sees before
  * the hiring list. ORDER 181: three blocks, each of at most seven controls:
  * who he is (with the firm read-only), what he wants to receive (trades,
- * counties, how often, only new; nothing else, his rule P4), and the terms
- * with the two boxes. Billing is asked later, only when a paid plan starts.
+ * counties, how often, only new; nothing else, his rule P4), and one box for
+ * the terms, whose text opens in a dialog (25 November 2026: no scroll inside
+ * the page, the terms not repeated on it). Billing is asked later, only when a paid plan starts.
  * "Godta og start" is the green action and is never greyed out: a press with
  * something missing names it under its field and scrolls there (5 November
  * 2026, after an invited client pressed a disabled button and saw nothing).
@@ -33,6 +36,8 @@ import { BTN_GREEN, FIELD_L, INK, MUTED_L, SOFT, chip } from "./ui";
 
 type Send = (body: Record<string, unknown>) => Promise<Saved>;
 type SendData = (body: Record<string, unknown>) => Promise<Fetched>;
+
+const PortalModal = dynamic(() => import("@/components/prosjekter/PortalModal"), { ssr: false });
 
 /** The fields the ATS can name in a refusal; anything else is shown above the button. */
 const OWN_PLACE = new Set(["full_name", "email", "trades", "counties", "frequency", "accept_terms", "accept_beta"]);
@@ -59,10 +64,12 @@ export type ConfirmFieldsProps = {
   failed: Failed;
   /** The live count for the counties and trades on screen. */
   matches: Matches;
+  /** Opens the terms in a dialog; the screen itself shows only the box. */
+  onReadTerms?: () => void;
 };
 
 /** The three blocks and the button, drawn from the values; the state lives in HiringConfirmScreen. */
-export function ConfirmFields({ confirm, terms, value: v, onChange, busy, failed, matches }: ConfirmFieldsProps) {
+export function ConfirmFields({ confirm, value: v, onChange, busy, failed, matches, onReadTerms }: ConfirmFieldsProps) {
   const c = confirm.company;
   const o = confirm.options;
   const errorFor = (field: string) => (failed?.field === field ? failed.message : null);
@@ -133,31 +140,18 @@ export function ConfirmFields({ confirm, terms, value: v, onChange, busy, failed
         </p>
       </Block>
 
-      <Block id="terms" title="Vilkår">
-        <div className={`flex max-h-[45vh] min-w-0 flex-col gap-3 overflow-y-auto pr-1 text-[15px] leading-relaxed ${SOFT}`} tabIndex={0} aria-label={terms.title}>
-          <p className={`font-semibold ${INK}`}>{terms.title}</p>
-          {terms.paragraphs.map((p, i) => (
-            <p key={i} className="break-words">
-              {p}
-            </p>
-          ))}
-          {terms.version ? <p className={`text-xs ${MUTED_L}`}>Versjon {terms.version}</p> : null}
-        </div>
-        <div data-control="" className="flex min-w-0 flex-col">
+      <div id="terms" data-terms="" className="flex min-w-0 flex-col">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3">
           <label htmlFor="ms-cf-terms" className={CHOICE}>
-            <input id="ms-cf-terms" type="checkbox" className={CHECK} checked={v.accept_terms} onChange={(e) => onChange({ accept_terms: e.target.checked })} />
-            Jeg godtar vilkårene
+            <input id="ms-cf-terms" type="checkbox" className={CHECK} checked={v.accept_terms && v.accept_beta} onChange={(e) => onChange({ accept_terms: e.target.checked, accept_beta: e.target.checked })} />
+            <span className="min-w-0 break-words">Jeg godtar vilkårene for betatesten</span>
           </label>
-          <FieldError message={errorFor("accept_terms")} />
+          <button type="button" className={LINK_L} aria-haspopup="dialog" onClick={onReadTerms}>
+            Les vilkårene
+          </button>
         </div>
-        <div data-control="" className="flex min-w-0 flex-col">
-          <label htmlFor="ms-cf-beta" className={`${CHOICE} py-2`}>
-            <input id="ms-cf-beta" type="checkbox" className={CHECK} checked={v.accept_beta} onChange={(e) => onChange({ accept_beta: e.target.checked })} />
-            <span className="min-w-0 break-words">{confirm.beta}</span>
-          </label>
-          <FieldError message={errorFor("accept_beta")} />
-        </div>
-      </Block>
+        <FieldError message={errorFor("accept_terms") ?? errorFor("accept_beta")} />
+      </div>
 
       <FieldError message={general} />
       <button type="submit" className={`${BTN_GREEN} w-full sm:w-auto sm:self-start`} disabled={busy}>
@@ -198,14 +192,48 @@ function useConfirmMatches(confirm: HiringConfirm, value: HiringConfirmValues, s
 }
 
 /** Where each missing thing is on the screen, for the scroll after a press. */
-const CONFIRM_ANCHOR: Record<string, string> = { full_name: "ms-cf-name", email: "ms-cf-email", trades: "ms-cf-trades", counties: "ms-cf-counties", accept_terms: "ms-cf-terms", accept_beta: "ms-cf-beta" };
+const CONFIRM_ANCHOR: Record<string, string> = { full_name: "ms-cf-name", email: "ms-cf-email", trades: "ms-cf-trades", counties: "ms-cf-counties", accept_terms: "ms-cf-terms", accept_beta: "ms-cf-terms" };
+
+/**
+ * The terms, read in a dialog as on other platforms (his rule, 25 November 2026):
+ * the screen holds one box, the text opens on "Les vilkårene", and the dialog's
+ * Godta ticks the box. The text is shown here only, never repeated on the page.
+ */
+export function TermsReader({ terms, onAccept, onClose }: { terms: TermsText; onAccept: () => void; onClose: () => void }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 text-[15px] leading-relaxed text-white">
+        {terms.paragraphs.map((p, i) => (
+          <p key={i} className="break-words">
+            {p}
+          </p>
+        ))}
+        {terms.version ? <p className="text-xs text-white/60">Versjon {terms.version}</p> : null}
+      </div>
+      <div className="flex flex-wrap gap-3 pt-1">
+        <button type="button" data-autofocus className={PRIMARY} onClick={onAccept}>
+          Godta
+        </button>
+        <button type="button" className={SECONDARY} onClick={onClose}>
+          Lukk
+        </button>
+      </div>
+    </div>
+  );
+}
 
 /** The screen with its state; a success reloads the page through send, which then shows the list. */
 export default function HiringConfirmScreen({ confirm, terms, send, sendData }: { confirm: HiringConfirm; terms: TermsText; send: Send; sendData: SendData }) {
   const [value, setValue] = useState<HiringConfirmValues>(() => hiringConfirmValues(confirm));
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<Failed>(null);
+  const [reading, setReading] = useState(false);
   const matches = useConfirmMatches(confirm, value, sendData);
+
+  const change = (part: Partial<HiringConfirmValues>) => {
+    setValue((v) => ({ ...v, ...part }));
+    if (failed?.field && Object.keys(part).some((k) => k === failed.field)) setFailed(null);
+  };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -233,11 +261,21 @@ export default function HiringConfirmScreen({ confirm, terms, send, sendData }: 
         busy={busy}
         failed={failed}
         matches={matches}
-        onChange={(part) => {
-          setValue((v) => ({ ...v, ...part }));
-          if (failed?.field && Object.keys(part).includes(failed.field)) setFailed(null);
-        }}
+        onReadTerms={() => setReading(true)}
+        onChange={change}
       />
+      {reading ? (
+        <PortalModal title={terms.title} onClose={() => setReading(false)}>
+          <TermsReader
+            terms={terms}
+            onClose={() => setReading(false)}
+            onAccept={() => {
+              change({ accept_terms: true, accept_beta: true });
+              setReading(false);
+            }}
+          />
+        </PortalModal>
+      ) : null}
     </form>
   );
 }
