@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BODY, CARD, GREY, LARGE_TITLE, NAVY, NY_TAG, PILL, PILL_GREEN, SMALL, STAGE_DOT } from "@/components/min-side/ios";
 import { orgNumberNo } from "@/lib/min-side/profile";
 import { dateCell } from "@/lib/min-side/project-list";
-import { lotsOf, projectDetailFrom, tenderUrlFrom, timelineOf, type Firm, type SubscriberProjectDetail } from "@/lib/min-side/project-detail";
+import { lotsOf, projectDetailFrom, timelineOf, type Firm, type SubscriberProjectDetail } from "@/lib/min-side/project-detail";
 import { domainLabel, isDomainKey } from "@/lib/prosjekter/domains";
 import { formatDateNo, readableText, regionNo, valueNo } from "@/lib/prosjekter/format";
 
@@ -117,8 +117,6 @@ function AskButton({ ask, className }: { ask: DetailAsk; className: string }) {
 export default function ProjectDetail({ url, preview, index, total, isNew = false, onBack, onPrev, onNext, backLabel = "Alle prosjekter", phoneBackLabel = "Prosjektvarsler", ask }: ProjectDetailProps) {
   const [project, setProject] = useState<SubscriberProjectDetail | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [tenderError, setTenderError] = useState<string | null>(null);
 
   useEffect(() => {
     // Each project is its own instance (the callers key it by id), so a new one starts empty by itself.
@@ -137,31 +135,6 @@ export default function ProjectDetail({ url, preview, index, total, isNew = fals
       live = false;
     };
   }, [url]);
-
-  const goToTender = async () => {
-    setBusy(true);
-    setTenderError(null);
-    // Opened on the click itself, so a pop-up blocker counts it as the click's own window.
-    const tab = window.open("", "_blank");
-    try {
-      const res = await fetch(url, { method: "POST" });
-      const link = tenderUrlFrom(await res.json().catch(() => ({})));
-      if (link) {
-        if (tab) {
-          tab.opener = null;
-          tab.location.href = link;
-        } else window.open(link, "_blank", "noopener,noreferrer");
-      } else {
-        tab?.close();
-        setTenderError("Konkurransen er ikke åpen lenger.");
-      }
-    } catch {
-      tab?.close();
-      setTenderError("Noe gikk galt. Prøv igjen.");
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const title = project?.title ?? preview?.title ?? "";
   const place = project ? project.place ?? project.city ?? regionNo(project.regions) : (preview?.place ?? "");
@@ -187,7 +160,8 @@ export default function ProjectDetail({ url, preview, index, total, isNew = fals
         ] as const
       ).filter(([, v]) => Boolean(v))
     : [];
-  const tender = project?.tender_open ? goToTender : null;
+  // A plain link to the route that counts the click and redirects (25 November 2026: the old empty-tab-then-POST opened nothing).
+  const tender = project?.tender_open ? `${url}/kunngjoring` : null;
 
   const arrows = (
     <div className="flex items-center gap-2">
@@ -311,14 +285,9 @@ export default function ProjectDetail({ url, preview, index, total, isNew = fals
               <p className={`${BODY} font-semibold ${NAVY}`}>Trenger dere folk til dette prosjektet?</p>
               <AskButton ask={ask} className={`${PILL_GREEN} w-full`} />
               {tender ? (
-                <button type="button" className={`${PILL} w-full`} disabled={busy} onClick={() => void tender()}>
+                <a href={tender} target="_blank" rel="noopener noreferrer" className={`${PILL} w-full`}>
                   Se kunngjøringen
-                </button>
-              ) : null}
-              {tenderError ? (
-                <p role="status" className={`${SMALL} text-[#C4231A]`}>
-                  {tenderError}
-                </p>
+                </a>
               ) : null}
             </section>
           </aside>
@@ -328,9 +297,9 @@ export default function ProjectDetail({ url, preview, index, total, isNew = fals
       {/* The phone: the two actions fixed at the bottom, 56px tall. */}
       <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t border-[#E5E5EA] bg-white/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur md:hidden">
         {tender ? (
-          <button type="button" className={`${PILL} min-h-[3.5rem] flex-1`} disabled={busy} onClick={() => void tender()}>
+          <a href={tender} target="_blank" rel="noopener noreferrer" className={`${PILL} min-h-[3.5rem] flex-1`}>
             Kunngjøring
-          </button>
+          </a>
         ) : null}
         <AskButton ask={ask} className={`${PILL_GREEN} min-h-[3.5rem] flex-1`} />
       </div>

@@ -200,7 +200,6 @@ function MaskedPresentation({ token, view, refused, note }: { token: string; vie
 export default function ProjectPresentationClient({ token }: { token: string }) {
   const [data, setData] = useState<Presentation | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
   const [showAllReq, setShowAllReq] = useState(false);
   // PROJ-REST A: without the recipient's session the ATS answers the project masked (401), or refused for another address (403).
   const [masked, setMasked] = useState<{ view: Masked; refused: boolean } | null>(null);
@@ -226,32 +225,6 @@ export default function ProjectPresentationClient({ token }: { token: string }) 
       live = false;
     };
   }, [token]);
-
-  const goToTender = async () => {
-    setBusy(true);
-    // Opened before the answer arrives, so a popup blocker sees it as the click's own window.
-    const tab = window.open("", "_blank");
-    try {
-      const res = await fetch(`/api/prosjekter/presentation/${encodeURIComponent(token)}`, { method: "POST" });
-      const payload = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
-      if (payload.url) {
-        if (tab) {
-          tab.opener = null;
-          tab.location.href = payload.url;
-        } else {
-          window.open(payload.url, "_blank", "noopener,noreferrer");
-        }
-      } else {
-        tab?.close();
-        setError(payload.error ?? "Konkurransen er ikke åpen lenger.");
-      }
-    } catch {
-      tab?.close();
-      setError("Noe gikk galt. Prøv igjen.");
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const p = data?.project;
   const groups = useMemo(() => {
@@ -335,9 +308,10 @@ export default function ProjectPresentationClient({ token }: { token: string }) 
           {keyDate ? <p className={`text-sm ${MUTED}`}>{keyDate}</p> : null}
           {p.tender_open ? (
             <div>
-              <button type="button" onClick={() => void goToTender()} disabled={busy} className={`${PRIMARY} w-full sm:w-auto`}>
+              {/* A plain link to the route that counts the click and redirects (25 November 2026). */}
+              <a href={`/api/prosjekter/presentation/${encodeURIComponent(token)}/kunngjoring`} target="_blank" rel="noopener noreferrer" className={`${PRIMARY} w-full sm:w-auto`}>
                 Gå til konkurransen
-              </button>
+              </a>
               <p className={`mt-2 text-xs ${MUTED}`}>Konkurransegrunnlaget og innlevering av tilbud.</p>
               {error ? (
                 <p className="mt-2 text-sm text-white/80" role="status">
