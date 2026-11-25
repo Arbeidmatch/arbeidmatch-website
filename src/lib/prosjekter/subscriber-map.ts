@@ -1,7 +1,7 @@
 import { domainsOf } from "./domains";
 import type { AlertProject } from "./format";
 import { COUNTIES, ownPoint, placeProjects, type MapStage, type PlacedProject } from "./map";
-import { inScope } from "./subscriber-scope";
+import { inScope, pointInScope } from "./subscriber-scope";
 import type { Overview } from "./types";
 
 /**
@@ -15,7 +15,9 @@ import type { Overview } from "./types";
  *
  * ORDER 504: with `scope`, the subscription's counties, a project outside them
  * is left out altogether, not drawn and not counted, and a project in several
- * counties sits in the first of them that is in scope.
+ * counties sits in the first of them that is in scope. A point outside the
+ * counties (a project filed under one but placed in another) is moved to its
+ * county's centre and marked approximate, so no dot sits outside them.
  */
 
 export type SubscriberMap = {
@@ -77,7 +79,7 @@ export function subscriberMap(
       c: p.city,
       k: null,
     };
-    if (point) {
+    if (point && pointInScope(point.x, point.y, scope)) {
       placed.push({ ...base, lat: point.lat, lon: point.lon, x: point.x, y: point.y });
     } else if (COUNTIES[county]) {
       placed.push({ ...base, lat: 0, lon: 0, x: COUNTIES[county].cx, y: COUNTIES[county].cy });

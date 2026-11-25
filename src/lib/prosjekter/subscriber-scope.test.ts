@@ -3,7 +3,7 @@ import { subscriberExplorer } from "./explorer";
 import type { AlertProject } from "./format";
 import { COUNTIES, countyView, project } from "./map";
 import { subscriberMap } from "./subscriber-map";
-import { inScope, scopeLngLat, scopeName, scopeView, subscriptionCounties } from "./subscriber-scope";
+import { inCounty, inScope, pointInScope, scopeLngLat, scopeName, scopeView, subscriptionCounties } from "./subscriber-scope";
 import { unproject } from "./map";
 
 const NOW = Date.parse("2026-11-25T12:00:00Z");
@@ -87,6 +87,30 @@ describe("the frame the maps open on", () => {
     expect(n2).toBeGreaterThan(60.39);
     expect(w2).toBeLessThan(5.32);
     expect(e2).toBeLessThan(10.75);
+  });
+});
+
+describe("no point outside the counties", () => {
+  const at = (lon: number, lat: number) => project(lon, lat);
+  it("Bergen is in Vestland, Oslo is not, and a point off the coast inside the box belongs", () => {
+    expect(inCounty(...at(5.32, 60.39), "NO0A2")).toBe(true);
+    expect(pointInScope(...at(10.75, 59.91), ["NO0A2"])).toBe(false);
+    expect(pointInScope(...at(10.75, 59.91), ["NO081"])).toBe(true);
+    // West of Sotra, in the sea: in no county, inside Vestland's box.
+    expect(pointInScope(...at(4.95, 60.3), ["NO0A2"])).toBe(true);
+    expect(inCounty(...at(4.95, 60.3), "NO0A2")).toBe(false);
+    expect(pointInScope(...at(10.75, 59.91), [])).toBe(true);
+  });
+
+  it("a Vestland project placed in Oslo is shown at Vestland's centre, marked approximate, on both maps", () => {
+    const misplaced = { ...vestland, lat: 59.91, lon: 10.75 } as AlertProject;
+    const m = subscriberMap([misplaced], null, NOW, ["NO0A2"]);
+    expect(m.placed[0]).toMatchObject({ x: COUNTIES.NO0A2.cx, y: COUNTIES.NO0A2.cy });
+    expect(m.approximate.has(1)).toBe(true);
+    const [lon, lat] = subscriberExplorer([misplaced], null, ["NO0A2"])[0].coordinates!;
+    expect(inCounty(...at(lon, lat), "NO0A2")).toBe(true);
+    // Without a scope the point stays where it is.
+    expect(subscriberExplorer([misplaced], null)[0].coordinates).toEqual([10.75, 59.91]);
   });
 });
 

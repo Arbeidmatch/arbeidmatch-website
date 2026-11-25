@@ -3,7 +3,7 @@ import { COUNTIES, ownPoint, placeProjects, STAGE_LABEL, valueBand } from "./map
 import { domainChoices } from "./format";
 import type { Overview } from "./types";
 import { NORWAY_REGIONS } from "./regions";
-import { inScope } from "./subscriber-scope";
+import { countyCentreLngLat, inScope, lngLatInScope } from "./subscriber-scope";
 
 export type ExplorerProject = {
   id: string;
@@ -129,10 +129,14 @@ export function safeDocumentLink(value: string | null): string | null {
 export function subscriberExplorer(projects: AlertProject[], overview: Overview | null, scope: readonly string[] = []): ExplorerProject[] {
   const locations = new Map(placeProjects(overview?.map).map(p => [p.no, p]));
   return projects.filter(p => inScope(p.regions, scope)).map(p => {
-    const point = ownPoint(p) ?? (p.project_no === null ? undefined : locations.get(p.project_no));
+    const found = ownPoint(p) ?? (p.project_no === null ? undefined : locations.get(p.project_no));
+    const region = (scope.length ? scope.find(code => inScope(p.regions, [code])) : undefined) ?? p.regions[0] ?? "";
+    // A point outside the subscription's counties is shown at its county's centre, never where it falls.
+    const centre = found && !lngLatInScope(found.lon, found.lat, scope) ? countyCentreLngLat(region) : null;
+    const point = centre ? { lon: centre[0], lat: centre[1] } : found && lngLatInScope(found.lon, found.lat, scope) ? found : undefined;
     const amount = p.awarded_value_nok ?? p.estimated_value_nok;
     return {
-      id: p.id, title: p.title, stage: p.stage, stageLabel: stageNo(p), region: (scope.length ? scope.find(code => inScope(p.regions, [code])) : undefined) ?? p.regions[0] ?? "",
+      id: p.id, title: p.title, stage: p.stage, stageLabel: stageNo(p), region,
       place: placeNo(p) || "Sted ikke oppgitt", domains: domainsNo(p),
       value: amount && amount > 0 ? `${new Intl.NumberFormat("nb-NO", { maximumFractionDigits: 2 }).format(amount)} kr` : "Verdi ikke oppgitt",
       mapValue: amount,

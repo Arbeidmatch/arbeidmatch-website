@@ -1,4 +1,4 @@
-import { COUNTIES, countyView, unproject, viewAround, type View } from "./map";
+import { COUNTIES, countyView, project, unproject, viewAround, type View } from "./map";
 import { expandRegions } from "./regions";
 
 /**
@@ -64,4 +64,66 @@ export function scopeLngLat(scope: readonly string[]): [[number, number], [numbe
 export function scopeName(scope: readonly string[]): string {
   if (scope.length === 1) return COUNTIES[scope[0]]?.n ?? "Deres fylker";
   return scope.length ? "Deres fylker" : "Hele Norge";
+}
+
+/** A county's outline as polygons of drawing points, read once from its path (only M, l and z are used). */
+const outlines = new Map<string, [number, number][][]>();
+function outline(code: string): [number, number][][] {
+  const known = outlines.get(code);
+  if (known) return known;
+  const rings: [number, number][][] = [];
+  for (const part of (COUNTIES[code]?.d ?? "").split(/(?=M)/)) {
+    const nums = (part.match(/-?\d*\.?\d+/g) ?? []).map(Number);
+    if (nums.length < 6) continue;
+    let x = nums[0];
+    let y = nums[1];
+    const ring: [number, number][] = [[x, y]];
+    for (let i = 2; i + 1 < nums.length; i += 2) {
+      x += nums[i];
+      y += nums[i + 1];
+      ring.push([x, y]);
+    }
+    rings.push(ring);
+  }
+  outlines.set(code, rings);
+  return rings;
+}
+
+/** Whether a drawing point lies inside a county's outline (even-odd over all its rings). */
+export function inCounty(x: number, y: number, code: string): boolean {
+  let inside = false;
+  for (const ring of outline(code)) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i];
+      const [xj, yj] = ring[j];
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+  }
+  return inside;
+}
+
+/**
+ * Whether a drawing point belongs to the counties; with no scope, anywhere. The
+ * outlines are simplified, so a point by the coast may fall in the sea just off
+ * them: it belongs when it is inside one of the counties, or inside their box
+ * and in no other county.
+ */
+export function pointInScope(x: number, y: number, scope: readonly string[]): boolean {
+  if (!scope.length || scope.some((code) => inCounty(x, y, code))) return true;
+  const box = scopeBox(scope);
+  if (!box || x < box[0] || y < box[1] || x > box[2] || y > box[3]) return false;
+  return !Object.keys(COUNTIES).some((code) => !scope.includes(code) && inCounty(x, y, code));
+}
+
+/** Whether a longitude/latitude lies inside one of the counties; with no scope, anywhere. */
+export function lngLatInScope(lon: number, lat: number, scope: readonly string[]): boolean {
+  if (!scope.length) return true;
+  const [x, y] = project(lon, lat);
+  return pointInScope(x, y, scope);
+}
+
+/** A county's centre as [longitude, latitude], where a project whose own point falls outside the scope is shown. */
+export function countyCentreLngLat(code: string): [number, number] | null {
+  const c = COUNTIES[code];
+  return c ? unproject(c.cx, c.cy) : null;
 }
