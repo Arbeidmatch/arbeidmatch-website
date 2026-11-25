@@ -1189,6 +1189,11 @@ function RemoveForm({ name, onConfirm, onCancel }: { name: string; onConfirm: ()
   );
 }
 
+/** ORDER 498: the request form's two buttons are the same size, 160 x 44, side by side, never full width. */
+const REQUEST_BUTTON = "inline-flex h-11 w-40 shrink-0 items-center justify-center whitespace-nowrap px-2 text-[15px] transition-colors disabled:opacity-50";
+const REQUEST_SEND = `${REQUEST_BUTTON} rounded-full bg-[#2E9E6B] font-bold text-white hover:bg-[#278a5d]`;
+const REQUEST_CANCEL = `${REQUEST_BUTTON} rounded-md border border-white/20 font-medium text-white hover:border-gold/60 hover:text-gold`;
+
 const DURATIONS = ["Under 1 måned", "1-3 måneder", "3-6 måneder", "Mer enn 6 måneder", "Vet ikke ennå"];
 
 /** Today in Norway, YYYY-MM-DD, for the earliest date the form offers. */
@@ -1250,10 +1255,10 @@ function StaffingForm({ prefill, onSend, onCancel }: { prefill: StaffingPrefill;
       </Field>
       <FormError failed={failed} />
       <div className="flex flex-wrap gap-3 pt-1">
-        <button type="submit" className={PILL_GREEN} disabled={busy}>
-          {busy ? "Sender ..." : "Send forespørselen"}
+        <button type="submit" className={REQUEST_SEND} disabled={busy}>
+          {busy ? "Sender ..." : "Send"}
         </button>
-        <button type="button" className={SECONDARY} disabled={busy} onClick={onCancel}>
+        <button type="button" className={REQUEST_CANCEL} disabled={busy} onClick={onCancel}>
           Avbryt
         </button>
       </div>
