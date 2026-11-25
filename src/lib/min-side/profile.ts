@@ -12,6 +12,7 @@
 import { domainLabel, isDomainKey } from "@/lib/prosjekter/domains";
 import { appStateFrom, type AppState } from "@/lib/min-side/app-prompt";
 import { recommendFrom, type RecommendState } from "@/lib/min-side/recommend";
+import { signoffFrom, type SignoffView } from "@/lib/min-side/signoff";
 import { NORWAY_REGIONS } from "@/lib/prosjekter/regions";
 import { alertSettingsFrom, type AlertSettings } from "@/lib/min-side/alert-settings";
 import { annonserFrom, annonserHint, type Annonser } from "@/lib/min-side/annonser";
@@ -149,6 +150,8 @@ export type Profile = {
   recommend: RecommendState | null;
   /** ORDER 276: the firm's adverts on JobbOS; null while the owner switch is off or the firm has none there. */
   annonser: Annonser | null;
+  /** ORDER 508: the card asking who signs for the firm, the wait for that signature, or the signer's own screen; null from an older ATS. */
+  signoff: SignoffView | null;
   /** ORDER 476: "sourcing" for a recruitment or staffing firm, which is offered "Be om kandidater", never staffing; "staffing" from an older ATS. */
   service: MinSideService;
 };
@@ -415,6 +418,7 @@ export function profileFrom(raw: unknown): Profile | null {
     security: securityFrom(r.security),
     recommend: recommendFrom(r.recommend),
     annonser: annonserFrom(r.annonser),
+    signoff: signoffFrom(r.signoff),
     service: r.forsprang_service === "sourcing" ? "sourcing" : "staffing",
     messages: list(r.messages)
       .filter((m) => isMessageId(m.id) && typeof m.created_at === "string")

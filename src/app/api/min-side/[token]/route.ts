@@ -5,6 +5,7 @@ import { alertCitiesRequest, cityQuestionRequest, hiringRequest, isCityName, isH
 import { alertSettingsRequest } from "@/lib/min-side/alert-settings";
 import { annonserFor, orgOf } from "@/lib/min-side/annonser-server";
 import { isRecommendAction, recommendRequest } from "@/lib/min-side/recommend";
+import { isSignoffAction, signoffRequest } from "@/lib/min-side/signoff";
 import { callAts } from "@/lib/prosjekter/ats";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +56,13 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   // ORDER 157: the hiring alerts and the account; each passed on with only its named fields, bounded.
   if (isHiringAction(action)) {
     const body = hiringRequest(raw);
+    if (!body) return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
+    const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
+    return noStoreJson(answer.body, { status: answer.status });
+  }
+  // ORDER 508: naming the firm's signer and the signer's steps; each with only its named fields, bounded.
+  if (isSignoffAction(action)) {
+    const body = signoffRequest(raw);
     if (!body) return noStoreJson({ error: BAD_REQUEST }, { status: 400 });
     const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
     return noStoreJson(answer.body, { status: answer.status });

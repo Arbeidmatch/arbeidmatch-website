@@ -31,6 +31,7 @@ import MinSidePasskeys, { usePasskeysSupported } from "@/components/min-side/Min
 import { FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import { SupportButton } from "@/components/support/SupportRequest";
 import { MinSideWhatsNew } from "./MinSideWhatsNew";
+import { MinSideTrialSigner } from "./MinSideTrialSigner";
 import { MinSideCityQuestion, MinSideContactCard } from "./MinSideCityQuestion";
 import MinSideHiring, { ConfirmForm, HiringStop, ProjectsTeaser, useProjectsTrial, type Fetched } from "./MinSideHiring";
 import { cookieQuestionOpen, MinSideAppPrompt } from "./MinSideAppPrompt";
@@ -714,6 +715,8 @@ export default function MinSideClient({ token }: { token: string }) {
                   Min side
                 </button>
               ) : null}
+              {/* ORDER 508: who signs for the firm after the trial, the wait for it, or the signer's own steps. */}
+              {profile.signoff ? <MinSideTrialSigner view={profile.signoff} send={send} sendData={sendData} /> : null}
               {/* ORDER 101: What's new is a small notice above the section, never a window over the list. */}
               {profile.whats_new.length ? (
                 <MinSideWhatsNew
