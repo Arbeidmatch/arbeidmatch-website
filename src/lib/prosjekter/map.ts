@@ -76,6 +76,16 @@ export function project(lon: number, lat: number): [number, number] {
   return [(r * Math.sin(t) - mnx) * S + PAD, (-(R0 - r * Math.cos(t)) - mny) * S + PAD];
 }
 
+/** Drawing units back to longitude/latitude (degrees), the inverse of `project`. */
+export function unproject(x: number, y: number): [number, number] {
+  const X = (x - PAD) / S + mnx;
+  const Y = (y - PAD) / S + mny + R0;
+  const r = Math.sign(N) * Math.hypot(X, Y);
+  const t = Math.atan2(X, Y);
+  const lat = 2 * Math.atan(Math.pow(F / r, 1 / N)) - Math.PI / 2;
+  return [(t / N + L0) / R, lat / R];
+}
+
 const round1 = (v: number) => Math.round(v * 10) / 10;
 
 /** Keeps only well formed map rows from whatever the ATS sent, and places them. */

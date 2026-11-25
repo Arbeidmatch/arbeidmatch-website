@@ -11,6 +11,7 @@ import styles from "./explorer.module.css";
 import { domainChoices } from "@/lib/prosjekter/format";
 import { NORWAY_REGIONS } from "@/lib/prosjekter/regions";
 import { STAGE_LABEL } from "@/lib/prosjekter/map";
+import { scopeLngLat, scopeName } from "@/lib/prosjekter/subscriber-scope";
 
 const domainOptions = domainChoices();
 
@@ -32,6 +33,7 @@ function subscribeMobile(notify: () => void) {
 const mobileSnapshot = () => window.matchMedia(mobileQuery).matches;
 const serverMobile = () => false;
 const PAGE_SIZE = 12;
+const NO_SCOPE: readonly string[] = [];
 
 function Facts({ p, subscriber }: { p: ExplorerProject; subscriber: boolean }) {
   return <dl className={styles.facts}>
@@ -46,9 +48,11 @@ function Facts({ p, subscriber }: { p: ExplorerProject; subscriber: boolean }) {
   </dl>;
 }
 
-export default function ProjectExplorer({ projects, subscriber = false, loading = false, failed = false, syncFiltersToUrl = false }: {
-  projects: ExplorerProject[]; subscriber?: boolean; loading?: boolean; failed?: boolean; syncFiltersToUrl?: boolean;
+/** ORDER 504: `scope`, a subscription's counties, frames the map on them and the area picker lists only them. */
+export default function ProjectExplorer({ projects, subscriber = false, loading = false, failed = false, syncFiltersToUrl = false, scope = NO_SCOPE }: {
+  projects: ExplorerProject[]; subscriber?: boolean; loading?: boolean; failed?: boolean; syncFiltersToUrl?: boolean; scope?: readonly string[];
 }) {
+  const bounds = useMemo(() => scopeLngLat(scope), [scope]);
   const [id, setId] = useState<string | null>(null);
   const [cameraRequest, setCameraRequest] = useState<{ id: string; revision: number } | null>(null);
   const params = useSearchParams();
@@ -90,7 +94,9 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
   const selected = visible.find(p => p.id === id) ?? visible[0] ?? null;
   const related = selected ? nearbyProjects(selected, visible) : [];
   const compared = projects.filter(p => compare.includes(p.id));
-  const regions = syncFiltersToUrl
+  const regions = scope.length
+    ? (scope.length > 1 ? scope.map(code => [code, NORWAY_REGIONS[code] ?? code] as const) : [])
+    : syncFiltersToUrl
     ? [...new Map(projects.flatMap(p => (p.regions ?? [p.region]).filter(Boolean).map(r => [r, NORWAY_REGIONS[r] ?? r] as const))).entries()]
     : [...new Map(projects.filter(p => p.region).map(p => [p.region, p.place.split(", ").at(-1) ?? p.place])).entries()];
   const stages = [...new Set(projects.map(p => p.stageLabel))];
@@ -115,7 +121,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
   };
 
   return <section className={styles.explorer} aria-label="Prosjektutforsker">
-    <ExplorerGuide mobile={mobile} />
+    <ExplorerGuide mobile={mobile} home={scope.length ? scopeName(scope) : undefined} />
     <div className={styles.resultBar}>
       <h2 aria-live="polite">{visible.length.toLocaleString("nb-NO")} prosjekter <span>{`av ${projects.length.toLocaleString("nb-NO")} totalt`}{syncFiltersToUrl ? ` · ${visible.filter(p => p.coordinates).length.toLocaleString("nb-NO")} i utvalget på kartet` : ""}</span></h2>
       {subscriber ? <label className={styles.savedFilter}><input type="checkbox" checked={savedOnly} onChange={e => { setSavedOnly(e.target.checked); setPage(0); }} /> Mine lagrede</label> : null}
@@ -126,7 +132,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
       <div className={styles.extraFilters} id="explorer-extra-filters" data-open={filtersOpen}>
         {subscriber ? <label><span>Søk</span><input value={query} maxLength={syncFiltersToUrl ? 80 : undefined} onChange={e => changeFilter("q", e.target.value)} placeholder="Prosjekt, byggherre eller sted" /></label> : null}
         <label><span>Fase</span><select aria-label="Fase" value={stage} onChange={e => changeFilter("stage", e.target.value)}><option value="">Alle faser</option>{stages.map(s => <option key={s}>{s}</option>)}</select></label>
-        <label><span>Område</span><select aria-label="Område" value={region} onChange={e => changeFilter("region", e.target.value)}><option value="">Hele Norge</option>{regions.map(([code, name]) => <option key={code} value={code}>{name}</option>)}</select></label>
+        <label><span>Område</span><select aria-label="Område" value={region} onChange={e => changeFilter("region", e.target.value)}><option value="">{scope.length ? scopeName(scope) : "Hele Norge"}</option>{regions.map(([code, name]) => <option key={code} value={code}>{name}</option>)}</select></label>
       </div>
     </div>
     <div className={styles.mobileNavigation}>
@@ -168,7 +174,7 @@ export default function ProjectExplorer({ projects, subscriber = false, loading 
         </> : <div className={styles.empty}><h2>{loading ? "Henter prosjekter ..." : failed ? "Prosjektene kunne ikke lastes" : "Ingen prosjekter i utvalget"}</h2><p>{failed ? "Prøv å laste siden på nytt." : "Velg et annet område eller en annen fase."}</p></div>}
       </article>
       <div className={styles.mapPanel}>
-        {(mobile ? mobileView === "map" : showMap) ? <Terrain demo={!subscriber} projects={visible} selected={selected} cameraRequest={cameraRequest} onSelect={pick} /> : <div className={styles.mapOff}><MapPinned size={30} /><p>Kartet er skjult. Alle prosjektdetaljer er tilgjengelige.</p></div>}
+        {(mobile ? mobileView === "map" : showMap) ? <Terrain demo={!subscriber} bounds={bounds} homeLabel={scope.length ? scopeName(scope) : undefined} projects={visible} selected={selected} cameraRequest={cameraRequest} onSelect={pick} /> : <div className={styles.mapOff}><MapPinned size={30} /><p>Kartet er skjult. Alle prosjektdetaljer er tilgjengelige.</p></div>}
         <button type="button" className={styles.mapToggle} onClick={() => setShowMap(v => !v)}>{showMap ? "Skjul kart" : "Vis 3D-kart"}</button>
       </div>
     </div>

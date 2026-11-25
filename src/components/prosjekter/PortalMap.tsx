@@ -57,6 +57,7 @@ import {
   type HintReason,
   type MapHint,
 } from "@/lib/prosjekter/mapHint";
+import { scopeName, scopeView } from "@/lib/prosjekter/subscriber-scope";
 
 /**
  * The map of Norway on /prosjekter: counties shaded by how many projects they
@@ -70,6 +71,11 @@ import {
  * + and - buttons, or the arrow keys and + / - on the focused map. A small
  * helper teaches the gesture for the device when the visitor seems not to
  * know it (see mapHint.ts).
+ *
+ * ORDER 504: on a client's page with `scope`, the subscription's counties, the
+ * map opens framed on them and "home" is them, not the whole country; the
+ * other counties are drawn for the shape only, with no count and nothing to
+ * click or focus.
  */
 
 export type PortalMapHandle = {
@@ -181,18 +187,29 @@ type Props = {
   onLastGroup?: (nos: number[]) => void;
   /** A client's own map (9 November 2026): the tip names the project and its place; nothing is locked. */
   subscriber?: boolean;
+  /** The subscription's counties; empty or absent is the whole country. */
+  scope?: readonly string[];
 };
 
-export default function PortalMap({ ref, visible, counts, county, onPickCounty, hover, onHover, onSelect, onCluster, onLastGroup, subscriber = false }: Props) {
+const NO_SCOPE: readonly string[] = [];
+
+export default function PortalMap({ ref, visible, counts, county, onPickCounty, hover, onHover, onSelect, onCluster, onLastGroup, subscriber = false, scope = NO_SCOPE }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
 
   const [size, setSize] = useState({ w: 800, h: 780 });
+  const scoped = scope.length > 0;
+  const codes = useMemo(() => (scoped ? COUNTY_CODES.filter((c) => scope.includes(c)) : COUNTY_CODES), [scope, scoped]);
+  // Where "home" is: the subscription's counties, or the whole country.
+  const home = useMemo<View>(() => {
+    const target = scopeView(scope);
+    return target ? clampView(target) : FULL_VIEW;
+  }, [scope]);
   // A county chosen in the address opens zoomed in, without an animation.
   const [view, setView] = useState<View>(() => {
     const target = county ? countyView(county) : null;
-    return target ? clampView(target) : FULL_VIEW;
+    return target ? clampView(target) : home;
   });
   const viewRef = useRef<View>(view);
   const sizeRef = useRef(size);
@@ -291,9 +308,9 @@ export default function PortalMap({ ref, visible, counts, county, onPickCounty, 
     (code: string | null) => {
       userMoved();
       onPickCounty(code);
-      animateTo((code ? countyView(code) : null) ?? FULL_VIEW);
+      animateTo((code ? countyView(code) : null) ?? home);
     },
-    [animateTo, onPickCounty, userMoved],
+    [animateTo, home, onPickCounty, userMoved],
   );
 
   /* ---------- clusters ---------- */
@@ -604,12 +621,12 @@ export default function PortalMap({ ref, visible, counts, county, onPickCounty, 
   /* ---------- county panel ---------- */
   const totals = useMemo(() => {
     const t: [number, number, number] = [0, 0, 0];
-    for (const code of COUNTY_CODES) (counts[code] ?? [0, 0, 0]).forEach((n, i) => (t[i] += n));
+    for (const code of codes) (counts[code] ?? [0, 0, 0]).forEach((n, i) => (t[i] += n));
     return t;
-  }, [counts]);
+  }, [counts, codes]);
   const maxCounty = useMemo(
-    () => Math.max(1, ...COUNTY_CODES.map((c) => (counts[c] ?? [0, 0, 0]).reduce((a, b) => a + b, 0))),
-    [counts],
+    () => Math.max(1, ...codes.map((c) => (counts[c] ?? [0, 0, 0]).reduce((a, b) => a + b, 0))),
+    [counts, codes],
   );
   const shownCode = panelCode ?? county;
   const panelCounts = shownCode ? (counts[shownCode] ?? [0, 0, 0]) : totals;
@@ -701,6 +718,9 @@ export default function PortalMap({ ref, visible, counts, county, onPickCounty, 
               }}
             >
               {COUNTY_CODES.map((code) => {
+                if (scoped && !scope.includes(code)) {
+                  return <path key={code} d={COUNTIES[code].d} className={`${styles.county} ${styles.countyOut}`} vectorEffect="non-scaling-stroke" aria-hidden="true" />;
+                }
                 const c = counts[code] ?? [0, 0, 0];
                 const total = c[0] + c[1] + c[2];
                 const cls = [styles.county, county === code ? styles.countySel : "", county && county !== code ? styles.countyDim : ""]
@@ -806,7 +826,7 @@ export default function PortalMap({ ref, visible, counts, county, onPickCounty, 
         </svg>
 
         <div className={styles.panelCounty} aria-live="polite">
-          <h3>{shownCode ? COUNTIES[shownCode]?.n : "Hele Norge"}</h3>
+          <h3>{shownCode ? COUNTIES[shownCode]?.n : scopeName(scope)}</h3>
           <div className={styles.pcTot}>
             <span className={styles.num}>{nf.format(panelCounts[0] + panelCounts[1] + panelCounts[2])}</span> prosjekter
           </div>
@@ -828,18 +848,20 @@ export default function PortalMap({ ref, visible, counts, county, onPickCounty, 
             className={styles.tool}
             onClick={() => pickCounty(null)}
           >
-            Hele landet
+            {scoped ? scopeName(scope) : "Hele landet"}
           </button>
-          <button
-            type="button"
-            className={styles.tool}
-            onClick={() => {
-              userMoved();
-              animateTo(southView());
-            }}
-          >
-            Sør-Norge
-          </button>
+          {scoped ? null : (
+            <button
+              type="button"
+              className={styles.tool}
+              onClick={() => {
+                userMoved();
+                animateTo(southView());
+              }}
+            >
+              Sør-Norge
+            </button>
+          )}
           <div className={styles.zoomPair}>
             <button type="button" aria-label="Zoom inn" disabled={zoom >= MAX_ZOOM * 0.99} onClick={() => zoomBy(1.6)}>
               +

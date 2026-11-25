@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -11,6 +11,7 @@ import PublicProjectExplorer from "./PublicProjectExplorer";
 
 import { CARD, EYEBROW, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
 import { isSentProjectPath } from "@/lib/prosjekter/access";
+import { subscriptionCounties } from "@/lib/prosjekter/subscriber-scope";
 import { filtersFrom } from "@/lib/prosjekter/types";
 import {
   domainChoices,
@@ -240,6 +241,12 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
   };
 
   const freeMonths = sub ? Math.max(1, Math.round(sub.free_days / 30.44)) : 1;
+  // ORDER 504: both maps open on the subscription's counties, from the saved choice (not the open dialog).
+  const counties = useMemo(() => subscriptionCounties(sub?.regions), [sub]);
+  const subscriber = useMemo(
+    () => (sub ? { projects, company: sub.company_name, token, counties } : undefined),
+    [sub, projects, token, counties],
+  );
 
   const openChoices = () => {
     setNotice(null);
@@ -332,8 +339,8 @@ export default function ProjectAlertsClient({ token }: { token: string }) {
             */}
             <div className={`${portalStyles.portal} relative left-1/2 w-screen -translate-x-1/2 rounded-2xl`}>
               <div className="mx-auto w-full max-w-[1440px] px-4 md:px-8">
-                <ProjectVersion modern={<PublicProjectExplorer subscriberProjects={projects} />}>
-                  <ProjectPortal initial={null} initialFilters={PORTAL_FILTERS} subscriber={{ projects, company: sub.company_name, token }} />
+                <ProjectVersion modern={<PublicProjectExplorer subscriberProjects={projects} counties={counties} />}>
+                  <ProjectPortal initial={null} initialFilters={PORTAL_FILTERS} subscriber={subscriber} />
                 </ProjectVersion>
               </div>
             </div>

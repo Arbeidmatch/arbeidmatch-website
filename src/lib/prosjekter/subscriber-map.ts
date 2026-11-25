@@ -1,6 +1,7 @@
 import { domainsOf } from "./domains";
 import type { AlertProject } from "./format";
 import { COUNTIES, ownPoint, placeProjects, type MapStage, type PlacedProject } from "./map";
+import { inScope } from "./subscriber-scope";
 import type { Overview } from "./types";
 
 /**
@@ -11,6 +12,10 @@ import type { Overview } from "./types";
  * from the open overview's map by project number; a project the map does not
  * place sits on its county's centre, marked approximate; one with neither a
  * place nor a county is left off the map but kept in `details` for the count.
+ *
+ * ORDER 504: with `scope`, the subscription's counties, a project outside them
+ * is left out altogether, not drawn and not counted, and a project in several
+ * counties sits in the first of them that is in scope.
  */
 
 export type SubscriberMap = {
@@ -35,7 +40,12 @@ export function dotNumber(p: Pick<AlertProject, "project_no">, index: number): n
   return p.project_no !== null && Number.isFinite(p.project_no) ? p.project_no : -(index + 1);
 }
 
-export function subscriberMap(projects: readonly AlertProject[], overview: Overview | null, now = Date.now()): SubscriberMap {
+export function subscriberMap(
+  projects: readonly AlertProject[],
+  overview: Overview | null,
+  now = Date.now(),
+  scope: readonly string[] = [],
+): SubscriberMap {
   const located = new Map(placeProjects(overview?.map).map((p) => [p.no, p]));
   const placed: PlacedProject[] = [];
   const details = new Map<number, AlertProject>();
@@ -48,7 +58,14 @@ export function subscriberMap(projects: readonly AlertProject[], overview: Overv
     // Its own point first; the open overview is county level only (13 November 2026).
     const onMap = p.project_no !== null ? located.get(p.project_no) : undefined;
     const point = ownPoint(p) ?? onMap;
-    const county: string = p.regions.find((code) => COUNTIES[code]) ?? onMap?.r ?? p.regions[0] ?? "";
+    const regions = p.regions.length ? p.regions : onMap?.r ? [onMap.r] : [];
+    if (!inScope(regions, scope)) return;
+    const county: string =
+      (scope.length ? scope.find((code) => inScope(regions, [code])) : undefined) ??
+      p.regions.find((code) => COUNTIES[code]) ??
+      onMap?.r ??
+      p.regions[0] ??
+      "";
     const value = p.awarded_value_nok ?? p.estimated_value_nok;
     const base = {
       no,

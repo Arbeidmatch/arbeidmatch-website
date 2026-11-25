@@ -3,6 +3,7 @@ import { COUNTIES, ownPoint, placeProjects, STAGE_LABEL, valueBand } from "./map
 import { domainChoices } from "./format";
 import type { Overview } from "./types";
 import { NORWAY_REGIONS } from "./regions";
+import { inScope } from "./subscriber-scope";
 
 export type ExplorerProject = {
   id: string;
@@ -124,13 +125,14 @@ export function safeDocumentLink(value: string | null): string | null {
   try { const url = new URL(value ?? ""); return url.protocol === "https:" ? url.href : null; } catch { return null; }
 }
 
-export function subscriberExplorer(projects: AlertProject[], overview: Overview | null): ExplorerProject[] {
+/** ORDER 504: with `scope`, the subscription's counties, a project outside them is not shown and a project's county is one in scope. */
+export function subscriberExplorer(projects: AlertProject[], overview: Overview | null, scope: readonly string[] = []): ExplorerProject[] {
   const locations = new Map(placeProjects(overview?.map).map(p => [p.no, p]));
-  return projects.map(p => {
+  return projects.filter(p => inScope(p.regions, scope)).map(p => {
     const point = ownPoint(p) ?? (p.project_no === null ? undefined : locations.get(p.project_no));
     const amount = p.awarded_value_nok ?? p.estimated_value_nok;
     return {
-      id: p.id, title: p.title, stage: p.stage, stageLabel: stageNo(p), region: p.regions[0] ?? "",
+      id: p.id, title: p.title, stage: p.stage, stageLabel: stageNo(p), region: (scope.length ? scope.find(code => inScope(p.regions, [code])) : undefined) ?? p.regions[0] ?? "",
       place: placeNo(p) || "Sted ikke oppgitt", domains: domainsNo(p),
       value: amount && amount > 0 ? `${new Intl.NumberFormat("nb-NO", { maximumFractionDigits: 2 }).format(amount)} kr` : "Verdi ikke oppgitt",
       mapValue: amount,

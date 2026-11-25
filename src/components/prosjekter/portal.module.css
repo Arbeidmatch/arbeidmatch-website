@@ -386,6 +386,14 @@
   fill: #0f2034;
 }
 
+/* ORDER 504: a county outside a client's subscription, drawn for the shape only. */
+.countyOut {
+  fill: #0b1726;
+  stroke: #22344f;
+  cursor: default;
+  pointer-events: none;
+}
+
 .county:focus-visible {
   outline: none;
   stroke: var(--gold);

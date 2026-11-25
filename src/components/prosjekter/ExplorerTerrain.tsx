@@ -13,18 +13,22 @@ const bubbleStages = [...STAGES, "cancelled"] as const;
 const bubbleColors = { ...STAGE_HEX, cancelled: "#a47788" };
 const bubbleLabels = { ...STAGE_LABEL, cancelled: "Avlyst" };
 
-export default function ExplorerTerrain({ projects, selected, cameraRequest, onSelect, demo = true }: {
+const NORWAY: [[number, number], [number, number]] = [[4, 57.5], [31.5, 71.5]];
+
+/** ORDER 504: `bounds`, a subscription's counties, are where the map opens and where its home button goes; none is all of Norway. */
+export default function ExplorerTerrain({ projects, selected, cameraRequest, onSelect, demo = true, bounds = null, homeLabel = "Hele Norge" }: {
   projects: ExplorerProject[]; selected: ExplorerProject | null; onSelect: (id: string) => void;
-  cameraRequest: { id: string; revision: number } | null; demo?: boolean;
+  cameraRequest: { id: string; revision: number } | null; demo?: boolean; bounds?: [[number, number], [number, number]] | null; homeLabel?: string;
 }) {
+  const home = bounds ?? NORWAY;
   const surface = useRef<HTMLDivElement>(null);
   const container = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const map = useRef<TerrainMap | null>(null);
   const marker = useRef<Marker | null>(null);
   const clusters = useRef(new Map<string, Marker>());
-  const props = useRef({ projects, selected, onSelect, demo });
-  props.current = { projects, selected, onSelect, demo };
+  const props = useRef({ projects, selected, onSelect, demo, home });
+  props.current = { projects, selected, onSelect, demo, home };
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [north, setNorth] = useState(false);
@@ -181,7 +185,7 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
         });
         instance.on("mouseenter", "project-points", () => { instance.getCanvas().style.cursor = "pointer"; });
         instance.on("mouseleave", "project-points", () => { instance.getCanvas().style.cursor = ""; });
-        instance.fitBounds([[4, 57.5], [31.5, 71.5]], { padding: 45, pitch: 25, bearing: 0, duration: 0 });
+        instance.fitBounds(props.current.home, { padding: 45, pitch: 25, bearing: 0, duration: 0 });
         setFailed(false);
         setReady(true);
       });
@@ -255,7 +259,7 @@ export default function ExplorerTerrain({ projects, selected, cameraRequest, onS
   return <div ref={surface} className={`${styles.terrain} ${north ? styles.north : ""}`}>
     <canvas className={styles.aurora} ref={canvas} aria-hidden="true" />
     <div className={styles.mapCanvas} ref={container} aria-label="Prosjektkart i 3D" />
-    <button type="button" className={styles.overviewButton} disabled={!ready} onClick={() => map.current?.fitBounds([[4, 57.5], [31.5, 71.5]], { padding: 45, pitch: 25, bearing: 0, duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1200 })}>Hele Norge</button>
+    <button type="button" className={styles.overviewButton} disabled={!ready} onClick={() => map.current?.fitBounds(home, { padding: 45, pitch: 25, bearing: 0, duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1200 })}>{homeLabel}</button>
     <div className={styles.mapLegend} aria-label="Faser og antall på kartet">{counts.filter(c => c.count > 0).map(({ stage, count }) => <span key={stage}><i style={{ background: bubbleColors[stage] }} />{bubbleLabels[stage]} <b>{count.toLocaleString("nb-NO")}</b></span>)}<small>Størrelse = verdi · Ring = faser · Tall = prosjekter</small></div>
     {demo && demoOpen ? <section className={styles.demoPreview} aria-label="Demoprosjekt">
       <header><strong>Demo - fiktive data</strong><button type="button" aria-label="Lukk demo" onClick={() => setDemoOpen(false)}>Lukk</button></header>

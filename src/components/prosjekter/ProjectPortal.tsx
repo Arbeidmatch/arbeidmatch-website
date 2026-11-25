@@ -49,9 +49,14 @@ import { isOverview, type Overview, type OverviewFilters } from "@/lib/prosjekte
  * detail across the section, in place of the map and the list, and "Alle
  * prosjekter" brings them back; on a phone a row never switches to the map.
  * One detail at a time. The open page keeps its rows exactly as they were.
+ *
+ * ORDER 504: a client's page passes the subscription's counties; the map opens
+ * framed on them and nothing outside them is drawn, counted or clickable. No
+ * counties is the whole country, as before.
  */
 
 const PAGE = 60;
+const NO_COUNTIES: readonly string[] = [];
 const nf = new Intl.NumberFormat("nb-NO");
 
 type Sort = "rel" | "val";
@@ -261,8 +266,8 @@ export default function ProjectPortal({
    * same state, data and behaviour; a client's own page never passes it.
    */
   layout?: "site";
-  /** A client's own page: their projects on the same map, named and complete; `token` opens a project's detail. */
-  subscriber?: { projects: AlertProject[]; company: string; token?: string };
+  /** A client's own page: their projects on the same map, named and complete; `token` opens a project's detail; `counties` scope the map. */
+  subscriber?: { projects: AlertProject[]; company: string; token?: string; counties?: readonly string[] };
 }) {
   const [data, setData] = useState<Overview | null>(initial);
   const [failed, setFailed] = useState(false);
@@ -284,7 +289,8 @@ export default function ProjectPortal({
     };
   }, [initial]);
 
-  const own = useMemo(() => (subscriber ? subscriberMap(subscriber.projects, data) : null), [subscriber, data]);
+  const scope = subscriber?.counties ?? NO_COUNTIES;
+  const own = useMemo(() => (subscriber ? subscriberMap(subscriber.projects, data, undefined, scope) : null), [subscriber, data, scope]);
   const projects = useMemo(() => own?.placed ?? placeProjects(data?.map), [own, data]);
   const hasMap = own ? true : Array.isArray(data?.map);
   const ready = own ? true : Boolean(data);
@@ -482,6 +488,7 @@ export default function ProjectPortal({
       onCluster={onCluster}
       onLastGroup={onLastGroup}
       subscriber={Boolean(own)}
+      scope={own ? scope : undefined}
     />
   );
 
