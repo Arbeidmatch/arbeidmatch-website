@@ -29,6 +29,7 @@ import {
 import MinSidePasskeys, { usePasskeysSupported } from "@/components/min-side/MinSidePasskeys";
 
 import { FIELD, MUTED, PRIMARY, SECONDARY } from "@/components/prosjekter/ui";
+import { certificatesForTrade, EMPTY_NEEDS, EXPERIENCE_CHOICES, LANGUAGE_CHOICES, LICENCE_CHOICES, needsBody, type CandidateNeeds, type Choice } from "@/lib/min-side/candidate-needs";
 import { SupportButton } from "@/components/support/SupportRequest";
 import { MinSideWhatsNew } from "./MinSideWhatsNew";
 import { MinSideTrialSigner } from "./MinSideTrialSigner";
@@ -1204,29 +1205,106 @@ function osloToday(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Oslo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 }
 
+/** ORDER 506: a chip inside the dark request dialog, chosen or not. */
+function needChip(on: boolean): string {
+  return `inline-flex min-h-[40px] items-center rounded-full px-3.5 text-[14px] transition-colors ${
+    on ? "bg-gold font-semibold text-[#0D1B2A]" : "border border-white/20 text-white hover:border-gold/60"
+  }`;
+}
+
+/** ORDER 506: one row of chips; `multi` lets several be chosen, otherwise one, and a second press clears it. */
+function NeedChips({ legend, choices, chosen, multi = false, onChange }: { legend: string; choices: readonly Choice[]; chosen: readonly string[]; multi?: boolean; onChange: (next: string[]) => void }) {
+  return (
+    <fieldset className="flex min-w-0 flex-col">
+      <legend className="mb-1.5 text-sm font-medium text-white">{legend}</legend>
+      <div className="flex flex-wrap gap-2">
+        {choices.map((c) => {
+          const on = chosen.includes(c.key);
+          const next = on ? chosen.filter((k) => k !== c.key) : multi ? [...chosen, c.key] : [c.key];
+          return (
+            <button key={c.key} type="button" aria-pressed={on} className={needChip(on)} onClick={() => onChange(next)}>
+              {c.label}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+/** The fields of the first step: a server answer about one of them takes the client back to it. */
+const FIRST_STEP_FIELDS = new Set(["trade", "count", "from"]);
+
 /**
  * "Planlegg bemanning med oss" (ORDER 100, 13 October 2026): trade, how many,
  * from when, for how long, where, and a note. The trade and the place open
  * with the alerts' own choices, or the project's. The ATS checks every field
  * and files it as a client request.
+ *
+ * ORDER 506 (25 November 2026): a second short step, "Hva trenger
+ * kandidatene?", asks with chips for experience, the trade's certificates,
+ * Norwegian, English and the driving licence, and one free line. Every part of
+ * it is optional: Send pressed with nothing chosen sends the request.
  */
 function StaffingForm({ prefill, onSend, onCancel }: { prefill: StaffingPrefill; onSend: (request: Record<string, string>) => Promise<Saved>; onCancel: () => void }) {
   const [v, setV] = useState({ trade: prefill.trade, count: "", from: "", duration: "", place: prefill.place, note: prefill.note ?? "" });
+  const [needs, setNeeds] = useState<CandidateNeeds>(EMPTY_NEEDS);
+  const [step, setStep] = useState<1 | 2>(1);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState<Failed>(null);
   const errorFor = (field: string) => (failed?.field === field ? failed.message : null);
+  const one = (key: string) => (key ? [key] : []);
+  const certificates = certificatesForTrade(v.trade);
+
+  const next = (e: FormEvent) => {
+    e.preventDefault();
+    // The ATS's own rule for the two fields a request needs, said here before the second step.
+    const count = v.count.trim();
+    if (!v.trade.trim()) return setFailed({ message: "Skriv hvilket fag dere trenger folk i.", field: "trade" });
+    if (!/^\d{1,3}$/.test(count) || Number(count) < 1) return setFailed({ message: "Antall må være et helt tall fra 1 til 500.", field: "count" });
+    setFailed(null);
+    setStep(2);
+  };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setFailed(null);
-    const r = await onSend(v);
-    if (!r.ok) setFailed({ message: r.message, field: r.field });
+    // A certificate of another trade, chosen before the trade was changed, is not sent.
+    const r = await onSend({ ...v, ...needsBody({ ...needs, certificates: needs.certificates.filter((c) => certificates.includes(c)) }) });
+    if (!r.ok) {
+      setFailed({ message: r.message, field: r.field });
+      if (r.field && FIRST_STEP_FIELDS.has(r.field)) setStep(1);
+    }
     setBusy(false);
   };
 
+  if (step === 2)
+    return (
+      <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+        <h3 className="text-[17px] font-semibold text-white">Hva trenger kandidatene?</h3>
+        <NeedChips legend="Erfaring" choices={EXPERIENCE_CHOICES} chosen={one(needs.experience)} onChange={(k) => setNeeds({ ...needs, experience: k[0] ?? "" })} />
+        <NeedChips legend="Sertifikater" multi choices={certificates.map((c) => ({ key: c, label: c }))} chosen={needs.certificates} onChange={(k) => setNeeds({ ...needs, certificates: k })} />
+        <NeedChips legend="Norsk" choices={LANGUAGE_CHOICES} chosen={one(needs.norwegian)} onChange={(k) => setNeeds({ ...needs, norwegian: k[0] ?? "" })} />
+        <NeedChips legend="Engelsk" choices={LANGUAGE_CHOICES} chosen={one(needs.english)} onChange={(k) => setNeeds({ ...needs, english: k[0] ?? "" })} />
+        <NeedChips legend="Førerkort" choices={LICENCE_CHOICES} chosen={one(needs.licence)} onChange={(k) => setNeeds({ ...needs, licence: k[0] ?? "" })} />
+        <Field id="ms-p-requirements" label="Andre krav (valgfritt)">
+          <input id="ms-p-requirements" className={FIELD} value={needs.requirements} maxLength={200} onChange={(e) => setNeeds({ ...needs, requirements: e.target.value })} />
+        </Field>
+        <FormError failed={failed} />
+        <div className="flex flex-wrap gap-3 pt-1">
+          <button type="submit" className={REQUEST_SEND} disabled={busy}>
+            {busy ? "Sender ..." : "Send"}
+          </button>
+          <button type="button" className={REQUEST_CANCEL} disabled={busy} onClick={() => setStep(1)}>
+            Tilbake
+          </button>
+        </div>
+      </form>
+    );
+
   return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+    <form onSubmit={next} noValidate className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_140px]">
         <Field id="ms-p-trade" label="Fag" error={errorFor("trade")}>
           <input id="ms-p-trade" data-autofocus className={FIELD} value={v.trade} maxLength={120} placeholder="For eksempel tømrer" onChange={(e) => setV({ ...v, trade: e.target.value })} required />
@@ -1258,10 +1336,10 @@ function StaffingForm({ prefill, onSend, onCancel }: { prefill: StaffingPrefill;
       </Field>
       <FormError failed={failed} />
       <div className="flex flex-wrap gap-3 pt-1">
-        <button type="submit" className={REQUEST_SEND} disabled={busy}>
-          {busy ? "Sender ..." : "Send"}
+        <button type="submit" className={REQUEST_SEND}>
+          Neste
         </button>
-        <button type="button" className={REQUEST_CANCEL} disabled={busy} onClick={onCancel}>
+        <button type="button" className={REQUEST_CANCEL} onClick={onCancel}>
           Avbryt
         </button>
       </div>

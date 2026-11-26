@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { getRateLimitResult, noStoreJson } from "@/lib/apiSecurity";
 import { alertCitiesRequest, cityQuestionRequest, hiringRequest, isCityName, isHiringAction, isHiringPrefsAction, isProfileToken, isWhatsNewId, messageReadRequest } from "@/lib/min-side/profile";
 import { alertSettingsRequest } from "@/lib/min-side/alert-settings";
+import { needsFromRaw } from "@/lib/min-side/candidate-needs";
 import { annonserFor, orgOf } from "@/lib/min-side/annonser-server";
 import { isRecommendAction, recommendRequest } from "@/lib/min-side/recommend";
 import { isSignoffAction, signoffRequest } from "@/lib/min-side/signoff";
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   // ORDER 476: "Be om kandidater", the same form for a recruitment or staffing firm, filed as sourcing.
   if (action === "staffing_request" || action === "sourcing_request") {
     const text = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : typeof v === "number" && Number.isFinite(v) ? String(v) : "");
-    const body = { action, trade: text(raw.trade, 120), count: text(raw.count, 6), from: text(raw.from, 10), duration: text(raw.duration, 80), place: text(raw.place, 120), note: text(raw.note, 1000) };
+    const body = { action, trade: text(raw.trade, 120), count: text(raw.count, 6), from: text(raw.from, 10), duration: text(raw.duration, 80), place: text(raw.place, 120), note: text(raw.note, 1000), ...needsFromRaw(raw) };
     const answer = await callAts(`/api/public/client-profile/${token}`, { method: "POST", visitorHeaders: request.headers, body });
     return noStoreJson(answer.body, { status: answer.status });
   }
