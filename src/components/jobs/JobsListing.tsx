@@ -4,6 +4,9 @@ import { Icon } from "@/components/site/Icon";
 import { JobPostingJsonLd } from "@/components/seo/JobPostingJsonLd";
 import { jobCardImage, jobUrl, rateLine, type PublicJob } from "@/lib/jobs-fetch";
 import { signupPlacement } from "@/lib/jobs-signup-placement";
+import { mergeNewestFirst } from "@/lib/market-jobs/pure";
+import type { MarketSiteCard } from "@/lib/market-jobs/types";
+import { MarketJobCard } from "./MarketJobCard";
 
 /**
  * The way in for somebody whose job is not on the board yet: the closing band
@@ -93,6 +96,8 @@ export function JobsListing({
   current,
   total,
   signup = false,
+  marketJobs = [],
+  marketPrivateTest = false,
 }: {
   jobs: PublicJob[];
   ok: boolean;
@@ -106,8 +111,17 @@ export function JobsListing({
   total?: number;
   /** Show the sign-up band, above or after the list by `signupPlacement`. */
   signup?: boolean;
+  /**
+   * Jobs from the Norwegian market (ORDER 514), mixed in newest first. Empty for
+   * every visitor while the owner's Go public switch is off. They are never in
+   * the JobPosting markup: those pages are not indexed until Go public.
+   */
+  marketJobs?: MarketSiteCard[];
+  /** The ATS said this list is a private test: every market card says so. */
+  marketPrivateTest?: boolean;
 }) {
-  const placement = signup ? signupPlacement(jobs.length) : null;
+  const entries = mergeNewestFirst(jobs, marketJobs, (job) => job.published_at ?? job.created_at);
+  const placement = signup ? signupPlacement(entries.length) : null;
   const pills = (related ?? []).slice(0, FILTER_PILLS);
   const more = (related ?? []).slice(FILTER_PILLS);
   return (
@@ -147,15 +161,19 @@ export function JobsListing({
               and they are not the same thing to whoever has to fix it. */}
           {!ok ? (
             <p className="jl-note">The jobs could not be loaded just now. Please try again shortly.</p>
-          ) : jobs.length === 0 ? (
+          ) : entries.length === 0 ? (
             <p className="jl-note">
               Nothing open here at the moment. <Link href="/jobs">See every open job</Link>.
             </p>
           ) : (
             <div className="jgrid">
-              {jobs.map((job) => (
-                <JobCard key={job.id} job={job} />
-              ))}
+              {entries.map((entry) =>
+                entry.kind === "own" ? (
+                  <JobCard key={entry.job.id} job={entry.job} />
+                ) : (
+                  <MarketJobCard key={entry.card.id} card={entry.card} privateTest={marketPrivateTest} />
+                ),
+              )}
             </div>
           )}
 

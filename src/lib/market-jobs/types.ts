@@ -1,0 +1,48 @@
+/**
+ * Jobs from the Norwegian market, as RecOS serves them to this site (ORDER 514).
+ *
+ * A copy of the ATS's own shapes (GET /api/public/market-jobs and
+ * /api/public/market-jobs/{id}). This site deploys separately, so the copy is
+ * deliberate: the ATS is the one that decides what a card says, this side only
+ * draws it.
+ */
+
+export type MarketSiteCard = {
+  id: string;
+  kind: "market";
+  state: "open" | "closed";
+  privateTest: boolean;
+  trade: { key: string; en: string; no: string };
+  title: string;
+  place: string | null;
+  zone: string | null;
+  employer: "local employer";
+  pay: string | null;
+  perks: string[];
+  englishWorks: boolean;
+  experienceInsteadOfCertificate: boolean;
+  newToday: boolean;
+  positions: number;
+  applyBy: string | null;
+  postedAt: string | null;
+  recruitmentOnly: boolean;
+};
+
+export type MarketSiteDetail = MarketSiteCard & {
+  requirements: string[];
+  tasks: string[];
+  gives: string[];
+  hours: string;
+  housing: { text: string; usual: string | null };
+  travelToWork: string;
+  travelToNorway: { text: string; usual: string | null };
+  start: string;
+  checkSourceUrl: string | null;
+  similar: MarketSiteCard[];
+};
+
+export type MarketJobsList = { jobs: MarketSiteCard[]; privateTest: boolean; staff: boolean };
+
+export type MarketEventKind = "view" | "keep" | "interested" | "pass" | "send" | "recommend" | "check_source" | "report";
+export type PassReason = "pay" | "place" | "trade" | "language" | "housing" | "other";
+export type ReportReason = "fee" | "fraud" | "unavailable" | "wrong_info" | "below_minimum" | "discrimination" | "other";

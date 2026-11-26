@@ -5,6 +5,8 @@ import { JobsListing } from "@/components/jobs/JobsListing";
 import { facetLabel, facetPath, getBoard, jobsForFacet, listFacets } from "@/lib/jobs-facets";
 import { filterJobSearch } from "@/lib/job-search";
 import Link from "next/link";
+import { fetchMarketJobs, previewTokenFromCookies } from "@/lib/market-jobs/fetch";
+import { filterMarketSearch } from "@/lib/market-jobs/pure";
 
 /**
  * Every open job, and the way into the pages that answer a narrower question.
@@ -60,6 +62,12 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   const location = (Array.isArray(params.location) ? params.location[0] : params.location)?.trim() ?? "";
   const filtered = filterJobSearch(jobs, search, location);
   const searching = Boolean(search || location);
+  // ORDER 514: the market jobs, read per request with this visitor's own preview
+  // cookie and never cached. Without a staff preview the ATS returns none, so a
+  // visitor sees exactly the list above while the Go public switch is off.
+  const market = await fetchMarketJobs(await previewTokenFromCookies());
+  const marketShown = filterMarketSearch(market.jobs, search, location);
+  const shownCount = filtered.length + marketShown.length;
 
   // Only lists that have something in them. A chip leading to an empty page is
   // worse than no chip, and the facet list is computed from the live board so
@@ -83,11 +91,13 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
     <JobsListing
       jobs={filtered}
       ok={ok}
-      heading={searching ? (ok ? `${filtered.length} matching ${filtered.length === 1 ? "job" : "jobs"}` : "Search results") : totalOpen > 0 ? `${totalOpen} open jobs in Norway` : "Open jobs in Norway"}
+      heading={searching ? (ok ? `${shownCount} matching ${shownCount === 1 ? "job" : "jobs"}` : "Search results") : totalOpen + marketShown.length > 0 ? `${totalOpen + marketShown.length} open jobs in Norway` : "Open jobs in Norway"}
       lede="Work for people with a trade. What each job runs on, and for how long, is written in the advert itself. EU or EEA citizenship (passport or national ID card) is required on every one of them, and we do not sponsor visas."
       related={related}
-      total={totalOpen}
+      total={totalOpen + market.jobs.length}
       signup
+      marketJobs={marketShown}
+      marketPrivateTest={market.privateTest}
     />
     </>
   );
