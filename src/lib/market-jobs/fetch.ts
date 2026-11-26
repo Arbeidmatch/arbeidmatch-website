@@ -36,7 +36,7 @@ export async function fetchMarketJobs(token: string | null): Promise<MarketJobsL
     const res = await fetch(`${atsBaseUrl()}/api/public/market-jobs`, {
       headers: previewHeaders(token),
       cache: "no-store",
-      signal: AbortSignal.timeout(8_000),
+      signal: AbortSignal.timeout(3_000),
     });
     if (!res.ok) return EMPTY;
     const body = (await res.json()) as { data?: Partial<MarketJobsList> };
