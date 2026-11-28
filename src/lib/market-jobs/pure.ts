@@ -26,6 +26,16 @@ export function marketJobPath(id: string): string {
 }
 
 /**
+ * Sign in from a market job's window (ORDER 514, rule 14b): the session opens
+ * in RecOS, and its jobs page then opens this job's Recommend me window, where
+ * the candidate confirms "Recommend me for this job" and sends.
+ */
+export function marketSignInPath(id: string): string {
+  const next = `/candidate/jobs?filter=opportunities&job=${encodeURIComponent(id)}`;
+  return `/candidate-login?${new URLSearchParams({ next }).toString()}`;
+}
+
+/**
  * Where the preview route may send the browser on: the list or one market
  * job, nothing else. Anything else (another path, another host, a protocol
  * relative address) falls back to the list, so the route can never be used to

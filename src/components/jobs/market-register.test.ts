@@ -3,7 +3,9 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { safeNext } from "@/components/candidate-login/candidateLoginRules";
 import { gateSourceFrom } from "@/lib/candidateGate";
+import { marketSignInPath } from "@/lib/market-jobs/pure";
 
 /**
  * ORDER 514, rule 14b (board 7): a visitor who fits registers in the same
@@ -29,6 +31,15 @@ describe("register in the same window on a market job", () => {
   it("opens it from Recommend me and Register free, never before the check", () => {
     expect(client.match(/setRegistering\(true\)/g)?.length).toBe(2);
     expect(client).toMatch(/verdict\?\.state === "fits"[\s\S]*?setRegistering\(true\)[\s\S]*?Recommend me/);
+  });
+
+  it("sends Sign in to RecOS's window for this job, where a signed-in candidate confirms Recommend me", () => {
+    const href = marketSignInPath("M-12");
+    const next = new URL(href, "https://www.arbeidmatch.no").searchParams.get("next");
+    expect(href.startsWith("/candidate-login?")).toBe(true);
+    expect(next).toBe("/candidate/jobs?filter=opportunities&job=M-12");
+    expect(safeNext(next)).toBe(next);
+    expect(client).toContain("window.location.assign(marketSignInPath(id))");
   });
 
   it("keeps the gate's own page laid out as before", () => {

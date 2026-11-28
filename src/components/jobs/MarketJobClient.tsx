@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { CreateProfile } from "@/components/candidate-login/CandidateLoginScreen";
 import { Icon } from "@/components/site/Icon";
-import { marketJobPath, PASS_REASONS, REPORT_REASONS, type MarketEventInput } from "@/lib/market-jobs/pure";
+import { marketJobPath, marketSignInPath, PASS_REASONS, REPORT_REASONS, type MarketEventInput } from "@/lib/market-jobs/pure";
 import type { FitAnswer, FitQuestion } from "@/lib/market-jobs/types";
 import { workingDays } from "@/lib/numbers";
 
@@ -128,8 +128,6 @@ export function CheckSourceButton({ id, url }: { id: string; url: string }) {
   );
 }
 
-const SIGN_IN = (id: string) => `/candidate-login?job=${encodeURIComponent(id)}`;
-
 /**
  * Register in the same window (ORDER 514, rule 14b; board 7): the one entry
  * gate, drawn inside the job's window, with the job as its source. The letter
@@ -140,7 +138,7 @@ function RegisterHere({ id }: { id: string }) {
   return (
     <>
       <p className="mj-reg-lead">Register free with your e-mail. We send you a link to confirm it and finish your profile; this job is saved with it.</p>
-      <CreateProfile lang="en" params={new URLSearchParams({ job: id })} onSignIn={() => window.location.assign(SIGN_IN(id))} embedded />
+      <CreateProfile lang="en" params={new URLSearchParams({ job: id })} onSignIn={() => window.location.assign(marketSignInPath(id))} embedded />
     </>
   );
 }
