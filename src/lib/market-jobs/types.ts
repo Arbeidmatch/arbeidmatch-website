@@ -18,6 +18,8 @@ export type MarketSiteCard = {
   zone: string | null;
   employer: "local employer";
   pay: string | null;
+  /** Rule 2: no pay in the advert, the legal minimum with its level and source. Absent from an ATS that predates it. */
+  payFloor?: StartingPay | null;
   perks: string[];
   englishWorks: boolean;
   experienceInsteadOfCertificate: boolean;
@@ -27,6 +29,8 @@ export type MarketSiteCard = {
   postedAt: string | null;
   recruitmentOnly: boolean;
 };
+
+export type StartingPay = { label: string; level: string; source: { text: string; url: string } };
 
 export type MarketSiteDetail = MarketSiteCard & {
   requirements: string[];

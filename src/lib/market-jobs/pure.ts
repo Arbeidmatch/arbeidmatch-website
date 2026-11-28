@@ -131,7 +131,7 @@ export function marketCardView(card: MarketSiteCard, listPrivateTest = false): M
     placeLine: [...where, "local employer"].join(", "),
     idLine: `Job ID ${card.id}`,
     applyBy: card.applyBy?.trim() || null,
-    pay: card.pay?.trim() || null,
+    pay: card.pay?.trim() || card.payFloor?.label?.trim() || null,
     perks: card.perks.filter((p) => typeof p === "string" && p.trim()).slice(0, 3),
     badges,
     privateTest: listPrivateTest || card.privateTest,

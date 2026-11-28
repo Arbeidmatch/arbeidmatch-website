@@ -168,6 +168,14 @@ export default async function MarketJobPage({ params }: Props) {
                 <dt>Pay</dt>
                 <dd>{v.pay ?? "Discussed at the interview"}</dd>
               </dl>
+              {!job.pay && job.payFloor ? (
+                <p className="mj-floor">
+                  {job.payFloor.level} Source:{" "}
+                  <a href={job.payFloor.source.url} target="_blank" rel="noopener noreferrer">
+                    {job.payFloor.source.text}
+                  </a>
+                </p>
+              ) : null}
               <div className="mj-btns">
                 <RecommendButton id={job.id} fit={job.fit} />
                 {job.checkSourceUrl ? <CheckSourceButton id={job.id} url={job.checkSourceUrl} /> : null}

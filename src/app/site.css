@@ -642,6 +642,8 @@
 .ams .mj-row dt{color:var(--soft);font-weight:700}
 .ams .mj-row dd{margin:0}
 .ams .mj-usual{color:var(--soft)}
+.ams .mj-floor{margin:6px 0 0;font-size:14px;line-height:1.5;color:var(--soft)}
+.ams .mj-floor a{color:inherit;text-decoration:underline;text-underline-offset:2px}
 .ams .mj-list{list-style:disc;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 .ams .mj-jobid{font-size:14px;color:var(--soft);padding-top:12px;border-top:1px solid var(--rule)}
 .ams .mj-sim .jgrid{margin-top:20px}

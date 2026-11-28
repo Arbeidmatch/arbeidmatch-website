@@ -110,6 +110,12 @@ describe("a market card in the list", () => {
     expect(marketCardView(card({ pay: "250 NOK/hour" })).pay).toBe("250 NOK/hour");
   });
 
+  it("without pay in the advert, shows the legal minimum when the ATS sends one (rule 2)", () => {
+    const payFloor = { label: "Starting 276.48 NOK/hour", level: "Legal minimum pay in construction.", source: { text: "Arbeidstilsynet", url: "https://www.arbeidstilsynet.no/" } };
+    expect(marketCardView(card({ payFloor })).pay).toBe("Starting 276.48 NOK/hour");
+    expect(marketCardView(card({ pay: "250 NOK/hour", payFloor })).pay).toBe("250 NOK/hour");
+  });
+
   it("marks a private test from the list or the card", () => {
     expect(marketCardView(card()).privateTest).toBe(false);
     expect(marketCardView(card(), true).privateTest).toBe(true);
