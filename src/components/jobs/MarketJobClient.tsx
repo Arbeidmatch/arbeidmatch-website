@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
+import { CreateProfile } from "@/components/candidate-login/CandidateLoginScreen";
 import { Icon } from "@/components/site/Icon";
 import { marketJobPath, PASS_REASONS, REPORT_REASONS, type MarketEventInput } from "@/lib/market-jobs/pure";
 import type { FitAnswer, FitQuestion } from "@/lib/market-jobs/types";
@@ -127,7 +128,22 @@ export function CheckSourceButton({ id, url }: { id: string; url: string }) {
   );
 }
 
-const REGISTER = (id: string) => `/candidate-register?job=${encodeURIComponent(id)}`;
+const SIGN_IN = (id: string) => `/candidate-login?job=${encodeURIComponent(id)}`;
+
+/**
+ * Register in the same window (ORDER 514, rule 14b; board 7): the one entry
+ * gate, drawn inside the job's window, with the job as its source. The letter
+ * confirms the e-mail, the onboarding follows, and RecOS saves the request for
+ * this job with the profile (rule 20), so nobody leaves the page to register.
+ */
+function RegisterHere({ id }: { id: string }) {
+  return (
+    <>
+      <p className="mj-reg-lead">Register free with your e-mail. We send you a link to confirm it and finish your profile; this job is saved with it.</p>
+      <CreateProfile lang="en" params={new URLSearchParams({ job: id })} onSignIn={() => window.location.assign(SIGN_IN(id))} embedded />
+    </>
+  );
+}
 
 type FitState = "idle" | "busy" | "failed" | FitAnswer;
 
@@ -141,6 +157,7 @@ type FitState = "idle" | "busy" | "failed" | FitAnswer;
 function FitDialog({ id, questions, open, onClose }: { id: string; questions: FitQuestion[]; open: boolean; onClose: () => void }) {
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [state, setState] = useState<FitState>("idle");
+  const [registering, setRegistering] = useState(false);
   const left = questions.filter((q) => answers[q.id] === undefined).length;
 
   async function check(next: Record<string, boolean>) {
@@ -185,6 +202,19 @@ function FitDialog({ id, questions, open, onClose }: { id: string; questions: Fi
                 ? `You meet ${verdict.met} of ${total}. We recommend candidates who meet all the requirements of this job. See the jobs that fit what you have.`
                 : "";
 
+  if (registering) {
+    return (
+      <Dialog open={open} onClose={onClose} title="Register free">
+        <RegisterHere id={id} />
+        <div className="mj-dlg-a">
+          <button type="button" className="btn ghost" onClick={() => setRegistering(false)}>
+            Back
+          </button>
+        </div>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onClose={onClose} title="Check if I fit">
       <ol className="mj-fit">
@@ -222,13 +252,20 @@ function FitDialog({ id, questions, open, onClose }: { id: string; questions: Fi
           Close
         </button>
         {verdict?.state === "fits" ? (
-          <a className="btn gold" href={REGISTER(id)} onClick={() => void postEvent(id, { kind: "recommend" })}>
+          <button
+            type="button"
+            className="btn gold"
+            onClick={() => {
+              void postEvent(id, { kind: "recommend" });
+              setRegistering(true);
+            }}
+          >
             Recommend me
-          </a>
+          </button>
         ) : verdict?.state === "add" ? (
-          <a className="btn gold" href={REGISTER(id)}>
+          <button type="button" className="btn gold" onClick={() => setRegistering(true)}>
             Register free
-          </a>
+          </button>
         ) : verdict?.state === "jobs_that_fit" ? (
           <a className="btn navy" href="/jobs">
             Jobs that fit me
@@ -239,14 +276,28 @@ function FitDialog({ id, questions, open, onClose }: { id: string; questions: Fi
   );
 }
 
-/** Recommend me opens Check if I fit first (rule 13); a job without stated requirements goes straight to registration. */
+/** Recommend me opens Check if I fit first (rule 13); a job without stated requirements opens the registration in the same window. */
 export function RecommendButton({ id, fit = [], className = "btn gold", label = "Recommend me" }: { id: string; fit?: FitQuestion[]; className?: string; label?: string }) {
   const [open, setOpen] = useState(false);
   if (!fit.length) {
     return (
-      <a className={className} href={REGISTER(id)} onClick={() => void postEvent(id, { kind: "recommend" })}>
-        {label}
-      </a>
+      <>
+        <button
+          type="button"
+          className={className}
+          onClick={() => {
+            void postEvent(id, { kind: "recommend" });
+            setOpen(true);
+          }}
+        >
+          {label}
+        </button>
+        {open ? (
+          <Dialog open={open} onClose={() => setOpen(false)} title="Register free">
+            <RegisterHere id={id} />
+          </Dialog>
+        ) : null}
+      </>
     );
   }
   return (

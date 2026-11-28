@@ -448,7 +448,12 @@ function SignIn(props: { lang: LoginLang; params: URLSearchParams | null; gate: 
   );
 }
 
-function CreateProfile({ lang, params, onSignIn }: { lang: LoginLang; params: URLSearchParams | null; onSignIn: () => void }) {
+/**
+ * The create face, also drawn inside a market job's Check if I fit window
+ * (ORDER 514, board 7): `embedded` drops the page heading, and the job rides
+ * in `params` as the source, so the request is saved with the profile.
+ */
+export function CreateProfile({ lang, params, onSignIn, embedded = false }: { lang: LoginLang; params: URLSearchParams | null; onSignIn: () => void; embedded?: boolean }) {
   const t = TEXTS[lang];
   const [rule, setRule] = useState<GateCitizenshipRule>(DEFAULT_CITIZENSHIP_RULE);
   const [citizenship, setCitizenship] = useState<GateCitizenship>("eu_eea");
@@ -520,8 +525,8 @@ function CreateProfile({ lang, params, onSignIn }: { lang: LoginLang; params: UR
   }
 
   return (
-    <>
-      <Head title={t.createTitle} sub={t.createSub} />
+    <div className={embedded ? styles.embed : styles.contents}>
+      {embedded ? null : <Head title={t.createTitle} sub={t.createSub} />}
       <form className={styles.form} onSubmit={submit} noValidate>
         <fieldset className={styles.field} style={{ border: 0, margin: 0, padding: 0 }}>
           <legend className={styles.label} style={{ marginBottom: "0.5rem" }}>
@@ -594,6 +599,6 @@ function CreateProfile({ lang, params, onSignIn }: { lang: LoginLang; params: UR
           {t.signIn}
         </button>
       </div>
-    </>
+    </div>
   );
 }
