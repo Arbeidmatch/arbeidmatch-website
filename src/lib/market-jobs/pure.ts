@@ -191,6 +191,36 @@ export function filterMarketSearch(cards: MarketSiteCard[], search: string, loca
   });
 }
 
+/** Check my pay: the week the visitor picks. A rotation averages full time over its period. */
+export type PayWeek = 37.5 | 40 | 45 | "rotation";
+export const PAY_WEEKS: Array<{ key: PayWeek; label: string }> = [
+  { key: 37.5, label: "37.5 h a week" },
+  { key: 40, label: "40 h a week" },
+  { key: 45, label: "45 h a week" },
+  { key: "rotation", label: "2 weeks on, 2 off" },
+];
+
+/** Working Environment Act: ordinary hours end at 40 a week, overtime above them is paid at least 40 % extra. */
+const ORDINARY_WEEK = 40;
+const OVERTIME_EXTRA = 0.4;
+
+/**
+ * Check my pay (ORDER 514, board 3): the month before tax at the legal minimum
+ * for the week picked, rounded to 100 NOK. Only the rate the owner keeps in
+ * Settings and the law's overtime rule go into it; nothing is estimated.
+ */
+export function payMonth(rate: number, week: PayWeek): { hours: number; overtime: number; month: number } {
+  const hours = week === "rotation" ? 37.5 : week;
+  const overtime = Math.max(0, hours - ORDINARY_WEEK);
+  const weekPay = (hours - overtime) * rate + overtime * rate * (1 + OVERTIME_EXTRA);
+  return { hours, overtime, month: Math.round((weekPay * 52) / 12 / 100) * 100 };
+}
+
+/** 48050 as "48 050", the way the boards write money. */
+export function spacedNumber(n: number): string {
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
 const FIT_ID = /^(r[1-9]|lang)$/;
 
 /** The answers of Check if I fit: only known question ids, only true or false; anything else is dropped. */

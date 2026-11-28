@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { MarketJobCard } from "@/components/jobs/MarketJobCard";
 import {
+  CheckMyPayButton,
   CheckSourceButton,
   MarketActionRail,
   MarketViewBeacon,
@@ -178,6 +179,7 @@ export default async function MarketJobPage({ params }: Props) {
               ) : null}
               <div className="mj-btns">
                 <RecommendButton id={job.id} fit={job.fit} />
+                {job.legalMinimum ? <CheckMyPayButton id={job.id} title={job.title} place={job.zone ?? job.place} minimum={job.legalMinimum} fit={job.fit} /> : null}
                 {job.checkSourceUrl ? <CheckSourceButton id={job.id} url={job.checkSourceUrl} /> : null}
               </div>
             </div>

@@ -665,6 +665,17 @@
 .ams .mj-dlg-t{font:800 22px/1.25 var(--font-sans),"Plus Jakarta Sans",system-ui,sans-serif}
 .ams .mj-dlg-a{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:12px;margin-top:8px}
 .ams .mj-dlg .btn[disabled]{opacity:.5;cursor:not-allowed}
+.ams .mj-pay-lead{font-size:14px;color:var(--soft)}
+.ams .mj-weeks{display:flex;flex-wrap:wrap;gap:8px}
+.ams .mj-weeks .btn{min-height:44px;border-radius:999px}
+.ams .mj-paybox{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:16px;border-radius:12px;background:var(--paper);box-shadow:0 0 0 1px var(--rule)}
+.ams .mj-paycap{font-size:14px;font-weight:700;color:var(--goldink)}
+.ams .mj-paynum{font-size:22px}
+.ams .mj-paywide{grid-column:1/-1;margin:0;font-size:14px;line-height:1.5}
+.ams .mj-paywide a,.ams .mj-paylink{color:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.ams .mj-paynote{color:var(--soft)}
+.ams .mj-pay-a{align-items:center}
+.ams .mj-paylink{margin-right:auto;display:inline-flex;align-items:center;min-height:44px;font-size:14px}
 .ams .mj-reasons{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
 .ams .mj-reason{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:12px;cursor:pointer}
 .ams .mj-reason:hover{background:var(--paper)}

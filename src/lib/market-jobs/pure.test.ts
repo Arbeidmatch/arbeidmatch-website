@@ -7,7 +7,9 @@ import {
   isMarketId,
   marketCardView,
   mergeNewestFirst,
+  payMonth,
   safePreviewNext,
+  spacedNumber,
   validateEventBody,
 } from "./pure";
 import type { MarketSiteCard } from "./types";
@@ -154,5 +156,28 @@ describe("cleanFitAnswers", () => {
   it("answers nothing for a bad body", () => {
     expect(cleanFitAnswers(null)).toEqual({});
     expect(cleanFitAnswers({ answers: [true] })).toEqual({});
+  });
+});
+
+describe("payMonth (Check my pay)", () => {
+  it("full time at the construction minimum, rounded to 100 NOK", () => {
+    // 37.5 h x 276.48 x 52 / 12 = 44 928
+    expect(payMonth(276.48, 37.5)).toEqual({ hours: 37.5, overtime: 0, month: 44900 });
+  });
+
+  it("pays hours above 40 a week at 40 % extra, never the hours up to 40", () => {
+    expect(payMonth(100, 40).overtime).toBe(0);
+    // (40 x 100 + 5 x 140) x 52 / 12 = 20 367
+    expect(payMonth(100, 45)).toEqual({ hours: 45, overtime: 5, month: 20400 });
+  });
+
+  it("a rotation averages full time", () => {
+    expect(payMonth(276.48, "rotation")).toEqual(payMonth(276.48, 37.5));
+  });
+
+  it("writes money with a space between thousands", () => {
+    expect(spacedNumber(44900)).toBe("44 900");
+    expect(spacedNumber(900)).toBe("900");
+    expect(spacedNumber(1234567)).toBe("1 234 567");
   });
 });

@@ -30,7 +30,8 @@ export type MarketSiteCard = {
   recruitmentOnly: boolean;
 };
 
-export type StartingPay = { label: string; level: string; source: { text: string; url: string } };
+/** rate and validFrom feed Check my pay; absent from an ATS that predates it. */
+export type StartingPay = { label: string; level: string; rate?: number; validFrom?: string; source: { text: string; url: string } };
 
 export type MarketSiteDetail = MarketSiteCard & {
   requirements: string[];
@@ -44,6 +45,8 @@ export type MarketSiteDetail = MarketSiteCard & {
   checkSourceUrl: string | null;
   /** Check if I fit: one yes-or-no question per requirement. Absent from an ATS that predates it. */
   fit?: FitQuestion[];
+  /** Check my pay: the trade's legal minimum, also when the advert names pay. Absent from an ATS that predates it. */
+  legalMinimum?: StartingPay | null;
   similar: MarketSiteCard[];
 };
 

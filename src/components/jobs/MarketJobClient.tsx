@@ -4,8 +4,8 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { CreateProfile } from "@/components/candidate-login/CandidateLoginScreen";
 import { Icon } from "@/components/site/Icon";
-import { marketJobPath, marketSignInPath, PASS_REASONS, REPORT_REASONS, type MarketEventInput } from "@/lib/market-jobs/pure";
-import type { FitAnswer, FitQuestion } from "@/lib/market-jobs/types";
+import { marketJobPath, marketSignInPath, PASS_REASONS, PAY_WEEKS, payMonth, REPORT_REASONS, spacedNumber, type MarketEventInput, type PayWeek } from "@/lib/market-jobs/pure";
+import type { FitAnswer, FitQuestion, StartingPay } from "@/lib/market-jobs/types";
 import { workingDays } from "@/lib/numbers";
 
 /**
@@ -87,6 +87,85 @@ function Dialog({ open, onClose, title, children }: { open: boolean; onClose: ()
         {children}
       </div>
     </dialog>
+  );
+}
+
+const WORKING_TIME_URL = "https://www.arbeidstilsynet.no/arbeidstid-og-organisering/arbeidstid/";
+
+function rateText(rate: number): string {
+  return Number.isInteger(rate) ? String(rate) : rate.toFixed(2);
+}
+
+/**
+ * Check my pay (board 3): the month the legal minimum gives for the week the
+ * visitor picks. Shown only when RecOS sends the trade's rate; the rate is the
+ * one the owner keeps in Settings, and nothing else is estimated.
+ */
+export function CheckMyPayButton({ id, title, place, minimum, fit = [] }: { id: string; title: string; place: string | null; minimum: StartingPay; fit?: FitQuestion[] }) {
+  const [open, setOpen] = useState(false);
+  const [week, setWeek] = useState<PayWeek>(37.5);
+  const rate = Number(minimum.rate);
+  if (!Number.isFinite(rate) || rate <= 0) return null;
+  const pay = payMonth(rate, week);
+  const note =
+    week === "rotation"
+      ? "Rotation such as 2 weeks on, 2 weeks off works through a collective agreement or an approval from Arbeidstilsynet. Over the period it averages full time, so the monthly pay matches full time."
+      : pay.overtime > 0
+        ? `Includes ${pay.overtime} h overtime a week at the legal 40 % extra.`
+        : `${pay.hours} hours a week.`;
+  return (
+    <>
+      <button type="button" className="btn navy" onClick={() => setOpen(true)}>
+        Check my pay
+      </button>
+      <Dialog open={open} onClose={() => setOpen(false)} title="What this role pays you">
+        <p className="mj-pay-lead">{[title, place].filter(Boolean).join(", ")}. Choose your hours.</p>
+        <div className="mj-weeks" role="group" aria-label="Hours a week">
+          {PAY_WEEKS.map((option) => (
+            <button
+              key={option.label}
+              type="button"
+              className={`btn ${week === option.key ? "navy" : "ghost"}`}
+              aria-pressed={week === option.key}
+              onClick={() => setWeek(option.key)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <div className="mj-paybox" aria-live="polite">
+          <div>
+            <div className="mj-paycap">Legal minimum for you</div>
+            <b className="mj-paynum">{rateText(rate)} NOK/hour</b>
+          </div>
+          <div>
+            <div className="mj-paycap">Per month, before tax</div>
+            <b className="mj-paynum">about {spacedNumber(pay.month)} NOK</b>
+          </div>
+          <p className="mj-paywide">
+            <b>Working time in Norway:</b> up to 40 hours a week, often 37.5 by agreement. With a written agreement, days of up to 10 hours; with a
+            collective agreement, up to 12.5 hours. Overtime up to 10 hours a week, paid at least 40 % extra. Source:{" "}
+            <a href={WORKING_TIME_URL} target="_blank" rel="noopener noreferrer">
+              Arbeidstilsynet, working time
+            </a>
+            .
+          </p>
+          <p className="mj-paywide mj-paynote">
+            {note} Holiday pay of at least 10.2 % comes on top. {minimum.source.text}. The employer agrees the exact pay with you, at this level or
+            higher.
+          </p>
+        </div>
+        <div className="mj-dlg-a mj-pay-a">
+          <a className="mj-paylink" href={minimum.source.url} target="_blank" rel="noopener noreferrer">
+            See the rates
+          </a>
+          <RecommendButton id={id} fit={fit} />
+          <button type="button" className="btn navy" onClick={() => setOpen(false)}>
+            Close
+          </button>
+        </div>
+      </Dialog>
+    </>
   );
 }
 
