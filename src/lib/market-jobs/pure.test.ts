@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  cleanFitAnswers,
   cleanPreviewToken,
   filterMarketSearch,
   isMarketId,
@@ -137,5 +138,15 @@ describe("mixing the lists", () => {
     expect(filterMarketSearch(cards, "murer", "").map((c) => c.id)).toEqual(["M-2"]);
     expect(filterMarketSearch(cards, "", "raelingen").map((c) => c.id)).toEqual(["M-12"]);
     expect(filterMarketSearch(cards, "carpenter", "Trondheim")).toEqual([]);
+  });
+});
+
+describe("cleanFitAnswers", () => {
+  it("keeps only known ids with true or false", () => {
+    expect(cleanFitAnswers({ answers: { r1: true, r2: false, lang: true, r9: "yes", x: true, __proto__: true } })).toEqual({ r1: true, r2: false, lang: true });
+  });
+  it("answers nothing for a bad body", () => {
+    expect(cleanFitAnswers(null)).toEqual({});
+    expect(cleanFitAnswers({ answers: [true] })).toEqual({});
   });
 });

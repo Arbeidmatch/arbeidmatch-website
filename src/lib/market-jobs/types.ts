@@ -38,6 +38,8 @@ export type MarketSiteDetail = MarketSiteCard & {
   travelToNorway: { text: string; usual: string | null };
   start: string;
   checkSourceUrl: string | null;
+  /** Check if I fit: one yes-or-no question per requirement. Absent from an ATS that predates it. */
+  fit?: FitQuestion[];
   similar: MarketSiteCard[];
 };
 
@@ -46,3 +48,7 @@ export type MarketJobsList = { jobs: MarketSiteCard[]; privateTest: boolean; sta
 export type MarketEventKind = "view" | "keep" | "interested" | "pass" | "send" | "recommend" | "check_source" | "report";
 export type PassReason = "pay" | "place" | "trade" | "language" | "housing" | "other";
 export type ReportReason = "fee" | "fraud" | "unavailable" | "wrong_info" | "below_minimum" | "discrimination" | "other";
+
+export type FitQuestion = { id: string; text: string; addable: "certificate" | "language" | null };
+export type FitVerdict = { state: "fits" | "add" | "jobs_that_fit" | "unanswered"; met: number; total: number; toAdd: string[] };
+export type FitAnswer = { verdict: FitVerdict; jobsThatFit: MarketSiteCard[] };

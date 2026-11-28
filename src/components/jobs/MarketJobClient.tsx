@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { Icon } from "@/components/site/Icon";
 import { marketJobPath, PASS_REASONS, REPORT_REASONS, type MarketEventInput } from "@/lib/market-jobs/pure";
+import type { FitAnswer, FitQuestion } from "@/lib/market-jobs/types";
 import { workingDays } from "@/lib/numbers";
 
 /**
@@ -126,12 +127,135 @@ export function CheckSourceButton({ id, url }: { id: string; url: string }) {
   );
 }
 
-/** Recommend me: for now the site's own registration, with the job named, and the press counted. */
-export function RecommendButton({ id, className = "btn gold" }: { id: string; className?: string }) {
+const REGISTER = (id: string) => `/candidate-register?job=${encodeURIComponent(id)}`;
+
+type FitState = "idle" | "busy" | "failed" | FitAnswer;
+
+/**
+ * Check if I fit (ORDER 514, rules 13, 14 and 20; board 3): a yes or no for each
+ * requirement of the job. RecOS answers the button: all met, Recommend me (the
+ * visitor registers with the job named); missing only what can be added on the
+ * spot, register and add it; anything else, Jobs that fit me and no
+ * recommendation for this job.
+ */
+function FitDialog({ id, questions, open, onClose }: { id: string; questions: FitQuestion[]; open: boolean; onClose: () => void }) {
+  const [answers, setAnswers] = useState<Record<string, boolean>>({});
+  const [state, setState] = useState<FitState>("idle");
+  const left = questions.filter((q) => answers[q.id] === undefined).length;
+
+  async function check(next: Record<string, boolean>) {
+    if (questions.some((q) => next[q.id] === undefined)) {
+      setState("idle");
+      return;
+    }
+    setState("busy");
+    try {
+      const res = await fetch(`/api/market-jobs/${encodeURIComponent(id)}/fit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers: next }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      setState((await res.json()) as FitAnswer);
+    } catch {
+      setState("failed");
+    }
+  }
+
+  function answer(qid: string, yes: boolean) {
+    const next = { ...answers, [qid]: yes };
+    setAnswers(next);
+    void check(next);
+  }
+
+  const verdict = typeof state === "object" ? state.verdict : null;
+  const total = questions.length;
+  const result =
+    state === "failed"
+      ? "We could not check right now. Try again in a moment."
+      : state === "busy"
+        ? "Checking..."
+        : left > 0
+          ? `Answer the ${left} question${left === 1 ? "" : "s"} left to see your result.`
+          : verdict?.state === "fits"
+            ? `You meet all ${total} requirements. Press Recommend me.`
+            : verdict?.state === "add"
+              ? `You meet ${verdict.met} of ${total}. What is missing can be added to your profile: register free, add it, and we check again.`
+              : verdict
+                ? `You meet ${verdict.met} of ${total}. We recommend candidates who meet all the requirements of this job. See the jobs that fit what you have.`
+                : "";
+
   return (
-    <a className={className} href={`/candidate-register?job=${encodeURIComponent(id)}`} onClick={() => void postEvent(id, { kind: "recommend" })}>
-      Recommend me
-    </a>
+    <Dialog open={open} onClose={onClose} title="Check if I fit">
+      <ol className="mj-fit">
+        {questions.map((q) => (
+          <li key={q.id}>
+            <p>{q.text}</p>
+            <div className="mj-fit-a" role="group" aria-label={q.text}>
+              <button type="button" className={`btn ${answers[q.id] === true ? "navy" : "ghost"}`} aria-pressed={answers[q.id] === true} onClick={() => answer(q.id, true)}>
+                Yes
+              </button>
+              <button type="button" className={`btn ${answers[q.id] === false ? "navy" : "ghost"}`} aria-pressed={answers[q.id] === false} onClick={() => answer(q.id, false)}>
+                No
+              </button>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className={`mj-fit-r${verdict?.state === "fits" ? " ok" : ""}`} role="status" aria-live="polite">
+        {result}
+      </p>
+      {verdict?.state === "jobs_that_fit" && typeof state === "object" && state.jobsThatFit.length ? (
+        <ul className="mj-fit-jobs">
+          {state.jobsThatFit.map((j) => (
+            <li key={j.id}>
+              <a href={marketJobPath(j.id)}>
+                {j.title}
+                {j.place ? `, ${j.place}` : ""}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <div className="mj-dlg-a">
+        <button type="button" className="btn ghost" onClick={onClose}>
+          Close
+        </button>
+        {verdict?.state === "fits" ? (
+          <a className="btn gold" href={REGISTER(id)} onClick={() => void postEvent(id, { kind: "recommend" })}>
+            Recommend me
+          </a>
+        ) : verdict?.state === "add" ? (
+          <a className="btn gold" href={REGISTER(id)}>
+            Register free
+          </a>
+        ) : verdict?.state === "jobs_that_fit" ? (
+          <a className="btn navy" href="/jobs">
+            Jobs that fit me
+          </a>
+        ) : null}
+      </div>
+    </Dialog>
+  );
+}
+
+/** Recommend me opens Check if I fit first (rule 13); a job without stated requirements goes straight to registration. */
+export function RecommendButton({ id, fit = [], className = "btn gold", label = "Recommend me" }: { id: string; fit?: FitQuestion[]; className?: string; label?: string }) {
+  const [open, setOpen] = useState(false);
+  if (!fit.length) {
+    return (
+      <a className={className} href={REGISTER(id)} onClick={() => void postEvent(id, { kind: "recommend" })}>
+        {label}
+      </a>
+    );
+  }
+  return (
+    <>
+      <button type="button" className={className} onClick={() => setOpen(true)}>
+        {label}
+      </button>
+      {open ? <FitDialog id={id} questions={fit} open={open} onClose={() => setOpen(false)} /> : null}
+    </>
   );
 }
 

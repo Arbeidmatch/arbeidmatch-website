@@ -169,7 +169,7 @@ export default async function MarketJobPage({ params }: Props) {
                 <dd>{v.pay ?? "Discussed at the interview"}</dd>
               </dl>
               <div className="mj-btns">
-                <RecommendButton id={job.id} />
+                <RecommendButton id={job.id} fit={job.fit} />
                 {job.checkSourceUrl ? <CheckSourceButton id={job.id} url={job.checkSourceUrl} /> : null}
               </div>
             </div>
@@ -209,7 +209,8 @@ export default async function MarketJobPage({ params }: Props) {
                 </li>
               </ol>
               <div className="mj-btns">
-                <RecommendButton id={job.id} className="btn navy" />
+                <RecommendButton id={job.id} fit={job.fit} className="btn ghost" label="Check if I fit" />
+                <RecommendButton id={job.id} fit={job.fit} className="btn navy" />
               </div>
             </div>
 
@@ -258,7 +259,7 @@ export default async function MarketJobPage({ params }: Props) {
           {v.pay ?? "Pay discussed at the interview"}
           <small>{v.placeLine}</small>
         </span>
-        <RecommendButton id={job.id} />
+        <RecommendButton id={job.id} fit={job.fit} />
       </div>
     </main>
   );

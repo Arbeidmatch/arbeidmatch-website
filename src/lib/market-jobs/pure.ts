@@ -180,3 +180,16 @@ export function filterMarketSearch(cards: MarketSiteCard[], search: string, loca
     return words.every((w) => text.includes(w)) && (!town || where.includes(town));
   });
 }
+
+const FIT_ID = /^(r[1-9]|lang)$/;
+
+/** The answers of Check if I fit: only known question ids, only true or false; anything else is dropped. */
+export function cleanFitAnswers(body: unknown): Record<string, boolean> {
+  const raw = body && typeof body === "object" ? (body as { answers?: unknown }).answers : null;
+  const out: Record<string, boolean> = {};
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (FIT_ID.test(k) && typeof v === "boolean") out[k] = v;
+  }
+  return out;
+}

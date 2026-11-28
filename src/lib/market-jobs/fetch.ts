@@ -96,3 +96,26 @@ export async function postMarketEvent(
     return { status: 503, body: { error: "unreachable" } };
   }
 }
+
+/**
+ * Check if I fit, server to server with the shared secret: the visitor's yes and
+ * no go to RecOS, which answers the button to show. Nothing that names the
+ * visitor is sent.
+ */
+export async function postMarketFit(id: string, answers: Record<string, boolean>, token: string | null): Promise<MarketEventResult> {
+  const secret = portalSecret();
+  if (!secret) return { status: 503, body: { error: "not_configured" } };
+  try {
+    const res = await fetch(`${atsBaseUrl()}/api/public/market-jobs/${encodeURIComponent(id)}/fit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-arbeidmatch-website-secret": secret, ...previewHeaders(token) },
+      body: JSON.stringify({ answers }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(8_000),
+    });
+    const body = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+    return { status: res.status, body: body ?? { error: "bad_answer" } };
+  } catch {
+    return { status: 503, body: { error: "unreachable" } };
+  }
+}
